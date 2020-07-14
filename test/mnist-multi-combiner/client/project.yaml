@@ -1,0 +1,32 @@
+Project:
+  project_name: testar
+  project_slug: testar-rkq
+access_key: FCT11uK7px2YkphBYMbh
+auth_url: https://3.231.229.94.nip.io/api/api-token-auth
+so_domain_name: 3.231.229.94.nip.io
+token: c22e37c212e140efa23fc391dff87cf2ce25d27d
+username: andreas
+
+Alliance:
+  alliance_name: testalliance
+  alliance_uid: a1bdd2282-930a-44a8-96a3-15c05b5b34cb
+  controller_host: combiner
+  controller_port: 12080
+
+  Repository:
+    minio_host: minio
+    minio_port: 9000
+    minio_bucket: alliance
+    minio_access_key: minio
+    minio_secret_key: minio123
+    minio_secure_mode: False
+  
+  Member:
+    name: client1
+    entry_points:
+      predict:
+        command: python3 predict.py
+      train:
+        command: python3 train.py
+      validate:
+        command: python3 validate.py

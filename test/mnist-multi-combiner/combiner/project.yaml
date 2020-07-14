@@ -1,0 +1,82 @@
+#auth_url: https://studio.k8s-prod.pharmb.io/api/api-token-auth
+#auth_url: https://platform.demo.scaleoutsystems.com/api/api-token-auth
+auth_url: http://platform.stacken.akkelis.com/api/api-token-auth
+username: combiner
+access_key: combiner
+password: Vy4NzooFOp2Y8qhMpFVatfzA7gbQuKVpuI2rMYQ2oLQ
+so_domain_name: platform.stacken.akkelis.com
+#so_domain_name: demo.scaleoutsystems.com
+#so_domain_name: k8s-prod.pharmb.io
+
+Project:
+  project_name: TestProject
+  project_id:
+
+Alliance:
+  alliance_name: testalliance
+  controller_host: combiner
+  controller_port: 12080
+
+  Repository:
+    minio_host: minio
+    minio_port: 9000
+    minio_bucket: alliance
+    minio_access_key: minio
+    minio_secret_key: minio123
+    minio_secure_mode: False
+
+  Member:
+    name: combiner
+    entry_points:
+      predict:
+        command: python3 predict.py
+      train:
+        command: python3 train.py
+      validate:
+        command: python3 validate.py
+
+Alliance:
+  alliance_name: testalliance
+  controller_host: combiner2
+  controller_port: 12080
+
+  Repository:
+    minio_host: minio
+    minio_port: 9000
+    minio_bucket: alliance
+    minio_access_key: minio
+    minio_secret_key: minio123
+    minio_secure_mode: False
+
+  Member:
+    name: combiner
+    entry_points:
+      predict:
+        command: python3 predict.py
+      train:
+        command: python3 train.py
+      validate:
+        command: python3 validate.py
+
+Alliance:
+  alliance_name: testalliance
+  controller_host: combiner3
+  controller_port: 12080
+
+  Repository:
+    minio_host: minio
+    minio_port: 9000
+    minio_bucket: alliance
+    minio_access_key: minio
+    minio_secret_key: minio123
+    minio_secure_mode: False
+
+  Member:
+    name: combiner
+    entry_points:
+      predict:
+        command: python3 predict.py
+      train:
+        command: python3 train.py
+      validate:
+        command: python3 validate.py

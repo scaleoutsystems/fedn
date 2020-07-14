@@ -1,0 +1,1 @@
+# MNIST test project
