@@ -15,13 +15,13 @@ FEDn is an open source collaborative AI platform for federated machine learning.
 The easiest way to start developing on FEDn is to use docker-compose to launch a sandbox environment. with one controller, one monitor, one client and the FedAvg orchestrator. Test projects that can be deployed are specified in this repository in the 'test' folder. 
 
 1. Create a .env file and set the following variables.
-
+```yaml
 EXAMPLE=mnist
 ALLIANCE_UID=ac435faef-c2df-442e-b349-7f633d3d5523
 CLIENT_NAME_BASE=client-fedn1-
 MDBUSR=
 MDBPWD=
-
+```
 (Choose admin username and password for MongoDB)
 
 > you can set EXAMPLE with whatever example you are working on imported with base path from test/your_example
