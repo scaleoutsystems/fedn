@@ -1,0 +1,50 @@
+{% extends 'baseproject.html' %}
+
+{% block content %}
+<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2>Alliance - Event log</h2>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Command</th>
+                <th>Payload</th>
+                <th>More info</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for request in requests %}
+            <tr>
+                <td></td>
+                <td>{{ request.client }}</td>
+                <td>
+                    {% if request.command == 0 %}
+                    Connect
+                    {% elif request.command == 1 %}
+                    Train
+                    {% elif request.command == 2 %}
+                    Validate
+                    {% elif request.command == 3 %}
+                    Vote
+                    {% elif request.command == 4 %}
+                    GlobalModel
+                    {% elif request.command == 5 %}
+                    Model
+                    {% elif request.command == 6 %}
+                    Score
+                    {% endif %}
+                </td>
+                <td>{{ request.payload }}</td>
+                <td>{{ request.extra }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}

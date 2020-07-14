@@ -1,0 +1,29 @@
+{% extends 'baseproject.html' %}
+{% block content %}
+<main role="main" class="col-md-7 col-rg-7 ">
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2>Alliance Admin</h2>
+
+    </div>
+
+    <div class="row">
+        <form action="{% url 'alliance_admin:create' request.user project.slug %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="model">Start a alliance session</label>
+                <label for="model">Seed Model</label>
+                <select name="model" class="form-control">
+                    {% for model in models %}
+                    <option value="{{ model.uid }}">UID: {{ model.uid }} Name:{{ model.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+    </div>
+
+</main>
+{% endblock %}

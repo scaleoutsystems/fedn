@@ -1,0 +1,4 @@
+include README.rst
+include LICENSE
+recursive/include alliance_admin/static *
+recursive/include alliance_admin/templates *

@@ -1,0 +1,63 @@
+version: '3.7'
+
+services:
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    environment:
+      - GET_HOSTS_FROM=dns
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    ports:
+      - 9000:9000
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MDBUSR}
+      MONGO_INITDB_ROOT_PASSWORD: ${MDBPWD}
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MDBUSR}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MDBPWD}
+
+  monitor:
+    image: "scaleoutsystems/monitor:latest"
+    build:
+      context: .
+      dockerfile: components/monitor/Dockerfile
+    environment:
+      - GET_HOSTS_FROM=dns
+      - MONITOR_HOST=combiner
+      - MONITOR_PORT=12080
+      - USER=test
+      - PROJECT=project
+      - ALLIANCE_UID=${ALLIANCE_UID}
+    command: bash -c "sleep 5 && python monitor.py"
+    volumes:
+      - ./components/monitor/:/app/
+      - ./sdk:/app/sdk
+      - ./cli:/app/cli
+
+volumes:
+  # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
+  minio-data:

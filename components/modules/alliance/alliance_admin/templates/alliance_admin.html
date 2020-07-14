@@ -1,0 +1,54 @@
+{% extends 'baseproject.html' %}
+{% block content %}
+<main role="main" class="col-md-7 col-rg-7 ">
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h2>Alliance</h2>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{% url 'alliance_admin:create' request.user project.slug %}">
+                <button id="create" class="btn btn-large btn-primary">Add new</button>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for alliance_instance in alliance_instances %}
+        <div class="">
+            <div class="card" style="min-width:600px; margin-bottom:15px;">
+                <div class="card-body">
+                    <h5 class="card-title">Alliance Model</h5>
+                    <h6 class="card-title">ID: {{ alliance_instance.uid }}</h6>
+                    {% if alliance_instance.orchestrator_status == 'running' %}
+
+                    <div class="alert alert-success" role="alert">
+                        <p class="card-text"> Orchestrator is: <b>{{ alliance_instance.orchestrator_status }}</b></p>
+                    </div>
+                    <a href="{% url 'alliance_admin:details' request.user project.slug alliance_instance.uid %}"
+                       class="btn btn-info">Open</a>
+
+                    {% elif alliance_instance.orchestrator_status == 'stopped' %}
+
+                    <div class="alert alert-secondary" role="alert">
+                        <p class="card-text"> Orchestrator is: <b>{{ alliance_instance.orchestrator_status }}</b></p>
+                    </div>
+                    <a href="{% url 'alliance_admin:details' request.user project.slug alliance_instance.uid %}"
+                       class="btn btn-info">Open</a>
+
+
+                    {% else %}
+
+                    <div class="alert alert-secondary" role="alert">
+                        <p class="card-text"> Orchestrator is: <b>{{ alliance_instance.orchestrator_status }}</b></p>
+                    </div>
+                    <a href="{% url 'alliance_admin:details' request.user project.slug alliance_instance.uid %}"
+                       class="btn btn-info">Open</a>
+
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</main>
+{% endblock %}

@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  
+  combiner:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - ALLIANCE_UID=${ALLIANCE_UID}
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: ./seed_and_run.sh
+    volumes:
+      - ./test/${EXAMPLE}/combiner:/app/client
+    #  - ./sdk:/app/sdk
+    #  - ./cli:/app/cli  
+    ports:
+        - 12080:12080
+
+volumes:
+  # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
+  minio-data:

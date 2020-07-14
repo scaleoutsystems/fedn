@@ -1,0 +1,25 @@
+auth_url: https://platform.demo.scaleoutsystems.com/api/api-token-auth
+username: testuser
+access_key: testuser
+password: password
+so_domain_name: demo.scaleoutsystems.com
+
+Project:
+  project_name: testproject
+  project_id: 
+
+Alliance:
+  controller_host: localhost
+  controller_port: 12080
+  minio_host: localhost
+  minio_port: 9000
+  bucket_name: testalliance
+
+  Member:
+    entry_points:
+      predict:
+        command: python3 predict.py
+      train:
+        command: python3 train.py
+      validate:
+        command: python3 validate.py

@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package grpc;
+
+message Response {
+    Client sender = 1;
+    //string client = 1;
+    string response = 2;
+}
+
+enum StatusType {
+  LOG = 0;
+  MODEL_UPDATE_REQUEST = 1;
+  MODEL_UPDATE = 2;
+  MODEL_VALIDATION_REQUEST = 3;
+  MODEL_VALIDATION = 4;
+}
+
+message Status {
+    Client sender = 1;
+    //string client = 1;
+    string status = 2;
+
+    enum LogLevel {
+      INFO  = 0;
+      DEBUG = 1;
+      WARNING = 2;
+      ERROR = 3;
+      AUDIT = 4;
+    }
+
+    LogLevel log_level = 3;
+    string data = 4;
+    string correlation_id = 5;
+    string timestamp = 6;
+    StatusType type = 7;
+    string extra = 8;
+
+}
+
+enum Channel {
+  DEFAULT = 0;
+  MODEL_UPDATE_REQUESTS = 1;
+  MODEL_UPDATES = 2;
+  MODEL_VALIDATION_REQUESTS = 3;
+  MODEL_VALIDATIONS = 4;
+  STATUS = 5; 
+}
+
+message ModelUpdateRequest {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  string timestamp = 6;
+}
+
+message ModelUpdate {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string model_update_id = 4;
+  string correlation_id = 5;
+  string timestamp = 6;
+}
+
+message ModelValidationRequest {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  string timestamp = 6; 
+}
+
+message ModelValidation {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  string timestamp = 6;
+}
+
+message GetGlobalModelRequest {
+  Client sender = 1;
+  Client receiver = 2;
+}
+
+message GetGlobalModelResponse {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+}
+
+message Heartbeat {
+  Client sender = 1;
+}
+
+message ClientAvailableMessage {
+  Client sender = 1;
+  string data = 2;
+  string timestamp = 3;
+}
+
+message ListClientsRequest {
+  Client sender = 1;
+  Channel channel = 2;
+}
+
+message ClientList {
+  repeated Client client = 1;
+}
+
+enum Role {
+  WORKER = 0;
+  COMBINER = 1;
+  REDUCER = 2;
+  OTHER = 3;
+}
+
+message Client {
+  Role role = 1;
+  string name = 2;
+}
+
+message ReassignRequest {
+  Client sender = 1;
+  Client receiver = 2;
+  string server = 3 ;
+  uint32 port = 4;
+
+}
+
+message ReconnectRequest {
+  Client sender = 1;
+  Client receiver = 2;
+  uint32 reconnect = 3 ;
+}
+
+service Reducer {
+  rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
+}
+
+service Connector {
+    // Stream endpoint for status updates
+    rpc AllianceStatusStream (ClientAvailableMessage) returns (stream Status);
+
+    // Report endpoint
+    rpc SendStatus (Status) returns (Response);
+//    rpc RegisterClient (ClientAvailableMessage) returns (Response);
+    // List active clients endpoint
+    rpc ListActiveClients (ListClientsRequest) returns (ClientList);
+
+    // Client messaging to stay engaged.
+    rpc SendHeartbeat (Heartbeat) returns (Response);
+
+    rpc ReassignClient (ReassignRequest) returns (Response);
+    rpc ReconnectClient (ReconnectRequest) returns (Response);
+}
+
+service Combiner {
+
+    // Stream endpoints for training/validation pub/sub
+    rpc ModelUpdateRequestStream (ClientAvailableMessage) returns (stream ModelUpdateRequest);
+    rpc ModelUpdateStream (ClientAvailableMessage) returns (stream ModelUpdate);
+    rpc ModelValidationRequestStream (ClientAvailableMessage) returns (stream ModelValidationRequest);
+    rpc ModelValidationStream (ClientAvailableMessage) returns (stream ModelValidation);
+
+
+
+    rpc SendModelUpdateRequest (ModelUpdateRequest) returns (Response);
+    rpc SendModelUpdate (ModelUpdate) returns (Response);
+    rpc SendModelValidationRequest (ModelValidationRequest) returns (Response);
+    rpc SendModelValidation (ModelValidation) returns (Response);
+
+}
+

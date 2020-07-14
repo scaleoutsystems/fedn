@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+
+  client1:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}1 
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data
+      #- ${WORK}/sdk:/app/sdk:rw
+      #- ${WORK}/cli:/app/cli:rw
+
+  client2:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}2
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data
+      #- ${WORK}/sdk:/app/sdk:rw
+      #- ${WORK}/cli:/app/cli:rw
+
+  client3:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}3
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data
+  #  #  - ./sdk:/app/sdk
+  #  #  - ./cli:/app/cli
+
+
+  
