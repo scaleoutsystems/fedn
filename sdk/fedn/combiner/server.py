@@ -1,19 +1,14 @@
-from concurrent import futures
-
-import grpc
-import time
-import uuid
 import queue
 import threading
+import uuid
+from concurrent import futures
+from datetime import datetime, timedelta
 
 import fedn.proto.alliance_pb2 as alliance
 import fedn.proto.alliance_pb2_grpc as rpc
-
-from datetime import datetime, timedelta
-from scaleout.repository.helpers import get_repository
-from fedn.utils.mongo import connect_to_mongodb
-
+import grpc
 from fedn.combiner.role import Role
+from scaleout.repository.helpers import get_repository
 
 
 ####################################################################################################################
@@ -433,6 +428,45 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
     ####################################################################################################################
 
     def run(self, config):
-        print("ORCHESTRATOR:starting combiner", flush=True)
+        print("COMBINER:starting combiner", flush=True)
+        from fedn.discovery.connect import DiscoveryCombinerConnect, State
+
+        # TODO change hostname to configurable and environmental overridable value
+
+        discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
+                                             token=config['token'], myhost=self.id, myport=12080, myname=self.id)
+
+        # TODO override by input parameters
+        # config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
+        #          'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
+        ## connect
+        tries = 3
+        while True:
+            if tries > 0:
+                status = discovery.connect()
+                if status == State.Disconnected:
+                    import time
+                    time.sleep(5)
+                    print("waiting to reconnect..")
+                    tries -= 1
+                if status == State.Connected:
+                    break
+        old_status = "N"
+        while True:
+
+            status = discovery.check_status()
+            if status == "R" and old_status != "R":
+                status = discovery.update_status("I")
+
+            if status == "I" and old_status != "I":
+                if self.orchestrator.satified():
+                    status = discovery.update_status("C")
+                    config = discovery.get_config()
+                    self.orchestrator.run(config)
+                    ## advertice results?
+                    ## reset?
+                    status = discovery.update_status("R")
+
+            old_status = status
 
         self.orchestrator.run(config)
