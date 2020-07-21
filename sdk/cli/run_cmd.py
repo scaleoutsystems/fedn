@@ -1,7 +1,6 @@
 import click
-from .main import main
 
-import requests
+from .main import main
 
 
 @click.option('--daemon',
@@ -30,15 +29,12 @@ def client_cmd(ctx, config, name):
 
 @run_cmd.command('fedavg')
 @click.pass_context
-@click.option('-c', '--config', required=False, default='project.yaml')
-@click.option('-r', '--rounds', required=False, default=1)
-@click.option('-a', '--active', required=False, default=2)
-@click.option('-t', '--timeout', required=False, default=120)
-@click.option('-s', '--seedmodel', required=True)
-def fedavg_cmd(ctx, rounds, active, timeout, seedmodel, config):
-    import fedn.combiner.fedavg as fedavg
-    # TODO override by input parameters
-    config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active}
+@click.option('-d', '--discoverhost', required=True)
+@click.option('-p', '--discoverport', required=True)
+@click.option('-t', '--token', required=True)
+def fedavg_cmd(ctx, discoverhost, discoverport, token):
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
+
     project = ctx.obj['PROJECT']
 
     # combiner = fedavg.Orchestrator(config=config)
@@ -57,3 +53,9 @@ def reducer_cmd(ctx, ):
     reducer = Reducer(project)
 
     reducer.run()
+
+
+"""@click.option('-r', '--rounds', required=False, default=1)
+@click.option('-a', '--active', required=False, default=2)
+@click.option('-t', '--timeout', required=False, default=120)
+@click.option('-s', '--seedmodel', required=True)""""

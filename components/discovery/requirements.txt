@@ -1,0 +1,6 @@
+Django==2.2.13
+sqlparse==0.2.4
+djongo
+djangorestframework
+markdown
+django-filter
