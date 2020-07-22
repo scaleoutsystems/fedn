@@ -437,36 +437,50 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                                              token=config['token'], myhost=self.id, myport=12080, myname=self.id)
 
         # TODO override by input parameters
-        # config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
-        #          'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
-        ## connect
+        #config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
+        #         'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
+        import time
         tries = 3
+        status = None
         while True:
             if tries > 0:
                 status = discovery.connect()
                 if status == State.Disconnected:
-                    import time
-                    time.sleep(5)
-                    print("waiting to reconnect..")
                     tries -= 1
+
                 if status == State.Connected:
                     break
-        old_status = "N"
+
+            time.sleep(5)
+            print("waiting to reconnect..")
+
+        old_status = "NYD"
+
         while True:
 
-            status = discovery.check_status()
-            if status == "R" and old_status != "R":
+            status, _ = discovery.check_status()
+
+            print("COMBINER IN STATE: {} previous {}".format(status, old_status))
+
+            if status == "D":
+                print("COMBINER IS DECOMMISONED, report back results and quit")
+                return
+
+            if status == "R" and old_status == "S":
                 status = discovery.update_status("I")
 
             if status == "I" and old_status != "I":
-                if self.orchestrator.satified():
-                    status = discovery.update_status("C")
-                    config = discovery.get_config()
-                    self.orchestrator.run(config)
-                    ## advertice results?
-                    ## reset?
-                    status = discovery.update_status("R")
+                #if self.orchestrator.satified():
+                status = discovery.update_status("C")
+                cfg, _ = discovery.get_config()
+                self.orchestrator.run(cfg)
+                ## TODO advertice results?
+                ## TODO report executed config
+                status = discovery.update_status("R")
 
             old_status = status
+            # prevent spin
+            time.sleep(5)
 
-        self.orchestrator.run(config)
+
+

@@ -14,6 +14,7 @@ class Combiner(models.Model):
         ('R', 'Ready'),
         ('I', 'Instructing'),
         ('C', 'Combining'),
+        ('D', 'Decommission'),
         ('L', 'Lost')
     ]
 
@@ -29,3 +30,23 @@ class Combiner(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+
+class CombinerConfiguration(models.Model):
+
+    combiner = models.ForeignKey(Combiner, on_delete=models.CASCADE)
+    timeout = models.IntegerField(default=180)
+    rounds = models.IntegerField(default=5)
+    clients_required = models.IntegerField(default=2)
+    seed = models.CharField(max_length=512)
+
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    COMBINER_CONFIG_STATUS = [
+        ('R', 'Ready'),
+        ('E', 'Executing'),
+        ('D', 'Done'),
+    ]
+    status = models.CharField(max_length=2, choices=COMBINER_CONFIG_STATUS, default="R")
+

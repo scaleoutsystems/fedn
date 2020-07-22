@@ -14,8 +14,8 @@ services:
     command: ./seed_and_run.sh
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
-    #  - ./sdk:/app/sdk
-    #  - ./cli:/app/cli  
+    # - ./sdk:/app/sdk
+    # - ./cli:/app/cli
     ports:
         - 12080:12080
 
