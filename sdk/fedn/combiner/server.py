@@ -143,46 +143,60 @@ class CombinerClient:
 class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer):
     """ Communication relayer. """
 
-    def __init__(self, project, get_orchestrator):
+    def __init__(self, connect_config, get_orchestrator):
         self.clients = {}
 
-        self.project = project
+        # self.project = project
         self.role = Role.COMBINER
-        self.id = "combiner"
 
-        address = "localhost"
-        port = 12808
-        try:
-            unpack = project.config['Alliance']
-            address = unpack['controller_host']
-            port = unpack['controller_port']
-            # self.client = unpack['Member']['name']
-        except KeyError as e:
-            print("ORCHESTRATOR: could not get all values from config file {}".format(e))
+        from fedn.discovery.connect import DiscoveryCombinerConnect, State
+        self.controller = DiscoveryCombinerConnect(connect_config['discover_host'],
+                                                   connect_config['discover_port'],
+                                                   connect_config['token'],
+                                                   connect_config['myhost'],
+                                                   connect_config['myport'],
+                                                   connect_config['myname'])
 
-        try:
-            unpack = self.project.config['Alliance']
-            address = unpack['controller_host']
-            port = unpack['controller_port']
+        import time
+        tries = 3
+        status = None
+        while True:
+            if tries > 0:
+                status = self.controller.connect()
+                if status == State.Disconnected:
+                    tries -= 1
 
-            self.repository = get_repository(config=unpack['Repository'])
-            self.bucket_name = unpack["Repository"]["minio_bucket"]
+                if status == State.Connected:
+                    break
 
-        except KeyError as e:
-            print("ORCHESETRATOR: could not get all values from config file {}".format(e), flush=True)
+            time.sleep(5)
+            print("waiting to reconnect..")
+
+
+        self.id = connect_config['myname']
+        address = connect_config['myhost']
+        port = connect_config['myport']
+
+        config, _ = self.controller.get_config()
+
+
+        self.repository = get_repository(config=config)
+        self.bucket_name = config["storage_bucket"]
+
 
         # get the appropriate combiner class and instantiate with a pointer to the alliance server instance and repository
         # self.net = OrchestratorClient(address, port, self.id)
         # threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
         # threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
-        # TODO refactor services into separate services
+
+        # TODO setup sevices according to execution context! - That will be really sexy.
         rpc.add_CombinerServicer_to_server(self, self.server)
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
         self.server.add_insecure_port('[::]:' + str(port))
 
-        self.orchestrator = get_orchestrator(project)(address, port, self.id, self.role, self.repository)
+        self.orchestrator = get_orchestrator(config)(address, port, self.id, self.role, self.repository)
 
         self.server.start()
 
@@ -429,36 +443,21 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
     def run(self, config):
         print("COMBINER:starting combiner", flush=True)
-        from fedn.discovery.connect import DiscoveryCombinerConnect, State
-
+        from fedn.discovery.connect import State
         # TODO change hostname to configurable and environmental overridable value
 
-        discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
-                                             token=config['token'], myhost=self.id, myport=12080, myname=self.id)
+        # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
+        #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
 
         # TODO override by input parameters
-        #config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
+        # config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
         #         'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
         import time
-        tries = 3
-        status = None
-        while True:
-            if tries > 0:
-                status = discovery.connect()
-                if status == State.Disconnected:
-                    tries -= 1
-
-                if status == State.Connected:
-                    break
-
-            time.sleep(5)
-            print("waiting to reconnect..")
-
         old_status = "NYD"
 
         while True:
 
-            status, _ = discovery.check_status()
+            status, _ = self.controller.check_status()
 
             print("COMBINER IN STATE: {} previous {}".format(status, old_status))
 
@@ -467,20 +466,17 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                 return
 
             if status == "R" and old_status == "S":
-                status = discovery.update_status("I")
+                status = self.controller.update_status("I")
 
             if status == "I" and old_status != "I":
-                #if self.orchestrator.satified():
-                status = discovery.update_status("C")
-                cfg, _ = discovery.get_config()
+                # if self.orchestrator.satified():
+                status = self.controller.update_status("C")
+                cfg, _ = self.controller.get_config()
                 self.orchestrator.run(cfg)
                 ## TODO advertice results?
                 ## TODO report executed config
-                status = discovery.update_status("R")
+                status = self.controller.update_status("R")
 
             old_status = status
             # prevent spin
             time.sleep(5)
-
-
-
