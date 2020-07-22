@@ -1,8 +1,4 @@
 
-Project:
-  project_name: TestProject
-  project_id:
-
 Alliance:
   alliance_name: testalliance
   controller_host: combiner
@@ -15,13 +11,3 @@ Alliance:
     minio_access_key: minio
     minio_secret_key: minio123
     minio_secure_mode: False
-
-  Member:
-    name: combiner
-    entry_points:
-      predict:
-        command: python3 predict.py
-      train:
-        command: python3 train.py
-      validate:
-        command: python3 validate.py

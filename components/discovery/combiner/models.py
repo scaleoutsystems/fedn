@@ -1,5 +1,3 @@
-from django.db import models
-
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -33,7 +31,6 @@ class Combiner(models.Model):
 
 
 class CombinerConfiguration(models.Model):
-
     combiner = models.ForeignKey(Combiner, on_delete=models.CASCADE)
     timeout = models.IntegerField(default=180)
     rounds = models.IntegerField(default=5)
@@ -50,3 +47,10 @@ class CombinerConfiguration(models.Model):
     ]
     status = models.CharField(max_length=2, choices=COMBINER_CONFIG_STATUS, default="R")
 
+    storage_type = models.CharField(default='s3', max_length=512)
+    storage_hostname = models.CharField(max_length=512)
+    storage_port = models.IntegerField()
+    storage_access_key = models.CharField(max_length=512)
+    storage_secret_key = models.CharField(max_length=512)
+    storage_bucket = models.CharField(null=True, blank=True, default='models', max_length=512)
+    storage_secure_mode = models.BooleanField(default=False)
