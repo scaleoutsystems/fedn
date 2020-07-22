@@ -162,7 +162,7 @@ class FEDAVGCombiner(CombinerClient):
         self.request_model_validation(self.model_id, from_clients=self.validators)
 
     def run(self, config):
-        # rounds=1, active_clients=2):
+        # rounds=1, clients_required=2):
         # This (2 mins) is the max we wait in a training round before moving on.
         self.config['round_timeout'] = 120
         # Parameters that are passed on to trainers to control local optimization settings.
@@ -175,13 +175,13 @@ class FEDAVGCombiner(CombinerClient):
             if not self.data:
                 self.data = {
                     'id': self.id,
-                    'model_id': config['seedmodel']
+                    'model_id': config['seed']
                 }
                 result = self.coll.insert_one(self.data)
         except:
             # TODO: Look up in the hierarchy for a global model
             self.data = {
-                'model_id': config['seedmodel']
+                'model_id': config['seed']
             }
 
         print("ORCHESTRATOR starting from model {}".format(self.data['model_id']))
@@ -192,10 +192,10 @@ class FEDAVGCombiner(CombinerClient):
         ready = False
         while not ready:
             active = self.nr_active_trainers()
-            if active >= config['active_clients']:
+            if active >= config['clients_required']:
                 ready = True
             else:
-                print("waiting for {} clients to get started, currently: {}".format(config['active_clients'] - active,
+                print("waiting for {} clients to get started, currently: {}".format(config['clients_required'] - active,
                                                                                     active), flush=True)
             time.sleep(1)
 
@@ -203,7 +203,7 @@ class FEDAVGCombiner(CombinerClient):
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(config['active_clients'])
+            self.__assign_clients(config['clients_required'])
 
             model = self.__training_round()
             if model:

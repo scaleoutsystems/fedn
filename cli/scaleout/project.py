@@ -23,13 +23,7 @@ class Project:
             self._load_config()
         except Exception:
             raise InvalidConfigurationError("Missing config file")
-        try:
-            self.api_endpoint = os.path.join(self.config['so_domain_name'], '/api')
-            self.auth_url = self.config["auth_url"]
-            self.user = self.config['username']
-            # self.project_name = self.config['Project']['project_name']
-        except Exception:
-            raise InvalidConfigurationError("Configuration file has missing values.")
+
 
     def _load_config(self, ):
         self.config = load_conf(self.config_file_path)

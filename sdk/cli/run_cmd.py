@@ -54,8 +54,3 @@ def reducer_cmd(ctx, ):
 
     reducer.run()
 
-
-"""@click.option('-r', '--rounds', required=False, default=1)
-@click.option('-a', '--active', required=False, default=2)
-@click.option('-t', '--timeout', required=False, default=120)
-@click.option('-s', '--seedmodel', required=True)""""
