@@ -66,7 +66,7 @@ class MINIORepository(Repository):
 
     def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
         """ Instance must be a byte-like object. """
-        if bucket is '':
+        if bucket == '':
             bucket = self.bucket
         if is_file==True:
             self.client.fput_object(bucket, instance_name, instance)

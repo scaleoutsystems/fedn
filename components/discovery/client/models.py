@@ -8,10 +8,11 @@ class Client(models.Model):
     CLIENT_STATUS = [
         ('R', 'Ready'),
         ('A', 'Assigned'),
+        ('E', 'Reassign'),
         ('L', 'Lost')
     ]
 
-    combiner = models.ForeignKey('combiner.Combiner', on_delete=models.DO_NOTHING)
+    combiner = models.ForeignKey('combiner.Combiner', on_delete=models.DO_NOTHING, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
     status = models.CharField(max_length=2, choices=CLIENT_STATUS, default="R")
@@ -31,37 +32,29 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-@receiver(post_save, sender=Client)
-def create_client_configuration(sender, instance=None, created=False, **kwargs):
-    if created:
-
-        from combiner.models import Combiner
-        combiners = Combiner.objects.filter(clients__lt=F('combinerconfiguration__clients_required'))
-        if combiners:
-            import random
-            selected = random.choices(list(combiners))
-            if selected:
-                ClientConfiguration.objects.create(client=instance,
-                                                   combiner=selected,
-                                                   type=selected.storage_type,
-                                                   storage_access_key=selected.storage_access_key,
-                                                   storage_secret_key=selected.storage_secret_key,
-                                                   storage_hostname=selected.storage_hostname,
-                                                   storage_port=selected.storage_port,
-                                                   storage_bucket=selected.storage_bucket,
-                                                   storage_secure_mode=selected.storage_secure_mode)
+#@receiver(post_save, sender=Client)
+#def create_client_configuration(sender, instance=None, created=False, **kwargs):
+#    if created:
+#
+#        from combiner.models import Combiner
+#        combiners = Combiner.objects.filter(clients__lt=F('combinerconfiguration__clients_required'))
+#        if combiners:
+#            import random
+#           selected = random.choices(list(combiners))
+#            if selected:
+#                instance.combiner = selected
 
 
-class ClientConfiguration(models.Model):
-    client = models.ForeignKey('client.Client', on_delete=models.DO_NOTHING)
+#class ClientConfiguration(models.Model):
+#    client = models.ForeignKey('client.Client', on_delete=models.DO_NOTHING)
 
-    storage_type = models.CharField(default='s3', max_length=512)
-    storage_hostname = models.CharField(max_length=512)
-    storage_port = models.IntegerField()
-    storage_access_key = models.CharField(max_length=512)
-    storage_secret_key = models.CharField(max_length=512)
-    storage_bucket = models.CharField(null=True, blank=True, default='models', max_length=512)
-    storage_secure_mode = models.BooleanField(default=False)
+#    storage_type = models.CharField(default='s3', max_length=512)
+#    storage_hostname = models.CharField(max_length=512)
+#    storage_port = models.IntegerField()
+#    storage_access_key = models.CharField(max_length=512)
+#    storage_secret_key = models.CharField(max_length=512)
+#    storage_bucket = models.CharField(null=True, blank=True, default='models', max_length=512)
+#    storage_secure_mode = models.BooleanField(default=False)
 
 # from django.conf import settings
 # from django.db.models.signals import post_save
