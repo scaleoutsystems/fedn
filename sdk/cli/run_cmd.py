@@ -17,13 +17,18 @@ def run_cmd(ctx, daemon):
 
 
 @run_cmd.command('client')
-@click.option('-c', '--config', required=False, default='project.yaml')
+@click.option('-d', '--discoverhost', required=True)
+@click.option('-p', '--discoverport', required=True)
+@click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=None)
 @click.pass_context
-def client_cmd(ctx, config, name):
+def client_cmd(ctx, discoverhost, discoverport, token, name):
+
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name}
+
     project = ctx.obj['PROJECT']
     from fedn.member.client import Client
-    client = Client(project)
+    client = Client(config)
     client.run()
 
 
@@ -36,17 +41,16 @@ def client_cmd(ctx, config, name):
 @click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=True)
 def fedavg_cmd(ctx, discoverhost, discoverport, hostname, port, name, token):
-    connect_config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
-                      'myport': port, 'myname': name}
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
+              'myport': port, 'myname': name}
 
     project = ctx.obj['PROJECT']
 
-    # combiner = fedavg.Orchestrator(config=config)
     from fedn.combiner.helpers import get_combiner
     from fedn.combiner.server import FednServer
-    server = FednServer(connect_config, get_combiner)
+    server = FednServer(config, get_combiner)
 
-    server.run(connect_config)
+    server.run(config)
 
 
 @run_cmd.command('reducer')

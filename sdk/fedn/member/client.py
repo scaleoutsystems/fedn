@@ -1,44 +1,91 @@
-import threading
 import json
-import tempfile
-from datetime import datetime
 import os
-# TODO Remove from this level. Abstract to unified non implementation specific client.
-from fedn.utils.dispatcher import Dispatcher
+import tempfile
+import threading
+from datetime import datetime
+
 import fedn.proto.alliance_pb2 as alliance
 import fedn.proto.alliance_pb2_grpc as rpc
 import grpc
+# TODO Remove from this level. Abstract to unified non implementation specific client.
+from fedn.utils.dispatcher import Dispatcher
 from scaleout.repository.helpers import get_repository
 
 
 class Client:
 
-    def __init__(self, project):
+    def __init__(self, config):
 
-        self.project = project
+        from fedn.discovery.connect import DiscoveryClientConnect, State
+        self.controller = DiscoveryClientConnect(config['discover_host'],
+                                                 config['discover_port'],
+                                                 config['token'],
+                                                 config['name'])
+        self.name = config['name']
 
-        try:
-            unpack = self.project.config['Alliance']
-            address = unpack['controller_host']
-            port = unpack['controller_port']
-            self.name = unpack['Member']['name']
-        except KeyError as e:
-            print("could not get all values from config file {}".format(e))
+        import time
+        tries = 3
+        status = None
+        while True:
+            if tries > 0:
+                status = self.controller.connect()
+                if status == State.Disconnected:
+                    tries -= 1
 
-        try:
-            self.name = os.environ['CLIENT_NAME']
-        except KeyError:
-            pass
+                if status == State.Connected:
+                    break
 
-        self.repository = get_repository(config=unpack['Repository'])
-        self.bucket_name = unpack["Repository"]["minio_bucket"]
+            time.sleep(5)
+            print("waiting to reconnect..")
 
-        channel = grpc.insecure_channel(address + ":" + str(port))
+        combiner = None
+        tries = 180
+        while True:
+            status, state = self.controller.check_status()
+            print("got status {}".format(status),flush=True)
+            if state == state.Disconnected:
+                print("lost connection. trying...")
+                tries -= 1
+                time.sleep(1)
+                if tries < 1:
+                    print("ERROR! NO CONTACT!", flush=True)
+                    raise Exception("NO CONTACT WITH DISCOVERY NODE")
+                self.controller.connect()
+            if status != 'A':
+                print("waiting to be assigned..", flush=True)
+                time.sleep(5)
+            if status == 'A':
+                print("yay! got assigned, fetching combiner", flush=True)
+                combiner, _ = self.controller.get_config()
+                break
+
+        # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
+        repo_config = {'storage_access_key': 'minio',
+                       'storage_secret_key': 'minio123',
+                       'storage_bucket': 'models',
+                       'storage_secure_mode': False,
+                       'storage_hostname': 'minio',
+                       'storage_port': 9000}
+
+        self.repository = get_repository(repo_config)
+        self.bucket_name = repo_config['storage_bucket']
+
+        channel = grpc.insecure_channel(combiner['host'] + ":" + str(combiner['port']))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
-        print("Client: {} connected to {}:{}".format(self.name, address, port))
 
-        self.dispatcher = Dispatcher(self.project)
+        print("Client: {} connected to {}:{}".format(self.name, combiner['host'], combiner['port']))
+
+        # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
+        dispatch_config = {'entry_points':
+                               {'predict': {'command': 'python3 predict.py'},
+                                'train': {'command': 'python3 train.py'},
+                                'validate': {'command': 'python3 validate.py'}}}
+        import os
+
+        # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
+        dispatch_dir = os.getcwd()
+        self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
         self.lock = threading.Lock()
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
