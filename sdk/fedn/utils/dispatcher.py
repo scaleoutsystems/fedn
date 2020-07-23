@@ -6,15 +6,15 @@ logger = logging.getLogger(__name__)
 
 
 class Dispatcher:
-    def __init__(self, project):
-        self.config = project.config
-        self.project_dir = project.project_dir
+    def __init__(self, config, dir):
+        self.config = config
+        self.project_dir = dir
 
     def run_cmd(self, cmd_type):
 
         cmdsandargs = cmd_type.split(' ')
 
-        cmd = self.config['Alliance']['Member']['entry_points'][cmdsandargs[0]]['command'].split(' ')
+        cmd = self.config['entry_points'][cmdsandargs[0]]['command'].split(' ')
 
         # remove the first element,  that is not a file but a command
         args = cmdsandargs[1:]
