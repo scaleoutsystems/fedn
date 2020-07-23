@@ -42,7 +42,14 @@ if __name__ == '__main__':
 
 	project = Project()
 	from scaleout.repository.helpers import get_repository
-	storage = get_repository(project.config['Alliance']['Repository'])
+
+	repo_config = {'storage_access_key': 'minio',
+				   'storage_secret_key': 'minio123',
+				   'storage_bucket': 'models',
+				   'storage_secure_mode': False,
+				   'storage_hostname': 'minio',
+				   'storage_port': 9000}
+	storage = get_repository(repo_config)
 
 	model_id = storage.set_model(outfile_name,is_file=True)
 	os.unlink(outfile_name)

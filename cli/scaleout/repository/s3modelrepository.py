@@ -12,7 +12,7 @@ class S3ModelRepository(MINIORepository):
         print("Client {} trying to get model with id: {}".format(self.client, model_id),flush=True)
         return self.get_artifact(model_id)
 
-    def set_model(self, model, bucket='alliance', is_file=True):
+    def set_model(self, model, bucket='models', is_file=True):
         import uuid
         model_id = uuid.uuid4()
         # TODO: Check that this call succeeds
