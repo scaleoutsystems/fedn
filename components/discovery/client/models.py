@@ -46,23 +46,17 @@ def assign_combiner(sender, instance=None, *args, **kwargs):
             instance.status = 'A'
 
 
-#class ClientConfiguration(models.Model):
-#    client = models.ForeignKey('client.Client', on_delete=models.DO_NOTHING)
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
-#    storage_type = models.CharField(default='s3', max_length=512)
-#    storage_hostname = models.CharField(max_length=512)
-#    storage_port = models.IntegerField()
-#    storage_access_key = models.CharField(max_length=512)
-#    storage_secret_key = models.CharField(max_length=512)
-#    storage_bucket = models.CharField(null=True, blank=True, default='models', max_length=512)
-#    storage_secure_mode = models.BooleanField(default=False)
 
-# from django.conf import settings
-# from django.db.models.signals import post_save
-# from django.dispatch import receiver
-# from rest_framework.authtoken.models import Token
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    # override for testing
+    if instance.username == 'morgan':
+        return
 
-# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-# def create_auth_token(sender, instance=None, created=False, **kwargs):
-#    if created:
-#        Token.objects.create(user=instance)
+    if created:
+        Token.objects.create(user=instance)
