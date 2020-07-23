@@ -28,21 +28,22 @@ class Client(models.Model):
 
 
 from django.db.models import F
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 
-#@receiver(post_save, sender=Client)
-#def create_client_configuration(sender, instance=None, created=False, **kwargs):
-#    if created:
-#
-#        from combiner.models import Combiner
-#        combiners = Combiner.objects.filter(clients__lt=F('combinerconfiguration__clients_required'))
-#        if combiners:
-#            import random
-#           selected = random.choices(list(combiners))
-#            if selected:
-#                instance.combiner = selected
+@receiver(pre_save, sender=Client)
+def assign_combiner(sender, instance=None, *args, **kwargs):
+
+    from combiner.models import Combiner
+    from django.db.models import Count
+    cmb = Combiner.objects.all() #annotate(client_count=Count('clients').filter(client_count__lte=F('combinerconfiguration__clients_required')))
+    if cmb:
+        import random
+        selected = random.choices(list(cmb), k=1)
+        if selected:
+            instance.combiner = selected[0]
+            instance.status = 'A'
 
 
 #class ClientConfiguration(models.Model):
