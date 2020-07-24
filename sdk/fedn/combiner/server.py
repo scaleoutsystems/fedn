@@ -53,22 +53,22 @@ class CombinerClient:
         # self.lock.acquire()
         from io import BytesIO
         data = BytesIO()
-        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        print("TRYING DOWNLOAD 1.", flush=True)
+        #print("TRYING DOWNLOAD 1.", flush=True)
         parts = self.models.Download(alliance.ModelRequest(id=id))
         for part in parts:
-            print("TRYING DOWNLOAD 2.", flush=True)
+            #print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
                 # self.lock.release()
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
+                #print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
                 return None
 
     def set_model(self, model, id):
@@ -82,18 +82,18 @@ class CombinerClient:
                 written = bt.write(d)
                 written_total += written
 
-            print("bytes written {}".format(written_total), flush=True)
+            #print("bytes written {}".format(written_total), flush=True)
         else:
             bt = model
 
         import sys
-        print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        #print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
             while True:
                 b = mdl.read(CHUNK_SIZE)
-                print("Sending chunks!", flush=True)
+                #print("Sending chunks!", flush=True)
                 if b:
                     result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
                 else:
@@ -503,20 +503,20 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
     ## Model Service
     def Upload(self, request_iterator, context):
-        print("STARTING UPLOAD!", flush=True)
+        #print("STARTING UPLOAD!", flush=True)
         result = None
         for request in request_iterator:
             if request.status == alliance.ModelStatus.IN_PROGRESS:
-                print("STARTING UPLOAD: WRITING BYTES", flush=True)
+                #print("STARTING UPLOAD: WRITING BYTES", flush=True)
                 self.models[request.id].write(request.data)
                 self.models_metadata.update({request.id: alliance.ModelStatus.IN_PROGRESS})
                 # result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.IN_PROGRESS,
                 #                                message="Got data successfully.")
 
             if request.status == alliance.ModelStatus.OK and not request.data:
-                print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
+                #print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
                 import sys
-                print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
+                #print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
                 result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.OK,
                                                 message="Got model successfully.")
                 self.models_metadata.update({request.id: alliance.ModelStatus.OK})
@@ -524,7 +524,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
     def Download(self, request, context):
 
-        print("STARTING DOWNLOAD!", flush=True)
+        #print("STARTING DOWNLOAD!", flush=True)
         try:
             if self.models_metadata[request.id] != alliance.ModelStatus.OK:
                 print("Error file is not ready", flush=True)
@@ -535,23 +535,23 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
         try:
             from io import BytesIO
-            print("getting object to download on client {}".format(request.id), flush=True)
+            #print("getting object to download on client {}".format(request.id), flush=True)
             obj = self.models[request.id]
             obj.seek(0,0)
             # Have to copy object to not mix up the file pointers when sending... fix in better way.
             obj = BytesIO(obj.read())
             import sys
-            print("got object of size {}".format(sys.getsizeof(obj)), flush=True)
+            #print("got object of size {}".format(sys.getsizeof(obj)), flush=True)
             with obj as f:
                 while True:
                     piece = f.read(CHUNK_SIZE)
                     if len(piece) == 0:
-                        print("MODEL {} : Sending last message! ".format(request.id), flush=True)
+                        #print("MODEL {} : Sending last message! ".format(request.id), flush=True)
                         yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.OK)
                         return
                     yield alliance.ModelResponse(id=request.id, data=piece, status=alliance.ModelStatus.IN_PROGRESS)
         except Exception as e:
-            print("something went wrong! {}".format(e), flush=True)
+            print("Downloading went wrong! {}".format(e), flush=True)
 
     ####################################################################################################################
 
