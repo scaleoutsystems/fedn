@@ -10,6 +10,8 @@ import grpc
 from fedn.combiner.role import Role
 from scaleout.repository.helpers import get_repository
 
+CHUNK_SIZE = 1024 * 1024
+
 
 ####################################################################################################################
 
@@ -42,9 +44,65 @@ class CombinerClient:
         channel = grpc.insecure_channel(address + ":" + str(port))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
+        self.models = rpc.ModelServiceStub(channel)
         print("ORCHESTRATOR Client: {} connected to {}:{}".format(self.id, address, port))
         threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
+
+    def get_model(self, id):
+        # self.lock.acquire()
+        from io import BytesIO
+        data = BytesIO()
+        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+
+        print("TRYING DOWNLOAD 1.", flush=True)
+        parts = self.models.Download(alliance.ModelRequest(id=id))
+        for part in parts:
+            print("TRYING DOWNLOAD 2.", flush=True)
+            if part.status == alliance.ModelStatus.IN_PROGRESS:
+                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                data.write(part.data)
+
+            if part.status == alliance.ModelStatus.OK:
+                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                # self.lock.release()
+                return data
+            if part.status == alliance.ModelStatus.FAILED:
+                print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
+                return None
+
+    def set_model(self, model, id):
+        from io import BytesIO
+
+        if not isinstance(model, BytesIO):
+            bt = BytesIO()
+
+            written_total = 0
+            for d in model.stream(32 * 1024):
+                written = bt.write(d)
+                written_total += written
+
+            print("bytes written {}".format(written_total), flush=True)
+        else:
+            bt = model
+
+        import sys
+        print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        bt.seek(0, 0)
+
+        def upload_request_generator(mdl):
+            while True:
+                b = mdl.read(CHUNK_SIZE)
+                print("Sending chunks!", flush=True)
+                if b:
+                    result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
+                else:
+                    result = alliance.ModelRequest(id=id, data=None, status=alliance.ModelStatus.OK)
+                yield result
+                if not b:
+                    break
+
+        result = self.models.Upload(upload_request_generator(bt))
 
     def __listen_to_model_update_stream(self):
         """ Subscribe to the model update request stream. """
@@ -140,11 +198,17 @@ class CombinerClient:
 ####################################################################################################################
 ####################################################################################################################
 
-class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer):
+class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer):
     """ Communication relayer. """
 
     def __init__(self, connect_config, get_orchestrator):
         self.clients = {}
+
+        import io
+        from collections import defaultdict
+        self.models = defaultdict(io.BytesIO)
+        self.models_metadata = {}
+        #self.lock = threading.Lock()
 
         # self.project = project
         self.role = Role.COMBINER
@@ -172,17 +236,14 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
             time.sleep(5)
             print("waiting to reconnect..")
 
-
         self.id = connect_config['myname']
         address = connect_config['myhost']
         port = connect_config['myport']
 
         config, _ = self.controller.get_config()
 
-
         self.repository = get_repository(config=config)
         self.bucket_name = config["storage_bucket"]
-
 
         # get the appropriate combiner class and instantiate with a pointer to the alliance server instance and repository
         # self.net = OrchestratorClient(address, port, self.id)
@@ -194,6 +255,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         rpc.add_CombinerServicer_to_server(self, self.server)
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
+        rpc.add_ModelServiceServicer_to_server(self, self.server)
         self.server.add_insecure_port('[::]:' + str(port))
 
         self.orchestrator = get_orchestrator(config)(address, port, self.id, self.role, self.repository)
@@ -439,11 +501,62 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         response.model_id = self.orchestrator.get_model_id()
         return response
 
+    ## Model Service
+    def Upload(self, request_iterator, context):
+        print("STARTING UPLOAD!", flush=True)
+        result = None
+        for request in request_iterator:
+            if request.status == alliance.ModelStatus.IN_PROGRESS:
+                print("STARTING UPLOAD: WRITING BYTES", flush=True)
+                self.models[request.id].write(request.data)
+                self.models_metadata.update({request.id: alliance.ModelStatus.IN_PROGRESS})
+                # result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.IN_PROGRESS,
+                #                                message="Got data successfully.")
+
+            if request.status == alliance.ModelStatus.OK and not request.data:
+                print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
+                import sys
+                print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
+                result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.OK,
+                                                message="Got model successfully.")
+                self.models_metadata.update({request.id: alliance.ModelStatus.OK})
+                return result
+
+    def Download(self, request, context):
+
+        print("STARTING DOWNLOAD!", flush=True)
+        try:
+            if self.models_metadata[request.id] != alliance.ModelStatus.OK:
+                print("Error file is not ready", flush=True)
+                yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+        except Exception as e:
+            print("Error file does not exist", flush=True)
+            yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+
+        try:
+            from io import BytesIO
+            print("getting object to download on client {}".format(request.id), flush=True)
+            obj = self.models[request.id]
+            obj.seek(0,0)
+            # Have to copy object to not mix up the file pointers when sending... fix in better way.
+            obj = BytesIO(obj.read())
+            import sys
+            print("got object of size {}".format(sys.getsizeof(obj)), flush=True)
+            with obj as f:
+                while True:
+                    piece = f.read(CHUNK_SIZE)
+                    if len(piece) == 0:
+                        print("MODEL {} : Sending last message! ".format(request.id), flush=True)
+                        yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.OK)
+                        return
+                    yield alliance.ModelResponse(id=request.id, data=piece, status=alliance.ModelStatus.IN_PROGRESS)
+        except Exception as e:
+            print("something went wrong! {}".format(e), flush=True)
+
     ####################################################################################################################
 
     def run(self, config):
         print("COMBINER:starting combiner", flush=True)
-        from fedn.discovery.connect import State
         # TODO change hostname to configurable and environmental overridable value
 
         # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
