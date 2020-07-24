@@ -85,7 +85,14 @@ class MINIORepository(Repository):
             return data.read()
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
-        
+
+    def get_artifact_stream(self, instance_name):
+
+        try:
+            data = self.client.get_object(self.bucket, instance_name)
+            return data
+        except Exception as e:
+            raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
         try:

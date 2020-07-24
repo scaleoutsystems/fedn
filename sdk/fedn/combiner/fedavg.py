@@ -1,15 +1,17 @@
-import time
 import json
+import os
 import queue
 import tempfile
-import os
+import time
+
+import fedn.proto.alliance_pb2 as alliance
 import tensorflow as tf
+from fedn.combiner.server import CombinerClient
 from fedn.utils.helpers import KerasSequentialHelper
 from fedn.utils.mongo import connect_to_mongodb
-import fedn.proto.alliance_pb2 as alliance
-from fedn.combiner.server import CombinerClient
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 
 # TODO rename to Combiner
 class FEDAVGCombiner(CombinerClient):
@@ -94,8 +96,8 @@ class FEDAVGCombiner(CombinerClient):
         try:
             model_id = self.model_updates.get(timeout=timeout)
             print("combining ", model_id)
-            model_str = self.storage.get_model(model_id)
-            model = self.helper.load_model(model_str)
+            model_str = self.get_model(model_id)
+            model = self.helper.load_model(model_str.getbuffer())
             nr_processed_models = 1
             self.model_updates.task_done()
         except queue.Empty as e:
@@ -108,7 +110,7 @@ class FEDAVGCombiner(CombinerClient):
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
 
-                model_next = self.helper.load_model(self.storage.get_model(model_id))
+                model_next = self.helper.load_model(self.get_model(model_id).getbuffer())
                 self.helper.increment_average(model, model_next, nr_processed_models)
 
                 nr_processed_models += 1
@@ -186,6 +188,11 @@ class FEDAVGCombiner(CombinerClient):
 
         print("ORCHESTRATOR starting from model {}".format(self.data['model_id']))
         self.__set_model(self.data['model_id'])
+        print("SEED MODEL: getting from seed source", flush=True)
+        model = self.storage.get_model_stream(self.data['model_id'])
+        print("SEED MODEL: and making available to clients!", flush=True)
+        self.set_model(model, self.data['model_id'])
+        print("SEED MODEL: done", flush=True)
 
         import time
 
@@ -210,8 +217,16 @@ class FEDAVGCombiner(CombinerClient):
                 print("\t Training round completed.", flush=True)
                 fod, outfile_name = tempfile.mkstemp(suffix='.h5')
                 model.save(outfile_name)
-                # Upload new model to storage repository
+                # Upload new model to storage repository (persistent)
+                # and save to local storage for sharing with clients.
+                # import uuid
+                # model_id = uuid.uuid4()
                 model_id = self.storage.set_model(outfile_name, is_file=True)
+                from io import BytesIO
+                a = BytesIO()
+                with open(outfile_name,'rb') as f:
+                    a.write(f.read())
+                self.set_model(a, model_id)
                 os.unlink(outfile_name)
 
                 # And update the db record

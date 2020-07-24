@@ -11,6 +11,8 @@ import grpc
 from fedn.utils.dispatcher import Dispatcher
 from scaleout.repository.helpers import get_repository
 
+CHUNK_SIZE = 1024 * 1024
+
 
 class Client:
 
@@ -42,7 +44,7 @@ class Client:
         tries = 180
         while True:
             status, state = self.controller.check_status()
-            print("got status {}".format(status),flush=True)
+            print("got status {}".format(status), flush=True)
             if state == state.Disconnected:
                 print("lost connection. trying...")
                 tries -= 1
@@ -73,6 +75,7 @@ class Client:
         channel = grpc.insecure_channel(combiner['host'] + ":" + str(combiner['port']))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
+        self.models = rpc.ModelServiceStub(channel)
 
         print("Client: {} connected to {}:{}".format(self.name, combiner['host'], combiner['port']))
 
@@ -91,6 +94,64 @@ class Client:
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_request_stream, daemon=True).start()
+
+    def get_model(self, id):
+        #self.lock.acquire()
+        from io import BytesIO
+        data = BytesIO()
+        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+
+        print("TRYING DOWNLOAD 1.", flush=True)
+        for part in self.models.Download(alliance.ModelRequest(id=id)):
+        #for part in parts:
+            print("TRYING DOWNLOAD 2.", flush=True)
+            if part.status == alliance.ModelStatus.IN_PROGRESS:
+                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                data.write(part.data)
+
+            if part.status == alliance.ModelStatus.OK:
+                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                #self.lock.release()
+                return data
+            if part.status == alliance.ModelStatus.FAILED:
+                print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
+                return None
+        print("ERROR NO PARTS!",flush=True)
+        return data
+
+    def set_model(self, model, id):
+        #self.lock.acquire()
+        from io import BytesIO
+
+        if not isinstance(model, BytesIO):
+            bt = BytesIO()
+
+            for d in model.stream(32 * 1024):
+                bt.write(d)
+        else:
+            bt = model
+
+        import sys
+        print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        bt.seek(0, 0)
+
+        def upload_request_generator(mdl):
+            i = 1
+            while True:
+                b = mdl.read(CHUNK_SIZE)
+                if b:
+                    result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
+                else:
+                    result = alliance.ModelRequest(id=id, status=alliance.ModelStatus.OK)
+
+                yield result
+                if not b:
+                    break
+
+        result = self.models.Upload(upload_request_generator(bt))
+
+        return result
+        #self.lock.release()
 
     def __listen_to_model_update_request_stream(self):
         """ Subscribe to the model update request stream. """
@@ -115,7 +176,7 @@ class Client:
                     update.receiver.name = request.sender.name
                     update.receiver.role = request.sender.role
                     update.model_id = request.model_id
-                    update.model_update_id = model_id
+                    update.model_update_id = str(model_id)
                     update.timestamp = str(datetime.now())
                     update.correlation_id = request.correlation_id
                     response = self.orchestrator.SendModelUpdate(update)
@@ -147,7 +208,7 @@ class Client:
                 validation.sender.role = alliance.WORKER
                 validation.receiver.name = request.sender.name
                 validation.receiver.role = request.sender.role
-                validation.model_id = model_id
+                validation.model_id = str(model_id)
                 validation.data = json.dumps(metrics)
                 self.str = str(datetime.now())
                 validation.timestamp = self.str
@@ -162,17 +223,31 @@ class Client:
     def __process_training_request(self, model_id):
         self.send_status("\t Processing training request for model_id {}".format(model_id))
         try:
-            model = self.repository.get_model(model_id)
+            print("IN TRAINING REQUEST 1", flush=True)
+            mdl = self.get_model(str(model_id))
+            import sys
+            print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
+            print("IN TRAINING REQUEST 2", flush=True)
+            # model = self.repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
 
             with open(infile_name, "wb") as fh:
-                fh.write(model)
-
+                fh.write(mdl.getbuffer())
+            print("IN TRAINING REQUEST 3", flush=True)
             self.dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
+            print("IN TRAINING REQUEST 4", flush=True)
+            # model_id = self.repository.set_model(outfile_name, is_file=True)
 
-            model_id = self.repository.set_model(outfile_name, is_file=True)
-
+            import io
+            out_model = None
+            with open(outfile_name, "rb") as fr:
+                out_model = io.BytesIO(fr.read())
+            print("IN TRAINING REQUEST 5", flush=True)
+            import uuid
+            model_id = uuid.uuid4()
+            self.set_model(out_model, str(model_id))
+            print("IN TRAINING REQUEST 6", flush=True)
             os.unlink(infile_name)
             os.unlink(outfile_name)
 
@@ -186,11 +261,11 @@ class Client:
         self.send_status("Processing validation request for model_id {}".format(model_id))
 
         try:
-            model = self.repository.get_model(model_id)
+            model = self.get_model(model_id) #repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
             with open(infile_name, "wb") as fh:
-                fh.write(model)
+                fh.write(model.getbuffer())
 
             self.dispatcher.run_cmd("validate {} {}".format(infile_name, outfile_name))
 
