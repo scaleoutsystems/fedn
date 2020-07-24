@@ -188,11 +188,11 @@ class FEDAVGCombiner(CombinerClient):
 
         print("ORCHESTRATOR starting from model {}".format(self.data['model_id']))
         self.__set_model(self.data['model_id'])
-        print("SEED MODEL: getting from seed source", flush=True)
+       # print("SEED MODEL: getting from seed source", flush=True)
         model = self.storage.get_model_stream(self.data['model_id'])
-        print("SEED MODEL: and making available to clients!", flush=True)
+        #print("SEED MODEL: and making available to clients!", flush=True)
         self.set_model(model, self.data['model_id'])
-        print("SEED MODEL: done", flush=True)
+        #print("SEED MODEL: done", flush=True)
 
         import time
 
