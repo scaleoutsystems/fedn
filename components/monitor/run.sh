@@ -1,7 +1,4 @@
 #!/bin/bash
-
-echo "MONITOR: STARTING MONITORING!!!!!!!!!!\n\n\n\n!!!!!!!!!!"
-echo "MONITOR: waiting for timelimit"
+python3 -m pip install -r requirements.txt
 sleep 10
-echo "MONITOR:STARTING NOW!!!"
 python3 ./monitor.py
