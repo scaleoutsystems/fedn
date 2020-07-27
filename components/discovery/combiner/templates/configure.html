@@ -1,3 +1,66 @@
-hello configure
+{% extends 'base.html' %}
+{% block content %}
+
+    <div class="container">
+    <div class="header clearfix">
+        <nav>
+            <ul class="nav nav-pills pull-right">
+                <a href="/controller/combiners/">
+                    <li role="presentation" class="active">Overview</li>
+                </a>
+            </ul>
+        </nav>
+        <h3 class="text-muted">FEDn Alliance {{ name }}</h3>
+    </div>
+
+    <div class="jumbotron">
+    </div>
+    <div class="col-rg-12" style="min-height:300px;">
+        <h2>Configuration</h2>
+        <div>
+            <form method="POST" action="{% url 'combiner:configure' combiner.name %}">
+                {% for field in form %}
+                <div class="form-group">
+                    {{ field.name }}
+                    {{ field }}
+                    </div>
+                    {% endfor %}
+                {% csrf_token %}
+
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
 
 
+        </div>
+
+        <div class="col-rg-12" style="min-height:300px;">
+            <h2>Clients</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th> Name</th>
+                    <th> Status</th>
+                    <th> Joined at</th>
+                </tr>
+                </thead>
+
+                {% for client in clients %}
+                    <tr>
+                        <th>{{ client.name }}</th>
+                        <th>{{ client.status }}</th>
+                        <th>{{ client.created_at }}</th>
+                        <th></th>
+                    </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+
+        <footer class="footer">
+            <p>&copy; 2020 Scaleout Systems AB</p>
+        </footer>
+
+    </div> <!-- /container -->
+{% endblock %}

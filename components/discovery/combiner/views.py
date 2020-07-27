@@ -35,11 +35,37 @@ def combiner(request):
 def configure(request, combiner):
     template = 'configure.html'
 
+    cmb = None
     try:
-        combiners = Combiner.objects.filter(name=combiner).first()
+        cmb = Combiner.objects.filter(name=combiner).first()
     except TypeError as err:
-        combiners = []
+        cmb = None
         print(err)
+
+    from .forms import CombinerConfigurationForm
+
+    if request.method == 'POST':
+        form = CombinerConfigurationForm(request.POST)
+        if form.is_valid():
+            obj, created = CombinerConfiguration.objects.update_or_create(form.cleaned_data)
+            # obj = form.save()
+            # obj.save()
+            if created:
+                print("a new configuration was created!", flush=True)
+            else:
+                print("combiner was configured", flush=True)
+
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect('/controller/combiners/{}/'.format(combiner))
+    try:
+        configuration = CombinerConfiguration.objects.filter(combiner__name=combiner).first()
+    except TypeError as err:
+        configuration = None
+        print(err)
+
+    combiner = Combiner.objects.filter(name=combiner).first()
+
+    form = CombinerConfigurationForm(instance=configuration)
 
     # request.session['next'] = '/combiners/'
     return render(request, template, locals())
