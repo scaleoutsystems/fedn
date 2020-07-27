@@ -150,7 +150,7 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
         retval = r.patch("{}{}/".format(self.connect_string + '/combiner/', self.myname), data=payload,
                          headers={'Authorization': 'Token {}'.format(self.token)})
 
-        print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
+        #print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
         if 200 <= retval.status_code < 204:
             self.state = State.Connected
         else:
