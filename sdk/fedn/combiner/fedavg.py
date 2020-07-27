@@ -13,7 +13,6 @@ from fedn.utils.mongo import connect_to_mongodb
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-# TODO rename to Combiner
 class FEDAVGCombiner(CombinerClient):
     """ A Local SGD / Federated Averaging (FedAvg) combiner. """
 
@@ -116,7 +115,7 @@ class FEDAVGCombiner(CombinerClient):
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except Exception as e:
-                self.report_status("COMBINER failed!!!!: {0}".format(e))
+                self.report_status("COMBINER failcode: {}".format(e))
                 time.sleep(1.0)
                 round_time += 1.0
 

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container">
+        <div class="header clearfix">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <a href="/controller/">
+                        <li role="presentation" class="active">Overview</li>
+                    </a>
+                </ul>
+            </nav>
+            <h3 class="text-muted">FEDn Alliance {{ name }}</h3>
+        </div>
+
+        <div class="" style="min-height:200px;">
+            <h2>Alliance information</h2>
+            {{ info }}
+
+        </div>
+
+
+        <div class="col-rg-12" style="min-height:300px;">
+            <h2>Combiners</h2>
+            <table class="table">
+                <thead>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Link</th>
+                <th>Created</th>
+                <th>Runtime</th>
+                </thead>
+                {% for combiner in combiners %}
+                    <tr>
+                        <th>{{ combiner.name }}</th>
+                        <th>{{ combiner.status }}</th>
+                        <th><a href="{% url 'combiner:details' combiner.name %}">Link</a></th>
+                        <th>{{ combiner.created_at }}</th>
+                        <th>{{ combiner.runtime }}</th>
+                    </tr>
+                {% endfor %}
+
+
+            </table>
+        </div>
+
+
+        <div class="col-rg-12" style="min-height:300px;">
+            <h2>Clients</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th> Name</th>
+                    <th> Status</th>
+                    <th> Link</th>
+                </tr>
+                </thead>
+
+                {% for client in clients %}
+                    <tr>
+                        <th>{{ client.name }}</th>
+                        <th>{{ client.status }}</th>
+                        <th></th>
+                    </tr>
+                {% endfor %}
+
+            </table>
+        </div>
+
+
+        <footer class="footer">
+            <p>&copy; 2020 Scaleout Systems AB</p>
+        </footer>
+
+    </div> <!-- /container -->
+{% endblock %}

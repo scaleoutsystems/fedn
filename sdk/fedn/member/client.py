@@ -349,8 +349,12 @@ class Client:
             return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
             # return {"name": self.name, "State": ClientStateToString(self.state), "Runtime": str(datetime.now() - self.started_at),
             #        "Since": str(self.started_at)}
-
+        import os, sys
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
         app.run(host="0.0.0.0", port="8090")
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
     def run(self):
         import time
