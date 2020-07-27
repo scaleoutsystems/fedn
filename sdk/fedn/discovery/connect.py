@@ -25,8 +25,12 @@ class DiscoveryClientConnect:
 
     def connect(self):
 
-        retval = r.get("{}{}/".format(self.connect_string + '/client/', self.name),
-                      headers={'Authorization': 'Token {}'.format(self.token)})
+        try:
+            retval = r.get("{}{}/".format(self.connect_string + '/client/', self.name),
+                          headers={'Authorization': 'Token {}'.format(self.token)})
+        except Exception as e:
+            self.state = State.Disconnected
+            return self.state
 
         if retval.status_code != 200:
 
