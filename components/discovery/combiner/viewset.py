@@ -32,3 +32,4 @@ class CombinerConfigurationViewSet(viewsets.ModelViewSet):
     queryset = CombinerConfiguration.objects.all()
     serializer_class = CombinerConfigurationSerializer
     lookup_field = 'combiner__name'
+    filter_fields = ['combiner__name', 'status']
