@@ -2,7 +2,6 @@ import json
 import os
 import tempfile
 import threading
-from datetime import datetime
 
 import fedn.proto.alliance_pb2 as alliance
 import fedn.proto.alliance_pb2_grpc as rpc
@@ -12,6 +11,26 @@ from fedn.utils.dispatcher import Dispatcher
 from scaleout.repository.helpers import get_repository
 
 CHUNK_SIZE = 1024 * 1024
+
+from enum import Enum
+from datetime import datetime
+
+
+class ClientState(Enum):
+    idle = 1
+    training = 2
+    validating = 3
+
+
+def ClientStateToString(state):
+    if state == ClientState.idle:
+        return "IDLE"
+    if state == ClientState.training:
+        return "TRAINING"
+    if state == ClientState.validating:
+        return "VALIDATING"
+
+    return "UNKNOWN"
 
 
 class Client:
@@ -24,6 +43,9 @@ class Client:
                                                  config['token'],
                                                  config['name'])
         self.name = config['name']
+
+        self.started_at = datetime.now()
+        self.logs = []
 
         import time
         tries = 90
@@ -94,6 +116,8 @@ class Client:
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_request_stream, daemon=True).start()
+
+        self.state = ClientState.idle
 
     def get_model(self, id):
 
@@ -220,6 +244,7 @@ class Client:
 
     def __process_training_request(self, model_id):
         self.send_status("\t Processing training request for model_id {}".format(model_id))
+        self.state = ClientState.training
         try:
             # print("IN TRAINING REQUEST 1", flush=True)
             mdl = self.get_model(str(model_id))
@@ -253,11 +278,13 @@ class Client:
             print("ERROR could not process training request due to error: {}".format(e))
             model_id = None
 
+        self.state = ClientState.idle
+
         return model_id
 
     def __process_validation_request(self, model_id):
         self.send_status("Processing validation request for model_id {}".format(model_id))
-
+        self.state = ClientState.validating
         try:
             model = self.get_model(model_id)  # repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
@@ -273,10 +300,13 @@ class Client:
             os.unlink(infile_name)
             os.unlink(outfile_name)
 
-            return validation
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
+            self.state = ClientState.idle
             return None
+
+        self.state = ClientState.idle
+        return validation
 
     def send_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None):
         from google.protobuf.json_format import MessageToJson
@@ -292,6 +322,9 @@ class Client:
         if request is not None:
             status.data = MessageToJson(request)
 
+        self.logs.append(
+            "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
+                                                   status.status))
         response = self.connection.SendStatus(status)
 
     def _send_heartbeat(self, update_frequency=2.0):
@@ -302,11 +335,37 @@ class Client:
             import time
             time.sleep(update_frequency)
 
+    def run_web(self):
+        from flask import Flask
+        app = Flask(__name__)
+
+        from .pages import page, style
+        @app.route('/')
+        def index():
+            logs_fancy = str()
+            for log in self.logs:
+                logs_fancy += "<p>" + log + "</p>\n"
+
+            return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
+            # return {"name": self.name, "State": ClientStateToString(self.state), "Runtime": str(datetime.now() - self.started_at),
+            #        "Since": str(self.started_at)}
+
+        app.run(host="0.0.0.0", port="8090")
+
     def run(self):
         import time
+        import threading
+        threading.Thread(target=self.run_web, daemon=True).start()
         try:
+            cnt = 0
+            old_state = self.state
             while True:
                 time.sleep(1)
-                print("CLIENT running.", flush=True)
+                cnt += 1
+                if self.state != old_state:
+                    print("CLIENT {}".format(ClientStateToString(self.state)), flush=True)
+                if cnt > 5:
+                    print("CLIENT active",flush=True)
+                    cnt = 0
         except KeyboardInterrupt:
             print("ok exiting..")
