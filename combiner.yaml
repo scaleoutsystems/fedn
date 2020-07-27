@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: ./seed_and_run.sh
+    command: ./run.sh
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
     # - ./sdk:/app/sdk
@@ -31,7 +31,8 @@ services:
       - USER=test
       - PROJECT=project
       - ALLIANCE_UID=${ALLIANCE_UID}
-    command: bash -c "sleep 15 && python monitor.py"
+    working_dir: /app/
+    #command: bash -c "sleep 15 && python monitor.py"
     volumes:
       - ./components/monitor/:/app/
       - ./sdk:/app/sdk

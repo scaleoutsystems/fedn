@@ -113,9 +113,9 @@ class CombinerClient:
         for request in self.orchestrator.ModelUpdateStream(r):
             # A client sent a model update to be handled by the combiner
             if request.client.name != "reducer":
-                print("ORCHESTRATOR: received model from client! {}".format(request.client), flush=True)
+                print("COMBINER: received model from client! {}".format(request.client), flush=True)
                 self.receive_model_candidate(request.model_update_id)
-            print("Recieved model update.", flush=True)
+            print("COMBINER: Received model update.", flush=True)
 
     def __listen_to_model_validation_stream(self):
         """ Subscribe to the model update request stream. """
@@ -124,11 +124,11 @@ class CombinerClient:
         for validation in self.orchestrator.ModelValidationStream(r):
             # A client sent a model update to be handled by the combiner
             self.receive_validation(validation)
-            print("Recieved model validation.", flush=True)
+            print("COMBINER: Received model validation.", flush=True)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
-        print("ORCHESTRATOR: Sending to clients {}".format(clients), flush=True)
+        print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = alliance.ModelUpdateRequest()
         whoami(request.sender, self)
         request.model_id = model_id
@@ -148,7 +148,7 @@ class CombinerClient:
                 request.receiver.role = alliance.WORKER
                 self.orchestrator.SendModelUpdateRequest(request)
 
-        print("Requesting model update from clients {}".format(clients), flush=True)
+        #print("Requesting model update from clients {}".format(clients), flush=True)
 
     def request_model_validation(self, model_id, from_clients=[]):
         """ Send a request for members in from_client to validate the model <model_id>.
@@ -171,7 +171,7 @@ class CombinerClient:
                 request.receiver.role = alliance.WORKER
                 self.orchestrator.SendModelValidationRequest(request)
 
-        print("ORCHESTRATOR: Sent validation request for model {}".format(model_id), flush=True)
+        print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 
     def _list_clients(self, channel):
         request = alliance.ListClientsRequest()

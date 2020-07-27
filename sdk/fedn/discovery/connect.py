@@ -27,7 +27,7 @@ class DiscoveryClientConnect:
 
         try:
             retval = r.get("{}{}/".format(self.connect_string + '/client/', self.name),
-                          headers={'Authorization': 'Token {}'.format(self.token)})
+                           headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             self.state = State.Disconnected
             return self.state
@@ -35,8 +35,9 @@ class DiscoveryClientConnect:
         if retval.status_code != 200:
 
             payload = {'name': self.name, 'status': "R", 'user': 1}
-            retval = r.post(self.connect_string + '/client/', data=payload, headers={'Authorization': 'Token {}'.format(self.token)})
-            print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)
+            retval = r.post(self.connect_string + '/client/', data=payload,
+                            headers={'Authorization': 'Token {}'.format(self.token)})
+            #print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)
             if retval.status_code >= 200 or retval.status_code < 204:
                 self.state = State.Connected
             else:
@@ -47,12 +48,12 @@ class DiscoveryClientConnect:
         return self.state
 
     def update_status(self, status):
-        print("\n\nUpdate status", flush=True)
+        #print("\n\nUpdate status", flush=True)
         payload = {'status': status}
-        retval = r.patch("{}{}/".format(self.connect_string  + '/client/', self.name), data=payload,
-                        headers={'Authorization': 'Token {}'.format(self.token)})
+        retval = r.patch("{}{}/".format(self.connect_string + '/client/', self.name), data=payload,
+                         headers={'Authorization': 'Token {}'.format(self.token)})
 
-        print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code,retval.text),flush=True)
+        #print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
         if retval.status_code >= 200 or retval.status_code < 204:
             self.state = State.Connected
         else:
@@ -80,7 +81,7 @@ class DiscoveryClientConnect:
                        headers={'Authorization': 'Token {}'.format(self.token)})
 
         payload = retval.json()
-        print("Got payload {}".format(payload), flush=True)
+        #print("Got payload {}".format(payload), flush=True)
         try:
             status = payload['status']
         except Exception as e:
@@ -112,20 +113,29 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
         self.myhost = myhost
         self.myport = myport
         self.myname = myname
-        print("\n\nsetting the connection string to {}\n\n".format(self.connect_string),flush=True)
+        print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
 
     def connect(self):
 
         retval = r.get("{}{}/".format(self.connect_string + '/combiner/', self.myname),
-                      headers={'Authorization': 'Token {}'.format(self.token)})
+                       headers={'Authorization': 'Token {}'.format(self.token)})
+
+        if 200 <= retval.status_code < 204:
+            if retval.json()['status'] != 'R':
+                print("Recovering from previous state. Resetting to Ready\n\n", flush=True)
+                status = 'R'
+                payload = {'status': status}
+                retval = r.patch("{}{}/".format(self.connect_string + '/combiner/', self.myname), data=payload,
+                                 headers={'Authorization': 'Token {}'.format(self.token)})
 
         if retval.status_code != 200:
 
-            #print("Got payload {}".format(ret), flush=True)
+            # print("Got payload {}".format(ret), flush=True)
             payload = {'name': self.myname, 'port': self.myport, 'host': self.myhost, 'status': "S", 'user': 1}
-            retval = r.post(self.connect_string + '/combiner/', data=payload, headers={'Authorization': 'Token {}'.format(self.token)})
+            retval = r.post(self.connect_string + '/combiner/', data=payload,
+                            headers={'Authorization': 'Token {}'.format(self.token)})
             print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)
-            if retval.status_code >= 200 or retval.status_code < 204:
+            if 200 <= retval.status_code < 204:
                 self.state = State.Connected
             else:
                 self.state = State.Disconnected
@@ -137,11 +147,11 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
     def update_status(self, status):
         print("\n\nUpdate status", flush=True)
         payload = {'status': status}
-        retval = r.patch("{}{}/".format(self.connect_string  + '/combiner/', self.myname), data=payload,
-                        headers={'Authorization': 'Token {}'.format(self.token)})
+        retval = r.patch("{}{}/".format(self.connect_string + '/combiner/', self.myname), data=payload,
+                         headers={'Authorization': 'Token {}'.format(self.token)})
 
-        print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code,retval.text),flush=True)
-        if retval.status_code >= 200 or retval.status_code < 204:
+        print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
+        if 200 <= retval.status_code < 204:
             self.state = State.Connected
         else:
             self.state = State.Disconnected
@@ -168,7 +178,7 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
                        headers={'Authorization': 'Token {}'.format(self.token)})
 
         payload = retval.json()
-        print("Got payload {}".format(payload),flush=True)
+        print("Got payload {}".format(payload), flush=True)
         try:
             status = payload['status']
         except Exception as e:
@@ -185,4 +195,3 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
         print("GOT CONFIG: {}".format(payload))
 
         return payload, self.state
-

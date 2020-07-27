@@ -56,18 +56,18 @@ class FEDAVGCombiner(CombinerClient):
         return self.model_id
 
     def report_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None, flush=True):
-        print("ORCHESTRATOR({}):{} {}".format(self.id, log_level, msg), flush=flush)
+        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
 
     def receive_model_candidate(self, model_id):
         """ Callback when a new model version has been trained. 
             We simply put the model_id on a queue to be processed later. """
         try:
-            self.report_status("ORCHESTRATOR: callback received model {}".format(model_id),
+            self.report_status("COMBINER: callback received model {}".format(model_id),
                                log_level=alliance.Status.INFO)
             # TODO - here would be a place to do some additional validation of the model contribution. 
             self.model_updates.put(model_id)
         except Exception as e:
-            self.report_status("ORCHESTRATOR: Failed to receive candidate model! {}".format(e),
+            self.report_status("COMBINER: Failed to receive candidate model! {}".format(e),
                                log_level=alliance.Status.WARNING)
             print("Failed to receive candidate model!")
             pass
@@ -83,14 +83,14 @@ class FEDAVGCombiner(CombinerClient):
         except KeyError:
             self.validations[model_id] = [data]
 
-        self.report_status("ORCHESTRATOR: callback processed validation {}".format(validation.model_id),
+        self.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
                            log_level=alliance.Status.INFO)
 
     def combine_models(self, nr_expected_models=None, timeout=120):
         """ Compute an iterative/running average of models arriving to the combiner. """
 
         round_time = 0.0
-        print("ORCHESTRATOR: combining model updates...")
+        print("COMBINER: combining model updates...")
 
         # First model in the update round
         try:
@@ -101,7 +101,7 @@ class FEDAVGCombiner(CombinerClient):
             nr_processed_models = 1
             self.model_updates.task_done()
         except queue.Empty as e:
-            self.report_status("ORCHESTRATOR: training round timed out.", log_level=alliance.Status.WARNING)
+            self.report_status("COMBINER: training round timed out.", log_level=alliance.Status.WARNING)
             # print("ORCHESTRATOR: Round timed out.")
             return None
 
@@ -116,13 +116,13 @@ class FEDAVGCombiner(CombinerClient):
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except Exception as e:
-                self.report_status("ORCHESTRATOR failed!!!!: {0}".format(e))
+                self.report_status("COMBINER failed!!!!: {0}".format(e))
                 time.sleep(1.0)
                 round_time += 1.0
 
             if round_time >= timeout:
-                self.report_status("ORCHESTRATOR: training round timed out.", log_level=alliance.Status.WARNING)
-                print("ORCHESTRATOR: Round timed out.")
+                self.report_status("COMBINER: training round timed out.", log_level=alliance.Status.WARNING)
+                print("COMBINER: Round timed out.")
                 return None
 
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
@@ -153,7 +153,7 @@ class FEDAVGCombiner(CombinerClient):
         with self.model_updates.mutex:
             self.model_updates.queue.clear()
 
-        self.report_status("ORCHESTRATOR: Initiating training round, participating members: {}".format(self.trainers))
+        self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
         self.request_model_update(self.model_id, clients=self.trainers)
 
         # Apply combiner
@@ -186,10 +186,28 @@ class FEDAVGCombiner(CombinerClient):
                 'model_id': config['seed']
             }
 
-        print("ORCHESTRATOR starting from model {}".format(self.data['model_id']))
+        print("COMBINER starting from model {}".format(self.data['model_id']))
         self.__set_model(self.data['model_id'])
        # print("SEED MODEL: getting from seed source", flush=True)
-        model = self.storage.get_model_stream(self.data['model_id'])
+
+        timeout_retry = 3
+        import time
+        tries = 0
+        while True:
+            try:
+                model = self.storage.get_model_stream(self.data['model_id'])
+                if model:
+                    break
+            except Exception as e:
+                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
+                time.sleep(timeout_retry)
+                tries += 1
+                if tries > 2:
+                    print("COMBINER exiting. could not fetch seed model.")
+                    return
+
+
+
         #print("SEED MODEL: and making available to clients!", flush=True)
         self.set_model(model, self.data['model_id'])
         #print("SEED MODEL: done", flush=True)
