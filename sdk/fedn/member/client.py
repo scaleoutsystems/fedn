@@ -26,19 +26,19 @@ class Client:
         self.name = config['name']
 
         import time
-        tries = 3
+        tries = 90
         status = None
         while True:
             if tries > 0:
                 status = self.controller.connect()
                 if status == State.Disconnected:
-                    tries -= 1
+                    tries = tries - 1
 
                 if status == State.Connected:
                     break
 
-            time.sleep(5)
-            print("waiting to reconnect..")
+            time.sleep(2)
+            print("try to reconnect to CONTROLLER", flush=True)
 
         combiner = None
         tries = 180
@@ -99,24 +99,24 @@ class Client:
 
         from io import BytesIO
         data = BytesIO()
-        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        #print("TRYING DOWNLOAD 1.", flush=True)
+        # print("TRYING DOWNLOAD 1.", flush=True)
         for part in self.models.Download(alliance.ModelRequest(id=id)):
 
-            #print("TRYING DOWNLOAD 2.", flush=True)
+            # print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                #print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
+                # print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
-        #print("ERROR NO PARTS!",flush=True)
+        # print("ERROR NO PARTS!",flush=True)
         return data
 
     def set_model(self, model, id):
@@ -131,8 +131,7 @@ class Client:
         else:
             bt = model
 
-        import sys
-        #print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        # print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
@@ -151,7 +150,6 @@ class Client:
         result = self.models.Upload(upload_request_generator(bt))
 
         return result
-
 
     def __listen_to_model_update_request_stream(self):
         """ Subscribe to the model update request stream. """
@@ -223,31 +221,31 @@ class Client:
     def __process_training_request(self, model_id):
         self.send_status("\t Processing training request for model_id {}".format(model_id))
         try:
-            #print("IN TRAINING REQUEST 1", flush=True)
+            # print("IN TRAINING REQUEST 1", flush=True)
             mdl = self.get_model(str(model_id))
             import sys
-            #print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
-            #print("IN TRAINING REQUEST 2", flush=True)
+            # print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
+            # print("IN TRAINING REQUEST 2", flush=True)
             # model = self.repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
 
             with open(infile_name, "wb") as fh:
                 fh.write(mdl.getbuffer())
-            #print("IN TRAINING REQUEST 3", flush=True)
+            # print("IN TRAINING REQUEST 3", flush=True)
             self.dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
-            #print("IN TRAINING REQUEST 4", flush=True)
+            # print("IN TRAINING REQUEST 4", flush=True)
             # model_id = self.repository.set_model(outfile_name, is_file=True)
 
             import io
             out_model = None
             with open(outfile_name, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
-            #print("IN TRAINING REQUEST 5", flush=True)
+            # print("IN TRAINING REQUEST 5", flush=True)
             import uuid
             model_id = uuid.uuid4()
             self.set_model(out_model, str(model_id))
-            #print("IN TRAINING REQUEST 6", flush=True)
+            # print("IN TRAINING REQUEST 6", flush=True)
             os.unlink(infile_name)
             os.unlink(outfile_name)
 
@@ -261,7 +259,7 @@ class Client:
         self.send_status("Processing validation request for model_id {}".format(model_id))
 
         try:
-            model = self.get_model(model_id) #repository.get_model(model_id)
+            model = self.get_model(model_id)  # repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
             with open(infile_name, "wb") as fh:
