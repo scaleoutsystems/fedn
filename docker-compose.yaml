@@ -57,23 +57,6 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MDBUSR}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MDBPWD}
 
-  #monitor:
-#    image: "scaleoutsystems/monitor:latest"
-#    build:
-#      context: .
-#      dockerfile: components/monitor/Dockerfile
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - MONITOR_HOST=combiner
-#      - MONITOR_PORT=12080
-#      - USER=test
-#      - PROJECT=project
-#      - ALLIANCE_UID=${ALLIANCE_UID}
-#    command: bash -c "sleep 5 && python monitor.py"
-#    volumes:
-#      - ./components/monitor/:/app/
-#      - ./sdk:/app/sdk
-#      - ./cli:/app/cli
 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's

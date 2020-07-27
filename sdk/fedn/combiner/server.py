@@ -222,7 +222,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                                                    connect_config['myname'])
 
         import time
-        tries = 3
+        tries = 90
         status = None
         while True:
             if tries > 0:
@@ -233,7 +233,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                 if status == State.Connected:
                     break
 
-            time.sleep(5)
+            time.sleep(2)
             print("waiting to reconnect..")
 
         self.id = connect_config['myname']
