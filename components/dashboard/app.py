@@ -22,8 +22,7 @@ def hello_world():
 
 @app.route("/table", methods=['POST', 'GET'])
 def table():
- 
-  
+    """ A table showing validations. """ 
     c = pymongo.MongoClient()
     mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
     mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
@@ -62,8 +61,8 @@ def table():
     return render_template('table.html')
 
 
-@app.route("/clients", methods=['POST', 'GET'])
-def clients():
+@app.route("/timeline", methods=['POST', 'GET'])
+def timeline():
  
   
     c = pymongo.MongoClient()
@@ -78,7 +77,7 @@ def clients():
     for p in alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
         e = json.loads(p['data'])
         cid = e['correlationId']
-        for cc in alliance.find({'client':p['client'],'type':'MODEL_UPDATE'}):
+        for cc in alliance.find({'sender':p['sender'],'type':'MODEL_UPDATE'}):
             da = json.loads(cc['data'])
             if da['correlationId'] == cid:
                 cp = cc
@@ -89,7 +88,7 @@ def clients():
         ts = tu-tr
         base.append(tr.timestamp())
         x.append(ts.total_seconds())
-        y.append(p['client'])
+        y.append(p['sender']['name'])
 
     trace_data.append(go.Bar(
         x=x,
@@ -106,7 +105,7 @@ def clients():
     for p in alliance.find({'type': 'MODEL_VALIDATION_REQUEST'}):
         e = json.loads(p['data'])
         cid = e['correlationId']
-        for cc in alliance.find({'client':p['client'],'type':'MODEL_VALIDATION'}):
+        for cc in alliance.find({'sender':p['sender'],'type':'MODEL_VALIDATION'}):
             da = json.loads(cc['data'])
             if da['correlationId'] == cid:
                 cp = cc
@@ -116,7 +115,7 @@ def clients():
         ts = tu-tr
         base.append(tr.timestamp())
         x.append(ts.total_seconds())
-        y.append(p['client'])
+        y.append(p['sender']['name'])
 
     trace_data.append(go.Bar(
         x=x,
