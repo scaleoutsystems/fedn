@@ -5,11 +5,14 @@
     <div class="header clearfix">
         <nav>
             <ul class="nav nav-pills pull-right">
-<a href="/controller/combiners/"><li role="presentation" class="active">Overview</li></a>
+<a href="/controller/"><li role="presentation" class="active">Overview</li></a>
             </ul>
         </nav>
         <h3 class="text-muted">FEDn Alliance {{name}}</h3>
     </div>
+
+    <h2> Combiner: {{ combiner.name }}</h2>
+    <p></p>
 
    <div class="jumbotron">
        <p><a href="{% url 'combiners:start' combiner.name %}"><button class="btn btn-primary">Start</button></p></a>
@@ -19,7 +22,7 @@
        <h3>STATUS: {{ status }}</h3>
    </div>
     <div class="col-rg-12" style="min-height:300px;">
-        <h2>Configuration</h2>
+        <h3>Configuration</h3>
         <div>
             <p>{{ configuration.name }}</p>
             <p>Timeout: {{ configuration.timeout }}</p>
@@ -29,7 +32,7 @@
 
 
         </div>
-        <h2>Persistent Storage</h2>
+        <h3>Persistent Storage</h3>
         <div>
             <p>Type: {{ configuration.storage_type }}</p>
             <p>Host: {{ configuration.storage_hostname }}</p>
@@ -42,7 +45,7 @@
     </div>
 
     <div class="col-rg-12" style="min-height:300px;">
-            <h2>Clients</h2>
+            <h3>Clients</h3>
             <table class="table">
                 <thead>
                 <tr>
