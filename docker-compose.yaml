@@ -17,7 +17,6 @@ services:
     ports:
       - 8080:8080
 
-
   minio:
     image: minio/minio:latest
     hostname: minio
@@ -57,6 +56,21 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MDBUSR}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MDBPWD}
 
+  dashboard:
+    environment:
+      - GET_HOSTS_FROM=dns  
+      - ALLIANCE_UID=${ALLIANCE_UID}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD}    
+    build:
+      context: .
+      dockerfile: components/dashboard/Dockerfile
+    working_dir: /app
+    restart: always
+    ports:
+      - "5111:5111"
+    volumes:
+      - ./components/dashboard:/app
 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
