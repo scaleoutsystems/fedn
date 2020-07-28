@@ -14,18 +14,49 @@
 
         <div class="" style="min-height:200px;">
             <h2>Alliance information</h2>
+            <p>View history,logs, status messages and the client timelines for the end-to-end training process. </p>
             {{ info }}
-
+             <a class="btn btn-primary" href="http://localhost:8081/db/ac435faef-c2df-442e-b349-7f633d3d5523/status"" role="button">History</a>
+              <a class="btn btn-primary" href="http://localhost:5111/clients">Timeline</a>
         </div>
 
+        <div class="" style="min-height:200px;">
+            <h2>Model performance</h2>
+            <p>Track progress of the federated model.</p>
+              <a class="btn btn-primary" href="http://localhost:5111/box" role="button">Validations</a>
+        </div>
 
         <div class="col-rg-12" style="min-height:300px;">
-            <h2>Combiners</h2>
+            <h2>Reducers</h2>
+            <p>View detailed information about Combiners and control their behavior. </p>
             <table class="table">
                 <thead>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Link</th>
+                <th>Details</th>
+                <th>Created</th>
+                <th>Runtime</th>
+                </thead>
+                {% for reducer in reducers %}
+                    <tr>
+                        <th>{{ reducer.name }}</th>
+                        <th>{{ reducer.status }}</th>
+                        <th><a href="{% url 'combiner:details' combiner.name %}">Link</a></th>
+                        <th>{{ reducer.created_at }}</th>
+                        <th>{{ reducer.runtime }}</th>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="col-rg-12" style="min-height:300px;">
+            <h2>Combiners</h2>
+            <p>View detailed information about Combiners and control their behavior. </p>
+            <table class="table">
+                <thead>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Details</th>
                 <th>Created</th>
                 <th>Runtime</th>
                 </thead>
@@ -38,14 +69,14 @@
                         <th>{{ combiner.runtime }}</th>
                     </tr>
                 {% endfor %}
-
-
             </table>
         </div>
 
 
         <div class="col-rg-12" style="min-height:300px;">
             <h2>Clients</h2>
+            <p>Participating clients. </p>
+
             <table class="table">
                 <thead>
                 <tr>
