@@ -161,7 +161,6 @@ def timeline():
 @app.route("/ml", methods=['POST', 'GET'])
 def ml():
  
-  
     c = pymongo.MongoClient()
     mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
     mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
@@ -214,7 +213,6 @@ def ml():
 
 @app.route("/box", methods=['POST', 'GET'])
 def box():
- 
   
     c = pymongo.MongoClient()
     mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
@@ -222,6 +220,17 @@ def box():
     alliance = mdb["status"]
 
     #metric = 'mae'
+    metric = 'accuracy'
+    metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+    data = json.loads(metrics['data'])
+    data = json.loads(data['data'])
+    valid_metrics = []
+    for metric,val in data.items():
+        # Check if scalar
+        if numpy.isscalar(val):
+            valid_metrics.append(metric)
+
+    print(valid_metrics,flush=True)
     metric = 'accuracy'
 
     validations = {}
