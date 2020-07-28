@@ -14,7 +14,15 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from datetime import datetime,timedelta
 
+import os
+
 app = Flask(__name__)
+
+
+c = pymongo.MongoClient()
+mc = pymongo.MongoClient('mongo',27017,username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
+mdb = mc[os.environ['ALLIANCE_UID']]
+alliance = mdb["status"]
 
 @app.route('/')
 def hello_world():
@@ -23,11 +31,6 @@ def hello_world():
 @app.route("/table", methods=['POST', 'GET'])
 def table():
     """ A table showing validations. """ 
-    c = pymongo.MongoClient()
-    mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
-    mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
-    alliance = mdb["status"]
-
     metric = 'mae'
     updates = {}
     for p in alliance.find({'type': 'MODEL_UPDATE'}):
@@ -63,12 +66,6 @@ def table():
 
 @app.route("/timeline", methods=['POST', 'GET'])
 def timeline():
- 
-  
-    c = pymongo.MongoClient()
-    mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
-    mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
-    alliance = mdb["status"]
 
     trace_data = []
     x = []
@@ -213,11 +210,6 @@ def ml():
 
 @app.route("/box", methods=['POST', 'GET'])
 def box():
-  
-    c = pymongo.MongoClient()
-    mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
-    mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
-    alliance = mdb["status"]
 
     #metric = 'mae'
     metric = 'accuracy'
@@ -226,8 +218,8 @@ def box():
     data = json.loads(data['data'])
     valid_metrics = []
     for metric,val in data.items():
-        # Check if scalar
-        if numpy.isscalar(val):
+        # Check if scalar - is this robust ? 
+        if isinstance(val,float):
             valid_metrics.append(metric)
 
     print(valid_metrics,flush=True)
