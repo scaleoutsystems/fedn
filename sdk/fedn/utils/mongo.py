@@ -1,11 +1,21 @@
 import pymongo
 import os
 
+
+def get_mongo_config():
+	config = {
+		'username': os.environ['MDBUSR']
+		'password': os.environ['MDBPWD']
+		'host': 'mongo'
+		'port': 27017
+	}
+	return config 
+
+
 def connect_to_mongodb():
-    # TODO: Get from configuration
+	config = get_mongo_config()
     try: 
-        # TODO: Get configs from env
-        mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
+        mc = pymongo.MongoClient(**config)
         # This is so that we check that the connection is live
         mc.server_info()
         # TODO
@@ -13,5 +23,4 @@ def connect_to_mongodb():
         return mdb
     except Exception:
     	raise
-        #return None
   

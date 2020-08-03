@@ -9,6 +9,9 @@ services:
       dockerfile: components/discovery/Dockerfile
     environment:
       - GET_HOSTS_FROM=dns
+      - ALLIANCE_UID=${ALLIANCE_UID}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD} 
     command: sh -c "scripts/run_web.sh"
     volumes:
       - ./components/discovery/:/app/
