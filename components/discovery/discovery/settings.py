@@ -89,8 +89,8 @@ DATABASES = {
         'NAME': 'mongo',
         'CLIENT': { 'host': 'mongo',
                     'port': 27017,
-                    'username': 'root',
-                    'password': 'example',
+                    'username': os.environ['MDBUSR'],
+                    'password': os.environ['MDBPWD'],
                     },
     }
 }
