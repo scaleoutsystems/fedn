@@ -16,7 +16,7 @@ The easiest way to start developing on FEDn is to use docker-compose to launch a
 
 1. Create a .env file and set the following variables.
 ```yaml
-EXAMPLE=mnist
+EXAMPLE=mnist-multi-combiner
 ALLIANCE_UID=ac435faef-c2df-442e-b349-7f633d3d5523
 CLIENT_NAME_BASE=client-fedn1-
 MDBUSR=
@@ -29,35 +29,31 @@ or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=
 ### Convenience startup
 2. a
 
-
 Build and run all components at once. 
 ``` 
 $ make up
 ```
 _Assumes you have **automake** installed._
-### Alternative way
-2. To start a bare minimum deployment with one controller, a monitor, Minio, and MongoDB:
+
+### Alternative way (recommended )
+1. To start a bare minimum deployment with one controller, a monitor, Minio, MongoDB and the Dashboard:
 
 ````bash 
 $ docker-compose up 
 ````
-Navigate to localhost:8081 to see alliance status logs and data in Mongo Express.
 
-3. To attach clients to the controller (can be run on a separate host):
-````bash 
-$ docker-compose -f mnist-clients.yaml up 
-````
-
-4. To attach an orchestrator and start training:
+2. Attach a combiner:
 ````bash 
 $ docker-compose -f combiner.yaml up 
 ````
 
-5. To enable the Dashboard: 
-```bash
-docker-compose -f dashboard.yaml up
-```
-The dashboard can be accessed on localhost:5111 
+3. Attach clients (assuming you are running the MNIST example):
+````bash 
+$ docker-compose -f mnist-clients.yaml up 
+````
+
+Navigate to localhost:8080/controller to see an overview of the alliance configuration and to start training the model.  
+
 
 ## Where to go from here? 
 Reach out to Scaleout to learn about how FEDn can be deployed in a secure manner together with [STACKn](https://github.com/scaleoutsystems/stackn) to enable ML-alliance governance and life-cycle management of the federated models.  
