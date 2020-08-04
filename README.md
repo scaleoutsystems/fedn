@@ -13,7 +13,7 @@ FEDn is an open source framework for Federated Machine Learning (FedML), develop
 
 ## Getting started 
 
-The easiest way to start with FEDn is to use the provided docker-compose templates to launch a sandbox environment, consisting of the Controller, one Reducer, one Combiner, and a number of Clients. Together, this deploys a minimal system for training a federateed model using the Federated Averaging strategy. This repository includes a number of test projects, as specified in this repository in the 'test' folder. These test projects can be used as templates for creating your own model code for the framework. 
+The easiest way to start with FEDn is to use the provided docker-compose templates to launch a sandbox environment consisting of the Controller, one Reducer, one Combiner, and a number of Clients. Together, this deploys a minimal system for training a federated model using the Federated Averaging strategy. This repository includes a number of test projects, as specified in this repository in the 'test' folder. These test projects can be used as templates for creating your own model code for the framework. 
 
 Clone the repository and follow these steps: 
 
