@@ -34,11 +34,12 @@ class Client:
 
         # Connect to MongoDB 
         try:
+            self.mdb = connect_to_mongodb()
             # TODO: Get configs from env
-            self.mc = pymongo.MongoClient('mongo', 27017, username='root', password='example')
+            #self.mc = pymongo.MongoClient('mongo', 27017, username='root', password='example')
             # This is so that we check that the connection is live
-            self.mc.server_info()
-            self.mdb = self.mc[os.environ['ALLIANCE_UID']]
+            #self.mc.server_info()
+            #self.mdb = self.mc[os.environ['ALLIANCE_UID']]
             self.collection = self.mdb['status']
         except Exception:
             self.collection = None
