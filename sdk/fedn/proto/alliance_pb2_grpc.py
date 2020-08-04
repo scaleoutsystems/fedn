@@ -5,6 +5,98 @@ import grpc
 from fedn.proto import alliance_pb2 as fedn_dot_proto_dot_alliance__pb2
 
 
+class ModelServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Upload = channel.stream_unary(
+                '/grpc.ModelService/Upload',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
+                )
+        self.Download = channel.unary_stream(
+                '/grpc.ModelService/Download',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
+                )
+
+
+class ModelServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Upload(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Download(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_ModelServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Upload': grpc.stream_unary_rpc_method_handler(
+                    servicer.Upload,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ModelRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ModelResponse.SerializeToString,
+            ),
+            'Download': grpc.unary_stream_rpc_method_handler(
+                    servicer.Download,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ModelRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ModelResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'grpc.ModelService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class ModelService(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Upload(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_unary(request_iterator, target, '/grpc.ModelService/Upload',
+            fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Download(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/grpc.ModelService/Download',
+            fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
 class ReducerStub(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -94,6 +186,16 @@ class ConnectorStub(object):
                 request_serializer=fedn_dot_proto_dot_alliance__pb2.Heartbeat.SerializeToString,
                 response_deserializer=fedn_dot_proto_dot_alliance__pb2.Response.FromString,
                 )
+        self.ReassignClient = channel.unary_unary(
+                '/grpc.Connector/ReassignClient',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ReassignRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.Response.FromString,
+                )
+        self.ReconnectClient = channel.unary_unary(
+                '/grpc.Connector/ReconnectClient',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ReconnectRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.Response.FromString,
+                )
 
 
 class ConnectorServicer(object):
@@ -128,6 +230,18 @@ class ConnectorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ReassignClient(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReconnectClient(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ConnectorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -149,6 +263,16 @@ def add_ConnectorServicer_to_server(servicer, server):
             'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
                     servicer.SendHeartbeat,
                     request_deserializer=fedn_dot_proto_dot_alliance__pb2.Heartbeat.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.Response.SerializeToString,
+            ),
+            'ReassignClient': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReassignClient,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ReassignRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.Response.SerializeToString,
+            ),
+            'ReconnectClient': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReconnectClient,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ReconnectRequest.FromString,
                     response_serializer=fedn_dot_proto_dot_alliance__pb2.Response.SerializeToString,
             ),
     }
@@ -221,6 +345,38 @@ class Connector(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendHeartbeat',
             fedn_dot_proto_dot_alliance__pb2.Heartbeat.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.Response.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReassignClient(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReassignClient',
+            fedn_dot_proto_dot_alliance__pb2.ReassignRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.Response.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReconnectClient(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReconnectClient',
+            fedn_dot_proto_dot_alliance__pb2.ReconnectRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
             call_credentials, compression, wait_for_ready, timeout, metadata)

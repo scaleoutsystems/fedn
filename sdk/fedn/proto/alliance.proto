@@ -83,6 +83,34 @@ message ModelValidation {
   string timestamp = 6;
 }
 
+enum ModelStatus {
+  OK = 0;
+  IN_PROGRESS = 1;
+  IN_PROGRESS_OK = 2;
+  FAILED = 3;
+}
+message ModelRequest {
+  Client sender = 1;
+  Client receiver = 2;
+  bytes data = 3;
+  string id = 4;
+  ModelStatus status = 5;
+
+}
+
+message ModelResponse {
+  bytes data = 1;
+  string id = 2;
+  ModelStatus status = 3;
+  string message = 4;
+}
+
+service ModelService {
+  rpc Upload(stream ModelRequest) returns (ModelResponse);
+  rpc Download(ModelRequest) returns (stream ModelResponse);
+}
+
+
 message GetGlobalModelRequest {
   Client sender = 1;
   Client receiver = 2;

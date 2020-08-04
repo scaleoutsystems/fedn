@@ -20,19 +20,19 @@ class MINIORepository(Repository):
     def __init__(self, config):
         super().__init__()
         try:
-            access_key = config['minio_access_key']
+            access_key = config['storage_access_key']
         except Exception:
             access_key = 'minio'
         try:
-            secret_key = config['minio_secret_key']
+            secret_key = config['storage_secret_key']
         except Exception:
             secret_key = 'minio123'
         try:
-            self.bucket = config['minio_bucket']
+            self.bucket = config['storage_bucket']
         except Exception:
             self.bucket = 'models'
         try:
-            self.secure_mode = bool(config['minio_secure_mode'])
+            self.secure_mode = bool(config['storage_secure_mode'])
         except Exception:
             self.secure_mode = False
 
@@ -42,12 +42,12 @@ class MINIORepository(Repository):
         if self.secure_mode:
             from urllib3.poolmanager import PoolManager
             manager = PoolManager(num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
-            self.client = Minio("{0}:{1}".format(config['minio_host'],config['minio_port']),
+            self.client = Minio("{0}:{1}".format(config['storage_hostname'],config['storage_port']),
                 access_key=access_key,
                 secret_key=secret_key,
                 secure=self.secure_mode,http_client=manager)
         else:
-            self.client = Minio("{0}:{1}".format(config['minio_host'], config['minio_port']),
+            self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
                                 access_key=access_key,
                                 secret_key=secret_key,
                                 secure=self.secure_mode)
@@ -66,7 +66,7 @@ class MINIORepository(Repository):
 
     def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
         """ Instance must be a byte-like object. """
-        if bucket is '':
+        if bucket == '':
             bucket = self.bucket
         if is_file==True:
             self.client.fput_object(bucket, instance_name, instance)
@@ -85,7 +85,14 @@ class MINIORepository(Repository):
             return data.read()
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
-        
+
+    def get_artifact_stream(self, instance_name):
+
+        try:
+            data = self.client.get_object(self.bucket, instance_name)
+            return data
+        except Exception as e:
+            raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
         try:
