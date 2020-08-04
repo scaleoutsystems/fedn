@@ -30,7 +30,7 @@ MDBPWD=
 > you set the EXAMPLE variable to the example you are working on imported with base path from test/your_example
 or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=data_center docker-compose up```
 
-### Deploy a minimal set of components
+### Minimal deployment 
 1. To deploy the server-side components (Controller, Minio, MongoDB and the Dashboard):
 
 ````bash 
