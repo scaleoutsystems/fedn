@@ -1,8 +1,8 @@
 import io
-import yaml
+import logging
 import os
 
-import logging
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -13,72 +13,32 @@ def ensure_empty(directory):
     else:
         return False
 
-def ensure_default_values(data):
-    """ Set default values matching the local dev deployment of Studio. """
-    if 'auth_url' not in data:
-        data['auth_url'] = 'platform.local/api/api-token-auth'
-    if 'username' not in data:
-        data['username'] = 'testuser'
-    if 'password' not in data:
-        data['password'] = 'password'
-    if 'so_domain_name' not in data:
-        data['so_domain_name'] = 'local'
-    logger.debug('setting default values where needed')
-
-    return data
-
-def ensure_alliance_default_values(data):
-    if 'minio_host' not in data['Alliance']:
-        data['Alliance']['minio_host'] = 'localhost'
-    if 'minio_port' not in data['Alliance']:
-        data['Alliance']['minio_port'] = '9000'
-    if 'controller_host' not in data['Alliance']:
-        data['Alliance']['controller_host'] = 'localhost'
-    if 'controller_port' not in data['Alliance']:
-        data['Alliance']['controller_port'] = '12080'
-    logger.debug('setting default values where needed')
-
-    return data
-
 
 def override_from_environment(data):
     import os
 
-    try:
-        data['Project']['access_key'] = os.environ['ACCESS_KEY']
-        print("setting access key!. {} {}".format(os.environ['ACCESS_KEY'], __file__))
-    except KeyError:
-        pass
+    for key, value in os.environ.items():
+        if key.startswith("FEDN") or key.startswith("STACKN"):
+            try:
+                data[key.lower()] = value
+            except KeyError:
+                print("Error setting VALUE: {} for KEY: {}".format(value, key))
 
-    try:
-        data['Config']['hosts']['minio_host'] = os.environ['MINIO_HOST']
-    except KeyError:
-        pass
-
-    try:
-        data['Config']['hosts']['minio_port'] = os.environ['MINIO_PORT']
-    except KeyError:
-        pass
-
-    import os
-    try:
-        data['Config']['hosts']['controller_host'] = os.environ['CONTROLLER_HOST']
-    except KeyError:
-        pass
-
-    import os
-    try:
-        data['Config']['hosts']['controller_port'] = os.environ['CONTROLLER_PORT']
-    except KeyError:
-        pass
+    """
+    FEDN_ACCESS_KEY
+    FEDN_MINIO_HOST
+    FEDN_MINIO_PORT
+    FEDN_CONTROLLER_PORT   ==> CONNECT_HOST
+    FEDN_CONTROLLER_HOST   ==> CONNECT_HOST
+    """
 
     return data
 
 
 def load_config(filename):
     with open(filename, 'r') as stream:
-        data = yaml.load(stream,Loader=yaml.SafeLoader)
-        data = ensure_default_values(data)
+        data = yaml.load(stream, Loader=yaml.SafeLoader)
+
         data = override_from_environment(data)
         return data
 
@@ -107,6 +67,7 @@ def get_default_config_file_path():
     if os.path.exists(config_file_path):
         return config_file_path
     return None
+
 
 def save_default_config(path):
     entry_points = {

@@ -1,19 +1,16 @@
-from concurrent import futures
-
-import grpc
-import time
-import uuid
 import queue
 import threading
+import uuid
+from concurrent import futures
+from datetime import datetime, timedelta
 
 import fedn.proto.alliance_pb2 as alliance
 import fedn.proto.alliance_pb2_grpc as rpc
-
-from datetime import datetime, timedelta
-from scaleout.repository.helpers import get_repository
-from fedn.utils.mongo import connect_to_mongodb
-
+import grpc
 from fedn.combiner.role import Role
+from scaleout.repository.helpers import get_repository
+
+CHUNK_SIZE = 1024 * 1024
 
 
 ####################################################################################################################
@@ -47,9 +44,65 @@ class CombinerClient:
         channel = grpc.insecure_channel(address + ":" + str(port))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
+        self.models = rpc.ModelServiceStub(channel)
         print("ORCHESTRATOR Client: {} connected to {}:{}".format(self.id, address, port))
         threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
+
+    def get_model(self, id):
+        # self.lock.acquire()
+        from io import BytesIO
+        data = BytesIO()
+        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+
+        #print("TRYING DOWNLOAD 1.", flush=True)
+        parts = self.models.Download(alliance.ModelRequest(id=id))
+        for part in parts:
+            #print("TRYING DOWNLOAD 2.", flush=True)
+            if part.status == alliance.ModelStatus.IN_PROGRESS:
+                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                data.write(part.data)
+
+            if part.status == alliance.ModelStatus.OK:
+                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                # self.lock.release()
+                return data
+            if part.status == alliance.ModelStatus.FAILED:
+                #print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
+                return None
+
+    def set_model(self, model, id):
+        from io import BytesIO
+
+        if not isinstance(model, BytesIO):
+            bt = BytesIO()
+
+            written_total = 0
+            for d in model.stream(32 * 1024):
+                written = bt.write(d)
+                written_total += written
+
+            #print("bytes written {}".format(written_total), flush=True)
+        else:
+            bt = model
+
+        import sys
+        #print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        bt.seek(0, 0)
+
+        def upload_request_generator(mdl):
+            while True:
+                b = mdl.read(CHUNK_SIZE)
+                #print("Sending chunks!", flush=True)
+                if b:
+                    result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
+                else:
+                    result = alliance.ModelRequest(id=id, data=None, status=alliance.ModelStatus.OK)
+                yield result
+                if not b:
+                    break
+
+        result = self.models.Upload(upload_request_generator(bt))
 
     def __listen_to_model_update_stream(self):
         """ Subscribe to the model update request stream. """
@@ -60,9 +113,9 @@ class CombinerClient:
         for request in self.orchestrator.ModelUpdateStream(r):
             # A client sent a model update to be handled by the combiner
             if request.client.name != "reducer":
-                print("ORCHESTRATOR: received model from client! {}".format(request.client), flush=True)
+                print("COMBINER: received model from client! {}".format(request.client), flush=True)
                 self.receive_model_candidate(request.model_update_id)
-            print("Recieved model update.", flush=True)
+            print("COMBINER: Received model update.", flush=True)
 
     def __listen_to_model_validation_stream(self):
         """ Subscribe to the model update request stream. """
@@ -71,11 +124,11 @@ class CombinerClient:
         for validation in self.orchestrator.ModelValidationStream(r):
             # A client sent a model update to be handled by the combiner
             self.receive_validation(validation)
-            print("Recieved model validation.", flush=True)
+            print("COMBINER: Received model validation.", flush=True)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
-        print("ORCHESTRATOR: Sending to clients {}".format(clients), flush=True)
+        print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = alliance.ModelUpdateRequest()
         whoami(request.sender, self)
         request.model_id = model_id
@@ -95,7 +148,7 @@ class CombinerClient:
                 request.receiver.role = alliance.WORKER
                 self.orchestrator.SendModelUpdateRequest(request)
 
-        print("Requesting model update from clients {}".format(clients), flush=True)
+        #print("Requesting model update from clients {}".format(clients), flush=True)
 
     def request_model_validation(self, model_id, from_clients=[]):
         """ Send a request for members in from_client to validate the model <model_id>.
@@ -118,7 +171,7 @@ class CombinerClient:
                 request.receiver.role = alliance.WORKER
                 self.orchestrator.SendModelValidationRequest(request)
 
-        print("ORCHESTRATOR: Sent validation request for model {}".format(model_id), flush=True)
+        print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 
     def _list_clients(self, channel):
         request = alliance.ListClientsRequest()
@@ -145,49 +198,67 @@ class CombinerClient:
 ####################################################################################################################
 ####################################################################################################################
 
-class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer):
+class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer):
     """ Communication relayer. """
 
-    def __init__(self, project, get_orchestrator):
+    def __init__(self, connect_config, get_orchestrator):
         self.clients = {}
 
-        self.project = project
+        import io
+        from collections import defaultdict
+        self.models = defaultdict(io.BytesIO)
+        self.models_metadata = {}
+        #self.lock = threading.Lock()
+
+        # self.project = project
         self.role = Role.COMBINER
-        self.id = "combiner"
 
-        address = "localhost"
-        port = 12808
-        try:
-            unpack = project.config['Alliance']
-            address = unpack['controller_host']
-            port = unpack['controller_port']
-            # self.client = unpack['Member']['name']
-        except KeyError as e:
-            print("ORCHESTRATOR: could not get all values from config file {}".format(e))
+        from fedn.discovery.connect import DiscoveryCombinerConnect, State
+        self.controller = DiscoveryCombinerConnect(connect_config['discover_host'],
+                                                   connect_config['discover_port'],
+                                                   connect_config['token'],
+                                                   connect_config['myhost'],
+                                                   connect_config['myport'],
+                                                   connect_config['myname'])
 
-        try:
-            unpack = self.project.config['Alliance']
-            address = unpack['controller_host']
-            port = unpack['controller_port']
+        import time
+        tries = 90
+        status = None
+        while True:
+            if tries > 0:
+                status = self.controller.connect()
+                if status == State.Disconnected:
+                    tries -= 1
 
-            self.repository = get_repository(config=unpack['Repository'])
-            self.bucket_name = unpack["Repository"]["minio_bucket"]
+                if status == State.Connected:
+                    break
 
-        except KeyError as e:
-            print("ORCHESETRATOR: could not get all values from config file {}".format(e), flush=True)
+            time.sleep(2)
+            print("waiting to reconnect..")
+
+        self.id = connect_config['myname']
+        address = connect_config['myhost']
+        port = connect_config['myport']
+
+        config, _ = self.controller.get_config()
+
+        self.repository = get_repository(config=config)
+        self.bucket_name = config["storage_bucket"]
 
         # get the appropriate combiner class and instantiate with a pointer to the alliance server instance and repository
         # self.net = OrchestratorClient(address, port, self.id)
         # threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
         # threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
-        # TODO refactor services into separate services
+
+        # TODO setup sevices according to execution context! - That will be really sexy.
         rpc.add_CombinerServicer_to_server(self, self.server)
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
+        rpc.add_ModelServiceServicer_to_server(self, self.server)
         self.server.add_insecure_port('[::]:' + str(port))
 
-        self.orchestrator = get_orchestrator(project)(address, port, self.id, self.role, self.repository)
+        self.orchestrator = get_orchestrator(config)(address, port, self.id, self.role, self.repository)
 
         self.server.start()
 
@@ -430,9 +501,95 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         response.model_id = self.orchestrator.get_model_id()
         return response
 
+    ## Model Service
+    def Upload(self, request_iterator, context):
+        #print("STARTING UPLOAD!", flush=True)
+        result = None
+        for request in request_iterator:
+            if request.status == alliance.ModelStatus.IN_PROGRESS:
+                #print("STARTING UPLOAD: WRITING BYTES", flush=True)
+                self.models[request.id].write(request.data)
+                self.models_metadata.update({request.id: alliance.ModelStatus.IN_PROGRESS})
+                # result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.IN_PROGRESS,
+                #                                message="Got data successfully.")
+
+            if request.status == alliance.ModelStatus.OK and not request.data:
+                #print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
+                import sys
+                #print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
+                result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.OK,
+                                                message="Got model successfully.")
+                self.models_metadata.update({request.id: alliance.ModelStatus.OK})
+                return result
+
+    def Download(self, request, context):
+
+        #print("STARTING DOWNLOAD!", flush=True)
+        try:
+            if self.models_metadata[request.id] != alliance.ModelStatus.OK:
+                print("Error file is not ready", flush=True)
+                yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+        except Exception as e:
+            print("Error file does not exist", flush=True)
+            yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+
+        try:
+            from io import BytesIO
+            #print("getting object to download on client {}".format(request.id), flush=True)
+            obj = self.models[request.id]
+            obj.seek(0,0)
+            # Have to copy object to not mix up the file pointers when sending... fix in better way.
+            obj = BytesIO(obj.read())
+            import sys
+            #print("got object of size {}".format(sys.getsizeof(obj)), flush=True)
+            with obj as f:
+                while True:
+                    piece = f.read(CHUNK_SIZE)
+                    if len(piece) == 0:
+                        #print("MODEL {} : Sending last message! ".format(request.id), flush=True)
+                        yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.OK)
+                        return
+                    yield alliance.ModelResponse(id=request.id, data=piece, status=alliance.ModelStatus.IN_PROGRESS)
+        except Exception as e:
+            print("Downloading went wrong! {}".format(e), flush=True)
+
     ####################################################################################################################
 
     def run(self, config):
-        print("ORCHESTRATOR:starting combiner", flush=True)
+        print("COMBINER:starting combiner", flush=True)
+        # TODO change hostname to configurable and environmental overridable value
 
-        self.orchestrator.run(config)
+        # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
+        #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
+
+        # TODO override by input parameters
+        # config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active,
+        #         'discover_host': discoverhost, 'discover_port': discoverport, 'token': token}
+        import time
+        old_status = "NYD"
+
+        while True:
+
+            status, _ = self.controller.check_status()
+
+            print("COMBINER IN STATE: {} previous {}".format(status, old_status))
+
+            if status == "D":
+                print("COMBINER IS DECOMMISONED, report back results and quit")
+                return
+
+            if status == "R" and old_status == "S":
+                status = self.controller.update_status("I")
+
+            if status == "I" and old_status != "I":
+                # if self.orchestrator.satified():
+                status = self.controller.update_status("C")
+                cfg, _ = self.controller.get_config()
+                self.orchestrator.run(cfg)
+                ## TODO advertice results?
+                ## TODO report executed config
+                status = self.controller.update_status("R")
+
+            old_status = status
+            # prevent spin
+            time.sleep(5)

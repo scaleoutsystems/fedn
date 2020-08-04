@@ -11,13 +11,34 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: ./seed_and_run.sh
+    command: ./run.sh
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
-    #  - ./sdk:/app/sdk
-    #  - ./cli:/app/cli  
+    # - ./sdk:/app/sdk
+    # - ./cli:/app/cli
     ports:
         - 12080:12080
+
+  monitor:
+    image: "scaleoutsystems/monitor:latest"
+    build:
+      context: .
+      dockerfile: components/monitor/Dockerfile
+    environment:
+      - GET_HOSTS_FROM=dns
+      - MONITOR_HOST=combiner
+      - MONITOR_PORT=12080
+      - USER=test
+      - PROJECT=project
+      - ALLIANCE_UID=${ALLIANCE_UID}
+    working_dir: /app/
+    #command: bash -c "sleep 15 && python monitor.py"
+    volumes:
+      - ./components/monitor/:/app/
+      - ./sdk:/app/sdk
+      - ./cli:/app/cli
+    depends_on:
+      - combiner
 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's

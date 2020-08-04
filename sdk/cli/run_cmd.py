@@ -1,7 +1,6 @@
 import click
-from .main import main
 
-import requests
+from .main import main
 
 
 @click.option('--daemon',
@@ -18,33 +17,38 @@ def run_cmd(ctx, daemon):
 
 
 @run_cmd.command('client')
-@click.option('-c', '--config', required=False, default='project.yaml')
+@click.option('-d', '--discoverhost', required=True)
+@click.option('-p', '--discoverport', required=True)
+@click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=None)
 @click.pass_context
-def client_cmd(ctx, config, name):
+def client_cmd(ctx, discoverhost, discoverport, token, name):
+
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name}
+
     project = ctx.obj['PROJECT']
     from fedn.member.client import Client
-    client = Client(project)
+    client = Client(config)
     client.run()
 
 
 @run_cmd.command('fedavg')
 @click.pass_context
-@click.option('-c', '--config', required=False, default='project.yaml')
-@click.option('-r', '--rounds', required=False, default=1)
-@click.option('-a', '--active', required=False, default=2)
-@click.option('-t', '--timeout', required=False, default=120)
-@click.option('-s', '--seedmodel', required=True)
-def fedavg_cmd(ctx, rounds, active, timeout, seedmodel, config):
-    import fedn.combiner.fedavg as fedavg
-    # TODO override by input parameters
-    config = {'round_timeout': timeout, 'seedmodel': seedmodel, 'rounds': rounds, 'active_clients': active}
+@click.option('-d', '--discoverhost', required=True)
+@click.option('-p', '--discoverport', required=True)
+@click.option('-h', '--hostname', required=True)
+@click.option('-i', '--port', required=True)
+@click.option('-t', '--token', required=True)
+@click.option('-n', '--name', required=True)
+def fedavg_cmd(ctx, discoverhost, discoverport, hostname, port, name, token):
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
+              'myport': port, 'myname': name}
+
     project = ctx.obj['PROJECT']
 
-    # combiner = fedavg.Orchestrator(config=config)
     from fedn.combiner.helpers import get_combiner
     from fedn.combiner.server import FednServer
-    server = FednServer(project, get_combiner)
+    server = FednServer(config, get_combiner)
 
     server.run(config)
 

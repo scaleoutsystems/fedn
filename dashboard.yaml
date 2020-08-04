@@ -2,7 +2,10 @@ version: "3.7"
 services:
   dashboard:
     environment:
-      - GET_HOSTS_FROM=dns      
+      - GET_HOSTS_FROM=dns  
+      - ALLIANCE_UID=${ALLIANCE_UID}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD}    
     build:
       context: .
       dockerfile: components/dashboard/Dockerfile
