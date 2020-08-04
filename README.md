@@ -53,7 +53,7 @@ $ docker-compose -f mnist-clients.yaml up
 Navigate to localhost:8080/controller, and navigate to the page for the deployed Combiner. There, configure it with the correct UID of a seed model (currently needs to be uploaded separately to Minio), then start training the model using button control.  
 
 ## Where to go from here? 
-Reach out to Scaleout to learn about how FEDn can be deployed in a secure manner together with [STACKn](https://github.com/scaleoutsystems/stackn) to enable end-to-end ML-alliance governance and life-cycle management of the federated models.  
+Reach out to Scaleout to learn about how FEDn can be configured and deployed together with [STACKn](https://github.com/scaleoutsystems/stackn) to enable end-to-end ML-alliance governance and life-cycle management of the federated models.  
 
 ### License
 See LICENSE file.
