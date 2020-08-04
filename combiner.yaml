@@ -6,6 +6,8 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD}   
     image: "scaleoutsystems/client:latest"
     build:
       context: .
@@ -31,6 +33,8 @@ services:
       - USER=test
       - PROJECT=project
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD} 
     working_dir: /app/
     #command: bash -c "sleep 15 && python monitor.py"
     volumes:
