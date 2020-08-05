@@ -30,30 +30,36 @@ MDBPWD=
 > you set the EXAMPLE variable to the example you are working on imported with base path from test/your_example
 or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=data_center docker-compose up```
 
-### Minimal deployment 
+### Minimal standalone deployment 
+We provide templates for a minimal standalone Docker deployment, useful for local testing and development. 
+
 1. To deploy the server-side components (Controller, Minio, MongoDB and the Dashboard):
 
 ````bash 
 $ docker-compose up 
 ````
-Make sure you can reach the controller on 'localhost:8080/controller' before proceeding to the next step. 
+Make sure you can reach the Controller on 'localhost:8080/controller' before proceeding to the next step. 
 
 2. Attach a combiner:
 ````bash 
 $ docker-compose -f combiner.yaml up 
 ````
 
-3. Attach a number of clients (assuming you are running the MNIST example):
+3. Attach a number of Clients (assuming you are running the MNIST example):
 ````bash 
 $ docker-compose -f mnist-clients.yaml up 
 ````
 
-4. Start training
-
+### Train a federated model
 Navigate to localhost:8080/controller, and navigate to the page for the deployed Combiner. There, configure it with the correct UID of a seed model (currently needs to be uploaded separately to Minio), then start training the model using button control.  
 
-## Where to go from here? 
-Reach out to Scaleout to learn about how FEDn can be configured and deployed together with [STACKn](https://github.com/scaleoutsystems/stackn) to enable end-to-end ML-alliance governance and life-cycle management of the federated models.  
+## Where to go from here?
 
-### License
+### Distributed deployment
+Documentation coming soon. 
+
+## Commercial support
+Reach out to Scaleout to learn about how FEDn can be customized, configured and deployed to enable production-grade ML-alliances and life-cycle management of the federated models.  
+
+## License
 See LICENSE file.
