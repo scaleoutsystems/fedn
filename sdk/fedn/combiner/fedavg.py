@@ -25,7 +25,6 @@ class FEDAVGCombiner(CombinerClient):
         self.model_id = None
 
         self.data = {}
-        # self.config = config
         # TODO  refactor since we are now getting config on RUN cmd.
         self.db = connect_to_mongodb()
         self.coll = self.db['orchestrators']
@@ -101,7 +100,6 @@ class FEDAVGCombiner(CombinerClient):
             self.model_updates.task_done()
         except queue.Empty as e:
             self.report_status("COMBINER: training round timed out.", log_level=alliance.Status.WARNING)
-            # print("ORCHESTRATOR: Round timed out.")
             return None
 
         while nr_processed_models < nr_expected_models:
@@ -130,20 +128,14 @@ class FEDAVGCombiner(CombinerClient):
         return model
 
     def __assign_clients(self, n):
-        # Obtain a list of clients to talk to
+        """  Obtain a list of clients to talk to in a round. """
+
         # TODO: If we want global sampling without replacement the server needs to assign clients
         active_trainers = self.get_active_trainers()
         import random
-        # import numpy
         self.trainers = random.sample(active_trainers, n)
-        # self.trainers = numpy.random.choice(active_trainers,n,replace=False)
         # TODO: In the general case, validators could be other clients as well
         self.validators = self.trainers
-        # TODO, update MongoDB entry
-        # try:
-        #    result = self.coll.update_one({'id':self.id},{'$set':{'model_id':self.model_id}})
-        # except Exception as e:
-        #    print("FEDAVG: FAILED TO UPDATED MONGODB RECORD {}".format(e), flush=True)
 
     def __training_round(self):
 
@@ -163,14 +155,16 @@ class FEDAVGCombiner(CombinerClient):
         self.request_model_validation(self.model_id, from_clients=self.validators)
 
     def run(self, config):
-        # rounds=1, clients_required=2):
+
+        # TODO, get from config. 
         # This (2 mins) is the max we wait in a training round before moving on.
         self.config['round_timeout'] = 120
         # Parameters that are passed on to trainers to control local optimization settings.
         self.config['nr_local_epochs'] = 1
         self.config['local_batch_size'] = 32
 
-        # Check if there is already an entry for this combiner
+        # Check if there is already an entry in MongoDB for this combiner, if so set 
+        # it's current global model to be the seed model. 
         try:
             self.data = self.coll.find_one({'id': self.id})
             if not self.data:
@@ -180,15 +174,14 @@ class FEDAVGCombiner(CombinerClient):
                 }
                 result = self.coll.insert_one(self.data)
         except:
-            # TODO: Look up in the hierarchy for a global model
+            # TODO: Look up in the hierarchy (Reducer) for a global model
             self.data = {
                 'model_id': config['seed']
             }
 
         print("COMBINER starting from model {}".format(self.data['model_id']))
         self.__set_model(self.data['model_id'])
-       # print("SEED MODEL: getting from seed source", flush=True)
-
+ 
         timeout_retry = 3
         import time
         tries = 0
@@ -205,11 +198,7 @@ class FEDAVGCombiner(CombinerClient):
                     print("COMBINER exiting. could not fetch seed model.")
                     return
 
-
-
-        #print("SEED MODEL: and making available to clients!", flush=True)
         self.set_model(model, self.data['model_id'])
-        #print("SEED MODEL: done", flush=True)
 
         import time
 
@@ -236,8 +225,6 @@ class FEDAVGCombiner(CombinerClient):
                 model.save(outfile_name)
                 # Upload new model to storage repository (persistent)
                 # and save to local storage for sharing with clients.
-                # import uuid
-                # model_id = uuid.uuid4()
                 model_id = self.storage.set_model(outfile_name, is_file=True)
                 from io import BytesIO
                 a = BytesIO()
