@@ -16,8 +16,6 @@ services:
     command: ./run.sh
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
-    # - ./sdk:/app/sdk
-    # - ./cli:/app/cli
     ports:
         - 12080:12080
 
@@ -36,11 +34,10 @@ services:
       - MDBUSR=${MDBUSR}
       - MDBPWD=${MDBPWD} 
     working_dir: /app/
-    #command: bash -c "sleep 15 && python monitor.py"
     volumes:
       - ./components/monitor/:/app/
-      - ./sdk:/app/sdk
-      - ./cli:/app/cli
+#      - ./sdk:/app/sdk
+#      - ./cli:/app/cli
     depends_on:
       - combiner
 
