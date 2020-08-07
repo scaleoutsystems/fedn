@@ -36,8 +36,8 @@ services:
     working_dir: /app/
     volumes:
       - ./components/monitor/:/app/
-#      - ./sdk:/app/sdk
-#      - ./cli:/app/cli
+      - ./sdk:/app/sdk
+      - ./cli:/app/cli
     depends_on:
       - combiner
 

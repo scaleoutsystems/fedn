@@ -32,9 +32,19 @@ class Combiner(models.Model):
 
 class CombinerConfiguration(models.Model):
     combiner = models.ForeignKey(Combiner, on_delete=models.CASCADE)
-    timeout = models.IntegerField(default=180)
+
+    max_clients = models.IntegerField(default=8)
+    
+    # Algorithm specific configs
+    algorithm = models.CharField(default='fedavg', max_length=512)
+    ml_framework = models.CharField(default='keras_sequential',max_length=512)
+    timeout = models.IntegerField(default=180)  
     rounds = models.IntegerField(default=5)
-    clients_required = models.IntegerField(default=2)
+    clients_required = models.IntegerField(default=1)
+    clients_requested = models.IntegerField(default=None)
+    nr_local_epochs = models.IntegerField(default=1)
+    local_batch_size = models.IntegerField(default=32)
+
     seed = models.CharField(max_length=512)
 
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,6 +57,7 @@ class CombinerConfiguration(models.Model):
     ]
     status = models.CharField(max_length=2, choices=COMBINER_CONFIG_STATUS, default="R")
 
+    # Combiner private storage settings
     storage_type = models.CharField(default='s3', max_length=512)
     storage_hostname = models.CharField(max_length=512)
     storage_port = models.IntegerField()
