@@ -208,7 +208,6 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         from collections import defaultdict
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}
-        #self.lock = threading.Lock()
 
         # self.project = project
         self.role = Role.COMBINER
@@ -247,8 +246,6 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
         # get the appropriate combiner class and instantiate with a pointer to the alliance server instance and repository
         # self.net = OrchestratorClient(address, port, self.id)
-        # threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
-        # threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
 
         # TODO setup sevices according to execution context! - That will be really sexy.
@@ -261,9 +258,6 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         self.orchestrator = get_orchestrator(config)(address, port, self.id, self.role, self.repository)
 
         self.server.start()
-
-    # def __get_clients(self):
-    #    return self.clients
 
     def __join_client(self, client):
         if not client.name in self.clients.keys():

@@ -22,7 +22,8 @@ class CombinerViewSet(viewsets.ModelViewSet):
 class CombinerConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CombinerConfiguration
-        fields = ['combiner', 'timeout', 'rounds', 'clients_required', 'seed', 'updated_at', 'created_at', 'status',
+        fields = ['combiner', 'max_clients','algorithm','ml_framework','timeout', 'rounds', 'clients_required','clients_requested', 
+                  'nr_local_epochs','local_batch_size','seed', 'updated_at', 'created_at', 'status',
                   'storage_type', 'storage_hostname', 'storage_port', 'storage_access_key', 'storage_secret_key',
                   'storage_bucket', 'storage_secure_mode']
 

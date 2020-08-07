@@ -18,7 +18,6 @@
        <p><a href="{% url 'combiners:start' combiner.name %}"><button class="btn btn-primary">Start</button></p></a>
        <p><a href="{% url 'combiners:stop' combiner.name %}"><button class="btn btn-secondary">Stop</button></p></a>
        <p><a href="{% url 'combiners:snapshot' combiner.name %}"><button class="btn btn-warning">Reset</button></p></a>
-       <p><a href="{% url 'combiners:configure' combiner.name %}"><button class="btn btn-info">Configure</button></p></a>
        <h3>STATUS: {{ status }}</h3>
    </div>
     <div class="col-rg-12" style="min-height:300px;">
@@ -27,11 +26,15 @@
             <p>{{ configuration.name }}</p>
             <p>Timeout: {{ configuration.timeout }}</p>
             <p>Rounds: {{ configuration.rounds }}</p>
+            <p>Requested clients: {{ configuration.clients_requested }}</p>
+
             <p>Seed: {{ configuration.seed }}</p>
             <p>Status: {{ configuration.status }}</p>
 
 
         </div>
+        <p><a href="{% url 'combiners:configure' combiner.name %}"><button class="btn btn-info">Configure</button></p></a>
+
         <h3>Persistent Storage</h3>
         <div>
             <p>Type: {{ configuration.storage_type }}</p>
@@ -45,7 +48,7 @@
     </div>
 
     <div class="col-rg-12" style="min-height:300px;">
-            <h3>Clients</h3>
+            <h3>Attached clients</h3>
             <table class="table">
                 <thead>
                 <tr>

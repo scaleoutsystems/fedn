@@ -132,6 +132,11 @@ class FEDAVGCombiner(CombinerClient):
 
         # TODO: If we want global sampling without replacement the server needs to assign clients
         active_trainers = self.get_active_trainers()
+
+        # If the number of requested trainers exceeds the number of available, use all available. 
+        if n > len(active_trainers):
+            n = len(active_trainers)
+
         import random
         self.trainers = random.sample(active_trainers, n)
         # TODO: In the general case, validators could be other clients as well
@@ -148,7 +153,7 @@ class FEDAVGCombiner(CombinerClient):
         self.request_model_update(self.model_id, clients=self.trainers)
 
         # Apply combiner
-        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])
+        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['timeout'])
         return model
 
     def __validation_round(self):
@@ -156,27 +161,24 @@ class FEDAVGCombiner(CombinerClient):
 
     def run(self, config):
 
-        # TODO, get from config. 
-        # This (2 mins) is the max we wait in a training round before moving on.
-        self.config['round_timeout'] = 120
-        # Parameters that are passed on to trainers to control local optimization settings.
-        self.config['nr_local_epochs'] = 1
-        self.config['local_batch_size'] = 32
+        # This config is pass on from the controller 
+        self.config = config
 
-        # Check if there is already an entry in MongoDB for this combiner, if so set 
-        # it's current global model to be the seed model. 
+        # Check if there is already a model entry in MongoDB for this combiner
+        # (i.e th combiner has been active before), if so set 
+        # it's current global model (model_id) to be the seed model from the config. 
         try:
             self.data = self.coll.find_one({'id': self.id})
             if not self.data:
                 self.data = {
                     'id': self.id,
-                    'model_id': config['seed']
+                    'model_id': self.config['seed']
                 }
                 result = self.coll.insert_one(self.data)
         except:
             # TODO: Look up in the hierarchy (Reducer) for a global model
             self.data = {
-                'model_id': config['seed']
+                'model_id': self.config['seed']
             }
 
         print("COMBINER starting from model {}".format(self.data['model_id']))
@@ -216,7 +218,7 @@ class FEDAVGCombiner(CombinerClient):
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(config['clients_required'])
+            self.__assign_clients(self.config['clients_requested'])
 
             model = self.__training_round()
             if model:
