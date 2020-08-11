@@ -50,7 +50,6 @@ class CombinerClient:
         threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
 
     def get_model(self, id):
-        # self.lock.acquire()
         from io import BytesIO
         data = BytesIO()
         #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
@@ -81,8 +80,6 @@ class CombinerClient:
             for d in model.stream(32 * 1024):
                 written = bt.write(d)
                 written_total += written
-
-            #print("bytes written {}".format(written_total), flush=True)
         else:
             bt = model
 
@@ -220,6 +217,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                                                    connect_config['myport'],
                                                    connect_config['myname'])
 
+        # Connect to controller
         import time
         tries = 90
         status = None
@@ -248,7 +246,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         # self.net = OrchestratorClient(address, port, self.id)
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
 
-        # TODO setup sevices according to execution context! - That will be really sexy.
+        # TODO setup sevices according to execution context!
         rpc.add_CombinerServicer_to_server(self, self.server)
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
