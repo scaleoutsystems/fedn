@@ -54,9 +54,18 @@ $ docker-compose -f combiner.yaml up
 ````bash 
 $ docker-compose -f mnist-clients.yaml up 
 ````
-
 ### Train a federated model
-Navigate to localhost:8080/controller, and navigate to the page for the deployed Combiner. There, configure it with the correct UID of a seed model (currently needs to be uploaded separately to Minio), then start training the model using button control.  
+
+#### Seed the system with an initial model
+
+Navigate to localhost:8080/controller, and navigate to the page for the deployed Combiner. There, you will find a configuration for the combiners storage (Minio) as well as the option to configure a task for the combiner. Note the field "current_model". This is applied in this demo environment by a fixture seeding the database. You can find a pre-generated seed model in "test/mnist-multi-combiner/seed". To prepare FEDn to run training, we need to upload a corresponding seed model to the appropriate location in Minio. Navigate to localhost:9000 and log in (the credentials are available in the fixture file seed.yaml in in the root directory). Upload the seed model file in the bucket "models". 
+
+*Note, the above instruction is assuming you are using the default development settings/naming conventions. You might need to adapt if you have altered the credentials for Minio, for example. There is also a file "init_model.py" that you can edit if you would like to alter the neural network itself.*
+
+#### Start training
+To start training, simply click the "Start" button from the Combiner page. 
+
+configure it with the correct UID of a seed model (currently needs to be uploaded separately to Minio), then start training the model using button control.  
 
 ## Where to go from here?
 
