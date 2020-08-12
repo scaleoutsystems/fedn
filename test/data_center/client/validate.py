@@ -26,9 +26,13 @@ def validate(model,data):
     
     print("-- validation COMPLETED --")
 
-    results = {"mae" : str(mse_val)}
+    #results = {"mae" : str(mse_val)}
+    
+    report = {
+                "mae": str(mse_val)
+            }
      
-    return results
+    return report
 
 if __name__ == '__main__':
     # Read the model

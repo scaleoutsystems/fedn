@@ -1,0 +1,14 @@
+
+Alliance:
+  alliance_name: testalliance
+  controller_host: combiner
+  controller_port: 12080
+
+  Repository:
+    minio_host: minio
+    minio_port: 9000
+    minio_bucket: alliance
+    minio_access_key: minio
+    minio_secret_key: minio123
+    minio_secure_mode: False
+  
