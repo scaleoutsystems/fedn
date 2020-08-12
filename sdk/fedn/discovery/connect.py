@@ -187,6 +187,16 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
 
         return status, self.state
 
+
+    def get_combiner_config(self):
+        retval = r.get("{}{}/".format(self.connect_string + '/combiner/', self.myname),
+                       headers={'Authorization': 'Token {}'.format(self.token)})
+
+        payload = retval.json()
+        print("GOT CONFIG: {}".format(payload))
+
+        return payload, self.state
+
     def get_config(self):
         retval = r.get("{}{}/".format(self.connect_string + '/configuration/', self.myname),
                        headers={'Authorization': 'Token {}'.format(self.token)})
