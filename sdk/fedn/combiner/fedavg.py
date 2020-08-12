@@ -24,7 +24,6 @@ class FEDAVGCombiner(CombinerClient):
         self.id = id
         self.model_id = None
 
-        self.data = {}
         # TODO  refactor since we are now getting config on RUN cmd.
         self.db = connect_to_mongodb()
         self.coll = self.db['orchestrators']
@@ -142,7 +141,7 @@ class FEDAVGCombiner(CombinerClient):
         self.request_model_update(self.model_id, clients=self.trainers)
 
         # Apply combiner
-        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['timeout'])
+        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])
         return model
 
     def __validation_round(self):
@@ -153,10 +152,9 @@ class FEDAVGCombiner(CombinerClient):
             config (CombinerConfiguration) """
 
         self.config = config
-        self.data = {'id':self.id, 'model_id': self.config['seed']}
+        self.model_id = self.config['model_id']
 
-
-        print("COMBINER starting from model {}".format(self.data['model_id']))
+        print("COMBINER starting from model {}".format(self.model_id))
  
         # Fetch the input model blob from storage and load in local memory
         timeout_retry = 3
@@ -164,7 +162,7 @@ class FEDAVGCombiner(CombinerClient):
         tries = 0
         while True:
             try:
-                model = self.storage.get_model_stream(self.data['model_id'])
+                model = self.storage.get_model_stream(self.model_id)
                 if model:
                     break
             except Exception as e:
@@ -175,7 +173,7 @@ class FEDAVGCombiner(CombinerClient):
                     print("COMBINER exiting. could not fetch seed model.")
                     return
 
-        self.set_model(model, self.data['model_id'])
+        self.set_model(model, self.model_id)
 
 
         # Check that the minimal number of required clients to start a round are connected 
@@ -219,6 +217,8 @@ class FEDAVGCombiner(CombinerClient):
                 # TODO: Not strictly necessary to stream model here, can be slight waste of resources.
                 self.set_model(a, model_id) 
                 os.unlink(outfile_name)
+
+                self.model_id = model_id
 
                 print("...done. New aggregated model: {}".format(self.model_id))
 
