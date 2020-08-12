@@ -50,7 +50,6 @@ class CombinerClient:
         threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
 
     def get_model(self, id):
-        # self.lock.acquire()
         from io import BytesIO
         data = BytesIO()
         #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
@@ -81,8 +80,6 @@ class CombinerClient:
             for d in model.stream(32 * 1024):
                 written = bt.write(d)
                 written_total += written
-
-            #print("bytes written {}".format(written_total), flush=True)
         else:
             bt = model
 
@@ -220,6 +217,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                                                    connect_config['myport'],
                                                    connect_config['myname'])
 
+        # Connect to controller
         import time
         tries = 90
         status = None
@@ -239,23 +237,26 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
         address = connect_config['myhost']
         port = connect_config['myport']
 
-        config, _ = self.controller.get_config()
+        combiner_config, _ = self.controller.get_combiner_config()
 
-        self.repository = get_repository(config=config)
-        self.bucket_name = config["storage_bucket"]
+
+        self.repository = get_repository(config=combiner_config)
+        self.bucket_name = combiner_config["storage_bucket"]
 
         # get the appropriate combiner class and instantiate with a pointer to the alliance server instance and repository
         # self.net = OrchestratorClient(address, port, self.id)
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
 
-        # TODO setup sevices according to execution context! - That will be really sexy.
+        # TODO setup sevices according to execution context!
         rpc.add_CombinerServicer_to_server(self, self.server)
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
         rpc.add_ModelServiceServicer_to_server(self, self.server)
         self.server.add_insecure_port('[::]:' + str(port))
 
-        self.orchestrator = get_orchestrator(config)(address, port, self.id, self.role, self.repository)
+        # Actual FedML algorithm
+        job_config, _ = self.controller.get_config()
+        self.orchestrator = get_orchestrator(job_config)(address, port, self.id, self.role, self.repository)
 
         self.server.start()
 
@@ -579,6 +580,7 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
                 # if self.orchestrator.satified():
                 status = self.controller.update_status("C")
                 cfg, _ = self.controller.get_config()
+                print(cfg,flush=True)
                 self.orchestrator.run(cfg)
                 ## TODO advertice results?
                 ## TODO report executed config

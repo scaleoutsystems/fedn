@@ -21,34 +21,34 @@
        <h3>STATUS: {{ status }}</h3>
    </div>
     <div class="col-rg-12" style="min-height:300px;">
-        <h3>Configuration</h3>
+        <h3>Job configuration</h3>
         <div>
             <p>{{ configuration.name }}</p>
-            <p>Timeout: {{ configuration.timeout }}</p>
+            <p>Timeout: {{ configuration.round_timeout }}</p>
             <p>Rounds: {{ configuration.rounds }}</p>
             <p>Requested clients: {{ configuration.clients_requested }}</p>
 
-            <p>Seed: {{ configuration.seed }}</p>
+            <p>Current model: {{ configuration.model_id }}</p>
             <p>Status: {{ configuration.status }}</p>
 
 
         </div>
-        <p><a href="{% url 'combiners:configure' combiner.name %}"><button class="btn btn-info">Configure</button></p></a>
+        <p><a href="{% url 'combiners:configure' combiner.name %}"><button class="btn btn-info">Configure Job</button></p></a>
 
         <h3>Persistent Storage</h3>
         <div>
-            <p>Type: {{ configuration.storage_type }}</p>
-            <p>Host: {{ configuration.storage_hostname }}</p>
-            <p>Port: {{ configuration.storage_port }}</p>
-            <p>Access_key : {{ configuration.storage_access_key }}</p>
+            <p>Type: {{ combiner.storage_type }}</p>
+            <p>Host: {{ combiner.storage_hostname }}</p>
+            <p>Port: {{ combiner.storage_port }}</p>
+            <p>Access_key : {{ combiner.storage_access_key }}</p>
             <p>Secret_key : ********* </p>
-            <p>Bucket: {{ configuration.storage_bucket }}</p>
+            <p>Bucket: {{ combiner.storage_bucket }}</p>
         </div>
 
     </div>
 
     <div class="col-rg-12" style="min-height:300px;">
-            <h3>Attached clients</h3>
+            <h3>Assigned clients</h3>
             <table class="table">
                 <thead>
                 <tr>

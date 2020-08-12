@@ -37,31 +37,31 @@
       "timeout": 30,
       "timeout_lost": 3600,
       "updated_at": "2020-07-22T20:46:40.604Z",
-      "created_at": "2020-07-22T11:22:25.365Z"
+      "created_at": "2020-07-22T11:22:25.365Z",
+      "max_clients": 5,
+      "storage_type":"s3",
+      "storage_hostname":"minio",
+      "storage_port": 9000,
+      "storage_access_key":"minio",
+      "storage_secret_key":"minio123",
+      "storage_bucket":"models",
+      "storage_secure_mode": false
     }
   },
   {
-  "model": "combiner.combinerconfiguration",
-  "pk": 4,
-  "fields": {
-    "combiner": 8,
-    "max_clients": 5,
-    "timeout": 180,
-    "rounds": 1,
-    "clients_required": 1,
-    "clients_requested": 5,
-    "algorithm": "fedavg",
-    "seed": "1a9af163-7bb0-46ee-afab-e20965b3ca5f",
-    "updated_at": "2020-07-22T11:43:13.281Z",
-    "created_at": "2020-07-22T11:22:41.728Z",
-    "status": "R",
-    "storage_type":"s3",
-    "storage_hostname":"minio",
-    "storage_port": 9000,
-    "storage_access_key":"minio",
-    "storage_secret_key":"minio123",
-    "storage_bucket":"models",
-    "storage_secure_mode": false
+    "model": "combiner.combinerconfiguration",
+    "pk": 4,
+    "fields": {
+      "combiner": 8,
+      "round_timeout": 180,
+      "rounds": 1,
+      "clients_required": 1,
+      "clients_requested": 5,
+      "algorithm": "fedavg",
+      "model_id": "879fa112-c861-4cb1-a25d-775153e5b548",
+      "updated_at": "2020-07-22T11:43:13.281Z",
+      "created_at": "2020-07-22T11:22:41.728Z",
+      "status": "R"
+    }
   }
-}
 ]
