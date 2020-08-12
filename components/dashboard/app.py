@@ -30,35 +30,61 @@ def hello_world():
 
 @app.route("/table", methods=['POST', 'GET'])
 def table():
-    """ A table showing validations. """ 
-    metric = 'mae'
-    updates = {}
-    for p in alliance.find({'type': 'MODEL_UPDATE'}):
-        e = json.loads(p['data'])
-        try: 
-            updates[p['client']].append(datetime.strptime(p['timestamp'],'%Y-%m-%d %H:%M:%S.%f'))
-        except KeyError:
-            updates[p['client']] = [datetime.strptime(p['timestamp'],'%Y-%m-%d %H:%M:%S.%f')]
 
-    trace_data = []
-    for client,data in updates.items():
 
-        trace_data
+    metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+    if metrics == None:
+        fig = go.Figure(data=[])
+        fig.update_layout(title_text='No data currently available')
+        pio.write_html(fig, file= 'templates/table.html')
+        return render_template('table.html')
+
+    data = json.loads(metrics['data'])
+    data = json.loads(data['data'])
+    valid_metrics = []
+    for metric,val in data.items():
+        # Check if scalar - is this robust ? 
+        if isinstance(val,float):
+            valid_metrics.append(metric)
+
+    all_vals=[]
+    models = []
+    for metric in valid_metrics:
+        validations = {}
+        for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+            e = json.loads(post['data'])
+            try:
+                validations[e['modelId']].append(json.loads(e['data'])[metric])
+            except KeyError:
+                validations[e['modelId']] = [json.loads(e['data'])[metric]]
+
+        vals = []
+        models =[]
+        for model,data in validations.items():
+            vals.append(numpy.mean(data))
+            models.append(model)
+        all_vals.append(vals)
+
+    header_vals = valid_metrics
+    all_vals[0].reverse()
+    all_vals[1].reverse()
 
     fig = go.Figure(data=[go.Table(
-    header=dict(values=['Model updates', 'Model Validations'],
+    header=dict(values=['Model ID']+header_vals,
                 line_color='darkslategray',
                 fill_color='lightskyblue',
                 align='left'),
-    cells=dict(values=[[100, 90, 80, 90], # 1st column
-                       [95, 85, 75, 95]], # 2nd column
+
+    cells=dict(values=[models,       
+                        all_vals[0], # 1st column
+                        all_vals[1]],# 2nd column
                line_color='darkslategray',
                fill_color='lightcyan',
                align='left'))
     ])
 
-    fig.update_layout(width=500, height=300)
-    fig.update_layout(title_text='Summary')
+    fig.update_layout(width=800, height=600)
+    fig.update_layout(title_text='Summary: mean metrics')
     pio.write_html(fig, file= 'templates/table.html')
     
     return render_template('table.html')
@@ -151,50 +177,46 @@ def timeline():
 
     with open('templates/clients.html','w') as fh:
         fh.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
-        fh.write(tab.to_html(full_html=False, include_plotlyjs='cdn'))
     
     return render_template('clients.html')
 
 @app.route("/ml", methods=['POST', 'GET'])
 def ml():
- 
-    c = pymongo.MongoClient()
-    mc = pymongo.MongoClient('mongo',27017,username='root',password='example')
-    mdb = mc["ac435faef-c2df-442e-b349-7f633d3d5523"]
-    alliance = mdb["status"]
 
+    metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+    if metrics == None:
+        fig = go.Figure(data=[])
+        fig.update_layout(title_text='No data currently available')
+        pio.write_html(fig, file= 'templates/table.html')
+        return render_template('table.html')
+    
+    data = json.loads(metrics['data'])
+    data = json.loads(data['data'])
+    valid_metrics = []
+    for metric,val in data.items():
+        # Check if scalar - is this robust ? 
+        if isinstance(val,float):
+            valid_metrics.append(metric)
+ 
     # Assemble a dict with all validations
     validations = {}
-    for post in alliance.find({'type': 'MODEL_VALIDATION'}):
-        e = json.loads(post['data'])
-
-        try:
-            validations[e['modelId']].append(json.loads(e['data'])["mae"])
-        except KeyError:
-            validations[e['modelId']] = [json.loads(e['data'])["mae"]]
-   
-    rounds = []
     clients = {}
+ #   for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+ #       e = json.loads(post['data'])
+ #      clients[post['sender']['name']]=[]
 
-    index = 1
-    count = 0
-    num_clients =  4 #len(validations[list(validations.keys())[0]])
+    for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+        try:
+            e = json.loads(post['data'])
+            clients[post['sender']['name']].append(json.loads(e['data'])[metric])
+        except KeyError:
+            clients[post['sender']['name']]=[]
 
-    for client in range(num_clients):
-        clients['Client'+str(client)] = []
-
-    for key in validations:
-
-        for c in clients:
-            clients[c].append(float(validations[key][count]))
-            count = count + 1
-
-        rounds.append(index)
-        index = index + 1
-        count = 0
+    rounds = []
     traces_data = []
 
     for c in clients:
+        print(clients[c],flush=True)
         traces_data.append(go.Scatter(
             x=rounds,
             y=clients[c],
@@ -213,7 +235,15 @@ def box():
 
     #metric = 'mae'
     metric = 'accuracy'
+
     metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+    if metrics == None:
+        fig = go.Figure(data=[])
+        fig.update_layout(title_text='No data currently available')
+        pio.write_html(fig, file= 'templates/table.html')
+        return render_template('table.html')
+
+
     data = json.loads(metrics['data'])
     data = json.loads(data['data'])
     valid_metrics = []

@@ -17,7 +17,7 @@
     </div>
 
     <div class="jumbotron">
-        <p><h1>Configure Combiner: {{ combiner.name }} </h1> </p>
+        <p><h1>Configure Job for Combiner: </br>{{ combiner.name }}<h1></p>
     </div>
     <div class="col-rg-12" style="min-height:300px;">
         <div>
@@ -29,35 +29,10 @@
                     </div>
                     {% endfor %}
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Update</button>
+                <p><button type="submit" class="btn btn-primary">Update</button></p>
             </form>
 
         </div>
-
- <!--       <div class="col-rg-12" style="min-height:300px;">
-            <h2>Clients</h2>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th> Name</th>
-                    <th> Status</th>
-                    <th> Joined at</th>
-                </tr>
-                </thead>
-
-                {% for client in clients %}
-                    <tr>
-                        <th>{{ client.name }}</th>
-                        <th>{{ client.status }}</th>
-                        <th>{{ client.created_at }}</th>
-                        <th></th>
-                    </tr>
-                {% endfor %}
-
-            </table>
-
-        </div> -->
-
 
         <footer class="footer">
             <p>&copy; 2020 Scaleout Systems AB</p>
