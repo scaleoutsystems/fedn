@@ -15,9 +15,6 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-#      - ${WORK}/sdk:/app/client/sdk
-#      - ${WORK}/cli:/app/client/cli
-
 
   client2:
     environment:
@@ -32,8 +29,6 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      #- ${WORK}/sdk:/app/sdk:rw
-      #- ${WORK}/cli:/app/cli:rw
 
   client3:
     environment:
@@ -50,9 +45,6 @@ services:
       - ./test/${EXAMPLE}/data:/app/data
     ports:
       - 8090:8090
-  #  #  - ./sdk:/app/sdk
-  #  #  - ./cli:/app/cli
-
 
   client4:
     environment:
@@ -68,7 +60,6 @@ services:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
 
-
   client5:
     environment:
       - GET_HOSTS_FROM=dns
@@ -82,17 +73,3 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
-#  client6:
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - CLIENT_NAME=${CLIENT_NAME_BASE}6
-#    image: "scaleoutsystems/client:latest"
-#    build:
-#      context: .
-#      dockerfile: components/client/Dockerfile
-#    working_dir: /app/client
-#    command: /bin/bash -c "sleep 10 && fedn run client -d discovery -p 8080 -n ${CLIENT_NAME_BASE}6  -t 6f63badea4bb1e458d96bca48e51987a67cfaacb"
-#    volumes:
-#      - ./test/${EXAMPLE}/client:/app/client
-#      - ./test/${EXAMPLE}/data:/app/data
