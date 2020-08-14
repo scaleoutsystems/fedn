@@ -1,20 +1,12 @@
-#auth_url: https://studio.k8s-prod.pharmb.io/api/api-token-auth
-#auth_url: https://platform.demo.scaleoutsystems.com/api/api-token-auth
-auth_url: http://platform.stacken.akkelis.com/api/api-token-auth
-username: combiner
-access_key: combiner
-password: Vy4NzooFOp2Y8qhMpFVatfzA7gbQuKVpuI2rMYQ2oLQ
-so_domain_name: platform.stacken.akkelis.com
-#so_domain_name: demo.scaleoutsystems.com
-#so_domain_name: k8s-prod.pharmb.io
 
 Project:
   project_name: DataCenter
-  project_id: 
+  project_slug: DataCenter-test 
 
 Alliance:
   alliance_name: testalliance
-  controller_host: controller
+  alliance_uid: a1bdd2282-930a-44a8-96a3-15c05b5b34cb
+  controller_host: combiner
   controller_port: 12080
 
   Repository:
