@@ -20,7 +20,10 @@ def train(model,data):
     # The data, split between train and test sets
     (x_train, y_train) = read_data(data)
     
-
+    print("input values")
+    print( x_train.head())
+    print("output values")
+    print( y_train.head())
     model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size,  verbose=0, validation_split=0.1)
 
     print("-- TRAINING COMPLETED --")
