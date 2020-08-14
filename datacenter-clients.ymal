@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+
+  client1:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}1
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client -d discovery -p 8080 -n ${CLIENT_NAME_BASE}1  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data/data1:/app/data
+
+
+  client2:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}2
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client -d discovery -p 8080 -n ${CLIENT_NAME_BASE}2  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data/data2:/app/data
+
+  client3:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}3
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "sleep 10 && fedn run client -d discovery -p 8080 -n ${CLIENT_NAME_BASE}3  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data/data3:/app/data
+    ports:
+      - 8090:8090
+  #  #  - ./sdk:/app/sdk
+  #  #  - ./cli:/app/cli
