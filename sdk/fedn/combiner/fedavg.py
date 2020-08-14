@@ -175,7 +175,6 @@ class FEDAVGCombiner(CombinerClient):
 
         self.set_model(model, self.model_id)
 
-
         # Check that the minimal number of required clients to start a round are connected 
         import time
         ready = False
