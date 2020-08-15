@@ -18,7 +18,6 @@ import os
 
 app = Flask(__name__)
 
-
 c = pymongo.MongoClient()
 mc = pymongo.MongoClient('mongo',27017,username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
 mdb = mc[os.environ['ALLIANCE_UID']]
@@ -30,7 +29,6 @@ def hello_world():
 
 @app.route("/table", methods=['POST', 'GET'])
 def table():
-
 
     metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
     if metrics == None:
