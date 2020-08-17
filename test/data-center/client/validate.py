@@ -26,10 +26,8 @@ def validate(model,data):
     
     print("-- validation COMPLETED --")
 
-    #results = {"mae" : str(mse_val)}
-    
     report = {
-                "mae": str(mse_val)
+                "mae": mse_val
             }
      
     return report
@@ -37,8 +35,8 @@ def validate(model,data):
 if __name__ == '__main__':
     # Read the model
     model = krm.load_model(sys.argv[1])
-    validation = validate(model,'../data/test.csv')
+    report = validate(model,'../data/test.csv')
     with open(sys.argv[2],"w") as fh:
-        fh.write(json.dumps(validation))
+        fh.write(json.dumps(report))
 
 
