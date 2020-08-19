@@ -3,6 +3,8 @@ from django.shortcuts import render
 from .models import Combiner, CombinerConfiguration
 from client.models import Client
 
+import os
+
 
 # Create your views here.
 def index(request):
@@ -14,6 +16,8 @@ def index(request):
         combiners = []
         print(err)
 
+    dashboardhost = os.environ['FEDN_DASHBOARD_HOST']
+    dashboardport = os.environ['FEDN_DASHBOARD_PORT']
     # request.session['next'] = '/combiners/'
     return render(request, template, locals())
 
