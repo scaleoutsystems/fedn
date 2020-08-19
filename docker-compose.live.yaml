@@ -20,7 +20,7 @@ services:
     volumes:
       - ./components/discovery/:/app/
     ports:
-      - ${FEDN_CONTROLLER_PORT}:${FEDN_CONTROLLER_PORT}
+      - "${FEDN_CONTROLLER_PORT}:${FEDN_CONTROLLER_PORT}"
 
   minio:
     image: minio/minio:latest
@@ -43,7 +43,7 @@ services:
       timeout: 20s
       retries: 3
     ports:
-      - ${FEDN_MINIO_PORT}:${FEDN_MINIO_PORT}
+      - "${FEDN_MINIO_PORT}:${FEDN_MINIO_PORT}"
 
   mongo:
     image: mongo:latest
@@ -52,7 +52,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MDBUSR}
       MONGO_INITDB_ROOT_PASSWORD: ${MDBPWD}
     ports:
-      - ${FEDN_MONGO_HOST}:${FEDN_MONGO_PORT}
+      - "${FEDN_MONGO_HOST}:${FEDN_MONGO_PORT}"
 
   mongo-express:
     image: mongo-express:latest
@@ -72,14 +72,14 @@ services:
       - MONGO_HOST=${FEDN_MONGO_HOST}
       - MONGO_PORT=${FEDN_MONGO_PORT}
       - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD}    s
+      - MDBPWD=${MDBPWD}
     build:
       context: .
       dockerfile: components/dashboard/Dockerfile
     working_dir: /app
     restart: always
     ports:
-      - ${FEDN_DASHBOARD_HOST}:${FEDN_DASHBOARD_PORT}
+      - "${FEDN_DASHBOARD_HOST}:${FEDN_DASHBOARD_PORT}"
     volumes:
       - ./components/dashboard:/app
 
