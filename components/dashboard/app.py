@@ -20,7 +20,7 @@ import os
 app = Flask(__name__)
 
 c = pymongo.MongoClient()
-mc = pymongo.MongoClient(os.environ['MONGO_HOST'],os.environ['MONGO_PORT'],username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
+mc = pymongo.MongoClient(os.environ['MONGO_HOST'],int(os.environ['MONGO_PORT']),username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
 mdb = mc[os.environ['ALLIANCE_UID']]
 alliance = mdb["status"]
 

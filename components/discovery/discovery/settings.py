@@ -88,7 +88,7 @@ DATABASES = {
         'ENGINE': 'djongo',
         'NAME': 'fedn_controller',
         'CLIENT': { 'host': os.environ['MONGO_HOST'],
-                    'port': os.environ['MONGO_PORT'],
+                    'port': int(os.environ['MONGO_PORT']),
                     'username': os.environ['MDBUSR'],
                     'password': os.environ['MDBPWD'],
                     },
