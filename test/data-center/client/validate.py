@@ -4,6 +4,8 @@ import sys
 import keras
 import tensorflow as tf 
 import pickle
+import numpy as np
+
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from read_data import read_data
@@ -27,7 +29,7 @@ def validate(model,data):
     print("-- validation COMPLETED --")
 
     report = {
-                "mae": mse_val
+                "mae": np.float64(mse_val)
             }
      
     return report
