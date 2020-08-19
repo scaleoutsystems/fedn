@@ -52,7 +52,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MDBUSR}
       MONGO_INITDB_ROOT_PASSWORD: ${MDBPWD}
     ports:
-      - "${FEDN_MONGO_HOST}:${FEDN_MONGO_PORT}"
+      - "${FEDN_MONGO_PORT}:${FEDN_MONGO_PORT}"
 
   mongo-express:
     image: mongo-express:latest
@@ -79,7 +79,7 @@ services:
     working_dir: /app
     restart: always
     ports:
-      - "${FEDN_DASHBOARD_HOST}:${FEDN_DASHBOARD_PORT}"
+      - "${FEDN_DASHBOARD_PORT}:${FEDN_DASHBOARD_PORT}"
     volumes:
       - ./components/dashboard:/app
 
