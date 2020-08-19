@@ -23,6 +23,24 @@ mc = pymongo.MongoClient('mongo',27017,username=os.environ['MDBUSR'],password=os
 mdb = mc[os.environ['ALLIANCE_UID']]
 alliance = mdb["status"]
 
+
+def _scalar_metrics(metrics):
+    """ Extract all scalar valued metrics from a MODEL_VALIDATON. """
+
+    data = json.loads(metrics['data'])
+    data = json.loads(data['data'])
+    
+    valid_metrics = []
+    for metric,val in data.items():
+        # If it can be converted to a float it is a valid, scalar metric
+        try:
+            val = float(val)
+            valid_metrics.append(metric)
+        except:
+            pass
+
+    return valid_metrics
+
 @app.route('/')
 def hello_world():
     return 'Welcome to the Scaleout Systems FEDn dashboard:'
@@ -37,13 +55,12 @@ def table():
         pio.write_html(fig, file= 'templates/table.html')
         return render_template('table.html')
 
-    data = json.loads(metrics['data'])
-    data = json.loads(data['data'])
-    valid_metrics = []
-    for metric,val in data.items():
-        # Check if scalar - is this robust ? 
-        if isinstance(val,float):
-            valid_metrics.append(metric)
+    valid_metrics = _scalar_metrics(metrics)
+    if valid_metrics == []:
+        fig = go.Figure(data=[])
+        fig.update_layout(title_text='No scalar metrics found.')
+        pio.write_html(fig, file= 'templates/table.html')
+        return render_template('table.html')
 
     all_vals=[]
     models = []
@@ -52,9 +69,9 @@ def table():
         for post in alliance.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])
             try:
-                validations[e['modelId']].append(json.loads(e['data'])[metric])
+                validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
             except KeyError:
-                validations[e['modelId']] = [json.loads(e['data'])[metric]]
+                validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
 
         vals = []
         models =[]
@@ -64,8 +81,11 @@ def table():
         all_vals.append(vals)
 
     header_vals = valid_metrics
-    all_vals[0].reverse()
-    all_vals[1].reverse()
+    values = [models]
+    print(all_vals,flush=True)
+    for vals in all_vals:
+        vals.reverse()
+        values.append(vals)
 
     fig = go.Figure(data=[go.Table(
     header=dict(values=['Model ID']+header_vals,
@@ -73,9 +93,7 @@ def table():
                 fill_color='lightskyblue',
                 align='left'),
 
-    cells=dict(values=[models,       
-                        all_vals[0], # 1st column
-                        all_vals[1]],# 2nd column
+    cells=dict(values=values,# 2nd column
                line_color='darkslategray',
                fill_color='lightcyan',
                align='left'))
@@ -199,9 +217,6 @@ def ml():
     # Assemble a dict with all validations
     validations = {}
     clients = {}
- #   for post in alliance.find({'type': 'MODEL_VALIDATION'}):
- #       e = json.loads(post['data'])
- #      clients[post['sender']['name']]=[]
 
     for post in alliance.find({'type': 'MODEL_VALIDATION'}):
         try:
@@ -231,35 +246,30 @@ def ml():
 @app.route("/box", methods=['POST', 'GET'])
 def box():
 
-    #metric = 'mae'
-    metric = 'accuracy'
-
     metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
     if metrics == None:
         fig = go.Figure(data=[])
         fig.update_layout(title_text='No data currently available')
-        pio.write_html(fig, file= 'templates/table.html')
-        return render_template('table.html')
+        pio.write_html(fig, file= 'templates/box.html')
+        return render_template('box.html')
 
+    valid_metrics = _scalar_metrics(metrics)
+    if valid_metrics == []:
+        fig = go.Figure(data=[])
+        fig.update_layout(title_text='No scalar metrics found.')
+        pio.write_html(fig, file= 'templates/box.html')
+        return render_template('box.html')
 
-    data = json.loads(metrics['data'])
-    data = json.loads(data['data'])
-    valid_metrics = []
-    for metric,val in data.items():
-        # Check if scalar - is this robust ? 
-        if isinstance(val,float):
-            valid_metrics.append(metric)
-
-    print(valid_metrics,flush=True)
-    metric = 'accuracy'
-
+    # Just grab the first metric in the list. 
+    # TODO: Let the user choose, or plot all of them.
+    metric = valid_metrics[0]
     validations = {}
     for post in alliance.find({'type': 'MODEL_VALIDATION'}):
         e = json.loads(post['data'])
         try:
-            validations[e['modelId']].append(json.loads(e['data'])[metric])
+            validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
         except KeyError:
-            validations[e['modelId']] = [json.loads(e['data'])[metric]]
+            validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
 
     box = go.Figure()
 
@@ -280,11 +290,11 @@ def box():
     ))
 
     box.update_xaxes(title_text='Model ID')
-    box.update_yaxes(title_text='MAE', tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    box.update_layout(title_text='Mean Absolute Error')
-    pio.write_html(box, file= 'templates/basic-box.html')
+    box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric))
+    pio.write_html(box, file= 'templates/box.html')
     
-    return render_template('basic-box.html')
+    return render_template('box.html')
 
 
 if __name__ == '__main__':
