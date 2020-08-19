@@ -16,8 +16,8 @@ def index(request):
         combiners = []
         print(err)
 
-    dashboardhost = os.environ['FEDN_DASHBOARD_HOST']
-    dashboardport = os.environ['FEDN_DASHBOARD_PORT']
+    dashboardhost = os.environ['DASHBOARD_HOST']
+    dashboardport = os.environ['DASHBOARD_PORT']
     # request.session['next'] = '/combiners/'
     return render(request, template, locals())
 

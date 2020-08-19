@@ -16,6 +16,8 @@ services:
       - MONGO_PORT=${FEDN_MONGO_PORT}
       - MDBUSR=${MDBUSR}
       - MDBPWD=${MDBPWD} 
+      - DASHBOARD_HOST=${FEDN_DASHBOARD_HOST}
+      - DASHBOARD_PORT=${FEDN_DASHBOARD_PORT}
     command: sh -c "scripts/run_web.sh"
     volumes:
       - ./components/discovery/:/app/
