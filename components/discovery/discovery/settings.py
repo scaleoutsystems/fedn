@@ -86,9 +86,9 @@ WSGI_APPLICATION = 'discovery.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'mongo',
-        'CLIENT': { 'host': 'mongo',
-                    'port': 27017,
+        'NAME': 'fedn_controller',
+        'CLIENT': { 'host': os.environ['MONGO_HOST'],
+                    'port': os.environ['MONGO_PORT'],
                     'username': os.environ['MDBUSR'],
                     'password': os.environ['MDBPWD'],
                     },
