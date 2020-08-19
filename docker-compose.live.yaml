@@ -28,7 +28,7 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - MINIO_HOST=${FEDN_MINIO_HOST}
-      - MINIO_PORT=${FEDN_MONGO_PORT}
+      - MINIO_PORT=${FEDN_MINIO_PORT}
     volumes:
       - minio-data:/data
     ports:
@@ -38,7 +38,7 @@ services:
       MINIO_SECRET_KEY: ${FEDN_MINIO_SECRET_KEY}
     command: server /data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${MINIO_HOST}:${MINIO_PORT}/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://${FEDN_MINIO_HOST}:${FEDN_MINIO_PORT}/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
