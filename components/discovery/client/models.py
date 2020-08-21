@@ -12,7 +12,7 @@ class Client(models.Model):
         ('L', 'Lost')
     ]
 
-    combiner = models.ForeignKey('combiner.Combiner', on_delete=models.DO_NOTHING, blank=True, null=True)
+    reducer = models.ForeignKey('combiner.Reducer', on_delete=models.DO_NOTHING, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
     status = models.CharField(max_length=2, choices=CLIENT_STATUS, default="R")

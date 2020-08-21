@@ -37,7 +37,10 @@ class KerasSequentialHelper:
         """ We need to go via a tmpfile to load bytestream serializd models retrieved from the miniorepository. """
         fod, outfile_name = tempfile.mkstemp(suffix='.h5')
         with open(outfile_name, 'wb') as fh:
-            fh.write(model)
+            s = fh.write(model)
+            print("Written {}".format(s),flush=True)
+            fh.flush()
+        fh.close()
         model = krm.load_model(outfile_name)
         os.unlink(outfile_name)
         return model

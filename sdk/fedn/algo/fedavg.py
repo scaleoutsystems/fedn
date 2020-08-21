@@ -6,27 +6,22 @@ import time
 
 import fedn.proto.alliance_pb2 as alliance
 import tensorflow as tf
-from fedn.combiner.server import CombinerClient
 from fedn.utils.helpers import KerasSequentialHelper
-from fedn.utils.mongo import connect_to_mongodb
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-class FEDAVGCombiner(CombinerClient):
+class FEDAVGCombiner:
     """ A Local SGD / Federated Averaging (FedAvg) combiner. """
 
-    def __init__(self, address, port, id, role, storage):
+    def __init__(self, id, storage, server):
 
-        super().__init__(address, port, id, role)
+        # super().__init__(address, port, id, role)
 
         self.storage = storage
         self.id = id
         self.model_id = None
-
-        # TODO  refactor since we are now getting config on RUN cmd.
-        self.db = connect_to_mongodb()
-        self.coll = self.db['orchestrators']
+        self.server = server
 
         self.config = {}
         # TODO: Use MongoDB
@@ -82,7 +77,9 @@ class FEDAVGCombiner(CombinerClient):
             model_id = self.model_updates.get(timeout=timeout)
             print("combining ", model_id)
             # Fetch the model data blob from storage
-            model_str = self.get_model(model_id)
+            model_str = self.server.get_model(model_id)
+            import sys
+            print("now writing {}".format(sys.getsizeof(model_str.getbuffer())), flush=True)
             model = self.helper.load_model(model_str.getbuffer())
             nr_processed_models = 1
             self.model_updates.task_done()
@@ -95,7 +92,7 @@ class FEDAVGCombiner(CombinerClient):
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
 
-                model_next = self.helper.load_model(self.get_model(model_id).getbuffer())
+                model_next = self.helper.load_model(self.server.get_model(model_id).getbuffer())
                 self.helper.increment_average(model, model_next, nr_processed_models)
 
                 nr_processed_models += 1
@@ -119,7 +116,7 @@ class FEDAVGCombiner(CombinerClient):
         """  Obtain a list of clients to talk to in a round. """
 
         # TODO: If we want global sampling without replacement the server needs to assign clients
-        active_trainers = self.get_active_trainers()
+        active_trainers = self.server.get_active_trainers()
 
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(active_trainers):
@@ -138,14 +135,18 @@ class FEDAVGCombiner(CombinerClient):
             self.model_updates.queue.clear()
 
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
-        self.request_model_update(self.model_id, clients=self.trainers)
+        self.server.request_model_update(self.model_id, clients=self.trainers)
+
+        import time
+        print("waiting for models to be completely uploaded", flush=True)
+        time.sleep(60)
 
         # Apply combiner
         model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])
         return model
 
     def __validation_round(self):
-        self.request_model_validation(self.model_id, from_clients=self.validators)
+        self.server.request_model_validation(self.model_id, from_clients=self.validators)
 
     def run(self, config):
         """ Coordinates training and validation tasks with clints, as specified in the 
@@ -155,7 +156,7 @@ class FEDAVGCombiner(CombinerClient):
         self.model_id = self.config['model_id']
 
         print("COMBINER starting from model {}".format(self.model_id))
- 
+
         # Fetch the input model blob from storage and load in local memory
         timeout_retry = 3
         import time
@@ -166,20 +167,20 @@ class FEDAVGCombiner(CombinerClient):
                 if model:
                     break
             except Exception as e:
-                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
+                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry), flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > 2:
                     print("COMBINER exiting. could not fetch seed model.")
                     return
 
-        self.set_model(model, self.model_id)
+        self.server.set_model(model, self.model_id)
 
         # Check that the minimal number of required clients to start a round are connected 
         import time
         ready = False
         while not ready:
-            active = self.nr_active_trainers()
+            active = self.server.nr_active_trainers()
             if active >= config['clients_required']:
                 ready = True
             else:
@@ -192,7 +193,7 @@ class FEDAVGCombiner(CombinerClient):
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t FEDAVG: Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(self.config['clients_requested'])
+            self.__assign_clients(config['clients_requested'])
             model = self.__training_round()
 
             if model:
@@ -209,12 +210,12 @@ class FEDAVGCombiner(CombinerClient):
                 model_id = self.storage.set_model(outfile_name, is_file=True)
                 from io import BytesIO
                 a = BytesIO()
-                with open(outfile_name,'rb') as f:
+                with open(outfile_name, 'rb') as f:
                     a.write(f.read())
 
                 # Stream aggregated model to server 
                 # TODO: Not strictly necessary to stream model here, can be slight waste of resources.
-                self.set_model(a, model_id) 
+                self.server.set_model(a, model_id)
                 os.unlink(outfile_name)
 
                 self.model_id = model_id

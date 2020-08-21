@@ -33,7 +33,7 @@ class Reducer:
                 repository = get_repository(config=unpack['Repository'])
                 bucket_name = unpack["Repository"]["minio_bucket"]
                 from fedn.combiner.helpers import get_combiner
-                combiner = get_combiner(project)(address, port, self.id, Role.COMBINER, repository)
+                combiner = get_combiner(context=None)(address, port, self.id, Role.COMBINER, repository)
                 self.combiners.update(
                     {address: {'connection': connection,
                                'combiner': combiner,

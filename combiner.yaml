@@ -19,28 +19,28 @@ services:
     ports:
         - 12080:12080
 
-  monitor:
-    image: "scaleoutsystems/monitor:latest"
-    build:
-      context: .
-      dockerfile: components/monitor/Dockerfile
-    environment:
-      - GET_HOSTS_FROM=dns
-      - MONITOR_HOST=combiner
-      - MONITOR_PORT=12080
-      - USER=test
-      - PROJECT=project
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD} 
-    working_dir: /app/
-    volumes:
-      - ./components/monitor/:/app/
-      - ./sdk:/app/sdk
-      - ./cli:/app/cli
-    depends_on:
-      - combiner
+  #monitor:
+  #  image: "scaleoutsystems/monitor:latest"
+  #  build:
+  #    context: .
+  #    dockerfile: components/monitor/Dockerfile
+  #  environment:
+  #    - GET_HOSTS_FROM=dns
+  #    - MONITOR_HOST=combiner
+  #    - MONITOR_PORT=12080
+  #    - USER=test
+  #    - PROJECT=project
+  #    - ALLIANCE_UID=${ALLIANCE_UID}
+  #    - MDBUSR=${MDBUSR}
+  #    - MDBPWD=${MDBPWD}
+  #  working_dir: /app/
+  #  volumes:
+  #    - ./components/monitor/:/app/
+  #    - ./sdk:/app/sdk
+  #    - ./cli:/app/cli
+  #  depends_on:
+  #    - combiner
 
-volumes:
+#volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
-  minio-data:
+ # minio-data:

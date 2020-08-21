@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import threading
+import sys
 
 import fedn.proto.alliance_pb2 as alliance
 import fedn.proto.alliance_pb2_grpc as rpc
@@ -38,10 +39,10 @@ class Client:
     def __init__(self, config):
 
         from fedn.discovery.connect import DiscoveryClientConnect, State
-        self.controller = DiscoveryClientConnect(config['discover_host'],
-                                                 config['discover_port'],
-                                                 config['token'],
-                                                 config['name'])
+        # self.controller = DiscoveryClientConnect(config['discover_host'],
+        #                                         config['discover_port'],
+        #                                         config['token'],
+        #                                         config['name'])
         self.name = config['name']
 
         self.started_at = datetime.now()
@@ -50,38 +51,22 @@ class Client:
         import time
         tries = 90
         status = None
-        while True:
-            if tries > 0:
-                status = self.controller.connect()
-                if status == State.Disconnected:
-                    tries = tries - 1
+        # while True:
+        #    if tries > 0:
+        #        status = self.controller.connect()
+        #        if status == State.Disconnected:
+        #            tries = tries - 1
 
-                if status == State.Connected:
-                    break
+        #                if status == State.Connected:
+        #                   break
 
-            time.sleep(2)
-            print("try to reconnect to CONTROLLER", flush=True)
+        #          time.sleep(2)
+        #         print("try to reconnect to CONTROLLER", flush=True)
 
-        combiner = None
+        connect_config = None
         tries = 180
-        while True:
-            status, state = self.controller.check_status()
-            print("got status {}".format(status), flush=True)
-            if state == state.Disconnected:
-                print("lost connection. trying...")
-                tries -= 1
-                time.sleep(1)
-                if tries < 1:
-                    print("ERROR! NO CONTACT!", flush=True)
-                    raise Exception("NO CONTACT WITH DISCOVERY NODE")
-                self.controller.connect()
-            if status != 'A':
-                print("waiting to be assigned..", flush=True)
-                time.sleep(5)
-            if status == 'A':
-                print("yay! got assigned, fetching combiner", flush=True)
-                combiner, _ = self.controller.get_config()
-                break
+        # while True:
+        connect_config = {'host': 'combiner', 'port': 12080}
 
         # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
         repo_config = {'storage_access_key': 'minio',
@@ -94,12 +79,12 @@ class Client:
         self.repository = get_repository(repo_config)
         self.bucket_name = repo_config['storage_bucket']
 
-        channel = grpc.insecure_channel(combiner['host'] + ":" + str(combiner['port']))
+        channel = grpc.insecure_channel(connect_config['host'] + ":" + str(connect_config['port']))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
 
-        print("Client: {} connected to {}:{}".format(self.name, combiner['host'], combiner['port']))
+        print("Client: {} connected to {}:{}".format(self.name, connect_config['host'], connect_config['port']))
 
         # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
         dispatch_config = {'entry_points':
@@ -123,24 +108,24 @@ class Client:
 
         from io import BytesIO
         data = BytesIO()
-        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        # print("TRYING DOWNLOAD 1.", flush=True)
+        print("TRYING DOWNLOAD 1.", flush=True)
         for part in self.models.Download(alliance.ModelRequest(id=id)):
 
-            # print("TRYING DOWNLOAD 2.", flush=True)
+            print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                # print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
+                print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
-        # print("ERROR NO PARTS!",flush=True)
+        print("ERROR NO PARTS!",flush=True)
         return data
 
     def set_model(self, model, id):
@@ -155,7 +140,7 @@ class Client:
         else:
             bt = model
 
-        # print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
@@ -349,6 +334,7 @@ class Client:
             return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
             # return {"name": self.name, "State": ClientStateToString(self.state), "Runtime": str(datetime.now() - self.started_at),
             #        "Since": str(self.started_at)}
+
         import os, sys
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
@@ -369,7 +355,7 @@ class Client:
                 if self.state != old_state:
                     print("CLIENT {}".format(ClientStateToString(self.state)), flush=True)
                 if cnt > 5:
-                    print("CLIENT active",flush=True)
+                    print("CLIENT active", flush=True)
                     cnt = 0
         except KeyboardInterrupt:
             print("ok exiting..")
