@@ -1,5 +1,4 @@
 import queue
-import threading
 import uuid
 from concurrent import futures
 from datetime import datetime, timedelta
@@ -36,7 +35,8 @@ def role_to_proto_role(role):
 ####################################################################################################################
 ####################################################################################################################
 
-class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer):
+class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer,
+               rpc.ControlServicer):
     """ Communication relayer. """
 
     def __init__(self, connect_config):
@@ -72,6 +72,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
         rpc.add_ModelServiceServicer_to_server(self, self.server)
+        rpc.add_ControlServicer_to_server(self, self.server)
 
         # TODO use <address> if specific host is to be assigned.
         self.server.add_insecure_port('[::]:' + str(port))
@@ -131,7 +132,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             bt = model
 
-        import sys
         # print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
@@ -469,7 +469,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
             if request.status == alliance.ModelStatus.OK and not request.data:
                 # print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
-                import sys
                 # print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
                 result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.OK,
                                                 message="Got model successfully.")
@@ -507,21 +506,31 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         except Exception as e:
             print("Downloading went wrong! {}".format(e), flush=True)
 
+    def StartCombiner(self, request, context):
+        config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 5,
+                  'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
+
+        self.combiner.run(config)
+
+    def StopCombiner(self, request, context):
+        pass
+
+    def InterruptCombiner(self, request, context):
+
+        pass
+
     ####################################################################################################################
 
-    # TODO replace with grpc request instead
     def run(self):
         print("COMBINER:starting combiner", flush=True)
         # TODO change hostname to configurable and environmental overridable value
 
         # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
         #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
-
-        # TODO override by input parameters
-        config = {'round_timeout': 180, 'model_id': '1a9af163-7bb0-46ee-afab-e20965b3ca5f', 'rounds': 5,
-                  'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
         import time
 
-        time.sleep(5)
-
-        self.combiner.run(config)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass

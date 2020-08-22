@@ -167,8 +167,35 @@ message ReconnectRequest {
   uint32 reconnect = 3 ;
 }
 
+/*enum Command {
+  INIT = 0;
+  START = 1;
+  STOP = 2;
+  PAUSE = 3;
+  INTERRUPT = 4;
+}*/
+message ControlRequest {
+  Client sender = 1;
+  /*Command command = 2;*/
+
+}
+enum CommandStatus {
+  ACK = 0;
+  NOT_READY = 1;
+  ERROR = 2;
+}
+message ControlResponse {
+  Client sender = 1;
+  CommandStatus status = 2;
+}
 service Reducer {
   rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
+}
+
+service Control {
+  rpc StartCombiner(ControlRequest) returns (ControlResponse);
+  rpc StopCombiner(ControlRequest) returns (ControlResponse);
+  rpc InterruptCombiner(ControlRequest) returns (ControlResponse);
 }
 
 service Connector {

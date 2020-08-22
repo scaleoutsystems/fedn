@@ -137,9 +137,9 @@ class FEDAVGCombiner:
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
         self.server.request_model_update(self.model_id, clients=self.trainers)
 
-        import time
-        print("waiting for models to be completely uploaded", flush=True)
-        time.sleep(60)
+        #import time
+        #print("waiting for models to be completely uploaded", flush=True)
+        #time.sleep(60)
 
         # Apply combiner
         model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])

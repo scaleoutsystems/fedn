@@ -13,12 +13,8 @@ services:
     working_dir: /app/client
     command: ./seed.sh
     volumes:
-      - ./test/${EXAMPLE}/combiner:/app/client
+      - ./test/${EXAMPLE}/seed:/app/client
     # - ./sdk:/app/sdk
     # - ./cli:/app/cli
     #ports:
     #    - 12080:12080
-
-volumes:
-  # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
-  minio-data:
