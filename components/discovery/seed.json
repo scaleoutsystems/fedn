@@ -18,14 +18,6 @@
     }
   },
   {
-    "model": "authtoken.token",
-    "pk": "ed4039728dcd1d5e8018c90b7ae2444fb61ebf91",
-    "fields": {
-      "user": 1,
-      "created": "2020-07-22T20:10:33.156Z"
-    }
-  },
-  {
     "model": "combiner.combiner",
     "pk": 8,
     "fields": {
