@@ -6,7 +6,7 @@
       "password": "pbkdf2_sha256$150000$s3vazv4XMuil$snCtwVVEtGaywteoWWVpIh5jdiyv/OOW5YdU3zKVMeY=",
       "last_login": "2020-07-21T13:19:09.393Z",
       "is_superuser": true,
-      "username": "morgan",
+      "username": "alliance_admin",
       "first_name": "",
       "last_name": "",
       "email": "",
@@ -19,7 +19,7 @@
   },
   {
     "model": "authtoken.token",
-    "pk": "e9a3cb4c5eaff546eec33ff68a7fbe232b68a192",
+    "pk": "ed4039728dcd1d5e8018c90b7ae2444fb61ebf91",
     "fields": {
       "user": 1,
       "created": "2020-07-22T20:10:33.156Z"
