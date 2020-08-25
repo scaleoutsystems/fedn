@@ -8,7 +8,7 @@ import fedn.proto.alliance_pb2 as alliance
 import tensorflow as tf
 from fedn.combiner.server import CombinerClient
 from fedn.utils.helpers import KerasSequentialHelper
-from fedn.utils.mongo import connect_to_mongodb
+#from fedn.utils.mongo import connect_to_mongodb
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
@@ -25,8 +25,8 @@ class FEDAVGCombiner(CombinerClient):
         self.model_id = None
 
         # TODO  refactor since we are now getting config on RUN cmd.
-        self.db = connect_to_mongodb()
-        self.coll = self.db['orchestrators']
+        #self.db = connect_to_mongodb()
+        #self.coll = self.db['orchestrators']
 
         self.config = {}
         # TODO: Use MongoDB
