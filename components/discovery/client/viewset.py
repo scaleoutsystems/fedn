@@ -10,7 +10,7 @@ from rest_framework import routers, serializers, viewsets
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ['name', 'status', 'user','combiner','timeout','timeout_lost']
+        fields = ['name', 'status', 'user','user_id','combiner','timeout','timeout_lost']
 
 
 # ViewSets define the view behavior.
