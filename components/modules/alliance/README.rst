@@ -1,1 +1,0 @@
-# scaleout-studio-alliance-admin
