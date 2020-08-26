@@ -36,7 +36,8 @@ class Client:
         try:
             self.mdb = connect_to_mongodb()
             self.collection = self.mdb['status']
-        except Exception:
+        except Exception as e:
+            print("FAILED TO CONNECT TO MONGO, {}".format(e),flush=True)
             self.collection = None
             pass
 
