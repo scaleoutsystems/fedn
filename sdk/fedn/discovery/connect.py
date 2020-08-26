@@ -11,7 +11,7 @@ class State(enum.Enum):
 
 class DiscoveryClientConnect:
 
-    def __init__(self, host, port, token, name, id):
+    def __init__(self, host, port, token, name, id=None):
         self.host = host
         self.port = port
         self.token = token
