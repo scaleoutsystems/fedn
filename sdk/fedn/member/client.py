@@ -41,7 +41,8 @@ class Client:
         self.controller = DiscoveryClientConnect(config['discover_host'],
                                                  config['discover_port'],
                                                  config['token'],
-                                                 config['name'])
+                                                 config['name'],
+                                                 config['id'])
         self.name = config['name']
 
         self.started_at = datetime.now()
