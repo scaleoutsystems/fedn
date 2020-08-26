@@ -7,7 +7,7 @@ def get_mongo_config():
         'username':os.environ['MDBUSR'],
         'password':os.environ['MDBPWD'],
         'host': os.environ['MONGO_HOST'],
-        'port': os.environ['MONGO_PORT'],
+        'port': int(os.environ['MONGO_PORT']),
         }
     return config 
 
