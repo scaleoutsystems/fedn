@@ -92,7 +92,7 @@ class Client:
         #               'storage_hostname': 'minio',
         #               'storage_port': 9000}
 
-        repo_config = self.controller.get_config()
+        repo_config, _ = self.controller.get_config()
 
 
         self.repository = get_repository(repo_config)
