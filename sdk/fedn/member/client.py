@@ -42,7 +42,7 @@ class Client:
                                                  config['discover_port'],
                                                  config['token'],
                                                  config['name'],
-                                                 config['id'])
+                                                 config['client_id'])
         self.name = config['name']
 
         self.started_at = datetime.now()
