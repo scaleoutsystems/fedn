@@ -6,14 +6,12 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD}   
     image: "scaleoutsystems/client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: ./run.sh
+    command: fedn run fedavg -d ${FEDN_CONTROLLER_HOST} -p ${FEDN_CONTROLLER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
     ports:
@@ -31,6 +29,8 @@ services:
       - USER=test
       - PROJECT=project
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - MONGO_HOST=${FEDN_MONGO_HOST}
+      - MONGO_PORT=${FEDN_MONGO_PORT}
       - MDBUSR=${MDBUSR}
       - MDBPWD=${MDBPWD} 
     working_dir: /app/
