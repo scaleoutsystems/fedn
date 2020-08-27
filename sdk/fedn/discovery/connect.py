@@ -11,11 +11,12 @@ class State(enum.Enum):
 
 class DiscoveryClientConnect:
 
-    def __init__(self, host, port, token, name):
+    def __init__(self, host, port, token, name, id=None):
         self.host = host
         self.port = port
         self.token = token
         self.name = name
+        self.id = id
         self.state = State.Disconnected
         self.connect_string = "http://{}:{}".format(self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
@@ -34,7 +35,7 @@ class DiscoveryClientConnect:
 
         if retval.status_code != 200:
 
-            payload = {'name': self.name, 'status': "R", 'user': 1}
+            payload = {'name': self.name, 'status': "R", 'user': self.id}
             retval = r.post(self.connect_string + '/client/', data=payload,
                             headers={'Authorization': 'Token {}'.format(self.token)})
             #print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)

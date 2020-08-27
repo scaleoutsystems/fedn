@@ -239,7 +239,6 @@ class FednServer(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorService
 
         combiner_config, _ = self.controller.get_combiner_config()
 
-
         self.repository = get_repository(config=combiner_config)
         self.bucket_name = combiner_config["storage_bucket"]
 

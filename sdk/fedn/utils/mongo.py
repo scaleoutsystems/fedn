@@ -6,11 +6,10 @@ def get_mongo_config():
     config = {
         'username':os.environ['MDBUSR'],
         'password':os.environ['MDBPWD'],
-        'host':'mongo',
-        'port':27017,
+        'host': os.environ['MONGO_HOST'],
+        'port': int(os.environ['MONGO_PORT']),
         }
     return config 
-
 
 def connect_to_mongodb():
     config = get_mongo_config()

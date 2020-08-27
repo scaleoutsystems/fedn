@@ -41,7 +41,8 @@ class Client:
         self.controller = DiscoveryClientConnect(config['discover_host'],
                                                  config['discover_port'],
                                                  config['token'],
-                                                 config['name'])
+                                                 config['name'],
+                                                 config['client_id'])
         self.name = config['name']
 
         self.started_at = datetime.now()
@@ -84,12 +85,15 @@ class Client:
                 break
 
         # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
-        repo_config = {'storage_access_key': 'minio',
-                       'storage_secret_key': 'minio123',
-                       'storage_bucket': 'models',
-                       'storage_secure_mode': False,
-                       'storage_hostname': 'minio',
-                       'storage_port': 9000}
+        #repo_config = {'storage_access_key': 'minio',
+        #               'storage_secret_key': 'minio123',
+        #               'storage_bucket': 'models',
+        #               'storage_secure_mode': False,
+        #               'storage_hostname': 'minio',
+        #               'storage_port': 9000}
+
+        repo_config, _ = self.controller.get_config()
+
 
         self.repository = get_repository(repo_config)
         self.bucket_name = repo_config['storage_bucket']
