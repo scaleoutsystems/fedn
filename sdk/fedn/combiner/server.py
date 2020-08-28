@@ -196,7 +196,7 @@ class CombinerClient:
     def nr_active_validators(self):
         return len(self.get_active_validators())
 
-    def __assign_round_clients(self, n):
+    def _assign_round_clients(self, n):
         """  Obtain a list of clients to talk to in a round. """
 
         # TODO: If we want global sampling without replacement the server needs to assign clients

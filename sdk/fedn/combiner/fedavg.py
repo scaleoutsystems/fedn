@@ -149,7 +149,7 @@ class FEDAVGCombiner(CombinerClient):
             print("\t FEDAVG: Starting training round {}".format(r), flush=True)
 
             # Ask clients to update the model
-            trainers = self.__assign_round_clients(config['clients_requested'])
+            trainers = self._assign_round_clients(config['clients_requested'])
             model = self.__training_round(trainers,config)
 
             if model:
@@ -191,7 +191,7 @@ class FEDAVGCombiner(CombinerClient):
         print("COMBINER starting from model {}".format(config['model_id']))
         ready = self._check_nr_round_clients(config['clients_required'])
                 
-        validators = self.__assign_clients(config['clients_requested'])
+        validators = self._assign_round_clients(config['clients_requested'])
         print("\t Starting validation round {}".format(r))
         self.__validation_round(model_id,validators)
 
