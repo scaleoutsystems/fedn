@@ -116,7 +116,7 @@ class FEDAVGCombiner(CombinerClient):
         with self.model_updates.mutex:
             self.model_updates.queue.clear()
 
-        self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
+        self.report_status("COMBINER: Initiating training round, participating members: {}".format(trainers))
         self.request_model_update(self.model_id, clients=clients)
 
         # Apply combiner
