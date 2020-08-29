@@ -84,7 +84,7 @@ class Client:
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
 
-        print("Client: {} connected to {}:{}".format(self.name, connect_config['host'], connect_config['port']))
+        print("Client: {} connected to {}:{}".format(self.name, connect_config['host'], connect_config['port']),flush=True)
 
         # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
         dispatch_config = {'entry_points':
@@ -108,24 +108,24 @@ class Client:
 
         from io import BytesIO
         data = BytesIO()
-        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        print("TRYING DOWNLOAD 1.", flush=True)
+        #print("TRYING DOWNLOAD 1.", flush=True)
         for part in self.models.Download(alliance.ModelRequest(id=id)):
 
-            print("TRYING DOWNLOAD 2.", flush=True)
+            #print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
+                #print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
-        print("ERROR NO PARTS!",flush=True)
+        #print("ERROR NO PARTS!",flush=True)
         return data
 
     def set_model(self, model, id):
@@ -140,7 +140,7 @@ class Client:
         else:
             bt = model
 
-        print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        #print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
@@ -166,96 +166,112 @@ class Client:
         r.sender.name = self.name
         r.sender.role = alliance.WORKER
         metadata = [('client', r.sender.name)]
-        for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
-            if request.sender.role == alliance.COMBINER:
-                # Process training request
-                global_model_id = request.model_id
-                # TODO: Error handling
-                self.send_status("Received model update request.", log_level=alliance.Status.AUDIT,
-                                 type=alliance.StatusType.MODEL_UPDATE_REQUEST, request=request)
-                model_id = self.__process_training_request(global_model_id)
+        while True:
+            try:
+                for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
+                    if request.sender.role == alliance.COMBINER:
+                        # Process training request
+                        global_model_id = request.model_id
+                        # TODO: Error handling
+                        self.send_status("Received model update request.", log_level=alliance.Status.AUDIT,
+                                         type=alliance.StatusType.MODEL_UPDATE_REQUEST, request=request)
+                        model_id = self.__process_training_request(global_model_id)
 
-                if model_id != None:
-                    # Notify the requesting client that a model update is available
-                    update = alliance.ModelUpdate()
-                    update.sender.name = self.name
-                    update.sender.role = alliance.WORKER
-                    update.receiver.name = request.sender.name
-                    update.receiver.role = request.sender.role
-                    update.model_id = request.model_id
-                    update.model_update_id = str(model_id)
-                    update.timestamp = str(datetime.now())
-                    update.correlation_id = request.correlation_id
-                    response = self.orchestrator.SendModelUpdate(update)
+                        if model_id != None:
+                            # Notify the requesting client that a model update is available
+                            update = alliance.ModelUpdate()
+                            update.sender.name = self.name
+                            update.sender.role = alliance.WORKER
+                            update.receiver.name = request.sender.name
+                            update.receiver.role = request.sender.role
+                            update.model_id = request.model_id
+                            update.model_update_id = str(model_id)
+                            update.timestamp = str(datetime.now())
+                            update.correlation_id = request.correlation_id
+                            response = self.orchestrator.SendModelUpdate(update)
 
-                    self.send_status("Model update completed.", log_level=alliance.Status.AUDIT,
-                                     type=alliance.StatusType.MODEL_UPDATE, request=update)
+                            self.send_status("Model update completed.", log_level=alliance.Status.AUDIT,
+                                             type=alliance.StatusType.MODEL_UPDATE, request=update)
 
-                else:
-                    self.send_status("Client {} failed to complete model update.", log_level=alliance.Status.WARNING,
-                                     request=request)
+                        else:
+                            self.send_status("Client {} failed to complete model update.", log_level=alliance.Status.WARNING,
+                                             request=request)
+            except grpc.RpcError as e:
+                status_code = e.code()
+                timeout = 5
+                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(status_code.name,timeout), flush=True)
+                import time
+                time.sleep(timeout)
 
     def __listen_to_model_validation_request_stream(self):
         """ Subscribe to the model update request stream. """
         r = alliance.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = alliance.WORKER
-        for request in self.orchestrator.ModelValidationRequestStream(r):
-            # Process training request
-            model_id = request.model_id
-            # TODO: Error handling
-            self.send_status("Recieved model validation request.", log_level=alliance.Status.AUDIT,
-                             type=alliance.StatusType.MODEL_VALIDATION_REQUEST, request=request)
-            metrics = self.__process_validation_request(model_id)
+        while True:
+            try:
+                for request in self.orchestrator.ModelValidationRequestStream(r):
+                    # Process training request
+                    model_id = request.model_id
+                    # TODO: Error handling
+                    self.send_status("Recieved model validation request.", log_level=alliance.Status.AUDIT,
+                                     type=alliance.StatusType.MODEL_VALIDATION_REQUEST, request=request)
+                    metrics = self.__process_validation_request(model_id)
 
-            if metrics != None:
-                # Send validation
-                validation = alliance.ModelValidation()
-                validation.sender.name = self.name
-                validation.sender.role = alliance.WORKER
-                validation.receiver.name = request.sender.name
-                validation.receiver.role = request.sender.role
-                validation.model_id = str(model_id)
-                validation.data = json.dumps(metrics)
-                self.str = str(datetime.now())
-                validation.timestamp = self.str
-                validation.correlation_id = request.correlation_id
-                response = self.orchestrator.SendModelValidation(validation)
-                self.send_status("Model validation completed.", log_level=alliance.Status.AUDIT,
-                                 type=alliance.StatusType.MODEL_VALIDATION, request=validation)
-            else:
-                self.send_status("Client {} failed to complete model validation.".format(self.client),
-                                 log_level=alliance.Status.WARNING, request=request)
+                    if metrics != None:
+                        # Send validation
+                        validation = alliance.ModelValidation()
+                        validation.sender.name = self.name
+                        validation.sender.role = alliance.WORKER
+                        validation.receiver.name = request.sender.name
+                        validation.receiver.role = request.sender.role
+                        validation.model_id = str(model_id)
+                        validation.data = json.dumps(metrics)
+                        self.str = str(datetime.now())
+                        validation.timestamp = self.str
+                        validation.correlation_id = request.correlation_id
+                        response = self.orchestrator.SendModelValidation(validation)
+                        self.send_status("Model validation completed.", log_level=alliance.Status.AUDIT,
+                                         type=alliance.StatusType.MODEL_VALIDATION, request=validation)
+                    else:
+                        self.send_status("Client {} failed to complete model validation.".format(self.name),
+                                         log_level=alliance.Status.WARNING, request=request)
+            except grpc.RpcError as e:
+                status_code = e.code()
+                timeout = 5
+                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(status_code.name,timeout), flush=True)
+                import time
+                time.sleep(timeout)
 
     def __process_training_request(self, model_id):
         self.send_status("\t Processing training request for model_id {}".format(model_id))
         self.state = ClientState.training
         try:
-            # print("IN TRAINING REQUEST 1", flush=True)
+            #print("IN TRAINING REQUEST 1", flush=True)
             mdl = self.get_model(str(model_id))
             import sys
-            # print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
-            # print("IN TRAINING REQUEST 2", flush=True)
+            #print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
+            #print("IN TRAINING REQUEST 2", flush=True)
             # model = self.repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
 
             with open(infile_name, "wb") as fh:
                 fh.write(mdl.getbuffer())
-            # print("IN TRAINING REQUEST 3", flush=True)
+            #print("IN TRAINING REQUEST 3", flush=True)
             self.dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
-            # print("IN TRAINING REQUEST 4", flush=True)
+            #print("IN TRAINING REQUEST 4", flush=True)
             # model_id = self.repository.set_model(outfile_name, is_file=True)
 
             import io
             out_model = None
             with open(outfile_name, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
-            # print("IN TRAINING REQUEST 5", flush=True)
+            #print("IN TRAINING REQUEST 5", flush=True)
             import uuid
             model_id = uuid.uuid4()
             self.set_model(out_model, str(model_id))
-            # print("IN TRAINING REQUEST 6", flush=True)
+            #print("IN TRAINING REQUEST 6", flush=True)
             os.unlink(infile_name)
             os.unlink(outfile_name)
 
@@ -271,7 +287,7 @@ class Client:
         self.send_status("Processing validation request for model_id {}".format(model_id))
         self.state = ClientState.validating
         try:
-            model = self.get_model(model_id)  # repository.get_model(model_id)
+            model = self.get_model(str(model_id))  # repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
             with open(infile_name, "wb") as fh:
@@ -294,6 +310,7 @@ class Client:
         return validation
 
     def send_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None):
+        print("SEND_STATUS REPORTS:{}".format(msg),flush=True)
         from google.protobuf.json_format import MessageToJson
         status = alliance.Status()
 
@@ -315,8 +332,12 @@ class Client:
     def _send_heartbeat(self, update_frequency=2.0):
         while True:
             heartbeat = alliance.Heartbeat(sender=alliance.Client(name=self.name, role=alliance.WORKER))
-            self.connection.SendHeartbeat(heartbeat)
+            try:
+                self.connection.SendHeartbeat(heartbeat)
             # self.send_status("HEARTBEAT from {}".format(self.client),log_level=alliance.Status.INFO)
+            except grpc.RpcError as e:
+                status_code = e.code()
+                print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name),flush=True)
             import time
             time.sleep(update_frequency)
 
@@ -345,7 +366,7 @@ class Client:
     def run(self):
         import time
         import threading
-        threading.Thread(target=self.run_web, daemon=True).start()
+        #threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state
