@@ -167,6 +167,39 @@ message ReconnectRequest {
   uint32 reconnect = 3 ;
 }
 
+enum Command {
+  IDLE = 0;
+  START = 1;
+  PAUSE = 2;
+  STOP = 3;
+  RESET = 4;
+  REPORT = 5;
+}
+
+message Parameter {
+  string key = 1;
+  string value = 2;
+}
+
+message ControlRequest {
+  Command command = 1;
+  repeated Parameter parameter = 2;
+}
+
+  message ControlResponse {
+    string message = 1;
+}
+
+message ReportResponse {
+  Client sender = 1;
+  repeated Parameter parameter = 2;
+}
+
+service Control {
+  rpc Start(ControlRequest) returns (ControlResponse);
+  rpc Stop(ControlRequest) returns (ControlResponse);
+  rpc Report(ControlRequest) returns (ReportResponse);
+}
 service Reducer {
   rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
 }

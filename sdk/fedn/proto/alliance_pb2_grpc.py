@@ -70,6 +70,7 @@ class ModelService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -78,7 +79,7 @@ class ModelService(object):
             fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Download(request,
@@ -86,6 +87,7 @@ class ModelService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -94,7 +96,134 @@ class ModelService(object):
             fedn_dot_proto_dot_alliance__pb2.ModelRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class ControlStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Start = channel.unary_unary(
+                '/grpc.Control/Start',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ControlResponse.FromString,
+                )
+        self.Stop = channel.unary_unary(
+                '/grpc.Control/Stop',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ControlResponse.FromString,
+                )
+        self.Report = channel.unary_unary(
+                '/grpc.Control/Report',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ReportResponse.FromString,
+                )
+
+
+class ControlServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Start(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Stop(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Report(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_ControlServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Start': grpc.unary_unary_rpc_method_handler(
+                    servicer.Start,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ControlResponse.SerializeToString,
+            ),
+            'Stop': grpc.unary_unary_rpc_method_handler(
+                    servicer.Stop,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ControlResponse.SerializeToString,
+            ),
+            'Report': grpc.unary_unary_rpc_method_handler(
+                    servicer.Report,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ReportResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'grpc.Control', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class Control(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Start(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Start',
+            fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Stop(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Stop',
+            fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Report(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Report',
+            fedn_dot_proto_dot_alliance__pb2.ControlRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ReportResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class ReducerStub(object):
@@ -146,6 +275,7 @@ class Reducer(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -154,7 +284,7 @@ class Reducer(object):
             fedn_dot_proto_dot_alliance__pb2.GetGlobalModelRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.GetGlobalModelResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class ConnectorStub(object):
@@ -291,6 +421,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -299,7 +430,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Status.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendStatus(request,
@@ -307,6 +438,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -315,7 +447,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.Status.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListActiveClients(request,
@@ -323,6 +455,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -331,7 +464,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.ListClientsRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ClientList.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendHeartbeat(request,
@@ -339,6 +472,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -347,7 +481,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.Heartbeat.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ReassignClient(request,
@@ -355,6 +489,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -363,7 +498,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.ReassignRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ReconnectClient(request,
@@ -371,6 +506,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -379,7 +515,7 @@ class Connector(object):
             fedn_dot_proto_dot_alliance__pb2.ReconnectRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class CombinerStub(object):
@@ -544,6 +680,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -552,7 +689,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelUpdateRequest.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelUpdateStream(request,
@@ -560,6 +697,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -568,7 +706,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelUpdate.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelValidationRequestStream(request,
@@ -576,6 +714,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -584,7 +723,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelValidationRequest.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelValidationStream(request,
@@ -592,6 +731,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -600,7 +740,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ModelValidation.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendModelUpdateRequest(request,
@@ -608,6 +748,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -616,7 +757,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ModelUpdateRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendModelUpdate(request,
@@ -624,6 +765,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -632,7 +774,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ModelUpdate.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendModelValidationRequest(request,
@@ -640,6 +782,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -648,7 +791,7 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ModelValidationRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendModelValidation(request,
@@ -656,6 +799,7 @@ class Combiner(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -664,4 +808,4 @@ class Combiner(object):
             fedn_dot_proto_dot_alliance__pb2.ModelValidation.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
