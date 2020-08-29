@@ -72,12 +72,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         rpc.add_ConnectorServicer_to_server(self, self.server)
         rpc.add_ReducerServicer_to_server(self, self.server)
         rpc.add_ModelServiceServicer_to_server(self, self.server)
+        rpc.add_ControlServicer_to_server(self, self.server)
 
         # TODO use <address> if specific host is to be assigned.
         self.server.add_insecure_port('[::]:' + str(port))
 
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self)
+
+        threading.Thread(target=self.combiner.run, daemon=True).start()
 
         self.server.start()
 
@@ -100,22 +103,26 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def get_model(self, id):
         from io import BytesIO
         data = BytesIO()
-        print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        data.seek(0, 0)
+        import time
+        import random
+        time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
+        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        print("TRYING DOWNLOAD 1.", flush=True)
+        #print("TRYING DOWNLOAD 1.", flush=True)
         parts = self.Download(alliance.ModelRequest(id=id), self)
         for part in parts:
-            print("TRYING DOWNLOAD 2.", flush=True)
+            #print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
                 # self.lock.release()
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
+                #print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
                 return None
 
     def set_model(self, model, id):
@@ -268,6 +275,33 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         self.__join_client(client)
         self.clients[client.name]["lastseen"] = datetime.now()
+
+    #####################################################################################################################
+
+    def Start(self, control: alliance.ControlRequest, context):
+        response = alliance.ControlResponse()
+        print("\n\n\n\n\n GOT CONTROL **START** from Command {}\n\n\n\n\n".format(control.command), flush=True)
+
+        # config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 3,
+        #          'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
+        config = {}
+        for parameter in control.parameter:
+            config.update({parameter.key: parameter.value})
+        print("\n\n\n\nSTARTING COMBINER WITH {}\n\n\n\n".format(config), flush=True)
+
+        self.combiner.push_compute_plan(config)
+
+        return response
+
+    def Stop(self, control: alliance.ControlRequest, context):
+        response = alliance.ControlResponse()
+        print("\n\n\n\n\n GOT CONTROL **STOP** from Command\n\n\n\n\n", flush=True)
+        return response
+
+    def Report(self, control: alliance.ControlRequest, context):
+        response = alliance.ControlResponse()
+        print("\n\n\n\n\n GOT CONTROL **REPORt** from Command\n\n\n\n\n", flush=True)
+        return response
 
     #####################################################################################################################
 
@@ -518,10 +552,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
 
         # TODO override by input parameters
-        config = {'round_timeout': 180, 'model_id': '1a9af163-7bb0-46ee-afab-e20965b3ca5f', 'rounds': 5,
-                  'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
+        # config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 3,
+        #          'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
         import time
+        try:
+            while True:
+                time.sleep(5)
+        except (KeyboardInterrupt, SystemExit):
+            pass
 
-        time.sleep(5)
-
-        self.combiner.run(config)
+        # self.combiner.run(config)

@@ -7,6 +7,7 @@ import time
 import fedn.proto.alliance_pb2 as alliance
 import tensorflow as tf
 from fedn.utils.helpers import KerasSequentialHelper
+from threading import Thread, Lock
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
@@ -17,7 +18,8 @@ class FEDAVGCombiner:
     def __init__(self, id, storage, server):
 
         # super().__init__(address, port, id, role)
-
+        self.compute_plans_lock = Lock()
+        self.compute_plans = []
         self.storage = storage
         self.id = id
         self.model_id = None
@@ -75,9 +77,19 @@ class FEDAVGCombiner:
         # First model in the update round
         try:
             model_id = self.model_updates.get(timeout=timeout)
-            print("combining ", model_id)
+            print("Combining by getting model {}".format(model_id), flush=True)
             # Fetch the model data blob from storage
+            import sys
             model_str = self.server.get_model(model_id)
+            tries = 0
+            while tries < 3:
+                tries += 1
+                if not model_str or sys.getsizeof(model_str) == 80:
+                    print("Model download failed. retrying", flush=True)
+                    import time
+                    time.sleep(1.0)
+                    model_str = self.server.get_model(model_id)
+
             import sys
             print("now writing {}".format(sys.getsizeof(model_str.getbuffer())), flush=True)
             model = self.helper.load_model(model_str.getbuffer())
@@ -137,18 +149,37 @@ class FEDAVGCombiner:
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
         self.server.request_model_update(self.model_id, clients=self.trainers)
 
-        import time
-        print("waiting for models to be completely uploaded", flush=True)
-        time.sleep(60)
-
         # Apply combiner
-        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])
+        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=int(self.config['round_timeout']))
         return model
 
     def __validation_round(self):
         self.server.request_model_validation(self.model_id, from_clients=self.validators)
 
-    def run(self, config):
+    def push_compute_plan(self, plan):
+        self.compute_plans_lock.acquire()
+        self.compute_plans.append(plan)
+        self.compute_plans_lock.release()
+
+    def run(self):
+
+        import time
+        try:
+            while True:
+                time.sleep(1)
+                self.compute_plans_lock.acquire()
+                if len(self.compute_plans) > 0:
+                    plan = self.compute_plans.pop()
+                    self.compute_plans_lock.release()
+                    self.exec(plan)
+
+                if self.compute_plans_lock.locked():
+                    self.compute_plans_lock.release()
+
+        except (KeyboardInterrupt, SystemExit):
+            pass
+
+    def exec(self, config):
         """ Coordinates training and validation tasks with clints, as specified in the 
             config (CombinerConfiguration) """
 
@@ -181,19 +212,19 @@ class FEDAVGCombiner:
         ready = False
         while not ready:
             active = self.server.nr_active_trainers()
-            if active >= config['clients_required']:
+            if active >= int(config['clients_required']):
                 ready = True
             else:
-                print("waiting for {} clients to get started, currently: {}".format(config['clients_required'] - active,
+                print("waiting for {} clients to get started, currently: {}".format(int(config['clients_required']) - active,
                                                                                     active), flush=True)
             time.sleep(1)
 
         # Execute the configured number of rounds
-        for r in range(1, config['rounds'] + 1):
+        for r in range(1, int(config['rounds']) + 1):
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t FEDAVG: Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(config['clients_requested'])
+            self.__assign_clients(int(config['clients_requested']))
             model = self.__training_round()
 
             if model:
@@ -210,6 +241,7 @@ class FEDAVGCombiner:
                 model_id = self.storage.set_model(outfile_name, is_file=True)
                 from io import BytesIO
                 a = BytesIO()
+                a.seek(0, 0)
                 with open(outfile_name, 'rb') as f:
                     a.write(f.read())
 
