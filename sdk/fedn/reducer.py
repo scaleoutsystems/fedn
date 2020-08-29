@@ -66,8 +66,10 @@ class ReducerControl:
 
         self.__state = ReducerState.monitoring
 
-    def monitor(self, config):
+    def monitor(self, config=None):
         self.__state = ReducerState.monitoring
+        # todo connect to combiners and listen for globalmodelupdate request.
+        # use the globalmodel received to start the reducer combiner method on received models to construct its own model.
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
@@ -94,11 +96,32 @@ class ReducerControl:
         return self.__state
 
 
+class ReducerInference:
+    def __init__(self):
+        self.model_wrapper = None
+
+    def set(self, model):
+        self.model_wrapper = model
+
+    def infer(self, params):
+
+        results = None
+        if self.model_wrapper:
+            results = self.model_wrapper.infer(params)
+
+        return results
+
+
+class ModelError(BaseException):
+    pass
+
+
 class Reducer:
     def __init__(self, config):
         self.name = config['name']
         self.token = config['token']
         self.control = ReducerControl()
+        self.inference = ReducerInference()
 
         # from fedn.algo.fedavg import FEDAVGCombiner
         # self.reducer = FEDAVGCombiner(self.name, self.repository, self)
@@ -151,6 +174,16 @@ class Reducer:
             self.control.instruct(config)
             return "started"
 
+        @app.route('/infer')
+        def infer():
+            result = ""
+            try:
+                result = self.inference.infer(request.args)
+            except ModelError:
+                print("no model")
+
+            return result
+
         # import os, sys
         # self._original_stdout = sys.stdout
         # sys.stdout = open(os.devnull, 'w')
@@ -167,5 +200,6 @@ class Reducer:
             while True:
                 time.sleep(1)
                 print("Reducer in {} state".format(ReducerStateToString(self.control.state())), flush=True)
+                self.control.monitor()
         except (KeyboardInterrupt, SystemExit):
             print("Exiting..", flush=True)
