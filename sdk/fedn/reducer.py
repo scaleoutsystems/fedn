@@ -24,12 +24,11 @@ def ReducerStateToString(state):
 
 
 class CombinerRepresentation:
-    def __init__(self, parent, name, address, port, token):
+    def __init__(self, parent, name, address, port):
         self.parent = parent
         self.name = name
         self.address = address
         self.port = port
-        self.token = token
 
     def start(self, config):
         channel = grpc.insecure_channel(self.address + ":" + str(self.port))
@@ -43,6 +42,25 @@ class CombinerRepresentation:
 
         response = control.Start(request)
         print("Response from combiner {}".format(response.message))
+
+    def allowing_clients(self):
+        print("Sending message to combiner", flush=True)
+        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        connector = rpc.ConnectorStub(channel)
+        request = alliance.ConnectionRequest()
+        response = connector.AcceptingClients(request)
+        if response.status == alliance.ConnectionStatus.NOT_ACCEPTING:
+            print("Sending message to combiner 2", flush=True)
+            return False
+        if response.status == alliance.ConnectionStatus.ACCEPTING:
+            print("Sending message to combiner 3", flush=True)
+            return True
+        if response.status == alliance.ConnectionStatus.TRY_AGAIN_LATER:
+            print("Sending message to combiner 4", flush=True)
+            return False
+
+        print("Sending message to combiner 5??", flush=True)
+        return False
 
 
 class ReducerControl:
@@ -67,7 +85,8 @@ class ReducerControl:
         self.__state = ReducerState.monitoring
 
     def monitor(self, config=None):
-        self.__state = ReducerState.monitoring
+        if self.__state == ReducerState.monitoring:
+            print("monitoring")
         # todo connect to combiners and listen for globalmodelupdate request.
         # use the globalmodel received to start the reducer combiner method on received models to construct its own model.
 
@@ -92,6 +111,12 @@ class ReducerControl:
                 return combiner
         return None
 
+    def find_available_combiner(self):
+        for combiner in self.combiners:
+            if combiner.allowing_clients():
+                return combiner
+        return None
+
     def state(self):
         return self.__state
 
@@ -104,7 +129,6 @@ class ReducerInference:
         self.model_wrapper = model
 
     def infer(self, params):
-
         results = None
         if self.model_wrapper:
             results = self.model_wrapper.infer(params)
@@ -128,7 +152,7 @@ class Reducer:
 
     def run_web(self):
         from flask import Flask
-        from flask import request
+        from flask import request, jsonify
         app = Flask(__name__)
 
         from fedn.web.reducer import page, style
@@ -150,14 +174,16 @@ class Reducer:
             name = request.args.get('name')
             address = request.args.get('address')
             port = request.args.get('port')
-            token = request.args.get('token')
+            # token = request.args.get('token')
             # TODO do validation
 
             # TODO append and redirect to index.
-            combiner = CombinerRepresentation(self, name, address, port, token)
+            combiner = CombinerRepresentation(self, name, address, port)
             self.control.add(combiner)
-            return "added"
+            ret = {'status': 'added'}
+            return jsonify(ret)
 
+        # http://localhost:8090/start?rounds=4&model_id=d2751320-41dc-434b-a12a-3985989ea774
         @app.route('/start')
         def start():
             timeout = request.args.get('timeout', 180)
@@ -173,6 +199,24 @@ class Reducer:
 
             self.control.instruct(config)
             return "started"
+
+        from flask import jsonify, abort
+        @app.route('/assign')
+        def assign():
+            name = request.args.get('name', None)
+            import uuid
+            id = str(uuid.uuid4())
+
+            combiner = self.control.find_available_combiner()
+            if combiner:
+                response = {'host': combiner.address, 'port': combiner.port}
+                return jsonify(response)
+            elif combiner is None:
+                abort(404, description="Resource not found")
+            # 1.receive client parameters
+            # 2. check with available combiners if any clients are needed
+            # 3. let client know where to connect.
+            return
 
         @app.route('/infer')
         def infer():

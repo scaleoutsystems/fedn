@@ -38,35 +38,34 @@ class Client:
 
     def __init__(self, config):
 
-        from fedn.discovery.connect import DiscoveryClientConnect, State
-        # self.controller = DiscoveryClientConnect(config['discover_host'],
-        #                                         config['discover_port'],
-        #                                         config['token'],
-        #                                         config['name'])
+        from fedn.discovery.connect import ConnectorClient, Status
+        self.connector = ConnectorClient(config['discover_host'],
+                                         config['discover_port'],
+                                         config['token'],
+                                         config['name'])
         self.name = config['name']
 
         self.started_at = datetime.now()
         self.logs = []
 
+        print("Asking for assignment")
         import time
-        tries = 90
-        status = None
-        # while True:
-        #    if tries > 0:
-        #        status = self.controller.connect()
-        #        if status == State.Disconnected:
-        #            tries = tries - 1
-
-        #                if status == State.Connected:
-        #                   break
-
-        #          time.sleep(2)
-        #         print("try to reconnect to CONTROLLER", flush=True)
-
-        connect_config = None
+        while True:
+            status, response = self.connector.assign()
+            if status == Status.TryAgain:
+                time.sleep(5)
+                continue
+            if status == Status.Assigned:
+                config = response
+                break
+            time.sleep(5)
+            print(".", end=' ', flush=True)
+            # print("try to reconnect to REDUCER", flush=True)
+        # connect_config = None
+        print("Got assigned!", flush=True)
         tries = 180
         # while True:
-        connect_config = {'host': 'combiner', 'port': 12080}
+        # connect_config = {'host': 'combiner', 'port': 12080}
 
         # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
         repo_config = {'storage_access_key': 'minio',
@@ -79,12 +78,12 @@ class Client:
         self.repository = get_repository(repo_config)
         self.bucket_name = repo_config['storage_bucket']
 
-        channel = grpc.insecure_channel(connect_config['host'] + ":" + str(connect_config['port']))
+        channel = grpc.insecure_channel(config['host'] + ":" + str(config['port']))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
 
-        print("Client: {} connected to {}:{}".format(self.name, connect_config['host'], connect_config['port']),flush=True)
+        print("Client: {} connected to {}:{}".format(self.name, config['host'], config['port']), flush=True)
 
         # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
         dispatch_config = {'entry_points':
@@ -108,24 +107,24 @@ class Client:
 
         from io import BytesIO
         data = BytesIO()
-        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        #print("TRYING DOWNLOAD 1.", flush=True)
+        # print("TRYING DOWNLOAD 1.", flush=True)
         for part in self.models.Download(alliance.ModelRequest(id=id)):
 
-            #print("TRYING DOWNLOAD 2.", flush=True)
+            # print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                #print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
+                # print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
-        #print("ERROR NO PARTS!",flush=True)
+        # print("ERROR NO PARTS!",flush=True)
         return data
 
     def set_model(self, model, id):
@@ -140,7 +139,7 @@ class Client:
         else:
             bt = model
 
-        #print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
+        # print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
@@ -194,12 +193,14 @@ class Client:
                                              type=alliance.StatusType.MODEL_UPDATE, request=update)
 
                         else:
-                            self.send_status("Client {} failed to complete model update.", log_level=alliance.Status.WARNING,
+                            self.send_status("Client {} failed to complete model update.",
+                                             log_level=alliance.Status.WARNING,
                                              request=request)
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(status_code.name,timeout), flush=True)
+                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
+                    status_code.name, timeout), flush=True)
                 import time
                 time.sleep(timeout)
 
@@ -239,7 +240,8 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(status_code.name,timeout), flush=True)
+                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
+                    status_code.name, timeout), flush=True)
                 import time
                 time.sleep(timeout)
 
@@ -247,31 +249,31 @@ class Client:
         self.send_status("\t Processing training request for model_id {}".format(model_id))
         self.state = ClientState.training
         try:
-            #print("IN TRAINING REQUEST 1", flush=True)
+            # print("IN TRAINING REQUEST 1", flush=True)
             mdl = self.get_model(str(model_id))
             import sys
-            #print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
-            #print("IN TRAINING REQUEST 2", flush=True)
+            # print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
+            # print("IN TRAINING REQUEST 2", flush=True)
             # model = self.repository.get_model(model_id)
             fid, infile_name = tempfile.mkstemp(suffix='.h5')
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
 
             with open(infile_name, "wb") as fh:
                 fh.write(mdl.getbuffer())
-            #print("IN TRAINING REQUEST 3", flush=True)
+            # print("IN TRAINING REQUEST 3", flush=True)
             self.dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
-            #print("IN TRAINING REQUEST 4", flush=True)
+            # print("IN TRAINING REQUEST 4", flush=True)
             # model_id = self.repository.set_model(outfile_name, is_file=True)
 
             import io
             out_model = None
             with open(outfile_name, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
-            #print("IN TRAINING REQUEST 5", flush=True)
+            # print("IN TRAINING REQUEST 5", flush=True)
             import uuid
             model_id = uuid.uuid4()
             self.set_model(out_model, str(model_id))
-            #print("IN TRAINING REQUEST 6", flush=True)
+            # print("IN TRAINING REQUEST 6", flush=True)
             os.unlink(infile_name)
             os.unlink(outfile_name)
 
@@ -310,7 +312,7 @@ class Client:
         return validation
 
     def send_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None):
-        print("SEND_STATUS REPORTS:{}".format(msg),flush=True)
+        print("SEND_STATUS REPORTS:{}".format(msg), flush=True)
         from google.protobuf.json_format import MessageToJson
         status = alliance.Status()
 
@@ -337,7 +339,7 @@ class Client:
             # self.send_status("HEARTBEAT from {}".format(self.client),log_level=alliance.Status.INFO)
             except grpc.RpcError as e:
                 status_code = e.code()
-                print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name),flush=True)
+                print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name), flush=True)
             import time
             time.sleep(update_frequency)
 
@@ -366,7 +368,7 @@ class Client:
     def run(self):
         import time
         import threading
-        #threading.Thread(target=self.run_web, daemon=True).start()
+        # threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state

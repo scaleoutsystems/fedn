@@ -204,6 +204,17 @@ service Reducer {
   rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
 }
 
+message ConnectionRequest {
+
+}
+enum ConnectionStatus {
+  NOT_ACCEPTING = 0;
+  ACCEPTING = 1;
+  TRY_AGAIN_LATER = 2;
+}
+message ConnectionResponse {
+  ConnectionStatus status = 1;
+}
 service Connector {
     // Stream endpoint for status updates
     rpc AllianceStatusStream (ClientAvailableMessage) returns (stream Status);
@@ -213,6 +224,8 @@ service Connector {
 //    rpc RegisterClient (ClientAvailableMessage) returns (Response);
     // List active clients endpoint
     rpc ListActiveClients (ListClientsRequest) returns (ClientList);
+
+    rpc AcceptingClients (ConnectionRequest) returns (ConnectionResponse);
 
     // Client messaging to stay engaged.
     rpc SendHeartbeat (Heartbeat) returns (Response);

@@ -54,6 +54,28 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
+        # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
+        #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
+
+        from fedn.discovery.connect import ConnectorCombiner, Status
+        announce_client = ConnectorCombiner(host=connect_config['discover_host'],
+                                            port=connect_config['discover_port'],
+                                            myhost=connect_config['myhost'],
+                                            myport=connect_config['myport'],
+                                            token=connect_config['token'],
+                                            name=connect_config['myname'])
+
+        import time
+        while True:
+            status, response = announce_client.announce()
+            if status == Status.TryAgain:
+                time.sleep(5)
+                continue
+            if status == Status.Assigned:
+                config = response
+                print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
+                break
+
         # TODO remove temporary hardcoded config of storage persistance backend
         combiner_config = {'storage_hostname': 'minio',
                            'storage_port': 9000,
@@ -107,22 +129,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         import time
         import random
         time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
-        #print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
+        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
-        #print("TRYING DOWNLOAD 1.", flush=True)
+        # print("TRYING DOWNLOAD 1.", flush=True)
         parts = self.Download(alliance.ModelRequest(id=id), self)
         for part in parts:
-            #print("TRYING DOWNLOAD 2.", flush=True)
+            # print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == alliance.ModelStatus.IN_PROGRESS:
-                #print("WRITING PART FOR MODEL:{}".format(id), flush=True)
+                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == alliance.ModelStatus.OK:
-                #print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
+                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
                 # self.lock.release()
                 return data
             if part.status == alliance.ModelStatus.FAILED:
-                #print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
+                # print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
                 return None
 
     def set_model(self, model, id):
@@ -342,7 +364,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             now = datetime.now()
             then = self.clients[client]["lastseen"]
             # TODO: move the heartbeat timeout to config.
-            if (now - then) < timedelta(seconds=30):
+            if (now - then) < timedelta(seconds=10):
                 active_clients.append(client)
         return active_clients
 
@@ -357,6 +379,33 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in active_clients:
             clients.client.append(alliance.Client(name=client, role=alliance.WORKER))
         return clients
+
+    def AcceptingClients(self, request: alliance.ConnectionRequest, context):
+        response = alliance.ConnectionResponse()
+        print("CHECK FOR ACCEEPTING CLIENTS 1", flush=True)
+        active_clients = self._list_active_clients(alliance.Channel.MODEL_UPDATE_REQUESTS)
+        print("length of clients{}".format(len(active_clients)), flush=True)
+
+        print("CHECK FOR ACCEEPTING CLIENTS 2", flush=True)
+        try:
+            required = int(self.combiner.config['clients_required'])
+            print("clients required {}".format(required), flush=True)
+            if len(active_clients) >= required:
+                response.status = alliance.ConnectionStatus.NOT_ACCEPTING
+                print("combiner full, try another", flush=True)
+                return response
+            if len(active_clients) < required:
+                response.status = alliance.ConnectionStatus.ACCEPTING
+                print("combiner accepting!", flush=True)
+                return response
+
+        except Exception as e:
+            print("check exception {}".format(e), flush=True)
+            print("woops , failed , no config available", flush=True)
+
+        response.status = alliance.ConnectionStatus.TRY_AGAIN_LATER
+        print("not possible, try again later 3", flush=True)
+        return response
 
     def SendHeartbeat(self, heartbeat: alliance.Heartbeat, context):
         """ RPC that lets clients send a hearbeat, notifying the server that
@@ -546,19 +595,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     # TODO replace with grpc request instead
     def run(self):
         print("COMBINER:starting combiner", flush=True)
-        # TODO change hostname to configurable and environmental overridable value
-
-        # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
-        #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
-
-        # TODO override by input parameters
-        # config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 3,
-        #          'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
         import time
         try:
             while True:
                 time.sleep(5)
+                print("COMBINER: main loop", flush=True)
         except (KeyboardInterrupt, SystemExit):
             pass
-
-        # self.combiner.run(config)

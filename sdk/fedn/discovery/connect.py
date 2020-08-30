@@ -9,20 +9,77 @@ class State(enum.Enum):
     Error = 2
 
 
-class DiscoveryClientConnect:
+class Status(enum.Enum):
+    Unassigned = 0
+    Assigned = 1
+    TryAgain = 2
+
+
+class ConnectorClient:
 
     def __init__(self, host, port, token, name):
         self.host = host
         self.port = port
         self.token = token
         self.name = name
-        self.state = State.Disconnected
+        #self.state = State.Disconnected
         self.connect_string = "http://{}:{}".format(self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
 
     def state(self):
         return self.state
 
+    def assign(self):
+
+        try:
+            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name),
+                           headers={'Authorization': 'Token {}'.format(self.token)})
+        except Exception as e:
+            #self.state = State.Disconnected
+            return Status.Unassigned, {}
+
+        if retval.status_code >= 200 and retval.status_code < 204:
+            print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+                  flush=True)
+            return Status.Assigned, retval.json()
+
+        return Status.Unassigned, None
+
+class ConnectorCombiner:
+
+    def __init__(self, host, port,myhost, myport, token, name):
+        self.host = host
+        self.port = port
+        self.myhost = myhost
+        self.myport = myport
+        self.token = token
+        self.name = name
+        #self.state = State.Disconnected
+        self.connect_string = "http://{}:{}".format(self.host, self.port)
+        print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
+
+    def state(self):
+        return self.state
+
+    def announce(self):
+
+        try:
+            retval = r.get("{}?name={}&address={}&port={}".format(self.connect_string + '/add',
+                                                                  self.name,
+                                                                  self.myhost,
+                                                                  self.myport),
+                           headers={'Authorization': 'Token {}'.format(self.token)})
+        except Exception as e:
+            #self.state = State.Disconnected
+            return Status.Unassigned, {}
+
+        if retval.status_code >= 200 and retval.status_code < 204:
+            print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+                  flush=True)
+            return Status.Assigned, retval.json()
+
+        return Status.Unassigned, None
+"""
     def connect(self):
 
         try:
@@ -37,7 +94,7 @@ class DiscoveryClientConnect:
             payload = {'name': self.name, 'status': "R", 'user': 1}
             retval = r.post(self.connect_string + '/client/', data=payload,
                             headers={'Authorization': 'Token {}'.format(self.token)})
-            #print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)
+            # print("status is {} and payload {}".format(retval.status_code, retval.text), flush=True)
             if retval.status_code >= 200 or retval.status_code < 204:
                 self.state = State.Connected
             else:
@@ -48,12 +105,12 @@ class DiscoveryClientConnect:
         return self.state
 
     def update_status(self, status):
-        #print("\n\nUpdate status", flush=True)
+        # print("\n\nUpdate status", flush=True)
         payload = {'status': status}
         retval = r.patch("{}{}/".format(self.connect_string + '/client/', self.name), data=payload,
                          headers={'Authorization': 'Token {}'.format(self.token)})
 
-        #print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
+        # print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
         if retval.status_code >= 200 or retval.status_code < 204:
             self.state = State.Connected
         else:
@@ -81,7 +138,7 @@ class DiscoveryClientConnect:
                        headers={'Authorization': 'Token {}'.format(self.token)})
 
         payload = retval.json()
-        #print("Got payload {}".format(payload), flush=True)
+        # print("Got payload {}".format(payload), flush=True)
         try:
             status = payload['status']
         except Exception as e:
@@ -105,7 +162,9 @@ class DiscoveryClientConnect:
         return combiner_payload, self.state
 
 
-class DiscoveryCombinerConnect(DiscoveryClientConnect):
+"""
+"""
+class DiscoveryCombinerConnect(ConnectorClient):
 
     def __init__(self, host, port, token, myhost, myport, myname):
         super().__init__(host, port, token, myname)
@@ -150,7 +209,7 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
         retval = r.patch("{}{}/".format(self.connect_string + '/combiner/', self.myname), data=payload,
                          headers={'Authorization': 'Token {}'.format(self.token)})
 
-        #print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
+        # print("SETTING UPDATE< WHAT HAPPENS {} {}".format(retval.status_code, retval.text), flush=True)
         if 200 <= retval.status_code < 204:
             self.state = State.Connected
         else:
@@ -187,7 +246,6 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
 
         return status, self.state
 
-
     def get_combiner_config(self):
         retval = r.get("{}{}/".format(self.connect_string + '/combiner/', self.myname),
                        headers={'Authorization': 'Token {}'.format(self.token)})
@@ -205,3 +263,4 @@ class DiscoveryCombinerConnect(DiscoveryClientConnect):
         print("GOT CONFIG: {}".format(payload))
 
         return payload, self.state
+"""

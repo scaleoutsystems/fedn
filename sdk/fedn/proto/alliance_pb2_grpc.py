@@ -311,6 +311,11 @@ class ConnectorStub(object):
                 request_serializer=fedn_dot_proto_dot_alliance__pb2.ListClientsRequest.SerializeToString,
                 response_deserializer=fedn_dot_proto_dot_alliance__pb2.ClientList.FromString,
                 )
+        self.AcceptingClients = channel.unary_unary(
+                '/grpc.Connector/AcceptingClients',
+                request_serializer=fedn_dot_proto_dot_alliance__pb2.ConnectionRequest.SerializeToString,
+                response_deserializer=fedn_dot_proto_dot_alliance__pb2.ConnectionResponse.FromString,
+                )
         self.SendHeartbeat = channel.unary_unary(
                 '/grpc.Connector/SendHeartbeat',
                 request_serializer=fedn_dot_proto_dot_alliance__pb2.Heartbeat.SerializeToString,
@@ -353,6 +358,12 @@ class ConnectorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def AcceptingClients(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SendHeartbeat(self, request, context):
         """Client messaging to stay engaged.
         """
@@ -389,6 +400,11 @@ def add_ConnectorServicer_to_server(servicer, server):
                     servicer.ListActiveClients,
                     request_deserializer=fedn_dot_proto_dot_alliance__pb2.ListClientsRequest.FromString,
                     response_serializer=fedn_dot_proto_dot_alliance__pb2.ClientList.SerializeToString,
+            ),
+            'AcceptingClients': grpc.unary_unary_rpc_method_handler(
+                    servicer.AcceptingClients,
+                    request_deserializer=fedn_dot_proto_dot_alliance__pb2.ConnectionRequest.FromString,
+                    response_serializer=fedn_dot_proto_dot_alliance__pb2.ConnectionResponse.SerializeToString,
             ),
             'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
                     servicer.SendHeartbeat,
@@ -463,6 +479,23 @@ class Connector(object):
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ListActiveClients',
             fedn_dot_proto_dot_alliance__pb2.ListClientsRequest.SerializeToString,
             fedn_dot_proto_dot_alliance__pb2.ClientList.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def AcceptingClients(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/AcceptingClients',
+            fedn_dot_proto_dot_alliance__pb2.ConnectionRequest.SerializeToString,
+            fedn_dot_proto_dot_alliance__pb2.ConnectionResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

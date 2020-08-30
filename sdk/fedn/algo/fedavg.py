@@ -91,7 +91,7 @@ class FEDAVGCombiner:
                     model_str = self.server.get_model(model_id)
 
             import sys
-            print("now writing {}".format(sys.getsizeof(model_str.getbuffer())), flush=True)
+            #print("now writing {}".format(sys.getsizeof(model_str.getbuffer())), flush=True)
             model = self.helper.load_model(model_str.getbuffer())
             nr_processed_models = 1
             self.model_updates.task_done()
@@ -167,6 +167,7 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
+                print("COMBINER: FEDAVG exec loop",flush=True)
                 self.compute_plans_lock.acquire()
                 if len(self.compute_plans) > 0:
                     plan = self.compute_plans.pop()
