@@ -40,11 +40,13 @@ class CombinerClient:
 
         self.id = id
         self.role = role
+        self.model_id = None
 
         channel = grpc.insecure_channel(address + ":" + str(port))
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
+        # TODO: Connect selectively based on ROLE
         print("ORCHESTRATOR Client: {} connected to {}:{}".format(self.id, address, port))
         threading.Thread(target=self.__listen_to_model_update_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_stream, daemon=True).start()
@@ -170,6 +172,9 @@ class CombinerClient:
 
         print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 
+    def report_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None, flush=True):
+        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
+
     def _list_clients(self, channel):
         request = alliance.ListClientsRequest()
         whoami(request.sender, self)
@@ -190,6 +195,61 @@ class CombinerClient:
 
     def nr_active_validators(self):
         return len(self.get_active_validators())
+
+    def _assign_round_clients(self, n):
+        """  Obtain a list of clients to talk to in a round. """
+
+        # TODO: If we want global sampling without replacement the server needs to assign clients
+        active_trainers = self.get_active_trainers()
+
+        # If the number of requested trainers exceeds the number of available, use all available. 
+        if n > len(active_trainers):
+            n = len(active_trainers)
+
+        import random
+        clients = random.sample(active_trainers, n)
+
+        return clients
+        # TODO: In the general case, validators could be other clients as well
+        #self.validators = self.trainers
+
+    def _check_nr_round_clients(self,nr_clients):
+        """ Check that the minimal number of required clients to start a round are connected """
+
+        # TODO: Add timeout 
+        import time
+        ready = False
+        while not ready:
+            active = self.nr_active_trainers()
+            if active >= nr_clients:
+                ready = True
+            else:
+                print("waiting for {} clients to get started, currently: {}".format(nr_clients - active,
+                                                                                    active), flush=True)
+            time.sleep(1)
+        return ready    
+
+    def _stage_active_model(self, model_id):
+        """ Download model with id model_id from storage andstage it in combiner local memory """ 
+
+        timeout_retry = 3
+        import time
+        tries = 0
+        while True:
+            try:
+                model = self.storage.get_model_stream(model_id)
+                if model:
+                    break
+            except Exception as e:
+                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
+                time.sleep(timeout_retry)
+                tries += 1
+                if tries > 2:
+                    print("COMBINER exiting. could not fetch seed model.")
+                    return
+
+        self.set_model(model, model_id)
+
 
 
 ####################################################################################################################

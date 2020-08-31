@@ -21,27 +21,20 @@ class FEDAVGCombiner(CombinerClient):
         super().__init__(address, port, id, role)
 
         self.storage = storage
-        self.id = id
-        self.model_id = None
-
-        # TODO  refactor since we are now getting config on RUN cmd.
-        #self.db = connect_to_mongodb()
-        #self.coll = self.db['orchestrators']
+#        self.id = id
 
         self.config = {}
         # TODO: Use MongoDB
         self.validations = {}
 
-        # TODO: make choice of helper configurable
+        # Default helper, can be overriden via config at runtime
         self.helper = KerasSequentialHelper()
+
         # Queue for model updates to be processed.
         self.model_updates = queue.Queue()
 
     def get_model_id(self):
         return self.model_id
-
-    def report_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None, flush=True):
-        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
 
     def receive_model_candidate(self, model_id):
         """ Callback when a new model version is reported by a client. 
@@ -115,98 +108,65 @@ class FEDAVGCombiner(CombinerClient):
         print("DONE, combined {} models".format(nr_processed_models))
         return model
 
-    def __assign_clients(self, n):
-        """  Obtain a list of clients to talk to in a round. """
 
-        # TODO: If we want global sampling without replacement the server needs to assign clients
-        active_trainers = self.get_active_trainers()
-
-        # If the number of requested trainers exceeds the number of available, use all available. 
-        if n > len(active_trainers):
-            n = len(active_trainers)
-
-        import random
-        self.trainers = random.sample(active_trainers, n)
-        # TODO: In the general case, validators could be other clients as well
-        self.validators = self.trainers
-
-    def __training_round(self):
+    def __training_round(self,config,clients):
 
         # We flush the queue at a beginning of a round (no stragglers allowed)
         # TODO: Support other ways to handle stragglers. 
         with self.model_updates.mutex:
             self.model_updates.queue.clear()
 
-        self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
-        self.request_model_update(self.model_id, clients=self.trainers)
+        self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
+        self.request_model_update(config['model_id'], clients=clients)
 
         # Apply combiner
-        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=self.config['round_timeout'])
+        model = self.combine_models(nr_expected_models=len(clients), timeout=config['round_timeout'])
         return model
 
-    def __validation_round(self):
-        self.request_model_validation(self.model_id, from_clients=self.validators)
+    def __validation_round(self,config,clients):
+        self.request_model_validation(config['model_id'], from_clients=clients)
 
-    def run(self, config):
-        """ Coordinates training and validation tasks with clints, as specified in the 
-            config (CombinerConfiguration) """
 
-        self.config = config
-        self.model_id = self.config['model_id']
+    def run_training_rounds(self,config):
+        """ Coordinate training rounds as specified in config. """
+
+        # Add here to override default helpers
+        if config['ml_framework'] == 'Keras':
+            self.helper = KerasSequentialHelper()
+
+        self._stage_active_model(config['model_id'])
+        self.model_id = config['model_id']
 
         print("COMBINER starting from model {}".format(self.model_id))
- 
-        # Fetch the input model blob from storage and load in local memory
-        timeout_retry = 3
-        import time
-        tries = 0
-        while True:
-            try:
-                model = self.storage.get_model_stream(self.model_id)
-                if model:
-                    break
-            except Exception as e:
-                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
-                time.sleep(timeout_retry)
-                tries += 1
-                if tries > 2:
-                    print("COMBINER exiting. could not fetch seed model.")
-                    return
-
-        self.set_model(model, self.model_id)
-
+        
         # Check that the minimal number of required clients to start a round are connected 
-        import time
-        ready = False
-        while not ready:
-            active = self.nr_active_trainers()
-            if active >= config['clients_required']:
-                ready = True
-            else:
-                print("waiting for {} clients to get started, currently: {}".format(config['clients_required'] - active,
-                                                                                    active), flush=True)
-            time.sleep(1)
+        ready = self._check_nr_round_clients(config['clients_required'])
+
+        result = {}
 
         # Execute the configured number of rounds
         for r in range(1, config['rounds'] + 1):
+
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t FEDAVG: Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(self.config['clients_requested'])
-            model = self.__training_round()
+            # Ask clients to update the model
+            trainers = self._assign_round_clients(config['clients_requested'])
+            model = self.__training_round(config,trainers)
 
             if model:
                 print("\t FEDAVG: Round completed.", flush=True)
 
-                # TODO: Use configuration to decide if we use a scratchspace to checkpoint the model. 
+                # TODO: Use  helper to serialize model - this is a Keras specific solution
                 fod, outfile_name = tempfile.mkstemp(suffix='.h5')
                 model.save(outfile_name)
+
                 # Upload new model to storage repository (persistent)
                 # and save to local storage for sharing with clients.
 
-                # TODO: Refactor - Checkpointing in the configured combiner-private storage 
-                # should be handled by self.set_model probably. 
+                # TODO: Make checkpointing in persistent storage a configurable option
                 model_id = self.storage.set_model(outfile_name, is_file=True)
+
                 from io import BytesIO
                 a = BytesIO()
                 with open(outfile_name,'rb') as f:
@@ -220,12 +180,25 @@ class FEDAVGCombiner(CombinerClient):
                 self.model_id = model_id
 
                 print("...done. New aggregated model: {}".format(self.model_id))
-
-                print("\t Starting validation round {}".format(r))
-                self.__validation_round()
-
                 print("------------------------------------------")
                 print("FEDAVG: ROUND COMPLETED.", flush=True)
                 print("\n")
             else:
                 print("\t Failed to update global model in round {0}!".format(r))
+
+        result['model_id'] = self.model_id
+        return result
+
+    def run_validation(self,config):
+        """ Coordinate validation rounds as specified in config. """
+
+        print("COMBINER orchestrating validation of model {}".format(config['model_id']))
+        ready = self._check_nr_round_clients(config['clients_required'])
+                
+        validators = self._assign_round_clients(config['clients_requested'])
+        self.__validation_round(config,validators)
+
+    def run(self,config):
+        result = self.run_training_rounds(config)
+        config['model_id'] = result['model_id']
+        self.run_validation(config)
