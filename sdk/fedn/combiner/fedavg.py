@@ -191,7 +191,7 @@ class FEDAVGCombiner(CombinerClient):
         ready = self._check_nr_round_clients(config['clients_required'])
                 
         validators = self._assign_round_clients(config['clients_requested'])
-        self.__validation_round(model_id,validators)
+        self.__validation_round(config['model_id'],validators)
 
     def run(self,config):
         self.run_training_rounds(config)
