@@ -109,7 +109,7 @@ class FEDAVGCombiner(CombinerClient):
         return model
 
 
-    def __training_round(self,clients,config):
+    def __training_round(self,config,clients):
 
         # We flush the queue at a beginning of a round (no stragglers allowed)
         # TODO: Support other ways to handle stragglers. 
@@ -117,14 +117,14 @@ class FEDAVGCombiner(CombinerClient):
             self.model_updates.queue.clear()
 
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
-        self.request_model_update(self.model_id, clients=clients)
+        self.request_model_update(config['model_id'], clients=clients)
 
         # Apply combiner
         model = self.combine_models(nr_expected_models=len(clients), timeout=config['round_timeout'])
         return model
 
-    def __validation_round(self,model_id,clients):
-        self.request_model_validation(model_id, from_clients=clients)
+    def __validation_round(self,config,clients):
+        self.request_model_validation(config['model_id'], from_clients=clients)
 
 
     def run_training_rounds(self,config):
@@ -150,7 +150,7 @@ class FEDAVGCombiner(CombinerClient):
 
             # Ask clients to update the model
             trainers = self._assign_round_clients(config['clients_requested'])
-            model = self.__training_round(trainers,config)
+            model = self.__training_round(config,trainers)
 
             if model:
                 print("\t FEDAVG: Round completed.", flush=True)
@@ -191,8 +191,9 @@ class FEDAVGCombiner(CombinerClient):
         ready = self._check_nr_round_clients(config['clients_required'])
                 
         validators = self._assign_round_clients(config['clients_requested'])
-        self.__validation_round(config['model_id'],validators)
+        self.__validation_round(config,validators)
 
     def run(self,config):
         self.run_training_rounds(config)
+        config['model_id']
         self.run_validation(config)
