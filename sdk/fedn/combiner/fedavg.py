@@ -187,12 +187,10 @@ class FEDAVGCombiner(CombinerClient):
     def run_validation(self,config):
         """ Coordinate validation rounds as specified in config. """
 
-        #self._stage_active_model(config['model_id'])
-        print("COMBINER starting from model {}".format(config['model_id']))
+        print("COMBINER orchestrating validation of model {}".format(config['model_id']))
         ready = self._check_nr_round_clients(config['clients_required'])
                 
         validators = self._assign_round_clients(config['clients_requested'])
-        print("\t Starting validation round {}".format(r))
         self.__validation_round(model_id,validators)
 
     def run(self,config):
