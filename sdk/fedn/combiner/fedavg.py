@@ -142,6 +142,8 @@ class FEDAVGCombiner(CombinerClient):
         # Check that the minimal number of required clients to start a round are connected 
         ready = self._check_nr_round_clients(config['clients_required'])
 
+        result = {}
+
         # Execute the configured number of rounds
         for r in range(1, config['rounds'] + 1):
 
@@ -184,6 +186,9 @@ class FEDAVGCombiner(CombinerClient):
             else:
                 print("\t Failed to update global model in round {0}!".format(r))
 
+        result['model_id'] = self.model_id
+        return result
+
     def run_validation(self,config):
         """ Coordinate validation rounds as specified in config. """
 
@@ -194,6 +199,6 @@ class FEDAVGCombiner(CombinerClient):
         self.__validation_round(config,validators)
 
     def run(self,config):
-        self.run_training_rounds(config)
-        config['model_id']
+        result = self.run_training_rounds(config)
+        config['model_id'] = result['model_id']
         self.run_validation(config)
