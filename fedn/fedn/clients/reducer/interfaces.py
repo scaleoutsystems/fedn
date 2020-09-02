@@ -1,3 +1,8 @@
+
+import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import grpc
+
 class CombinerInterface:
     def __init__(self, parent, name, address, port):
         self.parent = parent

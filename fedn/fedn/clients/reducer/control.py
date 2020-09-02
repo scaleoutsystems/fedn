@@ -1,3 +1,5 @@
+from .state import ReducerState
+
 class ReducerControl:
 
     def __init__(self):
