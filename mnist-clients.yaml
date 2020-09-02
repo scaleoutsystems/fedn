@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}1  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}1  -i ${FEDN_CLIENT_ID} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}2  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}2  -i ${FEDN_CLIENT_ID} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
@@ -39,12 +39,10 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}3  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}3  -i ${FEDN_CLIENT_ID} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-#    ports:
-#      - 8090:8090
 
   client4:
     environment:
@@ -55,7 +53,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}4  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}4  -i ${FEDN_CLIENT_ID} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
@@ -69,7 +67,12 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}5  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}5  -i ${FEDN_CLIENT_ID} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
+
+
+
+
+

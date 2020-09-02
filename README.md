@@ -22,15 +22,30 @@ The easiest way to start with FEDn is to use the provided docker-compose templat
 
 Clone the repository and follow these steps: 
 
-1. Create a file named '.env' in the repository root folder and set the following variables:
+1. Create a file named '.env' in the repository root folder and set the following variables (alter values as necessary):
 ```yaml
 EXAMPLE=mnist-multi-combiner
 ALLIANCE_UID=ac435faef-c2df-442e-b349-7f633d3d5523
 CLIENT_NAME_BASE=client-fedn1-
-MDBUSR=
-MDBPWD=
+
+FEDN_CONTROLLER_HOST=localhost
+FEDN_CONTROLLER_PORT=8080
+
+FEDN_MINIO_HOST=localhost
+FEDN_MINIO_PORT=9000
+FEDN_MINIO_ACCESS_KEY=minio
+FEDN_MINIO_SECRET_KEY=minio123
+
+MDBUSR=alliance_admin
+MDBPWD=password
+FEDN_MONGO_HOST=mongo
+FEDN_MONGO_PORT=27017
+FEDN_ME_USERNAME=alliance_admin
+FEDN_ME_PASSWORD=password
+
+FEDN_DASHBOARD_HOST=localhost
+FEDN_DASHBOARD_PORT=5111
 ```
-(Choose admin username and password for MongoDB)
 
 > you set the EXAMPLE variable to the example you are working on imported with base path from test/your_example
 or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=data_center docker-compose up```
