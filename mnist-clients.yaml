@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "sleep 10 && fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}1  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}1  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
@@ -25,51 +25,51 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: /bin/bash -c "sleep 10 && fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}2  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}2  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
 
-#  client3:
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - CLIENT_NAME=${CLIENT_NAME_BASE}3
-#    image: "scaleoutsystems/client:latest"
-#    build:
-#      context: .
-#      dockerfile: components/client/Dockerfile
-#    working_dir: /app/client
-#    command: /bin/bash -c "sleep 10 && fedn run client -d com -p 8080 -n ${CLIENT_NAME_BASE}3  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
-#    volumes:
-#      - ./test/${EXAMPLE}/client:/app/client
-#      - ./test/${EXAMPLE}/data:/app/data
+  client3:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}3
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}3  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data
 #    ports:
 #      - 8090:8090
 
-#  client4:
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - CLIENT_NAME=${CLIENT_NAME_BASE}4
-#    image: "scaleoutsystems/client:latest"
-#    build:
-#      context: .
-#      dockerfile: components/client/Dockerfile
-#    working_dir: /app/client
-#    command: /bin/bash -c "sleep 10 && fedn run client -d com -p 8080 -n ${CLIENT_NAME_BASE}4  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
-#    volumes:
-#      - ./test/${EXAMPLE}/client:/app/client
-#      - ./test/${EXAMPLE}/data:/app/data
+  client4:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}4
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}4  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data
 
-#  client5:
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - CLIENT_NAME=${CLIENT_NAME_BASE}5
-#    image: "scaleoutsystems/client:latest"
-#    build:
-#      context: .
-#      dockerfile: components/client/Dockerfile
-#    working_dir: /app/client
-#    command: /bin/bash -c "sleep 10 && fedn run client -d com -p 8080 -n ${CLIENT_NAME_BASE}5  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
-#    volumes:
-#      - ./test/${EXAMPLE}/client:/app/client
-#      - ./test/${EXAMPLE}/data:/app/data
+  client5:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}5
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "fedn run client -d reducer -p 8090 -n ${CLIENT_NAME_BASE}5  -t e9a3cb4c5eaff546eec33ff68a7fbe232b68a192"
+    volumes:
+      - ./test/${EXAMPLE}/client:/app/client
+      - ./test/${EXAMPLE}/data:/app/data

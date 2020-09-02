@@ -8,7 +8,6 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # TODO Remove from this level. Abstract to unified non implementation specific client.
 from fedn.utils.dispatcher import Dispatcher
-#from scaleout.repository.helpers import get_repository
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -58,7 +57,6 @@ class Client:
                        'storage_hostname': 'minio',
                        'storage_port': 9000}
 
-        #self.repository = get_repository(repo_config)
         self.bucket_name = repo_config['storage_bucket']
 
         channel = grpc.insecure_channel(config['host'] + ":" + str(config['port']))

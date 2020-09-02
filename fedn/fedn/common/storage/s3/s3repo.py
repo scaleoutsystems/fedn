@@ -1,6 +1,5 @@
 
-
-from scaleout.repository.miniorepository import MINIORepository
+from .miniorepo import MINIORepository
 
 
 class S3ModelRepository(MINIORepository):

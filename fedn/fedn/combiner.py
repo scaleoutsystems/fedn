@@ -8,7 +8,8 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # from fedn.combiner.role import Role
-from scaleout.repository.helpers import get_repository
+
+
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -84,7 +85,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                            'storage_bucket': 'models',
                            'storage_secure_mode': False}
 
-        self.repository = get_repository(config=combiner_config)
+        from fedn.common.storage.s3.s3repo import S3ModelRepository
+        self.repository = S3ModelRepository(combiner_config)
         self.bucket_name = combiner_config["storage_bucket"]
 
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
@@ -590,7 +592,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ####################################################################################################################
 
-    # TODO replace with grpc request instead
     def run(self):
         print("COMBINER:starting combiner", flush=True)
         import time

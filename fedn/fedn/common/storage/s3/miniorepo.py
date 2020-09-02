@@ -1,6 +1,6 @@
 import os
 import requests
-from scaleout.repository.base import Repository
+from .base import Repository
 from minio import Minio
 from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
                          BucketAlreadyExists)
@@ -42,10 +42,10 @@ class MINIORepository(Repository):
         if self.secure_mode:
             from urllib3.poolmanager import PoolManager
             manager = PoolManager(num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
-            self.client = Minio("{0}:{1}".format(config['storage_hostname'],config['storage_port']),
-                access_key=access_key,
-                secret_key=secret_key,
-                secure=self.secure_mode,http_client=manager)
+            self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
+                                access_key=access_key,
+                                secret_key=secret_key,
+                                secure=self.secure_mode, http_client=manager)
         else:
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
                                 access_key=access_key,
@@ -68,14 +68,14 @@ class MINIORepository(Repository):
         """ Instance must be a byte-like object. """
         if bucket == '':
             bucket = self.bucket
-        if is_file==True:
+        if is_file == True:
             self.client.fput_object(bucket, instance_name, instance)
         else:
             try:
                 self.client.put_object(bucket, instance_name, io.BytesIO(instance), len(instance))
             except Exception as e:
                 raise Exception("Could not load data into bytes {}".format(e))
-        
+
         return True
 
     def get_artifact(self, instance_name):
