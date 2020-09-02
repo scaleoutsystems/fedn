@@ -14,7 +14,7 @@ services:
     command: ./seed.sh
     volumes:
       - ./test/${EXAMPLE}/seed:/app/client
-    # - ./sdk:/app/sdk
+    # - ./fedn:/app/fedn
     # - ./cli:/app/cli
     #ports:
     #    - 12080:12080

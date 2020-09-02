@@ -4,8 +4,8 @@ import uuid
 from concurrent import futures
 from datetime import datetime, timedelta
 
-import fedn.proto.alliance_pb2 as alliance
-import fedn.proto.alliance_pb2_grpc as rpc
+import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # from fedn.combiner.role import Role
 from scaleout.repository.helpers import get_repository
@@ -24,13 +24,13 @@ class Role(Enum):
 
 def role_to_proto_role(role):
     if role == Role.COMBINER:
-        return alliance.COMBINER
+        return fedn.COMBINER
     if role == Role.WORKER:
-        return alliance.WORKER
+        return fedn.WORKER
     if role == Role.REDUCER:
-        return alliance.REDUCER
+        return fedn.REDUCER
     if role == Role.OTHER:
-        return alliance.OTHER
+        return fedn.OTHER
 
 
 ####################################################################################################################
@@ -54,10 +54,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
-        # discovery = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
+        # com = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
         #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
 
-        from fedn.discovery.connect import ConnectorCombiner, Status
+        from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
@@ -110,13 +110,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         def role_to_proto_role(role):
             if role == Role.COMBINER:
-                return alliance.COMBINER
+                return fedn.COMBINER
             if role == Role.WORKER:
-                return alliance.WORKER
+                return fedn.WORKER
             if role == Role.REDUCER:
-                return alliance.REDUCER
+                return fedn.REDUCER
             if role == Role.OTHER:
-                return alliance.OTHER
+                return fedn.OTHER
 
         client.name = instance.id
         client.role = role_to_proto_role(instance.role)
@@ -132,18 +132,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
         # print("TRYING DOWNLOAD 1.", flush=True)
-        parts = self.Download(alliance.ModelRequest(id=id), self)
+        parts = self.Download(fedn.ModelRequest(id=id), self)
         for part in parts:
             # print("TRYING DOWNLOAD 2.", flush=True)
-            if part.status == alliance.ModelStatus.IN_PROGRESS:
+            if part.status == fedn.ModelStatus.IN_PROGRESS:
                 # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
-            if part.status == alliance.ModelStatus.OK:
+            if part.status == fedn.ModelStatus.OK:
                 # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
                 # self.lock.release()
                 return data
-            if part.status == alliance.ModelStatus.FAILED:
+            if part.status == fedn.ModelStatus.FAILED:
                 # print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
                 return None
 
@@ -160,7 +160,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             bt = model
 
-        import sys
         # print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
@@ -169,9 +168,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 b = mdl.read(CHUNK_SIZE)
                 # print("Sending chunks!", flush=True)
                 if b:
-                    result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
+                    result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
                 else:
-                    result = alliance.ModelRequest(id=id, data=None, status=alliance.ModelStatus.OK)
+                    result = fedn.ModelRequest(id=id, data=None, status=fedn.ModelStatus.OK)
                 yield result
                 if not b:
                     break
@@ -181,7 +180,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
         print("COMBINER: Sending to clients {}".format(clients), flush=True)
-        request = alliance.ModelUpdateRequest()
+        request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
         request.correlation_id = str(uuid.uuid4())
@@ -190,14 +189,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients) == 0:
             # Broadcast request to all active member clients
             request.receiver.name = ""
-            request.receiver.role = alliance.WORKER
+            request.receiver.role = fedn.WORKER
             response = self.SendModelUpdateRequest(request, self)
 
         else:
             # Send to all specified clients
             for client in clients:
                 request.receiver.name = client.name
-                request.receiver.role = alliance.WORKER
+                request.receiver.role = fedn.WORKER
                 self.SendModelUpdateRequest(request, self)
         # print("Requesting model update from clients {}".format(clients), flush=True)
 
@@ -205,7 +204,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Send a request for members in from_client to validate the model <model_id>.
             The default is to broadcast the request to all active members.
         """
-        request = alliance.ModelValidationRequest()
+        request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
         request.correlation_id = str(uuid.uuid4())
@@ -213,30 +212,30 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         if len(from_clients) == 0:
             request.receiver.name = ""  # Broadcast request to all active member clients
-            request.receiver.role = alliance.WORKER
+            request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
         else:
             # Send to specified clients
             for client in from_clients:
                 request.receiver.name = client.name
-                request.receiver.role = alliance.WORKER
+                request.receiver.role = fedn.WORKER
                 self.SendModelValidationRequest(request, self)
 
         print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 
     def _list_clients(self, channel):
-        request = alliance.ListClientsRequest()
+        request = fedn.ListClientsRequest()
         self.__whoami(request.sender, self)
         request.channel = channel
         clients = self.ListActiveClients(request, self)
         return clients.client
 
     def get_active_trainers(self):
-        trainers = self._list_clients(alliance.Channel.MODEL_UPDATE_REQUESTS)
+        trainers = self._list_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
         return trainers
 
     def get_active_validators(self):
-        validators = self._list_clients(alliance.Channel.MODEL_VALIDATION_REQUESTS)
+        validators = self._list_clients(fedn.Channel.MODEL_VALIDATION_REQUESTS)
         return validators
 
     def nr_active_trainers(self):
@@ -263,7 +262,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def __get_status_queue(self, client):
-        return self.__get_queue(client, alliance.Channel.STATUS)
+        return self.__get_queue(client, fedn.Channel.STATUS)
 
     def _send_request(self, request, queue_name):
         self.__route_request_to_client(request, request.receiver, queue_name)
@@ -285,7 +284,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def _send_status(self, status):
         for name, client in self.clients.items():
             try:
-                q = client[alliance.Channel.STATUS]
+                q = client[fedn.Channel.STATUS]
                 status.timestamp = str(datetime.now())
                 q.put(status)
             except KeyError:
@@ -300,8 +299,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     #####################################################################################################################
 
-    def Start(self, control: alliance.ControlRequest, context):
-        response = alliance.ControlResponse()
+    def Start(self, control: fedn.ControlRequest, context):
+        response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **START** from Command {}\n\n\n\n\n".format(control.command), flush=True)
 
         # config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 3,
@@ -311,17 +310,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             config.update({parameter.key: parameter.value})
         print("\n\n\n\nSTARTING COMBINER WITH {}\n\n\n\n".format(config), flush=True)
 
-        self.combiner.push_compute_plan(config)
+        self.combiner.push_run_config(config)
 
         return response
 
-    def Stop(self, control: alliance.ControlRequest, context):
-        response = alliance.ControlResponse()
+    def Stop(self, control: fedn.ControlRequest, context):
+        response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **STOP** from Command\n\n\n\n\n", flush=True)
         return response
 
-    def Report(self, control: alliance.ControlRequest, context):
-        response = alliance.ControlResponse()
+    def Report(self, control: fedn.ControlRequest, context):
+        response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORt** from Command\n\n\n\n\n", flush=True)
         return response
 
@@ -329,24 +328,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def AllianceStatusStream(self, response, context):
         """ A server stream RPC endpoint that emits status messages. """
-        status = alliance.Status(status="Client {} connecting to AllianceStatusStream.".format(response.sender))
-        status.log_level = alliance.Status.INFO
+        status = fedn.Status(status="Client {} connecting to AllianceStatusStream.".format(response.sender))
+        status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
-        self._subscribe_client_to_queue(response.sender, alliance.Channel.STATUS)
-        q = self.__get_queue(response.sender, alliance.Channel.STATUS)
+        self._subscribe_client_to_queue(response.sender, fedn.Channel.STATUS)
+        q = self.__get_queue(response.sender, fedn.Channel.STATUS)
         self._send_status(status)
 
         while True:
             yield q.get()
 
-    def SendStatus(self, status: alliance.Status, context):
+    def SendStatus(self, status: fedn.Status, context):
         # Register a heartbeat (if the clients sends a message it is online)
         # self.__register_heartbeat(status.client)
         # Add the status message to all subscribers of the status channel
         self._send_status(status)
 
-        response = alliance.Response()
+        response = fedn.Response()
         response.response = "Status received."
         return response
 
@@ -368,22 +367,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 active_clients.append(client)
         return active_clients
 
-    def ListActiveClients(self, request: alliance.ListClientsRequest, context):
+    def ListActiveClients(self, request: fedn.ListClientsRequest, context):
         """ RPC endpoint that returns a ClientList containing the names of all active clients.
             An active client has sent a status message / responded to a heartbeat
             request in the last 10 seconds.
         """
-        clients = alliance.ClientList()
+        clients = fedn.ClientList()
         active_clients = self._list_active_clients(request.channel)
 
         for client in active_clients:
-            clients.client.append(alliance.Client(name=client, role=alliance.WORKER))
+            clients.client.append(fedn.Client(name=client, role=fedn.WORKER))
         return clients
 
-    def AcceptingClients(self, request: alliance.ConnectionRequest, context):
-        response = alliance.ConnectionResponse()
+    def AcceptingClients(self, request: fedn.ConnectionRequest, context):
+        response = fedn.ConnectionResponse()
         print("CHECK FOR ACCEEPTING CLIENTS 1", flush=True)
-        active_clients = self._list_active_clients(alliance.Channel.MODEL_UPDATE_REQUESTS)
+        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
         print("length of clients{}".format(len(active_clients)), flush=True)
 
         print("CHECK FOR ACCEEPTING CLIENTS 2", flush=True)
@@ -391,11 +390,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             required = int(self.combiner.config['clients_required'])
             print("clients required {}".format(required), flush=True)
             if len(active_clients) >= required:
-                response.status = alliance.ConnectionStatus.NOT_ACCEPTING
+                response.status = fedn.ConnectionStatus.NOT_ACCEPTING
                 print("combiner full, try another", flush=True)
                 return response
             if len(active_clients) < required:
-                response.status = alliance.ConnectionStatus.ACCEPTING
+                response.status = fedn.ConnectionStatus.ACCEPTING
                 print("combiner accepting!", flush=True)
                 return response
 
@@ -403,15 +402,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             print("check exception {}".format(e), flush=True)
             print("woops , failed , no config available", flush=True)
 
-        response.status = alliance.ConnectionStatus.TRY_AGAIN_LATER
+        response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
         print("not possible, try again later 3", flush=True)
         return response
 
-    def SendHeartbeat(self, heartbeat: alliance.Heartbeat, context):
+    def SendHeartbeat(self, heartbeat: fedn.Heartbeat, context):
         """ RPC that lets clients send a hearbeat, notifying the server that
             the client is available. """
         self.__register_heartbeat(heartbeat.sender)
-        response = alliance.Response()
+        response = fedn.Response()
         response.sender.name = heartbeat.sender.name
         response.sender.role = heartbeat.sender.role
         response.response = "Heartbeat received"
@@ -421,13 +420,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def ModelUpdateStream(self, update, context):
         client = update.sender
-        status = alliance.Status(status="Client {} connecting to ModelUpdateStream.".format(client.name))
-        status.log_level = alliance.Status.INFO
+        status = fedn.Status(status="Client {} connecting to ModelUpdateStream.".format(client.name))
+        status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
 
-        self._subscribe_client_to_queue(client, alliance.Channel.MODEL_UPDATES)
-        q = self.__get_queue(client, alliance.Channel.MODEL_UPDATES)
+        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_UPDATES)
+        q = self.__get_queue(client, fedn.Channel.MODEL_UPDATES)
 
         self._send_status(status)
 
@@ -442,14 +441,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if metadata:
             print("\n\n\nGOT METADATA: {}\n\n\n".format(metadata), flush=True)
 
-        status = alliance.Status(status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
-        status.log_level = alliance.Status.INFO
+        status = fedn.Status(status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
+        status.log_level = fedn.Status.INFO
 
         self.__whoami(status.sender, self)
         # print("Client {} connecting to ModelUpdateRequestStream.".format(client))
 
-        self._subscribe_client_to_queue(client, alliance.Channel.MODEL_UPDATE_REQUESTS)
-        q = self.__get_queue(client, alliance.Channel.MODEL_UPDATE_REQUESTS)
+        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
+        q = self.__get_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         self._send_status(status)
 
@@ -458,15 +457,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def ModelValidationStream(self, update, context):
         client = update.sender
-        status = alliance.Status(status="Client {} connecting to ModelValidationStream.".format(client.name))
-        status.log_level = alliance.Status.INFO
+        status = fedn.Status(status="Client {} connecting to ModelValidationStream.".format(client.name))
+        status.log_level = fedn.Status.INFO
 
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
 
         # print("Client {} connecting to ModelUpdateStream.".format(client))
-        self._subscribe_client_to_queue(client, alliance.Channel.MODEL_VALIDATIONS)
-        q = self.__get_queue(client, alliance.Channel.MODEL_VALIDATIONS)
+        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATIONS)
+        q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATIONS)
 
         self._send_status(status)
 
@@ -477,14 +476,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ A server stream RPC endpoint. Messages from client stream. """
 
         client = response.sender
-        status = alliance.Status(status="Client {} connecting to ModelValidationRequestStream.".format(client.name))
-        status.log_level = alliance.Status.INFO
+        status = fedn.Status(status="Client {} connecting to ModelValidationRequestStream.".format(client.name))
+        status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
         # whoami(status.sender, self)
 
-        self._subscribe_client_to_queue(client, alliance.Channel.MODEL_VALIDATION_REQUESTS)
-        q = self.__get_queue(client, alliance.Channel.MODEL_VALIDATION_REQUESTS)
+        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
+        q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
         self._send_status(status)
 
@@ -493,36 +492,36 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def SendModelUpdateRequest(self, request, context):
         """ Send a model update request. """
-        self._send_request(request, alliance.Channel.MODEL_UPDATE_REQUESTS)
+        self._send_request(request, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
-        response = alliance.Response()
+        response = fedn.Response()
         response.response = "CONTROLLER RECEIVED ModelUpdateRequest from client {}".format(request.sender.name)
         return response  # TODO Fill later
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response. """
-        # self._send_request(request,alliance.Channel.MODEL_UPDATES)
+        # self._send_request(request,fedn.Channel.MODEL_UPDATES)
         self.combiner.receive_model_candidate(request.model_update_id)
         print("ORCHESTRATOR: Received model update", flush=True)
 
-        response = alliance.Response()
+        response = fedn.Response()
         response.response = "RECEIVED ModelUpdate {} from client  {}".format(response, response.sender.name)
         return response  # TODO Fill later
 
     def SendModelValidationRequest(self, request, context):
         """ Send a model update request. """
-        self._send_request(request, alliance.Channel.MODEL_VALIDATION_REQUESTS)
+        self._send_request(request, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
-        response = alliance.Response()
+        response = fedn.Response()
         response.response = "CONTROLLER RECEIVED ModelValidationRequest from client {}".format(request.sender.name)
         return response  # TODO Fill later
 
     def SendModelValidation(self, request, context):
         """ Send a model update response. """
-        # self._send_request(request,alliance.Channel.MODEL_VALIDATIONS)
+        # self._send_request(request,fedn.Channel.MODEL_VALIDATIONS)
         self.combiner.receive_validation(request)
         print("ORCHESTRATOR received validation ", flush=True)
-        response = alliance.Response()
+        response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
         return response  # TODO Fill later
 
@@ -531,7 +530,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def GetGlobalModel(self, request, context):
 
         print("got globalmodel request, sending response! ", flush=True)
-        response = alliance.GetGlobalModelResponse()
+        response = fedn.GetGlobalModelResponse()
         self.__whoami(response.sender, self)
         response.receiver.name = "reducer"
         response.receiver.role = role_to_proto_role(Role.REDUCER)
@@ -543,32 +542,31 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # print("STARTING UPLOAD!", flush=True)
         result = None
         for request in request_iterator:
-            if request.status == alliance.ModelStatus.IN_PROGRESS:
+            if request.status == fedn.ModelStatus.IN_PROGRESS:
                 # print("STARTING UPLOAD: WRITING BYTES", flush=True)
                 self.models[request.id].write(request.data)
-                self.models_metadata.update({request.id: alliance.ModelStatus.IN_PROGRESS})
-                # result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.IN_PROGRESS,
+                self.models_metadata.update({request.id: fedn.ModelStatus.IN_PROGRESS})
+                # result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.IN_PROGRESS,
                 #                                message="Got data successfully.")
 
-            if request.status == alliance.ModelStatus.OK and not request.data:
+            if request.status == fedn.ModelStatus.OK and not request.data:
                 # print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
-                import sys
                 # print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
-                result = alliance.ModelResponse(id=request.id, status=alliance.ModelStatus.OK,
+                result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                                 message="Got model successfully.")
-                self.models_metadata.update({request.id: alliance.ModelStatus.OK})
+                self.models_metadata.update({request.id: fedn.ModelStatus.OK})
                 return result
 
     def Download(self, request, context):
 
         # print("STARTING DOWNLOAD!", flush=True)
         try:
-            if self.models_metadata[request.id] != alliance.ModelStatus.OK:
+            if self.models_metadata[request.id] != fedn.ModelStatus.OK:
                 print("Error file is not ready", flush=True)
-                yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+                yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception as e:
             print("Error file does not exist", flush=True)
-            yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.FAILED)
+            yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
             from io import BytesIO
@@ -584,9 +582,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                     piece = f.read(CHUNK_SIZE)
                     if len(piece) == 0:
                         # print("MODEL {} : Sending last message! ".format(request.id), flush=True)
-                        yield alliance.ModelResponse(id=request.id, data=None, status=alliance.ModelStatus.OK)
+                        yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.OK)
                         return
-                    yield alliance.ModelResponse(id=request.id, data=piece, status=alliance.ModelStatus.IN_PROGRESS)
+                    yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
             print("Downloading went wrong! {}".format(e), flush=True)
 

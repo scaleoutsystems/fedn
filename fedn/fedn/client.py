@@ -2,43 +2,26 @@ import json
 import os
 import tempfile
 import threading
-import sys
 
-import fedn.proto.alliance_pb2 as alliance
-import fedn.proto.alliance_pb2_grpc as rpc
+import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # TODO Remove from this level. Abstract to unified non implementation specific client.
 from fedn.utils.dispatcher import Dispatcher
-from scaleout.repository.helpers import get_repository
+#from scaleout.repository.helpers import get_repository
 
 CHUNK_SIZE = 1024 * 1024
 
-from enum import Enum
+
 from datetime import datetime
 
-
-class ClientState(Enum):
-    idle = 1
-    training = 2
-    validating = 3
-
-
-def ClientStateToString(state):
-    if state == ClientState.idle:
-        return "IDLE"
-    if state == ClientState.training:
-        return "TRAINING"
-    if state == ClientState.validating:
-        return "VALIDATING"
-
-    return "UNKNOWN"
-
+from fedn.clients.client.state import ClientState, ClientStateToString
 
 class Client:
 
     def __init__(self, config):
 
-        from fedn.discovery.connect import ConnectorClient, Status
+        from fedn.common.net.connect import ConnectorClient, Status
         self.connector = ConnectorClient(config['discover_host'],
                                          config['discover_port'],
                                          config['token'],
@@ -75,7 +58,7 @@ class Client:
                        'storage_hostname': 'minio',
                        'storage_port': 9000}
 
-        self.repository = get_repository(repo_config)
+        #self.repository = get_repository(repo_config)
         self.bucket_name = repo_config['storage_bucket']
 
         channel = grpc.insecure_channel(config['host'] + ":" + str(config['port']))
@@ -110,18 +93,18 @@ class Client:
         # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
         # print("TRYING DOWNLOAD 1.", flush=True)
-        for part in self.models.Download(alliance.ModelRequest(id=id)):
+        for part in self.models.Download(fedn.ModelRequest(id=id)):
 
             # print("TRYING DOWNLOAD 2.", flush=True)
-            if part.status == alliance.ModelStatus.IN_PROGRESS:
+            if part.status == fedn.ModelStatus.IN_PROGRESS:
                 # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
-            if part.status == alliance.ModelStatus.OK:
+            if part.status == fedn.ModelStatus.OK:
                 # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
                 return data
-            if part.status == alliance.ModelStatus.FAILED:
+            if part.status == fedn.ModelStatus.FAILED:
                 # print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
         # print("ERROR NO PARTS!",flush=True)
@@ -147,9 +130,9 @@ class Client:
             while True:
                 b = mdl.read(CHUNK_SIZE)
                 if b:
-                    result = alliance.ModelRequest(data=b, id=id, status=alliance.ModelStatus.IN_PROGRESS)
+                    result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
                 else:
-                    result = alliance.ModelRequest(id=id, status=alliance.ModelStatus.OK)
+                    result = fedn.ModelRequest(id=id, status=fedn.ModelStatus.OK)
 
                 yield result
                 if not b:
@@ -161,26 +144,26 @@ class Client:
 
     def __listen_to_model_update_request_stream(self):
         """ Subscribe to the model update request stream. """
-        r = alliance.ClientAvailableMessage()
+        r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
-        r.sender.role = alliance.WORKER
+        r.sender.role = fedn.WORKER
         metadata = [('client', r.sender.name)]
         while True:
             try:
                 for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
-                    if request.sender.role == alliance.COMBINER:
+                    if request.sender.role == fedn.COMBINER:
                         # Process training request
                         global_model_id = request.model_id
                         # TODO: Error handling
-                        self.send_status("Received model update request.", log_level=alliance.Status.AUDIT,
-                                         type=alliance.StatusType.MODEL_UPDATE_REQUEST, request=request)
+                        self.send_status("Received model update request.", log_level=fedn.Status.AUDIT,
+                                         type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
                         model_id = self.__process_training_request(global_model_id)
 
                         if model_id != None:
                             # Notify the requesting client that a model update is available
-                            update = alliance.ModelUpdate()
+                            update = fedn.ModelUpdate()
                             update.sender.name = self.name
-                            update.sender.role = alliance.WORKER
+                            update.sender.role = fedn.WORKER
                             update.receiver.name = request.sender.name
                             update.receiver.role = request.sender.role
                             update.model_id = request.model_id
@@ -189,12 +172,12 @@ class Client:
                             update.correlation_id = request.correlation_id
                             response = self.orchestrator.SendModelUpdate(update)
 
-                            self.send_status("Model update completed.", log_level=alliance.Status.AUDIT,
-                                             type=alliance.StatusType.MODEL_UPDATE, request=update)
+                            self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
+                                             type=fedn.StatusType.MODEL_UPDATE, request=update)
 
                         else:
                             self.send_status("Client {} failed to complete model update.",
-                                             log_level=alliance.Status.WARNING,
+                                             log_level=fedn.Status.WARNING,
                                              request=request)
             except grpc.RpcError as e:
                 status_code = e.code()
@@ -206,24 +189,24 @@ class Client:
 
     def __listen_to_model_validation_request_stream(self):
         """ Subscribe to the model update request stream. """
-        r = alliance.ClientAvailableMessage()
+        r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
-        r.sender.role = alliance.WORKER
+        r.sender.role = fedn.WORKER
         while True:
             try:
                 for request in self.orchestrator.ModelValidationRequestStream(r):
                     # Process training request
                     model_id = request.model_id
                     # TODO: Error handling
-                    self.send_status("Recieved model validation request.", log_level=alliance.Status.AUDIT,
-                                     type=alliance.StatusType.MODEL_VALIDATION_REQUEST, request=request)
+                    self.send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
+                                     type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
                     metrics = self.__process_validation_request(model_id)
 
                     if metrics != None:
                         # Send validation
-                        validation = alliance.ModelValidation()
+                        validation = fedn.ModelValidation()
                         validation.sender.name = self.name
-                        validation.sender.role = alliance.WORKER
+                        validation.sender.role = fedn.WORKER
                         validation.receiver.name = request.sender.name
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(model_id)
@@ -232,11 +215,11 @@ class Client:
                         validation.timestamp = self.str
                         validation.correlation_id = request.correlation_id
                         response = self.orchestrator.SendModelValidation(validation)
-                        self.send_status("Model validation completed.", log_level=alliance.Status.AUDIT,
-                                         type=alliance.StatusType.MODEL_VALIDATION, request=validation)
+                        self.send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
+                                         type=fedn.StatusType.MODEL_VALIDATION, request=validation)
                     else:
                         self.send_status("Client {} failed to complete model validation.".format(self.name),
-                                         log_level=alliance.Status.WARNING, request=request)
+                                         log_level=fedn.Status.WARNING, request=request)
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
@@ -311,13 +294,13 @@ class Client:
         self.state = ClientState.idle
         return validation
 
-    def send_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None):
+    def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
         print("SEND_STATUS REPORTS:{}".format(msg), flush=True)
         from google.protobuf.json_format import MessageToJson
-        status = alliance.Status()
+        status = fedn.Status()
 
         status.sender.name = self.name
-        status.sender.role = alliance.WORKER
+        status.sender.role = fedn.WORKER
         status.log_level = log_level
         status.status = str(msg)
         if type is not None:
@@ -333,10 +316,10 @@ class Client:
 
     def _send_heartbeat(self, update_frequency=2.0):
         while True:
-            heartbeat = alliance.Heartbeat(sender=alliance.Client(name=self.name, role=alliance.WORKER))
+            heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER))
             try:
                 self.connection.SendHeartbeat(heartbeat)
-            # self.send_status("HEARTBEAT from {}".format(self.client),log_level=alliance.Status.INFO)
+            # self.send_status("HEARTBEAT from {}".format(self.client),log_level=fedn.Status.INFO)
             except grpc.RpcError as e:
                 status_code = e.code()
                 print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name), flush=True)
@@ -367,7 +350,6 @@ class Client:
 
     def run(self):
         import time
-        import threading
         # threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0

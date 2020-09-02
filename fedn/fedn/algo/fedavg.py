@@ -4,7 +4,7 @@ import queue
 import tempfile
 import time
 
-import fedn.proto.alliance_pb2 as alliance
+import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
 from fedn.utils.helpers import KerasSequentialHelper
 from threading import Thread, Lock
@@ -18,8 +18,8 @@ class FEDAVGCombiner:
     def __init__(self, id, storage, server):
 
         # super().__init__(address, port, id, role)
-        self.compute_plans_lock = Lock()
-        self.compute_plans = []
+        self.run_configs_lock = Lock()
+        self.run_configs = []
         self.storage = storage
         self.id = id
         self.model_id = None
@@ -37,7 +37,7 @@ class FEDAVGCombiner:
     def get_model_id(self):
         return self.model_id
 
-    def report_status(self, msg, log_level=alliance.Status.INFO, type=None, request=None, flush=True):
+    def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
         print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
 
     def receive_model_candidate(self, model_id):
@@ -45,12 +45,12 @@ class FEDAVGCombiner:
             We simply put the model_id on a queue to be processed later. """
         try:
             self.report_status("COMBINER: callback received model {}".format(model_id),
-                               log_level=alliance.Status.INFO)
+                               log_level=fedn.Status.INFO)
             # TODO - here would be a place to do some additional validation of the model contribution. 
             self.model_updates.put(model_id)
         except Exception as e:
             self.report_status("COMBINER: Failed to receive candidate model! {}".format(e),
-                               log_level=alliance.Status.WARNING)
+                               log_level=fedn.Status.WARNING)
             print("Failed to receive candidate model!")
             pass
 
@@ -66,7 +66,7 @@ class FEDAVGCombiner:
             self.validations[model_id] = [data]
 
         self.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
-                           log_level=alliance.Status.INFO)
+                           log_level=fedn.Status.INFO)
 
     def combine_models(self, nr_expected_models=None, timeout=120):
         """ Compute an iterative/running average of models arriving to the combiner. """
@@ -96,7 +96,7 @@ class FEDAVGCombiner:
             nr_processed_models = 1
             self.model_updates.task_done()
         except queue.Empty as e:
-            self.report_status("COMBINER: training round timed out.", log_level=alliance.Status.WARNING)
+            self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
             return None
 
         while nr_processed_models < nr_expected_models:
@@ -115,12 +115,12 @@ class FEDAVGCombiner:
                 round_time += 1.0
 
             if round_time >= timeout:
-                self.report_status("COMBINER: training round timed out.", log_level=alliance.Status.WARNING)
+                self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
                 return None
 
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
-                           log_level=alliance.Status.INFO)
+                           log_level=fedn.Status.INFO)
         print("DONE, combined {} models".format(nr_processed_models))
         return model
 
@@ -156,10 +156,10 @@ class FEDAVGCombiner:
     def __validation_round(self):
         self.server.request_model_validation(self.model_id, from_clients=self.validators)
 
-    def push_compute_plan(self, plan):
-        self.compute_plans_lock.acquire()
-        self.compute_plans.append(plan)
-        self.compute_plans_lock.release()
+    def push_run_config(self, plan):
+        self.run_configs_lock.acquire()
+        self.run_configs.append(plan)
+        self.run_configs_lock.release()
 
     def run(self):
 
@@ -168,14 +168,14 @@ class FEDAVGCombiner:
             while True:
                 time.sleep(1)
                 print("COMBINER: FEDAVG exec loop",flush=True)
-                self.compute_plans_lock.acquire()
-                if len(self.compute_plans) > 0:
-                    plan = self.compute_plans.pop()
-                    self.compute_plans_lock.release()
+                self.run_configs_lock.acquire()
+                if len(self.run_configs) > 0:
+                    plan = self.run_configs.pop()
+                    self.run_configs_lock.release()
                     self.exec(plan)
 
-                if self.compute_plans_lock.locked():
-                    self.compute_plans_lock.release()
+                if self.run_configs_lock.locked():
+                    self.run_configs_lock.release()
 
         except (KeyboardInterrupt, SystemExit):
             pass

@@ -2,11 +2,11 @@ version: '3.7'
 
 services:
 
-  #discovery:
-  #  image: "scaleoutsystems/discovery:latest"
+  #com:
+  #  image: "scaleoutsystems/com:latest"
   #  build:
   #    context: .
-  #    dockerfile: components/discovery/Dockerfile
+  #    dockerfile: components/com/Dockerfile
   #  environment:
   #    - GET_HOSTS_FROM=dns
   #    - ALLIANCE_UID=${ALLIANCE_UID}
@@ -14,8 +14,8 @@ services:
   #    - MDBPWD=${MDBPWD}
   #  command: sh -c "scripts/run_web.sh"
   #  volumes:
-  #    - ./components/discovery/:/app/
-  #    - ./sdk:/app/sdk
+  #    - ./components/com/:/app/
+  #    - ./fedn:/app/fedn
   #    - ./cli:/app/cli
   #  ports:
   #    - 8080:8080

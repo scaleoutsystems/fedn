@@ -5,13 +5,13 @@ on:
     branches: '*'
     paths:
     - 'components/combiner/**'
-    - 'sdk/**'
+    - 'fedn/**'
     - 'cli/**'
   pull_request:
     branches: '*'
     paths:
     - 'components/combiner/**'
-    - 'sdk/**'
+    - 'fedn/**'
     - 'cli/**'
 
 jobs:

@@ -1,5 +1,5 @@
-import fedn.proto.alliance_pb2 as alliance
-import fedn.proto.alliance_pb2_grpc as rpc
+import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 import threading
 
@@ -33,8 +33,8 @@ class CombinerRepresentation:
     def start(self, config):
         channel = grpc.insecure_channel(self.address + ":" + str(self.port))
         control = rpc.ControlStub(channel)
-        request = alliance.ControlRequest()
-        request.command = alliance.Command.START
+        request = fedn.ControlRequest()
+        request.command = fedn.Command.START
         for k, v in config.items():
             p = request.parameter.add()
             p.key = str(k)
@@ -47,15 +47,15 @@ class CombinerRepresentation:
         print("Sending message to combiner", flush=True)
         channel = grpc.insecure_channel(self.address + ":" + str(self.port))
         connector = rpc.ConnectorStub(channel)
-        request = alliance.ConnectionRequest()
+        request = fedn.ConnectionRequest()
         response = connector.AcceptingClients(request)
-        if response.status == alliance.ConnectionStatus.NOT_ACCEPTING:
+        if response.status == fedn.ConnectionStatus.NOT_ACCEPTING:
             print("Sending message to combiner 2", flush=True)
             return False
-        if response.status == alliance.ConnectionStatus.ACCEPTING:
+        if response.status == fedn.ConnectionStatus.ACCEPTING:
             print("Sending message to combiner 3", flush=True)
             return True
-        if response.status == alliance.ConnectionStatus.TRY_AGAIN_LATER:
+        if response.status == fedn.ConnectionStatus.TRY_AGAIN_LATER:
             print("Sending message to combiner 4", flush=True)
             return False
 
@@ -136,8 +136,6 @@ class ReducerInference:
         return results
 
 
-class ModelError(BaseException):
-    pass
 
 
 class Reducer:
@@ -155,7 +153,7 @@ class Reducer:
         from flask import request, jsonify
         app = Flask(__name__)
 
-        from fedn.web.reducer import page, style
+        from fedn.common.net.web.reducer import page, style
         @app.route('/')
         def index():
             # logs_fancy = str()
@@ -183,7 +181,7 @@ class Reducer:
             ret = {'status': 'added'}
             return jsonify(ret)
 
-        # http://localhost:8090/start?rounds=4&model_id=d2751320-41dc-434b-a12a-3985989ea774
+        # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start')
         def start():
             timeout = request.args.get('timeout', 180)
@@ -223,7 +221,7 @@ class Reducer:
             result = ""
             try:
                 result = self.inference.infer(request.args)
-            except ModelError:
+            except fedn.exceptions.ModelError:
                 print("no model")
 
             return result

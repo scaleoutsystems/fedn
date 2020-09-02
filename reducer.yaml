@@ -15,7 +15,7 @@ services:
     command: ./run.sh
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
-    #  - ./sdk:/app/sdk
+    #  - ./fedn:/app/fedn
     #  - ./cli:/app/cli
     ports:
         - 8090:8090

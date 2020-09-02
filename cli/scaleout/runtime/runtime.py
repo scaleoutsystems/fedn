@@ -3,8 +3,8 @@ from scaleout.project import Project
 
 #import grpc
 
-#import proto.alliance_pb2 as alliance
-#import proto.alliance_pb2_grpc as rpc
+#import grpc.alliance_pb2 as alliance
+#import grpc.alliance_pb2_grpc as rpc
 
 #class Runtime(Project):
 #    """ Base class for a scaleout platform runtime client. """
