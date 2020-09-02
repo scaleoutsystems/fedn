@@ -7,8 +7,8 @@ import json
 
 from google.protobuf.json_format import MessageToJson, MessageToDict
 
-import fedn.proto.alliance_pb2 as alliance
-import fedn.proto.alliance_pb2_grpc as rpc
+import fedn.common.net.fedn_pb2 as alliance
+import fedn.common.net.fedn_pb2_grpc as rpc
 
 import pymongo
 from fedn.utils.mongo import connect_to_mongodb

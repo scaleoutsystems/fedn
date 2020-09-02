@@ -6,6 +6,12 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - USER=test
+      - PROJECT=project
+      - MONGO_HOST=${FEDN_MONGO_HOST}
+      - MONGO_PORT=${FEDN_MONGO_PORT}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD} 
     image: "scaleoutsystems/client:latest"
     build:
       context: .
