@@ -6,13 +6,11 @@ on:
     paths:
     - 'components/client/**'
     - 'fedn/**'
-    - 'cli/**'
   pull_request:
     branches: '*'
     paths:
     - 'components/client/**'
     - 'fedn/**'
-    - 'cli/**'
 
 jobs:
  
