@@ -6,13 +6,19 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - USER=test
+      - PROJECT=project
+      - MONGO_HOST=${FEDN_MONGO_HOST}
+      - MONGO_PORT=${FEDN_MONGO_PORT}
+      - MDBUSR=${MDBUSR}
+      - MDBPWD=${MDBPWD} 
     image: "scaleoutsystems/client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: "sh -c 'sleep 10 && fedn run reducer'"
+    command: fedn run reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -n reducer
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
-    #  - ./sdk:/app/sdk
-    #  - ./cli:/app/cli
+    ports:
+        - 8090:8090

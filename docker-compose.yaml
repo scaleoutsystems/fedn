@@ -2,29 +2,31 @@ version: '3.7'
 
 services:
 
-  discovery:
-    image: "scaleoutsystems/discovery:latest"
-    build:
-      context: .
-      dockerfile: components/discovery/Dockerfile
-    environment:
-      - GET_HOSTS_FROM=dns
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - CONTROLLER_HOST=${FEDN_CONTROLLER_HOST}
-      - CONTROLLER_PORT=${FEDN_CONTROLLER_PORT}
-      - MONGO_HOST=${FEDN_MONGO_HOST}
-      - MONGO_PORT=${FEDN_MONGO_PORT}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD} 
-      - DASHBOARD_HOST=${FEDN_DASHBOARD_HOST}
-      - DASHBOARD_PORT=${FEDN_DASHBOARD_PORT}
-    command: sh -c "scripts/run_web.sh"
-    volumes:
-      - ./components/discovery/:/app/
-      - ./sdk:/app/sdk
-      - ./cli:/app/cli
-    ports:
-      - "${FEDN_CONTROLLER_PORT}:${FEDN_CONTROLLER_PORT}"
+
+#  discovery:
+#    image: "scaleoutsystems/discovery:latest"
+#    build:
+#      context: .
+#      dockerfile: components/discovery/Dockerfile
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#      - ALLIANCE_UID=${ALLIANCE_UID}
+#     - CONTROLLER_HOST=${FEDN_CONTROLLER_HOST}
+#      - CONTROLLER_PORT=${FEDN_CONTROLLER_PORT}
+#      - MONGO_HOST=${FEDN_MONGO_HOST}
+#      - MONGO_PORT=${FEDN_MONGO_PORT}
+#      - MDBUSR=${MDBUSR}
+#      - MDBPWD=${MDBPWD} 
+#      - DASHBOARD_HOST=${FEDN_DASHBOARD_HOST}
+#      - DASHBOARD_PORT=${FEDN_DASHBOARD_PORT}
+#    command: sh -c "scripts/run_web.sh"
+#    volumes:
+#      - ./components/discovery/:/app/
+#      - ./sdk:/app/sdk
+#      - ./cli:/app/cli
+#    ports:
+#      - "${FEDN_CONTROLLER_PORT}:${FEDN_CONTROLLER_PORT}"
+
 
   minio:
     image: minio/minio:latest

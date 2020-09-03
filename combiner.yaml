@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run fedavg -d ${FEDN_CONTROLLER_HOST} -p ${FEDN_CONTROLLER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
+    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
     ports:
@@ -34,13 +34,8 @@ services:
       - MDBUSR=${MDBUSR}
       - MDBPWD=${MDBPWD} 
     working_dir: /app/
-    volumes:
-      - ./components/monitor/:/app/
-      - ./sdk:/app/sdk
-      - ./cli:/app/cli
+    command: bash run.sh
+    #volumes:
+    #  - ./components/monitor/:/app/
     depends_on:
       - combiner
-
-volumes:
-  # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
-  minio-data:
