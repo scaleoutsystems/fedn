@@ -16,8 +16,8 @@
             <h2>Alliance information</h2>
             <p>View history, logs, status messages and the client timelines for the end-to-end training process. </p>
             {{ info }}
-             <a class="btn btn-primary" href="http://localhost:8081/db/ac435faef-c2df-442e-b349-7f633d3d5523/status"" role="button">History</a>
-              <a class="btn btn-primary" href="http://localhost:5111/timeline">Timeline</a>
+             <a class="btn btn-primary" href="http://{{ expresshost }}:{{ expressport }}/db/{{ allianceid }}/status"" role="button">History</a>
+              <a class="btn btn-primary" href="http://{{ dashboardhost }}:{{ dashboardport }}/timeline">Timeline</a>
         </div>
 
         <div class="" style="min-height:200px;">
@@ -25,9 +25,9 @@
             <p>Track progress of the federated model.</p>
 
             <div class="embed-responsive embed-responsive-21by9">
-                <iframe class="embed-responsive-item" src="http://localhost:5111/table" allowfullscreen></iframe>   
+                <iframe class="embed-responsive-item" src="http://{{ dashboardhost }}:{{ dashboardport }}/table" allowfullscreen></iframe>   
             </div>
-            <a class="btn btn-primary" href="http://localhost:5111/box" role="button">Validations</a>
+            <a class="btn btn-primary" href="http://{{ dashboardhost }}:{{ dashboardport }}/box" role="button">Validations</a>
         </div>
 
         <div class="col-rg-12" style="min-height:300px;">

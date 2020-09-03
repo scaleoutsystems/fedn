@@ -7,8 +7,8 @@ import json
 
 from google.protobuf.json_format import MessageToJson, MessageToDict
 
-import fedn.proto.alliance_pb2 as alliance
-import fedn.proto.alliance_pb2_grpc as rpc
+import fedn.common.net.fedn_pb2 as alliance
+import fedn.common.net.fedn_pb2_grpc as rpc
 
 import pymongo
 from fedn.utils.mongo import connect_to_mongodb
@@ -36,7 +36,8 @@ class Client:
         try:
             self.mdb = connect_to_mongodb()
             self.collection = self.mdb['status']
-        except Exception:
+        except Exception as e:
+            print("FAILED TO CONNECT TO MONGO, {}".format(e),flush=True)
             self.collection = None
             pass
 
