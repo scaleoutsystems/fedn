@@ -78,12 +78,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
 
         # TODO remove temporary hardcoded config of storage persistance backend
-        combiner_config = {'storage_hostname': 'minio',
-                           'storage_port': 9000,
-                           'storage_access_key': 'minio',
-                           'storage_secret_key': 'minio123',
-                           'storage_bucket': 'models',
-                           'storage_secure_mode': False}
+        repo_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+                       'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                       'storage_bucket': 'models',
+                       'storage_secure_mode': False,
+                       'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                       'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
 
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.repository = S3ModelRepository(combiner_config)
