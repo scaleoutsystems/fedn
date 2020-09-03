@@ -7,11 +7,12 @@ import json
 
 from google.protobuf.json_format import MessageToJson, MessageToDict
 
-import fedn.common.net.fedn_pb2 as alliance
-import fedn.common.net.fedn_pb2_grpc as rpc
+import fedn.common.net.grpc.fedn_pb2 as alliance
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import grpc
 
 import pymongo
-from fedn.utils.mongo import connect_to_mongodb
+from fedn.common.storage.db.mongo import connect_to_mongodb
 
 
 class Client:

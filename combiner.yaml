@@ -34,7 +34,8 @@ services:
       - MDBUSR=${MDBUSR}
       - MDBPWD=${MDBPWD} 
     working_dir: /app/
-    volumes:
-      - ./components/monitor/:/app/
+    command: bash run.sh
+    #volumes:
+    #  - ./components/monitor/:/app/
     depends_on:
       - combiner
