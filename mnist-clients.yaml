@@ -6,6 +6,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - CLIENT_NAME=${CLIENT_NAME_BASE}1
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
@@ -20,6 +24,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - CLIENT_NAME=${CLIENT_NAME_BASE}2
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
@@ -34,6 +42,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - CLIENT_NAME=${CLIENT_NAME_BASE}3
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
@@ -48,6 +60,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - CLIENT_NAME=${CLIENT_NAME_BASE}4
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
@@ -62,6 +78,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - CLIENT_NAME=${CLIENT_NAME_BASE}5
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .

@@ -17,11 +17,8 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    #command: "sh -c 'sleep 10 && fedn run reducer'"
-    command: ./run.sh
+    command: fedn run reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -n reducer
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
-    #  - ./fedn:/app/fedn
-    #  - ./cli:/app/cli
     ports:
         - 8090:8090

@@ -51,14 +51,16 @@ class Client:
         # connect_config = {'host': 'combiner', 'port': 12080}
 
         # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
-        #repo_config = {'storage_access_key': 'minio',
-        #               'storage_secret_key': 'minio123',
-        #               'storage_bucket': 'models',
-        #               'storage_secure_mode': False,
-        #               'storage_hostname': 'minio',
-        #               'storage_port': 9000}
+        #import os
 
-        repo_config, _ = self.controller.get_config()
+        repo_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+                       'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                       'storage_bucket': 'models',
+                       'storage_secure_mode': False,
+                       'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                       'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+
+        #repo_config, _ = self.controller.get_config()
 
 
         self.bucket_name = repo_config['storage_bucket']
@@ -75,7 +77,6 @@ class Client:
                                {'predict': {'command': 'python3 predict.py'},
                                 'train': {'command': 'python3 train.py'},
                                 'validate': {'command': 'python3 validate.py'}}}
-        import os
 
         # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
         dispatch_dir = os.getcwd()
