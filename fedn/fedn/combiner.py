@@ -78,7 +78,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
 
         # TODO remove temporary hardcoded config of storage persistance backend
-        repo_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+        combiner_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
                        'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
                        'storage_bucket': 'models',
                        'storage_secure_mode': False,
