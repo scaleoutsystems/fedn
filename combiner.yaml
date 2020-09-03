@@ -6,6 +6,10 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
