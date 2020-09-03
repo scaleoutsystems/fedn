@@ -9,7 +9,7 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # from fedn.combiner.role import Role
 
-
+import os
 
 CHUNK_SIZE = 1024 * 1024
 
