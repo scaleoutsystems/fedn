@@ -72,10 +72,15 @@ class Reducer:
         @app.route('/assign')
         def assign():
             name = request.args.get('name', None)
+            combiner_preferred = request.args.get('combiner', None)
             import uuid
             id = str(uuid.uuid4())
 
-            combiner = self.control.find_available_combiner()
+            if combiner_preferred:
+                combiner = self.control.find(combiner_preferred)
+            else:
+                combiner = self.control.find_available_combiner()
+
             if combiner:
                 response = {'host': combiner.address, 'port': combiner.port}
                 return jsonify(response)
