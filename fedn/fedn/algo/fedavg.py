@@ -124,37 +124,23 @@ class FEDAVGCombiner:
         print("DONE, combined {} models".format(nr_processed_models))
         return model
 
-    def __assign_clients(self, n):
-        """  Obtain a list of clients to talk to in a round. """
 
-        # TODO: If we want global sampling without replacement the server needs to assign clients
-        active_trainers = self.server.get_active_trainers()
-
-        # If the number of requested trainers exceeds the number of available, use all available. 
-        if n > len(active_trainers):
-            n = len(active_trainers)
-
-        import random
-        self.trainers = random.sample(active_trainers, n)
-        # TODO: In the general case, validators could be other clients as well
-        self.validators = self.trainers
-
-    def __training_round(self):
+    def __training_round(self,config,clients):
 
         # We flush the queue at a beginning of a round (no stragglers allowed)
         # TODO: Support other ways to handle stragglers. 
         with self.model_updates.mutex:
             self.model_updates.queue.clear()
 
-        self.report_status("COMBINER: Initiating training round, participating members: {}".format(self.trainers))
-        self.server.request_model_update(self.model_id, clients=self.trainers)
+        self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
+        self.server.request_model_update(config['model_id'], clients=clients)
 
         # Apply combiner
-        model = self.combine_models(nr_expected_models=len(self.trainers), timeout=int(self.config['round_timeout']))
+        model = self.combine_models(nr_expected_models=len(clients), timeout=int(self.config['round_timeout']))
         return model
 
-    def __validation_round(self):
-        self.server.request_model_validation(self.model_id, from_clients=self.validators)
+    def __validation_round(self,config,clients):
+        self.server.request_model_validation(config['model_id'], from_clients=clients)
 
     def push_run_config(self, plan):
         self.run_configs_lock.acquire()
@@ -172,7 +158,16 @@ class FEDAVGCombiner:
                 if len(self.run_configs) > 0:
                     plan = self.run_configs.pop()
                     self.run_configs_lock.release()
-                    self.exec(plan)
+                    # TODO - is this how we want to do it ?
+                    self.config = plan
+                    if plan['task'] == 'training':
+                        result = self.exec_training(plan)
+                        self.server.set_latest_model(result['model_id'])
+                    elif plan['task'] == 'validation':
+                        self.exec_validation(plan)
+                    else:
+                        result = self.exec(plan)
+                        self.server.set_latest_model(result['model_id'])
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -180,53 +175,90 @@ class FEDAVGCombiner:
         except (KeyboardInterrupt, SystemExit):
             pass
 
-    def exec(self, config):
-        """ Coordinates training and validation tasks with clints, as specified in the 
-            config (CombinerConfiguration) """
 
-        self.config = config
-        self.model_id = self.config['model_id']
+    def __stage_active_model(self, model_id):
+        """ Download model with id model_id from storage andstage it in combiner local memory """ 
 
-        print("COMBINER starting from model {}".format(self.model_id))
-
-        # Fetch the input model blob from storage and load in local memory
         timeout_retry = 3
         import time
         tries = 0
         while True:
             try:
-                model = self.storage.get_model_stream(self.model_id)
+                model = self.storage.get_model_stream(model_id)
                 if model:
                     break
             except Exception as e:
-                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry), flush=True)
+                print("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > 2:
                     print("COMBINER exiting. could not fetch seed model.")
                     return
 
-        self.server.set_model(model, self.model_id)
+        self.server.set_model(model, model_id)
 
-        # Check that the minimal number of required clients to start a round are connected 
+    def __assign_round_clients(self, n):
+        """  Obtain a list of clients to talk to in a round. """
+
+        # TODO: If we want global sampling without replacement the server needs to assign clients
+        active_trainers = self.server.get_active_trainers()
+
+        # If the number of requested trainers exceeds the number of available, use all available. 
+        if n > len(active_trainers):
+            n = len(active_trainers)
+
+        import random
+        clients = random.sample(active_trainers, n)
+
+        return clients
+        # TODO: In the general case, validators could be other clients as well
+        #self.validators = self.trainers
+
+    def __check_nr_round_clients(self,nr_clients):
+        """ Check that the minimal number of required clients to start a round are connected """
+
+        # TODO: Add timeout 
         import time
         ready = False
         while not ready:
             active = self.server.nr_active_trainers()
-            if active >= int(config['clients_required']):
+            if active >= nr_clients:
                 ready = True
             else:
-                print("waiting for {} clients to get started, currently: {}".format(int(config['clients_required']) - active,
+                print("waiting for {} clients to get started, currently: {}".format(nr_clients - active,
                                                                                     active), flush=True)
             time.sleep(1)
+        return ready    
+
+    def exec_validation(self,config):
+        """ Coordinate validation rounds as specified in config. """
+
+        print("COMBINER orchestrating validation of model {}".format(config['model_id']))
+        ready = self._check_nr_round_clients(int(config['clients_required']))
+                
+        validators = self._assign_round_clients(int(config['clients_requested']))
+        self.__validation_round(config,validators)        
+
+    def exec_training(self, config):
+        """ Coordinates training and validation tasks with clints, as specified in the 
+            config (CombinerConfiguration) """
+
+    #    self.config = config
+    #    self.model_id = self.config['model_id']
+
+        print("COMBINER starting from model {}".format(self.model_id))
+        self.__stage_active_model(config['model_id'])
+
+        ready = self.__check_nr_round_clients(int(config['clients_required']))
+        result = {}
 
         # Execute the configured number of rounds
         for r in range(1, int(config['rounds']) + 1):
             print("STARTING ROUND {}".format(r), flush=True)
             print("\t FEDAVG: Starting training round {}".format(r), flush=True)
 
-            self.__assign_clients(int(config['clients_requested']))
-            model = self.__training_round()
+            clients = self.__assign_round_clients(int(config['clients_requested']))
+            model = self.__training_round(config,clients)
 
             if model:
                 print("\t FEDAVG: Round completed.", flush=True)
@@ -251,15 +283,26 @@ class FEDAVGCombiner:
                 self.server.set_model(a, model_id)
                 os.unlink(outfile_name)
 
+                # Update Combiner latest model
                 self.model_id = model_id
 
                 print("...done. New aggregated model: {}".format(self.model_id))
-
-                print("\t Starting validation round {}".format(r))
-                self.__validation_round()
-
                 print("------------------------------------------")
-                print("FEDAVG: ROUND COMPLETED.", flush=True)
+                print("FEDAVG: TRAINIGN ROUND COMPLETED.", flush=True)
                 print("\n")
             else:
                 print("\t Failed to update global model in round {0}!".format(r))
+
+        result['model_id'] = self.model_id
+        return result
+
+    def exec(self,config):
+        """ 
+            Execute the requested number of training rounds, and then validate the 
+            final model. 
+        """
+        for r in range(1, int(config['rounds']) + 1):
+            result = self.exec_training_rounds(config)
+            config['model_id'] = result['model_id']
+        self.run_validation(config)
+        return result 

@@ -47,6 +47,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         from collections import defaultdict
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}
+        self.model_id = None
 
         # self.project = project
         self.role = Role.COMBINER
@@ -101,6 +102,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # TODO use <address> if specific host is to be assigned.
         self.server.add_insecure_port('[::]:' + str(port))
 
+        # The combiner algo dictates how precisely model updated from clients are aggregated
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self)
 
@@ -123,6 +125,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.name = instance.id
         client.role = role_to_proto_role(instance.role)
         return client
+
+    def latest_model(self):
+        return self.model_id
+
+    def set_latest_model(self,model_id):
+        self.model_id = model_id
 
     def get_model(self, id):
         from io import BytesIO
