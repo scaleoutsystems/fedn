@@ -1,4 +1,3 @@
-# FEDn
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 ## What is FEDn?
 FEDn is an open source framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. 
