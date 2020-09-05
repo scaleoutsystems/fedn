@@ -85,7 +85,7 @@ To start training, simply click the "Start" button from the Combiner page.
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
 
-### Distributed deployment
+## Distributed deployment
 Documentation coming soon. 
 
 ## Commercial support
