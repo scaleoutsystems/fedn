@@ -6,14 +6,17 @@ FEDn is an open source framework for Federated Machine Learning (FedML), develop
 
 ## Why use FEDn? 
 
-FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framwork of your choice. It is designed to take FedML to production, paying equal attention to the requirements from developers of new models and algorithms and the operational perspective of running a production-grade distributed system. FEDn is based on open protocols and can be integrated with open MLOps frameworks like STACKn to provide end-to-end ML alliances.   
+FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framwork of your choice. FEDn is based on open protocols and can be easily integrated with open MLOps frameworks like STACKn to provide end-to-end alliance governance.   
 
 ## Core Features
-FEDn supports a highly scalable implementation of Federated Averaging. Other algorithms including meta-modeling is on the roadmap. 
+FEDn supports a highly scalable Nested Federated Averaging orchestration scheme. Other protocols, including support for various types of federated ensemble models are in active development. 
 
 <!--- #### Multimodal participation
 #### Multilevel model combinations
 ---> 
+
+## Architecture
+Description coming soon. 
 
 ## Getting started 
 
