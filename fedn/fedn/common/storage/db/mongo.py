@@ -13,6 +13,7 @@ def get_mongo_config():
 
 def connect_to_mongodb():
     config = get_mongo_config()
+    print(config,flush=True)
     try:
         mc = pymongo.MongoClient(**config)
         # This is so that we check that the connection is live

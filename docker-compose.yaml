@@ -6,14 +6,9 @@ services:
     image: minio/minio:latest
     hostname: minio
     environment:
-      - GET_HOSTS_FROM=dns
-      - MINIO_HOST=${FEDN_MINIO_HOST}
-      - MINIO_PORT=${FEDN_MINIO_PORT}
-    volumes:
-      - minio-data:/data
-    ports:
-      - "9000:9000"
-    environment:
+      GET_HOSTS_FROM: dns
+      MINIO_HOST: ${FEDN_MINIO_HOST}
+      MINIO_PORT: ${FEDN_MINIO_PORT}
       MINIO_ACCESS_KEY: ${FEDN_MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${FEDN_MINIO_SECRET_KEY}
     command: server /data
@@ -24,13 +19,15 @@ services:
       retries: 3
     ports:
       - "${FEDN_MINIO_PORT}:${FEDN_MINIO_PORT}"
+    volumes:
+      - minio-data:/data
 
   mongo:
     image: mongo:latest
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MDBUSR}
-      MONGO_INITDB_ROOT_PASSWORD: ${MDBPWD}
+      MONGO_INITDB_ROOT_USERNAME: ${FEDN_MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${FEDN_MONGO_PASSWORD}
     ports:
       - "${FEDN_MONGO_PORT}:${FEDN_MONGO_PORT}"
     command: mongod --port ${FEDN_MONGO_PORT}
@@ -43,8 +40,8 @@ services:
     environment:
       ME_CONFIG_MONGODB_SERVER: ${FEDN_MONGO_HOST}
       ME_CONFIG_MONGODB_PORT: ${FEDN_MONGO_PORT}
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MDBUSR}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MDBPWD}
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${FEDN_MONGO_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${FEDN_MONGO_PASSWORD}
       ME_CONFIG_BASICAUTH_USERNAME: ${FEDN_ME_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${FEDN_ME_PASSWORD}
 
@@ -56,8 +53,8 @@ services:
       - PORT=${FEDN_DASHBOARD_PORT}
       - MONGO_HOST=${FEDN_MONGO_HOST}
       - MONGO_PORT=${FEDN_MONGO_PORT}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD}
+      - MDBUSR=${FEDN_MONGO_USER}
+      - MDBPWD=${FEDN_MONGO_PASSWORD}
     build:
       context: .
       dockerfile: components/dashboard/Dockerfile

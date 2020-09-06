@@ -21,17 +21,7 @@ class Client:
         self.name = name
         channel = grpc.insecure_channel(url + ":" + str(port))
         self.connection = rpc.ConnectorStub(channel)
-        self.headers = {'Content-Type': 'application/json'}
         print("Client: {} connected to {}:{}".format(self.name, url, port), flush=True)
-
-        # Alliance admin enpoints
-        self.api_url = None
-        try:
-            self.api_url = str.format('{}/projects/{}/{}/alliance_admin/{}/log',
-                                      os.environ['API_URL'], os.environ['USER'], os.environ['PROJECT'],
-                                      os.environ['ALLIANCE_UID'])
-        except Exception:
-            pass
 
         # Connect to MongoDB 
         try:
@@ -40,7 +30,7 @@ class Client:
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e),flush=True)
             self.collection = None
-            pass
+            raise 
 
         threading.Thread(target=self.__listen_to_status_stream, daemon=True).start()
 
@@ -57,15 +47,11 @@ class Client:
             if self.collection:
                 self.collection.insert_one(data)
 
-            if self.api_url:
-                r = requests.post(self.api_url, data={'message': str(data)})
-
     def run(self):
         print("starting")
         while True:
             print(".")
             time.sleep(1)
-
 
 def main():
     url = os.environ['MONITOR_HOST']
