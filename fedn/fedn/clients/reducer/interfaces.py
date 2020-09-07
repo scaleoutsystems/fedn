@@ -23,6 +23,23 @@ class CombinerInterface:
         response = control.Start(request)
         print("Response from combiner {}".format(response.message))
 
+    def set_model_id(self,model_id):        
+        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        control = rpc.ControlStub(channel)
+        request = fedn.ControlRequest()
+        p = request.parameter.add()
+        p.key = 'model_id'
+        p.value = str(model_id)
+        response = control.Configure(request)
+        #return response.message
+
+    def get_model_id(self):
+        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        reducer = rpc.ReducerStub(channel)
+        request = fedn.GetGlobalModelRequest()
+        response = reducer.GetGlobalModel(request)
+        return response.model_id
+
     def allowing_clients(self):
         print("Sending message to combiner", flush=True)
         channel = grpc.insecure_channel(self.address + ":" + str(self.port))

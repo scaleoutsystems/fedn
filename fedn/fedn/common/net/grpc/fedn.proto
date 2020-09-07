@@ -198,8 +198,10 @@ message ReportResponse {
 service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
+  rpc Configure(ControlRequest) returns (ReportResponse);  
   rpc Report(ControlRequest) returns (ReportResponse);
 }
+
 service Reducer {
   rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
 }
@@ -207,14 +209,17 @@ service Reducer {
 message ConnectionRequest {
 
 }
+
 enum ConnectionStatus {
   NOT_ACCEPTING = 0;
   ACCEPTING = 1;
   TRY_AGAIN_LATER = 2;
 }
+
 message ConnectionResponse {
   ConnectionStatus status = 1;
 }
+
 service Connector {
     // Stream endpoint for status updates
     rpc AllianceStatusStream (ClientAvailableMessage) returns (stream Status);
@@ -241,8 +246,6 @@ service Combiner {
     rpc ModelUpdateStream (ClientAvailableMessage) returns (stream ModelUpdate);
     rpc ModelValidationRequestStream (ClientAvailableMessage) returns (stream ModelValidationRequest);
     rpc ModelValidationStream (ClientAvailableMessage) returns (stream ModelValidation);
-
-
 
     rpc SendModelUpdateRequest (ModelUpdateRequest) returns (Response);
     rpc SendModelUpdate (ModelUpdate) returns (Response);
