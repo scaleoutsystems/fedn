@@ -161,7 +161,7 @@ class FEDAVGCombiner:
                     # TODO - is this how we want to do it ?
                     self.config = plan
                     if plan['task'] == 'training':
-                        result = self.exec_training(plan)
+                        self.exec_training(plan)
                         self.server.set_latest_model(self.model_id)
                     elif plan['task'] == 'validation':
                         self.exec_validation(plan)
