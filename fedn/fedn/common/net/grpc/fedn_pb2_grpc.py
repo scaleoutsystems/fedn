@@ -96,7 +96,7 @@ class ModelService(object):
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class ControlStub(object):
@@ -118,6 +118,11 @@ class ControlStub(object):
                 request_serializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
+        self.Configure = channel.unary_unary(
+                '/grpc.Control/Configure',
+                request_serializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReportResponse.FromString,
+                )
         self.Report = channel.unary_unary(
                 '/grpc.Control/Report',
                 request_serializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
@@ -135,6 +140,12 @@ class ControlServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Stop(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Configure(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -159,6 +170,11 @@ def add_ControlServicer_to_server(servicer, server):
                     request_deserializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
                     response_serializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
+            'Configure': grpc.unary_unary_rpc_method_handler(
+                    servicer.Configure,
+                    request_deserializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReportResponse.SerializeToString,
+            ),
             'Report': grpc.unary_unary_rpc_method_handler(
                     servicer.Report,
                     request_deserializer=fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
@@ -180,6 +196,7 @@ class Control(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -188,7 +205,7 @@ class Control(object):
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Stop(request,
@@ -196,6 +213,7 @@ class Control(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -204,7 +222,24 @@ class Control(object):
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Configure(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Configure',
+            fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReportResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Report(request,
@@ -212,6 +247,7 @@ class Control(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -477,7 +513,7 @@ class Connector(object):
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
             fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientList.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AcceptingClients(request,
@@ -485,6 +521,7 @@ class Connector(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,

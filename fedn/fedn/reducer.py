@@ -15,9 +15,6 @@ class Reducer:
         self.control = ReducerControl()
         self.inference = ReducerInferenceInterface()
 
-        # from fedn.algo.fedavg import FEDAVGCombiner
-        # self.reducer = FEDAVGCombiner(self.name, self.repository, self)
-
     def run_web(self):
         from flask import Flask
         from flask import request, jsonify
@@ -56,7 +53,7 @@ class Reducer:
         def start():
             timeout = request.args.get('timeout', 180)
             model_id = request.args.get('model_id', '879fa112-c861-4cb1-a25d-775153e5b548')
-            rounds = request.args.get('rounds', 3)
+            rounds = request.args.get('rounds', 1)
             active_clients = request.args.get('active_clients', 2)
             clients_required = request.args.get('clients_required', 2)
             clients_requested = request.args.get('clients_requested', 2)
@@ -95,11 +92,21 @@ class Reducer:
         def infer():
             result = ""
             try:
-                result = self.inference.infer(request.args)
+                self.control.set_model_id()
             except fedn.exceptions.ModelError:
-                print("no model")
+                print("Failed to seed control.")
 
             return result
+
+        #@app.route('/seed')
+        #def seed():
+        #    try:
+        #        result = self.inference.infer(request.args)
+        #    except fedn.exceptions.ModelError:
+        #        print("no model")
+        #
+        #    return result
+
 
         # import os, sys
         # self._original_stdout = sys.stdout

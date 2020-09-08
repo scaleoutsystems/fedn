@@ -15,7 +15,7 @@ def run_cmd(ctx):
 @click.option('-p', '--discoverport', required=True)
 @click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=None)
-@click.option('-i', '--client_id', required=True,default=None)
+@click.option('-i', '--client_id', required=False)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
 

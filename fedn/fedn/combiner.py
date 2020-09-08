@@ -47,16 +47,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         from collections import defaultdict
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}
+        self.model_id = None
 
-        # self.project = project
         self.role = Role.COMBINER
 
         self.id = connect_config['myname']
         address = connect_config['myhost']
         port = connect_config['myport']
-
-        # com = DiscoveryCombinerConnect(host=config['discover_host'], port=config['discover_port'],
-        #                                     token=config['token'], myhost=self.id, myport=12080, myname=self.id)
 
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
@@ -101,6 +98,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # TODO use <address> if specific host is to be assigned.
         self.server.add_insecure_port('[::]:' + str(port))
 
+        # The combiner algo dictates how precisely model updated from clients are aggregated
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self)
 
@@ -123,6 +121,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.name = instance.id
         client.role = role_to_proto_role(instance.role)
         return client
+
+    def latest_model(self):
+        return self.model_id
+
+    def set_latest_model(self,model_id):
+        self.model_id = model_id
 
     def get_model(self, id):
         from io import BytesIO
@@ -301,6 +305,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     #####################################################################################################################
 
+    ## Control Service
+
     def Start(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **START** from Command {}\n\n\n\n\n".format(control.command), flush=True)
@@ -316,6 +322,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         return response
 
+    def Configure(self, control: fedn.ControlRequest, context):
+        response = fedn.ControlResponse()
+        for parameter in control.parameter:
+            setattr(self.combiner,parameter.key,parameter.value)
+            if parameter.key == 'model_id':
+                self.combiner.stage_active_model(parameter.value)
+        return response
+
     def Stop(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **STOP** from Command\n\n\n\n\n", flush=True)
@@ -323,7 +337,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def Report(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
-        print("\n\n\n\n\n GOT CONTROL **REPORt** from Command\n\n\n\n\n", flush=True)
+        print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
         return response
 
     #####################################################################################################################
@@ -531,12 +545,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def GetGlobalModel(self, request, context):
 
-        print("got globalmodel request, sending response! ", flush=True)
         response = fedn.GetGlobalModelResponse()
         self.__whoami(response.sender, self)
         response.receiver.name = "reducer"
         response.receiver.role = role_to_proto_role(Role.REDUCER)
-        response.model_id = self.combiner.get_model_id()
+        if not self.combiner.get_model_id():
+            response.model_id = ''
+        else:
+            response.model_id = self.combiner.get_model_id()
         return response
 
     ## Model Service
@@ -598,6 +614,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         try:
             while True:
                 time.sleep(5)
-                print("COMBINER: main loop", flush=True)
+                #print("COMBINER: main loop", flush=True)
         except (KeyboardInterrupt, SystemExit):
             pass

@@ -10,14 +10,14 @@ services:
       - PROJECT=project
       - MONGO_HOST=${FEDN_MONGO_HOST}
       - MONGO_PORT=${FEDN_MONGO_PORT}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD} 
+      - MDBUSR=${FEDN_MONGO_USER}
+      - MDBPWD=${FEDN_MONGO_PASSWORD} 
     image: "scaleoutsystems/client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -n reducer
+    command: fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
     ports:
