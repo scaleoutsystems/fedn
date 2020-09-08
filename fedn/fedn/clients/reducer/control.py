@@ -2,12 +2,6 @@ from .state import ReducerState
 import copy
 
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-import grpc
-
-from fedn.algo.fedavg import FEDAVGCombiner
-
 class ReducerControl:
 
     def __init__(self):
@@ -17,7 +11,7 @@ class ReducerControl:
         self.model_id = None
 
     def get_model_id(self):
-        # TODO: get single point of thrugth from DB backend
+        # TODO: get single point of thruth from DB / Eth backend
         return self.model_id
 
     def set_model_id(self,model_id):
@@ -53,7 +47,11 @@ class ReducerControl:
 
 
     def spread_model(self,model_id):
-        """ Spread the current consensus model to all combiner nodes. """
+        """ 
+            Spread the current consensus model to all combiner nodes. 
+            After sucessful execution, all active combiners
+            should be configured with identical model state. 
+        """
         for combiner in self.combiners:
             response = combiner.set_model_id(model_id)
             print("REDUCER_CONTROL: Setting model_ids: {}".format(response),flush=True)
@@ -84,6 +82,8 @@ class ReducerControl:
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
 
+        # 1. Wait until all combiners report a local model that is ahead of the consensus global model
+
         # TODO: Use timeouts etc.
         ahead = []
         while len(ahead) < len(self.combiners):
@@ -92,10 +92,12 @@ class ReducerControl:
             if model_id != self.get_model_id():
                 ahead.append(model_id)
 
-        # TODO: Aggregate properly - we should find a way to delegate to the combiners to do this. 
-        # For now we elect on combiner model by random sampling and proceed with that one. 
+        # 2. Aggregate models 
+        # TODO: Do this with FedAvg strategy - we should delegate to the combiners to do this. 
+        # For now we elect one combiner local model by random sampling and proceed with that one. 
         model_id = self.reduce_random(ahead)
 
+        # 3. Propagate the new consensus model in the network
         self.spread_model(model_id)
         self.set_model_id(model_id)
 
