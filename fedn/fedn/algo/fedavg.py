@@ -13,7 +13,12 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class FEDAVGCombiner:
-    """ A Local SGD / Federated Averaging (FedAvg) combiner. """
+    """ 
+        A Local SGD / Federated Averaging (FedAvg) combiner. This 
+        class is resonsible for coordinating the update of the Combiner global 
+        model by requesting and aggregating model updates from Clients. 
+
+    """
 
     def __init__(self, id, storage, server):
 
