@@ -1,5 +1,4 @@
-# FEDn
-
+![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 ## What is FEDn?
 FEDn is an open source framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. 
 
@@ -7,14 +6,17 @@ FEDn is an open source framework for Federated Machine Learning (FedML), develop
 
 ## Why use FEDn? 
 
-FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framework of your choice. The goal of the project is to enable FedML in production, paying equal attention to the requirements from developers of new models and algorithms and the operational perspective of running a production-grade distributed system. FEDn is based on open protocols and can be integrated with open MLOps frameworks like STACKn to provide end-to-end ML alliances.   
+FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framwork of your choice. FEDn is based on open protocols and can be easily integrated with open MLOps frameworks like STACKn to provide end-to-end alliance governance.   
 
 ## Core Features
-FEDn supports a highly scalable implementation of Federated Averaging, with backend drivers implemented for compatibility with Keras Sequential models. Other FedML algorithms including meta-modeling as well as multiple additional ML-framework drivers are in active development. 
+FEDn supports a highly scalable Nested Federated Averaging orchestration scheme. Other protocols, including support for various types of federated ensemble models are in active development. 
 
 <!--- #### Multimodal participation
 #### Multilevel model combinations
 ---> 
+
+## Architecture
+Description coming soon. 
 
 ## Getting started 
 
@@ -100,7 +102,7 @@ You can follow the progress of training visually in the Dashboard:
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
 
-### Distributed deployment
+## Distributed deployment
 To deploy the setup across different hosts in a live environment, modify the .env file accordingly for each host/service. Reference deployments are coming soon. 
 
 ## Commercial support
