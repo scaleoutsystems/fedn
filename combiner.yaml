@@ -40,44 +40,44 @@ services:
     ports:
         - 12081:12081
 
-  monitor:
-    image: "scaleoutsystems/monitor:latest"
-    build:
-      context: .
-      dockerfile: components/monitor/Dockerfile
-    environment:
-      - GET_HOSTS_FROM=dns
-      - MONITOR_HOST=combiner
-      - MONITOR_PORT=12080
-      - USER=test
-      - PROJECT=project
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - MONGO_HOST=${FEDN_MONGO_HOST}
-      - MONGO_PORT=${FEDN_MONGO_PORT}
-      - MDBUSR=${FEDN_MONGO_USER}
-      - MDBPWD=${FEDN_MONGO_PASSWORD} 
-    working_dir: /app/
-    command: bash run.sh
-    depends_on:
-      - combiner
+#  monitor:
+#    image: "scaleoutsystems/monitor:latest"
+#    build:
+#      context: .
+#      dockerfile: components/monitor/Dockerfile
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#      - MONITOR_HOST=combiner
+#      - MONITOR_PORT=12080
+#      - USER=test
+#      - PROJECT=project
+#      - ALLIANCE_UID=${ALLIANCE_UID}
+#      - MONGO_HOST=${FEDN_MONGO_HOST}
+#      - MONGO_PORT=${FEDN_MONGO_PORT}
+#      - MDBUSR=${FEDN_MONGO_USER}
+#      - MDBPWD=${FEDN_MONGO_PASSWORD}
+#    working_dir: /app/
+#    command: bash run.sh
+#    depends_on:
+#      - combiner
 
-  monitor2:
-    image: "scaleoutsystems/monitor:latest"
-    build:
-      context: .
-      dockerfile: components/monitor/Dockerfile
-    environment:
-      - GET_HOSTS_FROM=dns
-      - MONITOR_HOST=combiner2
-      - MONITOR_PORT=12081
-      - USER=test
-      - PROJECT=project
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - MONGO_HOST=${FEDN_MONGO_HOST}
-      - MONGO_PORT=${FEDN_MONGO_PORT}
-      - MDBUSR=${FEDN_MONGO_USER}
-      - MDBPWD=${FEDN_MONGO_PASSWORD} 
-    working_dir: /app/
-    command: bash run.sh
-    depends_on:
-      - combiner2
+#  monitor2:
+#    image: "scaleoutsystems/monitor:latest"
+#    build:
+#      context: .
+#      dockerfile: components/monitor/Dockerfile
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#      - MONITOR_HOST=combiner2
+#      - MONITOR_PORT=12081
+#      - USER=test
+#      - PROJECT=project
+#      - ALLIANCE_UID=${ALLIANCE_UID}
+#      - MONGO_HOST=${FEDN_MONGO_HOST}
+#      - MONGO_PORT=${FEDN_MONGO_PORT}
+#      - MDBUSR=${FEDN_MONGO_USER}
+#      - MDBPWD=${FEDN_MONGO_PASSWORD}
+#    working_dir: /app/
+#    command: bash run.sh
+#    depends_on:
+#      - combiner2
