@@ -15,9 +15,12 @@ class Status(enum.Enum):
     TryAgain = 2
 
 
+from fedn.common.security.certificate import Certificate
+
+
 class ConnectorClient:
 
-    def __init__(self, host, port, token, name, id=None, secure=True, verify_cert=False):
+    def __init__(self, host, port, token, name, id=None, secure=True, preshared_cert=True, verify_cert=False):
         self.host = host
         self.port = port
         self.token = token
@@ -30,9 +33,15 @@ class ConnectorClient:
             prefix = "http://"
         else:
             prefix = "https://"
+        if secure and preshared_cert:
+            import os
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem").cert_path
+        else:
+            self.verify_cert = False
         self.prefix = prefix
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
+        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
 
     def state(self):
         return self.state
@@ -40,7 +49,7 @@ class ConnectorClient:
     def assign(self):
 
         try:
-            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=self.verify_cert,
+            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=str(self.certificate),
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             # self.state = State.Disconnected
@@ -56,7 +65,7 @@ class ConnectorClient:
 
 class ConnectorCombiner:
 
-    def __init__(self, host, port, myhost, myport, token, name, secure=True, verify_cert=False):
+    def __init__(self, host, port, myhost, myport, token, name, secure=True, preshared_cert=True, verify_cert=False):
         self.host = host
         self.port = port
         self.myhost = myhost
@@ -64,14 +73,22 @@ class ConnectorCombiner:
         self.token = token
         self.name = name
         # self.state = State.Disconnected
+        self.secure = secure
         if not secure:
             prefix = "http://"
         else:
             prefix = "https://"
-        self.verify_cert = verify_cert
+        if secure and preshared_cert:
+            import os
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem",
+                                           ).cert_path
+        else:
+            self.verify_cert = False
         self.prefix = prefix
+
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
+        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
 
     def state(self):
         return self.state
@@ -83,7 +100,7 @@ class ConnectorCombiner:
                                                                   self.name,
                                                                   self.myhost,
                                                                   self.myport),
-                           verify=self.verify_cert,
+                           verify=str(self.certificate),
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             # self.state = State.Disconnected

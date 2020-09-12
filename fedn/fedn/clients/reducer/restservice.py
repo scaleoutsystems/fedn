@@ -124,7 +124,8 @@ class ReducerRestService:
         # self._original_stdout = sys.stdout
         # sys.stdout = open(os.devnull, 'w')
         if self.certificate:
-            app.run(host="0.0.0.0", port="8090", ssl_context=(self.certificate.cert_path,self.certificate.key_path))
+            print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path), str(self.certificate.key_path)), flush =True)
+            app.run(host="0.0.0.0", port="8090", ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
         #secure = False
         #secure_adhoc = False
 

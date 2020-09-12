@@ -33,7 +33,7 @@ class Certificate:
         cert.get_subject().ST = "Stockholm"
         cert.get_subject().O = "Development Key"
         cert.get_subject().OU = "Development Key"
-        cert.get_subject().CN = gethostname()
+        cert.get_subject().CN = self.name #gethostname()
         cert.set_serial_number(1000)
 
         cert.gmtime_adj_notBefore(0)

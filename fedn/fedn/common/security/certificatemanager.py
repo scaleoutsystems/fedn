@@ -8,6 +8,7 @@ class CertificateManager:
         self.directory = directory
         self.certificates = []
         self.allowed = dict()
+        self.load_all()
 
     def create(self, name):
         search = self.find(name)
@@ -33,12 +34,12 @@ class CertificateManager:
                 print("got a file here! Read it {}".format(filename))
                 key_name = name + '-key.pem'
                 print("trying with {}".format(key_name))
-                if os.path.isfile(key_name):
+                if os.path.isfile(os.path.join(self.directory,key_name)):
 
                     c = Certificate(self.directory, name=name, cert_name=filename, key_name=key_name)
                     self.certificates.append(c)
                 else:
-                    c = Certificate(self.directory, name=name, cert_name=filename)  # , cert_only=True)
+                    c = Certificate(self.directory, name=name, cert_name=filename, key_name=key_name)  # , cert_only=True)
                     self.certificates.append(c)
 
     def find(self, name):
