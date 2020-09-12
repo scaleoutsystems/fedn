@@ -1,17 +1,37 @@
-
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 
+
+class Channel:
+    def __init__(self, address, port, certificate):
+        self.address = address
+        self.port = port
+        self.certificate = certificate
+        print("USING THIS CERTIFICATE: \n\n\n {} \n\n\n\n".format(certificate), flush=True)
+        if self.certificate:
+            import copy
+            credentials = grpc.ssl_channel_credentials(root_certificates=copy.deepcopy(certificate))
+            self.channel = grpc.secure_channel('{}:{}'.format(self.address, str(self.port)), credentials)
+        else:
+            self.channel = grpc.insecure_channel('{}:{}'.format(self.address, str(self.port)))
+
+    def get_channel(self):
+        import copy
+        return copy.copy(self.channel)
+
+
 class CombinerInterface:
-    def __init__(self, parent, name, address, port):
+    def __init__(self, parent, name, address, port, certificate=None, key=None):
         self.parent = parent
         self.name = name
         self.address = address
         self.port = port
+        self.certificate = certificate
+        self.key = key
 
     def start(self, config):
-        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
         request.command = fedn.Command.START
@@ -23,18 +43,18 @@ class CombinerInterface:
         response = control.Start(request)
         print("Response from combiner {}".format(response.message))
 
-    def set_model_id(self,model_id):        
-        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+    def set_model_id(self, model_id):
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
         p = request.parameter.add()
         p.key = 'model_id'
         p.value = str(model_id)
         response = control.Configure(request)
-        #return response.message
+        # return response.message
 
     def get_model_id(self):
-        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
         reducer = rpc.ReducerStub(channel)
         request = fedn.GetGlobalModelRequest()
         response = reducer.GetGlobalModel(request)
@@ -42,7 +62,7 @@ class CombinerInterface:
 
     def allowing_clients(self):
         print("Sending message to combiner", flush=True)
-        channel = grpc.insecure_channel(self.address + ":" + str(self.port))
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
         response = connector.AcceptingClients(request)
@@ -59,6 +79,7 @@ class CombinerInterface:
         print("Sending message to combiner 5??", flush=True)
         return False
 
+
 class ReducerInferenceInterface:
     def __init__(self):
         self.model_wrapper = None
@@ -72,4 +93,3 @@ class ReducerInferenceInterface:
             results = self.model_wrapper.infer(params)
 
         return results
-

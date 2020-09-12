@@ -47,14 +47,15 @@ class ReducerRestService:
             if port is None or address is None or name is None:
                 return "Please specify correct parameters."
 
-            # TODO append and redirect to index.
-            combiner = CombinerInterface(self, name, address, port)
-            self.control.add(combiner)
-
-            certificate, key = self.certificate_manager.get_or_create(name).get_keypair_raw()
+            certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
             import base64
             cert_b64 = base64.b64encode(certificate)
             key_b64 = base64.b64encode(key)
+
+            # TODO append and redirect to index.
+            import copy
+            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
+            self.control.add(combiner)
 
             ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack
             return jsonify(ret)
@@ -99,9 +100,9 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
+                #certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
-                cert_b64 = base64.b64encode(certificate)
+                cert_b64 = base64.b64encode(combiner.certificate)
                 response = {'host': combiner.address, 'port': combiner.port, 'certificate': str(cert_b64).split('\'')[1]}
 
                 return jsonify(response)
