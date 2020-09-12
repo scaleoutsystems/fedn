@@ -18,27 +18,28 @@ services:
     command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
+
     ports:
         - 12080:12080
 
-  combiner2:
-    environment:
-      - GET_HOSTS_FROM=dns
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
-      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
-      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
-      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
-    image: "scaleoutsystems/client:latest"
-    build:
-      context: .
-      dockerfile: components/client/Dockerfile
-    working_dir: /app/client
-    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner2 -i 12081 -n combiner2
-    volumes:
-      - ./test/${EXAMPLE}/combiner:/app/client
-    ports:
-        - 12081:12081
+  #combiner2:
+    #environment:
+    #  - GET_HOSTS_FROM=dns
+    #  - ALLIANCE_UID=${ALLIANCE_UID}
+    #  - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+    #  - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+    #  - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+    #  - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
+    #image: "scaleoutsystems/client:latest"
+    #build:
+    #  context: .
+    #  dockerfile: components/client/Dockerfile
+    #working_dir: /app/client
+    #command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner2 -i 12081 -n combiner2
+    #volumes:
+    #  - ./test/${EXAMPLE}/combiner:/app/client
+    #ports:
+    #    - 12081:12081
 
 #  monitor:
 #    image: "scaleoutsystems/monitor:latest"
