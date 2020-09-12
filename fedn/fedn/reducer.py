@@ -22,8 +22,8 @@ class Reducer:
 
         self.control = ReducerControl()
         self.inference = ReducerInferenceInterface()
-        rest_certificate = self.certificate_manager.create("reducer")
-        self.rest = ReducerRestService(config['name'], self.control, rest_certificate)
+        rest_certificate = self.certificate_manager.get_or_create("reducer")
+        self.rest = ReducerRestService(config['name'], self.control, self.certificate_manager, certificate=rest_certificate)
 
     def run(self):
 

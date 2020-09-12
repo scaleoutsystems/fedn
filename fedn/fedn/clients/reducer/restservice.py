@@ -8,10 +8,11 @@ from flask_wtf.csrf import CSRFProtect
 
 
 class ReducerRestService:
-    def __init__(self, name, control, certificate=None):
+    def __init__(self, name, control, certificate_manager, certificate=None):
         self.name = name
         self.control = control
         self.certificate = certificate
+        self.certificate_manager = certificate_manager
 
     def run(self):
         app = Flask(__name__)
@@ -49,7 +50,13 @@ class ReducerRestService:
             # TODO append and redirect to index.
             combiner = CombinerInterface(self, name, address, port)
             self.control.add(combiner)
-            ret = {'status': 'added'}
+
+            certificate, key = self.certificate_manager.get_or_create(name).get_keypair_raw()
+            import base64
+            cert_b64 = base64.b64encode(certificate)
+            key_b64 = base64.b64encode(key)
+
+            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack
             return jsonify(ret)
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
@@ -92,7 +99,11 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                response = {'host': combiner.address, 'port': combiner.port}
+                certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
+                import base64
+                cert_b64 = base64.b64encode(certificate)
+                response = {'host': combiner.address, 'port': combiner.port, 'certificate': str(cert_b64).split('\'')[1]}
+
                 return jsonify(response)
             elif combiner is None:
                 abort(404, description="Resource not found")
@@ -124,16 +135,18 @@ class ReducerRestService:
         # self._original_stdout = sys.stdout
         # sys.stdout = open(os.devnull, 'w')
         if self.certificate:
-            print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path), str(self.certificate.key_path)), flush =True)
-            app.run(host="0.0.0.0", port="8090", ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
-        #secure = False
-        #secure_adhoc = False
+            print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
+                                                                      str(self.certificate.key_path)), flush=True)
+            app.run(host="0.0.0.0", port="8090",
+                    ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
+        # secure = False
+        # secure_adhoc = False
 
-        #if secure and secure_adhoc:
+        # if secure and secure_adhoc:
         #    app.run(host="0.0.0.0", port="8090", ssl_context='adhoc')
-        #elif secure:
+        # elif secure:
         #    app.run(host="0.0.0.0", port="8090", ssl_context=('cert.pem', 'key.pem'))
-        #else:
+        # else:
         #    app.run(host="0.0.0.0", port="8090")
         # sys.stdout.close()
         # sys.stdout = self._original_stdout
