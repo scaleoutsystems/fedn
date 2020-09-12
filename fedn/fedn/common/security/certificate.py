@@ -1,5 +1,4 @@
 import os
-from socket import gethostname
 
 from OpenSSL import crypto
 
@@ -25,7 +24,7 @@ class Certificate:
         else:
             self.name = str(uuid.uuid4())
 
-    def gen_keypair(self,):
+    def gen_keypair(self, ):
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 2048)
         cert = crypto.X509()
@@ -33,7 +32,7 @@ class Certificate:
         cert.get_subject().ST = "Stockholm"
         cert.get_subject().O = "Development Key"
         cert.get_subject().OU = "Development Key"
-        cert.get_subject().CN = self.name #gethostname()
+        cert.get_subject().CN = self.name  # gethostname()
         cert.set_serial_number(1000)
 
         cert.gmtime_adj_notBefore(0)
@@ -47,6 +46,21 @@ class Certificate:
 
         with open(self.cert_path, "wb") as certfile:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+
+    def set_keypair_raw(self, certificate, privatekey):
+        with open(self.key_path, "wb") as keyfile:
+            keyfile.write(privatekey)
+
+        with open(self.cert_path, "wb") as certfile:
+            certfile.write(certificate)
+
+    def get_keypair_raw(self):
+        with open(self.key_path, 'rb') as keyfile:
+            key_buf = keyfile.read()
+        with open(self.cert_path, 'rb') as certfile:
+            cert_buf = certfile.read()
+        import copy
+        return copy.deepcopy(cert_buf), copy.deepcopy(key_buf)
 
     def get_key(self):
         with open(self.key_path, 'rb') as keyfile:
