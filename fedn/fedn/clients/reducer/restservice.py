@@ -8,9 +8,10 @@ from flask_wtf.csrf import CSRFProtect
 
 
 class ReducerRestService:
-    def __init__(self, name, control):
+    def __init__(self, name, control, certificate=None):
         self.name = name
         self.control = control
+        self.certificate = certificate
 
     def run(self):
         app = Flask(__name__)
@@ -122,14 +123,16 @@ class ReducerRestService:
         # import os, sys
         # self._original_stdout = sys.stdout
         # sys.stdout = open(os.devnull, 'w')
-        secure = False
-        secure_adhoc = False
+        if self.certificate:
+            app.run(host="0.0.0.0", port="8090", ssl_context=(self.certificate.cert_path,self.certificate.key_path))
+        #secure = False
+        #secure_adhoc = False
 
-        if secure and secure_adhoc:
-            app.run(host="0.0.0.0", port="8090", ssl_context='adhoc')
-        elif secure:
-            app.run(host="0.0.0.0", port="8090", ssl_context=('cert.pem', 'key.pem'))
-        else:
-            app.run(host="0.0.0.0", port="8090")
+        #if secure and secure_adhoc:
+        #    app.run(host="0.0.0.0", port="8090", ssl_context='adhoc')
+        #elif secure:
+        #    app.run(host="0.0.0.0", port="8090", ssl_context=('cert.pem', 'key.pem'))
+        #else:
+        #    app.run(host="0.0.0.0", port="8090")
         # sys.stdout.close()
         # sys.stdout = self._original_stdout

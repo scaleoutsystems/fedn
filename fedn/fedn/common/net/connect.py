@@ -17,14 +17,21 @@ class Status(enum.Enum):
 
 class ConnectorClient:
 
-    def __init__(self, host, port, token, name, id=None):
+    def __init__(self, host, port, token, name, id=None, secure=True, verify_cert=False):
         self.host = host
         self.port = port
         self.token = token
         self.name = name
         self.id = id
-#        self.state = State.Disconnected
-        self.connect_string = "http://{}:{}".format(self.host, self.port)
+        self.verify_cert = verify_cert
+        #        self.state = State.Disconnected
+        self.secure = secure
+        if not secure:
+            prefix = "http://"
+        else:
+            prefix = "https://"
+        self.prefix = prefix
+        self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
 
     def state(self):
@@ -33,10 +40,10 @@ class ConnectorClient:
     def assign(self):
 
         try:
-            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name),
+            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=self.verify_cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
-            #self.state = State.Disconnected
+            # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
@@ -46,17 +53,24 @@ class ConnectorClient:
 
         return Status.Unassigned, None
 
+
 class ConnectorCombiner:
 
-    def __init__(self, host, port,myhost, myport, token, name):
+    def __init__(self, host, port, myhost, myport, token, name, secure=True, verify_cert=False):
         self.host = host
         self.port = port
         self.myhost = myhost
         self.myport = myport
         self.token = token
         self.name = name
-        #self.state = State.Disconnected
-        self.connect_string = "http://{}:{}".format(self.host, self.port)
+        # self.state = State.Disconnected
+        if not secure:
+            prefix = "http://"
+        else:
+            prefix = "https://"
+        self.verify_cert = verify_cert
+        self.prefix = prefix
+        self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
 
     def state(self):
@@ -69,9 +83,10 @@ class ConnectorCombiner:
                                                                   self.name,
                                                                   self.myhost,
                                                                   self.myport),
+                           verify=self.verify_cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
-            #self.state = State.Disconnected
+            # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
@@ -80,6 +95,8 @@ class ConnectorCombiner:
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None
+
+
 """
     def connect(self):
 

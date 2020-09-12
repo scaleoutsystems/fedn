@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}
+    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
     ports:
