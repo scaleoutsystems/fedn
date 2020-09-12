@@ -11,10 +11,10 @@ from fedn.utils.dispatcher import Dispatcher
 
 CHUNK_SIZE = 1024 * 1024
 
-
 from datetime import datetime
 
 from fedn.clients.client.state import ClientState, ClientStateToString
+
 
 class Client:
 
@@ -30,7 +30,7 @@ class Client:
 
         self.started_at = datetime.now()
         self.logs = []
-
+        client_config = {}
         print("Asking for assignment")
         import time
         while True:
@@ -39,7 +39,7 @@ class Client:
                 time.sleep(5)
                 continue
             if status == Status.Assigned:
-                config = response
+                client_config = response
                 break
             time.sleep(5)
             print(".", end=' ', flush=True)
@@ -51,7 +51,7 @@ class Client:
         # connect_config = {'host': 'combiner', 'port': 12080}
 
         # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
-        #import os
+        # import os
 
         repo_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
                        'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
@@ -60,17 +60,27 @@ class Client:
                        'storage_hostname': os.environ['FEDN_MINIO_HOST'],
                        'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
 
-        #repo_config, _ = self.controller.get_config()
-
+        # repo_config, _ = self.controller.get_config()
 
         self.bucket_name = repo_config['storage_bucket']
 
-        channel = grpc.insecure_channel(config['host'] + ":" + str(config['port']))
+        # TODO use the client_config['certificate'] for setting up secure comms'
+        if client_config['certificate']:
+            import base64
+            cert = base64.b64decode(client_config['certificate'])  # .decode('utf-8')
+            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
+            channel = grpc.secure_channel("{}:{}".format(client_config['host'], str(client_config['port'])),
+                                          credentials)
+        else:
+            channel = grpc.insecure_channel("{}:{}".format(client_config['host'], str(client_config['port'])))
+
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
 
-        print("Client: {} connected to {}:{}".format(self.name, config['host'], config['port']), flush=True)
+        print("Client: {} connected {} to {}:{}".format(self.name,
+                                                        "SECURED" if client_config['certificate'] else "INSECURE",
+                                                        client_config['host'], client_config['port']), flush=True)
 
         # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
         dispatch_config = {'entry_points':
