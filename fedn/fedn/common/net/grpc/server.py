@@ -29,10 +29,10 @@ class Server:
 
             server_credentials = grpc.ssl_server_credentials(
                 ((config['key'], config['certificate'],),))
-            self.server.add_secure_port('0.0.0.0:' + str(config['port']), server_credentials)
+            self.server.add_secure_port('[::]:' + str(config['port']), server_credentials)
 
         else:
-            self.server.add_insecure_port('0.0.0.0:' + str(config['port']))
+            self.server.add_insecure_port('[::]:' + str(config['port']))
 
     def start(self):
         self.server.start()
