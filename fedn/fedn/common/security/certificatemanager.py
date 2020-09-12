@@ -10,7 +10,7 @@ class CertificateManager:
         self.allowed = dict()
         self.load_all()
 
-    def create(self, name):
+    def get_or_create(self, name):
         search = self.find(name)
         if search:
             return search
