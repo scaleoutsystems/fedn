@@ -343,7 +343,7 @@ class Client:
         from flask import Flask
         app = Flask(__name__)
 
-        from .pages import page, style
+        from fedn.common.net.web.client import page, style
         @app.route('/')
         def index():
             logs_fancy = str()
@@ -357,13 +357,13 @@ class Client:
         import os, sys
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
-        app.run(host="0.0.0.0", port="8090")
+        app.run(host="0.0.0.0", port="8080")
         sys.stdout.close()
         sys.stdout = self._original_stdout
 
     def run(self):
         import time
-        # threading.Thread(target=self.run_web, daemon=True).start()
+        threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state
