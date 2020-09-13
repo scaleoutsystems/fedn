@@ -19,7 +19,9 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
+    ports:
+      - 8080:8080
   client2:
     environment:
       - GET_HOSTS_FROM=dns
@@ -37,7 +39,7 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client3:
     environment:
       - GET_HOSTS_FROM=dns
@@ -55,7 +57,7 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client4:
     environment:
       - GET_HOSTS_FROM=dns
@@ -73,7 +75,7 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client5:
     environment:
       - GET_HOSTS_FROM=dns
@@ -91,7 +93,7 @@ services:
     volumes:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
 
 
 

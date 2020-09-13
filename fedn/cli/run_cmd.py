@@ -46,11 +46,12 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name):
 @click.option('-n', '--name', required=False, default=None)
 @click.option('-h', '--hostname', required=True)
 @click.option('-i', '--port', required=True)
+@click.option('-s', '--secure', required=False, default=True)
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
-              'myport': port, 'myname': name}
+              'myport': port, 'myname': name, 'secure': secure}
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)

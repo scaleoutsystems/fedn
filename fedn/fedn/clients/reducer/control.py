@@ -1,5 +1,6 @@
-from .state import ReducerState
 import copy
+
+from .state import ReducerState
 
 
 class ReducerControl:
@@ -14,19 +15,23 @@ class ReducerControl:
         # TODO: get single point of thruth from DB / Eth backend
         return self.model_id
 
-    def set_model_id(self,model_id):
+    def set_model_id(self, model_id):
         # TODO: post to DB backend
-        self.model_id = model_id 
+        self.model_id = model_id
 
-    def round(self,config):
+    def round(self, config):
         """ """
 
         # TODO: Set / update reducer states and such
+        if len(self.combiners) < 1:
+            print("REDUCER: No combiners connected!")
+            return
 
         # 1. Tell combiners to execute the compute plan / update the combiner model
         combiner_config = copy.deepcopy(config)
-        combiner_config['rounds'] = 1
-        combiner_config['task'] = ''
+        if combiner_config['task'] == '':
+            combiner_config['task'] = 'training'
+        combiner_config['rounds'] = 1  #apparently we split each round now on control level?
 
         print("REDUCER: STARTING COMBINERS", flush=True)
         for combiner in self.combiners:
@@ -36,7 +41,7 @@ class ReducerControl:
 
         # 2. Reducer protocol - a single global model is formed from the combiner local models
         self.resolve()
-    
+
         # 3. Trigger validation round 
         combiner_config = copy.deepcopy(config)
         combiner_config['task'] = 'validation'
@@ -45,8 +50,7 @@ class ReducerControl:
             combiner_config['task'] = 'validation'
             combiner.start(combiner_config)
 
-
-    def spread_model(self,model_id):
+    def spread_model(self, model_id):
         """ 
             Spread the current consensus model to all combiner nodes. 
             After sucessful execution, all active combiners
@@ -54,7 +58,7 @@ class ReducerControl:
         """
         for combiner in self.combiners:
             response = combiner.set_model_id(model_id)
-            print("REDUCER_CONTROL: Setting model_ids: {}".format(response),flush=True)
+            print("REDUCER_CONTROL: Setting model_ids: {}".format(response), flush=True)
 
     def instruct(self, config):
         if self.__state == ReducerState.instructing:
@@ -68,12 +72,12 @@ class ReducerControl:
             self.set_model_id(config['model_id'])
             self.spread_model(self.get_model_id())
 
-        for round in range(config['rounds']): 
+        for round in range(config['rounds']):
             self.round(config)
-    
+
         self.__state = ReducerState.monitoring
 
-    def reduce_random(self,model_ids):
+    def reduce_random(self, model_ids):
         """ """
         import random
         model_id = random.sample(model_ids, 1)[0]
@@ -87,14 +91,14 @@ class ReducerControl:
         # TODO: Use timeouts etc.
         ahead = []
         while len(ahead) < len(self.combiners):
-          for combiner in self.combiners:
-            model_id = combiner.get_model_id()
-            if model_id != self.get_model_id():
-                ahead.append(model_id)
+            for combiner in self.combiners:
+                model_id = combiner.get_model_id()
+                if model_id != self.get_model_id():
+                    ahead.append(model_id)
 
         # 2. Aggregate models 
         # TODO: Do this with FedAvg strategy - we should delegate to the combiners to do this. 
-        # For now we elect one combiner local model by random sampling and proceed with that one. 
+        # For now we elect one combiner local model by random sampling and proceed with that one.
         model_id = self.reduce_random(ahead)
 
         # 3. Propagate the new consensus model in the network

@@ -1,15 +1,13 @@
+import os
 import queue
 import threading
 import uuid
-from concurrent import futures
 from datetime import datetime, timedelta
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-import grpc
-# from fedn.combiner.role import Role
 
-import os
+# from fedn.combiner.role import Role
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -37,7 +35,7 @@ def role_to_proto_role(role):
 ####################################################################################################################
 ####################################################################################################################
 
-class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer):
+class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer, rpc.ControlServicer):
     """ Communication relayer. """
 
     def __init__(self, connect_config):
@@ -64,6 +62,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                                             name=connect_config['myname'])
 
         import time
+        response = None
         while True:
             status, response = announce_client.announce()
             if status == Status.TryAgain:
@@ -74,30 +73,44 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
 
+        import base64
+        cert = base64.b64decode(response['certificate']) #.decode('utf-8')
+        key = base64.b64decode(response['key']) #.decode('utf-8')
+        print("GOT CERTIFICATE \n\n {} \n\n".format(cert), flush=True)
+        print("GOT KEYFILE \n\n {} \n\n".format(key), flush=True)
+
+        grpc_config = {'port': port,
+                       'secure': connect_config['secure'],
+                       'certificate': cert,
+                       'key': key}
+
         # TODO remove temporary hardcoded config of storage persistance backend
         combiner_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-                       'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-                       'storage_bucket': 'models',
-                       'storage_secure_mode': False,
-                       'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-                       'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+                           'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                           'storage_bucket': 'models',
+                           'storage_secure_mode': False,
+                           'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                           'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
 
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.repository = S3ModelRepository(combiner_config)
         self.bucket_name = combiner_config["storage_bucket"]
 
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
-
-        # TODO setup sevices according to execution context!
-        rpc.add_CombinerServicer_to_server(self, self.server)
-        rpc.add_ConnectorServicer_to_server(self, self.server)
-        rpc.add_ReducerServicer_to_server(self, self.server)
-        rpc.add_ModelServiceServicer_to_server(self, self.server)
-        rpc.add_ControlServicer_to_server(self, self.server)
-
-        # TODO use <address> if specific host is to be assigned.
-        self.server.add_insecure_port('[::]:' + str(port))
-
+        from fedn.common.net.grpc.server import Server
+        self.server = Server(self, grpc_config)
+        """
+                self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
+        
+                # TODO setup services according to execution context!
+                rpc.add_CombinerServicer_to_server(self, self.server)
+                rpc.add_ConnectorServicer_to_server(self, self.server)
+                rpc.add_ReducerServicer_to_server(self, self.server)
+                rpc.add_ModelServiceServicer_to_server(self, self.server)
+                rpc.add_ControlServicer_to_server(self, self.server)
+        
+                # TODO use <address> if specific host is to be assigned.
+                self.server.add_insecure_port('[::]:' + str(port))
+        """
         # The combiner algo dictates how precisely model updated from clients are aggregated
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self)
@@ -125,7 +138,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def latest_model(self):
         return self.model_id
 
-    def set_latest_model(self,model_id):
+    def set_latest_model(self, model_id):
         self.model_id = model_id
 
     def get_model(self, id):
@@ -325,7 +338,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def Configure(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
         for parameter in control.parameter:
-            setattr(self.combiner,parameter.key,parameter.value)
+            setattr(self.combiner, parameter.key, parameter.value)
             if parameter.key == 'model_id':
                 self.combiner.stage_active_model(parameter.value)
         return response
@@ -571,7 +584,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 # print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
                 # print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
-                                                message="Got model successfully.")
+                                            message="Got model successfully.")
                 self.models_metadata.update({request.id: fedn.ModelStatus.OK})
                 return result
 
@@ -609,11 +622,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ####################################################################################################################
 
     def run(self):
+        import signal
         print("COMBINER:starting combiner", flush=True)
-        import time
         try:
             while True:
-                time.sleep(5)
-                #print("COMBINER: main loop", flush=True)
+                # time.sleep(5)
+                signal.pause()
+                # print("COMBINER: main loop", flush=True)
         except (KeyboardInterrupt, SystemExit):
             pass
+        self.server.stop()
