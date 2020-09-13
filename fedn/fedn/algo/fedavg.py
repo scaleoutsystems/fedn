@@ -169,7 +169,7 @@ class FEDAVGCombiner:
                         self.exec_training(plan)
                         self.server.set_latest_model(self.model_id)
                     elif plan['task'] == 'validation':
-                        self.exec_validation(plan)
+                        self.exec_validation(plan, plan['model_id'])
                     else:
                         result = self.exec(plan)
                         self.server.set_latest_model(self.model_id)

@@ -1,5 +1,6 @@
-from .state import ReducerState
 import copy
+
+from .state import ReducerState
 
 
 class Model:
@@ -32,11 +33,13 @@ class ReducerControl:
         # TODO: Refactor into configurable
         self.model_id = model_id 
 
-
-    def round(self,config):
+    def round(self, config):
         """ """
 
         # TODO: Set / update reducer states and such
+        if len(self.combiners) < 1:
+            print("REDUCER: No combiners connected!")
+            return
 
         # 1. Trigger Combiner nodes to compute an update, starting from the latest consensus model
         combiner_config = copy.deepcopy(config)
@@ -56,7 +59,6 @@ class ReducerControl:
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
-
     def sync_combiners(self,model_id):
         """ 
             Spread the current consensus model to all active combiner nodes. 
@@ -65,6 +67,7 @@ class ReducerControl:
         """
         for combiner in self.combiners:
             response = combiner.set_model_id(model_id)
+            print("REDUCER_CONTROL: Setting model_ids: {}".format(response), flush=True)
 
     def instruct(self, config):
         """ Main entrypoint, starts the control flow based on user-provided config (see Reducer class). """
@@ -80,12 +83,12 @@ class ReducerControl:
             self.commit(config['model_id'])
             self.sync_combiners(self.get_latest_model())
 
-        for round in range(config['rounds']): 
+        for round in range(config['rounds']):
             self.round(config)
-    
+
         self.__state = ReducerState.monitoring
 
-    def reduce_random(self,model_ids):
+    def reduce_random(self, model_ids):
         """ """
         import random
         model_id = random.sample(model_ids, 1)[0]
@@ -99,14 +102,14 @@ class ReducerControl:
         # TODO: Use timeouts etc.
         ahead = []
         while len(ahead) < len(self.combiners):
-          for combiner in self.combiners:
-            model_id = combiner.get_latest_model()
-            if model_id != self.get_latest_model():
-                ahead.append(model_id)
+            for combiner in self.combiners:
+                model_id = combiner.get_model_id()
+                if model_id != self.get_model_id():
+                    ahead.append(model_id)
 
         # 2. Aggregate models 
         # TODO: Do this with FedAvg strategy - we should delegate to the combiners to do this. 
-        # For now we elect one combiner model update by random sampling and proceed with that one. 
+        # For now we elect one combiner local model by random sampling and proceed with that one.
         model_id = self.reduce_random(ahead)
 
         # 3. Propagate the new consensus model in the network
