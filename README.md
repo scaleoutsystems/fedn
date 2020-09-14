@@ -64,10 +64,10 @@ We provide templates for a minimal standalone Docker deployment, useful for loca
 $ docker-compose up 
 ````
 Make sure you can access services before proceeding to next steps: 
- - Minio: localhost:9000
- - Mongo Express: localhost:8081
- - Dashboard: localhost:5111
- 
+ - Minio: `localhost:9000` (s3 compatible storage interface)
+ - Mongo Express: `localhost:8081` (used for storing model training metadata & statistics)
+ - Dashboard: `localhost:5111` (visualizing model training metadata & statistics)
+
 2. Start a Reducer
 ````bash 
 $ docker-compose -f reducer.yaml up 
@@ -82,7 +82,13 @@ $ docker-compose -f combiner.yaml up
 ````bash 
 $ docker-compose -f mnist-clients.yaml up 
 ````
-s
+Clients will connect as following:
+- attach to reducer and ask for assignment
+- attach to assigned combiner and ask for work
+- if no assignment is available it will ask again after due `timeout`.
+
+> Quicktip: You can ofcourse stack commands for convenience and start all in one by `docker-compose -f A.yaml -f B.yaml up --build`
+
 ### Train a federated model
 
 #### Seed the system with an initial model
@@ -92,10 +98,14 @@ Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we 
 *Note, there is a script "init_model.py" that you can edit if you would like to alter the neural network of the seed model.*
 
 #### Start training
-To start training, just call the Reducer rest API start endpoint: localhost:8090/start 
+Visiting `https://localhost:8090` if you are running the development docker-compose yamls.
+From there you can also start the reducer for basic execution (and set basic parameters).
+Alternatively you can start training, just call the Reducer rest API start endpoint: `localhost:8090/start` with curl
+
+if y ou have the mnist example configured you can start the clients by starting the docker mnist configured clients which will.
+
 
 You can follow the progress of training visually in the Dashboard: 
-
  - localhost:5111/table 
  - localhost:5111/box
 
