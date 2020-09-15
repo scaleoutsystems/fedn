@@ -5,21 +5,25 @@ from .state import ReducerState
 
 class Model:
     """ (DB) representation of a global model. """ 
-    def __init__(self):
+    def __init__(self, id=None, model_type="Keras"):
 
-        self.model_id = None
+        self.id = id
+        self.name = ""
+        self.type = model_type
         self.version = ""
         self.parent = ""
-
+        self.alliance_uid = ""
+        self.round_id = 0
 
 class ReducerControl:
 
     def __init__(self):
         self.__state = ReducerState.idle
         self.combiners = []
-
+        self.model_id = None
         # TODO: Use DB / Eth
         # models should be an immutable, ordered chain of global models
+        #self.strategy = ReducerControlStrategy(config["startegy"])
         self.models = []
 
     def get_latest_model(self):
@@ -83,7 +87,7 @@ class ReducerControl:
             self.commit(config['model_id'])
             self.sync_combiners(self.get_latest_model())
 
-        for round in range(config['rounds']):
+        for round in range(int(config['rounds'])):
             self.round(config)
 
         self.__state = ReducerState.monitoring
@@ -104,7 +108,7 @@ class ReducerControl:
         while len(ahead) < len(self.combiners):
             for combiner in self.combiners:
                 model_id = combiner.get_model_id()
-                if model_id != self.get_model_id():
+                if model_id != self.get_latest_model():
                     ahead.append(model_id)
 
         # 2. Aggregate models 
@@ -113,7 +117,7 @@ class ReducerControl:
         model_id = self.reduce_random(ahead)
 
         # 3. Propagate the new consensus model in the network
-        self.spread_model(model_id)
+        self.sync_combiners(model_id)
         self.commit(model_id)
 
     def monitor(self, config=None):
