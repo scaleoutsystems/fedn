@@ -2,7 +2,6 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 
-
 class Channel:
     def __init__(self, address, port, certificate):
         self.address = address
@@ -59,6 +58,31 @@ class CombinerInterface:
         request = fedn.GetGlobalModelRequest()
         response = reducer.GetGlobalModel(request)
         return response.model_id
+
+    def get_model(self, id=None):
+        """ Retrive the model bundle from a combiner. """
+
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        modelservice = rpc.ModelServiceStub(channel)
+
+        if not id: 
+            id = self.get_model_id()
+
+        from io import BytesIO
+        data = BytesIO()
+        data.seek(0, 0)
+        #import time
+        #import random
+        #time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
+
+        parts = modelservice.Download(fedn.ModelRequest(id=id))
+        for part in parts:
+            if part.status == fedn.ModelStatus.IN_PROGRESS:
+                data.write(part.data)
+            if part.status == fedn.ModelStatus.OK:
+                return data
+            if part.status == fedn.ModelStatus.FAILED:
+                return None
 
     def allowing_clients(self):
         print("Sending message to combiner", flush=True)

@@ -369,8 +369,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             yield q.get()
 
     def SendStatus(self, status: fedn.Status, context):
-        # Register a heartbeat (if the clients sends a message it is online)
-        # self.__register_heartbeat(status.client)
         # Add the status message to all subscribers of the status channel
         self._send_status(status)
 
