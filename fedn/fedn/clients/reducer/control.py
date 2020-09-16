@@ -52,7 +52,8 @@ class ReducerControl:
         # TODO: post to DB backend
         # TODO: Refactor into configurable
 
-        # TODO: This is because we start with a manually uploaded seed model
+        # TODO: This is because we start with a manually uploaded seed model, unify and move seeding of
+        # model chain to own method.         
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
             model.save(outfile_name)
@@ -111,6 +112,9 @@ class ReducerControl:
             After execution all active combiners
             should be configured with identical model state. 
         """
+
+        # TODO: We should only be able to set the active model on the Combiner
+        # if the combiner is in IDLE state. 
         for combiner in self.combiners:
             response = combiner.set_model_id(model_id)
             print("REDUCER_CONTROL: Setting model_ids: {}".format(response), flush=True)
@@ -139,6 +143,7 @@ class ReducerControl:
         import uuid
         model_id = uuid.uuid4()
 
+        # TODO: Make configurable
         helper = KerasSequentialHelper()
 
         for i, combiner in enumerate(combiners):

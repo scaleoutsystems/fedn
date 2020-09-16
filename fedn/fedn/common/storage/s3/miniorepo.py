@@ -37,7 +37,7 @@ class MINIORepository(Repository):
             self.secure_mode = False
 
         if not self.secure_mode:
-            print("\n\n\nWARNING : RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
+            print("\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
 
         if self.secure_mode:
             from urllib3.poolmanager import PoolManager
