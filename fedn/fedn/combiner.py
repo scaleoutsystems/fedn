@@ -105,6 +105,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
+        from fedn.common.tracer.mongotracer import MongoTracer
+        self.tracer = MongoTracer()
+
         self.server.start()
 
     def __whoami(self, client, instance):
@@ -288,6 +291,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def _send_status(self, status):
+
+        self.tracer.report(status)
+        print("MONITOR: sent message above \n\n\n\n", flush=True)
+
         for name, client in self.clients.items():
             try:
                 q = client[fedn.Channel.STATUS]
