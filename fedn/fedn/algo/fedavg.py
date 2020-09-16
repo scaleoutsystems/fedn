@@ -4,6 +4,7 @@ import queue
 import tempfile
 import time
 import uuid
+import sys
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
@@ -23,7 +24,6 @@ class FEDAVGCombiner:
 
     def __init__(self, id, storage, server):
 
-        # super().__init__(address, port, id, role)
         self.run_configs_lock = Lock()
         self.run_configs = []
         self.storage = storage
@@ -32,12 +32,11 @@ class FEDAVGCombiner:
         self.server = server
 
         self.config = {}
-        # TODO: Use MongoDB
         self.validations = {}
 
         # TODO: make choice of helper configurable
         self.helper = KerasSequentialHelper()
-        # Queue for model updates to be processed.
+
         self.model_updates = queue.Queue()
 
     def get_model_id(self):
@@ -63,7 +62,6 @@ class FEDAVGCombiner:
     def receive_validation(self, validation):
         """ Callback for a validation request """
 
-        # TODO: Track this in a DB
         model_id = validation.model_id
         data = json.loads(validation.data)
         try:
@@ -78,7 +76,7 @@ class FEDAVGCombiner:
         """ Compute an iterative/running average of models arriving to the combiner. """
 
         round_time = 0.0
-        print("COMBINER: combining model updates...")
+        print("COMBINER: combining model updates from Clients...")
 
         # First model in the update round
         try:
@@ -97,7 +95,6 @@ class FEDAVGCombiner:
                     model_str = self.server.get_model(model_id)
 
             import sys
-            #print("now writing {}".format(sys.getsizeof(model_str.getbuffer())), flush=True)
             model = self.helper.load_model(model_str.getbuffer())
             nr_processed_models = 1
             self.model_updates.task_done()
@@ -160,13 +157,13 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
-                #print("COMBINER: FEDAVG exec loop",flush=True)
                 self.run_configs_lock.acquire()
                 if len(self.run_configs) > 0:
+
                     plan = self.run_configs.pop()
                     self.run_configs_lock.release()
-                    # TODO - is this how we want to do it ?
                     self.config = plan
+
                     if plan['task'] == 'training':
                         self.exec_training(plan)
                         self.server.set_latest_model(self.model_id)
@@ -294,7 +291,6 @@ class FEDAVGCombiner:
         print("FEDAVG: TRAINING ROUND COMPLETED.", flush=True)
         print("\n")
  
-
 
     def exec(self,config):
         """ 
