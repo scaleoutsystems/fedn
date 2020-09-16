@@ -1,36 +1,31 @@
 import threading
-import os
 import time
-import grpc
-import requests
-import json
-
-from google.protobuf.json_format import MessageToJson, MessageToDict
 
 import fedn.common.net.grpc.fedn_pb2 as alliance
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
-
-import pymongo
 from fedn.common.storage.db.mongo import connect_to_mongodb
+from google.protobuf.json_format import MessageToDict
 
 
-class Client:
-    def __init__(self, url, port, name):
+class Monitor:
+    def __init__(self, config):
 
-        self.name = name
-        channel = grpc.insecure_channel(url + ":" + str(port))
+        if config['secure']:
+            raise Exception("NYI - Monitor does not support secure mode yet. Use builtin monitor in combiner mode")
+        self.name = config['name']
+        channel = grpc.insecure_channel(config['host'] + ":" + str(config['port']))
         self.connection = rpc.ConnectorStub(channel)
-        print("Client: {} connected to {}:{}".format(self.name, url, port), flush=True)
+        print("Client: {} connected to {}:{}".format(self.name, config['host'], config['port']), flush=True)
 
-        # Connect to MongoDB 
+        # Connect to MongoDB
         try:
             self.mdb = connect_to_mongodb()
             self.collection = self.mdb['status']
         except Exception as e:
-            print("FAILED TO CONNECT TO MONGO, {}".format(e),flush=True)
+            print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.collection = None
-            raise 
+            raise
 
         threading.Thread(target=self.__listen_to_status_stream, daemon=True).start()
 
@@ -48,22 +43,8 @@ class Client:
                 self.collection.insert_one(data)
 
     def run(self):
+
         print("starting")
         while True:
             print(".")
             time.sleep(1)
-
-def main():
-    url = os.environ['MONITOR_HOST']
-    port = os.environ['MONITOR_PORT']
-    if url is None or port is None:
-        print("Cannot start without MONITOR_HOST and MONITOR_PORT")
-        return
-
-    c = Client(url, port, "monitor")
-    c.run()
-
-
-if __name__ == '__main__':
-    print("MONITOR: starting up", flush=True)
-    main()
