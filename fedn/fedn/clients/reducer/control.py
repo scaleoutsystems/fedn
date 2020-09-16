@@ -1,7 +1,10 @@
 import copy
+import os
+import tempfile
+import time
 
-from .state import ReducerState
-
+from .state import ReducerState 
+from fedn.utils.helpers import KerasSequentialHelper
 
 class Model:
     """ (DB) representation of a global model. """ 
@@ -26,16 +29,48 @@ class ReducerControl:
         #self.strategy = ReducerControlStrategy(config["startegy"])
         self.models = []
 
+        # TODO remove temporary hardcoded config of storage persistance backend
+        s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+                           'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                           'storage_bucket': 'models',
+                           'storage_secure_mode': False,
+                           'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                           'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+
+        from fedn.common.storage.s3.s3repo import S3ModelRepository
+        self.model_repository = S3ModelRepository(s3_config)
+        self.bucket_name = s3_config["storage_bucket"]
+
+
     def get_latest_model(self):
         # TODO: get single point of thruth from DB / Eth backend
         return self.model_id
 
-    def commit(self,model_id):
+    def commit(self,model_id,model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """
 
         # TODO: post to DB backend
         # TODO: Refactor into configurable
+
+        # TODO: This is because we start with a manually uploaded seed model
+        if model:
+            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
+            model.save(outfile_name)
+            model_id = self.model_repository.set_model(outfile_name, is_file=True)
+            os.unlink(outfile_name)
+
+        # TODO: Append to model chain in DB backend
+        self.models.append(model_id)
         self.model_id = model_id 
+
+
+    def _out_of_sync(self):
+        osync = []
+        for combiner in self.combiners:
+            model_id = combiner.get_model_id()
+            if model_id != self.get_latest_model():
+                osync.append(combiner)
+        return osync 
 
     def round(self, config):
         """ """
@@ -45,18 +80,25 @@ class ReducerControl:
             print("REDUCER: No combiners connected!")
             return
 
-        # 1. Trigger Combiner nodes to compute an update, starting from the latest consensus model
+        # 1. Trigger Combiners to compute an update, starting from the latest consensus model.
         combiner_config = copy.deepcopy(config)
         combiner_config['rounds'] = 1
         combiner_config['task'] = 'training'
-
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
-        # 2. Reducer protocol - a single global model is formed from the combiner local models
+        # Wait until all combiners are out of sync with the current global model, or we timeout.
+        wait = 0.0
+        while len(self._out_of_sync()) < len(self.combiners):
+            time.sleep(1.0) 
+            wait += 1.0
+            if wait >= config['round_timeout']:
+                break
+
+        # 2. Resolver protocol - a single global model is formed from the combiner local models.
         self.resolve()
     
-        # 3. Trigger Combiner nodes to execute a validation round for the model
+        # 3. Trigger Combiner nodes to execute a validation round for the current model
         combiner_config = copy.deepcopy(config)
         combiner_config['model_id'] = self.get_latest_model()
         combiner_config['task'] = 'validation'
@@ -74,7 +116,7 @@ class ReducerControl:
             print("REDUCER_CONTROL: Setting model_ids: {}".format(response), flush=True)
 
     def instruct(self, config):
-        """ Main entrypoint, starts the control flow based on user-provided config (see Reducer class). """
+        """ Main entrypoint, executes the compute plan. """
 
         if self.__state == ReducerState.instructing:
             print("Already set in INSTRUCTING state", flush=True)
@@ -92,8 +134,25 @@ class ReducerControl:
 
         self.__state = ReducerState.monitoring
 
+    def reduce(self,combiners):
+        """ Combine current models at Combiner nodes into one global model. """
+        import uuid
+        model_id = uuid.uuid4()
+
+        helper = KerasSequentialHelper()
+
+        for i, combiner in enumerate(combiners):
+            data = combiner.get_model()
+            if i == 0:
+                model = helper.load_model(data.getbuffer())
+            else:
+                model_next = helper.load_model(combiner.get_model().getbuffer())
+                helper.increment_average(model, model_next, i+1)
+
+        return model, model_id
+
     def reduce_random(self, model_ids):
-        """ """
+        """ This is only used for debugging purposes. s"""
         import random
         model_id = random.sample(model_ids, 1)[0]
         return model_id
@@ -101,30 +160,18 @@ class ReducerControl:
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
 
-        # 1. Wait until all combiners report a local model that is ahead of the consensus global model
-
-        # TODO: Use timeouts etc.
-        ahead = []
-        while len(ahead) < len(self.combiners):
-            for combiner in self.combiners:
-                model_id = combiner.get_model_id()
-                if model_id != self.get_latest_model():
-                    ahead.append(model_id)
-
-        # 2. Aggregate models 
-        # TODO: Do this with FedAvg strategy - we should delegate to the combiners to do this. 
-        # For now we elect one combiner local model by random sampling and proceed with that one.
-        model_id = self.reduce_random(ahead)
-
-        # 3. Propagate the new consensus model in the network
-        self.sync_combiners(model_id)
-        self.commit(model_id)
+        # 1. Aggregate models from all combiners that are out of sync
+        combiners = self._out_of_sync()
+        if len(combiners) > 0:
+            model, model_id = self.reduce(combiners)
+        
+        # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
+        self.commit(model_id,model)
+        self.sync_combiners(self.get_latest_model())
 
     def monitor(self, config=None):
         if self.__state == ReducerState.monitoring:
             print("monitoring")
-        # todo connect to combiners and listen for globalmodelupdate request.
-        # use the globalmodel received to start the reducer combiner method on received models to construct its own model.
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
