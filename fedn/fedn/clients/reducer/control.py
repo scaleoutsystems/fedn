@@ -146,13 +146,13 @@ class ReducerControl:
         # TODO: Make configurable
         helper = KerasSequentialHelper()
 
-        for i, combiner in enumerate(combiners):
+        for i, combiner in enumerate(combiners,1):
             data = combiner.get_model()
-            if i == 0:
+            if i == 1:
                 model = helper.load_model(data.getbuffer())
             else:
                 model_next = helper.load_model(combiner.get_model().getbuffer())
-                helper.increment_average(model, model_next, i+1)
+                helper.increment_average(model, model_next, i)
 
         return model, model_id
 

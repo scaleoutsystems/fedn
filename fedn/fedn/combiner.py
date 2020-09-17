@@ -43,6 +43,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         import io
         from collections import defaultdict
+
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}
         self.model_id = None
@@ -126,10 +127,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.role = role_to_proto_role(instance.role)
         return client
 
-    def latest_model(self):
+    def get_active_model(self):
         return self.model_id
 
-    def set_latest_model(self, model_id):
+    def set_active_model(self, model_id):
         self.model_id = model_id
 
     def get_model(self, id):
@@ -184,6 +185,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                     break
 
         result = self.Upload(upload_request_generator(bt), self)
+        #self.set_active_model(id)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
@@ -332,9 +334,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def Configure(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
         for parameter in control.parameter:
-            setattr(self.combiner, parameter.key, parameter.value)
-            if parameter.key == 'model_id':
-                self.combiner.stage_active_model(parameter.value)
+            setattr(self, parameter.key, parameter.value)
+        #    if parameter.key == 'model_id':
+        #        self.combiner.stage_active_model(parameter.value)
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):
@@ -552,10 +554,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__whoami(response.sender, self)
         response.receiver.name = "reducer"
         response.receiver.role = role_to_proto_role(Role.REDUCER)
-        if not self.combiner.get_model_id():
+        if not self.get_active_model():
             response.model_id = ''
         else:
-            response.model_id = self.combiner.get_model_id()
+            response.model_id = self.get_active_model()
         return response
 
     ## Model Service

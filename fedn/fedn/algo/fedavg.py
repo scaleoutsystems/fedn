@@ -28,7 +28,6 @@ class FEDAVGCombiner:
         self.run_configs = []
         self.storage = storage
         self.id = id
-        self.model_id = server.model_id
         self.server = server
 
         self.config = {}
@@ -36,11 +35,7 @@ class FEDAVGCombiner:
 
         # TODO: make choice of helper configurable
         self.helper = KerasSequentialHelper()
-
         self.model_updates = queue.Queue()
-
-    def get_model_id(self):
-        return self.model_id
 
     def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
         print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
@@ -81,7 +76,7 @@ class FEDAVGCombiner:
         # First model in the update round
         try:
             model_id = self.model_updates.get(timeout=timeout)
-            print("Combining by getting model {}".format(model_id), flush=True)
+            #print("Combining by getting model {}".format(model_id), flush=True)
             # Fetch the model data blob from storage
             import sys
             model_str = self.server.get_model(model_id)
@@ -89,7 +84,7 @@ class FEDAVGCombiner:
             while tries < 3:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    print("Model download failed. retrying", flush=True)
+                    print("COMBINER: Model download failed. retrying", flush=True)
                     import time
                     time.sleep(1.0)
                     model_str = self.server.get_model(model_id)
@@ -108,9 +103,8 @@ class FEDAVGCombiner:
                 self.report_status("Received model update with id {}".format(model_id))
 
                 model_next = self.helper.load_model(self.server.get_model(model_id).getbuffer())
-                self.helper.increment_average(model, model_next, nr_processed_models+1)
-
                 nr_processed_models += 1
+                self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
             except Exception as e:
                 import time
@@ -160,18 +154,19 @@ class FEDAVGCombiner:
                 self.run_configs_lock.acquire()
                 if len(self.run_configs) > 0:
 
-                    plan = self.run_configs.pop()
+                    compute_plan = self.run_configs.pop()
                     self.run_configs_lock.release()
-                    self.config = plan
+                    self.config = compute_plan
 
-                    if plan['task'] == 'training':
-                        self.exec_training(plan)
-                        self.server.set_latest_model(self.model_id)
-                    elif plan['task'] == 'validation':
-                        self.exec_validation(plan, plan['model_id'])
+                    if compute_plan['task'] == 'training':
+                        self.exec_training(compute_plan)
+                    elif compute_plan['task'] == 'validation':
+                        self.exec_validation(compute_plan, compute_plan['model_id'])
                     else:
-                        result = self.exec(plan)
-                        self.server.set_latest_model(self.model_id)
+                        print("COMBINER: Compute plan contains unkown task type.")
+#                    else:
+#                        result = self.exec(plan)
+#                        self.server.set_active_model(self.get_model_id())
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -180,9 +175,14 @@ class FEDAVGCombiner:
             pass
 
 
-    def stage_active_model(self, model_id):
-        """ Download model with id model_id from storage andstage it in combiner local memory """ 
+    def stage_model(self,model_id):
+        """ Download model with id model_id from persistent storage. """ 
 
+        # If the model is already in memory at the server we do not need to do anything.
+        if model_id in self.server.models.keys():
+            return
+
+        # If it is not there, download it from persitent storage and set it. 
         timeout_retry = 3
         import time
         tries = 0
@@ -200,7 +200,6 @@ class FEDAVGCombiner:
                     return
 
         self.server.set_model(model, model_id)
-        self.model_id = model_id
 
     def __assign_round_clients(self, n):
         """  Obtain a list of clients to talk to in a round. """
@@ -239,6 +238,7 @@ class FEDAVGCombiner:
         """ Coordinate validation rounds as specified in config. """
 
         print("COMBINER orchestrating validation of model {}".format(model_id))
+        self.stage_model(model_id)
         ready = self.__check_nr_round_clients(int(config['clients_required'])) 
         validators = self.__assign_round_clients(int(config['clients_requested']))
         self.__validation_round(config,validators,model_id)        
@@ -247,12 +247,10 @@ class FEDAVGCombiner:
         """ Coordinates training and validation tasks with clints, as specified in the 
             config (CombinerConfiguration) """
 
-        print("COMBINER starting from model {}".format(self.model_id))
+        print("COMBINER starting from model {}".format(config['model_id']))
 
-        # This also sets the current active model_id for this combiner instance
-        self.stage_active_model(self.model_id)
+        self.stage_model(config['model_id'])
         ready = self.__check_nr_round_clients(int(config['clients_required']))
-
 
         # Execute the configured number of rounds
         for r in range(1, int(config['rounds']) + 1):
@@ -285,7 +283,7 @@ class FEDAVGCombiner:
         os.unlink(outfile_name)
 
         # Update Combiner latest model
-        self.model_id = model_id
+        self.server.set_active_model(model_id)
 
         print("------------------------------------------")
         print("FEDAVG: TRAINING ROUND COMPLETED.", flush=True)
@@ -298,5 +296,5 @@ class FEDAVGCombiner:
             final model. 
         """
         result = self.exec_training(config)
-        self.exec_validation(config,self.model_id)
+        self.exec_validation(config,config['model_id'])
         return result 
