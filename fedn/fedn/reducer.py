@@ -6,12 +6,15 @@ from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
+from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
 
 
 class Reducer:
     def __init__(self, config):
         self.name = config['name']
         self.token = config['token']
+
+        self.statestore = MongoReducerStateStore()
 
         try:
             path = config['path']
@@ -20,7 +23,7 @@ class Reducer:
 
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        self.control = ReducerControl()
+        self.control = ReducerControl(self.statestore)
         self.inference = ReducerInferenceInterface()
         rest_certificate = self.certificate_manager.get_or_create("reducer")
         self.rest = ReducerRestService(config['name'], self.control, self.certificate_manager, certificate=rest_certificate)

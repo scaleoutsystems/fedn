@@ -3,13 +3,15 @@ import os
 import tempfile
 import time
 
-from .state import ReducerState 
 from fedn.utils.helpers import KerasSequentialHelper
 
-class Model:
-    """ (DB) representation of a global model. """ 
-    def __init__(self, id=None, model_type="Keras"):
+from .state import ReducerState
 
+
+class Model:
+    """ (DB) representation of a global model. """
+
+    def __init__(self, id=None, model_type="Keras"):
         self.id = id
         self.name = ""
         self.type = model_type
@@ -18,35 +20,36 @@ class Model:
         self.alliance_uid = ""
         self.round_id = 0
 
+
 class ReducerControl:
 
-    def __init__(self):
+    def __init__(self, statestore):
         self.__state = ReducerState.idle
+        self.statestore = statestore
+        #self.statestore.set_latest(None)
         self.combiners = []
-        self.model_id = None
         # TODO: Use DB / Eth
         # models should be an immutable, ordered chain of global models
-        #self.strategy = ReducerControlStrategy(config["startegy"])
-        self.models = []
+        # self.strategy = ReducerControlStrategy(config["startegy"])
 
         # TODO remove temporary hardcoded config of storage persistance backend
         s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-                           'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-                           'storage_bucket': 'models',
-                           'storage_secure_mode': False,
-                           'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-                           'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+                     'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                     'storage_bucket': 'models',
+                     'storage_secure_mode': False,
+                     'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                     'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
 
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
 
-
     def get_latest_model(self):
         # TODO: get single point of thruth from DB / Eth backend
-        return self.model_id
+        return self.statestore.get_latest()
 
-    def commit(self,model_id,model=None):
+
+    def commit(self, model_id, model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """
 
         # TODO: post to DB backend
@@ -60,8 +63,7 @@ class ReducerControl:
             os.unlink(outfile_name)
 
         # TODO: Append to model chain in DB backend
-        self.models.append(model_id)
-        self.model_id = model_id 
+        self.statestore.set_latest(model_id)
 
 
     def _out_of_sync(self):
@@ -70,7 +72,7 @@ class ReducerControl:
             model_id = combiner.get_model_id()
             if model_id != self.get_latest_model():
                 osync.append(combiner)
-        return osync 
+        return osync
 
     def round(self, config):
         """ """
@@ -90,14 +92,14 @@ class ReducerControl:
         # Wait until all combiners are out of sync with the current global model, or we timeout.
         wait = 0.0
         while len(self._out_of_sync()) < len(self.combiners):
-            time.sleep(1.0) 
+            time.sleep(1.0)
             wait += 1.0
             if wait >= config['round_timeout']:
                 break
 
         # 2. Resolver protocol - a single global model is formed from the combiner local models.
         self.resolve()
-    
+
         # 3. Trigger Combiner nodes to execute a validation round for the current model
         combiner_config = copy.deepcopy(config)
         combiner_config['model_id'] = self.get_latest_model()
@@ -105,7 +107,7 @@ class ReducerControl:
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
-    def sync_combiners(self,model_id):
+    def sync_combiners(self, model_id):
         """ 
             Spread the current consensus model to all active combiner nodes. 
             After execution all active combiners
@@ -134,7 +136,7 @@ class ReducerControl:
 
         self.__state = ReducerState.monitoring
 
-    def reduce(self,combiners):
+    def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
         import uuid
         model_id = uuid.uuid4()
@@ -147,7 +149,7 @@ class ReducerControl:
                 model = helper.load_model(data.getbuffer())
             else:
                 model_next = helper.load_model(combiner.get_model().getbuffer())
-                helper.increment_average(model, model_next, i+1)
+                helper.increment_average(model, model_next, i + 1)
 
         return model, model_id
 
@@ -164,10 +166,12 @@ class ReducerControl:
         combiners = self._out_of_sync()
         if len(combiners) > 0:
             model, model_id = self.reduce(combiners)
-        
+
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
-        self.commit(model_id,model)
+        self.commit(model_id, model)
         self.sync_combiners(self.get_latest_model())
+
+        self.__state = ReducerState.idle
 
     def monitor(self, config=None):
         if self.__state == ReducerState.monitoring:
