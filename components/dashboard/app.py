@@ -263,7 +263,10 @@ def box():
 
     # Just grab the first metric in the list. 
     # TODO: Let the user choose, or plot all of them.
-    metric = valid_metrics[0]
+    if "accuracy" in valid_metrics:
+        metric = "accuracy"
+    else:
+        metric = valid_metrics[0]
     validations = {}
     for post in alliance.find({'type': 'MODEL_VALIDATION'}):
         e = json.loads(post['data'])
