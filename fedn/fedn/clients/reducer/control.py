@@ -26,14 +26,11 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.idle
         self.statestore = statestore
-        self.statestore.set('current_model', None)
+        #self.statestore.set_latest(None)
         self.combiners = []
-        #self.model_id = None
         # TODO: Use DB / Eth
         # models should be an immutable, ordered chain of global models
         # self.strategy = ReducerControlStrategy(config["startegy"])
-        #self.models = []
-        self.statestore.set('models', [])
 
         # TODO remove temporary hardcoded config of storage persistance backend
         s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
@@ -49,7 +46,8 @@ class ReducerControl:
 
     def get_latest_model(self):
         # TODO: get single point of thruth from DB / Eth backend
-        self.statestore.get('current_model')
+        return self.statestore.get_latest()
+
 
     def commit(self, model_id, model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """
@@ -65,10 +63,8 @@ class ReducerControl:
             os.unlink(outfile_name)
 
         # TODO: Append to model chain in DB backend
-        #self.models.append(model_id)
-        self.statestore.push_model(model_id)
-        self.statestore.set('current_model', model_id)
-        #self.model_id = model_id
+        self.statestore.set_latest(model_id)
+
 
     def _out_of_sync(self):
         osync = []
@@ -174,6 +170,8 @@ class ReducerControl:
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
         self.commit(model_id, model)
         self.sync_combiners(self.get_latest_model())
+
+        self.__state = ReducerState.idle
 
     def monitor(self, config=None):
         if self.__state == ReducerState.monitoring:
