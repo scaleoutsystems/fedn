@@ -6,7 +6,7 @@ from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
-from fedn.clients.reducer.statestore import MongoReducerStateStore
+from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
 
 
 class Reducer:

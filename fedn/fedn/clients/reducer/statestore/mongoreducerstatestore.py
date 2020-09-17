@@ -1,29 +1,6 @@
-from abc import ABC, abstractmethod
-
+from fedn.clients.reducer.state import ReducerStateToString, StringToReducerState
 from fedn.common.storage.db.mongo import connect_to_mongodb
-
-
-class ReducerStateStore(ABC):
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def set(self, key, value):
-        pass
-
-    @abstractmethod
-    def get(self, key):
-        pass
-
-
-model_info_dict = {'model_id': '',
-                   'model_description': '',
-                   'created_at': '',
-                   'created_by': '',
-                   'validated_at': '',
-                   'validated_by': '',
-                   'signed_by': ''
-                   }
+from .reducerstatestore import ReducerStateStore
 
 
 class MongoReducerStateStore(ReducerStateStore):
@@ -41,28 +18,23 @@ class MongoReducerStateStore(ReducerStateStore):
             raise
 
     def state(self):
-        return self.state.find_one()
+        return StringToReducerState(self.state.find_one()['current_state'])
 
-    def transitions(self, state):
-        return self.state.insert_one({'state': state})
-
-    def set(self, key, value):
-        x = self.state.insert_one({'key': key, 'value': value})
-        return x.inserted_id
-
-    def get(self, key):
-        return self.state.find({'key': key})
+    def transition(self, state):
+        old_state = self.state.find_one({'state': 'current_state'})
+        if old_state != state:
+            return self.state.update({'state': 'current_state'}, {'state': ReducerStateToString(state)}, True)
+        else:
+            print("Not updating state, already in {}".format(ReducerStateToString(state)))
 
     def set_latest(self, model_id):
-        # self.model_id = model_id
         from datetime import datetime
         x = self.latest_model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
         self.models.update({'key': 'models'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
 
     def get_latest(self):
-        # return self.model_id
         ret = self.latest_model.find({'key': 'current_model'})
         try:
             return ret[0]['model']
-        except KeyError:
+        except (KeyError, IndexError):
             return None
