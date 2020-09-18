@@ -9,7 +9,7 @@ FEDn is an open source framework for Federated Machine Learning (FedML), develop
 FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framwork of your choice. FEDn is based on open protocols and can be easily integrated with open MLOps frameworks like STACKn to provide end-to-end alliance governance.   
 
 ## Core Features
-FEDn supports a highly scalable Nested Federated Averaging orchestration scheme. Other protocols, including support for various types of federated ensemble models are in active development. 
+FEDn currently supports a highly horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to integrate other ML frameworks. Other FedML protocols, including support for various types of federated ensemble models, and helpers for PyTorch (and other frameworks), are in active development. 
 
 <!--- #### Multimodal participation
 #### Multilevel model combinations
@@ -44,7 +44,7 @@ FEDN_MINIO_PORT=9000
 FEDN_MINIO_ACCESS_KEY=fedn_admin
 FEDN_MINIO_SECRET_KEY=password
 
-FEDN_DASHBOARD_HOST=dashboard
+FEDN_DASHBOARD_HOST=localhost
 FEDN_DASHBOARD_PORT=5111
 
 EXAMPLE=mnist
@@ -73,7 +73,7 @@ Make sure you can access services before proceeding to next steps:
 $ docker-compose -f reducer.yaml up 
 ````
 
-3. Attach a combiner:
+3. Attach two combiners:
 ````bash 
 $ docker-compose -f combiner.yaml up 
 ````
@@ -82,17 +82,19 @@ $ docker-compose -f combiner.yaml up
 ````bash 
 $ docker-compose -f mnist-clients.yaml up 
 ````
-s
+
+Make sure that you can access the Reducer UI at https://localhost:8090, and that the combiner and clients are up and running, before proceeding to the next step.
+
 ### Train a federated model
 
 #### Seed the system with an initial model
 
-Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a corresponding seed model to the appropriate location in Minio. Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).  Create a bucker called 'models' and upload the seed model file in that bucket. 
+Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model to the appropriate location in Minio. Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).  Create a bucket called 'models' and upload the seed model file there. 
 
-*Note, there is a script "init_model.py" that you can edit if you would like to alter the neural network of the seed model.*
+*Note, there is a script "init_model.py" that you can edit if you would like to alter the actual structure of the seed model.*
 
 #### Start training
-To start training, just call the Reducer rest API start endpoint: localhost:8090/start 
+To start training, navigate to the Reducer REST API endpoint: localhost:8090/start 
 
 You can follow the progress of training visually in the Dashboard: 
 
