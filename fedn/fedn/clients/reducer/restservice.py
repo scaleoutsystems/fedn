@@ -66,7 +66,7 @@ class ReducerRestService:
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
-                model_id = request.form.get('model_id', '879fa112-c861-4cb1-a25d-775153e5b548')
+                model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)

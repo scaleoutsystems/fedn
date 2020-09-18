@@ -109,6 +109,10 @@ class ReducerControl:
             combiner.start(combiner_config)
 
     def sync_combiners(self, model_id):
+
+        if not model_id:
+            print("GOT NO MODEL TO SET!", flush=True)
+            return
         """ 
             Spread the current consensus model to all active combiner nodes. 
             After execution all active combiners
@@ -135,10 +139,12 @@ class ReducerControl:
             self.commit(config['model_id'])
             self.sync_combiners(self.get_latest_model())
 
+        self.__state = ReducerState.monitoring
         for round in range(int(config['rounds'])):
             self.round(config)
 
-        self.__state = ReducerState.monitoring
+
+        self.__state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
@@ -178,7 +184,7 @@ class ReducerControl:
         self.commit(model_id, model)
         self.sync_combiners(self.get_latest_model())
 
-        self.__state = ReducerState.idle
+
 
     def monitor(self, config=None):
         if self.__state == ReducerState.monitoring:

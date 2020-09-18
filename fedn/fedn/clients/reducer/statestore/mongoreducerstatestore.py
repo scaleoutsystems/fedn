@@ -35,6 +35,9 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_latest(self):
         ret = self.latest_model.find({'key': 'current_model'})
         try:
-            return ret[0]['model']
+            retcheck = ret[0]['model']
+            if retcheck == '' or retcheck == ' ':  #ugly check for empty string
+                return None
+            return retcheck
         except (KeyError, IndexError):
             return None
