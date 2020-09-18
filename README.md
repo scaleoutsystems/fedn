@@ -105,10 +105,11 @@ You can follow the progress of training visually in the Dashboard:
 Explore our other example models, or use them as templates to create your own project. 
 
 ## Distributed deployment
-To deploy the setup across different hosts in a live environment, modify the .env file accordingly for each host/service. Reference deployments are coming soon. 
+
+The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models and on the available infrastructure. To deploy a setup across different hosts in a live environment, create an architecture plan and modify the .env file accordingly for each host/service. You also need provide signed certificates for the various services. Reference deployment descriptions for representative scenarios and hardware are coming soon. 
 
 ## Commercial support
-Reach out to Scaleout to learn about how FEDn can be customized, configured and deployed to enable production-grade ML-alliances and life-cycle management of the federated models.  
+Reach out to Scaleout to learn about how FEDn can be customized, configured and deployed to enable production-grade ML-alliances and alliance life-cycle management and governance for ederated models.  
 
 ## License
 See LICENSE file.
