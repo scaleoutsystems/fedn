@@ -167,12 +167,12 @@ class ReducerControl:
 
     def reduce_random(self, combiners):
         """ This is only used for debugging purposes. s"""
-        #import random
-        #model_id = random.sample(model_ids, 1)[0]
+        import random
+        combiner = random.sample(combiners, 1)[0]
         import uuid
         model_id = uuid.uuid4()
         helper = KerasSequentialHelper()
-        return helper.load_model(combiners[0].get_model().getbuffer()),model_id
+        return helper.load_model(combiner.get_model().getbuffer()),model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
@@ -180,7 +180,7 @@ class ReducerControl:
         # 1. Aggregate models from all combiners that are out of sync
         combiners = self._out_of_sync()
         if len(combiners) > 0:
-            model, model_id = self.reduce_random(combiners)
+            model, model_id = self.reduce(combiners)
 
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
         self.commit(model_id, model)
