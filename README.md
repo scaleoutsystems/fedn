@@ -15,7 +15,7 @@ FEDn currently supports a highly horizontally scalable Hierarchical Federated Av
 #### Multilevel model combinations
 ---> 
 
-## Architecture
+## Logical architecture
 Description coming soon. 
 
 ## Getting started 
