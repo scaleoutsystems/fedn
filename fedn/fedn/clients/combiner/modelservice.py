@@ -67,7 +67,6 @@ class ModelService(rpc.ModelServiceServicer):
                     break
 
         result = self.Upload(upload_request_generator(bt), self)
-        # self.set_active_model(id)
 
     ## Model Service
     def Upload(self, request_iterator, context):
@@ -83,6 +82,8 @@ class ModelService(rpc.ModelServiceServicer):
                                             message="Got model successfully.")
                 # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
                 self.models.set_meta(request.id, fedn.ModelStatus.OK)
+                self.models.get_ptr(request.id).flush()
+                self.models.get_ptr(request.id).close()
                 return result
 
     def Download(self, request, context):
@@ -96,11 +97,7 @@ class ModelService(rpc.ModelServiceServicer):
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
-            # from io import BytesIO
             obj = self.models.get(request.id)
-            # obj.seek(0, 0)
-            # Have to copy object to not mix up the file pointers when sending... fix in better way.
-            # obj = BytesIO(obj.read())
             import sys
             with obj as f:
                 while True:
