@@ -22,13 +22,14 @@ class FEDAVGCombiner:
 
     """
 
-    def __init__(self, id, storage, server):
+    def __init__(self, id, storage, server, modelservice):
 
         self.run_configs_lock = Lock()
         self.run_configs = []
         self.storage = storage
         self.id = id
         self.server = server
+        self.modelservice = modelservice
 
         self.config = {}
         self.validations = {}
@@ -79,7 +80,7 @@ class FEDAVGCombiner:
             #print("Combining by getting model {}".format(model_id), flush=True)
             # Fetch the model data blob from storage
             import sys
-            model_str = self.server.get_model(model_id)
+            model_str = self.modelservice.get_model(model_id)
             tries = 0
             while tries < 3:
                 tries += 1
@@ -87,7 +88,7 @@ class FEDAVGCombiner:
                     print("COMBINER: Model download failed. retrying", flush=True)
                     import time
                     time.sleep(1.0)
-                    model_str = self.server.get_model(model_id)
+                    model_str = self.modelservice.get_model(model_id)
 
             import sys
             model = self.helper.load_model(model_str.getbuffer())
@@ -102,7 +103,7 @@ class FEDAVGCombiner:
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
 
-                model_next = self.helper.load_model(self.server.get_model(model_id).getbuffer())
+                model_next = self.helper.load_model(self.modelservice.get_model(model_id).getbuffer())
                 nr_processed_models += 1
                 self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
@@ -179,7 +180,8 @@ class FEDAVGCombiner:
         """ Download model with id model_id from persistent storage. """ 
 
         # If the model is already in memory at the server we do not need to do anything.
-        if model_id in self.server.models.keys():
+        #TODO ugly ! Need to be refactored
+        if self.modelservice.models.exist(model_id):
             return
 
         # If it is not there, download it from persitent storage and set it. 
@@ -199,7 +201,7 @@ class FEDAVGCombiner:
                     print("COMBINER exiting. could not fetch seed model.")
                     return
 
-        self.server.set_model(model, model_id)
+        self.modelservice.set_model(model, model_id)
 
     def __assign_round_clients(self, n):
         """  Obtain a list of clients to talk to in a round. """
@@ -279,7 +281,7 @@ class FEDAVGCombiner:
         # Stream aggregated model to server 
         # TODO: Not strictly necessary to stream model here, can be waste of bandwidth.
         model_id = str(uuid.uuid4())        
-        self.server.set_model(a, model_id)
+        self.modelservice.set_model(a, model_id)
         os.unlink(outfile_name)
 
         # Update Combiner latest model

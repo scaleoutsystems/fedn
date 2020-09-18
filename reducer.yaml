@@ -16,6 +16,8 @@ services:
       - FEDN_MONGO_PASSWORD=${FEDN_MONGO_PASSWORD}
       - FEDN_MONGO_HOST=${FEDN_MONGO_HOST}
       - FEDN_MONGO_PORT=${FEDN_MONGO_PORT}
+      - FEDN_DASHBOARD_HOST=${FEDN_DASHBOARD_HOST}
+      - FEDN_DASHBOARD_PORT=${FEDN_DASHBOARD_PORT}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
