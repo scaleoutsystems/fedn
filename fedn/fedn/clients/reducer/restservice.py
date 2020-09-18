@@ -77,6 +77,7 @@ class ReducerRestService:
                           'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
+                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
                 from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))

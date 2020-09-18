@@ -158,11 +158,13 @@ class ReducerControl:
 
         return model, model_id
 
-    def reduce_random(self, model_ids):
+    def reduce_random(self, combiners):
         """ This is only used for debugging purposes. s"""
-        import random
-        model_id = random.sample(model_ids, 1)[0]
-        return model_id
+        #import random
+        #model_id = random.sample(model_ids, 1)[0]
+        import uuid
+        model_id = uuid.uuid4()
+        return combiners[0].get_model(),model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
@@ -170,7 +172,7 @@ class ReducerControl:
         # 1. Aggregate models from all combiners that are out of sync
         combiners = self._out_of_sync()
         if len(combiners) > 0:
-            model, model_id = self.reduce(combiners)
+            model, model_id = self.reduce_random(combiners)
 
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
         self.commit(model_id, model)
