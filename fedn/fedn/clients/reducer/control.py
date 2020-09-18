@@ -87,6 +87,7 @@ class ReducerControl:
         combiner_config = copy.deepcopy(config)
         combiner_config['rounds'] = 1
         combiner_config['task'] = 'training'
+        combiner_config['model_id'] = self.get_latest_model()
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
@@ -170,7 +171,8 @@ class ReducerControl:
         #model_id = random.sample(model_ids, 1)[0]
         import uuid
         model_id = uuid.uuid4()
-        return combiners[0].get_model(),model_id
+        helper = KerasSequentialHelper()
+        return helper.load_model(combiners[0].get_model().getbuffer()),model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """

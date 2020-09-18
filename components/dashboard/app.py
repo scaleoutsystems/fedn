@@ -82,6 +82,7 @@ def table():
         all_vals.append(vals)
 
     header_vals = valid_metrics
+    models.reverse()
     values = [models]
     print(all_vals,flush=True)
     for vals in all_vals:
