@@ -92,6 +92,7 @@ class ReducerControl:
             combiner.start(combiner_config)
 
         # Wait until all combiners are out of sync with the current global model, or we timeout.
+        # TODO: Implement strategies to handle timeouts. 
         wait = 0.0
         while len(self._out_of_sync()) < len(self.combiners):
             time.sleep(1.0)
@@ -110,15 +111,14 @@ class ReducerControl:
             combiner.start(combiner_config)
 
     def sync_combiners(self, model_id):
-
-        if not model_id:
-            print("GOT NO MODEL TO SET!", flush=True)
-            return
         """ 
             Spread the current consensus model to all active combiner nodes. 
             After execution all active combiners
             should be configured with identical model state. 
         """
+        if not model_id:
+            print("GOT NO MODEL TO SET!", flush=True)
+            return
 
         # TODO: We should only be able to set the active model on the Combiner
         # if the combiner is in IDLE state. 
