@@ -87,10 +87,12 @@ class ReducerControl:
         combiner_config = copy.deepcopy(config)
         combiner_config['rounds'] = 1
         combiner_config['task'] = 'training'
+        combiner_config['model_id'] = self.get_latest_model()
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
         # Wait until all combiners are out of sync with the current global model, or we timeout.
+        # TODO: Implement strategies to handle timeouts. 
         wait = 0.0
         while len(self._out_of_sync()) < len(self.combiners):
             time.sleep(1.0)
@@ -109,15 +111,14 @@ class ReducerControl:
             combiner.start(combiner_config)
 
     def sync_combiners(self, model_id):
-
-        if not model_id:
-            print("GOT NO MODEL TO SET!", flush=True)
-            return
         """ 
             Spread the current consensus model to all active combiner nodes. 
             After execution all active combiners
             should be configured with identical model state. 
         """
+        if not model_id:
+            print("GOT NO MODEL TO SET!", flush=True)
+            return
 
         # TODO: We should only be able to set the active model on the Combiner
         # if the combiner is in IDLE state. 
@@ -164,11 +165,14 @@ class ReducerControl:
 
         return model, model_id
 
-    def reduce_random(self, model_ids):
+    def reduce_random(self, combiners):
         """ This is only used for debugging purposes. s"""
         import random
-        model_id = random.sample(model_ids, 1)[0]
-        return model_id
+        combiner = random.sample(combiners, 1)[0]
+        import uuid
+        model_id = uuid.uuid4()
+        helper = KerasSequentialHelper()
+        return helper.load_model(combiner.get_model().getbuffer()),model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """

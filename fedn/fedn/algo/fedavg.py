@@ -165,9 +165,6 @@ class FEDAVGCombiner:
                         self.exec_validation(compute_plan, compute_plan['model_id'])
                     else:
                         print("COMBINER: Compute plan contains unkown task type.")
-#                    else:
-#                        result = self.exec(plan)
-#                        self.server.set_active_model(self.get_model_id())
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -177,14 +174,14 @@ class FEDAVGCombiner:
 
 
     def stage_model(self,model_id):
-        """ Download model with id model_id from persistent storage. """ 
+        """ Download model from persistent storage. """ 
 
         # If the model is already in memory at the server we do not need to do anything.
         #TODO ugly ! Need to be refactored
         if self.modelservice.models.exist(model_id):
             return
 
-        # If it is not there, download it from persitent storage and set it. 
+        # If it is not there, download it from storage and stage it in memory at the server. 
         timeout_retry = 3
         import time
         tries = 0
@@ -291,12 +288,3 @@ class FEDAVGCombiner:
         print("FEDAVG: TRAINING ROUND COMPLETED.", flush=True)
         print("\n")
  
-
-    def exec(self,config):
-        """ 
-            Execute the requested number of training rounds, and then validate the 
-            final model. 
-        """
-        result = self.exec_training(config)
-        self.exec_validation(config,config['model_id'])
-        return result 
