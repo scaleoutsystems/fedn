@@ -1,16 +1,19 @@
-import io
-from collections import defaultdict
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-#from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+
 CHUNK_SIZE = 1024 * 1024
+
 
 class ModelService(rpc.ModelServiceServicer):
 
     def __init__(self):
-        #self.models = TempModelStorage()
-        self.models = defaultdict(io.BytesIO)
-        self.models_metadata = {}
+        self.models = TempModelStorage()
+        # self.models = defaultdict(io.BytesIO)
+        # self.models_metadata = {}
+
+    def exist(self, model_id):
+        return self.models.exist(model_id)
 
     def get_model(self, id):
         from io import BytesIO
@@ -72,19 +75,20 @@ class ModelService(rpc.ModelServiceServicer):
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
-                self.models[request.id].write(request.data)
-                self.models_metadata.update({request.id: fedn.ModelStatus.IN_PROGRESS})
+                self.models.get_ptr(request.id).write(request.data)
+                self.models.set_meta(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                             message="Got model successfully.")
-                self.models_metadata.update({request.id: fedn.ModelStatus.OK})
+                # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
+                self.models.set_meta(request.id, fedn.ModelStatus.OK)
                 return result
 
     def Download(self, request, context):
 
         try:
-            if self.models_metadata[request.id] != fedn.ModelStatus.OK:
+            if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
                 print("Error file is not ready", flush=True)
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception as e:
@@ -92,11 +96,11 @@ class ModelService(rpc.ModelServiceServicer):
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
-            from io import BytesIO
-            obj = self.models[request.id]
-            obj.seek(0, 0)
+            # from io import BytesIO
+            obj = self.models.get(request.id)
+            # obj.seek(0, 0)
             # Have to copy object to not mix up the file pointers when sending... fix in better way.
-            obj = BytesIO(obj.read())
+            # obj = BytesIO(obj.read())
             import sys
             with obj as f:
                 while True:

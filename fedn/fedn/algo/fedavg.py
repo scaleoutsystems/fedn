@@ -181,7 +181,7 @@ class FEDAVGCombiner:
 
         # If the model is already in memory at the server we do not need to do anything.
         #TODO ugly ! Need to be refactored
-        if model_id in self.modelservice.models.keys():
+        if self.modelservice.models.exist(model_id):
             return
 
         # If it is not there, download it from persitent storage and set it. 
