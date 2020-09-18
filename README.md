@@ -2,20 +2,12 @@
 ## What is FEDn?
 FEDn is an open source framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems.
 
-FEDn is modular and enables developers to configure and deploy FedML networks for different use-cases and deployment scenarios, ranging from cross-silo to cross-device. 
+FEDn is modular and enables developers to configure and deploy FedML networks for different use-cases and deployment scenarios, ranging from cross-silo to cross-device. The framework takes a ML-framework agnostic approach to training federated models. 
 
 *Warning, this is an early version of the software. Do not use as is for production scenarios!*
 
-## Why use FEDn? 
-
-FEDn provides a flexible framework for building highly scalable federated machine learning systems using the ML framwork of your choice. FEDn is based on open protocols and can be easily integrated with open MLOps frameworks like STACKn to provide end-to-end alliance governance.   
-
 ## Core Features
-FEDn currently supports a highly horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to integrate other ML frameworks. Other FedML protocols, including support for various types of federated ensemble models, and helpers for PyTorch (and other frameworks), are in active development. 
-
-<!--- #### Multimodal participation
-#### Multilevel model combinations
----> 
+FEDn currently supports a highly horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to support clients based on other ML frameworks. Other FedML training protocols, including support for various types of federated ensemble models, and helpers for PyTorch (as well as other popular frameworks), are in active development. 
 
 ## Logical architecture
 Description coming soon. 
