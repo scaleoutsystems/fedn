@@ -103,7 +103,7 @@ The actual deployment, sizing and tuning of a FEDn network in production depends
 Explore our other example models, or use them as templates to create your own project. 
 
 ## Support
-Reach out to Scaleout (https://scaleoutsystems.com) to learn about how FEDn can be customized, configured and deployed to enable production-grade ML-alliances and alliance life-cycle management and governance for ederated models.  
+Reach out to Scaleout (https://scaleoutsystems.com) to learn about how FEDn can be customized, configured and deployed to enable production-grade ML-alliances and alliance life-cycle management and governance for federated models.  
 
 ## Contributions
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 
