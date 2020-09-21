@@ -14,7 +14,7 @@ FEDn currently supports a highly horizontally scalable Hierarchical Federated Av
 
 ## Getting started 
 
-The easiest way to start with FEDn is to use the provided docker-compose templates to launch a sandbox environment consisting of one Reducer, one Combiner, and a number of Clients. Together with the supporting storage and database services (currently Minio and MongoDB), this consitutes a minimal system for training a federated model using the Federated Averaging strategy. This repository bundles a number of test projects. These can be found in the 'test' folder. These projects can be used as templates for creating your own custom federated model using for the framework. 
+The easiest way to start with FEDn is to use the provided docker-compose templates to launch a local sandbox environment consisting of one Reducer, two Combiners, and five Clients. Together with the supporting storage and database services (currently Minio and MongoDB), this consitutes a minimal system for training a federated model using the Federated Averaging strategy. FEDn projects are templated projects that contain the user-provided model appplication components needed for federated training. This repository bundles a number of such test projects in the 'test' folder. These projects can be used as templates for creating your own custom federated model using the framework. 
 
 Clone the repository and follow these steps: 
 
