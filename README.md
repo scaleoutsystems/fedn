@@ -57,7 +57,7 @@ We provide templates for a minimal standalone Docker deployment, useful for loca
 ````bash 
 $ docker-compose up 
 ````
-Make sure you can access services before proceeding to next steps: 
+Make sure you can access the following services before proceeding to next steps: 
  - Minio: localhost:9000
  - Mongo Express: localhost:8081
  - Dashboard: localhost:5111
