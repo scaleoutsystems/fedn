@@ -10,6 +10,7 @@ FEDn is modular and enables developers to configure and deploy FedML networks fo
 FEDn currently supports a highly horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to support clients based on other ML frameworks. Other FedML training protocols, including support for various types of federated ensemble models, and helpers for PyTorch (as well as other popular frameworks), are in active development. 
 
 ## Logical architecture
+
 ![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
 
 ## Getting started 
