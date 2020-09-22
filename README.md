@@ -17,7 +17,7 @@ A FEDn network, as illustrated in the picture below, is made up of three key age
 A Client holds private data and connects to a Combiner to recieve model update requests and model validation requests. Clients need to be configured to be able to execute model training for the ML-model type used.  
 
 #### Combiner
-A combiner is an actor which orchestrates a model update from a number of attached clients. When and how to trigger such orchestration rounds are specified in *compute plans* sent by the Reducer. Each combiner in the network is an independent (and identical) gRPC Server, providing RPCs for interacting with its own alliance subsystem. Hence, the total number of clients that can be accomodated in a network is proportional to the number of active combiners. 
+A combiner is an actor which orchestrates and aggregates model updates from a number of attached clients. When and how to trigger such orchestration rounds are specified in *compute plans* sent by the Reducer. Each combiner in the network is an independent (and identical) gRPC Server, providing RPCs for interacting with its own alliance subsystem. Hence, the total number of clients that can be accomodated in a network is proportional to the number of active combiners. 
 
 #### Reducer
 The reducer fills three main roles in the network: 1.) To lay out and initialize the overall, global training strategy and to aggregate model updates from Combiners into a global model, 2.) to handle global state and maintain the model ledger - an immutable trail of global model updates uniquely defining FedML timeline, and  3) act as a discoverey service, mediating connections between Clients and Combiners. For this purpose, the Reducer exposes a standard REST API.  
@@ -25,6 +25,12 @@ The reducer fills three main roles in the network: 1.) To lay out and initialize
 ![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
 
 Training a federated model with FEDn amounts to specifying the Client side code and planning the deployment of the above components to meet the practical requirements from the use case at hand. 
+
+## Algorithms
+FEDn is desinged to allow customization of the FedML algorithm, following a specified pattern, or programming model. Model aggregation happens on two levels in the system. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. Then, a configurable aggregation protocol on Reducer level is responsible from combining the combiner-level models into a global model. By varying the aggregation scheme on the two levels in the system, many different possible outcomes can be achieved. 
+
+#### Hierarachical Federated Averaging
+The currently implemented default scheme uses the FedAvg strategy on the Combiner level aggregation, and a simple average of models on the reducer level. This results in a highly horizontally scalable scheme. The strategy works well with most artificial neural network (ANNs) models, and can in general be applied to  models where it is possible / makes sense to form mean values of model parameters (e.g. support vector machines). 
 
 ## Getting started 
 
