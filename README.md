@@ -13,12 +13,12 @@ FEDn currently supports a highly horizontally scalable Hierarchical Federated Av
 
 A FEDn network is made up of three key agents: a *Reducer*, one or more *Combiners* and a number of *Clients*.  
 
-### Client
+#### Client
 
-### Combiner
+#### Combiner
 A combiner is an actor which recieves *compute plans* from the Reducer and orchestrates a model update from a number of attached clients. Each combiner in the network is a gRPC Server, providing RPCs for interacting with its alliance subsystem. 
 
-### Reducer
+#### Reducer
 The reducer fills two main roles in the network: 1.) to aggregate model updates from Combiners into one global model, and 2) act as a discoverey service, mediating connections between Clients and Combiners.  
 
 ![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
