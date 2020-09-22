@@ -52,6 +52,7 @@ class ConnectorClient:
             retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=str(self.certificate),
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
+            print('***** {}'.format(e),flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 

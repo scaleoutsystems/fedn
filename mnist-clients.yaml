@@ -11,6 +11,10 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
+    extra_hosts:
+      reducer: 130.239.81.136
+      combiner: 130.239.81.136
+      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -31,6 +35,10 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
+    extra_hosts:
+      reducer: 130.239.81.136
+      combiner: 130.239.81.136
+      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -49,6 +57,10 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
+    extra_hosts:
+      reducer: 130.239.81.136
+      combiner: 130.239.81.136
+      combiner2: 130.239.81.136    
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -67,6 +79,10 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
+    extra_hosts:
+      reducer: 130.239.81.136
+      combiner: 130.239.81.136
+      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -85,6 +101,10 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
+    extra_hosts:
+      reducer: 130.239.81.136
+      combiner: 130.239.81.136
+      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
