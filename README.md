@@ -9,19 +9,22 @@ FEDn is modular and enables developers to configure and deploy FedML networks fo
 ## Core Features
 FEDn currently supports a highly horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to support clients based on other ML frameworks. Other FedML training protocols, including support for various types of federated ensemble models, and helpers for PyTorch (as well as other popular frameworks), are in active development. 
 
-## Logical architecture
+## Architecture
 
-A FEDn network is made up of three key agents: a *Reducer*, one or more *Combiners* and a number of *Clients*.  
+A FEDn network, as illustrated in the picture below, is made up of three key agents: a *Reducer*, one or more *Combiners* and a number of *Clients*. 
 
 #### Client
+A Client holds private data and connects to a Combiner to recieve model update requests and model validation requests. Clients need to be configured to be able to execute model training for the ML-model type used.  
 
 #### Combiner
-A combiner is an actor which recieves *compute plans* from the Reducer and orchestrates a model update from a number of attached clients. Each combiner in the network is a gRPC Server, providing RPCs for interacting with its alliance subsystem. 
+A combiner is an actor which orchestrates a model update from a number of attached clients. When and how to trigger such orchestration rounds are specified in *compute plans* sent by the Reducer. Each combiner in the network is an independent (and identical) gRPC Server, providing RPCs for interacting with its own alliance subsystem. Hence, the total number of clients that can be accomodated in a network is proportional to the number of active combiners. 
 
 #### Reducer
-The reducer fills two main roles in the network: 1.) to aggregate model updates from Combiners into one global model, and 2) act as a discoverey service, mediating connections between Clients and Combiners.  
+The reducer fills three main roles in the network: 1.) To lay out and initialize the overall, global training strategy and to aggregate model updates from Combiners into a global model, 2.) to handle global state and maintain the model ledger - an immutable trail of global model updates uniquely defining FedML timeline, and  3) act as a discoverey service, mediating connections between Clients and Combiners. For this purpose, the Reducer exposes a standard REST API.  
 
 ![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
+
+Training a federated model with FEDn amounts to specifying the Client side code and planning the deployment of the above components to meet the practical requirements from the use case at hand. 
 
 ## Getting started 
 
