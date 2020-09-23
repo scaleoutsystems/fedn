@@ -230,7 +230,7 @@ class FEDAVGCombiner:
             active = self.server.nr_active_trainers()
 
             if active >= int(config['clients_requested']):
-                return true
+                return True
             else:
                 print("waiting for {} clients to get started, currently: {}".format(int(config['clients_requested']) - active,
                                                                                     active), flush=True)
