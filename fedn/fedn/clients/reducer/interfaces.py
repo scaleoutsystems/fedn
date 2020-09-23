@@ -85,7 +85,7 @@ class CombinerInterface:
                 return None
 
     def allowing_clients(self):
-        print("Sending message to combiner", flush=True)
+        #print("Sending message to combiner", flush=True)
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
