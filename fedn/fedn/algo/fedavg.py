@@ -152,6 +152,7 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
+
                 self.run_configs_lock.acquire()
                 if len(self.run_configs) > 0:
 
@@ -159,12 +160,16 @@ class FEDAVGCombiner:
                     self.run_configs_lock.release()
                     self.config = compute_plan
 
-                    if compute_plan['task'] == 'training':
-                        self.exec_training(compute_plan)
-                    elif compute_plan['task'] == 'validation':
-                        self.exec_validation(compute_plan, compute_plan['model_id'])
+                    ready = self.__check_nr_round_clients(compute_plan,timeout=10.0)
+                    if ready:
+                        if compute_plan['task'] == 'training':
+                            self.exec_training(compute_plan)
+                        elif compute_plan['task'] == 'validation':
+                            self.exec_validation(compute_plan, compute_plan['model_id'])
+                        else:
+                            print("COMBINER: Compute plan contains unkown task type.")
                     else:
-                        print("COMBINER: Compute plan contains unkown task type.")
+                        print("COMBINER: Failed to meet client allocation requirements for this compute_plan.")
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -203,34 +208,40 @@ class FEDAVGCombiner:
     def __assign_round_clients(self, n):
         """  Obtain a list of clients to talk to in a round. """
 
-        # TODO: If we want global sampling without replacement the server needs to assign clients
         active_trainers = self.server.get_active_trainers()
 
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(active_trainers):
             n = len(active_trainers)
 
+        # If not, we pick a random subsample of all available clients.
         import random
         clients = random.sample(active_trainers, n)
 
         return clients
-        # TODO: In the general case, validators could be other clients as well
-        #self.validators = self.trainers
 
-    def __check_nr_round_clients(self,nr_clients):
+    def __check_nr_round_clients(self, config, timeout=10.0):
         """ Check that the minimal number of required clients to start a round are connected """
 
-        # TODO: Add timeout 
         import time
         ready = False
+        t = 0.0
         while not ready:
             active = self.server.nr_active_trainers()
-            if active >= nr_clients:
-                ready = True
+
+            if active >= int(config['clients_requested']):
+                return true
             else:
-                print("waiting for {} clients to get started, currently: {}".format(nr_clients - active,
+                print("waiting for {} clients to get started, currently: {}".format(int(config['clients_requested']) - active,
                                                                                     active), flush=True)
-            time.sleep(1)
+            time.sleep(1.0)
+            t += 0.1
+            if t >= timeout:
+                if active >= int(config['clients_required']):
+                    ready = True
+                else:
+                    ready = False
+
         return ready    
 
     def exec_validation(self,config,model_id):
@@ -238,7 +249,6 @@ class FEDAVGCombiner:
 
         print("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        ready = self.__check_nr_round_clients(int(config['clients_required'])) 
         validators = self.__assign_round_clients(int(config['clients_requested']))
         self.__validation_round(config,validators,model_id)        
 
@@ -247,9 +257,7 @@ class FEDAVGCombiner:
             config (CombinerConfiguration) """
 
         print("COMBINER starting from model {}".format(config['model_id']))
-
         self.stage_model(config['model_id'])
-        ready = self.__check_nr_round_clients(int(config['clients_required']))
 
         # Execute the configured number of rounds
         for r in range(1, int(config['rounds']) + 1):
