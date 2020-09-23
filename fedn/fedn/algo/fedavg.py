@@ -235,12 +235,12 @@ class FEDAVGCombiner:
                 print("waiting for {} clients to get started, currently: {}".format(int(config['clients_requested']) - active,
                                                                                     active), flush=True)
             time.sleep(1.0)
-            t += 0.1
+            t += 1.0
             if t >= timeout:
                 if active >= int(config['clients_required']):
-                    ready = True
+                    return True
                 else:
-                    ready = False
+                    return False
 
         return ready    
 
@@ -253,8 +253,7 @@ class FEDAVGCombiner:
         self.__validation_round(config,validators,model_id)        
 
     def exec_training(self, config):
-        """ Coordinates training and validation tasks with clints, as specified in the 
-            config (CombinerConfiguration) """
+        """ Coordinates clients to executee training and validation tasks. """
 
         print("COMBINER starting from model {}".format(config['model_id']))
         self.stage_model(config['model_id'])

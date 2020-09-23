@@ -100,6 +100,7 @@ class ReducerControl:
         # 3. Resolver protocol - a single global model is formed from the combiner local models.
         model = self.resolve()
 
+        # TODO: Implement checks on round validity (e.g. how many combiners participated) before we commit a new model. 
         import uuid
         model_id = uuid.uuid4()
         self.commit(model_id,model)

@@ -103,7 +103,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.server = Server(self,self.modelservice, grpc_config)
 
-        # The combiner algo dictates how precisely model updated from clients are aggregated
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
@@ -244,8 +243,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def _send_status(self, status):
 
         self.tracer.report(status)
-        print("MONITOR: sent message above \n\n\n\n", flush=True)
-
         for name, client in self.clients.items():
             try:
                 q = client[fedn.Channel.STATUS]
