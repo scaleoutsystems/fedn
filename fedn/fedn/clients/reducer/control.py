@@ -76,14 +76,16 @@ class ReducerControl:
         return osync
 
     def round(self, config):
-        """ """
+        """ Execute one global round of federated trainign. """
 
         # TODO: Set / update reducer states and such
         if len(self.combiners) < 1:
             print("REDUCER: No combiners connected!")
             return
 
-        # 1. Trigger Combiners to compute an update, starting from the latest consensus model.
+        self.sync_combiners(self.get_latest_model())
+
+        # 1. Trigger Combiners to compute a model update, starting from the latest consensus model.
         combiner_config = copy.deepcopy(config)
         combiner_config['rounds'] = 1
         combiner_config['task'] = 'training'
@@ -91,8 +93,9 @@ class ReducerControl:
         for combiner in self.combiners:
             combiner.start(combiner_config)
 
-        # Wait until all combiners are out of sync with the current global model, or we timeout.
+        # Wait until all participating combiners are out of sync with the current global model, or we timeout.
         # TODO: Implement strategies to handle timeouts. 
+        # TODO: We do not need to wait until all combiners are complete before we start reducing. 
         wait = 0.0
         while len(self._out_of_sync()) < len(self.combiners):
             time.sleep(1.0)
@@ -101,7 +104,11 @@ class ReducerControl:
                 break
 
         # 2. Resolver protocol - a single global model is formed from the combiner local models.
-        self.resolve()
+        model = self.resolve()
+
+        import uuid
+        model_id = uuid.uuid4()
+        self.commit(model_id,model)
 
         # 3. Trigger Combiner nodes to execute a validation round for the current model
         combiner_config = copy.deepcopy(config)
@@ -117,7 +124,7 @@ class ReducerControl:
             should be configured with identical model state. 
         """
         if not model_id:
-            print("GOT NO MODEL TO SET!", flush=True)
+            print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
             return
 
         # TODO: We should only be able to set the active model on the Combiner
@@ -137,20 +144,18 @@ class ReducerControl:
 
         # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
+            print("No model in model chain, seeding the alliance with {}".format(config['model_id']))
             self.commit(config['model_id'])
-            self.sync_combiners(self.get_latest_model())
 
         self.__state = ReducerState.monitoring
+
         for round in range(int(config['rounds'])):
             self.round(config)
-
 
         self.__state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
-        import uuid
-        model_id = uuid.uuid4()
 
         # TODO: Make configurable
         helper = KerasSequentialHelper()
@@ -163,7 +168,7 @@ class ReducerControl:
                 model_next = helper.load_model(combiner.get_model().getbuffer())
                 helper.increment_average(model, model_next, i)
 
-        return model, model_id
+        return model
 
     def reduce_random(self, combiners):
         """ This is only used for debugging purposes. s"""
@@ -180,12 +185,11 @@ class ReducerControl:
         # 1. Aggregate models from all combiners that are out of sync
         combiners = self._out_of_sync()
         if len(combiners) > 0:
-            model, model_id = self.reduce(combiners)
-
+            model = self.reduce(combiners)
+        return model
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
-        self.commit(model_id, model)
-        self.sync_combiners(self.get_latest_model())
-
+        #self.commit(model_id, model)
+        #self.sync_combiners(self.get_latest_model())
 
 
     def monitor(self, config=None):

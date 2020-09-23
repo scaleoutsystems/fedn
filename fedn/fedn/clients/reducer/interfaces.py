@@ -85,22 +85,17 @@ class CombinerInterface:
                 return None
 
     def allowing_clients(self):
-        print("Sending message to combiner", flush=True)
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
         response = connector.AcceptingClients(request)
         if response.status == fedn.ConnectionStatus.NOT_ACCEPTING:
-            print("Sending message to combiner 2", flush=True)
             return False
         if response.status == fedn.ConnectionStatus.ACCEPTING:
-            print("Sending message to combiner 3", flush=True)
             return True
         if response.status == fedn.ConnectionStatus.TRY_AGAIN_LATER:
-            print("Sending message to combiner 4", flush=True)
             return False
 
-        print("Sending message to combiner 5??", flush=True)
         return False
 
 
