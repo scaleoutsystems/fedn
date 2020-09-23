@@ -6,6 +6,9 @@ from flask import render_template
 from flask import request
 from flask_wtf.csrf import CSRFProtect
 
+from flask import redirect, url_for
+import random
+import logging
 
 class ReducerRestService:
     def __init__(self, name, control, certificate_manager, certificate=None):
@@ -69,20 +72,29 @@ class ReducerRestService:
                 model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
                 if model_id == '':
                     model_id = '879fa112-c861-4cb1-a25d-775153e5b548'
-                rounds = int(request.form.get('rounds', 1))
+
+                #random rounds
+                rand = random.randint(2, 10)
+                rounds = int(request.form.get('rounds', rand))
+                if rounds == 1:
+                    rounds = random.randint(2, 10)
+
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
                 clients_requested = request.form.get('clients_requested', 2)
 
-                config = {'round_timeout': timeout, 'model_id': model_id, 'rounds': rounds,
-                          'active_clients': active_clients, 'clients_required': clients_required,
+                config = {'round_timeout': timeout, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548',
+                          'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
-                from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))
+
+            else:
+                # Select rounds UI
+                rounds = range(1, 100)
+                return render_template('index.html', round_options=rounds)
 
             client = self.name
             state = ReducerStateToString(self.control.state())

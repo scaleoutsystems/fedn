@@ -1,239 +1,144 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    {% if refresh %}
-    <meta http-equiv="refresh" content="5">
-    {% endif %}
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
-    <link rel="canonical" href="https://getbootstrap.com/docs/3.4/examples/jumbotron-narrow/">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        {% if refresh %}
+        <meta http-equiv="refresh" content="5">
+        {% endif %}
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../../favicon.ico">
+        <link rel="canonical" href="https://getbootstrap.com/docs/3.4/examples/jumbotron-narrow/">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+              integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <!-- include style file-->
+        <link href="{{url_for('static',filename='css/style.css')}}" rel="stylesheet"/>
 
-    <title>FEDn Reducer</title>
+        <title>FEDn Reducer</title>
 
-    <style>
-        /* Space out content a bit */
-        body {
-            background-color: #ddd;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
 
-        /* Everything but the jumbotron gets side spacing for mobile first views */
-        .header,
-        .marketing,
-        .footer {
-            padding-right: 15px;
-            padding-left: 15px;
-        }
+    <body>
+        <div class="header clearfix" style="height:40px;background-color:#fff;">
+            <nav class="navbar navbar-expand-md navbar-light fixed-top" style="background-color:#fff;">
+                <a class="navbar-brand" href="/"><img height="50"
+                                                      src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"></img></a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clipboard-data"
+                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path fill-rule="evenodd"
+                                          d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                    <path d="M4 11a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0v-1zm6-4a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0V7zM7 9a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V9z"/>
+                                </svg>
+                                Status <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/start">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-sliders" fill="currentColor"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+                                </svg>
+                                Control <span class="sr-only"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clock" fill="currentColor"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm8-7A8 8 0 1 1 0 8a8 8 0 0 1 16 0z"/>
+                                    <path fill-rule="evenodd"
+                                          d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                                </svg>
+                                History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="http://{{ dashboardhost }}:{{ dashboardport }}/box" tabindex="-1" aria-disabled="true">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tv" fill="currentColor"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M2.5 13.5A.5.5 0 0 1 3 13h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zM13.991 3H2c-.325 0-.502.078-.602.145a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3zM14 2H2C0 2 0 4 0 4v6c0 2 2 2 2 2h12c2 0 2-2 2-2V4c0-2-2-2-2-2z"/>
+                                </svg>
+                                Dashboard</a>
+                        </li>
+                    </ul>
+                    <form class="form-inline mt-2 mt-md-0">
 
-        /* Custom page header */
-        .header {
-
-        }
-
-        .header h3 {
-            margin-top: 0;
-            margin-bottom: 0;
-            line-height: 40px; /* Make the masthead heading the same height as the navigation */
-        }
-
-        /* Custom page footer */
-        .footer {
-            padding-top: 19px;
-            color: #777;
-            border-top: 1px solid #e5e5e5;
-            padding-right: 20;
-            padding-left: 20;
-        }
-
-        /* Customize container */
-        @media (min-width: 768px) {
-            .container {
-                max-width: 730px;
-
-
-            }
-        }
-
-        .content {
-            min-height: 800px;
-        }
-
-        .container-narrow > hr {
-            margin: 30px 0;
-        }
-
-        /* Main marketing message and sign up button */
-        .jumbotron {
-            text-align: center;
-            margin-left: 30px;
-            margin-right: 30px;
-            background-color: #eee;
-        }
-
-        .jumbotron .btn {
-            padding: 14px 24px;
-            font-size: 21px;
-        }
-
-        /* Supporting marketing content */
-        .marketing {
-            margin: 40px 0;
-        }
-
-        .marketing p + h4 {
-            margin-top: 28px;
-        }
-
-        /* Responsive: Portrait tablets and up */
-        @media screen and (min-width: 768px) {
-            /* Remove the padding we set earlier */
-            .header,
-            .marketing,
-            .footer {
-                padding-right: 20;
-                padding-left: 20;
-            }
-
-            .header {
-                margin-bottom: 30px;
-            }
-
-            .jumbotron {
-                border-bottom: 0;
-            }
-        }</style>
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-</head>
-
-<body>
-<div class="header clearfix" style="height:40px;background-color:#fff;">
-    <nav class="navbar navbar-expand-md navbar-light fixed-top" style="background-color:#fff;">
-        <a class="navbar-brand" href="/"><img height="50"
-                                              src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"></img></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
-                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="/">
-                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clipboard-data"
-                             fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                            <path fill-rule="evenodd"
-                                  d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
-                            <path d="M4 11a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0v-1zm6-4a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0V7zM7 9a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V9z"/>
-                        </svg>
-                        Status <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/start">
-                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-sliders" fill="currentColor"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
-                        </svg>
-                        Control <span class="sr-only"></span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#">
-                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clock" fill="currentColor"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm8-7A8 8 0 1 1 0 8a8 8 0 0 1 16 0z"/>
-                            <path fill-rule="evenodd"
-                                  d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
-                        </svg>
-                        History</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="http://{{ dashboardhost }}:{{ dashboardport }}/box" tabindex="-1" aria-disabled="true">
-                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tv" fill="currentColor"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                  d="M2.5 13.5A.5.5 0 0 1 3 13h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zM13.991 3H2c-.325 0-.502.078-.602.145a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3zM14 2H2C0 2 0 4 0 4v6c0 2 2 2 2 2h12c2 0 2-2 2-2V4c0-2-2-2-2-2z"/>
-                        </svg>
-                        Dashboard</a>
-                </li>
-            </ul>
-            <form class="form-inline mt-2 mt-md-0">
-
-            </form>
+                    </form>
+                </div>
+            </nav>
         </div>
-    </nav>
-</div>
-<div class="content">
-    {% if refresh %}
-    <div class="jumbotron">
-        <div class="container">
-            <h3 class="text-muted">{{client}}</h3>
-            <p><a class="btn btn-lg btn-success" href="#" role="button">{{state}}</a></p>
+        <div class="content">
+            {% if refresh %}
+            <div class="jumbotron">
+                <div class="container">
+                    <h3 class="text-muted">{{client}}</h3>
+                    <p><a class="btn btn-lg btn-success" href="#" role="button">{{state}}</a></p>
+                </div>
+            </div>
+            {% endif %}
+            {% if not refresh %}
+            <div class="jumbotron">
+                <div class="container">
+                    <form method="post" action="/start">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="form-group">
+                                <label for="exampleFormControlSelect1">Package</label>
+                                <select class="form-control" id="exampleFormControlSelect1">
+                                  <option selected>default</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleFormControlInput1">Starting Model ID</label>
+                                <input name="model" type="text" class="form-control" id="model" placeholder="879fa112-c861-4cb1-a25d-775153e5b548">
+                            </div>
+                            <div class="form-group my-1 mr-sm-2">
+                                <label for="exampleFormControlSelect1">Rounds</label>
+                                <select class="form-control" id="rounds" name="rounds">
+                                    {% for rd in round_options %}
+                                    <option>{{rd}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                          <button type="submit" class="btn btn-primary my-1">Submit</button>
+
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
-    {% endif %}
-    {% if not refresh %}
-    <div class="jumbotron">
-        <div class="container">
-<form method="post" action="/start">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  <div class="form-group">
-    <label for="exampleFormControlSelect1">Package</label>
-    <select class="form-control" id="exampleFormControlSelect1">
-      <option selected>default</option>
-    </select>
-  </div>
-      <div class="form-group">
-    <label for="exampleFormControlInput1">Starting Model ID</label>
-    <input name="model" type="text" class="form-control" id="model" placeholder="879fa112-c861-4cb1-a25d-775153e5b548">
-  </div>
-  <div class="form-group my-1 mr-sm-2">
-    <label for="exampleFormControlSelect1">Rounds</label>
-    <select class="form-control" id="rounds" name="rounds">
-      <option>1</option>
-      <option>2</option>
-      <option>3</option>
-      <option>4</option>
-      <option>5</option>
-    </select>
-      </div>
-  <button type="submit" class="btn btn-primary my-1">Submit</button>
+        {% endif %}
 
+        <footer class="footer">
+            <p>&copy; 2020 Scaleout Systems AB</p>
+        </footer>
 
-</form>
-        </div>
-    </div>
-</div>
-{% endif %}
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+                integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+                crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+                integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+                crossorigin="anonymous"></script>
 
-<footer class="footer">
-    <p>&copy; 2020 Scaleout Systems AB</p>
-</footer>
-
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
-
-</body>
+    </body>
 </html>
