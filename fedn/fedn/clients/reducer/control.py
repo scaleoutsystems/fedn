@@ -76,7 +76,6 @@ class ReducerControl:
 
         # TODO: We should only be able to set the active model on the Combiner
         # if the combiner is in IDLE state. 
-
         self.sync_combiners(self.get_latest_model())
 
         # 2. Combiners compute a model update, starting from the latest consensus model.

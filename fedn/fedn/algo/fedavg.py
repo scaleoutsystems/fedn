@@ -249,7 +249,8 @@ class FEDAVGCombiner:
 
         print("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        validators = self.__assign_round_clients(int(config['clients_requested']))
+        #validators = self.__assign_round_clients(int(config['clients_requested']))
+        validators = self.__assign_round_clients(self.server.max_clients)
         self.__validation_round(config,validators,model_id)        
 
     def exec_training(self, config):
@@ -262,7 +263,8 @@ class FEDAVGCombiner:
         for r in range(1, int(config['rounds']) + 1):
             print("FEDAVG: Starting training round {}".format(r), flush=True)
 
-            clients = self.__assign_round_clients(int(config['clients_requested']))
+            #clients = self.__assign_round_clients(int(config['clients_requested']))
+            clients = self.__assign_round_clients(self.server.max_clients)
             model = self.__training_round(config,clients)
 
             if model:
