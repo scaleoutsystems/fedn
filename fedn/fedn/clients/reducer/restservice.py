@@ -55,8 +55,6 @@ class ReducerRestService:
             # TODO append and redirect to index.
             import copy
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
-            # Todo - add configuration json (max_clients etc as CLI argument)
-            combiner.configure()
             self.control.add(combiner)
 
             ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack

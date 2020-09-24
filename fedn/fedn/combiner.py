@@ -53,6 +53,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
+        self.max_clients = connect_config['max_clients']
+
         
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
