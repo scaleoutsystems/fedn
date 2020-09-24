@@ -11,8 +11,6 @@ from fedn.common.storage.s3.s3repo import S3ModelRepository
 
 # from fedn.combiner.role import Role
 
-
-
 from enum import Enum
 
 
@@ -32,9 +30,6 @@ def role_to_proto_role(role):
         return fedn.REDUCER
     if role == Role.OTHER:
         return fedn.OTHER
-
-
-
 
 
 ####################################################################################################################
@@ -58,9 +53,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
-        # TODO - make configurable via CLI
-        self.max_clients = 8 
-
+        
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -351,7 +344,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         try:
-            requested = int(self.combiner.config['clients_requested'])
+            #requested = int(self.combiner.config['clients_requested'])
+            requested = self.max_clients
             if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
                 return response
@@ -360,7 +354,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 return response
 
         except Exception as e:
-            pass
+            print("Combiner not properly configured!", flush=True)
+            raise
+        #    pass
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
         return response
