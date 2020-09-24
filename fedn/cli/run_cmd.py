@@ -19,8 +19,14 @@ def run_cmd(ctx):
 @click.option('-i', '--client_id', required=False)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
+
+    if not name:
+        import uuid
+        name str(uuid.uuid4())
+    
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id}
+
 
     from fedn.client import Client
     client = Client(config)
