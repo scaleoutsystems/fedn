@@ -345,7 +345,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         try:
             #requested = int(self.combiner.config['clients_requested'])
-            requested = self.max_clients
+            requested = int(self.max_clients)
             if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
                 return response

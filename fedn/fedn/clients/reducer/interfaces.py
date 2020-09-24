@@ -45,7 +45,7 @@ class CombinerInterface:
         for key,value in config.items():  
             p = request.parameter.add()
             p.key = key
-            p.value = value
+            p.value = str(value)
         response = control.Configure(request)
 
 
