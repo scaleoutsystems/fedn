@@ -1,10 +1,19 @@
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerStateToString
-from flask import Flask
+from flask import Flask, flash
 from flask import jsonify, abort
 from flask import render_template
-from flask import request
+from flask import request, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = '/tmp/'
+ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 class ReducerRestService:
@@ -14,8 +23,11 @@ class ReducerRestService:
         self.certificate = certificate
         self.certificate_manager = certificate_manager
 
+        self.current_compute_context = None
+
     def run(self):
         app = Flask(__name__)
+        app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
         import os
         SECRET_KEY = os.urandom(32)
@@ -32,7 +44,9 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
+                                   dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
+                                   dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
@@ -57,7 +71,8 @@ class ReducerRestService:
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
             self.control.add(combiner)
 
-            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack
+            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
+                   'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
             return jsonify(ret)
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
@@ -103,10 +118,11 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                #certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
+                # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'host': combiner.address, 'port': combiner.port, 'certificate': str(cert_b64).split('\'')[1]}
+                response = {'host': combiner.address, 'port': combiner.port,
+                            'certificate': str(cert_b64).split('\'')[1]}
 
                 return jsonify(response)
             elif combiner is None:
@@ -134,6 +150,39 @@ class ReducerRestService:
         #        print("no model")
         #
         #    return result
+        @app.route('/context', methods=['GET', 'POST'])
+        @csrf.exempt #TODO fix csrf token to form posting in package.py
+        def context():
+            if request.method == 'POST':
+
+                if 'file' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+
+                file = request.files['file']
+                # if user does not select file, browser also
+                # submit an empty part without filename
+                if file.filename == '':
+                    flash('No selected file')
+                    return redirect(request.url)
+
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    self.current_compute_context = filename #uploading new files will always set this to latest
+                    #return redirect(url_for('index',
+                    #                        filename=filename))
+                    return "success!"
+
+            from flask import send_from_directory
+            name = request.args.get('name', '')
+            if name != '':
+                return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
+            if name == '' and self.current_compute_context:
+                return send_from_directory(app.config['UPLOAD_FOLDER'],self.current_compute_context, as_attachment=True)
+
+            return render_template('context.html')
 
         # import os, sys
         # self._original_stdout = sys.stdout
