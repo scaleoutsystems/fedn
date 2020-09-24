@@ -22,7 +22,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
 
     if not name:
         import uuid
-        name str(uuid.uuid4())
+        name = str(uuid.uuid4())
     
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id}
