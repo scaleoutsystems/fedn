@@ -21,7 +21,9 @@ def train(model,data,sample_fraction):
     # Input image dimensions
     img_rows, img_cols = 28, 28
 
-    # The data, split between train and test sets
+    # The data, split between train and test sets. We are caching the partition in 
+    # the container home dir so that the same training subset is used for 
+    # each iteration. 
     try:
         with open('/app/mnist_data/x.pyb','rb') as fh:
             x_train=pickle.loads(fh.read())
@@ -32,7 +34,6 @@ def train(model,data,sample_fraction):
     except:
         (x_train, y_train, classes) = read_data(data,sample_fraction=sample_fraction)
 
-    # This is a hack for scalability studies
     try:
         os.mkdir('/app/mnist_data')
         with open('/app/mnist_data/x.pyb','wb') as fh:
