@@ -135,3 +135,4 @@ repos/
 media/datasets/
 media/generators/
 media/visualisers/
+./test/fashion-mnist/data/data1/*

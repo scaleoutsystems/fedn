@@ -1,9 +1,9 @@
 from django.shortcuts import render
 
-from .models import Combiner, CombinerConfiguration
+#from .models import Combiner, CombinerConfiguration
 from client.models import Client
 
-
+"""
 # Create your views here.
 def index(request):
     template = 'index.html'
@@ -171,3 +171,4 @@ def details(request, combiner):
     configuration = CombinerConfiguration.objects.filter(combiner=combiner).first()
 
     return render(request, template, locals())
+"""

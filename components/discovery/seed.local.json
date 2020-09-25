@@ -1,0 +1,59 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$s3vazv4XMuil$snCtwVVEtGaywteoWWVpIh5jdiyv/OOW5YdU3zKVMeY=",
+      "last_login": "2020-07-21T13:19:09.393Z",
+      "is_superuser": true,
+      "username": "alliance_admin",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2020-07-21T13:18:57.967Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "combiner.combiner",
+    "pk": 8,
+    "fields": {
+      "name": "combiner",
+      "host": "combiner",
+      "port": 12080,
+      "user": 1,
+      "status": "R",
+      "timeout": 30,
+      "timeout_lost": 3600,
+      "updated_at": "2020-07-22T20:46:40.604Z",
+      "created_at": "2020-07-22T11:22:25.365Z",
+      "max_clients": 5,
+      "storage_type":"s3",
+      "storage_hostname":"minio",
+      "storage_port": 9000,
+      "storage_access_key":"minio",
+      "storage_secret_key":"minio123",
+      "storage_bucket":"models",
+      "storage_secure_mode": false
+    }
+  },
+  {
+    "model": "combiner.combinerconfiguration",
+    "pk": 4,
+    "fields": {
+      "combiner": 8,
+      "round_timeout": 180,
+      "rounds": 1,
+      "clients_required": 1,
+      "clients_requested": 5,
+      "algorithm": "fedavg",
+      "model_id": "879fa112-c861-4cb1-a25d-775153e5b548",
+      "updated_at": "2020-07-22T11:43:13.281Z",
+      "created_at": "2020-07-22T11:22:41.728Z",
+      "status": "R"
+    }
+  }
+]

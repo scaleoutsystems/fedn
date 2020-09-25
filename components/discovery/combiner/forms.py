@@ -1,5 +1,6 @@
 from django import forms
 
+"""
 from .models import Combiner, CombinerConfiguration
 
 
@@ -15,3 +16,4 @@ class CombinerConfigurationForm(forms.ModelForm):
         model = CombinerConfiguration
         fields = ['combiner','algorithm','ml_framework','round_timeout', 'rounds', 'clients_required','clients_requested', 
                   'nr_local_epochs','local_batch_size','model_id', 'status']
+"""

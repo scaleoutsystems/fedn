@@ -14,12 +14,13 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from datetime import datetime,timedelta
 
+
 import os
 
 app = Flask(__name__)
 
 c = pymongo.MongoClient()
-mc = pymongo.MongoClient('mongo',27017,username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
+mc = pymongo.MongoClient(os.environ['MONGO_HOST'],int(os.environ['MONGO_PORT']),username=os.environ['MDBUSR'],password=os.environ['MDBPWD'])
 mdb = mc[os.environ['ALLIANCE_UID']]
 alliance = mdb["status"]
 
@@ -81,6 +82,7 @@ def table():
         all_vals.append(vals)
 
     header_vals = valid_metrics
+    models.reverse()
     values = [models]
     print(all_vals,flush=True)
     for vals in all_vals:
@@ -262,7 +264,10 @@ def box():
 
     # Just grab the first metric in the list. 
     # TODO: Let the user choose, or plot all of them.
-    metric = valid_metrics[0]
+    if "accuracy" in valid_metrics:
+        metric = "accuracy"
+    else:
+        metric = valid_metrics[0]
     validations = {}
     for post in alliance.find({'type': 'MODEL_VALIDATION'}):
         e = json.loads(post['data'])
@@ -298,5 +303,5 @@ def box():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5111)
+    app.run(debug=True, host='0.0.0.0', port=os.environ['PORT'])
 

@@ -4,43 +4,92 @@ services:
   
   combiner:
     environment:
+      - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD}   
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
+      - FEDN_MONGO_USER=${FEDN_MONGO_USER}
+      - FEDN_MONGO_PASSWORD=${FEDN_MONGO_PASSWORD}
+      - FEDN_MONGO_HOST=${FEDN_MONGO_HOST}
+      - FEDN_MONGO_PORT=${FEDN_MONGO_PORT}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: ./run.sh
+    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
     volumes:
       - ./test/${EXAMPLE}/combiner:/app/client
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
     ports:
         - 12080:12080
 
-  monitor:
-    image: "scaleoutsystems/monitor:latest"
+  combiner2:
+    environment:
+      - PYTHONUNBUFFERED=0
+      - GET_HOSTS_FROM=dns
+      - ALLIANCE_UID=${ALLIANCE_UID}
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
+      - FEDN_MONGO_USER=${FEDN_MONGO_USER}
+      - FEDN_MONGO_PASSWORD=${FEDN_MONGO_PASSWORD}
+      - FEDN_MONGO_HOST=${FEDN_MONGO_HOST}
+      - FEDN_MONGO_PORT=${FEDN_MONGO_PORT}
+    image: "scaleoutsystems/client:latest"
     build:
       context: .
-      dockerfile: components/monitor/Dockerfile
-    environment:
-      - GET_HOSTS_FROM=dns
-      - MONITOR_HOST=combiner
-      - MONITOR_PORT=12080
-      - USER=test
-      - PROJECT=project
-      - ALLIANCE_UID=${ALLIANCE_UID}
-      - MDBUSR=${MDBUSR}
-      - MDBPWD=${MDBPWD} 
-    working_dir: /app/
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner2 -i 12081 -n combiner2
     volumes:
-      - ./components/monitor/:/app/
-      - ./sdk:/app/sdk
-      - ./cli:/app/cli
-    depends_on:
-      - combiner
+      - ./test/${EXAMPLE}/combiner:/app/client
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
+    ports:
+        - 12081:12081
 
-volumes:
-  # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
-  minio-data:
+#  monitor:
+#    image: "scaleoutsystems/monitor:latest"
+#    build:
+#      context: .
+#      dockerfile: components/monitor/Dockerfile
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#      - MONITOR_HOST=combiner
+#      - MONITOR_PORT=12080
+#      - USER=test
+#      - PROJECT=project
+#      - ALLIANCE_UID=${ALLIANCE_UID}
+#      - MONGO_HOST=${FEDN_MONGO_HOST}
+#      - MONGO_PORT=${FEDN_MONGO_PORT}
+#      - MDBUSR=${FEDN_MONGO_USER}
+#      - MDBPWD=${FEDN_MONGO_PASSWORD}
+#    working_dir: /app/
+#    command: bash run.sh
+#    depends_on:
+#      - combiner
+
+#  monitor2:
+#    image: "scaleoutsystems/monitor:latest"
+#    build:
+#      context: .
+#      dockerfile: components/monitor/Dockerfile
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#      - MONITOR_HOST=combiner2
+#      - MONITOR_PORT=12081
+#      - USER=test
+#      - PROJECT=project
+#      - ALLIANCE_UID=${ALLIANCE_UID}
+#      - MONGO_HOST=${FEDN_MONGO_HOST}
+#      - MONGO_PORT=${FEDN_MONGO_PORT}
+#      - MDBUSR=${FEDN_MONGO_USER}
+#      - MDBPWD=${FEDN_MONGO_PASSWORD}
+#    working_dir: /app/
+#    command: bash run.sh
+#    depends_on:
+#      - combiner2

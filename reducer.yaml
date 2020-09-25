@@ -6,13 +6,25 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
       - ALLIANCE_UID=${ALLIANCE_UID}
+      - USER=test
+      - PROJECT=project
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
+      - FEDN_MONGO_USER=${FEDN_MONGO_USER}
+      - FEDN_MONGO_PASSWORD=${FEDN_MONGO_PASSWORD}
+      - FEDN_MONGO_HOST=${FEDN_MONGO_HOST}
+      - FEDN_MONGO_PORT=${FEDN_MONGO_PORT}
+      - FEDN_DASHBOARD_HOST=${FEDN_DASHBOARD_HOST}
+      - FEDN_DASHBOARD_PORT=${FEDN_DASHBOARD_PORT}
     image: "scaleoutsystems/client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: "sh -c 'sleep 10 && fedn run reducer'"
+    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
       - ./test/${EXAMPLE}/reducer:/app/client
-    #  - ./sdk:/app/sdk
-    #  - ./cli:/app/cli
+    ports:
+        - 8090:8090
