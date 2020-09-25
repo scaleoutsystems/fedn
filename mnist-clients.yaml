@@ -11,10 +11,6 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -35,10 +31,6 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -57,10 +49,6 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136    
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -79,10 +67,6 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -101,10 +85,6 @@ services:
       - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
       - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -114,74 +94,4 @@ services:
       - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
-
-  client6:
-    environment:
-      - GET_HOSTS_FROM=dns
-      - CLIENT_NAME=${CLIENT_NAME_BASE}5
-      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
-      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
-      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
-      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
-    image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
-    build:
-      context: .
-      dockerfile: components/client/Dockerfile
-    working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}6 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
-    volumes:
-      - ./test/${EXAMPLE}/client:/app/client
-      - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
-
-  client7:
-    environment:
-      - GET_HOSTS_FROM=dns
-      - CLIENT_NAME=${CLIENT_NAME_BASE}5
-      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
-      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
-      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
-      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
-    image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
-    build:
-      context: .
-      dockerfile: components/client/Dockerfile
-    working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}7 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
-    volumes:
-      - ./test/${EXAMPLE}/client:/app/client
-      - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
-
-  client8:
-    environment:
-      - GET_HOSTS_FROM=dns
-      - CLIENT_NAME=${CLIENT_NAME_BASE}5
-      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
-      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
-      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
-      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
-    image: "scaleoutsystems/client:latest"
-    extra_hosts:
-      reducer: 130.239.81.136
-      combiner: 130.239.81.136
-      combiner2: 130.239.81.136
-    build:
-      context: .
-      dockerfile: components/client/Dockerfile
-    working_dir: /app/client
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}8 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
-    volumes:
-      - ./test/${EXAMPLE}/client:/app/client
-      - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
-
 
