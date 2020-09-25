@@ -136,3 +136,8 @@ media/datasets/
 media/generators/
 media/visualisers/
 ./test/fashion-mnist/data/data1/*
+
+# certs
+./test/mnist/client/certs/*
+./test/mnist/combiner/certs/*
+./test/mnist/reducer/*
