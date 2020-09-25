@@ -19,6 +19,11 @@ def run_cmd(ctx):
 @click.option('-i', '--client_id', required=False)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
+
+    if name == None:
+        import uuid
+        name = str(uuid.uuid4())
+    
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id}
 
@@ -49,10 +54,11 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name):
 @click.option('-h', '--hostname', required=True)
 @click.option('-i', '--port', required=True)
 @click.option('-s', '--secure', required=False, default=True)
+@click.option('-c', '--max_clients', required=False,default=8)
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure,max_clients):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
-              'myport': port, 'myname': name, 'secure': secure}
+              'myport': port, 'myname': name, 'secure': secure,'max_clients':max_clients}
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)

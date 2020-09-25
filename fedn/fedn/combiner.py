@@ -11,8 +11,6 @@ from fedn.common.storage.s3.s3repo import S3ModelRepository
 
 # from fedn.combiner.role import Role
 
-
-
 from enum import Enum
 
 
@@ -32,9 +30,6 @@ def role_to_proto_role(role):
         return fedn.REDUCER
     if role == Role.OTHER:
         return fedn.OTHER
-
-
-
 
 
 ####################################################################################################################
@@ -58,6 +53,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
+        self.max_clients = connect_config['max_clients']
+
+        
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -81,8 +79,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         import base64
         cert = base64.b64decode(response['certificate'])  # .decode('utf-8')
         key = base64.b64decode(response['key'])  # .decode('utf-8')
-        # print("GOT CERTIFICATE \n\n {} \n\n".format(cert), flush=True)
-        # print("GOT KEYFILE \n\n {} \n\n".format(key), flush=True)
 
         grpc_config = {'port': port,
                        'secure': connect_config['secure'],
@@ -102,7 +98,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.server = Server(self,self.modelservice, grpc_config)
 
-        # The combiner algo dictates how precisely model updated from clients are aggregated
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
@@ -134,8 +129,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def set_active_model(self, model_id):
         self.model_id = model_id
-
-
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
@@ -245,8 +238,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def _send_status(self, status):
 
         self.tracer.report(status)
-        print("MONITOR: sent message above \n\n\n\n", flush=True)
-
         for name, client in self.clients.items():
             try:
                 q = client[fedn.Channel.STATUS]
@@ -285,8 +276,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response = fedn.ControlResponse()
         for parameter in control.parameter:
             setattr(self, parameter.key, parameter.value)
-        #    if parameter.key == 'model_id':
-        #        self.combiner.stage_active_model(parameter.value)
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):
@@ -354,30 +343,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):
         response = fedn.ConnectionResponse()
-        # print("CHECK FOR ACCEEPTING CLIENTS 1", flush=True)
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        # print("length of clients{}".format(len(active_clients)), flush=True)
 
-        # print("CHECK FOR ACCEEPTING CLIENTS 2", flush=True)
         try:
-            required = int(self.combiner.config['clients_required'])
-            # print("clients required {}".format(required), flush=True)
-            if len(active_clients) >= required:
+            #requested = int(self.combiner.config['clients_requested'])
+            requested = int(self.max_clients)
+            if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
-                # print("combiner full, try another", flush=True)
                 return response
-            if len(active_clients) < required:
+            if len(active_clients) < requested:
                 response.status = fedn.ConnectionStatus.ACCEPTING
-                # print("combiner accepting!", flush=True)
                 return response
 
         except Exception as e:
-            pass
-            # print("check exception {}".format(e), flush=True)
-            # print("woops , failed , no config available", flush=True)
+            print("Combiner not properly configured!", flush=True)
+            raise
+        #    pass
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
-        # print("not possible, try again later 3", flush=True)
         return response
 
     def SendHeartbeat(self, heartbeat: fedn.Heartbeat, context):

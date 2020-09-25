@@ -95,6 +95,3 @@ services:
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
 
-
-
-
