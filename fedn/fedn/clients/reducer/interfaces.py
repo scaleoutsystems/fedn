@@ -21,13 +21,33 @@ class Channel:
 
 
 class CombinerInterface:
-    def __init__(self, parent, name, address, port, certificate=None, key=None):
+    def __init__(self, parent, name, address, port, certificate=None, key=None, config=None):
         self.parent = parent
         self.name = name
         self.address = address
         self.port = port
         self.certificate = certificate
         self.key = key
+
+        if not config:
+            self.config = {
+                'max_clients': 8
+            }
+        else:
+            self.config = config
+
+    def configure(self,config=None):
+        if not config:
+            config = self.config
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+        request = fedn.ControlRequest()
+        for key,value in config.items():  
+            p = request.parameter.add()
+            p.key = key
+            p.value = str(value)
+        response = control.Configure(request)
+
 
     def start(self, config):
         channel = Channel(self.address, self.port, self.certificate).get_channel()
