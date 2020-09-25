@@ -35,7 +35,8 @@ class ConnectorClient:
             prefix = "https://"
         if secure and preshared_cert:
             import os
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem").cert_path
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
+                                           cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
         self.prefix = prefix
@@ -49,7 +50,9 @@ class ConnectorClient:
     def assign(self):
 
         try:
-            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=str(self.certificate),
+            # retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=str(self.certificate),
+            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name),
+                           verify=False,
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             # self.state = State.Disconnected
@@ -80,7 +83,8 @@ class ConnectorCombiner:
             prefix = "https://"
         if secure and preshared_cert:
             import os
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem",
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
+                                           cert_name="client-cert.pem",
                                            ).cert_path
         else:
             self.verify_cert = False
@@ -100,14 +104,15 @@ class ConnectorCombiner:
                                                                   self.name,
                                                                   self.myhost,
                                                                   self.myport),
-                           verify=str(self.certificate),
+                           verify=False,
+                           #verify=str(self.certificate),
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
-            #print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+            # print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
             #      flush=True)
             return Status.Assigned, retval.json()
 
