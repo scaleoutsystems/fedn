@@ -32,7 +32,7 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
@@ -66,17 +66,20 @@ class ReducerRestService:
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
-                model_id = request.form.get('model_id', '879fa112-c861-4cb1-a25d-775153e5b548')
+                model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
+                if model_id == '':
+                    model_id = '879fa112-c861-4cb1-a25d-775153e5b548'
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
-                clients_requested = request.form.get('clients_requested', 2)
+                clients_requested = request.form.get('clients_requested', 8)
 
                 config = {'round_timeout': timeout, 'model_id': model_id, 'rounds': rounds,
                           'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
+                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
                 from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))

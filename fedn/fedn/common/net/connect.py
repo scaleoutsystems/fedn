@@ -52,6 +52,7 @@ class ConnectorClient:
             retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=str(self.certificate),
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
+            print('***** {}'.format(e),flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 
@@ -107,8 +108,8 @@ class ConnectorCombiner:
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
-            print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
-                  flush=True)
+            #print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+            #      flush=True)
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None

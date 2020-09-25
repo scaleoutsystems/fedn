@@ -31,9 +31,9 @@ class CertificateManager:
         for filename in sorted(os.listdir(self.directory)):
             if filename.endswith('cert.pem'):
                 name = filename.split('-')[0]
-                print("got a file here! Read it {}".format(filename))
+                #print("got a file here! Read it {}".format(filename))
                 key_name = name + '-key.pem'
-                print("trying with {}".format(key_name))
+                #print("trying with {}".format(key_name))
                 if os.path.isfile(os.path.join(self.directory,key_name)):
 
                     c = Certificate(self.directory, name=name, cert_name=filename, key_name=key_name)

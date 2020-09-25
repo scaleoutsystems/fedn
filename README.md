@@ -102,10 +102,11 @@ Visiting `https://localhost:8090` if you are running the development docker-comp
 From there you can also start the reducer for basic execution (and set basic parameters).
 Alternatively you can start training, just call the Reducer rest API start endpoint: `localhost:8090/start` with curl
 
-if y ou have the mnist example configured you can start the clients by starting the docker mnist configured clients which will.
+if you have the mnist example configured you can start the clients by starting the docker mnist configured clients which will.
 
 
 You can follow the progress of training visually in the Dashboard: 
+
  - localhost:5111/table 
  - localhost:5111/box
 

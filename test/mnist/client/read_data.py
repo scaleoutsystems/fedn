@@ -27,3 +27,4 @@ def read_data(filename, sample_fraction=1.0):
     y = keras.utils.to_categorical(y, len(classes))
     return  (X, y, classes)
 
+

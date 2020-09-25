@@ -3,13 +3,13 @@ import queue
 import threading
 import uuid
 from datetime import datetime, timedelta
-
+from fedn.common.net.grpc.server import Server
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.clients.combiner.modelservice import ModelService
+from fedn.common.storage.s3.s3repo import S3ModelRepository
 
 # from fedn.combiner.role import Role
-
-CHUNK_SIZE = 1024 * 1024
 
 from enum import Enum
 
@@ -35,7 +35,7 @@ def role_to_proto_role(role):
 ####################################################################################################################
 ####################################################################################################################
 
-class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ModelServiceServicer, rpc.ControlServicer):
+class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """ Communication relayer. """
 
     def __init__(self, connect_config):
@@ -43,8 +43,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         import io
         from collections import defaultdict
-        self.models = defaultdict(io.BytesIO)
-        self.models_metadata = {}
+        self.modelservice = ModelService()
+
         self.model_id = None
 
         self.role = Role.COMBINER
@@ -53,6 +53,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         address = connect_config['myhost']
         port = connect_config['myport']
 
+        self.max_clients = connect_config['max_clients']
+
+        
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -74,10 +77,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
 
         import base64
-        cert = base64.b64decode(response['certificate']) #.decode('utf-8')
-        key = base64.b64decode(response['key']) #.decode('utf-8')
-        print("GOT CERTIFICATE \n\n {} \n\n".format(cert), flush=True)
-        print("GOT KEYFILE \n\n {} \n\n".format(key), flush=True)
+        cert = base64.b64decode(response['certificate'])  # .decode('utf-8')
+        key = base64.b64decode(response['key'])  # .decode('utf-8')
 
         grpc_config = {'port': port,
                        'secure': connect_config['secure'],
@@ -92,30 +93,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                            'storage_hostname': os.environ['FEDN_MINIO_HOST'],
                            'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
 
-        from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.repository = S3ModelRepository(combiner_config)
         self.bucket_name = combiner_config["storage_bucket"]
 
-        from fedn.common.net.grpc.server import Server
-        self.server = Server(self, grpc_config)
-        """
-                self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
-        
-                # TODO setup services according to execution context!
-                rpc.add_CombinerServicer_to_server(self, self.server)
-                rpc.add_ConnectorServicer_to_server(self, self.server)
-                rpc.add_ReducerServicer_to_server(self, self.server)
-                rpc.add_ModelServiceServicer_to_server(self, self.server)
-                rpc.add_ControlServicer_to_server(self, self.server)
-        
-                # TODO use <address> if specific host is to be assigned.
-                self.server.add_insecure_port('[::]:' + str(port))
-        """
-        # The combiner algo dictates how precisely model updated from clients are aggregated
+        self.server = Server(self,self.modelservice, grpc_config)
+
         from fedn.algo.fedavg import FEDAVGCombiner
-        self.combiner = FEDAVGCombiner(self.id, self.repository, self)
+        self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
         threading.Thread(target=self.combiner.run, daemon=True).start()
+
+        from fedn.common.tracer.mongotracer import MongoTracer
+        self.tracer = MongoTracer()
 
         self.server.start()
 
@@ -135,66 +124,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.role = role_to_proto_role(instance.role)
         return client
 
-    def latest_model(self):
+    def get_active_model(self):
         return self.model_id
 
-    def set_latest_model(self, model_id):
+    def set_active_model(self, model_id):
         self.model_id = model_id
-
-    def get_model(self, id):
-        from io import BytesIO
-        data = BytesIO()
-        data.seek(0, 0)
-        import time
-        import random
-        time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
-        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
-
-        # print("TRYING DOWNLOAD 1.", flush=True)
-        parts = self.Download(fedn.ModelRequest(id=id), self)
-        for part in parts:
-            # print("TRYING DOWNLOAD 2.", flush=True)
-            if part.status == fedn.ModelStatus.IN_PROGRESS:
-                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
-                data.write(part.data)
-
-            if part.status == fedn.ModelStatus.OK:
-                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
-                # self.lock.release()
-                return data
-            if part.status == fedn.ModelStatus.FAILED:
-                # print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
-                return None
-
-    def set_model(self, model, id):
-        from io import BytesIO
-
-        if not isinstance(model, BytesIO):
-            bt = BytesIO()
-
-            written_total = 0
-            for d in model.stream(32 * 1024):
-                written = bt.write(d)
-                written_total += written
-        else:
-            bt = model
-
-        # print("UPLOADING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
-        bt.seek(0, 0)
-
-        def upload_request_generator(mdl):
-            while True:
-                b = mdl.read(CHUNK_SIZE)
-                # print("Sending chunks!", flush=True)
-                if b:
-                    result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
-                else:
-                    result = fedn.ModelRequest(id=id, data=None, status=fedn.ModelStatus.OK)
-                yield result
-                if not b:
-                    break
-
-        result = self.Upload(upload_request_generator(bt), self)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
@@ -264,6 +198,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return len(self.get_active_validators())
 
     ####################################################################################################################
+
     def __join_client(self, client):
         if not client.name in self.clients.keys():
             self.clients[client.name] = {"lastseen": datetime.now()}
@@ -301,6 +236,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def _send_status(self, status):
+
+        self.tracer.report(status)
         for name, client in self.clients.items():
             try:
                 q = client[fedn.Channel.STATUS]
@@ -338,9 +275,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def Configure(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
         for parameter in control.parameter:
-            setattr(self.combiner, parameter.key, parameter.value)
-            if parameter.key == 'model_id':
-                self.combiner.stage_active_model(parameter.value)
+            setattr(self, parameter.key, parameter.value)
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):
@@ -369,8 +304,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             yield q.get()
 
     def SendStatus(self, status: fedn.Status, context):
-        # Register a heartbeat (if the clients sends a message it is online)
-        # self.__register_heartbeat(status.client)
         # Add the status message to all subscribers of the status channel
         self._send_status(status)
 
@@ -410,29 +343,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):
         response = fedn.ConnectionResponse()
-        print("CHECK FOR ACCEEPTING CLIENTS 1", flush=True)
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        print("length of clients{}".format(len(active_clients)), flush=True)
 
-        print("CHECK FOR ACCEEPTING CLIENTS 2", flush=True)
         try:
-            required = int(self.combiner.config['clients_required'])
-            print("clients required {}".format(required), flush=True)
-            if len(active_clients) >= required:
+            #requested = int(self.combiner.config['clients_requested'])
+            requested = int(self.max_clients)
+            if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
-                print("combiner full, try another", flush=True)
                 return response
-            if len(active_clients) < required:
+            if len(active_clients) < requested:
                 response.status = fedn.ConnectionStatus.ACCEPTING
-                print("combiner accepting!", flush=True)
                 return response
 
         except Exception as e:
-            print("check exception {}".format(e), flush=True)
-            print("woops , failed , no config available", flush=True)
+            print("Combiner not properly configured!", flush=True)
+            raise
+        #    pass
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
-        print("not possible, try again later 3", flush=True)
         return response
 
     def SendHeartbeat(self, heartbeat: fedn.Heartbeat, context):
@@ -474,7 +402,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.log_level = fedn.Status.INFO
 
         self.__whoami(status.sender, self)
-        # print("Client {} connecting to ModelUpdateRequestStream.".format(client))
 
         self._subscribe_client_to_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
@@ -492,7 +419,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
 
-        # print("Client {} connecting to ModelUpdateStream.".format(client))
         self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATIONS)
         q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATIONS)
 
@@ -509,7 +435,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
-        # whoami(status.sender, self)
 
         self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
@@ -562,62 +487,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__whoami(response.sender, self)
         response.receiver.name = "reducer"
         response.receiver.role = role_to_proto_role(Role.REDUCER)
-        if not self.combiner.get_model_id():
+        if not self.get_active_model():
             response.model_id = ''
         else:
-            response.model_id = self.combiner.get_model_id()
+            response.model_id = self.get_active_model()
         return response
 
-    ## Model Service
-    def Upload(self, request_iterator, context):
-        # print("STARTING UPLOAD!", flush=True)
-        result = None
-        for request in request_iterator:
-            if request.status == fedn.ModelStatus.IN_PROGRESS:
-                # print("STARTING UPLOAD: WRITING BYTES", flush=True)
-                self.models[request.id].write(request.data)
-                self.models_metadata.update({request.id: fedn.ModelStatus.IN_PROGRESS})
-                # result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.IN_PROGRESS,
-                #                                message="Got data successfully.")
 
-            if request.status == fedn.ModelStatus.OK and not request.data:
-                # print("TRANSFER OF MODEL IS COMPLETED!!! ", flush=True)
-                # print(" saved model is size: {}".format(sys.getsizeof(self.models[request.id])))
-                result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
-                                            message="Got model successfully.")
-                self.models_metadata.update({request.id: fedn.ModelStatus.OK})
-                return result
-
-    def Download(self, request, context):
-
-        # print("STARTING DOWNLOAD!", flush=True)
-        try:
-            if self.models_metadata[request.id] != fedn.ModelStatus.OK:
-                print("Error file is not ready", flush=True)
-                yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
-        except Exception as e:
-            print("Error file does not exist", flush=True)
-            yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
-
-        try:
-            from io import BytesIO
-            # print("getting object to download on client {}".format(request.id), flush=True)
-            obj = self.models[request.id]
-            obj.seek(0, 0)
-            # Have to copy object to not mix up the file pointers when sending... fix in better way.
-            obj = BytesIO(obj.read())
-            import sys
-            # print("got object of size {}".format(sys.getsizeof(obj)), flush=True)
-            with obj as f:
-                while True:
-                    piece = f.read(CHUNK_SIZE)
-                    if len(piece) == 0:
-                        # print("MODEL {} : Sending last message! ".format(request.id), flush=True)
-                        yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.OK)
-                        return
-                    yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
-        except Exception as e:
-            print("Downloading went wrong! {}".format(e), flush=True)
 
     ####################################################################################################################
 
@@ -626,9 +502,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("COMBINER:starting combiner", flush=True)
         try:
             while True:
-                # time.sleep(5)
                 signal.pause()
-                # print("COMBINER: main loop", flush=True)
         except (KeyboardInterrupt, SystemExit):
             pass
         self.server.stop()

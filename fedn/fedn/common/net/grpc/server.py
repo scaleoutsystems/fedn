@@ -4,7 +4,7 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 
 class Server:
-    def __init__(self, servicer, config):
+    def __init__(self, servicer, modelservicer, config):
 
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
         self.certificate = None
@@ -15,8 +15,8 @@ class Server:
             rpc.add_ConnectorServicer_to_server(servicer, self.server)
         if isinstance(servicer, rpc.ReducerServicer):
             rpc.add_ReducerServicer_to_server(servicer, self.server)
-        if isinstance(servicer, rpc.ModelServiceServicer):
-            rpc.add_ModelServiceServicer_to_server(servicer, self.server)
+        if isinstance(modelservicer, rpc.ModelServiceServicer):
+            rpc.add_ModelServiceServicer_to_server(modelservicer, self.server)
         if isinstance(servicer, rpc.CombinerServicer):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
