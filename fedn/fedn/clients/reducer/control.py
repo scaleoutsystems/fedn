@@ -80,6 +80,7 @@ class ReducerControl:
         # TODO: Append to model chain in DB backend
         self.statestore.set_latest(model_id)
 
+
     def _out_of_sync(self):
         osync = []
         for combiner in self.combiners:

@@ -20,7 +20,7 @@ def run_cmd(ctx):
 @click.option('-r', '--remote', required=False, default=False)
 @click.option('-y', '--dry-run', required=False, default=False)
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run):
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run}
 

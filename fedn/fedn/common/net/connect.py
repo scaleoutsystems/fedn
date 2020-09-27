@@ -55,6 +55,7 @@ class ConnectorClient:
                            verify=False,
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
+            print('***** {}'.format(e),flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 

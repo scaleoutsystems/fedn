@@ -8,6 +8,7 @@ import pickle
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from read_data import read_data
+import os   
 
 
 def train(model,data,sample_fraction):
@@ -20,9 +21,30 @@ def train(model,data,sample_fraction):
     # Input image dimensions
     img_rows, img_cols = 28, 28
 
-    # The data, split between train and test sets
-    (x_train, y_train, classes) = read_data(data,sample_fraction=sample_fraction)
-    
+    # The data, split between train and test sets. We are caching the partition in 
+    # the container home dir so that the same training subset is used for 
+    # each iteration. 
+    try:
+        with open('/app/mnist_data/x.pyb','rb') as fh:
+            x_train=pickle.loads(fh.read())
+        with open('/app/mnist_data/y.pyb','rb') as fh:
+            y_train=pickle.loads(fh.read())
+        with open('/app/mnist_data/classes.pyb','rb') as fh:
+            classes=pickle.loads(fh.read())
+    except:
+        (x_train, y_train, classes) = read_data(data,sample_fraction=sample_fraction)
+
+    try:
+        os.mkdir('/app/mnist_data')
+        with open('/app/mnist_data/x.pyb','wb') as fh:
+            fh.write(pickle.dumps(x_train))
+        with open('/app/mnist_data/y.pyb','wb') as fh:
+            fh.write(pickle.dumps(y_train))
+        with open('/app/mnist_data/classes.pyb','wb') as fh:
+            fh.write(pickle.dumps(classes))
+    except:
+        pass
+
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
     print("-- TRAINING COMPLETED --")
