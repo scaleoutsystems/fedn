@@ -18,12 +18,10 @@ def run_cmd(ctx):
 @click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
 @click.option('-i', '--client_id', required=False)
-@click.option('-r', '--remote', required=False, default=False)
-@click.option('-y', '--dry-run', required=False, default=False)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run}
+              'client_id': client_id}
 
     from fedn.client import Client
     client = Client(config)
