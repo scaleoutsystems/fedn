@@ -10,11 +10,15 @@ class MongoReducerStateStore(ReducerStateStore):
             self.state = self.mdb['state']
             self.models = self.mdb['models']
             self.latest_model = self.mdb['latest_model']
+            self.compute_context = self.mdb['compute_context']
+            self.compute_context_trail = self.mdb['compute_context_trail']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.state = None
             self.models = None
             self.latest_model = None
+            self.compute_context = None
+            self.compute_context_trail = None
             raise
 
     def state(self):
@@ -36,6 +40,21 @@ class MongoReducerStateStore(ReducerStateStore):
         ret = self.latest_model.find({'key': 'current_model'})
         try:
             retcheck = ret[0]['model']
+            if retcheck == '' or retcheck == ' ':  #ugly check for empty string
+                return None
+            return retcheck
+        except (KeyError, IndexError):
+            return None
+
+    def set_compute_context(self, filename):
+        from datetime import datetime
+        x = self.compute_context.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
+        self.compute_context_trail.update({'key': 'package'}, {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+
+    def get_compute_context(self):
+        ret = self.compute_context.find({'key': 'package'})
+        try:
+            retcheck = ret[0]['filename']
             if retcheck == '' or retcheck == ' ':  #ugly check for empty string
                 return None
             return retcheck

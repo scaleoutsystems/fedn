@@ -26,7 +26,7 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.idle
         self.statestore = statestore
-        #self.statestore.set_latest(None)
+        # self.statestore.set_latest(None)
         self.combiners = []
         # TODO: Use DB / Eth
         # models should be an immutable, ordered chain of global models
@@ -48,6 +48,20 @@ class ReducerControl:
         # TODO: get single point of thruth from DB / Eth backend
         return self.statestore.get_latest()
 
+    def get_compute_context(self):
+        definition = self.statestore.get_compute_context_definition()
+        if definition:
+            try:
+                context = definition['filename']
+                return context
+            except IndexError:
+                print("No context filename set for compute context definition", flush=True)
+        else:
+            return None
+
+    def set_compute_context(self, filename):
+        self.statestore.set_compute_context(filename)
+
 
     def commit(self, model_id, model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """
@@ -65,7 +79,6 @@ class ReducerControl:
 
         # TODO: Append to model chain in DB backend
         self.statestore.set_latest(model_id)
-
 
     def _out_of_sync(self):
         osync = []
@@ -108,7 +121,7 @@ class ReducerControl:
 
         import uuid
         model_id = uuid.uuid4()
-        self.commit(model_id,model)
+        self.commit(model_id, model)
 
         # 3. Trigger Combiner nodes to execute a validation round for the current model
         combiner_config = copy.deepcopy(config)
@@ -160,7 +173,7 @@ class ReducerControl:
         # TODO: Make configurable
         helper = KerasSequentialHelper()
 
-        for i, combiner in enumerate(combiners,1):
+        for i, combiner in enumerate(combiners, 1):
             data = combiner.get_model()
             if i == 1:
                 model = helper.load_model(data.getbuffer())
@@ -177,7 +190,7 @@ class ReducerControl:
         import uuid
         model_id = uuid.uuid4()
         helper = KerasSequentialHelper()
-        return helper.load_model(combiner.get_model().getbuffer()),model_id
+        return helper.load_model(combiner.get_model().getbuffer()), model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
@@ -188,9 +201,8 @@ class ReducerControl:
             model = self.reduce(combiners)
         return model
         # 2. Commit the new consensus model to the chain and propagate it in the Combiner network
-        #self.commit(model_id, model)
-        #self.sync_combiners(self.get_latest_model())
-
+        # self.commit(model_id, model)
+        # self.sync_combiners(self.get_latest_model())
 
     def monitor(self, config=None):
         if self.__state == ReducerState.monitoring:

@@ -1,5 +1,5 @@
 from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.state import ReducerStateToString
+from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from flask import Flask, flash
 from flask import jsonify, abort
 from flask import render_template
@@ -23,7 +23,7 @@ class ReducerRestService:
         self.certificate = certificate
         self.certificate_manager = certificate_manager
 
-        self.current_compute_context = None
+        self.current_compute_context = self.control.get_compute_context()
 
     def run(self):
         app = Flask(__name__)
@@ -44,6 +44,11 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
+            if self.control.state() == ReducerState.setup:
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
+                                       dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
+                                       dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+
             return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
                                    dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
                                    dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
@@ -51,6 +56,8 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
         def add():
+            if self.control.state() == ReducerState.setup:
+                return "Error, not configured"
             # TODO check for get variables
             name = request.args.get('name', None)
             address = request.args.get('address', None)
@@ -78,6 +85,8 @@ class ReducerRestService:
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
         def start():
+            if self.control.state() == ReducerState.setup:
+                return "Error, not configured"
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
@@ -107,6 +116,8 @@ class ReducerRestService:
 
         @app.route('/assign')
         def assign():
+            if self.control.state() == ReducerState.setup:
+                return "Error, not configured"
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
             import uuid
@@ -134,6 +145,8 @@ class ReducerRestService:
 
         @app.route('/infer')
         def infer():
+            if self.control.state() == ReducerState.setup:
+                return "Error, not configured"
             result = ""
             try:
                 self.control.set_model_id()
@@ -153,6 +166,8 @@ class ReducerRestService:
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt #TODO fix csrf token to form posting in package.py
         def context():
+            #if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
+            #    return "Error, Context already assigned!"
             if request.method == 'POST':
 
                 if 'file' not in request.files:
@@ -170,7 +185,10 @@ class ReducerRestService:
                     filename = secure_filename(file.filename)
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
+                    if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
+                        return "Not allowed to change context while execution is ongoing."
                     self.current_compute_context = filename #uploading new files will always set this to latest
+                    self.control.set_compute_context(filename)
                     #return redirect(url_for('index',
                     #                        filename=filename))
                     return "success!"
