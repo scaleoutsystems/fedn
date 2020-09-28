@@ -106,7 +106,11 @@ class FEDAVGCombiner:
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
 
-                model_next = self.helper.load_model(self.modelservice.get_model(model_id).getbuffer())
+                model_str = self.modelservice.models.get(model_id)
+                if not model_str:
+                    model_str = self.modelservice.get_model(model_id)
+                    
+                model_next = self.helper.load_model(model_str.getbuffer())
                 nr_processed_models += 1
                 self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
@@ -121,10 +125,11 @@ class FEDAVGCombiner:
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
-                # TODO: Generalize policy for what to do in case of timeout, and clean up. 
+                # TODO: Generalize policy for what to do in case of timeout. 
                 if nr_processed_models >= nr_required_models:
                     break
                 else:
+                    #TODO: Clean up? 
                     return None
 
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
