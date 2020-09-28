@@ -21,7 +21,7 @@ class ModelService(rpc.ModelServiceServicer):
         data.seek(0, 0)
         import time
         import random
-        time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
+ #       time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
         # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
         # print("TRYING DOWNLOAD 1.", flush=True)
