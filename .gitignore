@@ -141,3 +141,4 @@ media/visualisers/
 ./test/mnist/client/certs/*
 ./test/mnist/combiner/certs/*
 ./test/mnist/reducer/*
+./components/dashboard/templates/*

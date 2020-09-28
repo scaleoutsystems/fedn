@@ -73,6 +73,9 @@ class ReducerRestService:
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
                     self.control.commit(uploaded_seed.filename, uploaded_seed)
+            else:
+                h_latest_model_id = self.control.get_latest_model()
+                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True)
 
             seed = True
             return render_template('index.html', seed=seed)
@@ -84,7 +87,7 @@ class ReducerRestService:
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
 
-                latest_model_id = request.form.get('latest_model_id', '')
+                #latest_model_id = request.form.get('latest_model_id', '')
                 rounds = int(request.form.get('rounds', 1))
 
                 task = (request.form.get('task', ''))
@@ -92,6 +95,7 @@ class ReducerRestService:
                 clients_required = request.form.get('clients_required', 2)
                 clients_requested = request.form.get('clients_requested', 2)
 
+                latest_model_id = self.control.get_latest_model()
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,
                           'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
