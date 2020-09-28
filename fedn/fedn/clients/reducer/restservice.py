@@ -92,7 +92,7 @@ class ReducerRestService:
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
-                clients_requested = request.form.get('clients_requested', 2)
+                clients_requested = request.form.get('clients_requested', 8)
 
                 latest_model_id = self.control.get_latest_model()
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,

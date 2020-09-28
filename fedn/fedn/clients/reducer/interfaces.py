@@ -21,13 +21,33 @@ class Channel:
 
 
 class CombinerInterface:
-    def __init__(self, parent, name, address, port, certificate=None, key=None):
+    def __init__(self, parent, name, address, port, certificate=None, key=None, config=None):
         self.parent = parent
         self.name = name
         self.address = address
         self.port = port
         self.certificate = certificate
         self.key = key
+
+        if not config:
+            self.config = {
+                'max_clients': 8
+            }
+        else:
+            self.config = config
+
+    def configure(self,config=None):
+        if not config:
+            config = self.config
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+        request = fedn.ControlRequest()
+        for key,value in config.items():  
+            p = request.parameter.add()
+            p.key = key
+            p.value = str(value)
+        response = control.Configure(request)
+
 
     def start(self, config):
         channel = Channel(self.address, self.port, self.certificate).get_channel()
@@ -85,22 +105,17 @@ class CombinerInterface:
                 return None
 
     def allowing_clients(self):
-        print("Sending message to combiner", flush=True)
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
         response = connector.AcceptingClients(request)
         if response.status == fedn.ConnectionStatus.NOT_ACCEPTING:
-            print("Sending message to combiner 2", flush=True)
             return False
         if response.status == fedn.ConnectionStatus.ACCEPTING:
-            print("Sending message to combiner 3", flush=True)
             return True
         if response.status == fedn.ConnectionStatus.TRY_AGAIN_LATER:
-            print("Sending message to combiner 4", flush=True)
             return False
 
-        print("Sending message to combiner 5??", flush=True)
         return False
 
 

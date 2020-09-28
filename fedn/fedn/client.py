@@ -35,6 +35,7 @@ class Client:
         import time
         while True:
             status, response = self.connector.assign()
+            #print(status,response,flush=True)
             if status == Status.TryAgain:
                 time.sleep(5)
                 continue
