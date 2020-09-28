@@ -48,6 +48,9 @@ class ReducerControl:
         # TODO: get single point of thruth from DB / Eth backend
         return self.statestore.get_latest()
 
+    def get_model_info(self):
+        # TODO: get single point of thruth from DB / Eth backend
+        return self.statestore.get_model_info()
 
     def commit(self, model_id, model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """

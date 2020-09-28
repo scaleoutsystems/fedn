@@ -120,10 +120,10 @@
             </script>
             <div class="jumbotron">
                 <div class="container">
+                    {% if not h_latest_model_id %}
                     <!-- enctype="multipart/form-data" important for file upload-->
                     <form id="seed_upload_form" method="post" action="/seed" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
                         <div class="input-group mb-3">
                           <input type="file" name="seed" id="file" class="form-control" aria-label="Upload seed file" aria-describedby="basic-addon2" required>
                           <div class="input-group-append">
@@ -133,7 +133,24 @@
                         <div id="error"></div>
 
                     </form>
+                    {% else %}
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                              <th scope="col">Model ID</th>
+                              <th scope="col">Committed at</th>
+                            </tr>
+                        </thead>
+                        {% for key in model_info.keys() %}
+                            <tr>
+                                <td>{{key}}</td>
+                                <td>{{model_info[key]}}</td>
+                            </tr>
+                        {% endfor %}
 
+                    </table>
+
+                    {% endif %}
                 </div>
             </div>
             {% endif %}

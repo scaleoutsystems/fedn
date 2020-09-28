@@ -41,3 +41,18 @@ class MongoReducerStateStore(ReducerStateStore):
             return retcheck
         except (KeyError, IndexError):
             return None
+
+    # new function to get module info from mongodb
+    def get_model_info(self):
+        # TODO: get all document in model collection...
+        ret = self.models.find_one()
+        try:
+            if ret:
+                committed_at = ret['committed_at']
+                model = ret['model']
+                model_dictionary = dict(zip(model, committed_at))
+                return model_dictionary
+            else:
+                return None
+        except (KeyError, IndexError):
+            return None
