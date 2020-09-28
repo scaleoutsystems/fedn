@@ -6,6 +6,9 @@ from flask import render_template
 from flask import request
 from flask_wtf.csrf import CSRFProtect
 
+from flask import redirect, url_for
+import random
+
 
 class ReducerRestService:
     def __init__(self, name, control, certificate_manager, certificate=None):
@@ -32,7 +35,9 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
+                                   dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
+                                   dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
@@ -57,8 +62,24 @@ class ReducerRestService:
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
             self.control.add(combiner)
 
-            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack
+            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
+                   'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
             return jsonify(ret)
+
+        @app.route('/seed', methods=['GET', 'POST'])
+        def seed():
+            if request.method == 'POST':
+                # upload seed file
+                uploaded_seed = request.files['seed']
+                if uploaded_seed:
+                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+            else:
+                h_latest_model_id = self.control.get_latest_model()
+                model_info = self.control.get_model_info()
+                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True, model_info=model_info)
+
+            seed = True
+            return render_template('index.html', seed=seed)
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
@@ -66,23 +87,26 @@ class ReducerRestService:
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
-                model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
-                if model_id == '':
-                    model_id = '879fa112-c861-4cb1-a25d-775153e5b548'
                 rounds = int(request.form.get('rounds', 1))
+
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
                 clients_requested = request.form.get('clients_requested', 8)
 
-                config = {'round_timeout': timeout, 'model_id': model_id, 'rounds': rounds,
-                          'active_clients': active_clients, 'clients_required': clients_required,
+                latest_model_id = self.control.get_latest_model()
+                config = {'round_timeout': timeout, 'model_id': latest_model_id,
+                          'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
-                from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))
+
+            else:
+                # Select rounds UI
+                rounds = range(1, 100)
+                latest_model_id = self.control.get_latest_model()
+                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -103,10 +127,11 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                #certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
+                # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'host': combiner.address, 'port': combiner.port, 'certificate': str(cert_b64).split('\'')[1]}
+                response = {'host': combiner.address, 'port': combiner.port,
+                            'certificate': str(cert_b64).split('\'')[1]}
 
                 return jsonify(response)
             elif combiner is None:
