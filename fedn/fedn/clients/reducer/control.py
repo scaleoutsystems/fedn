@@ -107,16 +107,19 @@ class ReducerControl:
         model = self.resolve()
 
         # TODO: Implement checks on round validity (e.g. how many combiners participated) before we commit a new model. 
-        import uuid
-        model_id = uuid.uuid4()
-        self.commit(model_id,model)
+        if model:
+            import uuid
+            model_id = uuid.uuid4()
+            self.commit(model_id,model)
 
-        # 4. Trigger Combiner nodes to execute a validation round for the current model
-        combiner_config = copy.deepcopy(config)
-        combiner_config['model_id'] = self.get_latest_model()
-        combiner_config['task'] = 'validation'
-        for combiner in self.combiners:
-            combiner.start(combiner_config)
+            # 4. Trigger Combiner nodes to execute a validation round for the current model
+            combiner_config = copy.deepcopy(config)
+            combiner_config['model_id'] = self.get_latest_model()
+            combiner_config['task'] = 'validation'
+            for combiner in self.combiners:
+                combiner.start(combiner_config)
+        else:
+            print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
 
     def sync_combiners(self, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
