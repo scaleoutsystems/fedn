@@ -112,7 +112,9 @@ class FEDAVGCombiner:
                 self.model_updates.task_done()
             except Exception as e:
                 import time
-                self.report_status("COMBINER failcode: {}".format(e))
+                #TODO: distinguish between polling event and actual error
+                self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                    ,nr_expected_models))
                 time.sleep(1.0)
                 round_time += 1.0
 
@@ -140,7 +142,7 @@ class FEDAVGCombiner:
 
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
-        model = self.combine_models(nr_expected_models=len(clients), nr_required_models=config['clients_required'], timeout=int(config['round_timeout']))
+        model = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=int(config['round_timeout']))
         return model
 
     def __validation_round(self,config,clients,model_id):
