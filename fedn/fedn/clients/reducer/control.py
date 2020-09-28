@@ -40,6 +40,9 @@ class ReducerControl:
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
 
+        # TODO: Make configurable
+        self.helper = KerasSequentialHelper()
+
     def get_latest_model(self):
         # TODO: get single point of thruth from DB / Eth backend
         return self.statestore.get_latest()
@@ -130,10 +133,8 @@ class ReducerControl:
 
         self.__state = ReducerState.instructing
 
-        # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
-            print("No model in model chain, seeding the alliance with {}".format(config['model_id']))
-            self.commit(config['model_id'])
+            print("No model in model chain, please seed the alliance!")
 
         self.__state = ReducerState.monitoring
 
@@ -145,16 +146,13 @@ class ReducerControl:
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
 
-        # TODO: Make configurable
-        helper = KerasSequentialHelper()
-
         for i, combiner in enumerate(combiners,1):
             data = combiner.get_model()
             if i == 1:
-                model = helper.load_model(data.getbuffer())
+                model = self.helper.load_model(data.getbuffer())
             else:
-                model_next = helper.load_model(combiner.get_model().getbuffer())
-                helper.increment_average(model, model_next, i)
+                model_next = self.helper.load_model(combiner.get_model().getbuffer())
+                self.helper.increment_average(model, model_next, i)
 
         return model
 
@@ -164,8 +162,7 @@ class ReducerControl:
         combiner = random.sample(combiners, 1)[0]
         import uuid
         model_id = uuid.uuid4()
-        helper = KerasSequentialHelper()
-        return helper.load_model(combiner.get_model().getbuffer()),model_id
+        return self.helper.load_model(combiner.get_model().getbuffer()),model_id
 
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
