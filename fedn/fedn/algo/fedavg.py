@@ -94,33 +94,6 @@ class FEDAVGCombiner:
         round_time = 0.0
         print("COMBINER: combining model updates from Clients...")
 
-        # First model in the update round
-        #try:
-        #    model_id = self.model_updates.get(timeout=timeout)
-        #    # Try reading it from local disk/combiner memory
-        #    model_str = self.modelservice.models.get(model_id)
-        #    # And if we cannot access that, try downloading from the server
-        #    if model_str == None:
-        #        model_str = self.modelservice.get_model(model_id)
-        #        # TODO: usee retrying library
-        #        tries = 0
-        #        while tries < 3:
-        #            tries += 1
-        #            if not model_str or sys.getsizeof(model_str) == 80:
-        #                print("COMBINER: Model download failed. retrying", flush=True)
-        #                import time
-        #               time.sleep(1)
-        #                model_str = self.modelservice.get_model(model_id)
-        #
-        #    # If we still were not able to obtain the model file, we give up and move on.
-        #    if not model_str or sys.getsizeof(model_str) == 80:
-        # 
-        #    model = self.helper.load_model(model_str.getbuffer())
-        #    nr_processed_models = 1
-        #    self.model_updates.task_done()
-        #except queue.Empty as e:
-        #    self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
-        #    return None
         nr_processed_models = 0
         while nr_processed_models < nr_expected_models:
             try:
