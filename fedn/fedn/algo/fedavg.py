@@ -5,6 +5,7 @@ import tempfile
 import time
 import uuid
 import sys
+#import retrying
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
@@ -67,60 +68,98 @@ class FEDAVGCombiner:
         self.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
                            log_level=fedn.Status.INFO)
 
+    def _load_model_fault_tolerant(self,model_id):
+        # Try reading it from local disk/combiner memory
+        model_str = self.modelservice.models.get(model_id)
+        # And if we cannot access that, try downloading from the server
+        if model_str == None:
+            model_str = self.modelservice.get_model(model_id)
+            # TODO: use retrying library
+            tries = 0
+            while tries < 3:
+                tries += 1
+                if not model_str or sys.getsizeof(model_str) == 80:
+                    print("COMBINER: Model download failed. retrying", flush=True)
+                    import time
+                    time.sleep(1)
+                    model_str = self.modelservice.get_model(model_id)
+
+        return model_str
+ 
+
     def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=120):
         """ Compute an iterative/running average of models arriving to the combiner. """
 
+        import time
         round_time = 0.0
         print("COMBINER: combining model updates from Clients...")
 
         # First model in the update round
-        try:
-            model_id = self.model_updates.get(timeout=timeout)
-
-            # Fetch the model data blob from storage
-            
-            # Try reading it from local disk/combiner memory
-            model_str = self.modelservice.models.get(model_id)
-            # And if we cannot access that, try downloading from the server
-            if model_str == None:
-                import sys
-                model_str = self.modelservice.get_model(model_id)
-                tries = 0
-                while tries < 3:
-                    tries += 1
-                    if not model_str or sys.getsizeof(model_str) == 80:
-                        print("COMBINER: Model download failed. retrying", flush=True)
-                        import time
-                        time.sleep(0.1)
-                        model_str = self.modelservice.get_model(model_id)
-
-            model = self.helper.load_model(model_str.getbuffer())
-            nr_processed_models = 1
-            self.model_updates.task_done()
-        except queue.Empty as e:
-            self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
-            return None
-
+        #try:
+        #    model_id = self.model_updates.get(timeout=timeout)
+        #    # Try reading it from local disk/combiner memory
+        #    model_str = self.modelservice.models.get(model_id)
+        #    # And if we cannot access that, try downloading from the server
+        #    if model_str == None:
+        #        model_str = self.modelservice.get_model(model_id)
+        #        # TODO: usee retrying library
+        #        tries = 0
+        #        while tries < 3:
+        #            tries += 1
+        #            if not model_str or sys.getsizeof(model_str) == 80:
+        #                print("COMBINER: Model download failed. retrying", flush=True)
+        #                import time
+        #               time.sleep(1)
+        #                model_str = self.modelservice.get_model(model_id)
+        #
+        #    # If we still were not able to obtain the model file, we give up and move on.
+        #    if not model_str or sys.getsizeof(model_str) == 80:
+        # 
+        #    model = self.helper.load_model(model_str.getbuffer())
+        #    nr_processed_models = 1
+        #    self.model_updates.task_done()
+        #except queue.Empty as e:
+        #    self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
+        #    return None
+        nr_processed_models = 0
         while nr_processed_models < nr_expected_models:
             try:
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
+                model_str = self._load_model_fault_tolerant(model_id)
+                if model_str:
+                    try:
+                        model_next = self.helper.load_model(model_str.getbuffer())
+                    except IOError:
+                        print("COMBINER: Failed to load model!")
+                        raise
+                else: 
+                    raise
 
-                model_str = self.modelservice.models.get(model_id)
-                if not model_str:
-                    model_str = self.modelservice.get_model(model_id)
-                    
-                model_next = self.helper.load_model(model_str.getbuffer())
+                if nr_expected_models == 0:
+                    model = model_next
+                else:
+                    self.helper.increment_average(model, model_next, nr_processed_models)
+
                 nr_processed_models += 1
-                self.helper.increment_average(model, model_next, nr_processed_models)
+                #self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
-            except Exception as e:
-                import time
-                #TODO: distinguish between polling event and actual error
+            except queue.Empty:
                 self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
                     ,nr_expected_models))
                 time.sleep(1.0)
                 round_time += 1.0
+            except IOError:
+                self.report_status("COMBINER: Failed to read model update, skipping!")
+                self.model_updates.task_done()
+                nr_expected_models -= 1
+                if nr_expected_models <= 0:
+                    # This lets the timeout policy handle the failure
+                    round_time = timeout
+                    break
+            except Exception as e:
+                self.report_status("COMBINER: Exception in combine_models: {}".format(e))
+                pass 
 
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
@@ -129,7 +168,6 @@ class FEDAVGCombiner:
                 if nr_processed_models >= nr_required_models:
                     break
                 else:
-                    #TODO: Clean up? 
                     return None
 
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),

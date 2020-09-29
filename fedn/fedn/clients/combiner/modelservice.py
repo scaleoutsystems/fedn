@@ -21,23 +21,15 @@ class ModelService(rpc.ModelServiceServicer):
         data.seek(0, 0)
         import time
         import random
- #       time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
-        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
-
-        # print("TRYING DOWNLOAD 1.", flush=True)
+ 
         parts = self.Download(fedn.ModelRequest(id=id), self)
         for part in parts:
-            # print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == fedn.ModelStatus.IN_PROGRESS:
-                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == fedn.ModelStatus.OK:
-                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
-                # self.lock.release()
                 return data
             if part.status == fedn.ModelStatus.FAILED:
-                # print("FAILED TO DOWNLOAD MODEL::: bailing!", flush=True)
                 return None
 
     def set_model(self, model, id):
