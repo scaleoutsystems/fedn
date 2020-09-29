@@ -136,7 +136,7 @@ class FEDAVGCombiner:
                 else: 
                     raise
 
-                if nr_expected_models == 0:
+                if nr_processed_models == 0:
                     model = model_next
                 else:
                     self.helper.increment_average(model, model_next, nr_processed_models)
@@ -161,7 +161,7 @@ class FEDAVGCombiner:
                 self.report_status("COMBINER: Exception in combine_models: {}".format(e))
                 time.sleep(1.0)
                 round_time += 1.0
-                
+
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
