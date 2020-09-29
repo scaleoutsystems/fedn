@@ -154,13 +154,14 @@ class FEDAVGCombiner:
                 self.model_updates.task_done()
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
-                    # This lets the timeout policy handle the failure
+                    # This hack lets the timeout policy handle the failure
                     round_time = timeout
                     break
             except Exception as e:
                 self.report_status("COMBINER: Exception in combine_models: {}".format(e))
-                pass 
-
+                time.sleep(1.0)
+                round_time += 1.0
+                
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
