@@ -180,8 +180,9 @@ class ReducerControl:
         return model
 
     def monitor(self, config=None):
-        if self.__state == ReducerState.monitoring:
-            print("monitoring")
+        """ monitor """
+        #if self.__state == ReducerState.monitoring:
+            #print("monitoring")
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
