@@ -198,7 +198,7 @@ class ReducerRestService:
             if name != '':
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
             if name == '' and self.current_compute_context:
-                return send_from_directory(app.config['UPLOAD_FOLDER'],self.current_compute_context, as_attachment=True)
+                return send_from_directory(app.config['UPLOAD_FOLDER'], self.current_compute_context, as_attachment=True)
 
             return render_template('context.html')
 

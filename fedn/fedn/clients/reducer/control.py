@@ -24,7 +24,7 @@ class Model:
 class ReducerControl:
 
     def __init__(self, statestore):
-        self.__state = ReducerState.idle
+        self.__state = ReducerState.setup
         self.statestore = statestore
         # self.statestore.set_latest(None)
         self.combiners = []
@@ -49,7 +49,7 @@ class ReducerControl:
         return self.statestore.get_latest()
 
     def get_compute_context(self):
-        definition = self.statestore.get_compute_context_definition()
+        definition = self.statestore.get_compute_context()
         if definition:
             try:
                 context = definition['filename']
