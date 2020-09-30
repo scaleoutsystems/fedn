@@ -292,11 +292,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.key = "nr_active_clients"
         p.value = str(nr_active_clients)
         
-        p = request.parameter.add()
+        p = response.parameter.add()
         p.key = "model_id"
         p.value = self.get_active_model()
 
-        p = request.parameter.add()
+        p = response.parameter.add()
         p.key = "nr_unprocessed_tasks"
         p.value = str(len(self.combiner.run_configs))
         
