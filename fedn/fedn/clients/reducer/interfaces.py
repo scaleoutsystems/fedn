@@ -36,6 +36,16 @@ class CombinerInterface:
         else:
             self.config = config
 
+    def report(self,config=None):
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+        request = fedn.ControlRequest()
+        response = control.Configure(request)
+        data = {}
+        for p in request.parameters:
+            data[p.key] = p.value
+        return data
+
     def configure(self,config=None):
         if not config:
             config = self.config
@@ -61,6 +71,7 @@ class CombinerInterface:
 
         response = control.Start(request)
         print("Response from combiner {}".format(response.message))
+        return response
 
     def set_model_id(self, model_id):
         channel = Channel(self.address, self.port, self.certificate).get_channel()

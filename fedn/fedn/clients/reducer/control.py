@@ -83,6 +83,11 @@ class ReducerControl:
 
         # TODO: We should only be able to set the active model on the Combiner
         # if the combiner is in IDLE state. 
+        for combiner in self.combiners:
+            report = combiner.report()
+            print(report, flush=True)
+
+
         self.sync_combiners(self.get_latest_model())
 
         # 2. Combiners compute a model update, starting from the latest consensus model.
@@ -91,7 +96,7 @@ class ReducerControl:
         combiner_config['task'] = 'training'
         combiner_config['model_id'] = self.get_latest_model()
         for combiner in self.combiners:
-            combiner.start(combiner_config)
+            response = combiner.start(combiner_config)
 
         # Wait until all participating combiners are out of sync with the current global model, or we timeout.
         # TODO: Implement strategies to handle timeouts. 

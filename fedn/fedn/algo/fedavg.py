@@ -35,7 +35,7 @@ class FEDAVGCombiner:
         self.config = {}
         self.validations = {}
 
-        # TODO: make choice of helper configurable
+        # TODO: make choice of helper configurable on Recucer level
         self.helper = KerasSequentialHelper()
         self.model_updates = queue.Queue()
 
@@ -115,7 +115,6 @@ class FEDAVGCombiner:
                     self.helper.increment_average(model, model_next, nr_processed_models)
 
                 nr_processed_models += 1
-                #self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
             except queue.Empty:
                 self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
@@ -167,8 +166,11 @@ class FEDAVGCombiner:
 
     def push_run_config(self, plan):
         self.run_configs_lock.acquire()
+        import uuid
+        plan['_job_id'] = str(uuid.uuid4())
         self.run_configs.append(plan)
         self.run_configs_lock.release()
+        return plan['_job_id']
 
     def run(self):
 
@@ -193,7 +195,7 @@ class FEDAVGCombiner:
                         else:
                             print("COMBINER: Compute plan contains unkown task type.")
                     else:
-                        print("COMBINER: Failed to meet client allocation requirements for this compute_plan.")
+                        print("COMBINER: Failed to meet client allocation requirements for this compute plan.")
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -233,7 +235,6 @@ class FEDAVGCombiner:
         """  Obtain a list of clients to talk to in a round. """
 
         active_trainers = self.server.get_active_trainers()
-
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(active_trainers):
             n = len(active_trainers)
@@ -245,7 +246,7 @@ class FEDAVGCombiner:
         return clients
 
     def __check_nr_round_clients(self, config, timeout=10.0):
-        """ Check that the minimal number of required clients to start a round are connected """
+        """ Check that the minimal number of required clients to start a round are connected. """
 
         import time
         ready = False
