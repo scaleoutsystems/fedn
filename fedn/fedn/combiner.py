@@ -285,7 +285,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
 
-        nr_active_clients = self.combiner._list_active_clients()
+        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+        nr_active_clients = len(active_clients)
+
         p = request.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(nr_active_clients)
