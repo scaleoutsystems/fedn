@@ -294,7 +294,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         
         p = response.parameter.add()
         p.key = "model_id"
-        p.value = self.get_active_model()
+        model_id = self.get_active_model()
+        if model_id == None:
+            model_id = ""
+        p.value = str(model_id)
 
         p = response.parameter.add()
         p.key = "nr_unprocessed_tasks"
