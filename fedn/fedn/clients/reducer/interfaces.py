@@ -42,7 +42,7 @@ class CombinerInterface:
         request = fedn.ControlRequest()
         response = control.Report(request)
         data = {}
-        for p in response.parameters:
+        for p in response.parameter:
             data[p.key] = p.value
         return data
 
@@ -102,9 +102,6 @@ class CombinerInterface:
         from io import BytesIO
         data = BytesIO()
         data.seek(0, 0)
-        #import time
-        #import random
-        #time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
 
         parts = modelservice.Download(fedn.ModelRequest(id=id))
         for part in parts:
