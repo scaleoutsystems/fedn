@@ -40,9 +40,9 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
-        response = control.Configure(request)
+        response = control.Report(request)
         data = {}
-        for p in request.parameters:
+        for p in response.parameters:
             data[p.key] = p.value
         return data
 
