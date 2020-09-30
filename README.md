@@ -99,13 +99,11 @@ $ docker-compose -f mnist-clients.yaml up
 
 Make sure that you can access the Reducer UI at https://localhost:8090, and that the combiner and clients are up and running, before proceeding to the next step.
 
-### Train a federated model
-
-#### Seed the system with an initial model
-
-Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model to the appropriate location in Minio. Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).  Create a bucket called 'models' and upload the seed model file there. 
-
-*Note, there is a script "init_model.py" that you can edit if you would like to alter the actual structure of the seed model.*
+## Deployment problems you might face
+For people they are using Lunix OS they should change the test folder access permission using the following command in order to let the reducer write the generated certificate there.
+````terminal
+sudo chmod -R 0777 fedn/test
+````
 
 #### Start training
 To start training, navigate to the Reducer REST API endpoint: localhost:8090/start 
