@@ -12,7 +12,7 @@ import os
 
 
 def train(model,data,sample_fraction):
-    print("-- RUNNING TRAINING --")
+    print("-- RUNNING TRAINING --", flush=True)
 
     batch_size = 32
     num_classes = 10
@@ -47,7 +47,7 @@ def train(model,data,sample_fraction):
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
-    print("-- TRAINING COMPLETED --")
+    print("-- TRAINING COMPLETED --", flush=True)
     return model
 
 if __name__ == '__main__':
