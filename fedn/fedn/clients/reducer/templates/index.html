@@ -27,6 +27,9 @@
         <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
+
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
     </head>
 
     <body>
@@ -73,7 +76,7 @@
                                 History <span class="sr-only"></span></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="http://{{ dashboardhost }}:{{ dashboardport }}/box" tabindex="-1" aria-disabled="true">
+                            <a class="nav-link" href="/plot" tabindex="-1" aria-disabled="true">
                                 <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tv" fill="currentColor"
                                      xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd"
@@ -155,7 +158,7 @@
             </div>
             {% endif %}
 
-            {% if not refresh and not seed %}
+            {% if not refresh and not seed and not  show_plot %}
             <script>
                 $(document).ready(function() {
                   $('#start_control_form').submit(function(e) {
@@ -211,6 +214,34 @@
         </div>
         {% endif %}
 
+        {% if show_plot %}
+        <div class="jumbotron">
+            <div class="container">
+                <div class="form-group row">
+                    <label for="package" class="col-sm-2 col-form-label">Plot</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" id ='plot_type'>
+                            <option value="box">Box</option>
+                            <option value="table">Table</option>
+                            <option value="timeline">Timeline</option>
+                            <!--<option value="ml">ML</option>-->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="chart" id="bargraph">
+                    <script>
+                        var graphs = {{plot | safe}};
+                        Plotly.plot('bargraph',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+        </div>
+        {% endif %}
+
         <footer class="footer">
             <p>&copy; 2020 Scaleout Systems AB</p>
         </footer>
@@ -225,6 +256,9 @@
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
                 integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
                 crossorigin="anonymous"></script>
+
+        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/plots.js') }}"></script>
 
     </body>
 </html>
