@@ -138,6 +138,7 @@ class ReducerControl:
         cl = []
         for combiner,plan in combiners:
             cl.append(combiner)
+
         wait = 0.0
         while len(self._out_of_sync(cl)) < len(combiners):
             time.sleep(1.0)
@@ -148,7 +149,7 @@ class ReducerControl:
         # OBS! Here we are checking agains all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update 
         updated = self._out_of_sync()
-        print("UPDATED: {}".format(combiners),flush=True)
+        print("UPDATED: {}".format(updated),flush=True)
 
 
         round_valid = self.check_round_validity_policy(updated)
@@ -211,8 +212,8 @@ class ReducerControl:
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
-        i = 0 
-        for combiner in enumerate(combiners,1):
+        i = 1
+        for combiner in combiners:
             data = combiner.get_model()
             if data:
                 try:
