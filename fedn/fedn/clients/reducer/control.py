@@ -73,10 +73,10 @@ class ReducerControl:
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """
-            if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
-                return True
-            else:
-                return False
+        if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
+            return True
+        else:
+            return False
 
     def check_round_start_policy(self,combiners):
         """ Check if the overall network state meets a policy to start the round. """
