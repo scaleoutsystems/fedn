@@ -102,10 +102,10 @@ class ReducerControl:
             return
 
         # 1. Formulate compute plans for this round and decide which combiners should participate in the round.
-        combiner_config = copy.deepcopy(config)
-        combiner_config['rounds'] = 1
-        combiner_config['task'] = 'training'
-        combiner_config['model_id'] = self.get_latest_model()
+        compute_plan = copy.deepcopy(config)
+        compute_plan['rounds'] = 1
+        compute_plan['task'] = 'training'
+        compute_plan['model_id'] = self.get_latest_model()
 
         combiners = []
         for combiner in self.combiners:
