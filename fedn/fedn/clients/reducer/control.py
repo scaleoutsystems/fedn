@@ -135,8 +135,11 @@ class ReducerControl:
         # Wait until all participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
         # TODO: We do not need to wait until all combiners complete before we start reducing. 
+        cl = []
+        for combiner,plan in combiners:
+            cl.append(combiner)
         wait = 0.0
-        while len(self._out_of_sync(combiners)) < len(combiners):
+        while len(self._out_of_sync(cl)) < len(combiners):
             time.sleep(1.0)
             wait += 1.0
             if wait >= config['round_timeout']:
