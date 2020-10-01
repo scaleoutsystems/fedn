@@ -68,7 +68,7 @@ class ReducerControl:
                 osync.append(combiner)
         return osync
 
-    def _round_participation_policy(self,compute_plan,combiner_state):
+    def check_round_participation_policy(self,compute_plan,combiner_state):
         """ Evaluate reducer level policy for combiner round-paarticipation. 
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
@@ -78,6 +78,21 @@ class ReducerControl:
             else:
                 return False
 
+    def check_round_start_policy(self,combiners):
+        """ Check if the overall network state meets a policy to start the round. """
+        if len(combiners) > 0:
+            return True
+        else:
+            return False
+
+    def check_round_validity_policy(self,combiners):
+        """ Before committing a model we check if a round validity policy has been met. """
+        if len(combiners) > 0:
+            return True
+        else:
+            return False 
+
+
     def round(self, config):
         """ Execute one global round. """
 
@@ -86,41 +101,52 @@ class ReducerControl:
             print("REDUCER: No combiners connected!")
             return
 
-        # TODO: We should only be able to set the active model on the Combiner
-        # if the combiner is in IDLE state. 
-        #for combiner in self.combiners:
-        #   report = combiner.report()
-        #    print(report, flush=True)
-
-        # 1. Sync up model state on all combiners that participate in this round. 
-        #self.sync_combiners(self.get_latest_model())
-
-        # 2. Combiners compute a model update, starting from the latest consensus model.
+        # 1. Formulate compute plans for this round and decide which combiners should participate in the round.
         combiner_config = copy.deepcopy(config)
         combiner_config['rounds'] = 1
         combiner_config['task'] = 'training'
         combiner_config['model_id'] = self.get_latest_model()
+
+        combiners = []
         for combiner in self.combiners:
             combiner_state = combiner.report()
-            is_participating = self._round_participation_policy(compute_plan,combiner_state)
+            is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
             if is_participating:
-                self.sync_combiners([combiner],model_id)
-                response = combiner.start(combiner_config)
+                combiners.append((combiner,compute_plan))
 
-        # Wait until all participating combiners are out of sync with the current global model, or we timeout.
+        round_start = check_round_start_policy(combiners)
+        if not round_start:
+            return None
+
+
+        # 2. Sync up and ask participating combiners to coordinate model updates
+        for combiner,compute_plan in combiners:        
+            self.sync_combiners([combiner],self.get_latest_model())
+            response = combiner.start(compute_plan)
+
+        # Wait until all participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
         # TODO: We do not need to wait until all combiners complete before we start reducing. 
         wait = 0.0
-        while len(self._out_of_sync()) < len(self.combiners):
+        while len(self._out_of_sync()) < len(combiners):
             time.sleep(1.0)
             wait += 1.0
             if wait >= config['round_timeout']:
                 break
 
-        # 3. Resolver protocol - a single global model is formed from the combiner local models.
-        model = self.resolve()
+        # OBS! Here we are checking agains all combiners, not just those that computed in this round.
+        # This means we let straggling combiners participate in the update 
+        updated = self._out_of_sync()
 
-        # TODO: Implement checks on round validity (e.g. how many combiners participated) before we commit a new model. 
+        round_valid = self.check_round_validity_policy(updated)
+        if not round_valid:
+            # TODO: Should we reset combiner state here? 
+            return None
+
+        # 3. Reduce combiner models into a global model
+        # TODO, check success
+        model = self.reduce(updated)
+        
         if model:
             import uuid
             model_id = uuid.uuid4()
@@ -132,8 +158,10 @@ class ReducerControl:
             combiner_config['task'] = 'validation'
             for combiner in self.combiners:
                 combiner.start(combiner_config)
+            return model_id
         else:
             print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
+            return None
 
     def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
@@ -159,7 +187,12 @@ class ReducerControl:
         self.__state = ReducerState.monitoring
 
         for round in range(int(config['rounds'])):
-            self.round(config)
+            model_id = self.round(config)
+            if model_id:
+                print("REDUCER: Global round completed, new model: {}".format(model_id),flush=True)
+            else:
+                print("REDUCER: Global round failed!")
+
 
         self.__state = ReducerState.idle
 
