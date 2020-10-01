@@ -44,11 +44,9 @@ class ReducerControl:
         self.helper = KerasSequentialHelper()
 
     def get_latest_model(self):
-        # TODO: get single point of thruth from DB / Eth backend
         return self.statestore.get_latest()
 
     def get_model_info(self):
-        # TODO: get single point of thruth from DB / Eth backend
         return self.statestore.get_model_info()
      
     def commit(self, model_id, model=None):
@@ -62,7 +60,6 @@ class ReducerControl:
 
         self.statestore.set_latest(model_id)
 
-
     def _out_of_sync(self):
         osync = []
         for combiner in self.combiners:
@@ -70,6 +67,16 @@ class ReducerControl:
             if model_id != self.get_latest_model():
                 osync.append(combiner)
         return osync
+
+    def _round_participation_policy(self,compute_plan,combiner_state):
+        """ Evaluate reducer level policy for combiner round-paarticipation. 
+            This is a decision on ReducerControl level, additional checks
+            applies on combiner level. Not all reducer control flows might
+            need or want to use a participation policy.  """
+            if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
+                return True
+            else:
+                return False
 
     def round(self, config):
         """ Execute one global round. """
@@ -79,16 +86,14 @@ class ReducerControl:
             print("REDUCER: No combiners connected!")
             return
 
-        # 1. Sync up model state on all combiners that participate in this round. 
-
         # TODO: We should only be able to set the active model on the Combiner
         # if the combiner is in IDLE state. 
-        for combiner in self.combiners:
-            report = combiner.report()
-            print(report, flush=True)
+        #for combiner in self.combiners:
+        #   report = combiner.report()
+        #    print(report, flush=True)
 
-
-        self.sync_combiners(self.get_latest_model())
+        # 1. Sync up model state on all combiners that participate in this round. 
+        #self.sync_combiners(self.get_latest_model())
 
         # 2. Combiners compute a model update, starting from the latest consensus model.
         combiner_config = copy.deepcopy(config)
@@ -96,7 +101,11 @@ class ReducerControl:
         combiner_config['task'] = 'training'
         combiner_config['model_id'] = self.get_latest_model()
         for combiner in self.combiners:
-            response = combiner.start(combiner_config)
+            combiner_state = combiner.report()
+            is_participating = self._round_participation_policy(compute_plan,combiner_state)
+            if is_participating:
+                self.sync_combiners([combiner],model_id)
+                response = combiner.start(combiner_config)
 
         # Wait until all participating combiners are out of sync with the current global model, or we timeout.
         # TODO: Implement strategies to handle timeouts. 
@@ -126,15 +135,14 @@ class ReducerControl:
         else:
             print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
 
-    def sync_combiners(self, model_id):
+    def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
         if not model_id:
             print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
             return
 
-        for combiner in self.combiners:
+        for combiner in combiners:
             response = combiner.set_model_id(model_id)
-            print("REDUCER_CONTROL: Setting model_ids: {}".format(response), flush=True)
 
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """

@@ -98,9 +98,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.server = Server(self,self.modelservice, grpc_config)
 
+        # The handler that implements the particular combination strategy used by this combiner instance. 
+        # TODO: Make configurable on start.
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
-
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
