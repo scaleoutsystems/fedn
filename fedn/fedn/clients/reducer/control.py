@@ -114,7 +114,7 @@ class ReducerControl:
             if is_participating:
                 combiners.append((combiner,compute_plan))
 
-        round_start = check_round_start_policy(combiners)
+        round_start = self.check_round_start_policy(combiners)
         if not round_start:
             return None
 
