@@ -17,15 +17,17 @@ def run_cmd(ctx):
 @click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=None)
 @click.option('-i', '--client_id', required=False)
+@click.option('-s', '--secure', required=False, default=True)
+@click.option('-v', '--preshared-cert', required=False, default=False)
+@click.option('-v', '--verify-cert', required=False, default=False)
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id):
-
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, secure, preshared_cert, verify_cert):
     if name == None:
         import uuid
         name = str(uuid.uuid4())
-    
+
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id}
+              'client_id': client_id, 'secure': secure, 'preshared_cert': preshared_cert, 'verify_cert': verify_cert}
 
     from fedn.client import Client
     client = Client(config)
@@ -54,11 +56,11 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name):
 @click.option('-h', '--hostname', required=True)
 @click.option('-i', '--port', required=True)
 @click.option('-s', '--secure', required=False, default=True)
-@click.option('-c', '--max_clients', required=False,default=8)
+@click.option('-c', '--max_clients', required=False, default=8)
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure,max_clients):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure, max_clients):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
-              'myport': port, 'myname': name, 'secure': secure,'max_clients':max_clients}
+              'myport': port, 'myname': name, 'secure': secure, 'max_clients': max_clients}
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)
