@@ -6,15 +6,6 @@ from .reducerstatestore import ReducerStateStore
 class MongoReducerStateStore(ReducerStateStore):
     def __init__(self, defaults=None):
 
-        import yaml
-        if defaults:
-            with open(defaults, 'r') as file:
-                try:
-                    print("SAFELOADING!!!! \n",flush=True)
-                    print(yaml.safe_load(file), flush=True)
-                except yaml.YamlError as e:
-                    print(e)
-
         try:
             self.mdb = connect_to_mongodb()
             self.state = self.mdb['state']
@@ -30,6 +21,22 @@ class MongoReducerStateStore(ReducerStateStore):
             self.compute_context = None
             self.compute_context_trail = None
             raise
+
+        import yaml
+        if defaults:
+            with open(defaults, 'r') as file:
+                try:
+                    settings = dict(yaml.safe_load(file))
+                    print(settings, flush=True)
+                    self.transition(str(settings['state']))
+                    self.set_latest(str(settings['model']))
+                    print("Setting filepath to {}".format(settings['context']), flush=True)
+                    #self.set_compute_context(str())
+                    #TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
+                    #TODO fix with unboxing of value before storing and where consuming.
+                    self.compute_context.update({'key': 'package'}, {'$set': {'filename': {'filename': settings['context']}}}, True)
+                except yaml.YamlError as e:
+                    print(e)
 
     def state(self):
         return StringToReducerState(self.state.find_one()['current_state'])
