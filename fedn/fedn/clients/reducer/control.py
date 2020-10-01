@@ -166,11 +166,11 @@ class ReducerControl:
             model_id = uuid.uuid4()
             self.commit(model_id,model)
 
-            # 4. Trigger Combiner nodes to execute a validation round for the current model
+            # 4. Trigger participating combiner nodes to execute a validation round for the current model
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
-            for combiner in self.combiners:
+            for combiner,  in combiners:
                 combiner.start(combiner_config)
             return model_id
         else:
