@@ -60,9 +60,13 @@ class ReducerControl:
 
         self.statestore.set_latest(model_id)
 
-    def _out_of_sync(self):
+    def _out_of_sync(self,combiners=None):
+
+        if not combiners:
+            combiners = self.combiners
+
         osync = []
-        for combiner in self.combiners:
+        for combiner in combiners:
             model_id = combiner.get_model_id()
             if model_id != self.get_latest_model():
                 osync.append(combiner)
@@ -114,7 +118,10 @@ class ReducerControl:
             if is_participating:
                 combiners.append((combiner,compute_plan))
 
+        print("PARTICIPATING: {}".format(combiners),flush=True)
+
         round_start = self.check_round_start_policy(combiners)
+        print("ROUND START POLICY: {}".format(round_start),flush=True)
         if not round_start:
             return None
 
@@ -122,13 +129,14 @@ class ReducerControl:
         # 2. Sync up and ask participating combiners to coordinate model updates
         for combiner,compute_plan in combiners:        
             self.sync_combiners([combiner],self.get_latest_model())
+            print(combiner,compute_plan,flush=True)
             response = combiner.start(compute_plan)
 
         # Wait until all participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
         # TODO: We do not need to wait until all combiners complete before we start reducing. 
         wait = 0.0
-        while len(self._out_of_sync()) < len(combiners):
+        while len(self._out_of_sync(combiners)) < len(combiners):
             time.sleep(1.0)
             wait += 1.0
             if wait >= config['round_timeout']:
@@ -137,6 +145,8 @@ class ReducerControl:
         # OBS! Here we are checking agains all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update 
         updated = self._out_of_sync()
+        print("UPDATED: {}".format(combiners),flush=True)
+
 
         round_valid = self.check_round_validity_policy(updated)
         if not round_valid:
@@ -198,15 +208,16 @@ class ReducerControl:
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
-
-        for i, combiner in enumerate(combiners,1):
+        i = 0 
+        for combiner in enumerate(combiners,1):
             data = combiner.get_model()
-            if i == 1:
-                model = self.helper.load_model(data.getbuffer())
-            else:
-                model_next = self.helper.load_model(combiner.get_model().getbuffer())
-                self.helper.increment_average(model, model_next, i)
-
+            if data:
+                try:
+                    model_next = self.helper.load_model(combiner.get_model().getbuffer())
+                    self.helper.increment_average(model, model_next, i)
+                except:
+                    model = self.helper.load_model(data.getbuffer())
+                i = i+1
         return model
 
     def reduce_random(self, combiners):
