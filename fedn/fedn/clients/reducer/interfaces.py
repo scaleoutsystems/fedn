@@ -36,6 +36,16 @@ class CombinerInterface:
         else:
             self.config = config
 
+    def report(self,config=None):
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+        request = fedn.ControlRequest()
+        response = control.Report(request)
+        data = {}
+        for p in response.parameter:
+            data[p.key] = p.value
+        return data
+
     def configure(self,config=None):
         if not config:
             config = self.config
@@ -61,6 +71,7 @@ class CombinerInterface:
 
         response = control.Start(request)
         print("Response from combiner {}".format(response.message))
+        return response
 
     def set_model_id(self, model_id):
         channel = Channel(self.address, self.port, self.certificate).get_channel()
@@ -91,9 +102,6 @@ class CombinerInterface:
         from io import BytesIO
         data = BytesIO()
         data.seek(0, 0)
-        #import time
-        #import random
-        #time.sleep(10.0 * random.random() / 2.0)  # try to debug concurrency issues? wait at most 5 before downloading
 
         parts = modelservice.Download(fedn.ModelRequest(id=id))
         for part in parts:

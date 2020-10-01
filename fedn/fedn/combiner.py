@@ -98,9 +98,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.server = Server(self,self.modelservice, grpc_config)
 
+        # The handler that implements the particular combination strategy used by this combiner instance. 
+        # TODO: Make configurable on start.
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
-
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
@@ -259,17 +260,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def Start(self, control: fedn.ControlRequest, context):
         response = fedn.ControlResponse()
-        print("\n\n\n\n\n GOT CONTROL **START** from Command {}\n\n\n\n\n".format(control.command), flush=True)
+        print("\n\n\n GOT CONTROL **START** from Command {}\n\n\n".format(control.command), flush=True)
 
-        # config = {'round_timeout': 180, 'model_id': '879fa112-c861-4cb1-a25d-775153e5b548', 'rounds': 3,
-        #          'active_clients': 2, 'clients_required': 2, 'clients_requested': 2}
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
-        print("\n\n\n\nSTARTING COMBINER WITH {}\n\n\n\n".format(config), flush=True)
+        print("\n\n\n\nSTARTING JOB AT COMBINER WITH {}\n\n\n\n".format(config), flush=True)
 
-        self.combiner.push_run_config(config)
-
+        job_id = self.combiner.push_run_config(config)
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
@@ -284,8 +282,28 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def Report(self, control: fedn.ControlRequest, context):
+        """ Descibe current state of the Combiner. """
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
+
+        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+        nr_active_clients = len(active_clients)
+
+        p = response.parameter.add()
+        p.key = "nr_active_clients"
+        p.value = str(nr_active_clients)
+        
+        p = response.parameter.add()
+        p.key = "model_id"
+        model_id = self.get_active_model()
+        if model_id == None:
+            model_id = ""
+        p.value = str(model_id)
+
+        p = response.parameter.add()
+        p.key = "nr_unprocessed_tasks"
+        p.value = str(len(self.combiner.run_configs))
+        
         return response
 
     #####################################################################################################################
@@ -341,6 +359,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients.client.append(fedn.Client(name=client, role=fedn.WORKER))
         return clients
 
+
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):
         response = fedn.ConnectionResponse()
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
@@ -358,7 +377,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         except Exception as e:
             print("Combiner not properly configured!", flush=True)
             raise
-        #    pass
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
         return response
