@@ -33,6 +33,7 @@ class Certificate:
         cert.get_subject().O = "Development Key"
         cert.get_subject().OU = "Development Key"
         cert.get_subject().CN = self.name  # gethostname()
+
         import random
         cert.set_serial_number(int(random.randint(1000,100000)))
 
