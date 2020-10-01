@@ -14,7 +14,10 @@ class Reducer:
         self.name = config['name']
         self.token = config['token']
 
-        self.statestore = MongoReducerStateStore()
+        if config['init']:
+            self.statestore = MongoReducerStateStore(defaults=config['init'])
+        else:
+            self.statestore = MongoReducerStateStore()
 
         try:
             path = config['path']
@@ -35,7 +38,7 @@ class Reducer:
         import time
         try:
             while True:
-                time.sleep(1)
+                time.sleep(5)
                 print("Reducer in {} state".format(ReducerStateToString(self.control.state())), flush=True)
                 self.control.monitor()
         except (KeyboardInterrupt, SystemExit):

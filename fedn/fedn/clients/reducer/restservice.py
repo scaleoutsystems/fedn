@@ -15,6 +15,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+from flask import redirect, url_for
+import random
+
 
 class ReducerRestService:
     def __init__(self, name, control, certificate_manager, certificate=None):
@@ -57,7 +60,7 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             if self.control.state() == ReducerState.setup:
-                return "Error, not configured"
+                return jsonify({'status':'retry'})
             # TODO check for get variables
             name = request.args.get('name', None)
             address = request.args.get('address', None)
@@ -82,6 +85,21 @@ class ReducerRestService:
                    'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
             return jsonify(ret)
 
+        @app.route('/seed', methods=['GET', 'POST'])
+        def seed():
+            if request.method == 'POST':
+                # upload seed file
+                uploaded_seed = request.files['seed']
+                if uploaded_seed:
+                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+            else:
+                h_latest_model_id = self.control.get_latest_model()
+                model_info = self.control.get_model_info()
+                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True, model_info=model_info)
+
+            seed = True
+            return render_template('index.html', seed=seed)
+
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
         def start():
@@ -90,23 +108,26 @@ class ReducerRestService:
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
-                model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
-                if model_id == '':
-                    model_id = '879fa112-c861-4cb1-a25d-775153e5b548'
                 rounds = int(request.form.get('rounds', 1))
+
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
                 clients_requested = request.form.get('clients_requested', 8)
 
-                config = {'round_timeout': timeout, 'model_id': model_id, 'rounds': rounds,
-                          'active_clients': active_clients, 'clients_required': clients_required,
+                latest_model_id = self.control.get_latest_model()
+                config = {'round_timeout': timeout, 'model_id': latest_model_id,
+                          'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
-                from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))
+
+            else:
+                # Select rounds UI
+                rounds = range(1, 100)
+                latest_model_id = self.control.get_latest_model()
+                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -117,7 +138,7 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             if self.control.state() == ReducerState.setup:
-                return "Error, not configured"
+                return jsonify({'status':'retry'})
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
             import uuid

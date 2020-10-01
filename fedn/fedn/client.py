@@ -25,7 +25,10 @@ class Client:
                                          config['discover_port'],
                                          config['token'],
                                          config['name'],
-                                         config['client_id'])
+                                         config['client_id'],
+                                         secure=config['secure'],
+                                         preshared_cert=['preshared_cert'],
+                                         verify_cert=config['verify_cert'])
         self.name = config['name']
 
         self.started_at = datetime.now()

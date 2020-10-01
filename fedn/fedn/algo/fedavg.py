@@ -5,6 +5,7 @@ import tempfile
 import time
 import uuid
 import sys
+#import retrying
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
@@ -34,7 +35,7 @@ class FEDAVGCombiner:
         self.config = {}
         self.validations = {}
 
-        # TODO: make choice of helper configurable
+        # TODO: make choice of helper configurable on Recucer level
         self.helper = KerasSequentialHelper()
         self.model_updates = queue.Queue()
 
@@ -42,8 +43,7 @@ class FEDAVGCombiner:
         print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
 
     def receive_model_candidate(self, model_id):
-        """ Callback when a new model version is reported by a client. 
-            We simply put the model_id on a queue to be processed later. """
+        """ Callback when a new model version is reported by a client. """
         try:
             self.report_status("COMBINER: callback received model {}".format(model_id),
                                log_level=fedn.Status.INFO)
@@ -68,55 +68,80 @@ class FEDAVGCombiner:
         self.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
                            log_level=fedn.Status.INFO)
 
-    def combine_models(self, nr_expected_models=None, timeout=120):
-        """ Compute an iterative/running average of models arriving to the combiner. """
-
-        round_time = 0.0
-        print("COMBINER: combining model updates from Clients...")
-
-        # First model in the update round
-        try:
-            model_id = self.model_updates.get(timeout=timeout)
-            #print("Combining by getting model {}".format(model_id), flush=True)
-            # Fetch the model data blob from storage
-            import sys
+    def _load_model_fault_tolerant(self,model_id):
+        # Try reading it from local disk/combiner memory
+        model_str = self.modelservice.models.get(model_id)
+        # And if we cannot access that, try downloading from the server
+        if model_str == None:
             model_str = self.modelservice.get_model(model_id)
+            # TODO: use retrying library
             tries = 0
             while tries < 3:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
                     print("COMBINER: Model download failed. retrying", flush=True)
                     import time
-                    time.sleep(1.0)
+                    time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
 
-            import sys
-            model = self.helper.load_model(model_str.getbuffer())
-            nr_processed_models = 1
-            self.model_updates.task_done()
-        except queue.Empty as e:
-            self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
-            return None
+        return model_str
+ 
 
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=120):
+        """ Compute an iterative/running average of models arriving to the combiner. """
+
+        import time
+        round_time = 0.0
+        print("COMBINER: combining model updates from Clients...")
+
+        nr_processed_models = 0
         while nr_processed_models < nr_expected_models:
             try:
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
+                model_str = self._load_model_fault_tolerant(model_id)
+                if model_str:
+                    try:
+                        model_next = self.helper.load_model(model_str.getbuffer())
+                    except IOError:
+                        print("COMBINER: Failed to load model!")
+                        raise
+                else: 
+                    raise
 
-                model_next = self.helper.load_model(self.modelservice.get_model(model_id).getbuffer())
+                if nr_processed_models == 0:
+                    model = model_next
+                else:
+                    self.helper.increment_average(model, model_next, nr_processed_models)
+
                 nr_processed_models += 1
-                self.helper.increment_average(model, model_next, nr_processed_models)
                 self.model_updates.task_done()
+            except queue.Empty:
+                self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                    ,nr_expected_models))
+                time.sleep(1.0)
+                round_time += 1.0
+            except IOError:
+                self.report_status("COMBINER: Failed to read model update, skipping!")
+                self.model_updates.task_done()
+                nr_expected_models -= 1
+                if nr_expected_models <= 0:
+                    # This hack lets the timeout policy handle the failure
+                    round_time = timeout
+                    break
             except Exception as e:
-                import time
-                self.report_status("COMBINER failcode: {}".format(e))
+                self.report_status("COMBINER: Exception in combine_models: {}".format(e))
                 time.sleep(1.0)
                 round_time += 1.0
 
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
-                return None
+                # TODO: Generalize policy for what to do in case of timeout. 
+                if nr_processed_models >= nr_required_models:
+                    break
+                else:
+                    return None
 
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
                            log_level=fedn.Status.INFO)
@@ -133,9 +158,7 @@ class FEDAVGCombiner:
 
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
-
-        # Apply combiner
-        model = self.combine_models(nr_expected_models=len(clients), timeout=int(self.config['round_timeout']))
+        model = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=int(config['round_timeout']))
         return model
 
     def __validation_round(self,config,clients,model_id):
@@ -143,8 +166,11 @@ class FEDAVGCombiner:
 
     def push_run_config(self, plan):
         self.run_configs_lock.acquire()
+        import uuid
+        plan['_job_id'] = str(uuid.uuid4())
         self.run_configs.append(plan)
         self.run_configs_lock.release()
+        return plan['_job_id']
 
     def run(self):
 
@@ -169,7 +195,7 @@ class FEDAVGCombiner:
                         else:
                             print("COMBINER: Compute plan contains unkown task type.")
                     else:
-                        print("COMBINER: Failed to meet client allocation requirements for this compute_plan.")
+                        print("COMBINER: Failed to meet client allocation requirements for this compute plan.")
 
                 if self.run_configs_lock.locked():
                     self.run_configs_lock.release()
@@ -209,7 +235,6 @@ class FEDAVGCombiner:
         """  Obtain a list of clients to talk to in a round. """
 
         active_trainers = self.server.get_active_trainers()
-
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(active_trainers):
             n = len(active_trainers)
@@ -221,7 +246,7 @@ class FEDAVGCombiner:
         return clients
 
     def __check_nr_round_clients(self, config, timeout=10.0):
-        """ Check that the minimal number of required clients to start a round are connected """
+        """ Check that the minimal number of required clients to start a round are connected. """
 
         import time
         ready = False
@@ -256,44 +281,40 @@ class FEDAVGCombiner:
     def exec_training(self, config):
         """ Coordinates clients to executee training and validation tasks. """
 
-        print("COMBINER starting from model {}".format(config['model_id']))
+        #print("COMBINER starting from model {}".format(config['model_id']))
         self.stage_model(config['model_id'])
 
         # Execute the configured number of rounds
         for r in range(1, int(config['rounds']) + 1):
-            print("FEDAVG: Starting training round {}".format(r), flush=True)
-
+            print("COMBINER: Starting training round {}".format(r), flush=True)
             #clients = self.__assign_round_clients(int(config['clients_requested']))
             clients = self.__assign_round_clients(self.server.max_clients)
-            model = self.__training_round(config,clients)
+            model = self.__training_round(config, clients)
 
-            if model:
-                print("\t FEDAVG: Combiner round completed.", flush=True)
-                # TODO: Use configuration to decide if we should checkpoint the model.
-                # Checkpointing in the configured combiner-private storage should probably be handled by self.set_model. 
-            else:
+            if not model:
                 print("\t Failed to update global model in round {0}!".format(r))
 
-        fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-        model.save(outfile_name)
+        if model:
+            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
+            model.save(outfile_name)
 
-        # Save to local storage for sharing with clients.
-        from io import BytesIO
-        a = BytesIO()
-        a.seek(0, 0)
-        with open(outfile_name, 'rb') as f:
-            a.write(f.read())
+            # Save to local storage for sharing with clients.
+            from io import BytesIO
+            a = BytesIO()
+            a.seek(0, 0)
+            with open(outfile_name, 'rb') as f:
+                a.write(f.read())
 
-        # Stream aggregated model to server 
-        # TODO: Not strictly necessary to stream model here, can be waste of bandwidth.
-        model_id = str(uuid.uuid4())        
-        self.modelservice.set_model(a, model_id)
-        os.unlink(outfile_name)
+            # Send aggregated model to server 
+            model_id = str(uuid.uuid4())        
+            self.modelservice.set_model(a, model_id)
+            os.unlink(outfile_name)
 
-        # Update Combiner latest model
-        self.server.set_active_model(model_id)
+            # Update Combiner latest model
+            self.server.set_active_model(model_id)
 
-        print("------------------------------------------")
-        print("FEDAVG: TRAINING ROUND COMPLETED.", flush=True)
-        print("\n")
+            print("------------------------------------------")
+            print("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
+            print("\n")
+
  

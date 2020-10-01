@@ -4,7 +4,17 @@ from .reducerstatestore import ReducerStateStore
 
 
 class MongoReducerStateStore(ReducerStateStore):
-    def __init__(self):
+    def __init__(self, defaults=None):
+
+        import yaml
+        if defaults:
+            with open(defaults, 'r') as file:
+                try:
+                    print("SAFELOADING!!!! \n",flush=True)
+                    print(yaml.safe_load(file), flush=True)
+                except yaml.YamlError as e:
+                    print(e)
+
         try:
             self.mdb = connect_to_mongodb()
             self.state = self.mdb['state']
@@ -40,7 +50,7 @@ class MongoReducerStateStore(ReducerStateStore):
         ret = self.latest_model.find({'key': 'current_model'})
         try:
             retcheck = ret[0]['model']
-            if retcheck == '' or retcheck == ' ':  #ugly check for empty string
+            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):
@@ -49,14 +59,30 @@ class MongoReducerStateStore(ReducerStateStore):
     def set_compute_context(self, filename):
         from datetime import datetime
         x = self.compute_context.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
-        self.compute_context_trail.update({'key': 'package'}, {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+        self.compute_context_trail.update({'key': 'package'},
+                                          {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
     def get_compute_context(self):
         ret = self.compute_context.find({'key': 'package'})
         try:
             retcheck = ret[0]['filename']
-            if retcheck == '' or retcheck == ' ':  #ugly check for empty string
+            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
+        except (KeyError, IndexError):
+            return None
+
+    # new function to get module info from mongodb
+    def get_model_info(self):
+        # TODO: get all document in model collection...
+        ret = self.models.find_one()
+        try:
+            if ret:
+                committed_at = ret['committed_at']
+                model = ret['model']
+                model_dictionary = dict(zip(model, committed_at))
+                return model_dictionary
+            else:
+                return None
         except (KeyError, IndexError):
             return None
