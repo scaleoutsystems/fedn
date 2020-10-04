@@ -115,7 +115,7 @@ The actual deployment, sizing and tuning of a FEDn network in production depends
 Explore our other example models, or use them as templates to create your own project. 
 
 ## Support
-Reach out to Scaleout (https://scaleoutsystems.com) to learn about how FEDn can be customized, configured and deployed to enable secure, production-grade FEDn networks, FedML model life-cycle management, and governance for federated models.  
+Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.  
 
 ## Contributions
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 
