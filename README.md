@@ -4,8 +4,6 @@ FEDn is an open source framework for Federated Machine Learning (FedML), develop
 
 FEDn is modular and enables developers to configure and deploy FedML networks for different use-cases and deployment scenarios, ranging from cross-silo to cross-device. The framework takes a ML-framework agnostic approach to training federated models, treating client-side model updates and model aggregation as a black-box problem.  
 
-*Warning, this is an early version of the software. Do not use as is for production scenarios!*
-
 ## Core Features
 FEDn currently supports a horizontally scalable Hierarchical Federated Averaging orchestration scheme.  The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to support other ML frameworks - the only requirement is that it should make sense to average model parameters. Additional FedML training protocols, including support for various types of federated ensemble models, and helpers for PyTorch (as well as other popular frameworks), are in active development. 
 
@@ -110,6 +108,9 @@ To start training, navigate to the Reducer REST API endpoint: localhost:8090/sta
 ## Distributed deployment
 
 The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models, and on the available infrastructure and the desired strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate architecture plan. Then deploy reducers and combiners as needed by modifying the .env files and docker-compose files accordingly for each host/service. Reference deployment descriptions for representative scenarios and hardware are coming soon.  
+
+*Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans. *
+
 
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
