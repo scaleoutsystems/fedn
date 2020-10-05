@@ -18,7 +18,7 @@ def run_cmd(ctx):
 @click.option('-t', '--token', required=True)
 @click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
 @click.option('-i', '--client_id', required=False)
-@click.option('-r', '--remote', required=False, default=True)
+@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-v', '--preshared-cert', required=False, default=False)
@@ -31,7 +31,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
         name = str(uuid.uuid4())
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id, 'remote': remote, 'dry_run': dry_run, 'secure': secure,
+              'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert}
 
     from fedn.client import Client
