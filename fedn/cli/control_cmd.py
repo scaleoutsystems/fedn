@@ -12,9 +12,9 @@ def control_cmd(ctx):
 
 
 @control_cmd.command('package')
-@click.option('-r', '--reducer', required=True)
-@click.option('-p', '--port', required=True)
-@click.option('-t', '--token', required=True)
+@click.option('-r', '--reducer', required=False)
+@click.option('-p', '--port', required=False)
+@click.option('-t', '--token', required=False)
 @click.option('-n', '--name', required=False, default=None)
 @click.option('-u', '--upload', required=False, default=None)
 @click.option('-v', '--validate', required=False, default=False)
@@ -25,15 +25,27 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
         import os
         cwd = os.getcwd()
 
+    print("CONTROL: Bundling {} dir for distribution. Please wait for operation to complete..".format(cwd))
+
+    if not name:
+        from datetime import datetime
+        name = str(os.path.basename(cwd)) + '-' + datetime.today().strftime('%Y-%m-%d-%H%M%S')
+
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 
     from fedn.common.control.package import Package
     package = Package(config)
-    package.package(validate=validate)
 
+    print("CONTROL: Bundling package..")
+    package.package(validate=validate)
+    print("CONTROL: Bundle completed\nCONTROL: Resulted in: {}.tar.gz".format(name))
     if upload:
+        print("CONTROL: started upload")
         package.upload()
+        print("CONTROL: upload finished!")
+    else:
+        print("CONTROL: set --upload flag along with --reducer and --port if you want to upload directly from client.")
 
 
 @control_cmd.command('unpack')
