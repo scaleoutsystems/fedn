@@ -7,13 +7,14 @@ from flask import request, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = '/tmp/'
+UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 from flask import redirect, url_for
 import random
@@ -60,7 +61,7 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             if self.control.state() == ReducerState.setup:
-                return jsonify({'status':'retry'})
+                return jsonify({'status': 'retry'})
             # TODO check for get variables
             name = request.args.get('name', None)
             address = request.args.get('address', None)
@@ -95,7 +96,8 @@ class ReducerRestService:
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
-                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True, model_info=model_info)
+                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True,
+                                       model_info=model_info)
 
             seed = True
             return render_template('index.html', seed=seed)
@@ -138,7 +140,7 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             if self.control.state() == ReducerState.setup:
-                return jsonify({'status':'retry'})
+                return jsonify({'status': 'retry'})
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
             import uuid
@@ -153,16 +155,17 @@ class ReducerRestService:
                 # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'host': combiner.address, 'port': combiner.port,
+                response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
                             'certificate': str(cert_b64).split('\'')[1]}
 
                 return jsonify(response)
             elif combiner is None:
-                abort(404, description="Resource not found")
+                return jsonify({'status':'retry'})
+                #abort(404, description="Resource not found")
             # 1.receive client parameters
             # 2. check with available combiners if any clients are needed
             # 3. let client know where to connect.
-            return
+            return jsonify({'status': 'retry'})
 
         @app.route('/infer')
         def infer():
@@ -185,9 +188,9 @@ class ReducerRestService:
         #
         #    return result
         @app.route('/context', methods=['GET', 'POST'])
-        @csrf.exempt #TODO fix csrf token to form posting in package.py
+        @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
-            #if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
+            # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
             if request.method == 'POST':
 
@@ -208,9 +211,9 @@ class ReducerRestService:
 
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
-                    self.current_compute_context = filename #uploading new files will always set this to latest
+                    self.current_compute_context = filename  # uploading new files will always set this to latest
                     self.control.set_compute_context(filename)
-                    #return redirect(url_for('index',
+                    # return redirect(url_for('index',
                     #                        filename=filename))
                     return "success!"
 
@@ -219,7 +222,8 @@ class ReducerRestService:
             if name != '':
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
             if name == '' and self.current_compute_context:
-                return send_from_directory(app.config['UPLOAD_FOLDER'], self.current_compute_context, as_attachment=True)
+                return send_from_directory(app.config['UPLOAD_FOLDER'], self.current_compute_context,
+                                           as_attachment=True)
 
             return render_template('context.html')
 
