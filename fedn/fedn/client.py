@@ -89,10 +89,15 @@ class Client:
             from fedn.common.control.package import PackageRuntime
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
-            pr.download(config['discover_host'], config['discover_port'], config['token'])
-            pr.unpack()
+            retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+            if retval:
+                pr.unpack()
+
             self.dispatcher = pr.dispatcher()
-            self.dispatcher.run_cmd("startup")
+            try:
+                self.dispatcher.run_cmd("startup")
+            except KeyError:
+                print("No startup code present. skipping")
         else:
             dispatch_config = {'entry_points':
                                    {'predict': {'command': 'python3 predict.py'},
