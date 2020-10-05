@@ -43,6 +43,9 @@ class ReducerControl:
         # TODO: Make configurable
         self.helper = KerasSequentialHelper()
 
+        if self.statestore.is_inited():
+            self.__state = ReducerState.idle
+
     def get_latest_model(self):
         return self.statestore.get_latest()
 
