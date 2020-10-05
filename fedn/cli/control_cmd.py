@@ -57,12 +57,6 @@ def unpack_cmd(ctx, reducer, port, token, name, download, validate, cwd):
     package = PackageRuntime(cwd, os.path.join(cwd, 'client'))
     package.download(reducer, port, token)
     package.unpack()
-    dispatcher = package.dispatcher()
-
-    import tempfile
-    fid, infile_name = tempfile.mkstemp(suffix='.h5')
-    fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-    dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
 
 
 @control_cmd.command('template')
