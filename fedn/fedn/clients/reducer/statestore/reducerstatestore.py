@@ -20,3 +20,7 @@ class ReducerStateStore(ABC):
     @abstractmethod
     def get_latest(self):
         pass
+
+    @abstractmethod
+    def is_inited(self):
+        pass
