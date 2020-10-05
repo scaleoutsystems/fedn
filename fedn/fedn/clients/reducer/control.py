@@ -73,24 +73,31 @@ class ReducerControl:
         return osync
 
     def check_round_participation_policy(self,compute_plan,combiner_state):
-        """ Evaluate reducer level policy for combiner round-paarticipation. 
-            This is a decision on ReducerControl level, additional checks
-            applies on combiner level. Not all reducer control flows might
-            need or want to use a participation policy.  """
+        """ 
+            Evaluate reducer level policy for combiner round participation. 
+            Additional checks may be done on combiner level. 
+            Not all reducer control flows might need or want to use a participation policy,
+            it could be delegated to combiners.   
+        """
         if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
             return True
         else:
             return False
 
     def check_round_start_policy(self,combiners):
-        """ Check if the overall network state meets a policy to start the round. """
+        """ Check if the overall network state meets the policy to start a round. """
         if len(combiners) > 0:
             return True
         else:
             return False
 
     def check_round_validity_policy(self,combiners):
-        """ Before committing a model we check if a round validity policy has been met. """
+        """ 
+            At the end of the round, before committing a model to the model ledger, 
+            we check if a round validity policy has been met. This can involve 
+            e.g. asserting that a certain number of combiners have reported in an
+            updated model, or that criteria on model performance have been met. 
+        """
         if len(combiners) > 0:
             return True
         else:
