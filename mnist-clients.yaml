@@ -14,10 +14,10 @@ services:
     build:
       context: .
       dockerfile: components/client/Dockerfile
-    working_dir: /app/client
+    working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}1  -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
-      - ./test/${EXAMPLE}/client:/app/client
+    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
     ports:
@@ -34,10 +34,10 @@ services:
     build:
       context: .
       dockerfile: components/client/Dockerfile
-    working_dir: /app/client
+    working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}2 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-      - ./test/${EXAMPLE}/client:/app/client
+    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client3:
@@ -52,10 +52,10 @@ services:
     build:
       context: .
       dockerfile: components/client/Dockerfile
-    working_dir: /app/client
+    working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}3  -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-      - ./test/${EXAMPLE}/client:/app/client
+    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client4:
@@ -70,10 +70,10 @@ services:
     build:
       context: .
       dockerfile: components/client/Dockerfile
-    working_dir: /app/client
+    working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}4 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-      - ./test/${EXAMPLE}/client:/app/client
+    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client5:
@@ -88,10 +88,10 @@ services:
     build:
       context: .
       dockerfile: components/client/Dockerfile
-    working_dir: /app/client
+    working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}5 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-      - ./test/${EXAMPLE}/client:/app/client
+    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
       - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
 
