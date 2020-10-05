@@ -33,6 +33,7 @@ setup(
         "Flask",
         "Flask-WTF",
         "pyopenssl",
+        "plotly",
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,

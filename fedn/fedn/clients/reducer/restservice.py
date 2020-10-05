@@ -1,10 +1,17 @@
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerStateToString
-from flask import Flask
 from flask import jsonify, abort
-from flask import render_template
-from flask import request
 from flask_wtf.csrf import CSRFProtect
+from flask import Flask, jsonify, render_template, request
+from flask import redirect, url_for
+import pymongo
+import json
+import numpy
+import plotly.graph_objs as go
+from datetime import datetime,timedelta
+import plotly
+
+import os
 
 
 class ReducerRestService:
@@ -17,11 +24,16 @@ class ReducerRestService:
     def run(self):
         app = Flask(__name__)
         csrf = CSRFProtect()
-        import os
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
 
         csrf.init_app(app)
+
+        c = pymongo.MongoClient()
+        mc = pymongo.MongoClient(os.environ['FEDN_MONGO_HOST'], int(os.environ['FEDN_MONGO_PORT']), username=os.environ['FEDN_MONGO_USER'],
+                                 password=os.environ['FEDN_MONGO_PASSWORD'])
+        mdb = mc[os.environ['ALLIANCE_UID']]
+        alliance = mdb["status"]
 
         @app.route('/')
         def index():
@@ -32,7 +44,9 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
+                                   dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
+                                   dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
@@ -57,8 +71,24 @@ class ReducerRestService:
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
             self.control.add(combiner)
 
-            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1], 'key': str(key_b64).split('\'')[1]} #TODO remove ugly string hack
+            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
+                   'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
             return jsonify(ret)
+
+        @app.route('/seed', methods=['GET', 'POST'])
+        def seed():
+            if request.method == 'POST':
+                # upload seed file
+                uploaded_seed = request.files['seed']
+                if uploaded_seed:
+                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+            else:
+                h_latest_model_id = self.control.get_latest_model()
+                model_info = self.control.get_model_info()
+                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True, model_info=model_info)
+
+            seed = True
+            return redirect(url_for('seed', seed=seed))
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
@@ -66,23 +96,26 @@ class ReducerRestService:
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
-                model_id = request.form.get('model', '879fa112-c861-4cb1-a25d-775153e5b548')
-                if model_id == '':
-                    model_id = '879fa112-c861-4cb1-a25d-775153e5b548'
                 rounds = int(request.form.get('rounds', 1))
+
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 2)
                 clients_requested = request.form.get('clients_requested', 8)
 
-                config = {'round_timeout': timeout, 'model_id': model_id, 'rounds': rounds,
-                          'active_clients': active_clients, 'clients_required': clients_required,
+                latest_model_id = self.control.get_latest_model()
+                config = {'round_timeout': timeout, 'model_id': latest_model_id,
+                          'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                config['model_id'] = '879fa112-c861-4cb1-a25d-775153e5b548'
                 self.control.instruct(config)
-                from flask import redirect, url_for
                 return redirect(url_for('index', message="Sent execution plan."))
+
+            else:
+                # Select rounds UI
+                rounds = range(1, 100)
+                latest_model_id = self.control.get_latest_model()
+                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -103,10 +136,11 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                #certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
+                # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'host': combiner.address, 'port': combiner.port, 'certificate': str(cert_b64).split('\'')[1]}
+                response = {'host': combiner.address, 'port': combiner.port,
+                            'certificate': str(cert_b64).split('\'')[1]}
 
                 return jsonify(response)
             elif combiner is None:
@@ -125,6 +159,288 @@ class ReducerRestService:
                 print("Failed to seed control.")
 
             return result
+
+        # plot metrics from DB
+        def _scalar_metrics(metrics):
+            """ Extract all scalar valued metrics from a MODEL_VALIDATON. """
+
+            data = json.loads(metrics['data'])
+            data = json.loads(data['data'])
+
+            valid_metrics = []
+            for metric, val in data.items():
+                # If it can be converted to a float it is a valid, scalar metric
+                try:
+                    val = float(val)
+                    valid_metrics.append(metric)
+                except:
+                    pass
+
+            return valid_metrics
+
+        @app.route('/plot')
+        def plot():
+            box = 'box'
+            plot = create_plot(box)
+            show_plot = True
+            return render_template('index.html', show_plot=show_plot, plot=plot)
+
+        def create_plot(feature):
+            if feature == 'table':
+                return create_table_plot()
+            elif feature == 'timeline':
+                return create_timeline_plot()
+            elif feature == 'ml':
+                return create_ml_plot()
+            elif feature == 'box':
+                return create_box_plot()
+            else:
+                return 'No plot!'
+
+        @app.route('/plot_type', methods=['GET', 'POST'])
+        def change_features():
+            feature = request.args['selected']
+            graphJSON = create_plot(feature)
+            return graphJSON
+
+        def create_table_plot():
+            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+            if metrics == None:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No data currently available for mean metrics')
+                table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return table
+
+            valid_metrics = _scalar_metrics(metrics)
+            if valid_metrics == []:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No scalar metrics found')
+                table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return table
+
+            all_vals = []
+            models = []
+            for metric in valid_metrics:
+                validations = {}
+                for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+                    e = json.loads(post['data'])
+                    try:
+                        validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
+                    except KeyError:
+                        validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
+
+                vals = []
+                models = []
+                for model, data in validations.items():
+                    vals.append(numpy.mean(data))
+                    models.append(model)
+                all_vals.append(vals)
+
+            header_vals = valid_metrics
+            models.reverse()
+            values = [models]
+            print(all_vals, flush=True)
+            for vals in all_vals:
+                vals.reverse()
+                values.append(vals)
+
+            fig = go.Figure(data=[go.Table(
+                header=dict(values=['Model ID'] + header_vals,
+                            line_color='darkslategray',
+                            fill_color='lightskyblue',
+                            align='left'),
+
+                cells=dict(values=values,  # 2nd column
+                           line_color='darkslategray',
+                           fill_color='lightcyan',
+                           align='left'))
+            ])
+
+            fig.update_layout(title_text='Summary: mean metrics')
+            table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return table
+
+        def create_timeline_plot():
+            trace_data = []
+            x = []
+            y = []
+            base = []
+            for p in alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
+                e = json.loads(p['data'])
+                cid = e['correlationId']
+                for cc in alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
+                    da = json.loads(cc['data'])
+                    if da['correlationId'] == cid:
+                        cp = cc
+
+                cd = json.loads(cp['data'])
+                tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+                tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+                ts = tu - tr
+                base.append(tr.timestamp())
+                x.append(ts.total_seconds())
+                y.append(p['sender']['name'])
+
+            trace_data.append(go.Bar(
+                x=x,
+                y=y,
+                orientation='h',
+                base=base,
+                marker=dict(color='royalblue'),
+                name="Training",
+            ))
+
+            x = []
+            y = []
+            base = []
+            for p in alliance.find({'type': 'MODEL_VALIDATION_REQUEST'}):
+                e = json.loads(p['data'])
+                cid = e['correlationId']
+                for cc in alliance.find({'sender': p['sender'], 'type': 'MODEL_VALIDATION'}):
+                    da = json.loads(cc['data'])
+                    if da['correlationId'] == cid:
+                        cp = cc
+                cd = json.loads(cp['data'])
+                tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+                tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+                ts = tu - tr
+                base.append(tr.timestamp())
+                x.append(ts.total_seconds())
+                y.append(p['sender']['name'])
+
+            trace_data.append(go.Bar(
+                x=x,
+                y=y,
+                orientation='h',
+                base=base,
+                marker=dict(color='lightskyblue'),
+                name="Validation",
+            ))
+
+            layout = go.Layout(
+                barmode='stack',
+                showlegend=True,
+            )
+
+            fig = go.Figure(data=trace_data, layout=layout)
+            fig.update_xaxes(title_text='Timestamp')
+            fig.update_layout(title_text='Alliance timeline')
+
+            # tab = go.Figure(data=[go.Table(
+            #     header=dict(values=['Model updates', 'Model Validations'],
+            #                 line_color='darkslategray',
+            #                 fill_color='lightskyblue',
+            #                 align='left'),
+            #     cells=dict(values=[[100, 90, 80, 90],  # 1st column
+            #                        [95, 85, 75, 95]],  # 2nd column
+            #                line_color='darkslategray',
+            #                fill_color='lightcyan',
+            #                align='left'))
+            # ])
+            #
+            # tab.update_layout(width=500, height=300)
+            # tab.update_layout(title_text='Summary')
+            timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return timeline
+
+        def create_ml_plot():
+            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+            if metrics == None:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No data currently available for Mean Absolute Error')
+                ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return ml
+
+            data = json.loads(metrics['data'])
+            data = json.loads(data['data'])
+            valid_metrics = []
+            for metric, val in data.items():
+                # Check if scalar - is this robust ?
+                if isinstance(val, float):
+                    valid_metrics.append(metric)
+
+            # Assemble a dict with all validations
+            validations = {}
+            clients = {}
+
+            for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+                try:
+                    e = json.loads(post['data'])
+                    clients[post['sender']['name']].append(json.loads(e['data'])[metric])
+                except KeyError:
+                    clients[post['sender']['name']] = []
+
+            rounds = []
+            traces_data = []
+
+            for c in clients:
+                print(clients[c], flush=True)
+                traces_data.append(go.Scatter(
+                    x=rounds,
+                    y=clients[c],
+                    name=c
+                ))
+            fig = go.Figure(traces_data)
+            fig.update_xaxes(title_text='Rounds')
+            fig.update_yaxes(title_text='MAE', tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            fig.update_layout(title_text='Mean Absolute Error Plot')
+            ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return ml
+
+        def create_box_plot():
+            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
+            if metrics == None:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No data currently available for metric distribution over alliance '
+                                             'participants')
+                box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return box
+
+            valid_metrics = _scalar_metrics(metrics)
+            if valid_metrics == []:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No scalar metrics found')
+                box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return box
+
+            # Just grab the first metric in the list.
+            # TODO: Let the user choose, or plot all of them.
+            if "accuracy" in valid_metrics:
+                metric = "accuracy"
+            else:
+                metric = valid_metrics[0]
+            validations = {}
+            for post in alliance.find({'type': 'MODEL_VALIDATION'}):
+                e = json.loads(post['data'])
+                try:
+                    validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
+                except KeyError:
+                    validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
+
+            box = go.Figure()
+
+            x = []
+            y = []
+            box_trace = []
+            for model_id, acc in validations.items():
+                x.append(model_id)
+                y.append(numpy.mean([float(i) for i in acc]))
+                if len(acc) >= 2:
+                    box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False))
+
+            rounds = list(range(len(y)))
+            box.add_trace(go.Scatter(
+                x=x,
+                y=y,
+                name='Mean'
+            ))
+
+            box.update_xaxes(title_text='Model ID')
+            box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric))
+            box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
+            return box
+
 
         # @app.route('/seed')
         # def seed():

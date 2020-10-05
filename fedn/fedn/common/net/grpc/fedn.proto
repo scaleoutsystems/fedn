@@ -186,8 +186,9 @@ message ControlRequest {
   repeated Parameter parameter = 2;
 }
 
-  message ControlResponse {
-    string message = 1;
+message ControlResponse {
+  string message = 1;
+  repeated Parameter parameter = 2;
 }
 
 message ReportResponse {
