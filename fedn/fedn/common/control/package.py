@@ -100,14 +100,20 @@ class PackageRuntime:
             path = path + "?name={}".format(name)
 
         with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
-            import cgi
-            params = cgi.parse_header(r.headers.get('Content-Disposition', ''))[-1]
-            self.pkg_name = params['filename']
+            if 200 <= r.status_code < 204:
+                import cgi
+                params = cgi.parse_header(r.headers.get('Content-Disposition', ''))[-1]
+                try:
+                    self.pkg_name = params['filename']
+                except KeyError:
+                    print("No package returned!", flush=True)
+                    return None
+                r.raise_for_status()
+                with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
 
-            r.raise_for_status()
-            with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
+        return True
 
     def validate(self):
         # crosscheck checksum and unpack if security checks are ok.
@@ -143,8 +149,8 @@ class PackageRuntime:
         try:
             cfg = None
             with open(os.path.join(os.path.join(self.dir, 'client'), 'fedn.yaml'), 'rb') as config_file:
-                import json
-                cfg = json.loads(config_file.read())
+                import yaml
+                cfg = yaml.safe_load(config_file.read())
                 self.dispatch_config = cfg
 
         except Exception as e:
