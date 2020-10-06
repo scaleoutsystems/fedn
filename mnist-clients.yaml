@@ -17,9 +17,7 @@ services:
     working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}1  -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}" 
     volumes:
-    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
     ports:
       - 8080:8080
   client2:
@@ -37,9 +35,7 @@ services:
     working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}2 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client3:
     environment:
       - GET_HOSTS_FROM=dns
@@ -55,9 +51,7 @@ services:
     working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}3  -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client4:
     environment:
       - GET_HOSTS_FROM=dns
@@ -73,9 +67,7 @@ services:
     working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}4 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
   client5:
     environment:
       - GET_HOSTS_FROM=dns
@@ -91,7 +83,5 @@ services:
     working_dir: /app/
     command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}5 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
-    #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data:/app/data
-      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
 
