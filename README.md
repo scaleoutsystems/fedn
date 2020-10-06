@@ -122,4 +122,4 @@ Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure an
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 
 
 ## License
-See LICENSE file.
+FEDn is licenced under Apache-2.0 (see LICENSE file for full information).
