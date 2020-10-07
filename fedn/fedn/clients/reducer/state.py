@@ -2,12 +2,15 @@ from enum import Enum
 
 
 class ReducerState(Enum):
-    idle = 1
-    instructing = 2
-    monitoring = 3
+    setup = 1
+    idle = 2
+    instructing = 3
+    monitoring = 4
 
 
 def ReducerStateToString(state):
+    if state == ReducerState.setup:
+        return "setup"
     if state == ReducerState.idle:
         return "idle"
     if state == ReducerState.instructing:
@@ -19,6 +22,8 @@ def ReducerStateToString(state):
 
 
 def StringToReducerState(state):
+    if state == "setup":
+        return ReducerState.setup
     if state == "idle":
         return ReducerState.idle
     elif state == "instructing":

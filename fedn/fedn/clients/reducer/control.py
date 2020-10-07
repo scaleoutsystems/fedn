@@ -24,7 +24,7 @@ class Model:
 class ReducerControl:
 
     def __init__(self, statestore):
-        self.__state = ReducerState.idle
+        self.__state = ReducerState.setup
         self.statestore = statestore
         self.combiners = []
 
@@ -43,12 +43,30 @@ class ReducerControl:
         # TODO: Make configurable
         self.helper = KerasSequentialHelper()
 
+        if self.statestore.is_inited():
+            self.__state = ReducerState.idle
+
     def get_latest_model(self):
         return self.statestore.get_latest()
 
     def get_model_info(self):
         return self.statestore.get_model_info()
-     
+
+    def get_compute_context(self):
+        definition = self.statestore.get_compute_context()
+        if definition:
+            try:
+                context = definition['filename']
+                return context
+            except IndexError:
+                print("No context filename set for compute context definition", flush=True)
+        else:
+            return None
+
+    def set_compute_context(self, filename):
+        self.statestore.set_compute_context(filename)
+
+
     def commit(self, model_id, model=None):
         """ Commit a model. This establishes this model as the lastest consensus model. """
 
@@ -73,12 +91,10 @@ class ReducerControl:
         return osync
 
     def check_round_participation_policy(self,compute_plan,combiner_state):
-        """ 
-            Evaluate reducer level policy for combiner round participation. 
-            Additional checks may be done on combiner level. 
-            Not all reducer control flows might need or want to use a participation policy,
-            it could be delegated to combiners.   
-        """
+        """ Evaluate reducer level policy for combiner round-paarticipation.
+            This is a decision on ReducerControl level, additional checks
+            applies on combiner level. Not all reducer control flows might
+            need or want to use a participation policy.  """
         if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
             return True
         else:
@@ -101,7 +117,7 @@ class ReducerControl:
         if len(combiners) > 0:
             return True
         else:
-            return False 
+            return False
 
 
     def round(self, config):
@@ -134,14 +150,14 @@ class ReducerControl:
 
 
         # 2. Sync up and ask participating combiners to coordinate model updates
-        for combiner,compute_plan in combiners:        
+        for combiner,compute_plan in combiners:
             self.sync_combiners([combiner],self.get_latest_model())
             print(combiner,compute_plan,flush=True)
             response = combiner.start(compute_plan)
 
         # Wait until all participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
-        # TODO: We do not need to wait until all combiners complete before we start reducing. 
+        # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
         for combiner,plan in combiners:
             cl.append(combiner)
@@ -154,20 +170,20 @@ class ReducerControl:
                 break
 
         # OBS! Here we are checking agains all combiners, not just those that computed in this round.
-        # This means we let straggling combiners participate in the update 
+        # This means we let straggling combiners participate in the update
         updated = self._out_of_sync()
         print("UPDATED: {}".format(updated),flush=True)
 
 
         round_valid = self.check_round_validity_policy(updated)
         if not round_valid:
-            # TODO: Should we reset combiner state here? 
+            # TODO: Should we reset combiner state here?
             return None
 
         # 3. Reduce combiner models into a global model
         # TODO, check success
         model = self.reduce(updated)
-        
+
         if model:
             import uuid
             model_id = uuid.uuid4()
@@ -202,6 +218,7 @@ class ReducerControl:
 
         self.__state = ReducerState.instructing
 
+        # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
             print("No model in model chain, please seed the alliance!")
 
@@ -248,6 +265,7 @@ class ReducerControl:
         return model
 
     def monitor(self, config=None):
+        pass
         """ monitor """
         #if self.__state == ReducerState.monitoring:
             #print("monitoring")
@@ -274,7 +292,6 @@ class ReducerControl:
         return None
 
     def find_available_combiner(self):
-        # TODO: Extend with more types of client allocation schemes. 
         for combiner in self.combiners:
             if combiner.allowing_clients():
                 return combiner

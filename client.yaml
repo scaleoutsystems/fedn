@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+
+  client1:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - CLIENT_NAME=${CLIENT_NAME_BASE}1
+      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
+      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
+      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
+      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/client
+    command: /bin/bash -c "tail -f /dev/null"
+    volumes:
+      #- ./test/${EXAMPLE}/client:/app/client
+      #- ./test/${EXAMPLE}/data:/app/data
+      - ./test/${EXAMPLE}/reducer/certs/reducer-cert.pem:/app/client/certs/client-cert.pem
+    ports:
+      - 8080:8080
