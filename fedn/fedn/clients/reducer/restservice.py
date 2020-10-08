@@ -40,12 +40,14 @@ class ReducerRestService:
 
     def run(self):
         app = Flask(__name__)
+        # TODO support CSRF in monitoring dashboard
         #dashboard.bind(app)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
         import os
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
+        csrf.init_app(app)
 
         mc = pymongo.MongoClient(os.environ['FEDN_MONGO_HOST'], int(os.environ['FEDN_MONGO_PORT']), username=os.environ['FEDN_MONGO_USER'],
                                  password=os.environ['FEDN_MONGO_PASSWORD'])
