@@ -133,6 +133,8 @@ class ReducerControl:
             return
 
         self.__state = ReducerState.instructing
+
+        # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
             print("No model in model chain, seeding the alliance with {}".format(config['model_id']))
             self.commit(config['model_id'])
@@ -143,12 +145,26 @@ class ReducerControl:
         self.tracer = MongoTracer()
         self.tracer.drop_performances()
         for round in range(int(config['rounds'])):
-            # TODO: CPU loads and memory monitoring for each round #import psutil
             import psutil
             from datetime import datetime
+            # TODO: CPU loads and memory monitoring for each round #import psutil
+            print('-------------------------------')
+            print('Round Nbr ', round)
             start_time = datetime.now()
+            print('TIME:', start_time)
+            print('CPU', dict(psutil.cpu_times()._asdict()))
+            print('CPU-PERCENT', psutil.cpu_percent(interval=None))
+            print('CPU-COUNT', psutil.cpu_count())
+
+            print('VIRTUAL-MEM', psutil.virtual_memory())
+
             self.round(config)
+
             end_time = datetime.now()
+            print('FTIME:', end_time)
+            print('FCPU', dict(psutil.cpu_times()._asdict()))
+            print('FMEM', dict(psutil.virtual_memory()._asdict()))
+            print('-------------------------------')
             round_time = end_time - start_time
             print('ROUND TIME:', round_time.seconds)
             self.tracer.set_latest_time(round, round_time.seconds)

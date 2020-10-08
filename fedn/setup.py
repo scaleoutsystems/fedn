@@ -10,7 +10,7 @@ setup(
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
     include_package_data=True,
-    py_modules=['fedn', 'flask_monitoringdashboard'],
+    py_modules=['fedn'],
     python_requires='>=3.5,<4',
     install_requires=[
         "attrdict>=2.0.1",

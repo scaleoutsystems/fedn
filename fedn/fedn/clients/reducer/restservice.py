@@ -27,12 +27,9 @@ class ReducerRestService:
         #dashboard.bind(app)
         csrf = CSRFProtect()
         csrf.init_app(app)
-
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
 
-
-        c = pymongo.MongoClient()
         mc = pymongo.MongoClient(os.environ['FEDN_MONGO_HOST'], int(os.environ['FEDN_MONGO_PORT']), username=os.environ['FEDN_MONGO_USER'],
                                  password=os.environ['FEDN_MONGO_PASSWORD'])
         mdb = mc[os.environ['ALLIANCE_UID']]
