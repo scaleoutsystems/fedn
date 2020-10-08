@@ -103,7 +103,7 @@ Make sure that you can access the Reducer UI at https://localhost:8090, and that
 
 #### Seed the system with an initial model
 
-Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model to the appropriate location in Minio. Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).  Create a bucket called 'models' and upload the seed model file there. 
+Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/seed). Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
 
 *Note, there is a script "init_model.py" that you can edit if you would like to alter the actual structure of the seed model.*
 
@@ -112,9 +112,8 @@ To start training, navigate to the Reducer REST API endpoint: localhost:8090/sta
 
 You can follow the progress of training visually in the Dashboard: 
 
- - localhost:5111/table 
- - localhost:5111/box
-
+ - https://localhost:8090/plot
+ 
 ## Distributed deployment
 
 The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models and on the available infrastructure. To deploy a setup across different hosts in a live environment, create an architecture plan and modify the .env file accordingly for each host/service. You also need provide signed certificates for the various services. Reference deployment descriptions for representative scenarios and hardware are coming soon. 

@@ -10,7 +10,7 @@ setup(
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
     include_package_data=True,
-    py_modules=['fedn'],
+    py_modules=['fedn', 'flask_monitoringdashboard'],
     python_requires='>=3.5,<4',
     install_requires=[
         "attrdict>=2.0.1",
@@ -34,6 +34,12 @@ setup(
         "Flask-WTF",
         "pyopenssl",
         "plotly",
+        "ttictoc",
+        "flask_profiler",
+        "psutil",
+        "click",
+        "jinja2==2.11.1",
+
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,

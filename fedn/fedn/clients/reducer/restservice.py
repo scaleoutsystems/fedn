@@ -12,6 +12,7 @@ from datetime import datetime,timedelta
 import plotly
 
 import os
+import flask_monitoringdashboard as dashboard
 
 
 class ReducerRestService:
@@ -23,17 +24,20 @@ class ReducerRestService:
 
     def run(self):
         app = Flask(__name__)
+        #dashboard.bind(app)
         csrf = CSRFProtect()
+        csrf.init_app(app)
+
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
 
-        csrf.init_app(app)
 
         c = pymongo.MongoClient()
         mc = pymongo.MongoClient(os.environ['FEDN_MONGO_HOST'], int(os.environ['FEDN_MONGO_PORT']), username=os.environ['FEDN_MONGO_USER'],
                                  password=os.environ['FEDN_MONGO_PASSWORD'])
         mdb = mc[os.environ['ALLIANCE_UID']]
         alliance = mdb["status"]
+        round_time = mdb["performances"]
 
         @app.route('/')
         def index():
@@ -190,8 +194,8 @@ class ReducerRestService:
                 return create_table_plot()
             elif feature == 'timeline':
                 return create_timeline_plot()
-            elif feature == 'ml':
-                return create_ml_plot()
+            elif feature == 'round_time':
+                return create_round_plot()
             elif feature == 'box':
                 return create_box_plot()
             else:
@@ -325,21 +329,6 @@ class ReducerRestService:
             fig = go.Figure(data=trace_data, layout=layout)
             fig.update_xaxes(title_text='Timestamp')
             fig.update_layout(title_text='Alliance timeline')
-
-            # tab = go.Figure(data=[go.Table(
-            #     header=dict(values=['Model updates', 'Model Validations'],
-            #                 line_color='darkslategray',
-            #                 fill_color='lightskyblue',
-            #                 align='left'),
-            #     cells=dict(values=[[100, 90, 80, 90],  # 1st column
-            #                        [95, 85, 75, 95]],  # 2nd column
-            #                line_color='darkslategray',
-            #                fill_color='lightcyan',
-            #                align='left'))
-            # ])
-            #
-            # tab.update_layout(width=500, height=300)
-            # tab.update_layout(title_text='Summary')
             timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return timeline
 
@@ -374,7 +363,6 @@ class ReducerRestService:
             traces_data = []
 
             for c in clients:
-                print(clients[c], flush=True)
                 traces_data.append(go.Scatter(
                     x=rounds,
                     y=clients[c],
@@ -441,6 +429,31 @@ class ReducerRestService:
             box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
             return box
 
+        def create_round_plot():
+            metrics = round_time.find_one({'key': 'performance'})
+            if metrics == None:
+                fig = go.Figure(data=[])
+                fig.update_layout(title_text='No data currently available for round time')
+                ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                return ml
+
+            for post in round_time.find({'key': 'performance'}):
+                rounds = post['round']
+                traces_data = post['time']
+
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=rounds,
+                y=traces_data,
+                mode='lines+markers',
+                name='Time'
+            ))
+
+            fig.update_xaxes(title_text='Rounds')
+            fig.update_yaxes(title_text='Time (s)')
+            fig.update_layout(title_text='Round time')
+            round_t = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return round_t
 
         # @app.route('/seed')
         # def seed():
