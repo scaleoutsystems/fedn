@@ -4,7 +4,7 @@ RUN adduser --disabled-password --gecos '' fednuser \
     && echo '%sudo ALL=(ALL:ALL) ALL' >> /etc/sudoers
 
 
-RUN mkdir /app
+RUN mkdir -p /app/client
 RUN mkdir /app/certs
 COPY fedn /app/fedn
 RUN pip install -e /app/fedn

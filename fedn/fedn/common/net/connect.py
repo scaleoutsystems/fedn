@@ -40,7 +40,8 @@ class ConnectorClient:
             prefix = "https://"
         if secure and preshared_cert:
             import os
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem").cert_path
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
+                                           cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
         self.prefix = prefix
@@ -58,11 +59,14 @@ class ConnectorClient:
             retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
-            print('***** {}'.format(e),flush=True)
+            print('***** {}'.format(e), flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
+            if retval.json()['status'] == 'retry':
+                print("Reducer was not ready. Try again later.")
+                return Status.TryAgain, None
             print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
                   flush=True)
             return Status.Assigned, retval.json()
@@ -93,7 +97,8 @@ class ConnectorCombiner:
             prefix = "https://"
         if secure and preshared_cert:
             import os
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem", cert_name="client-cert.pem",
+            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
+                                           cert_name="client-cert.pem",
                                            ).cert_path
         else:
             self.verify_cert = False
@@ -121,7 +126,10 @@ class ConnectorCombiner:
             return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
-            #print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+            if retval.json()['status'] == 'retry':
+                print("Reducer was not ready. Try again later.")
+                return Status.TryAgain, None
+            # print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
             #      flush=True)
             return Status.Assigned, retval.json()
 

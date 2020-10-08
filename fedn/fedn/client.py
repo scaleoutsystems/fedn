@@ -85,16 +85,27 @@ class Client:
         print("Client: {} connected {} to {}:{}".format(self.name,
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
+        if config['remote_compute_context']:
+            from fedn.common.control.package import PackageRuntime
+            pr = PackageRuntime(os.getcwd(), os.getcwd())
 
-        # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
-        dispatch_config = {'entry_points':
-                               {'predict': {'command': 'python3 predict.py'},
-                                'train': {'command': 'python3 train.py'},
-                                'validate': {'command': 'python3 validate.py'}}}
+            retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+            if retval:
+                pr.unpack()
 
-        # TODO REMOVE OVERRIDE WITH CONTEXT FETCHED
-        dispatch_dir = os.getcwd()
-        self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
+            self.dispatcher = pr.dispatcher()
+            try:
+                self.dispatcher.run_cmd("startup")
+            except KeyError:
+                print("No startup code present. skipping")
+        else:
+            dispatch_config = {'entry_points':
+                                   {'predict': {'command': 'python3 predict.py'},
+                                    'train': {'command': 'python3 train.py'},
+                                    'validate': {'command': 'python3 validate.py'}}}
+            dispatch_dir = os.getcwd()
+            self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
+
         self.lock = threading.Lock()
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
