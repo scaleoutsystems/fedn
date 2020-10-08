@@ -211,6 +211,56 @@ class ReducerRestService:
 
             return valid_metrics
 
+        @app.route('/map_view')
+        def map_view():
+            map = create_map()
+            try:
+                return render_template('index.html', show_map=True, map=map)
+            except Exception as e:
+                return str(e)
+
+        def create_map():
+            mapbox_access_token = "pk.eyJ1IjoiZHN0b3lhbm92YSIsImEiOiJja2cwbnBvYzUwMWFjMnhvNTY5azZ1NWs5In0.plMjsaU58g3jL9_50WSq9w"
+
+            fig = go.Figure(go.Scattermapbox(
+                lat=['65.584816', '58.283489', '59.611366',
+                     '63.825848', '58.588455', '59.334591',
+                     '58.351307', '57.751442', '57.708870',
+                     '57.634800'],
+                lon=['22.156704', '12.285821', '16.545025',
+                     '20.263035', '16.188313', '18.063240',
+                     '11.885834', '16.628838', '11.974560',
+                     '18.294840'],
+                mode='markers',
+                marker=go.scattermapbox.Marker(
+                    size=9
+                ),
+                text=["Luleå, Norrbotten", "Trollhättan", "Västerås",
+                      "Umeå", "Norrköping, Östergötland", "Stockholm",
+                      "Uddevalla", "Västervik", "Gothenburg",
+                      "Visby, Gotland Island"]
+            ))
+
+            fig.update_layout(
+                autosize=False,
+                width=1280,
+                height=720,
+                hovermode='closest',
+                mapbox=dict(
+                    accesstoken=mapbox_access_token,
+                    bearing=0,
+                    center=dict(
+                        lat=50.3785,
+                        lon=14.9706
+                    ),
+                    pitch=0,
+                    zoom=2
+                ),
+            )
+
+            fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return fig
+
         @app.route('/plot')
         def plot():
             box = 'box'
