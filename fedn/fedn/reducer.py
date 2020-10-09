@@ -36,10 +36,19 @@ class Reducer:
         threading.Thread(target=self.rest.run, daemon=True).start()
 
         import time
+        from datetime import datetime
         try:
+            old_state = self.control.state()
+
+            t1 = datetime.now()
             while True:
-                time.sleep(5)
-                print("Reducer in {} state".format(ReducerStateToString(self.control.state())), flush=True)
+                time.sleep(1)
+                if old_state != self.control.state():
+                    delta = datetime.now() - t1
+                    print("Reducer in state {} for {} seconds. Entering {} state".format(ReducerStateToString(old_state),delta.seconds,ReducerStateToString(self.control.state())), flush=True)
+                    t1 = datetime.now()
+                    old_state = self.control.state()
+
                 self.control.monitor()
         except (KeyboardInterrupt, SystemExit):
             print("Exiting..", flush=True)
