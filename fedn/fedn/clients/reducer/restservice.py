@@ -211,7 +211,7 @@ class ReducerRestService:
 
             return valid_metrics
 
-        @app.route('/map_view')
+        @app.route('/network')
         def map_view():
             map = create_map()
             try:
