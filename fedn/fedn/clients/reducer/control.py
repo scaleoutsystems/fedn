@@ -114,10 +114,10 @@ class ReducerControl:
             e.g. asserting that a certain number of combiners have reported in an
             updated model, or that criteria on model performance have been met. 
         """
-        if len(combiners) > 0:
-            return True
-        else:
+        if combiners == []:
             return False
+        else:
+            return True
 
 
     def round(self, config):
@@ -169,36 +169,46 @@ class ReducerControl:
             if wait >= config['round_timeout']:
                 break
 
-        # OBS! Here we are checking agains all combiners, not just those that computed in this round.
+        # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._out_of_sync()
         print("UPDATED: {}".format(updated),flush=True)
 
-
         round_valid = self.check_round_validity_policy(updated)
-        if not round_valid:
+        if round_valid == False:
             # TODO: Should we reset combiner state here?
+            print("REDUCER CONTROL: Round invalid!",flush=True)
             return None
 
         # 3. Reduce combiner models into a global model
         # TODO, check success
-        model = self.reduce(updated)
+        try:
+            model = self.reduce(updated)
+        except:
+            print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            return None
 
         if model:
+            # Add to model ledger
             import uuid
             model_id = uuid.uuid4()
             self.commit(model_id,model)
 
-            # 4. Trigger participating combiner nodes to execute a validation round for the current model
+        else:
+            print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
+            return None
+
+        # 4. Trigger participating combiner nodes to execute a validation round for the current model
+        # TODO: Move to config - are we validating in a round, and if so, in what way. 
+        validate = True
+        if validate:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             for combiner in updated:
                 combiner.start(combiner_config)
-            return model_id
-        else:
-            print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
-            return None
+
+        return model_id
 
     def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
