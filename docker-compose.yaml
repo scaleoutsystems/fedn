@@ -45,26 +45,6 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: ${FEDN_ME_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${FEDN_ME_PASSWORD}
 
-#  dashboard:
-#    environment:
-#      - GET_HOSTS_FROM=dns
-#      - ALLIANCE_UID=${ALLIANCE_UID}
-#      - HOST=${FEDN_DASHBOARD_HOST}
-#      - PORT=${FEDN_DASHBOARD_PORT}
-#      - MONGO_HOST=${FEDN_MONGO_HOST}
-#      - MONGO_PORT=${FEDN_MONGO_PORT}
-#      - MDBUSR=${FEDN_MONGO_USER}
-#      - MDBPWD=${FEDN_MONGO_PASSWORD}
-#    build:
-#      context: .
-#      dockerfile: components/dashboard/Dockerfile
-#    working_dir: /app
-#    restart: always
-#    volumes:
-#      - ./components/dashboard:/app
-#    ports:
-#      - "${FEDN_DASHBOARD_PORT}:${FEDN_DASHBOARD_PORT}"
-
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
   minio-data:
