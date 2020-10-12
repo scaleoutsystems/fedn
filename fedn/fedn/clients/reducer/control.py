@@ -28,7 +28,6 @@ class ReducerControl:
         self.statestore = statestore
         self.combiners = []
 
-        # TODO remove temporary hardcoded config of storage persistance backend
         s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
                      'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
                      'storage_bucket': 'models',
@@ -124,6 +123,7 @@ class ReducerControl:
         """ Execute one global round. """
 
         # TODO: Set / update reducer states and such
+        # TODO: Do a General Health check on Combiners in the beginning of the round.
         if len(self.combiners) < 1:
             print("REDUCER: No combiners connected!")
             return
@@ -137,17 +137,18 @@ class ReducerControl:
         combiners = []
         for combiner in self.combiners:
             combiner_state = combiner.report()
-            is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
-            if is_participating:
-                combiners.append((combiner,compute_plan))
+            if combiner_state:
+                is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
+                if is_participating:
+                    combiners.append((combiner,compute_plan))
 
-        print("PARTICIPATING: {}".format(combiners),flush=True)
+        print("REDUCER CONTROL: Participating combiners: {}".format(combiners),flush=True)
 
         round_start = self.check_round_start_policy(combiners)
         print("ROUND START POLICY: {}".format(round_start),flush=True)
         if not round_start:
+            print("REDUCER CONTROL: Round start policy not met, skipping round!",flush=True)
             return None
-
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         for combiner,compute_plan in combiners:
@@ -155,7 +156,7 @@ class ReducerControl:
             print(combiner,compute_plan,flush=True)
             response = combiner.start(compute_plan)
 
-        # Wait until all participating combiners have a model that is out of sync with the current global model.
+        # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
@@ -181,7 +182,6 @@ class ReducerControl:
             return None
 
         # 3. Reduce combiner models into a global model
-        # TODO, check success
         try:
             model = self.reduce(updated)
         except:
@@ -189,13 +189,13 @@ class ReducerControl:
             return None
 
         if model:
-            # Add to model ledger
+            # Commit to model ledger
             import uuid
             model_id = uuid.uuid4()
             self.commit(model_id,model)
 
         else:
-            print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
+            print("REDUCER: failed to update model in round with config {}".format(config),flush=True)
             return None
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
@@ -247,8 +247,15 @@ class ReducerControl:
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
         i = 1
+        model = None
         for combiner in combiners:
-            data = combiner.get_model()
+
+            # TODO: Handle inactive RPC error in get_model and raise specific error
+            try:
+                data = combiner.get_model()
+            except:
+                pass
+
             if data:
                 try:
                     model_next = self.helper.load_model(combiner.get_model().getbuffer())

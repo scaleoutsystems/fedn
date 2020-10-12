@@ -40,11 +40,17 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
-        response = control.Report(request)
-        data = {}
-        for p in response.parameter:
-            data[p.key] = p.value
-        return data
+        try:
+            response = control.Report(request)
+            data = {}
+            for p in response.parameter:
+                data[p.key] = p.value
+            return data
+        # TODO: Handle error more specifically 
+        except Exception as e:
+            print("Combiner failed to report: {}".format(e),flush=True)
+            return None
+
 
     def configure(self,config=None):
         if not config:
