@@ -359,20 +359,6 @@ class ReducerRestService:
             fig.update_xaxes(title_text='Timestamp')
             fig.update_layout(title_text='Alliance timeline')
 
-            # tab = go.Figure(data=[go.Table(
-            #     header=dict(values=['Model updates', 'Model Validations'],
-            #                 line_color='darkslategray',
-            #                 fill_color='lightskyblue',
-            #                 align='left'),
-            #     cells=dict(values=[[100, 90, 80, 90],  # 1st column
-            #                        [95, 85, 75, 95]],  # 2nd column
-            #                line_color='darkslategray',
-            #                fill_color='lightcyan',
-            #                align='left'))
-            # ])
-            #
-            # tab.update_layout(width=500, height=300)
-            # tab.update_layout(title_text='Summary')
             timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return timeline
 
