@@ -72,7 +72,7 @@ class ReducerControl:
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            model.save(outfile_name)
+            self.helper.save_model(model, outfile_name)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
