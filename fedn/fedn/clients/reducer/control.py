@@ -4,6 +4,7 @@ import tempfile
 import time
 
 from fedn.utils.helpers import KerasSequentialHelper
+from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 from .state import ReducerState
 
@@ -84,8 +85,12 @@ class ReducerControl:
 
         osync = []
         for combiner in combiners:
-            model_id = combiner.get_model_id()
-            if model_id != self.get_latest_model():
+            try:
+                model_id = combiner.get_model_id()
+            except CombinerUnavailableError:
+                print("REDUCER CONTROL: Combiner unavailable.",flush=True)
+                model_id = None
+            if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
         return osync
 
@@ -137,7 +142,6 @@ class ReducerControl:
         combiners = []
         for combiner in self.combiners:
             combiner_state = combiner.report()
-            print("Combiner state: {}".format(combiner_state),flush=True)
             if combiner_state:
                 is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
                 if is_participating:
@@ -241,7 +245,6 @@ class ReducerControl:
                 print("REDUCER: Global round completed, new model: {}".format(model_id),flush=True)
             else:
                 print("REDUCER: Global round failed!")
-
 
         self.__state = ReducerState.idle
 

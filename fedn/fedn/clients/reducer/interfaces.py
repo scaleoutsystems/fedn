@@ -2,6 +2,9 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 
+class CombinerUnavailableError(Exception):
+    pass
+
 class Channel:
     def __init__(self, address, port, certificate):
         self.address = address
@@ -93,7 +96,14 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         reducer = rpc.ReducerStub(channel)
         request = fedn.GetGlobalModelRequest()
-        response = reducer.GetGlobalModel(request)
+        try:
+            response = reducer.GetGlobalModel(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
+
         return response.model_id
 
     def get_model(self, id=None):
