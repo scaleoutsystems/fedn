@@ -292,14 +292,6 @@ class ReducerControl:
                 i = i+1
         return model
 
-    def reduce_random(self, combiners):
-        """ This is only used for debugging purposes. s"""
-        import random
-        combiner = random.sample(combiners, 1)[0]
-        import uuid
-        model_id = uuid.uuid4()
-        return self.helper.load_model(combiner.get_model().getbuffer()),model_id
-
     def resolve(self):
         """ At the end of resolve, all combiners have the same model state. """
 

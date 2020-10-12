@@ -10,7 +10,6 @@ class Channel:
         self.address = address
         self.port = port
         self.certificate = certificate
-        #print("USING THIS CERTIFICATE: \n\n\n {} \n\n\n\n".format(certificate), flush=True)
         if self.certificate:
             import copy
             credentials = grpc.ssl_channel_credentials(root_certificates=copy.deepcopy(certificate))
