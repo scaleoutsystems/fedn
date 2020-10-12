@@ -9,19 +9,6 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from .state import ReducerState
 
 
-class Model:
-    """ (DB) representation of a global model. """
-
-    def __init__(self, id=None, model_type="Keras"):
-        self.id = id
-        self.name = ""
-        self.type = model_type
-        self.version = ""
-        self.parent = ""
-        self.alliance_uid = ""
-        self.round_id = 0
-
-
 class ReducerControl:
 
     def __init__(self, statestore):
@@ -42,7 +29,7 @@ class ReducerControl:
 
         # TODO: Refactor and make all these configurable
         self.helper = KerasSequentialHelper()
-        self.allocation_policy = self.client_allocation_policy_least_packed 
+        self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -295,9 +282,6 @@ class ReducerControl:
 
     def monitor(self, config=None):
         pass
-        """ monitor """
-        #if self.__state == ReducerState.monitoring:
-            #print("monitoring")
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
@@ -352,7 +336,7 @@ class ReducerControl:
 
 
     def find_available_combiner(self):
-        return self.allocation_policy()
+        return self.client_allocation_policy()
 
 
     def state(self):
