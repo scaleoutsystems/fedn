@@ -222,20 +222,26 @@ class ReducerControl:
         from fedn.common.tracer.mongotracer import MongoTracer
         self.tracer = MongoTracer()
         self.tracer.drop_performances()
+
         for round in range(int(config['rounds'])):
-            import psutil
             from datetime import datetime
             # TODO: CPU loads and memory monitoring for each round #import psutil
+            print('-------------------------------')
+            print('Round Nbr ', round)
             start_time = datetime.now()
-            self.round(config)
-            end_time = datetime.now()
-            round_time = end_time - start_time
-            print('ROUND TIME:', round_time.seconds)
-            self.tracer.set_latest_time(round, round_time.seconds)
-
+            # print('TIME:', start_time)
+            # print('CPU', dict(psutil.cpu_times()._asdict()))
+            # print('CPU-PERCENT', psutil.cpu_percent(interval=None))
+            # print('CPU-COUNT', psutil.cpu_count())
+            # print('VIRTUAL-MEM', psutil.virtual_memory())
             model_id = self.round(config)
+            end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
+                print('-------------------------------')
+                round_time = end_time - start_time
+                print('ROUND TIME:', round_time.seconds)
+                self.tracer.set_latest_time(round, round_time.seconds)
             else:
                 print("REDUCER: Global round failed!")
 
