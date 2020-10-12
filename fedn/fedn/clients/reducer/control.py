@@ -123,11 +123,10 @@ class ReducerControl:
         else:
             return True
 
-
     def _handle_unavailable_combiner(self,combiner):
         """ This callback is triggered if a combiner is found to be unresponsive. """ 
         # TODO: Implement
-        print("REDUCER CONTROL: Combiner unavailable.",flush=True)
+        print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name),flush=True)
 
     def round(self, config):
         """ Execute one global round. """
