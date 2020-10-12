@@ -2,7 +2,6 @@ import copy
 import os
 import tempfile
 import time
-import threading
 
 from fedn.utils.helpers import KerasSequentialHelper
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
@@ -34,8 +33,6 @@ class ReducerControl:
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
-
-        self.lock = threading.Lock()
 
     def get_latest_model(self):
         return self.statestore.get_latest()
@@ -343,8 +340,7 @@ class ReducerControl:
 
 
     def find_available_combiner(self):
-        with self.lock:
-            combiner = self.client_allocation_policy()
+        combiner = self.client_allocation_policy()
         return combiner
 
 
