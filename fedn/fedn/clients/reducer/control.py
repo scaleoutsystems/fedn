@@ -292,10 +292,21 @@ class ReducerControl:
         return None
 
     def find_available_combiner(self):
+        
+        min_clients = None
+        selected_combiner = None
+
         for combiner in self.combiners:
             if combiner.allowing_clients():
-                return combiner
-        return None
+                combiner_state = combiner.report()
+                nac = combiner_state['nr_active_clients']
+                if not min_clients:
+                    min_clients = nac
+                    selected_combiner = combiner
+                elif nac<min_clients:
+                    selected_combiner = combiner
+
+        return selected_combiner
 
     def state(self):
         return self.__state
