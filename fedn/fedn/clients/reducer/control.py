@@ -291,8 +291,21 @@ class ReducerControl:
                 return combiner
         return None
 
-    def find_available_combiner(self):
-        
+    def client_allocation_policy_first_available(self):
+        """ 
+            Allocate client to the first available combiner in the combiner list. 
+            Packs one combiner full before filling up next combiner. 
+        """
+        for combiner in self.combiners:
+            if combiner.allowing_clients():
+                return combiner
+        return None
+
+    def client_allocation_policy_least_packed(self):
+        """ 
+            Allocate client to the available combiner with the smallest number of clients. 
+            Spreads clients evenly over all active combiners.  
+        """
         min_clients = None
         selected_combiner = None
 
@@ -307,6 +320,18 @@ class ReducerControl:
                     selected_combiner = combiner
 
         return selected_combiner
+
+
+    def find_available_combiner(self,policy='least_packed'):
+
+        if policy == 'least_packed':
+            return client_allocation_policy_least_packed()
+        elif policy == 'first_available':
+            return client_allocation_policy_first_available() 
+        else:
+            print("Unknown client allocation policy, using least_packed", flush=True)
+            return client_allocation_policy_least_packed()
+
 
     def state(self):
         return self.__state
