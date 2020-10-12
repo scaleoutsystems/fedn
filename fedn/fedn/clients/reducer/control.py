@@ -137,6 +137,7 @@ class ReducerControl:
         combiners = []
         for combiner in self.combiners:
             combiner_state = combiner.report()
+            print("Combiner state: {}".format(combiner_state),flush=True)
             if combiner_state:
                 is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
                 if is_participating:
