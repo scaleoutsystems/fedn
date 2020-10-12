@@ -175,10 +175,7 @@ class ReducerRestService:
                 return jsonify(response)
             elif combiner is None:
                 return jsonify({'status':'retry'})
-                #abort(404, description="Resource not found")
-            # 1.receive client parameters
-            # 2. check with available combiners if any clients are needed
-            # 3. let client know where to connect.
+
             return jsonify({'status': 'retry'})
 
         @app.route('/infer')
