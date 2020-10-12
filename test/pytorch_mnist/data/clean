@@ -1,0 +1,3 @@
+#!/bin/bash
+rm data* -rf
+rm MNIST -rf
