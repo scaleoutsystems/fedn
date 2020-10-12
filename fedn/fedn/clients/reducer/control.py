@@ -40,8 +40,9 @@ class ReducerControl:
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
 
-        # TODO: Make configurable
+        # TODO: Refactor and make all these configurable
         self.helper = KerasSequentialHelper()
+        self.allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -256,13 +257,6 @@ class ReducerControl:
         model_id = uuid.uuid4()
         return self.helper.load_model(combiner.get_model().getbuffer()),model_id
 
-    def resolve(self):
-        """ At the end of resolve, all combiners have the same model state. """
-
-        combiners = self._out_of_sync()
-        if len(combiners) > 0:
-            model = self.reduce(combiners)
-        return model
 
     def monitor(self, config=None):
         pass
@@ -322,15 +316,8 @@ class ReducerControl:
         return selected_combiner
 
 
-    def find_available_combiner(self,policy='least_packed'):
-
-        if policy == 'least_packed':
-            return client_allocation_policy_least_packed()
-        elif policy == 'first_available':
-            return client_allocation_policy_first_available() 
-        else:
-            print("Unknown client allocation policy, using least_packed", flush=True)
-            return client_allocation_policy_least_packed()
+    def find_available_combiner(self):
+        return self.allocation_policy()
 
 
     def state(self):
