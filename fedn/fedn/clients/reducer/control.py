@@ -330,6 +330,7 @@ class ReducerControl:
                     min_clients = nac
                     selected_combiner = combiner
                 elif nac<min_clients:
+                    min_clients = nac
                     selected_combiner = combiner
 
         return selected_combiner
