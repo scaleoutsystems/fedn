@@ -67,8 +67,8 @@ class ConnectorClient:
             if retval.json()['status'] == 'retry':
                 print("Reducer was not ready. Try again later.")
                 return Status.TryAgain, None
-            print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
-                  flush=True)
+            #print("CLIENT: client assign request was successful, returning json payload {}".format(retval.json()),
+            #      flush=True)
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None
