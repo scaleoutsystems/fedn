@@ -49,24 +49,31 @@ class CombinerInterface:
             for p in response.parameter:
                 data[p.key] = p.value
             return data
-        # TODO: Handle error more specifically 
-        except Exception as e:
-            print("Combiner failed to report: {}".format(e),flush=True)
-            return None
-
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
 
     def configure(self,config=None):
         if not config:
             config = self.config
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
+
         request = fedn.ControlRequest()
         for key,value in config.items():  
             p = request.parameter.add()
             p.key = key
             p.value = str(value)
-        response = control.Configure(request)
 
+        try:
+            response = control.Configure(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
 
     def start(self, config):
         channel = Channel(self.address, self.port, self.certificate).get_channel()
@@ -78,7 +85,14 @@ class CombinerInterface:
             p.key = str(k)
             p.value = str(v)
 
-        response = control.Start(request)
+        try:
+            response = control.Start(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
+
         print("Response from combiner {}".format(response.message))
         return response
 
@@ -89,8 +103,14 @@ class CombinerInterface:
         p = request.parameter.add()
         p.key = 'model_id'
         p.value = str(model_id)
-        response = control.Configure(request)
-        # return response.message
+
+        try:
+            response = control.Configure(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
 
     def get_model_id(self):
         channel = Channel(self.address, self.port, self.certificate).get_channel()
@@ -132,7 +152,14 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
-        response = connector.AcceptingClients(request)
+
+        try:
+            response = connector.AcceptingClients(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
         if response.status == fedn.ConnectionStatus.NOT_ACCEPTING:
             return False
         if response.status == fedn.ConnectionStatus.ACCEPTING:

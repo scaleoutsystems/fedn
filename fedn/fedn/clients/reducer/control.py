@@ -88,7 +88,7 @@ class ReducerControl:
             try:
                 model_id = combiner.get_model_id()
             except CombinerUnavailableError:
-                print("REDUCER CONTROL: Combiner unavailable.",flush=True)
+                self._handle_unavailable_combiner(combiner)
                 model_id = None
             if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
@@ -124,6 +124,11 @@ class ReducerControl:
             return True
 
 
+    def _handle_unavailable_combiner(self,combiner):
+        """ This callback is triggered if a combiner is found to be unresponsive. """ 
+        # TODO: Implement
+        print("REDUCER CONTROL: Combiner unavailable.",flush=True)
+
     def round(self, config):
         """ Execute one global round. """
 
@@ -141,7 +146,13 @@ class ReducerControl:
 
         combiners = []
         for combiner in self.combiners:
-            combiner_state = combiner.report()
+
+            try:
+                combiner_state = combiner.report()
+            except CombinerUnavailableError:
+                self._handle_unavailable_combiner(combiner)
+                combiner_state = None
+
             if combiner_state:
                 is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
                 if is_participating:
@@ -157,9 +168,16 @@ class ReducerControl:
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         for combiner,compute_plan in combiners:
-            self.sync_combiners([combiner],self.get_latest_model())
-            print(combiner,compute_plan,flush=True)
-            response = combiner.start(compute_plan)
+            try:
+                self.sync_combiners([combiner],self.get_latest_model())
+                response = combiner.start(compute_plan)
+            except CombinerUnavailableError:
+                # This is OK, handled by round accept policy
+                self._handle_unavailable_combiner(combiner)
+                pass
+            except:
+                # Unknown error
+                raise
 
         # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
@@ -211,7 +229,12 @@ class ReducerControl:
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             for combiner in updated:
-                combiner.start(combiner_config)
+                try:
+                    combiner.start(combiner_config)
+                except CombinerUnavailableError:
+                    # OK if validation fails for a combiner
+                    self._handle_unavailable_combiner(combiner)
+                    pass
 
         return model_id
 
@@ -223,6 +246,7 @@ class ReducerControl:
 
         for combiner in combiners:
             response = combiner.set_model_id(model_id)
+
 
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
