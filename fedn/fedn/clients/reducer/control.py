@@ -9,19 +9,6 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from .state import ReducerState
 
 
-class Model:
-    """ (DB) representation of a global model. """
-
-    def __init__(self, id=None, model_type="Keras"):
-        self.id = id
-        self.name = ""
-        self.type = model_type
-        self.version = ""
-        self.parent = ""
-        self.alliance_uid = ""
-        self.round_id = 0
-
-
 class ReducerControl:
 
     def __init__(self, statestore):
@@ -40,8 +27,9 @@ class ReducerControl:
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
 
-        # TODO: Make configurable
+        # TODO: Refactor and make all these configurable
         self.helper = KerasSequentialHelper()
+        self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -68,7 +56,7 @@ class ReducerControl:
 
 
     def commit(self, model_id, model=None):
-        """ Commit a model. This establishes this model as the lastest consensus model. """
+        """ Commit a model to the gloval model trail. The model commited becomes the lastest consensus model. """
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
@@ -292,19 +280,8 @@ class ReducerControl:
                 i = i+1
         return model
 
-    def resolve(self):
-        """ At the end of resolve, all combiners have the same model state. """
-
-        combiners = self._out_of_sync()
-        if len(combiners) > 0:
-            model = self.reduce(combiners)
-        return model
-
     def monitor(self, config=None):
         pass
-        """ monitor """
-        #if self.__state == ReducerState.monitoring:
-            #print("monitoring")
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
@@ -327,11 +304,45 @@ class ReducerControl:
                 return combiner
         return None
 
-    def find_available_combiner(self):
+    def client_allocation_policy_first_available(self):
+        """ 
+            Allocate client to the first available combiner in the combiner list. 
+            Packs one combiner full before filling up next combiner. 
+        """
         for combiner in self.combiners:
             if combiner.allowing_clients():
                 return combiner
         return None
+
+    def client_allocation_policy_least_packed(self):
+        """ 
+            Allocate client to the available combiner with the smallest number of clients. 
+            Spreads clients evenly over all active combiners.  
+
+            TODO: Not thread safe - not garanteed to result in a perfectly even partition. 
+
+        """
+        min_clients = None
+        selected_combiner = None
+
+        for combiner in self.combiners:
+            if combiner.allowing_clients():
+                combiner_state = combiner.report()
+                nac = combiner_state['nr_active_clients']
+                if not min_clients:
+                    min_clients = nac
+                    selected_combiner = combiner
+                elif nac<min_clients:
+                    min_clients = nac
+                    selected_combiner = combiner
+
+        return selected_combiner
+
+
+    def find_available_combiner(self):
+        combiner = self.client_allocation_policy()
+        return combiner
+
 
     def state(self):
         return self.__state
