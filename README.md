@@ -15,7 +15,7 @@ A FEDn network, as illustrated in the picture below, is made up of three key age
 A Client is a data node, holding private data and connecting to a Combiner to recieve model update requests and model validation requests. Clients need to be configured to be able to execute model training for the ML-model type used.  
 
 #### Combiner
-A combiner is an actor which orchestrates model updates from a number of attached clients. Each combiner aggregates model updates from its clients during a global trainign round. When and how to trigger such orchestration rounds are specified in the overall *compute plan* layed out by the Reducer. Each combiner in the network is an independent (and identical) gRPC Server, providing RPCs for interacting with the alliance subsystem it controls. Hence, the total number of clients that can be accomodated in a FEDn network is proportional to the number of active combiners. 
+A combiner is an actor which orchestrates model updates from a number of attached clients. Each combiner aggregates model updates from its clients during a global training round. When and how to trigger such orchestration rounds are specified in the overall *compute plan* laid out by the Reducer. Each combiner in the network is an independent (and identical) gRPC Server, providing RPCs for interacting with the alliance subsystem it controls. Hence, the total number of clients that can be accomodated in a FEDn network is proportional to the number of active combiners. 
 
 #### Reducer
 The reducer fills three main roles in the network: 1.) To lay out and initialize the overall, global training strategy and to aggregate model updates from combiners into a global model, 2.) to handle global state and maintain the model ledger - an immutable trail of global model updates uniquely defining the FedML timeline, and  3) provide a discovery service, mediating connections between clients and combiners. For this purpose, the Reducer exposes a standard REST API.  
@@ -56,6 +56,9 @@ FEDN_MINIO_HOST=minio
 FEDN_MINIO_PORT=9000
 FEDN_MINIO_ACCESS_KEY=fedn_admin
 FEDN_MINIO_SECRET_KEY=password
+
+FEDN_ALLIANCE_AUTH_TOKEN=auth_token
+FEDN_ALLIANCE_ADMIN_AUTH_TOKEN=auth_token
 
 EXAMPLE=mnist
 CLIENT_NAME_BASE=client-fedn1-
@@ -122,4 +125,4 @@ Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure an
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 
 
 ## License
-See LICENSE file.
+FEDn is licenced under Apache-2.0 (see LICENSE file for full information).

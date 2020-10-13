@@ -1,4 +1,5 @@
 # Byte-compiled / optimized / DLL files
+tmp/
 *tempin.pyb
 *tempout.pyb
 migrations/
