@@ -53,7 +53,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}2 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}3 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
     #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data/data3:/app/data
@@ -72,7 +72,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}2 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
+    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -n ${CLIENT_NAME_BASE}4 -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
     volumes:
     #  - ./test/${EXAMPLE}/client:/app/client
       - ./test/${EXAMPLE}/data/data4:/app/data
