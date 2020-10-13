@@ -296,7 +296,7 @@ class FEDAVGCombiner:
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            model.save(outfile_name)
+            self.helper.save_model(model, outfile_name)
 
             # Save to local storage for sharing with clients.
             from io import BytesIO
