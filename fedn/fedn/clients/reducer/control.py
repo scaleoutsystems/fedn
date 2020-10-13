@@ -3,24 +3,16 @@ import os
 import tempfile
 import time
 
-from fedn.utils.helpers import KerasSequentialHelper
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 from .state import ReducerState
+from abc import ABC,abstractmethod
 
 
-class Model:
-    """ (DB) representation of a global model. """
-
-    def __init__(self, id=None, model_type="Keras"):
-        self.id = id
-        self.name = ""
-        self.type = model_type
-        self.version = ""
-        self.parent = ""
-        self.alliance_uid = ""
-        self.round_id = 0
-
+class RoundProtocol(ABC):
+    @abstractmethod
+    def round_participation_policy(self,combiner_state, compute_plan):
+        pass
 
 class ReducerControl:
 
@@ -41,6 +33,7 @@ class ReducerControl:
         self.bucket_name = s3_config["storage_bucket"]
 
         # TODO: Make configurable
+        from fedn.utils.kerassequential import KerasSequentialHelper
         self.helper = KerasSequentialHelper()
 
         if self.statestore.is_inited():
