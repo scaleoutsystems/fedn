@@ -1,6 +1,0 @@
-#!/bin/bash
-
-wget "https://raw.githubusercontent.com/jbrownlee/Datasets/master/daily-min-temperatures.csv"
-mv daily-min-temperatures.csv raw_data.csv
-python3 partition.py
-rm raw_data.csv
