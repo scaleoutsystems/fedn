@@ -101,18 +101,22 @@ Make sure that you can access the Reducer UI at https://localhost:8090, and that
 
 #### Seed the system with an initial model
 
+Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/seed). Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
+
 Navigate to the Reducer UI. To initialize the federated model we need to upload a seed model. For testing purposes, you find a pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples). 
 
 * Creating and staging the seed model in the FEDn network is typically done by one of the founding members of the ML alliance, or the user deploying and managing the FEDn network. There is a script "test/mnist/seed/init_model.py" that you can edit if you would like to alter the neural network achitecture of the seed model.*
 
 #### Start training
-To start training, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually in from the "Dashboard" menu.
+To start training, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually in from the "Dashboard" menu (https://localhost:8090/plot)
 
+ 
 ## Distributed deployment
 
 The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models, and on the available infrastructure and the desired strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate architecture plan. Then deploy reducers and combiners as needed by modifying the .env files and docker-compose files accordingly for each host/service. Reference deployment descriptions for representative scenarios and hardware are coming soon.  
 
 *Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
+
 
 
 ## Where to go from here?

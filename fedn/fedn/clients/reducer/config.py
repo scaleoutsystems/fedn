@@ -14,7 +14,7 @@ class ReducerConfig(Config):
 
     storage_backend = {
         'type': 's3', 'settings':
-            {'bucket': 'models',''}
+            {'bucket': 'models'}
     }
 
     def __init__(self):

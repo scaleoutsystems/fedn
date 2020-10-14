@@ -1,11 +1,11 @@
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from flask import Flask, flash
-from flask import jsonify, abort
-from flask import render_template
-from flask import request, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
+
+from flask import Flask, jsonify, render_template, request
+from flask import redirect, url_for, flash
+import flask_monitoringdashboard as dashboard
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -14,18 +14,6 @@ ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-from flask import Flask, jsonify, render_template, request
-from flask import redirect, url_for
-import pymongo
-import json
-import numpy
-import plotly.graph_objs as go
-from datetime import datetime,timedelta
-import plotly
-
-import os
 
 
 class ReducerRestService:
@@ -39,19 +27,15 @@ class ReducerRestService:
 
     def run(self):
         app = Flask(__name__)
+        # TODO support CSRF in monitoring dashboard
+        #dashboard.bind(app)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
         import os
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
-
         csrf.init_app(app)
 
-        c = pymongo.MongoClient()
-        mc = pymongo.MongoClient(os.environ['FEDN_MONGO_HOST'], int(os.environ['FEDN_MONGO_PORT']), username=os.environ['FEDN_MONGO_USER'],
-                                 password=os.environ['FEDN_MONGO_PASSWORD'])
-        mdb = mc[os.environ['ALLIANCE_UID']]
-        alliance = mdb["status"]
 
         @app.route('/')
         def index():
@@ -136,6 +120,9 @@ class ReducerRestService:
                           'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
+                # from fedn.common.tracer.mongotracer import MongoTracer
+                # self.tracer = MongoTracer()
+                # self.tracer.ps_util_monitor(target=self.control.instruct(config))
                 self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
 
@@ -190,23 +177,6 @@ class ReducerRestService:
 
             return result
 
-        # plot metrics from DB
-        def _scalar_metrics(metrics):
-            """ Extract all scalar valued metrics from a MODEL_VALIDATON. """
-
-            data = json.loads(metrics['data'])
-            data = json.loads(data['data'])
-
-            valid_metrics = []
-            for metric, val in data.items():
-                # If it can be converted to a float it is a valid, scalar metric
-                try:
-                    val = float(val)
-                    valid_metrics.append(metric)
-                except:
-                    pass
-
-            return valid_metrics
 
         @app.route('/plot')
         def plot():
@@ -216,14 +186,18 @@ class ReducerRestService:
             return render_template('index.html', show_plot=show_plot, plot=plot)
 
         def create_plot(feature):
+            from fedn.clients.reducer.plots import Plot
+            self.plot = Plot()
             if feature == 'table':
-                return create_table_plot()
+                return self.plot.create_table_plot()
             elif feature == 'timeline':
-                return create_timeline_plot()
-            elif feature == 'ml':
-                return create_ml_plot()
+                return self.plot.create_timeline_plot()
+            elif feature == 'round_time':
+                return self.plot.create_round_plot()
             elif feature == 'box':
-                return create_box_plot()
+                return self.plot.create_box_plot()
+            elif feature == 'cpu':
+                return self.plot.create_cpu_plot()
             else:
                 return 'No plot!'
 
@@ -233,239 +207,7 @@ class ReducerRestService:
             graphJSON = create_plot(feature)
             return graphJSON
 
-        def create_table_plot():
-            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
-            if metrics == None:
-                fig = go.Figure(data=[])
-                fig.update_layout(title_text='No data currently available for mean metrics')
-                table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                return table
 
-            valid_metrics = _scalar_metrics(metrics)
-            if valid_metrics == []:
-                fig = go.Figure(data=[])
-                fig.update_layout(title_text='No scalar metrics found')
-                table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                return table
-
-            all_vals = []
-            models = []
-            for metric in valid_metrics:
-                validations = {}
-                for post in alliance.find({'type': 'MODEL_VALIDATION'}):
-                    e = json.loads(post['data'])
-                    try:
-                        validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
-                    except KeyError:
-                        validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
-
-                vals = []
-                models = []
-                for model, data in validations.items():
-                    vals.append(numpy.mean(data))
-                    models.append(model)
-                all_vals.append(vals)
-
-            header_vals = valid_metrics
-            models.reverse()
-            values = [models]
-            print(all_vals, flush=True)
-            for vals in all_vals:
-                vals.reverse()
-                values.append(vals)
-
-            fig = go.Figure(data=[go.Table(
-                header=dict(values=['Model ID'] + header_vals,
-                            line_color='darkslategray',
-                            fill_color='lightskyblue',
-                            align='left'),
-
-                cells=dict(values=values,  # 2nd column
-                           line_color='darkslategray',
-                           fill_color='lightcyan',
-                           align='left'))
-            ])
-
-            fig.update_layout(title_text='Summary: mean metrics')
-            table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return table
-
-        def create_timeline_plot():
-            trace_data = []
-            x = []
-            y = []
-            base = []
-            for p in alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
-                e = json.loads(p['data'])
-                cid = e['correlationId']
-                for cc in alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
-                    da = json.loads(cc['data'])
-                    if da['correlationId'] == cid:
-                        cp = cc
-
-                cd = json.loads(cp['data'])
-                tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-                tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-                ts = tu - tr
-                base.append(tr.timestamp())
-                x.append(ts.total_seconds())
-                y.append(p['sender']['name'])
-
-            trace_data.append(go.Bar(
-                x=x,
-                y=y,
-                orientation='h',
-                base=base,
-                marker=dict(color='royalblue'),
-                name="Training",
-            ))
-
-            x = []
-            y = []
-            base = []
-            for p in alliance.find({'type': 'MODEL_VALIDATION_REQUEST'}):
-                e = json.loads(p['data'])
-                cid = e['correlationId']
-                for cc in alliance.find({'sender': p['sender'], 'type': 'MODEL_VALIDATION'}):
-                    da = json.loads(cc['data'])
-                    if da['correlationId'] == cid:
-                        cp = cc
-                cd = json.loads(cp['data'])
-                tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-                tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-                ts = tu - tr
-                base.append(tr.timestamp())
-                x.append(ts.total_seconds())
-                y.append(p['sender']['name'])
-
-            trace_data.append(go.Bar(
-                x=x,
-                y=y,
-                orientation='h',
-                base=base,
-                marker=dict(color='lightskyblue'),
-                name="Validation",
-            ))
-
-            layout = go.Layout(
-                barmode='stack',
-                showlegend=True,
-            )
-
-            fig = go.Figure(data=trace_data, layout=layout)
-            fig.update_xaxes(title_text='Timestamp')
-            fig.update_layout(title_text='Alliance timeline')
-
-            timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return timeline
-
-        def create_ml_plot():
-            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
-            if metrics == None:
-                fig = go.Figure(data=[])
-                fig.update_layout(title_text='No data currently available for Mean Absolute Error')
-                ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                return ml
-
-            data = json.loads(metrics['data'])
-            data = json.loads(data['data'])
-            valid_metrics = []
-            for metric, val in data.items():
-                # Check if scalar - is this robust ?
-                if isinstance(val, float):
-                    valid_metrics.append(metric)
-
-            # Assemble a dict with all validations
-            validations = {}
-            clients = {}
-
-            for post in alliance.find({'type': 'MODEL_VALIDATION'}):
-                try:
-                    e = json.loads(post['data'])
-                    clients[post['sender']['name']].append(json.loads(e['data'])[metric])
-                except KeyError:
-                    clients[post['sender']['name']] = []
-
-            rounds = []
-            traces_data = []
-
-            for c in clients:
-                print(clients[c], flush=True)
-                traces_data.append(go.Scatter(
-                    x=rounds,
-                    y=clients[c],
-                    name=c
-                ))
-            fig = go.Figure(traces_data)
-            fig.update_xaxes(title_text='Rounds')
-            fig.update_yaxes(title_text='MAE', tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-            fig.update_layout(title_text='Mean Absolute Error Plot')
-            ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return ml
-
-        def create_box_plot():
-            metrics = alliance.find_one({'type': 'MODEL_VALIDATION'})
-            if metrics == None:
-                fig = go.Figure(data=[])
-                fig.update_layout(title_text='No data currently available for metric distribution over alliance '
-                                             'participants')
-                box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                return box
-
-            valid_metrics = _scalar_metrics(metrics)
-            if valid_metrics == []:
-                fig = go.Figure(data=[])
-                fig.update_layout(title_text='No scalar metrics found')
-                box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-                return box
-
-            # Just grab the first metric in the list.
-            # TODO: Let the user choose, or plot all of them.
-            if "accuracy" in valid_metrics:
-                metric = "accuracy"
-            else:
-                metric = valid_metrics[0]
-            validations = {}
-            for post in alliance.find({'type': 'MODEL_VALIDATION'}):
-                e = json.loads(post['data'])
-                try:
-                    validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
-                except KeyError:
-                    validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
-
-            box = go.Figure()
-
-            x = []
-            y = []
-            box_trace = []
-            for model_id, acc in validations.items():
-                x.append(model_id)
-                y.append(numpy.mean([float(i) for i in acc]))
-                if len(acc) >= 2:
-                    box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False))
-
-            rounds = list(range(len(y)))
-            box.add_trace(go.Scatter(
-                x=x,
-                y=y,
-                name='Mean'
-            ))
-
-            box.update_xaxes(title_text='Model ID')
-            box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-            box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric))
-            box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
-            return box
-
-
-        # @app.route('/seed')
-        # def seed():
-        #    try:
-        #        result = self.inference.infer(request.args)
-        #    except fedn.exceptions.ModelError:
-        #        print("no model")
-        #
-        #    return result
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
