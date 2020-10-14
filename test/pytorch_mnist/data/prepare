@@ -9,4 +9,4 @@ gunzip train-labels-idx1-ubyte.gz
 echo Image data downloaded
 python3 process_mnist.py
 
-rm train-* -rf
+rm -rf train-*

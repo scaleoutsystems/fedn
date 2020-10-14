@@ -6,7 +6,6 @@ import time
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 from .state import ReducerState
-from abc import ABC,abstractmethod
 
 class ReducerControl:
 
