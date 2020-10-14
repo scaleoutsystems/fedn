@@ -53,12 +53,6 @@ class MongoTracer(Tracer):
             self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
             self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
 
-            print('TIME', str(datetime.now()))
-            print('CPU', currentProcess.cpu_percent(interval=1))
-            print('MEM', currentProcess.memory_percent())
-
-        # if self.psutil_usage:
-        #     self.psutil_usage.drop()
         # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'cpu': {'$each': cpu_percents}}}, True)
         # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'mem': {'$each': mem_percents}}}, True)
         # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'time': {'$each': ps_time}}}, True)

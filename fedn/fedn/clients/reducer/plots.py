@@ -262,27 +262,27 @@ class Plot:
         return box
 
     def create_round_plot(self):
-        metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
+        metrics = self.round_time.find_one({'key': 'round_time'})
         if metrics == None:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for round time')
             ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return ml
 
-        for post in self.psutil_usage.find({'key': 'cpu_mem_usage'}):
+        for post in self.round_time.find({'key': 'round_time'}):
             rounds = post['round']
-            traces_data = post['time']
+            traces_data = post['round_time']
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=traces_data,
-            y=rounds,
+            x=rounds,
+            y=traces_data,
             mode='lines+markers',
             name='Time'
         ))
 
-        fig.update_xaxes(title_text='Date Time')
-        fig.update_yaxes(title_text='Rounds')
+        fig.update_xaxes(title_text='Round')
+        fig.update_yaxes(title_text='Time (s)')
         fig.update_layout(title_text='Round time')
         round_t = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return round_t
