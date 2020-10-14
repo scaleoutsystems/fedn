@@ -120,10 +120,10 @@ class ReducerRestService:
                           'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                from fedn.common.tracer.mongotracer import MongoTracer
-                self.tracer = MongoTracer()
-                self.tracer.ps_util_monitor(target=self.control.instruct(config))
-                # self.control.instruct(config)
+                # from fedn.common.tracer.mongotracer import MongoTracer
+                # self.tracer = MongoTracer()
+                # self.tracer.ps_util_monitor(target=self.control.instruct(config))
+                self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
 
             else:

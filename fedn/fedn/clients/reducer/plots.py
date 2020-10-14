@@ -262,27 +262,27 @@ class Plot:
         return box
 
     def create_round_plot(self):
-        metrics = self.round_time.find_one({'key': 'performance'})
+        metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
         if metrics == None:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for round time')
             ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return ml
 
-        for post in self.round_time.find({'key': 'performance'}):
+        for post in self.psutil_usage.find({'key': 'cpu_mem_usage'}):
             rounds = post['round']
             traces_data = post['time']
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=rounds,
-            y=traces_data,
+            x=traces_data,
+            y=rounds,
             mode='lines+markers',
             name='Time'
         ))
 
-        fig.update_xaxes(title_text='Rounds')
-        fig.update_yaxes(title_text='Time (s)')
+        fig.update_xaxes(title_text='Date Time')
+        fig.update_yaxes(title_text='Rounds')
         fig.update_layout(title_text='Round time')
         round_t = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return round_t
@@ -299,8 +299,11 @@ class Plot:
             cpu = post['cpu']
             mem = post['mem']
             ps_time = post['time']
+            round = post['round']
 
-        fig = go.Figure()
+        # Create figure with secondary y-axis
+        from plotly.subplots import make_subplots
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Scatter(
             x=ps_time,
             y=cpu,
@@ -314,8 +317,17 @@ class Plot:
             mode='lines+markers',
             name='MEM (%)'
         ))
-        fig.update_xaxes(title_text='Time (ms)')
-        # fig.update_yaxes(title_text='CPU (%)')
+
+        fig.add_trace(go.Scatter(
+            x=ps_time,
+            y=round,
+            mode='lines+markers',
+            name='Round',
+        ), secondary_y=True)
+
+        fig.update_xaxes(title_text='Date Time')
+        fig.update_yaxes(title_text='Percentage (%)')
+        fig.update_yaxes(title_text="Round", secondary_y=True)
         fig.update_layout(title_text='CPU loads and memory usage')
         cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return cpu
