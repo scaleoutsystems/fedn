@@ -92,7 +92,7 @@ $ docker-compose -f combiner.yaml up
 
 3. Attach a number of Clients (assuming you are running the MNIST example):
 ````bash 
-$ docker-compose -f mnist-clients.yaml up 
+$ docker-compose -f client.yaml up --scale client=5
 ````
 
 Make sure that you can access the Reducer UI at https://localhost:8090, and that the combiner and clients are up and running, before proceeding to the next step.
@@ -115,7 +115,7 @@ To start training, navigate to the Reducer REST API endpoint: localhost:8090/sta
 
 The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models, and on the available infrastructure and the desired strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate architecture plan. Then deploy reducers and combiners as needed by modifying the .env files and docker-compose files accordingly for each host/service. Reference deployment descriptions for representative scenarios and hardware are coming soon.  
 
-*Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans. *
+*Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
 
 
 
@@ -123,10 +123,10 @@ The actual deployment, sizing and tuning of a FEDn network in production depends
 Explore our other example models, or use them as templates to create your own project. 
 
 ## Support
-Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.  
+Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.
 
 ## Contributions
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 
 
 ## License
-FEDn is licenced under Apache-2.0 (see LICENSE file for full information).
+FEDn is licensed under Apache-2.0 (see LICENSE file for full information).

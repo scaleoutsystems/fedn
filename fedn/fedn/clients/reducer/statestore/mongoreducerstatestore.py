@@ -30,7 +30,10 @@ class MongoReducerStateStore(ReducerStateStore):
                     settings = dict(yaml.safe_load(file))
                     print(settings, flush=True)
                     self.transition(str(settings['state']))
-                    self.set_latest(str(settings['model']))
+                    if not self.get_latest():
+                        self.set_latest(str(settings['model']))
+                    else:
+                        print("Model trail already exist - delete the entire trail if you want to reseed the system.",flush=True)
                     print("Setting filepath to {}".format(settings['context']), flush=True)
                     # self.set_compute_context(str())
                     # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute

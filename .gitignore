@@ -1,4 +1,5 @@
 # Byte-compiled / optimized / DLL files
+tmp/
 *tempin.pyb
 *tempout.pyb
 migrations/
@@ -142,3 +143,8 @@ media/visualisers/
 ./test/mnist/combiner/certs/*
 ./test/mnist/reducer/*
 ./components/dashboard/templates/*
+
+# data center test-case
+./test/data-center/client/certs/*
+./test/data-center/combiner/certs/*
+./test/data-center/reducer/*

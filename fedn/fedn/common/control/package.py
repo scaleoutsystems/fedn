@@ -138,7 +138,7 @@ class PackageRuntime:
 
             if f:
                 f.extractall()
-                print("Unpack 3 ", flush=True)
+                print("Successfully extracted compute package content in {}".format(self.dir), flush=True)
         except:
             print("Error extracting files!")
 
