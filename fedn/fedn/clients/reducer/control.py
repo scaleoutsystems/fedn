@@ -3,23 +3,9 @@ import os
 import tempfile
 import time
 
-from fedn.utils.helpers import KerasSequentialHelper
+from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 from .state import ReducerState
-
-
-class Model:
-    """ (DB) representation of a global model. """
-
-    def __init__(self, id=None, model_type="Keras"):
-        self.id = id
-        self.name = ""
-        self.type = model_type
-        self.version = ""
-        self.parent = ""
-        self.alliance_uid = ""
-        self.round_id = 0
-
 
 class ReducerControl:
 
@@ -28,7 +14,6 @@ class ReducerControl:
         self.statestore = statestore
         self.combiners = []
 
-        # TODO remove temporary hardcoded config of storage persistance backend
         s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
                      'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
                      'storage_bucket': 'models',
@@ -39,9 +24,12 @@ class ReducerControl:
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
-
-        # TODO: Make configurable
+        
+        # TODO: Refactor and make all these configurable
+        from fedn.utils.kerassequential import KerasSequentialHelper
+        # TODO: Refactor and make all these configurable
         self.helper = KerasSequentialHelper()
+        self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -68,11 +56,11 @@ class ReducerControl:
 
 
     def commit(self, model_id, model=None):
-        """ Commit a model. This establishes this model as the lastest consensus model. """
+        """ Commit a model to the gloval model trail. The model commited becomes the lastest consensus model. """
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            model.save(outfile_name)
+            self.helper.save_model(model, outfile_name)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
@@ -85,8 +73,12 @@ class ReducerControl:
 
         osync = []
         for combiner in combiners:
-            model_id = combiner.get_model_id()
-            if model_id != self.get_latest_model():
+            try:
+                model_id = combiner.get_model_id()
+            except CombinerUnavailableError:
+                self._handle_unavailable_combiner(combiner)
+                model_id = None
+            if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
         return osync
 
@@ -101,24 +93,34 @@ class ReducerControl:
             return False
 
     def check_round_start_policy(self,combiners):
-        """ Check if the overall network state meets a policy to start the round. """
+        """ Check if the overall network state meets the policy to start a round. """
         if len(combiners) > 0:
             return True
         else:
             return False
 
     def check_round_validity_policy(self,combiners):
-        """ Before committing a model we check if a round validity policy has been met. """
-        if len(combiners) > 0:
-            return True
-        else:
+        """ 
+            At the end of the round, before committing a model to the model ledger, 
+            we check if a round validity policy has been met. This can involve 
+            e.g. asserting that a certain number of combiners have reported in an
+            updated model, or that criteria on model performance have been met. 
+        """
+        if combiners == []:
             return False
+        else:
+            return True
 
+    def _handle_unavailable_combiner(self,combiner):
+        """ This callback is triggered if a combiner is found to be unresponsive. """ 
+        # TODO: Implement
+        print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name),flush=True)
 
     def round(self, config):
         """ Execute one global round. """
 
         # TODO: Set / update reducer states and such
+        # TODO: Do a General Health check on Combiners in the beginning of the round.
         if len(self.combiners) < 1:
             print("REDUCER: No combiners connected!")
             return
@@ -131,28 +133,40 @@ class ReducerControl:
 
         combiners = []
         for combiner in self.combiners:
-            combiner_state = combiner.report()
-            is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
-            if is_participating:
-                combiners.append((combiner,compute_plan))
 
-        print("PARTICIPATING: {}".format(combiners),flush=True)
+            try:
+                combiner_state = combiner.report()
+            except CombinerUnavailableError:
+                self._handle_unavailable_combiner(combiner)
+                combiner_state = None
+
+            if combiner_state:
+                is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
+                if is_participating:
+                    combiners.append((combiner,compute_plan))
+
+        print("REDUCER CONTROL: Participating combiners: {}".format(combiners),flush=True)
 
         round_start = self.check_round_start_policy(combiners)
         print("ROUND START POLICY: {}".format(round_start),flush=True)
         if not round_start:
+            print("REDUCER CONTROL: Round start policy not met, skipping round!",flush=True)
             return None
-
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         for combiner,compute_plan in combiners:
-            self.sync_combiners([combiner],self.get_latest_model())
-            print(combiner,compute_plan,flush=True)
-            response = combiner.start(compute_plan)
-            print('------------------------')
-            print('SYNC-COMBINER', response)
+            try:
+                self.sync_combiners([combiner],self.get_latest_model())
+                response = combiner.start(compute_plan)
+            except CombinerUnavailableError:
+                # This is OK, handled by round accept policy
+                self._handle_unavailable_combiner(combiner)
+                pass
+            except:
+                # Unknown error
+                raise
 
-        # Wait until all participating combiners have a model that is out of sync with the current global model.
+        # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: Implement strategies to handle timeouts. 
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
@@ -166,36 +180,50 @@ class ReducerControl:
             if wait >= config['round_timeout']:
                 break
 
-        # OBS! Here we are checking agains all combiners, not just those that computed in this round.
+        # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._out_of_sync()
         print("UPDATED: {}".format(updated),flush=True)
 
-
         round_valid = self.check_round_validity_policy(updated)
-        if not round_valid:
+        if round_valid == False:
             # TODO: Should we reset combiner state here?
+            print("REDUCER CONTROL: Round invalid!",flush=True)
             return None
 
         # 3. Reduce combiner models into a global model
-        # TODO, check success
-        model = self.reduce(updated)
+        try:
+            model = self.reduce(updated)
+        except:
+            print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            return None
 
         if model:
+            # Commit to model ledger
             import uuid
             model_id = uuid.uuid4()
             self.commit(model_id,model)
 
-            # 4. Trigger participating combiner nodes to execute a validation round for the current model
+        else:
+            print("REDUCER: failed to update model in round with config {}".format(config),flush=True)
+            return None
+
+        # 4. Trigger participating combiner nodes to execute a validation round for the current model
+        # TODO: Move to config - are we validating in a round, and if so, in what way. 
+        validate = True
+        if validate:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             for combiner in updated:
-                combiner.start(combiner_config)
-            return model_id
-        else:
-            print("REDUCER: failed to updated model in round with config {}".format(config),flush=True)
-            return None
+                try:
+                    combiner.start(combiner_config)
+                except CombinerUnavailableError:
+                    # OK if validation fails for a combiner
+                    self._handle_unavailable_combiner(combiner)
+                    pass
+
+        return model_id
 
     def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
@@ -205,6 +233,7 @@ class ReducerControl:
 
         for combiner in combiners:
             response = combiner.set_model_id(model_id)
+
 
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
@@ -243,13 +272,21 @@ class ReducerControl:
 
             else:
                 print("REDUCER: Global round failed!")
+
         self.__state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
         i = 1
+        model = None
         for combiner in combiners:
-            data = combiner.get_model()
+
+            # TODO: Handle inactive RPC error in get_model and raise specific error
+            try:
+                data = combiner.get_model()
+            except:
+                pass
+
             if data:
                 try:
                     model_next = self.helper.load_model(combiner.get_model().getbuffer())
@@ -259,27 +296,8 @@ class ReducerControl:
                 i = i+1
         return model
 
-    def reduce_random(self, combiners):
-        """ This is only used for debugging purposes. s"""
-        import random
-        combiner = random.sample(combiners, 1)[0]
-        import uuid
-        model_id = uuid.uuid4()
-        return self.helper.load_model(combiner.get_model().getbuffer()),model_id
-
-    def resolve(self):
-        """ At the end of resolve, all combiners have the same model state. """
-
-        combiners = self._out_of_sync()
-        if len(combiners) > 0:
-            model = self.reduce(combiners)
-        return model
-
     def monitor(self, config=None):
         pass
-        """ monitor """
-        #if self.__state == ReducerState.monitoring:
-            #print("monitoring")
 
     def add(self, combiner):
         if self.__state != ReducerState.idle:
@@ -302,11 +320,45 @@ class ReducerControl:
                 return combiner
         return None
 
-    def find_available_combiner(self):
+    def client_allocation_policy_first_available(self):
+        """ 
+            Allocate client to the first available combiner in the combiner list. 
+            Packs one combiner full before filling up next combiner. 
+        """
         for combiner in self.combiners:
             if combiner.allowing_clients():
                 return combiner
         return None
+
+    def client_allocation_policy_least_packed(self):
+        """ 
+            Allocate client to the available combiner with the smallest number of clients. 
+            Spreads clients evenly over all active combiners.  
+
+            TODO: Not thread safe - not garanteed to result in a perfectly even partition. 
+
+        """
+        min_clients = None
+        selected_combiner = None
+
+        for combiner in self.combiners:
+            if combiner.allowing_clients():
+                combiner_state = combiner.report()
+                nac = combiner_state['nr_active_clients']
+                if not min_clients:
+                    min_clients = nac
+                    selected_combiner = combiner
+                elif nac<min_clients:
+                    min_clients = nac
+                    selected_combiner = combiner
+
+        return selected_combiner
+
+
+    def find_available_combiner(self):
+        combiner = self.client_allocation_policy()
+        return combiner
+
 
     def state(self):
         return self.__state
