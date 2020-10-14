@@ -9,7 +9,6 @@ import sys
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
-from fedn.utils.helpers import KerasSequentialHelper
 from threading import Thread, Lock
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -29,13 +28,14 @@ class FEDAVGCombiner:
         self.run_configs = []
         self.storage = storage
         self.id = id
-        self.server = server
+        self.server = server 
         self.modelservice = modelservice
 
         self.config = {}
         self.validations = {}
 
         # TODO: make choice of helper configurable on Recucer level
+        from fedn.utils.kerassequential import KerasSequentialHelper
         self.helper = KerasSequentialHelper()
         self.model_updates = queue.Queue()
 
@@ -126,9 +126,7 @@ class FEDAVGCombiner:
                 self.model_updates.task_done()
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
-                    # This hack lets the timeout policy handle the failure
-                    round_time = timeout
-                    break
+                    return None
             except Exception as e:
                 self.report_status("COMBINER: Exception in combine_models: {}".format(e))
                 time.sleep(1.0)
@@ -281,7 +279,6 @@ class FEDAVGCombiner:
     def exec_training(self, config):
         """ Coordinates clients to executee training and validation tasks. """
 
-        #print("COMBINER starting from model {}".format(config['model_id']))
         self.stage_model(config['model_id'])
 
         # Execute the configured number of rounds
@@ -296,7 +293,7 @@ class FEDAVGCombiner:
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            model.save(outfile_name)
+            self.helper.save_model(model, outfile_name)
 
             # Save to local storage for sharing with clients.
             from io import BytesIO

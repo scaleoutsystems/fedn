@@ -3,11 +3,9 @@ import os
 import tempfile
 import time
 
-from fedn.utils.helpers import KerasSequentialHelper
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 from .state import ReducerState
-
 
 class ReducerControl:
 
@@ -26,7 +24,9 @@ class ReducerControl:
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
-
+        
+        # TODO: Refactor and make all these configurable
+        from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
         self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed 
@@ -60,7 +60,7 @@ class ReducerControl:
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            model.save(outfile_name)
+            self.helper.save_model(model, outfile_name)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
