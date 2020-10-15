@@ -27,6 +27,9 @@ import plotly
 
 import os
 
+import pandas as pd
+import plotly.express as px
+
 
 class ReducerRestService:
     def __init__(self, name, control, certificate_manager, certificate=None):
@@ -220,43 +223,25 @@ class ReducerRestService:
                 return str(e)
 
         def create_map():
-            mapbox_access_token = "pk.eyJ1IjoiZHN0b3lhbm92YSIsImEiOiJja2cwbnBvYzUwMWFjMnhvNTY5azZ1NWs5In0.plMjsaU58g3jL9_50WSq9w"
+            cities_dict = {
+                'city': ["REYKJAVIK", "LISBON", "LONDON", "MADRID", "VALLETTA", "PRAGUE", "ATHENS", "ANKARA", "SOFIA",
+                         "MOSCOW", "OSLO", "STOCKHOLM", "HELSINKI"],
+                'lat': [64.1466, 38.7223, 51.30, 40.4168, 35.53, 50.05, 37.59, 39.56, 42.41, 55.45, 59.55, 59.20,
+                        60.10],
+                'lon': [21.9426, 9.1393, 0.10, 3.7038, 14.30, 14.28, 23.44, 32.52, 23.19, 37.35, 10.45, 18.03, 24.56],
+                'country': ["ICELAND", "PORTUGAL", "UNITED KINGDOM", "SPAIN", "MALTA", "CZECH Rep.", "GREECE", "TURKEY",
+                            "BULGARIA", "RUSSIA", "NORWAY", "SWEDEN", "FINLAND"]}
 
-            fig = go.Figure(go.Scattermapbox(
-                lat=['65.584816', '58.283489', '59.611366',
-                     '63.825848', '58.588455', '59.334591',
-                     '58.351307', '57.751442', '57.708870',
-                     '57.634800'],
-                lon=['22.156704', '12.285821', '16.545025',
-                     '20.263035', '16.188313', '18.063240',
-                     '11.885834', '16.628838', '11.974560',
-                     '18.294840'],
-                mode='markers',
-                marker=go.scattermapbox.Marker(
-                    size=9
-                ),
-                text=["Luleå, Norrbotten", "Trollhättan", "Västerås",
-                      "Umeå", "Norrköping, Östergötland", "Stockholm",
-                      "Uddevalla", "Västervik", "Gothenburg",
-                      "Visby, Gotland Island"]
-            ))
+            cities_df = pd.DataFrame(cities_dict)
 
-            fig.update_layout(
-                autosize=False,
-                width=1280,
-                height=720,
-                hovermode='closest',
-                mapbox=dict(
-                    accesstoken=mapbox_access_token,
-                    bearing=0,
-                    center=dict(
-                        lat=50.3785,
-                        lon=14.9706
-                    ),
-                    pitch=0,
-                    zoom=2
-                ),
-            )
+            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", hover_name="city",
+                                 hover_data={"city": False, "lon": False, "lat": False}, width=1000, height=800)
+
+            fig.update_traces(marker=dict(size=12, color="#EC7063"))
+
+            fig.update_geos(fitbounds="locations", showcountries=True)
+
+            fig.update_layout(title="Clients Network")
 
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
