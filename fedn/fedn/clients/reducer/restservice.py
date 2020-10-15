@@ -7,6 +7,11 @@ from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 import flask_monitoringdashboard as dashboard
 
+import json
+import plotly
+import pandas as pd
+import plotly.express as px
+
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 
@@ -14,19 +19,6 @@ ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-import pymongo
-import json
-import numpy
-import plotly.graph_objs as go
-from datetime import datetime,timedelta
-import plotly
-
-import os
-
-import pandas as pd
-import plotly.express as px
 
 
 class ReducerRestService:
