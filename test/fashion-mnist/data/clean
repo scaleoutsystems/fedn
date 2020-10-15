@@ -1,5 +1,0 @@
-#!/bin/bash
-
-rm ./data* -rf
-rm ./val_result/validate.txt -f
-rm ./all_data.csv
