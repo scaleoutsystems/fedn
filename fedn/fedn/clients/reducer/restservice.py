@@ -5,7 +5,6 @@ from werkzeug.utils import secure_filename
 
 from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
-import flask_monitoringdashboard as dashboard
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
