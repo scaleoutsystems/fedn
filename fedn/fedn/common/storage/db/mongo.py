@@ -13,14 +13,14 @@ def get_mongo_config():
     return config
 
 
-def connect_to_mongodb():
+def connect_to_mongodb(network_id):
     config = get_mongo_config()
     try:
         mc = pymongo.MongoClient(**config)
         # This is so that we check that the connection is live
         mc.server_info()
         # TODO
-        mdb = mc[os.environ['ALLIANCE_UID']]
+        mdb = mc[network_id]
         return mdb
     except Exception:
         raise

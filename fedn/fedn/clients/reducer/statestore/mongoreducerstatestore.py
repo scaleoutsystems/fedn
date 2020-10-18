@@ -4,19 +4,20 @@ from .reducerstatestore import ReducerStateStore
 
 
 class MongoReducerStateStore(ReducerStateStore):
-    def __init__(self, defaults=None):
+    def __init__(self, network_id, defaults=None):
         self.__inited = False
         try:
-            self.mdb = connect_to_mongodb()
+            self.mdb = connect_to_mongodb(network_id)
             self.state = self.mdb['state']
             self.models = self.mdb['models']
             self.latest_model = self.mdb['latest_model']
             self.compute_context = self.mdb['compute_context']
             self.compute_context_trail = self.mdb['compute_context_trail']
             self.network = self.mdb['network']
+            self.reducer = self.network['reducer']
             self.combiners = self.network['combiners']
-            self.storage = self.mdb['storage']
             self.clients = self.network['clients']
+            self.storage = self.mdb['storage']
             self.__inited = True
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -125,6 +126,13 @@ class MongoReducerStateStore(ReducerStateStore):
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         ret = self.storage.update({'storage_type': config['storage_type']}, config, True)
+
+
+    def set_reducer(self,reducer_data):
+        """ """ 
+        from datetime import datetime
+        reducer_data['updated_at'] = str(datetime.now())
+        ret = self.reducer.update({'name': reducer_data['name']}, reducer_data, True)
 
     def get_combiner(self,name):
         """ """

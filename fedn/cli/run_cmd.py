@@ -61,12 +61,16 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         'storage_port': int(os.environ['FEDN_MINIO_PORT'])
         }
 
+    # TODO: Move to cli argument and/or init file
+    network_id = os.environ['ALLIANCE_UID']
+
     from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
-    statestore = MongoReducerStateStore(defaults=config['init'])
+    statestore = MongoReducerStateStore(network_id, defaults=config['init'])
+    statestore.set_reducer(config)
     statestore.set_storage_backend(s3_config)
 
     from fedn.reducer import Reducer
-    reducer = Reducer(config)
+    reducer = Reducer(config, statestore)
     reducer.run()
 
 

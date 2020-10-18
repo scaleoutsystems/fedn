@@ -10,14 +10,15 @@ from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerS
 
 
 class Reducer:
-    def __init__(self, config):
+    def __init__(self, config, statestore):
         self.name = config['name']
         self.token = config['token']
 
-        if config['init']:
-            self.statestore = MongoReducerStateStore(defaults=config['init'])
-        else:
-            self.statestore = MongoReducerStateStore()
+        #if config['init']:
+        #    self.statestore = MongoReducerStateStore(defaults=config['init'])
+        #else:
+        #    self.statestore = MongoReducerStateStore()
+        self.statestore = statestore
 
         try:
             path = config['path']
