@@ -4,10 +4,10 @@ from .reducerstatestore import ReducerStateStore
 
 
 class MongoReducerStateStore(ReducerStateStore):
-    def __init__(self, network_id, defaults=None):
+    def __init__(self, network_id, config, defaults=None):
         self.__inited = False
         try:
-            self.mdb = connect_to_mongodb(network_id)
+            self.mdb = connect_to_mongodb(config, network_id)
             self.state = self.mdb['state']
             self.models = self.mdb['models']
             self.latest_model = self.mdb['latest_model']
@@ -133,6 +133,14 @@ class MongoReducerStateStore(ReducerStateStore):
         from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
         ret = self.reducer.update({'name': reducer_data['name']}, reducer_data, True)
+
+    def get_reducer(self):
+        """ """
+        try:
+            ret = self.reducer.find_one()
+            return ret
+        except:
+            return None
 
     def get_combiner(self,name):
         """ """

@@ -39,6 +39,19 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     client.run()
 
 
+def get_statestore_config():
+    import os
+    config = {
+        'type': 'MongoDB',
+        'mongo_config': {
+            'username': os.environ.get('FEDN_MONGO_USER', 'default'),
+            'password': os.environ.get('FEDN_MONGO_PASSWORD', 'password'),
+            'host': os.environ.get('FEDN_MONGO_HOST', 'localhost'),
+            'port': int(os.environ.get('FEDN_MONGO_PORT', '27017')),
+        }
+    }
+    return config
+
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
@@ -61,16 +74,24 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         'storage_port': int(os.environ['FEDN_MINIO_PORT'])
         }
 
+    # TODO: Move to init file / additional configs
+    statestore_config = get_statestore_config()
+
     # TODO: Move to cli argument and/or init file
     network_id = os.environ['ALLIANCE_UID']
 
-    from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
-    statestore = MongoReducerStateStore(network_id, defaults=config['init'])
+    if statestore_config['type'] == 'MongoDB': 
+        from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
+        statestore = MongoReducerStateStore(network_id, statestore_config['mongo_config'], defaults=config['init'])
+    else:
+        print("Unsupported statestore type, exiting. ",flush=True)
+        raise
+
     statestore.set_reducer(config)
     statestore.set_storage_backend(s3_config)
 
     from fedn.reducer import Reducer
-    reducer = Reducer(config, statestore)
+    reducer = Reducer(statestore)
     reducer.run()
 
 

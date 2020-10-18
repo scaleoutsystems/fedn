@@ -8,18 +8,29 @@ from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
 from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
 
+class InvalidReducerConfiguration(Exception):
+    pass
+
+class MissingReducerConfiguration(Exception):
+    pass
 
 class Reducer:
-    def __init__(self, config, statestore):
-        self.name = config['name']
-        self.token = config['token']
+    def __init__(self, statestore):
+        """ """ 
 
         #if config['init']:
         #    self.statestore = MongoReducerStateStore(defaults=config['init'])
         #else:
         #    self.statestore = MongoReducerStateStore()
         self.statestore = statestore
+        config = self.statestore.get_reducer()
+        if not config:
+            print("REDUCER: Failed to retrive Reducer config, exiting.")
+            raise MissingReducerConfiguration()
 
+        self.name = config['name']
+        self.token = config['token']
+        
         try:
             path = config['path']
         except KeyError:
