@@ -1,6 +1,7 @@
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
+import json
 
 class CombinerUnavailableError(Exception):
     pass
@@ -23,13 +24,14 @@ class Channel:
 
 
 class CombinerInterface:
-    def __init__(self, parent, name, address, port, certificate=None, key=None, config=None):
+    def __init__(self, parent, name, address, port, certificate=None, key=None, ip=None, config=None):
         self.parent = parent
         self.name = name
         self.address = address
         self.port = port
         self.certificate = certificate
         self.key = key
+        self.ip = None
 
         if not config:
             self.config = {
@@ -37,6 +39,39 @@ class CombinerInterface:
             }
         else:
             self.config = config
+
+    @classmethod
+    def from_statestore(statestore,name):
+        """ """
+    
+    @classmethod
+    def from_json(combiner_config):
+        return CombinerInterface(**combiner_config)
+
+    def to_dict(self):
+        import base64
+        cert_b64 = base64.b64encode(self.certificate)
+        key_b64 = base64.b64encode(self.key)
+
+        data = {
+            'parent': self.parent.to_dict(),
+            'name': self.name,
+            'address': self.address,
+            'port': self.port,
+            'certificate': str(cert_b64).split('\'')[1],
+            'key': str(key_b64).split('\'')[1],
+            'ip': self.ip
+        }
+
+        try: 
+            data['report'] = self.report()
+        except CombinerUnavailableError:
+            data['report'] = None
+
+        return data
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
     def report(self,config=None):
         channel = Channel(self.address, self.port, self.certificate).get_channel()

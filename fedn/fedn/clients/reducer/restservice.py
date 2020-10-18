@@ -24,6 +24,12 @@ class ReducerRestService:
 
         self.current_compute_context = self.control.get_compute_context()
 
+    def to_dict(self):
+        data = {
+            'name': self.name
+        }
+        return data
+
     def run(self):
         app = Flask(__name__)
         # TODO support CSRF in monitoring dashboard
@@ -57,6 +63,7 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
         def add():
+            """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
             # TODO check for get variables
@@ -76,8 +83,8 @@ class ReducerRestService:
 
             # TODO append and redirect to index.
             import copy
-            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
-            self.control.add(combiner)
+            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
+            self.control.add_combiner(combiner)
 
             ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
                    'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack

@@ -13,6 +13,9 @@ class MongoReducerStateStore(ReducerStateStore):
             self.latest_model = self.mdb['latest_model']
             self.compute_context = self.mdb['compute_context']
             self.compute_context_trail = self.mdb['compute_context_trail']
+            self.network = self.mdb['network']
+            self.combiners = self.network['combiners']
+            self.clients = self.network['clients']
             self.__inited = True
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -21,6 +24,9 @@ class MongoReducerStateStore(ReducerStateStore):
             self.latest_model = None
             self.compute_context = None
             self.compute_context_trail = None
+            self.network = None
+            self.combiners = None
+            self.clients = None
             raise
 
         import yaml
@@ -102,3 +108,22 @@ class MongoReducerStateStore(ReducerStateStore):
                 return None
         except (KeyError, IndexError):
             return None
+
+    def get_combiner(self,name):
+        """ """
+        try:
+            ret = self.combiner.find({'key': name})
+            return ret
+        except:
+            return None
+
+
+    def set_combiner(self,combiner_data):
+        """ 
+            Set or update combiner record. 
+            combiner_data: dictionary, output of combiner.to_dict())
+        """
+        from datetime import datetime
+        combiner_data['updated_at'] = str(datetime.now())
+        x = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
+        #self.models.update({'key': 'models'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)

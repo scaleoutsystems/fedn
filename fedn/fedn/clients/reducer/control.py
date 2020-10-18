@@ -4,7 +4,7 @@ import tempfile
 import time
 
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
-
+from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
 class ReducerControl:
@@ -12,6 +12,9 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.setup
         self.statestore = statestore
+        if self.statestore.is_inited():
+            self.network = Network(statestore)
+        #self.network_manager = NetworkManager()
         self.combiners = []
 
         s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
@@ -33,7 +36,7 @@ class ReducerControl:
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
-
+        
     def get_latest_model(self):
         return self.statestore.get_latest()
 
@@ -244,7 +247,6 @@ class ReducerControl:
 
         self.__state = ReducerState.instructing
 
-        # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
             print("No model in model chain, please seed the alliance!")
 
@@ -299,13 +301,14 @@ class ReducerControl:
     def monitor(self, config=None):
         pass
 
-    def add(self, combiner):
+    def add_combiner(self, combiner):
         if self.__state != ReducerState.idle:
             print("Reducer is not idle, cannot add additional combiner")
             return
         if self.find(combiner.name):
             return
         print("adding combiner {}".format(combiner.name), flush=True)
+        self.statestore.set_combiner(combiner.to_dict())
         self.combiners.append(combiner)
 
     def remove(self, combiner):
