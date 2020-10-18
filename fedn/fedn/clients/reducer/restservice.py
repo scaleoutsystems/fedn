@@ -58,7 +58,7 @@ class ReducerRestService:
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
-        def add():s
+        def add():
             """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
