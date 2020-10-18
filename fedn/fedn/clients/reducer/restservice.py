@@ -52,17 +52,13 @@ class ReducerRestService:
             logs = None
             refresh = True
             if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
-                                       dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
-                                       dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh)
 
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
-                                   dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
-                                   dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
-        def add():
+        def add():s
             """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})

@@ -15,6 +15,7 @@ class MongoReducerStateStore(ReducerStateStore):
             self.compute_context_trail = self.mdb['compute_context_trail']
             self.network = self.mdb['network']
             self.combiners = self.network['combiners']
+            self.storage = self.mdb['storage']
             self.clients = self.network['clients']
             self.__inited = True
         except Exception as e:
