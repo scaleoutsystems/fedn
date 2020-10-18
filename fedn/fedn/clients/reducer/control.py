@@ -7,6 +7,13 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
+
+class UnsupportedStorageBackend(Exception):
+    pass
+
+class MisconfiguredStorageBackend(Exception):
+    pass
+
 class ReducerControl:
 
     def __init__(self, statestore):
@@ -17,16 +24,18 @@ class ReducerControl:
         #self.network_manager = NetworkManager()
         self.combiners = []
 
-        s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-                     'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-                     'storage_bucket': 'models',
-                     'storage_secure_mode': False,
-                     'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-                     'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+        try:
+            config = self.statestore.get_storage_backend()
+        except:
+            print("REDUCER CONTROL: Failed to retrive storage configuration, exiting.",flush=True)
+            raise MisconfiguredStorageBackend()
 
-        from fedn.common.storage.s3.s3repo import S3ModelRepository
-        self.model_repository = S3ModelRepository(s3_config)
-        self.bucket_name = s3_config["storage_bucket"]
+        if config['storage_type'] == 'S3': 
+            from fedn.common.storage.s3.s3repo import S3ModelRepository
+            self.model_repository = S3ModelRepository(config)
+        else:
+            print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
+            raise UnsupportedStorageBackend()
         
         # TODO: Refactor and make all these configurable
         from fedn.utils.kerassequential import KerasSequentialHelper

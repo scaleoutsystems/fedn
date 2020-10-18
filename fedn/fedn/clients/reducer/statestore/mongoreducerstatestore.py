@@ -109,6 +109,22 @@ class MongoReducerStateStore(ReducerStateStore):
                 return None
         except (KeyError, IndexError):
             return None
+    
+    def get_storage_backend(self):
+        """  """
+        try:
+            ret = self.storage.find_one()
+            return ret
+        except:
+            return None
+    
+    def set_storage_backend(self, config):
+        """ """
+        from datetime import datetime
+        import copy
+        config = copy.deepcopy(config)
+        config['updated_at'] = str(datetime.now())
+        ret = self.storage.update({'storage_type': config['storage_type']}, config, True)
 
     def get_combiner(self,name):
         """ """

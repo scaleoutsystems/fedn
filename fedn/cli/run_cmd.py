@@ -49,6 +49,22 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
 
+    # TODO: Move to init file, and add a separate CLI config command (fedn add storage)
+    import os
+    s3_config = {
+        'storage_type': 'S3',
+        'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+        'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+        'storage_bucket': 'fednmodels',
+        'storage_secure_mode': False,
+        'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+        'storage_port': int(os.environ['FEDN_MINIO_PORT'])
+        }
+
+    from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
+    statestore = MongoReducerStateStore(defaults=config['init'])
+    statestore.set_storage_backend(s3_config)
+
     from fedn.reducer import Reducer
     reducer = Reducer(config)
     reducer.run()
