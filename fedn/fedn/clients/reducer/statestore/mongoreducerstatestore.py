@@ -125,5 +125,4 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
-        x = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
-        #self.models.update({'key': 'models'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
+        ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
