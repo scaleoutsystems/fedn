@@ -123,7 +123,7 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_storage_backend(self):
         """  """
         try:
-            ret = self.storage.find({'status': 'enabled'})
+            ret = self.storage.find({'status': 'enabled'}, projection={'_id': False})
             return ret[0]
         except (KeyError, IndexError):
             return None

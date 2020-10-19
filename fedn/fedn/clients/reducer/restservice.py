@@ -87,8 +87,6 @@ class ReducerRestService:
             self.control.add_combiner(combiner)
 
              # TODO remove ugly string hack
-            print(self.control.statestore.get_storage_backend(),flush=True)
-            print(self.control.statestore.get_config(),flush=True)
             ret = {
                 'status': 'added', 
                 'certificate': str(cert_b64).split('\'')[1],

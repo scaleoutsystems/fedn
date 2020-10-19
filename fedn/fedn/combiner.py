@@ -85,14 +85,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'certificate': cert,
                        'key': key}
 
-        # TODO remove temporary hardcoded config of storage persistance backend
-        #combiner_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-        #                   'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-        #                   'storage_bucket': 'models',
-        #                   'storage_secure_mode': False,
-        #                   'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-        #                   'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
-
         self.repository = S3ModelRepository(response['storage_config'])
         self.server = Server(self,self.modelservice, grpc_config)
 
@@ -102,7 +94,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer(response['statestore_config']['mongo_config'])
+        self.tracer = MongoTracer(response['statestore_config']['mongo_config'],response['statestore_config']['network_id'])
 
         self.server.start()
 
