@@ -160,7 +160,6 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             return None
 
-
     def set_combiner(self,combiner_data):
         """ 
             Set or update combiner record. 

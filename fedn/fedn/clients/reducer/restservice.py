@@ -225,7 +225,7 @@ class ReducerRestService:
 
             fig.update_geos(fitbounds="locations", showcountries=True)
 
-            fig.update_layout(title="Clients Network")
+            fig.update_layout(title="Combiner network")
 
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
