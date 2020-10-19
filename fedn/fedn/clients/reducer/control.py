@@ -362,3 +362,52 @@ class ReducerControl:
 
     def state(self):
         return self.__state
+
+
+    def describe_network(self):
+        network = {
+            "0": {
+                "clients": 5,
+                "status": "active",
+                "ip": "149.142.201.252",
+                "location": {
+                    "country": "US",
+                    "region": "California",
+                    "city": "Los Angeles",
+                    "lat": 34.0675,
+                    "lng": -118.447,
+                    "postalCode": "90095",
+                    "timezone": "-07:00"
+                }
+            },
+            "1": {
+                "clients": 9,
+                "status": "active",
+                "ip": "77.234.45.226",
+                "location": {
+                    "country": "DE",
+                    "region": "Hesse",
+                    "city": "Frankfurt am Main",
+                    "lat": 50.1188,
+                    "lng": 8.6843,
+                    "postalCode": "60313",
+                    "timezone": "+02:00"
+                }
+            },
+            "2": {
+                "clients": 2,
+                "status": "idle",
+                "ip": "192.121.133.205",
+                "location": {
+                    "country": "SE",
+                    "region": "Stockholm County",
+                    "city": "Stockholm",
+                    "lat": 59.3293,
+                    "lng": 18.0686,
+                    "postalCode": "10005",
+                    "timezone": "+02:00"
+                }
+            }
+        }
+
+        return network

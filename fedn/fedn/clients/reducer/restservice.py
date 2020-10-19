@@ -193,13 +193,18 @@ class ReducerRestService:
 
         def create_map():
             cities_dict = {
-                'city': ["REYKJAVIK", "LISBON", "LONDON", "MADRID", "VALLETTA", "PRAGUE", "ATHENS", "ANKARA", "SOFIA",
-                         "MOSCOW", "OSLO", "STOCKHOLM", "HELSINKI"],
-                'lat': [64.1466, 38.7223, 51.30, 40.4168, 35.53, 50.05, 37.59, 39.56, 42.41, 55.45, 59.55, 59.20,
-                        60.10],
-                'lon': [21.9426, 9.1393, 0.10, 3.7038, 14.30, 14.28, 23.44, 32.52, 23.19, 37.35, 10.45, 18.03, 24.56],
-                'country': ["ICELAND", "PORTUGAL", "UNITED KINGDOM", "SPAIN", "MALTA", "CZECH Rep.", "GREECE", "TURKEY",
-                            "BULGARIA", "RUSSIA", "NORWAY", "SWEDEN", "FINLAND"]}
+                'city': [],
+                'lat': [],
+                'lon': [],
+                'country': []
+            }
+
+            network = self.control.describe_network()
+            for i in network:
+                cities_dict['city'].append(network[i]['location']['city'])
+                cities_dict['lat'].append(network[i]['location']['lat'])
+                cities_dict['lon'].append(network[i]['location']['lng'])
+                cities_dict['country'].append(network[i]['location']['country'])
 
             cities_df = pd.DataFrame(cities_dict)
 
