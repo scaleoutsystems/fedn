@@ -8,6 +8,9 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.clients.combiner.modelservice import ModelService
 from fedn.common.storage.s3.s3repo import S3ModelRepository
+import requests
+import json
+
 
 # from fedn.combiner.role import Role
 
@@ -292,6 +295,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_unprocessed_tasks"
         p.value = str(len(self.combiner.run_configs))
+
+        # Get IP information
+        try:
+            url = 'http://ipinfo.io/json'
+            data = requests.get(url)
+            combiner_location = json.loads(data.text)
+            for key,value in combiner_location.items():
+                p = response.parameter.add()
+                p.key = str(key)
+                p.value = str(value)
+        except Exception as e:
+            print(e,flush=True)
+            pass
         
         return response
 

@@ -152,6 +152,15 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             return None
 
+    def list_combiners(self):
+        """ """ 
+        combiners = []
+        try:
+            ret = self.combiner.find()
+            return list(ret)
+        except:
+            return None
+
     def get_combiner(self,name):
         """ """
         try:

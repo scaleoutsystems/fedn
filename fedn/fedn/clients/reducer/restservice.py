@@ -64,11 +64,6 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
         def add():
-            # Get IP information
-            url = 'http://ipinfo.io/json'
-            response = requests.get(url)
-            combiner_location = json.loads(response.text)
-            print(combiner_location)
 
             """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
@@ -215,11 +210,11 @@ class ReducerRestService:
             }
 
             network = self.control.describe_network()
-            for i in network:
-                cities_dict['city'].append(network[i]['location']['city'])
-                cities_dict['lat'].append(network[i]['location']['lat'])
-                cities_dict['lon'].append(network[i]['location']['lng'])
-                cities_dict['country'].append(network[i]['location']['country'])
+            for combiner in network:
+                cities_dict['city'].append(combiner['city'])
+                cities_dict['lat'].append(combiner['loc'].split(',')[0])
+                cities_dict['lon'].append(combiner['loc'].split(',')[1])
+                cities_dict['country'].append(combiner['country'])
 
             cities_df = pd.DataFrame(cities_dict)
 
