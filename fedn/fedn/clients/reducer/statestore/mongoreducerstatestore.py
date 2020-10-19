@@ -7,7 +7,9 @@ class MongoReducerStateStore(ReducerStateStore):
     def __init__(self, network_id, config, defaults=None):
         self.__inited = False
         try:
-            self.mdb = connect_to_mongodb(config, network_id)
+            self.config = config
+            self.network_id = network_id
+            self.mdb = connect_to_mongodb(self.config, self.network_id)
             self.state = self.mdb['state']
             self.models = self.mdb['models']
             self.latest_model = self.mdb['latest_model']
@@ -55,6 +57,14 @@ class MongoReducerStateStore(ReducerStateStore):
     def is_inited(self):
         return self.__inited
 
+    def get_config(self):
+        data = {
+            'type': 'MongoDB',
+            'mongo_config': self.config,
+            'network_id': self.network_id
+        }
+        return data
+
     def state(self):
         return StringToReducerState(self.state.find_one()['current_state'])
 
@@ -96,7 +106,6 @@ class MongoReducerStateStore(ReducerStateStore):
         except (KeyError, IndexError):
             return None
 
-    # new function to get module info from mongodb
     def get_model_info(self):
         # TODO: get all document in model collection...
         ret = self.models.find_one()
@@ -114,9 +123,9 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_storage_backend(self):
         """  """
         try:
-            ret = self.storage.find_one()
-            return ret
-        except:
+            ret = self.storage.find({'status': 'enabled'})
+            return ret[0]
+        except (KeyError, IndexError):
             return None
     
     def set_storage_backend(self, config):
@@ -125,6 +134,7 @@ class MongoReducerStateStore(ReducerStateStore):
         import copy
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
+        config['status'] = 'enabled'
         ret = self.storage.update({'storage_type': config['storage_type']}, config, True)
 
 

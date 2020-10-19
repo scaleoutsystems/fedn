@@ -21,7 +21,6 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-
         self.current_compute_context = self.control.get_compute_context()
 
     def to_dict(self):
@@ -82,8 +81,17 @@ class ReducerRestService:
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
             self.control.add_combiner(combiner)
 
-            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
-                   'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
+             # TODO remove ugly string hack
+            print(self.control.statestore.get_storage_backend(),flush=True)
+            print(self.control.statestore.get_config(),flush=True)
+            ret = {
+                'status': 'added', 
+                'certificate': str(cert_b64).split('\'')[1],
+                'key': str(key_b64).split('\'')[1], 
+                'storage_config': self.control.statestore.get_storage_backend(),
+                'statestore_config': self.control.statestore.get_config(),
+            }     
+
             return jsonify(ret)
 
         @app.route('/seed', methods=['GET', 'POST'])
