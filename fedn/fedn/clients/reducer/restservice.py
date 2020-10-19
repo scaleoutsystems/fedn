@@ -10,6 +10,7 @@ import json
 import plotly
 import pandas as pd
 import plotly.express as px
+import requests
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -63,6 +64,12 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
         def add():
+            # Get IP information
+            url = 'http://ipinfo.io/json'
+            response = requests.get(url)
+            combiner_location = json.loads(response.text)
+            print(combiner_location)
+
             """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
