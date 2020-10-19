@@ -6,6 +6,11 @@ from werkzeug.utils import secure_filename
 from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 
+import json
+import plotly
+import pandas as pd
+import plotly.express as px
+
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 
@@ -187,6 +192,38 @@ class ReducerRestService:
 
             return result
 
+
+        @app.route('/network')
+        def map_view():
+            map = create_map()
+            try:
+                return render_template('index.html', show_map=True, map=map)
+            except Exception as e:
+                return str(e)
+
+        def create_map():
+            cities_dict = {
+                'city': ["REYKJAVIK", "LISBON", "LONDON", "MADRID", "VALLETTA", "PRAGUE", "ATHENS", "ANKARA", "SOFIA",
+                         "MOSCOW", "OSLO", "STOCKHOLM", "HELSINKI"],
+                'lat': [64.1466, 38.7223, 51.30, 40.4168, 35.53, 50.05, 37.59, 39.56, 42.41, 55.45, 59.55, 59.20,
+                        60.10],
+                'lon': [21.9426, 9.1393, 0.10, 3.7038, 14.30, 14.28, 23.44, 32.52, 23.19, 37.35, 10.45, 18.03, 24.56],
+                'country': ["ICELAND", "PORTUGAL", "UNITED KINGDOM", "SPAIN", "MALTA", "CZECH Rep.", "GREECE", "TURKEY",
+                            "BULGARIA", "RUSSIA", "NORWAY", "SWEDEN", "FINLAND"]}
+
+            cities_df = pd.DataFrame(cities_dict)
+
+            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", hover_name="city",
+                                 hover_data={"city": False, "lon": False, "lat": False}, width=1000, height=800)
+
+            fig.update_traces(marker=dict(size=12, color="#EC7063"))
+
+            fig.update_geos(fitbounds="locations", showcountries=True)
+
+            fig.update_layout(title="Clients Network")
+
+            fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return fig
 
         @app.route('/plot')
         def plot():
