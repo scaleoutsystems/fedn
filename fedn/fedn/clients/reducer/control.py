@@ -19,10 +19,9 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.setup
         self.statestore = statestore
+        
         if self.statestore.is_inited():
-            self.network = Network(statestore)
-        #self.network_manager = NetworkManager()
-        self.combiners = []
+            self.network = Network(self, statestore)
 
         try:
             config = self.statestore.get_storage_backend()
@@ -45,6 +44,15 @@ class ReducerControl:
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
+
+    def get_state(self):
+        return self.__state
+        
+    def idle(self):
+        if self.__state == ReducerState.idle:
+            return True
+        else:
+            return False
         
     def get_latest_model(self):
         return self.statestore.get_latest()
@@ -64,11 +72,12 @@ class ReducerControl:
             return None
 
     def set_compute_context(self, filename):
+        """ Persist the configuration for the compute package. """ 
         self.statestore.set_compute_context(filename)
 
 
     def commit(self, model_id, model=None):
-        """ Commit a model to the gloval model trail. The model commited becomes the lastest consensus model. """
+        """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
         if model:
             fod, outfile_name = tempfile.mkstemp(suffix='.h5')
@@ -81,7 +90,7 @@ class ReducerControl:
     def _out_of_sync(self,combiners=None):
 
         if not combiners:
-            combiners = self.combiners
+            combiners = self.network.get_combiners()
 
         osync = []
         for combiner in combiners:
@@ -99,6 +108,7 @@ class ReducerControl:
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """
+
         if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
             return True
         else:
@@ -133,7 +143,7 @@ class ReducerControl:
 
         # TODO: Set / update reducer states and such
         # TODO: Do a General Health check on Combiners in the beginning of the round.
-        if len(self.combiners) < 1:
+        if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
             return
 
@@ -144,7 +154,7 @@ class ReducerControl:
         compute_plan['model_id'] = self.get_latest_model()
 
         combiners = []
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
 
             try:
                 combiner_state = combiner.report()
@@ -261,8 +271,10 @@ class ReducerControl:
 
         self.__state = ReducerState.monitoring
 
+        # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer()
+        statestore_config = self.statestore.get_config()
+        self.tracer = MongoTracer(statestore_config['mongo_config'],statestore_config['network_id'])
         self.tracer.drop_performances()
         self.tracer.drop_ps_util_monitor()
 
@@ -308,36 +320,15 @@ class ReducerControl:
         return model
 
     def monitor(self, config=None):
+        #status = self.network.check_health()
         pass
-
-    def add_combiner(self, combiner):
-        if self.__state != ReducerState.idle:
-            print("Reducer is not idle, cannot add additional combiner")
-            return
-        if self.find(combiner.name):
-            return
-        print("adding combiner {}".format(combiner.name), flush=True)
-        self.statestore.set_combiner(combiner.to_dict())
-        self.combiners.append(combiner)
-
-    def remove(self, combiner):
-        if self.__state != ReducerState.idle:
-            print("Reducer is not idle, cannot remove combiner")
-            return
-        self.combiners.remove(combiner)
-
-    def find(self, name):
-        for combiner in self.combiners:
-            if name == combiner.name:
-                return combiner
-        return None
 
     def client_allocation_policy_first_available(self):
         """ 
             Allocate client to the first available combiner in the combiner list. 
             Packs one combiner full before filling up next combiner. 
         """
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
                 return combiner
         return None
@@ -353,7 +344,7 @@ class ReducerControl:
         min_clients = None
         selected_combiner = None
 
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
                 combiner_state = combiner.report()
                 nac = combiner_state['nr_active_clients']
@@ -371,17 +362,7 @@ class ReducerControl:
         combiner = self.client_allocation_policy()
         return combiner
 
-
     def state(self):
         return self.__state
 
 
-    def describe_network(self):
-        network = []
-        for combiner in self.combiners:
-            try:
-                network.append(combiner.report())
-            except CombinerUnavailableError:
-                # TODO, do better here.
-                pass
-        return network

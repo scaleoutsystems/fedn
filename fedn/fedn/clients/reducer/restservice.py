@@ -86,7 +86,7 @@ class ReducerRestService:
             # TODO append and redirect to index.
             import copy
             combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
-            self.control.add_combiner(combiner)
+            self.control.network.add_combiner(combiner)
 
              # TODO remove ugly string hack
             ret = {
@@ -209,7 +209,7 @@ class ReducerRestService:
                 'country': []
             }
 
-            network = self.control.describe_network()
+            network = self.control.network.describe()
             for combiner in network:
                 cities_dict['city'].append(combiner['city'])
                 cities_dict['lat'].append(combiner['loc'].split(',')[0])
