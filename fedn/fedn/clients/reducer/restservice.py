@@ -10,7 +10,7 @@ import json
 import plotly
 import pandas as pd
 import plotly.express as px
-import requests
+import geoip2.database
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -202,6 +202,12 @@ class ReducerRestService:
                 return str(e)
 
         def create_map():
+            IPs = [
+                "149.142.201.252",
+                "77.234.45.226",
+                "192.121.133.205"
+            ]
+
             cities_dict = {
                 'city': [],
                 'lat': [],
@@ -209,12 +215,14 @@ class ReducerRestService:
                 'country': []
             }
 
-            network = self.control.network.describe()
-            for combiner in network:
-                cities_dict['city'].append(combiner['city'])
-                cities_dict['lat'].append(combiner['loc'].split(',')[0])
-                cities_dict['lon'].append(combiner['loc'].split(',')[1])
-                cities_dict['country'].append(combiner['country'])
+            with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
+                for IP in IPs:
+                    response = reader.city(IP)
+
+                    cities_dict['city'].append(response.city.name)
+                    cities_dict['lat'].append(response.location.latitude)
+                    cities_dict['lon'].append(response.location.longitude)
+                    cities_dict['country'].append(response.country.iso_code)
 
             cities_df = pd.DataFrame(cities_dict)
 
