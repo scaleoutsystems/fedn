@@ -10,16 +10,19 @@ class MongoReducerStateStore(ReducerStateStore):
             self.config = config
             self.network_id = network_id
             self.mdb = connect_to_mongodb(self.config, self.network_id)
-            self.state = self.mdb['state']
-            self.models = self.mdb['models']
-            self.latest_model = self.mdb['latest_model']
-            self.compute_context = self.mdb['compute_context']
-            self.compute_context_trail = self.mdb['compute_context_trail']
+            # FEDn network
             self.network = self.mdb['network']
             self.reducer = self.network['reducer']
             self.combiners = self.network['combiners']
             self.clients = self.network['clients']
             self.storage = self.mdb['storage']
+            # Model and control 
+            self.state = self.mdb['state']
+            self.models = self.mdb['models']
+            self.latest_model = self.mdb['latest_model']
+            self.compute_context = self.mdb['compute_context']
+            self.compute_context_trail = self.mdb['compute_context_trail']
+            # Logging and dashboard
             self.status = self.mdb["status"]
             self.round_time = self.mdb["performances"]
             self.psutil_usage = self.mdb["psutil_usage"]
@@ -173,7 +176,7 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             return None
 
-    def set_combiner(self,combiner_data):s
+    def set_combiner(self,combiner_data):
         """ 
             Set or update combiner record. 
             combiner_data: dictionary, output of combiner.to_dict())

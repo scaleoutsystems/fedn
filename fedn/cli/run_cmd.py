@@ -86,9 +86,18 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     else:
         print("Unsupported statestore type, exiting. ",flush=True)
         raise
-
-    statestore.set_reducer(config)
-    statestore.set_storage_backend(s3_config)
+    
+    try:
+        statestore.set_reducer(config)
+    except:
+        print("Failed to set reducer config in statestore, exiting.",flush=True)
+        raise
+    
+    try:
+        statestore.set_storage_backend(s3_config)
+    except:
+        print("Failed to set storage config in statestore, exiting.",flush=True)
+        raise
 
     from fedn.reducer import Reducer
     reducer = Reducer(statestore)

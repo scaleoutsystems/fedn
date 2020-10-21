@@ -28,6 +28,9 @@ class ReducerControl:
         except:
             print("REDUCER CONTROL: Failed to retrive storage configuration, exiting.",flush=True)
             raise MisconfiguredStorageBackend()
+        if not config:
+            print("REDUCER CONTROL: No storage configuration available, exiting.",flush=True)
+            raise MisconfiguredStorageBackend() 
 
         if config['storage_type'] == 'S3': 
             from fedn.common.storage.s3.s3repo import S3ModelRepository
@@ -290,11 +293,11 @@ class ReducerControl:
                 print('-------------------------------')
                 round_time = end_time - start_time
                 self.tracer.set_latest_time(round, round_time.seconds)
-                # stop round monitor
-                self.tracer.stop_monitor()
-
             else:
                 print("REDUCER: Global round failed!")
+            
+            # stop round monitor
+            self.tracer.stop_monitor()
 
         self.__state = ReducerState.idle
 

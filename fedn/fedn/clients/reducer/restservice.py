@@ -250,7 +250,7 @@ class ReducerRestService:
 
         def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
-            self.plot = Plot(control.statestore)
+            self.plot = Plot(self.control.statestore)
             if feature == 'table':
                 return self.plot.create_table_plot()
             elif feature == 'timeline':
