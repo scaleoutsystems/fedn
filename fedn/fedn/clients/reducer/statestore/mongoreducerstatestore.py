@@ -20,6 +20,10 @@ class MongoReducerStateStore(ReducerStateStore):
             self.combiners = self.network['combiners']
             self.clients = self.network['clients']
             self.storage = self.mdb['storage']
+            self.status = self.mdb["status"]
+            self.round_time = self.mdb["performances"]
+            self.psutil_usage = self.mdb["psutil_usage"]
+
             self.__inited = True
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -169,7 +173,7 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             return None
 
-    def set_combiner(self,combiner_data):
+    def set_combiner(self,combiner_data):s
         """ 
             Set or update combiner record. 
             combiner_data: dictionary, output of combiner.to_dict())

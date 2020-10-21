@@ -214,6 +214,7 @@ class ReducerRestService:
                 'lon': [],
                 'country': []
             }
+
             from fedn import get_data
             dbpath = get_data('geolite2/GeoLite2-City.mmdb')
 
@@ -249,7 +250,7 @@ class ReducerRestService:
 
         def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
-            self.plot = Plot()
+            self.plot = Plot(control.statestore)
             if feature == 'table':
                 return self.plot.create_table_plot()
             elif feature == 'timeline':
