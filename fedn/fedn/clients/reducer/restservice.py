@@ -214,8 +214,10 @@ class ReducerRestService:
                 'lon': [],
                 'country': []
             }
+            from fedn import get_data
+            dbpath = get_data('geolite2/GeoLite2-City.mmdb')
 
-            with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
+            with geoip2.database.Reader(dbpath) as reader:
                 for IP in IPs:
                     response = reader.city(IP)
 
