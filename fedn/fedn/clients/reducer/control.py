@@ -34,7 +34,7 @@ class ReducerControl:
 
         if config['storage_type'] == 'S3': 
             from fedn.common.storage.s3.s3repo import S3ModelRepository
-            self.model_repository = S3ModelRepository(config)
+            self.model_repository = S3ModelRepository(config['storage_config'])
         else:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()

@@ -40,6 +40,7 @@ setup(
         "click",
         "jinja2==2.11.1",
         "geoip2",
+        "deprecated"
 
     ],
     license="Copyright Scaleout Systems AB. See license for details",

@@ -93,8 +93,8 @@ class ReducerRestService:
                 'status': 'added', 
                 'certificate': str(cert_b64).split('\'')[1],
                 'key': str(key_b64).split('\'')[1], 
-                'storage_config': self.control.statestore.get_storage_backend(),
-                'statestore_config': self.control.statestore.get_config(),
+                'storage': self.control.statestore.get_storage_backend(),
+                'statestore': self.control.statestore.get_config(),
             }     
 
             return jsonify(ret)

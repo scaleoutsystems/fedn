@@ -46,6 +46,8 @@ class MongoReducerStateStore(ReducerStateStore):
                 try:
                     settings = dict(yaml.safe_load(file))
                     print(settings, flush=True)
+
+                    # Control settings
                     self.transition(str(settings['state']))
                     if not self.get_latest():
                         self.set_latest(str(settings['model']))
@@ -57,6 +59,11 @@ class MongoReducerStateStore(ReducerStateStore):
                     # TODO fix with unboxing of value before storing and where consuming.
                     self.compute_context.update({'key': 'package'},
                                                 {'$set': {'filename': {'filename': settings['context']}}}, True)
+
+                    # Storage settings
+                    self.set_storage_backend(settings['storage'])
+
+
                     self.__inited = True
                 except yaml.YamlError as e:
                     print(e)
