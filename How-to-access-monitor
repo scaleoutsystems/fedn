@@ -1,0 +1,33 @@
+The monitoring services are now part of the base service stack. When we start the base services using:
+
+$ docker-compose up --build
+
+following four new containers will be part of the stack:
+
+1 - fedn_prometheus
+2 - fedn_grafana
+3 - fedn_node_exporter
+4 - fedn_cadvisor
+
+The monitoring dashboard is based on Grafana. Following steps will guide you to setup the first dashboard:
+
+1 - Access the dashboard using any browser: 
+ 
+    http://<host-node-name>:3000
+
+2 - Default username password is admin/admin. Change the password. 
+
+3 - Create a data source. 
+  - Click on data source icon and select Prometheus as a data source.   
+  - In the URL, set http://fedn_prometheus:9090
+  - Press 'Save and Test' button. You will receive a message that 'Data source is working'.
+ 
+4 - There are different ways to setup a new dashboard. You can use any publicly available template to setup a new Grafana dashboard according to your choice. However, we have prepared a minimal dashboard configurations that will allow to monitor all Fedn related containers.
+
+  - Goto the create section (Left frame in your Grafana window '+').   
+  - Select the option 'import'. 
+  - The template file is available in config directory, 'fedn/config/fedn-grafana-dashboard.json'. Copy the contents and past it in the JSON box. 
+  - Press the ‘Load’ button. 
+  - On the next page press the 'Import' button.
+
+
