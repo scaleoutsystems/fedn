@@ -85,7 +85,7 @@ def get_statestore_config_from_file(init):
         try:
             settings = dict(yaml.safe_load(file))
             return settings
-        except yaml.YamlError as e:
+        except yaml.YAMLError as e:
             raise(e)
    
 @run_cmd.command('reducer')
@@ -98,12 +98,19 @@ def get_statestore_config_from_file(init):
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
 
+    print(config['init'],flush=True)
+    if config['init']:
+        # Read settings from config file
+        try:
+            fedn_config = get_statestore_config_from_file(config['init'])
+        # Todo: Make more specific
+        except Exception as e:
+            print('Failed to read config from settings file, exiting.',flush=True)
+            print(e,flush=True)
+            exit(-1)
 
-    try:
-        # From config file
-        fedn_config = get_statestore_config_from_file(config['init'])
-    # Todo: Make more specific
-    except:
+    # Old mechanism of reading from env, deprecated.
+    else:
         try:
             # From ENV
             fedn_config = {}
@@ -113,6 +120,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         except Exception as e:
             print("Failed to get statestore config from environment: {}".format(e),flush=True)
             exit(-1)
+
     try:
         network_id = fedn_config['network_id']
     except KeyError:

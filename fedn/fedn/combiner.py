@@ -80,15 +80,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
 
         import base64
-        cert = base64.b64decode(response['certificate'])  # .decode('utf-8')
-        key = base64.b64decode(response['key'])  # .decode('utf-8')
+        cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
+        key = base64.b64decode(config['key'])  # .decode('utf-8')
 
         grpc_config = {'port': port,
                        'secure': connect_config['secure'],
                        'certificate': cert,
                        'key': key}
 
-        self.repository = S3ModelRepository(response['storage']['storage_config'])
+        self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self,self.modelservice, grpc_config)
 
         from fedn.algo.fedavg import FEDAVGCombiner
@@ -97,7 +97,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer(response['statestore']['mongo_config'],response['statestore']['network_id'])
+        self.tracer = MongoTracer(config['statestore']['mongo_config'],config['statestore']['network_id'])
 
         self.server.start()
 

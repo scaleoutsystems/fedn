@@ -17,11 +17,6 @@ class MissingReducerConfiguration(Exception):
 class Reducer:
     def __init__(self, statestore):
         """ """ 
-
-        #if config['init']:
-        #    self.statestore = MongoReducerStateStore(defaults=config['init'])
-        #else:
-        #    self.statestore = MongoReducerStateStore()
         self.statestore = statestore
         config = self.statestore.get_reducer()
         if not config:
