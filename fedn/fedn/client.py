@@ -260,7 +260,7 @@ class Client:
             inpath = self.helper.get_tmp_path()
             with open(inpath,'wb') as fh:
                 fh.write(mdl.getbuffer())
-                
+
             outpath = self.helper.get_tmp_path()
             print(inpath,outpath,flush=True)
 
@@ -292,18 +292,19 @@ class Client:
         self.state = ClientState.validating
         try:
             model = self.get_model(str(model_id))  
-            fid, infile_name = tempfile.mkstemp(suffix='.h5')
-            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            with open(infile_name, "wb") as fh:
+            inpath = self.helper.get_tmp_path()
+
+            with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            self.dispatcher.run_cmd("validate {} {}".format(infile_name, outfile_name))
+            outpath = tempfile.mkstemp()
+            self.dispatcher.run_cmd("validate {} {}".format(inpath, outpath))
 
-            with open(outfile_name, "r") as fh:
+            with open(outpath, "r") as fh:
                 validation = json.loads(fh.read())
 
-            os.unlink(infile_name)
-            os.unlink(outfile_name)
+            os.unlink(inpath)
+            os.unlink(outpath)
 
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
