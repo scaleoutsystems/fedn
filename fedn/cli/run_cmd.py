@@ -5,42 +5,6 @@ from deprecated import deprecated
 
 from .main import main
 
-
-
-@main.group('run')
-@click.pass_context
-def run_cmd(ctx):
-    # if daemon:
-    #    print('{} NYI should run as daemon...'.format(__file__))
-    pass
-
-
-@run_cmd.command('client')
-@click.option('-d', '--discoverhost', required=True)
-@click.option('-p', '--discoverport', required=True)
-@click.option('-t', '--token', required=True)
-@click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
-@click.option('-i', '--client_id', required=False)
-@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
-@click.option('-u', '--dry-run', required=False, default=False)
-@click.option('-s', '--secure', required=False, default=True)
-@click.option('-v', '--preshared-cert', required=False, default=False)
-@click.option('-v', '--verify-cert', required=False, default=False)
-@click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert):
-    if name == None:
-        import uuid
-        name = str(uuid.uuid4())
-
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert}
-
-    from fedn.client import Client
-    client = Client(config)
-    client.run()
-
 @deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
 def get_statestore_config_from_env():
     import os
@@ -87,6 +51,42 @@ def get_statestore_config_from_file(init):
             return settings
         except yaml.YAMLError as e:
             raise(e)
+
+
+@main.group('run')
+@click.pass_context
+def run_cmd(ctx):
+    # if daemon:
+    #    print('{} NYI should run as daemon...'.format(__file__))
+    pass
+
+
+@run_cmd.command('client')
+@click.option('-d', '--discoverhost', required=True)
+@click.option('-p', '--discoverport', required=True)
+@click.option('-t', '--token', required=True)
+@click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
+@click.option('-i', '--client_id', required=False)
+@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
+@click.option('-u', '--dry-run', required=False, default=False)
+@click.option('-s', '--secure', required=False, default=True)
+@click.option('-v', '--preshared-cert', required=False, default=False)
+@click.option('-v', '--verify-cert', required=False, default=False)
+@click.pass_context
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
+               verify_cert):
+    if name == None:
+        import uuid
+        name = str(uuid.uuid4())
+
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
+              'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
+              'preshared_cert': preshared_cert, 'verify_cert': verify_cert}
+
+    from fedn.client import Client
+    client = Client(config)
+    client.run()
+
    
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
@@ -98,7 +98,6 @@ def get_statestore_config_from_file(init):
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
 
-    print(config['init'],flush=True)
     if config['init']:
         # Read settings from config file
         try:

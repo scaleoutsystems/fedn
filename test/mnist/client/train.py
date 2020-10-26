@@ -51,8 +51,8 @@ def train(model,data,sample_fraction):
     return model
 
 if __name__ == '__main__':
-    model = krm.load_model(sys.argv[1])
+    from fedn.utils.kerassequential import KerasSequentialHelper
+    helper = KerasSequentialHelper()
+    model = helper.load_model(sys.argv[1])
     model = train(model,'../data/train.csv',sample_fraction=0.001)
-    model.save(sys.argv[2])
-
-
+    helper.save_model(model,sys.argv[2])

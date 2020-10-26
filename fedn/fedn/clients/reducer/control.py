@@ -170,10 +170,8 @@ class ReducerControl:
                 if is_participating:
                     combiners.append((combiner,compute_plan))
 
-        print("REDUCER CONTROL: Participating combiners: {}".format(combiners),flush=True)
-
         round_start = self.check_round_start_policy(combiners)
-        print("ROUND START POLICY: {}".format(round_start),flush=True)
+        print("ROUND START POLICY MET: participating combiners {}".format(round_start),flush=True)
         if not round_start:
             print("REDUCER CONTROL: Round start policy not met, skipping round!",flush=True)
             return None
@@ -315,10 +313,10 @@ class ReducerControl:
 
             if data:
                 try:
-                    model_next = self.helper.load_model(combiner.get_model().getbuffer())
+                    model_next = self.helper.load_model_from_BytesIO(combiner.get_model().getbuffer())
                     self.helper.increment_average(model, model_next, i)
                 except:
-                    model = self.helper.load_model(data.getbuffer())
+                    model = self.helper.load_model_from_BytesIO(data.getbuffer())
                 i = i+1
         return model
 
