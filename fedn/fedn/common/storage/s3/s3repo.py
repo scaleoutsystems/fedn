@@ -15,12 +15,12 @@ class S3ModelRepository(MINIORepository):
         print("Client {} trying to get model with id: {}".format(self.client, model_id),flush=True)
         return self.get_artifact_stream(model_id)
 
-    def set_model(self, model, bucket='models', is_file=True):
+    def set_model(self, model, is_file=True):
         import uuid
         model_id = uuid.uuid4()
         # TODO: Check that this call succeeds
         try:
-            self.set_artifact(str(model_id), model,bucket=bucket,is_file=is_file)
+            self.set_artifact(str(model_id), model, bucket=self.bucket,is_file=is_file)
         except Exception as e:
             print("Failed to write model with ID {} to repository.".format(model_id))
             raise
