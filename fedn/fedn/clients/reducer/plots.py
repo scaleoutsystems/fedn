@@ -114,14 +114,12 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds())
+            x.append(ts.total_seconds()/60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
-            x=x,
-            y=y,
-            orientation='h',
-            base=base,
+            x=y,
+            y=x,
             marker=dict(color='royalblue'),
             name="Training",
         ))
@@ -141,14 +139,12 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds())
+            x.append(ts.total_seconds()/60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
-            x=x,
-            y=y,
-            orientation='h',
-            base=base,
+            x=y,
+            y=x,
             marker=dict(color='lightskyblue'),
             name="Validation",
         ))
@@ -159,7 +155,8 @@ class Plot:
         )
 
         fig = go.Figure(data=trace_data, layout=layout)
-        fig.update_xaxes(title_text='Timestamp')
+        fig.update_xaxes(title_text='Alliance/client')
+        fig.update_yaxes(title_text='Time (Min)')
         fig.update_layout(title_text='Alliance timeline')
         timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return timeline
