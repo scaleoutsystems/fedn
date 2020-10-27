@@ -155,12 +155,13 @@ class ReducerRestService:
 
         @app.route('/assign')
         def assign():
+            """Handle client assignment requests. """
+
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
+
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
-            import uuid
-            id = str(uuid.uuid4())
 
             if combiner_preferred:
                 combiner = self.control.find(combiner_preferred)
@@ -168,7 +169,6 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner:
-                # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
                 response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
@@ -233,9 +233,7 @@ class ReducerRestService:
                                  hover_data={"city": False, "lon": False, "lat": False}, width=1000, height=800)
 
             fig.update_traces(marker=dict(size=12, color="#EC7063"))
-
             fig.update_geos(fitbounds="locations", showcountries=True)
-
             fig.update_layout(title="Combiner network")
 
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)

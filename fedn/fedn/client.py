@@ -36,11 +36,10 @@ class Client:
         self.started_at = datetime.now()
         self.logs = []
         client_config = {}
-        print("Asking for assignment")
+        print("Asking for assignment",flush=True)
         import time
         while True:
             status, response = self.connector.assign()
-            print(status,response,flush=True)
             if status == Status.TryAgain:
                 time.sleep(5)
                 continue
@@ -52,7 +51,6 @@ class Client:
 
         # connect_config = None
         print("Got assigned!", flush=True)
-        tries = 180
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         if client_config['certificate']:
@@ -315,6 +313,7 @@ class Client:
         return validation
 
     def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
+        """Send status message. """
         print("SEND_STATUS REPORTS:{}".format(msg), flush=True)
         from google.protobuf.json_format import MessageToJson
         status = fedn.Status()
@@ -335,6 +334,7 @@ class Client:
         response = self.connection.SendStatus(status)
 
     def _send_heartbeat(self, update_frequency=2.0):
+        """Send a heartbeat to the Combiner. """
         while True:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER))
             try:
