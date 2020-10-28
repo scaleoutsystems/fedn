@@ -12,7 +12,7 @@ import os
 
 
 def train(model,data,sample_fraction):
-    print("-- RUNNING TRAINING --amlexample", flush=True)
+    print("-- RUNNING TRAINING --", flush=True)
 
     batch_size = 32
     num_classes = 10
@@ -52,7 +52,6 @@ def train(model,data,sample_fraction):
 
 if __name__ == '__main__':
     model = krm.load_model(sys.argv[1])
-    print("AML example start training")
     model = train(model,'../data/pickled_data_trainvaltest',sample_fraction=0.1)
     model.save(sys.argv[2])
 
