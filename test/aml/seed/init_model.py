@@ -51,9 +51,7 @@ if __name__ == '__main__':
 	model = create_seed_model()
 	outfile_name = "879fa112-c861-4cb1-a25d-775153e5b548"
 #	fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-	print("before save")
 	model.save(outfile_name)
-	print("after save")
 	#project = Project()
 	#from scaleout.repository.helpers import get_repository
 
