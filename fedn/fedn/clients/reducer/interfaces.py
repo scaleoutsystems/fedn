@@ -31,7 +31,7 @@ class CombinerInterface:
         self.port = port
         self.certificate = certificate
         self.key = key
-        self.ip = None
+        self.ip = ip
 
         if not config:
             self.config = {
