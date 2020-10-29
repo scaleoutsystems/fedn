@@ -271,7 +271,7 @@ class Client:
 
             import uuid
             updated_model_id = uuid.uuid4()
-            self.set_model(out_model, str(model_id))
+            self.set_model(out_model, str(updated_model_id))
 
             os.unlink(inpath)
             os.unlink(outpath)
