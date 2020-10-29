@@ -173,7 +173,7 @@ class MongoReducerStateStore(ReducerStateStore):
         """ """ 
         combiners = []
         try:
-            ret = self.combiner.find()
+            ret = self.combiners.find()
             return list(ret)
         except:
             return None

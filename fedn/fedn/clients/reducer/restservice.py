@@ -203,7 +203,7 @@ class ReducerRestService:
 
         def create_map():
             IPs = []
-            for combiner in list(self.control.statestore.list_combiners()):
+            for combiner in self.control.statestore.list_combiners():
                 IPs.append(combiner['ip'])
 
             #IPs = [
