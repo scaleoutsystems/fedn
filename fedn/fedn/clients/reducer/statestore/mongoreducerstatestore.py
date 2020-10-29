@@ -16,12 +16,15 @@ class MongoReducerStateStore(ReducerStateStore):
             self.combiners = self.network['combiners']
             self.clients = self.network['clients']
             self.storage = self.mdb['storage']
+            self.certificates = self.mdb['certificates']
             # Model and control 
+            self.control = self.mdb['control']
             self.state = self.mdb['state']
-            self.models = self.mdb['models']
-            self.latest_model = self.mdb['latest_model']
+            self.algorithm = self.mdb['algorithm']
             self.compute_context = self.mdb['compute_context']
             self.compute_context_trail = self.mdb['compute_context_trail']
+            self.models = self.mdb['models']
+            self.latest_model = self.mdb['latest_model']
             # Logging and dashboard
             self.status = self.mdb["status"]
             self.round_time = self.mdb["performances"]
