@@ -295,7 +295,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            outpath = tempfile.mkstemp()
+            _,outpath = tempfile.mkstemp()
             self.dispatcher.run_cmd("validate {} {}".format(inpath, outpath))
 
             with open(outpath, "r") as fh:
@@ -306,6 +306,7 @@ class Client:
 
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
+            raise 
             self.state = ClientState.idle
             return None
 
