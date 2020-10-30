@@ -206,12 +206,6 @@ class ReducerRestService:
             for combiner in self.control.statestore.list_combiners():
                 IPs.append(combiner['ip'])
 
-            #IPs = [
-            #    "149.142.201.252",
-            #    "77.234.45.226",
-            #    "192.121.133.205"
-            #]
-
             cities_dict = {
                 'city': [],
                 'lat': [],
@@ -224,12 +218,15 @@ class ReducerRestService:
 
             with geoip2.database.Reader(dbpath) as reader:
                 for IP in IPs:
-                    response = reader.city(IP)
+                    try:
+                        response = reader.city(IP)
 
-                    cities_dict['city'].append(response.city.name)
-                    cities_dict['lat'].append(response.location.latitude)
-                    cities_dict['lon'].append(response.location.longitude)
-                    cities_dict['country'].append(response.country.iso_code)
+                        cities_dict['city'].append(response.city.name)
+                        cities_dict['lat'].append(response.location.latitude)
+                        cities_dict['lon'].append(response.location.longitude)
+                        cities_dict['country'].append(response.country.iso_code)
+                    except geoip2.errors.AddressNotFoundError as err:
+                        print(err)
 
             cities_df = pd.DataFrame(cities_dict)
 
