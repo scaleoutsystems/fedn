@@ -117,10 +117,29 @@ The actual deployment, sizing and tuning of a FEDn network in production depends
 
 *Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
 
-
-
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
+
+## Put your keras project into a FEDn implementation
+
+The simplest way to take your keras project to an FEDn federation is to copy paste one of the test examples in the test folder.
+
+- Replace the files in the dataset folder to the dataset for your project.
+- Update the script: client/read_data.py so it imports your data correctly.
+- Review the scripts: client/train.py and client/validate.py so it fits your requierments
+- Replace the keras model in the seed/init_project.py to your keras model and run the script to produce a seed-model.
+- Open minio by typing: localhost:9000 in our Chrome browser. Log in with the .env variables (FEDN_MINIO_ACCESS_KEY, FEDN_MINIO_SECRET_KEY) and upload the seed-model under models. 
+- Copy paste the client folder into the package folder. 
+- Package the copied client folder by standing in the package folder in a terminal and type:  tar -czvf <project-name>.tar.gz client
+- Update the context variable in reducer/settings.yaml to the name of your package: <project-name>.tar.gz 
+- Update the EXAMPLE variable in the .env file (described in Getting started) to the name of you project.
+ 
+You can now follow the steps in _Standalone deployment_ and _Train a federated model_ to test and train your FEDn implementation.  
+ 
+ 
+ 
+
+
 
 ## Support
 Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.
