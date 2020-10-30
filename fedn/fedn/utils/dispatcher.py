@@ -22,7 +22,7 @@ class Dispatcher:
 
             # add the corresponding process defined in project.yaml and append arguments from invoked command
             args = cmd + args
-            print("trying to run process {} with args {}".format(cmd, args))
+            #print("trying to run process {} with args {}".format(cmd, args))
             run_process(args=args, cwd=self.project_dir)
 
             logger.info('DONE RUNNING {}'.format(cmd_type))

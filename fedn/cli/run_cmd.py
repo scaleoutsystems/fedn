@@ -1,7 +1,56 @@
 import click
 import uuid
+import yaml
+from deprecated import deprecated
 
 from .main import main
+
+@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
+def get_statestore_config_from_env():
+    import os
+    config = {
+        'type': 'MongoDB',
+        'mongo_config': {
+            'username': os.environ.get('FEDN_MONGO_USER', 'default'),
+            'password': os.environ.get('FEDN_MONGO_PASSWORD', 'password'),
+            'host': os.environ.get('FEDN_MONGO_HOST', 'localhost'),
+            'port': int(os.environ.get('FEDN_MONGO_PORT', '27017')),
+        },
+    }
+    return config
+
+@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
+def get_storage_config_from_env():
+    """ Deprecated. """
+    import os
+    s3_config = {
+        'storage_type': 'S3',
+        'storage_config': {
+            'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+            'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+            'storage_bucket': 'fednmodels',
+            'storage_secure_mode': False,
+            'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+            'storage_port': int(os.environ['FEDN_MINIO_PORT'])
+            },
+        }
+    return s3_config
+
+@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
+def get_network_id_from_env():
+    """ Deprecated. """
+    import os
+    network_id = os.environ['ALLIANCE_UID']
+    return network_id
+
+
+def get_statestore_config_from_file(init):
+    with open(init, 'r') as file:
+        try:
+            settings = dict(yaml.safe_load(file))
+            return settings
+        except yaml.YAMLError as e:
+            raise(e)
 
 
 @main.group('run')
@@ -38,7 +87,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     client = Client(config)
     client.run()
 
-
+   
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
@@ -49,10 +98,60 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
 
-    from fedn.reducer import Reducer
-    reducer = Reducer(config)
-    reducer.run()
+    if config['init']:
+        # Read settings from config file
+        try:
+            fedn_config = get_statestore_config_from_file(config['init'])
+        # Todo: Make more specific
+        except Exception as e:
+            print('Failed to read config from settings file, exiting.',flush=True)
+            print(e,flush=True)
+            exit(-1)
 
+    # Old mechanism of reading from env, deprecated.
+    else:
+        try:
+            # From ENV
+            fedn_config = {}
+            fedn_config['statestore'] = get_statestore_config_from_env()
+            fedn_config['storage'] = get_storage_config_from_env()
+            fedn_config['network_id'] = get_network_id_from_env()
+        except Exception as e:
+            print("Failed to get statestore config from environment: {}".format(e),flush=True)
+            exit(-1)
+
+    try:
+        network_id = fedn_config['network_id']
+    except KeyError:
+        print("No network_id in config, please specify the control network id.",flush=True)
+        exit(-1)
+
+    statestore_config = fedn_config['statestore']
+    if statestore_config['type'] == 'MongoDB': 
+        from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
+        statestore = MongoReducerStateStore(network_id, statestore_config['mongo_config'], defaults=config['init'])
+    else:
+        print("Unsupported statestore type, exiting. ",flush=True)
+        exit(-1)
+    
+    try:
+        statestore.set_reducer(config)
+    except:
+        print("Failed to set reducer config in statestore, exiting.",flush=True)
+        exit(-1)
+    
+    try:
+        statestore.set_storage_backend(fedn_config['storage'])
+    except KeyError:
+        print("storage configuration missing in statestore_config.",flush=True)
+        exit(-1)        
+    except:
+        print("Failed to set storage config in statestore, exiting.",flush=True)
+        exit(-1)
+
+    from fedn.reducer import Reducer
+    reducer = Reducer(statestore)
+    reducer.run()
 
 @run_cmd.command('combiner')
 @click.option('-d', '--discoverhost', required=True)
@@ -71,7 +170,6 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
     from fedn.combiner import Combiner
     combiner = Combiner(config)
     combiner.run()
-
 
 @run_cmd.command('monitor')
 @click.option('-h', '--combinerhost', required=False)
