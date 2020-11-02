@@ -117,6 +117,13 @@ The actual deployment, sizing and tuning of a FEDn network in production depends
 
 *Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
 
+### Reference deployment of a FEDn network
+This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one reducer, two combiners (on one host) and a number of clients. 
+
+#### Prerequisite
+Access to 3 Ubuntu 20.04 hosts (typically virtual machines) 
+
+
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
 

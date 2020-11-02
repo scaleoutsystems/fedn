@@ -36,12 +36,12 @@ class KerasSequentialHelper(HelperBase):
         return model.get_weights()
 
     def get_tmp_path(self):
-        fod, path = tempfile.mkstemp(suffix='.h5')
+        _ , path = tempfile.mkstemp(suffix='.h5')
         return path
 
     def save_model(self, model, path=None):
         if not path:
-            fid, path = tempfile.mkstemp(suffix='.h5')
+            _ , path = tempfile.mkstemp(suffix='.h5')
 
         model.save(path)
         return path
