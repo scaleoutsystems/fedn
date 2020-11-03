@@ -19,16 +19,18 @@ class MongoReducerStateStore(ReducerStateStore):
             self.certificates = self.mdb['certificates']
             # Model and control 
             self.control = self.mdb['control']
-            self.state = self.mdb['state']
-            self.algorithm = self.mdb['algorithm']
-            self.compute_context = self.mdb['compute_context']
-            self.compute_context_trail = self.mdb['compute_context_trail']
-            self.models = self.mdb['models']
-            self.latest_model = self.mdb['latest_model']
+            self.state = self.control['state']
+            self.model = self.mdb["model"]
+            self.algorithm = self.model['algorithm']
+            self.compute_context = self.model['compute_context']
+            self.compute_context_trail = self.model['compute_context_trail']
+            self.models = self.model['model_trail']
+            self.latest_model = self.model['latest_model']
+            self.round = self.control["round"]
             # Logging and dashboard
-            self.status = self.mdb["status"]
-            self.round_time = self.mdb["performances"]
-            self.psutil_usage = self.mdb["psutil_usage"]
+            self.status = self.control["status"]
+            self.round_time = self.round["performances"]
+            self.psutil_usage = self.control["psutil_usage"]
 
             self.__inited = True
         except Exception as e:
