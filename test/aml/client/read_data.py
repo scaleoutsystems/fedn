@@ -19,8 +19,8 @@ def read_data(filename, sample_fraction=1.0):
 
     import_folder = 'pickled_data_trainvaltest'
 
-    X = pickle.load(open(filename + "/x_train.p", "rb"))
-    y = pickle.load(open(filename + "/y_train.p", "rb"))
+    X = pickle.load(open(filename + "/pickled_data_trainvaltest/x_train.p", "rb"))
+    y = pickle.load(open(filename + "/pickled_data_trainvaltest/y_train.p", "rb"))
     X, y = pre_process(X, y)
 
     # The entire dataset is 60k images, we can subsample here for quicker testing. 
