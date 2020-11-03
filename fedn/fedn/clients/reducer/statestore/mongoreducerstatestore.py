@@ -15,8 +15,8 @@ class MongoReducerStateStore(ReducerStateStore):
             self.reducer = self.network['reducer']
             self.combiners = self.network['combiners']
             self.clients = self.network['clients']
-            self.storage = self.mdb['storage']
-            self.certificates = self.mdb['certificates']
+            self.storage = self.network['storage']
+            self.certificates = self.network['certificates']
             # Control 
             self.control = self.mdb['control']
             self.state = self.control['state']
