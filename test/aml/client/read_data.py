@@ -23,7 +23,6 @@ def read_data(filename, sample_fraction=1.0):
     y = pickle.load(open(filename + "/y_train.p", "rb"))
     X, y = pre_process(X, y)
 
-    # The entire dataset is 60k images, we can subsample here for quicker testing. 
     if sample_fraction < 1.0:
         foo, X, bar, y = train_test_split(X, y, test_size=sample_fraction)
     classes = range(num_classes)

@@ -44,7 +44,6 @@ def train(model,data,sample_fraction):
     except:
         pass
 
-
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
     print("-- TRAINING COMPLETED --", flush=True)
