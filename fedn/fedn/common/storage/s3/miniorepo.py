@@ -95,12 +95,15 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
+        objects_to_delete = []
         try:
             objs = self.client.list_objects(self.bucket)
             for obj in objs:
-                print(obj)
+                print(obj.object_name)
+                objects_to_delete.append(obj.object_name)
         except Exception as e:
             raise Exception("Could not list models in bucket {}".format(self.bucket))
+        return objects_to_delete
 
     def delete_artifact(self, instance_name, bucket=[]):
         if not bucket:
@@ -111,3 +114,19 @@ class MINIORepository(Repository):
         except ResponseError as err:
             print(err)
             print('Could not delete artifact: {}'.format(instance_name))
+
+    def delete_objects(self, bucket):
+        objects_to_delete = self.list_artifacts()
+        if not bucket:
+            bucket = self.bucket
+        # Remove multiple objects in a single library call.
+        try:
+            # force evaluation of the remove_objects() call by iterating over
+            # the returned value.
+            for del_err in self.client.remove_objects(bucket, objects_to_delete):
+                print("Deletion Error: {}".format(del_err))
+        except ResponseError as err:
+            print(err)
+
+
+

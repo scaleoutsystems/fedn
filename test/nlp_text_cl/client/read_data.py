@@ -31,9 +31,7 @@ def read_data(filename):
     # But texts in tweets have different count of words in it. To avoid this, we seek a little help from pad_sequence
     # to do our job. It will make all the sequence in one constant length MAX_SEQUENCE_LENGTH
 
-    MAX_SEQUENCE_LENGTH = 100
-    x_train = pad_sequences(x_train, padding='post', maxlen=MAX_SEQUENCE_LENGTH)
-    x_test = pad_sequences(x_test, padding='post', maxlen=MAX_SEQUENCE_LENGTH)
-    return x_train, x_test, y_train, y_test
-
-
+    max_sequence_lenght = 100
+    x_train = pad_sequences(x_train, padding='post', maxlen=max_sequence_lenght)
+    x_test = pad_sequences(x_test, padding='post', maxlen=max_sequence_lenght)
+    return x_train, x_test, y_train, y_test, tokenizer

@@ -3,15 +3,15 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import tensorflow.keras.models as krm
 from sklearn import metrics
-
 import json
 from read_data import read_data
+from train import selectdata
 
 
 def validate(model, data):
     print("-- RUNNING VALIDATION --", flush=True)
     try:
-        (x_train, x_test, y_train, y_test) = read_data(data)
+        (x_train, x_test, y_train, y_test, tokenizer) = read_data(data)
         model_score = model.evaluate(x_test, y_test, verbose=0)
         print('Training loss:', model_score[0])
         print('Training accuracy:', model_score[1])
@@ -32,6 +32,7 @@ def validate(model, data):
 
 if __name__ == '__main__':
     model = krm.load_model(sys.argv[1])
-    report = validate(model, '../data/train.csv')
+    report = validate(model, '../data/test.csv')
+    # report = validate(model, selectdata())
     with open(sys.argv[2], "w") as fh:
         fh.write(json.dumps(report))

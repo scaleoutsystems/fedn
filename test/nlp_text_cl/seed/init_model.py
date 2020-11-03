@@ -1,6 +1,6 @@
 import keras
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import GlobalMaxPooling1D, Embedding
+from tensorflow.keras.layers import GlobalMaxPooling1D, Embedding, GlobalMaxPool1D
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv1D
 
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -18,22 +18,23 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
                 idx = word_index[word]
                 embedding_matrix[idx] = np.array(
                     vector, dtype=np.float32)[:embedding_dim]
+
     return embedding_matrix
 
 
 # Create an initial CNN Model
 def create_seed_model():
-    EMBEDDING_DIM = 50
-    MAX_SEQUENCE_LENGTH = 100
-
+    embedding_dim = 50
+    max_sequence_lenght = 100
+    # embedding = "https://tfhub.dev/google/nnlm-en-dim50/2"
     tokenizer = Tokenizer(num_words=100000)
     embedding_matrix = create_embedding_matrix('../data/word_embeddings/glove.6B.50d.txt',
                                                tokenizer.word_index,
-                                               EMBEDDING_DIM)
+                                               embedding_dim)
     model = Sequential()
-    model.add(Embedding(len(tokenizer.word_index) + 1, EMBEDDING_DIM,
+    model.add(Embedding(len(tokenizer.word_index) + 1, embedding_dim,
                         weights=[embedding_matrix],
-                        input_length=MAX_SEQUENCE_LENGTH,
+                        input_length=max_sequence_lenght,
                         trainable=False))
     model.add(Conv1D(128, 5, activation='relu'))
     model.add(GlobalMaxPooling1D())
@@ -42,7 +43,7 @@ def create_seed_model():
     model.compile(optimizer='adam',
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
-    model.summary()
+    print(model.summary())
     return model
 
 

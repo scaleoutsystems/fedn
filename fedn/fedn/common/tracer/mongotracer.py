@@ -53,10 +53,6 @@ class MongoTracer(Tracer):
             self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
             self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
 
-        # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'cpu': {'$each': cpu_percents}}}, True)
-        # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'mem': {'$each': mem_percents}}}, True)
-        # self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'time': {'$each': ps_time}}}, True)
-
     def start_monitor(self, round=None):
         global t
         # create thread and start it

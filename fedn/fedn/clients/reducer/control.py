@@ -24,7 +24,7 @@ class ReducerControl:
         from fedn.common.storage.s3.s3repo import S3ModelRepository
         self.model_repository = S3ModelRepository(s3_config)
         self.bucket_name = s3_config["storage_bucket"]
-        
+
         # TODO: Refactor and make all these configurable
         from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
@@ -33,6 +33,9 @@ class ReducerControl:
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
+
+    def delet_bucket_objects(self):
+        return self.model_repository.delete_objects(self.bucket_name)
 
     def get_latest_model(self):
         return self.statestore.get_latest()
@@ -264,7 +267,6 @@ class ReducerControl:
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
-                print('-------------------------------')
                 round_time = end_time - start_time
                 self.tracer.set_latest_time(round, round_time.seconds)
                 # stop round monitor
@@ -272,6 +274,7 @@ class ReducerControl:
 
             else:
                 print("REDUCER: Global round failed!")
+                self.tracer.stop_monitor()
 
         self.__state = ReducerState.idle
 

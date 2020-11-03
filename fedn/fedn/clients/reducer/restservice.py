@@ -35,7 +35,6 @@ class ReducerRestService:
         app.config['SECRET_KEY'] = SECRET_KEY
         csrf.init_app(app)
 
-
         @app.route('/')
         def index():
             # logs_fancy = str()
@@ -99,6 +98,16 @@ class ReducerRestService:
             seed = True
             return redirect(url_for('seed', seed=seed))
 
+        @app.route('/delete', methods=['GET', 'POST'])
+        def delete():
+            if request.method == 'POST':
+                from fedn.common.storage.db.mongo import drop_mongodb
+                drop_mongodb()
+                self.control.delet_bucket_objects()
+                return redirect(url_for('seed'))
+            seed = True
+            return redirect(url_for('seed', seed=seed))
+
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
         def start():
@@ -127,7 +136,7 @@ class ReducerRestService:
 
             else:
                 # Select rounds UI
-                rounds = range(1, 100)
+                rounds = range(1, 500)
                 latest_model_id = self.control.get_latest_model()
                 return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
 
