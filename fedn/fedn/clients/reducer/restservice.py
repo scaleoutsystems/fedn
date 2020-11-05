@@ -220,7 +220,8 @@ class ReducerRestService:
                 'lon': [],
                 'country': [],
                 'name': [],
-                'role': []
+                'role': [],
+                'size': []
             }
 
             from fedn import get_data
