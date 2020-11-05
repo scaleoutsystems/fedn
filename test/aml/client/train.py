@@ -15,7 +15,6 @@ def train(model,data,sample_fraction):
     print("-- RUNNING TRAINING --", flush=True)
 
     batch_size = 32
-    num_classes = 10
     epochs = 1
 
 

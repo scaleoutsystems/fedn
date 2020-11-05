@@ -42,7 +42,7 @@ class Network:
         if self.find_client(client['name']):
             return
 
-        print("adding client {}".format(client.name), flush=True)
+        print("adding client {}".format(client['name']), flush=True)
         self.statestore.set_client(client)
 
     def remove(self, combiner):
