@@ -238,7 +238,7 @@ class ReducerRestService:
 
                         cities_dict['name'].append(combiner['name'])
                         cities_dict['role'].append('Combiner')
-                        cities_dict['size'].append(16)
+                        cities_dict['size'].append(10)
 
 
                     except geoip2.errors.AddressNotFoundError as err:
@@ -256,7 +256,7 @@ class ReducerRestService:
                         cities_dict['name'].append(client['name'])
                         cities_dict['role'].append('Client')
                         # TODO: Optionally relate to data size
-                        cities_dict['size'].append(12)
+                        cities_dict['size'].append(6)
 
                     except geoip2.errors.AddressNotFoundError as err:
                         print(err)
@@ -266,7 +266,7 @@ class ReducerRestService:
             cities_df = pd.DataFrame(cities_dict)
 
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False,'name': True,'role': True}, width=1000, height=800)
+                                 hover_data={"city": False, "lon": False, "lat": False,'size': False, 'name': True,'role': True}, width=1000, height=800)
 
             #fig.update_traces(marker=dict(size=12, color="#EC7063"))
             fig.update_geos(fitbounds="locations", showcountries=True)

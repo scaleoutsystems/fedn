@@ -13,7 +13,7 @@ def validate(model,data,sample_fraction=1):
     print("-- RUNNING VALIDATION --", flush=True)
 
     try:
-        x_test, y_test, classes = read_data(data, sample_fraction=sample_fraction)
+        x_test, y_test, classes = read_data(data, type='test', sample_fraction=sample_fraction)
         model_score = model.evaluate(x_test, y_test, verbose=0)
         print('Training loss:', model_score[0])
         print('Training accuracy:', model_score[1])
@@ -35,7 +35,7 @@ def validate(model,data,sample_fraction=1):
 if __name__ == '__main__':
 
     model = krm.load_model(sys.argv[1])
-    report = validate(model,'../data/pickled_data_trainvaltest',sample_fraction=0.01)
+    report = validate(model,'../data/pickled_data_trainvaltest',sample_fraction=0.1)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))

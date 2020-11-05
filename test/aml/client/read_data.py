@@ -19,11 +19,12 @@ def read_data(filename, type='train', sample_fraction=1.0):
 
     X = pickle.load(open(filename + "/x_" + type + ".p", "rb"))
     y = pickle.load(open(filename + "/y_" + type + ".p", "rb"))
-    X, y = pre_process(X, y)
 
     if sample_fraction < 1.0:
         _, X, _, y = train_test_split(X, y, test_size=sample_fraction)
     classes = range(num_classes)
+
+    X, y = pre_process(X, y)
 
     return  (X, y, classes)
 
