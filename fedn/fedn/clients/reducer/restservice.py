@@ -176,7 +176,7 @@ class ReducerRestService:
                     'combiner_preferred': combiner_preferred, 
                     'ip': request.remote_addr
                 }
-                self.control.network.add_client(combiner)
+                self.control.network.add_client(client)
 
 
                 return jsonify(response)
