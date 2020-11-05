@@ -182,7 +182,7 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_combiner(self,name):
         """ """
         try:
-            ret = self.combiner.find({'key': name})
+            ret = self.combiners.find({'key': name})
             return ret
         except:
             return None

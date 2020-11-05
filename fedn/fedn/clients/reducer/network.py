@@ -56,7 +56,11 @@ class Network:
             if name == combiner.name:
                 return combiner
         return None
-    
+
+    def find_client(self,name):
+        ret = self.statestore.get_client(name)
+        return ret
+            
     def describe(self):
         """ """
         network = []
