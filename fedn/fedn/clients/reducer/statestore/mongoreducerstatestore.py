@@ -173,7 +173,6 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def list_combiners(self):
         """ """ 
-        combiners = []
         try:
             ret = self.combiners.find()
             return list(ret)
@@ -214,4 +213,11 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             return None
 
+    def list_clients(self):
+        """ """ 
+        try:
+            ret = self.clients.find()
+            return list(ret)
+        except:
+            return None
     
