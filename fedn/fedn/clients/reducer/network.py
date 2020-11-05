@@ -44,7 +44,7 @@ class Network:
 
         print("adding client {}".format(client.name), flush=True)
         self.statestore.set_client(client)
-s
+
     def remove(self, combiner):
         if not self.control.idle():
             print("Reducer is not idle, cannot remove combiner")
