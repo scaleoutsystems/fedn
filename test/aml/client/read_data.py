@@ -14,13 +14,11 @@ def pre_process(x_data, y_data):
     x_data /= 255
     return x_data, y_data
 
-def read_data(filename, sample_fraction=1.0):
+def read_data(filename, type='train', sample_fraction=1.0):
     """ Helper function to read and preprocess data for training with Keras. """
 
-    import_folder = 'pickled_data_trainvaltest'
-
-    X = pickle.load(open(filename + "/pickled_data_trainvaltest/x_train.p", "rb"))
-    y = pickle.load(open(filename + "/pickled_data_trainvaltest/y_train.p", "rb"))
+    X = pickle.load(open(filename + "/x_" + type + ".p", "rb"))
+    y = pickle.load(open(filename + "/y_" + type + ".p", "rb"))
     X, y = pre_process(X, y)
 
     # The entire dataset is 60k images, we can subsample here for quicker testing. 
