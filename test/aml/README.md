@@ -1,1 +1,1 @@
-# MNIST test project
+# AML test project

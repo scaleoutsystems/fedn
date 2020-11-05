@@ -34,6 +34,17 @@ class Network:
         self.statestore.set_combiner(combiner.to_dict())
         self.combiners.append(combiner)
 
+    def add_client(self,client):
+        if not self.control.idle():
+            print("Reducer is not idle, cannot add additional combiner")
+            return
+
+        if self.find_client(client['name']):
+            return
+
+        print("adding client {}".format(client.name), flush=True)
+        self.statestore.set_client(client)
+s
     def remove(self, combiner):
         if not self.control.idle():
             print("Reducer is not idle, cannot remove combiner")

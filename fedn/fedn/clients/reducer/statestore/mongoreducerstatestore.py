@@ -196,3 +196,22 @@ class MongoReducerStateStore(ReducerStateStore):
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
         ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
+
+    def set_client(self,client_data):
+        """ 
+            Set or update client record. 
+            client_data: dictionarys
+        """
+        from datetime import datetime
+        client_data['updated_at'] = str(datetime.now())
+        ret = self.clients.update({'name': client_data['name']}, client_data, True)
+
+    def get_client(self,name):
+        """ """
+        try:
+            ret = self.clients.find({'key': name})
+            return ret
+        except:
+            return None
+
+    

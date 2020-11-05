@@ -25,7 +25,6 @@ def read_data(filename, type='train', sample_fraction=1.0):
         foo, X, bar, y = train_test_split(X, y, test_size=sample_fraction)
     classes = range(num_classes)
 
-
     return  (X, y, classes)
 
 

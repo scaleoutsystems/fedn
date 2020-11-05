@@ -135,9 +135,6 @@ class ReducerRestService:
                           'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                # from fedn.common.tracer.mongotracer import MongoTracer
-                # self.tracer = MongoTracer()
-                # self.tracer.ps_util_monitor(target=self.control.instruct(config))
                 self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
 
@@ -174,6 +171,14 @@ class ReducerRestService:
                 response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
                             'certificate': str(cert_b64).split('\'')[1]}
 
+                client = {
+                    'name': name,
+                    'combiner_preferred': combiner_preferred, 
+                    'ip': request.remote_addr
+                }
+                self.control.network.add_client(combiner)
+
+
                 return jsonify(response)
             elif combiner is None:
                 return jsonify({'status':'retry'})
@@ -205,6 +210,9 @@ class ReducerRestService:
             IPs = []
             for combiner in self.control.statestore.list_combiners():
                 IPs.append(combiner['ip'])
+
+            for client in self.control.statestore.list_clients():
+                IPs.append(client['ip'])
 
             cities_dict = {
                 'city': [],
