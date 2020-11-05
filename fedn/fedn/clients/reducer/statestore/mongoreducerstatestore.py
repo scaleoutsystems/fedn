@@ -209,7 +209,10 @@ class MongoReducerStateStore(ReducerStateStore):
         """ """
         try:
             ret = self.clients.find({'key': name})
-            return ret
+            if list(ret) == []:
+                return None
+            else:
+                return ret
         except:
             return None
 

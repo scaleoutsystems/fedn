@@ -24,7 +24,7 @@ class Network:
 
     def add_combiner(self, combiner):
         if not self.control.idle():
-            print("Reducer is not idle, cannot add additional combiner")
+            print("Reducer is not idle, cannot add additional combiner.")
             return
 
         if self.find(combiner.name):
@@ -36,7 +36,7 @@ class Network:
 
     def add_client(self,client):
         if not self.control.idle():
-            print("Reducer is not idle, cannot add additional combiner")
+            print("Reducer is not idle, cannot add additional client.")
             return
 
         if self.find_client(client['name']):
@@ -47,7 +47,7 @@ class Network:
 
     def remove(self, combiner):
         if not self.control.idle():
-            print("Reducer is not idle, cannot remove combiner")
+            print("Reducer is not idle, cannot remove combiner.")
             return
         self.combiners.remove(combiner)
 

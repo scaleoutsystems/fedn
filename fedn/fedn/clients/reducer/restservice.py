@@ -165,18 +165,18 @@ class ReducerRestService:
             else:
                 combiner = self.control.find_available_combiner()
 
+            client = {
+                    'name': name,
+                    'combiner_preferred': combiner_preferred, 
+                    'ip': request.remote_addr
+                }
+            self.control.network.add_client(client)
+
             if combiner:
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
                 response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
                             'certificate': str(cert_b64).split('\'')[1]}
-
-                client = {
-                    'name': name,
-                    'combiner_preferred': combiner_preferred, 
-                    'ip': request.remote_addr
-                }
-                self.control.network.add_client(client)
 
 
                 return jsonify(response)
@@ -256,7 +256,7 @@ class ReducerRestService:
                     except geoip2.errors.AddressNotFoundError as err:
                         print(err)
 
-
+            config = self.control.statestore.get_config()
 
             cities_df = pd.DataFrame(cities_dict)
 
@@ -265,7 +265,7 @@ class ReducerRestService:
 
             fig.update_traces(marker=dict(size=12, color="#EC7063"))
             fig.update_geos(fitbounds="locations", showcountries=True)
-            fig.update_layout(title="Combiner network")
+            fig.update_layout(title="FEDn network: {}".format(config['network_id']))
 
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
