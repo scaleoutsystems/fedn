@@ -250,7 +250,7 @@ class ReducerRestService:
                         cities_dict['lon'].append(response.location.longitude)
                         cities_dict['country'].append(response.country.iso_code)
 
-                        cities_dict['name'].append(combiner['name'])
+                        cities_dict['name'].append(client['name'])
                         cities_dict['role'].append('Client')
 
                     except geoip2.errors.AddressNotFoundError as err:
@@ -260,10 +260,10 @@ class ReducerRestService:
 
             cities_df = pd.DataFrame(cities_dict)
 
-            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", hover_name="city",
+            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", color="role", hover_name="city",
                                  hover_data={"city": False, "lon": False, "lat": False,'name': True,'role': True}, width=1000, height=800)
 
-            fig.update_traces(marker=dict(size=12, color="#EC7063"))
+            #fig.update_traces(marker=dict(size=12, color="#EC7063"))
             fig.update_geos(fitbounds="locations", showcountries=True)
             fig.update_layout(title="FEDn network: {}".format(config['network_id']))
 
