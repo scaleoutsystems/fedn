@@ -207,39 +207,61 @@ class ReducerRestService:
                 return str(e)
 
         def create_map():
-            IPs = []
-            for combiner in self.control.statestore.list_combiners():
-                IPs.append(combiner['ip'])
+            #IPs = []
+            #for combiner in self.control.statestore.list_combiners():
+            #    IPs.append(combiner['ip'])
 
-            for client in self.control.statestore.list_clients():
-                IPs.append(client['ip'])
+            #for client in self.control.statestore.list_clients():
+            #    IPs.append(client['ip'])
 
             cities_dict = {
                 'city': [],
                 'lat': [],
                 'lon': [],
-                'country': []
+                'country': [],
+                'name': [],
+                'role': []
             }
 
             from fedn import get_data
             dbpath = get_data('geolite2/GeoLite2-City.mmdb')
 
             with geoip2.database.Reader(dbpath) as reader:
-                for IP in IPs:
+                for combiner in self.control.statestore.list_combiners():
                     try:
-                        response = reader.city(IP)
-
+                        response = reader.city(combiner['ip'])
                         cities_dict['city'].append(response.city.name)
                         cities_dict['lat'].append(response.location.latitude)
                         cities_dict['lon'].append(response.location.longitude)
                         cities_dict['country'].append(response.country.iso_code)
+
+                        cities_dict['name'].append(combiner['name'])
+                        cities_dict['role'].append('Combiner')
+
                     except geoip2.errors.AddressNotFoundError as err:
                         print(err)
+
+            with geoip2.database.Reader(dbpath) as reader:
+                for client in self.control.statestore.list_clients():
+                    try:
+                        response = reader.city(client['ip'])
+                        cities_dict['city'].append(response.city.name)
+                        cities_dict['lat'].append(response.location.latitude)
+                        cities_dict['lon'].append(response.location.longitude)
+                        cities_dict['country'].append(response.country.iso_code)
+
+                        cities_dict['name'].append(combiner['name'])
+                        cities_dict['role'].append('Client')
+
+                    except geoip2.errors.AddressNotFoundError as err:
+                        print(err)
+
+
 
             cities_df = pd.DataFrame(cities_dict)
 
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False}, width=1000, height=800)
+                                 hover_data={"city": False, "lon": False, "lat": False,'name': True,'role': True}, width=1000, height=800)
 
             fig.update_traces(marker=dict(size=12, color="#EC7063"))
             fig.update_geos(fitbounds="locations", showcountries=True)
