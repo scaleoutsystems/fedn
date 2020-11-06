@@ -32,16 +32,16 @@ def train(model,data,sample_fraction):
     except:
         (x_train, y_train, classes) = read_data(data,sample_fraction=sample_fraction)
 
-    try:
-        os.mkdir('/app/data')
-        with open('/app/data/x.pyb','wb') as fh:
-            fh.write(pickle.dumps(x_train))
-        with open('/app/data/y.pyb','wb') as fh:
-            fh.write(pickle.dumps(y_train))
-        with open('/app/data/classes.pyb','wb') as fh:
-            fh.write(pickle.dumps(classes))
-    except:
-        pass
+        try:
+            os.mkdir('/app/data')
+            with open('/app/data/x.pyb','wb') as fh:
+                fh.write(pickle.dumps(x_train))
+            with open('/app/data/y.pyb','wb') as fh:
+                fh.write(pickle.dumps(y_train))
+            with open('/app/data/classes.pyb','wb') as fh:
+                fh.write(pickle.dumps(classes))
+        except:
+            pass
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
