@@ -14,8 +14,8 @@ services:
     working_dir: /app/client
     command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} --init=reducer-settings.yaml"
     volumes:
-      - ./config:/app/client
+      - ./conf:/app/client
       - ./test/${EXAMPLE}/reducer:/app/client
-    #  - ./test/${EXAMPLE}/package/:/app/client/package
+    s  - ./test/${EXAMPLE}/package/:/app/client/package
     ports:
         - 8090:8090
