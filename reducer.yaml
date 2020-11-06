@@ -16,6 +16,6 @@ services:
     volumes:
       - ./conf:/app/client
       - ./test/${EXAMPLE}/reducer:/app/client
-    s  - ./test/${EXAMPLE}/package/:/app/client/package
+      - ./test/${EXAMPLE}/package/:/app/client/package
     ports:
         - 8090:8090
