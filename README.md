@@ -6,12 +6,14 @@ FEDn is an open source, modular framework for Federated Machine Learning (FedML)
 
 Three key design objectives are guiding development in the project and is reflected in the core features: 
 
-### Horizontally scalable through a hierarchical aggregation scheme 
+### Horizontally scalable through a tiered aggregation scheme 
+FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latecy and throughput requirments spanning cross-silo and cross-device cases. This is addressed by allowing for a tiered model update and model aggregation scheme where multiple combiners divide up the work for global aggregation steps.  
+
 ### A ML-framework agnostic, black-box design
 The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework - the only requirement is that it should make sense from a machine learnng perspective to average model parameters. Support for Keras Squential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
 
 ### Built for real-world distributed computing scenarios 
-
+FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distribured mode for convenient testing and devepment.  
 
 ## Architecture
 
@@ -30,6 +32,7 @@ A combiner is an actor which main role is to orchestrate and aggregat model upda
 #### Reducer
 The reducer fills three main roles in the FEDn network: 1.) it lays out the overall, global training strategy and comminicates that to the combiner network. It also dictates the strategy to aggregate model updates from individual combiners into a single global model, 2.) it handles global state and maintains the *model trail* - an immutable trail of global model updates uniquely defining the FedML training timeline, and  3.) it provides discovery services, mediating connections between clients and combiners. For this purpose, the Reducer exposes a standard REST API. 
 
+### Services and communication
 The figure below provides a logical archiecture view of the services provided by each agent and how they interact. 
 
 ![Alt text](docs/img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
@@ -39,6 +42,8 @@ FEDn is desinged to allow customization of the FedML algorithm, following a spec
 
 #### Hierarachical Federated Averaging
 The currently implemented default scheme uses a local SGD strategy on the Combiner level aggregation, and a simple average of models on the reducer level. This results in a highly horizontally scalable FedAvg scheme. The strategy works well with most artificial neural network (ANNs) models, and can in general be applied to  models where it is possible and makes sense to form mean values of model parameters (for example SVMs). Additional FedML training protocols, including support for various types of federated ensemble models. 
+![Alt text](docs/img/HFedAvg.png?raw=true "FEDn architecture overview")
+
 
 ## Getting started 
 
