@@ -24,6 +24,9 @@ The reducer fills three main roles in the network: 1.) To lay out and initialize
 
 Training a federated model with FEDn amounts to specifying the client side code as well as deploying the the reducer-combiner network to meet the practical requirements from the use case at hand. 
 
+![Alt text](docs/img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
+
+
 ## Algorithms
 FEDn is desinged to allow customization of the FedML algorithm, following a specified pattern, or programming model. Model aggregation happens on two levels in the system. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. Then, a configurable aggregation protocol on Reducer level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, many different possible outcomes can be achieved. Good staring configurations are provided out-of-the box to help the user get started. 
 
@@ -116,8 +119,6 @@ To start training, navigate to the Reducer REST API endpoint: localhost:8090/sta
 The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models, and on the available infrastructure and the desired strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate architecture plan. Then deploy reducers and combiners as needed by modifying the .env files and docker-compose files accordingly for each host/service. Reference deployment descriptions for representative scenarios and hardware are coming soon.  
 
 *Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
-
-
 
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
