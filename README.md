@@ -7,7 +7,7 @@ FEDn is an open source, modular framework for Federated Machine Learning (FedML)
 Three key design objectives are guiding development in the project and is reflected in the core features: 
 
 ### Horizontally scalable through a tiered aggregation scheme 
-FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latecy and throughput requirments spanning cross-silo and cross-device cases. This is addressed by allowing for a tiered model update and model aggregation scheme where multiple combiners divide up the work for global aggregation steps.  
+FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latency and throughput requirements spanning cross-silo and cross-device cases. This is addressed by allowing for a tiered model update and model aggregation scheme where multiple combiners divide up the work for global aggregation steps.  
 
 ### A ML-framework agnostic, black-box design
 The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework - the only requirement is that it should make sense from a machine learnng perspective to average model parameters. Support for Keras Squential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
