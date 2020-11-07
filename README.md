@@ -1,17 +1,21 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 ## What is FEDn?
-FEDn is an open source, modular framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems.
-
-FEDn enables developers to configure and deploy FEDn networks for different use-cases and deployment scenarios, ranging from cross-silo to cross-device. The framework takes a ML-framework agnostic approach to training federated models, treating client-side model updates and model aggregation as a black-box problem.  
-
+FEDn is an open source, modular framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. It enables developers to configure and deploy *FEDn networks* to support different federated scenarios, ranging from cross-silo to cross-device use-cases.   
+  
 ## Core Features
-FEDn currently supports a horizontally scalable Hierarchical Federated Averaging orchestration scheme. 
 
-The present version supports Keras Sequential models out of the box, but a user can implement a custom helper class to support other ML frameworks - the only requirement is that it should make sense to average model parameters. Additional FedML training protocols, including support for various types of federated ensemble models, and helpers for PyTorch (as well as other popular frameworks), are in active development. 
+Three key design objectives are guiding development in the project and is reflected in the core features: 
+
+### Horizontally scalable through a hierarchical aggregation scheme 
+### A ML-framework agnostic, black-box design
+The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework - the only requirement is that it should make sense from a machine learnng perspective to average model parameters. Support for Keras Squential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
+
+### Built for real-world distributed computing scenarios 
+
 
 ## Architecture
 
-A FEDn network, as illustrated in the picture below, is made up of three main components: the *Reducer*, one or more *Combiners* and a number of *Clients*. The combiner network forms the backbone of the FedML orchestration mechanism, while the Reducer provides discovery services and provides controls to coordinate training over the combiner network. By horizontally scaling the combiner network, one can meet the needs from a growing number of clients.  
+Constructing a federated model with FEDn amounts to a) specifying the details of the client side training code and data integrations, and b) deploying the  reducer-combiner network. A FEDn network, as illustrated in the picture below, is made up of three main components: the *Reducer*, one or more *Combiners* and a number of *Clients*. The combiner network forms the backbone of the FedML orchestration mechanism, while the Reducer provides discovery services and provides controls to coordinate training over the combiner network. By horizontally scaling the combiner network, one can meet the needs from a growing number of clients.  
  
 ![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
 
@@ -26,16 +30,15 @@ A combiner is an actor which main role is to orchestrate and aggregat model upda
 #### Reducer
 The reducer fills three main roles in the FEDn network: 1.) it lays out the overall, global training strategy and comminicates that to the combiner network. It also dictates the strategy to aggregate model updates from individual combiners into a single global model, 2.) it handles global state and maintains the *model trail* - an immutable trail of global model updates uniquely defining the FedML training timeline, and  3.) it provides discovery services, mediating connections between clients and combiners. For this purpose, the Reducer exposes a standard REST API. 
 
-Constructing a federated model with FEDn amounts to specifying the client side code as well as deploying the the reducer-combiner network according to the practicalities of the use case at hand. The figure below provides a logical archiecture view of the services provided by each agent and how they interact. 
+The figure below provides a logical archiecture view of the services provided by each agent and how they interact. 
 
 ![Alt text](docs/img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
-
 
 ### Control flows and algorithms
 FEDn is desinged to allow customization of the FedML algorithm, following a specified pattern, or programming model. Model aggregation happens on two levels in the system. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. Then, a configurable aggregation protocol on Reducer level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, many different possible outcomes can be achieved. Good staring configurations are provided out-of-the box to help the user get started. 
 
 #### Hierarachical Federated Averaging
-The currently implemented default scheme uses a local SGD strategy on the Combiner level aggregation, and a simple average of models on the reducer level. This results in a highly horizontally scalable FedAvg scheme. The strategy works well with most artificial neural network (ANNs) models, and can in general be applied to  models where it is possible and makes sense to form mean values of model parameters (for example SVMs). 
+The currently implemented default scheme uses a local SGD strategy on the Combiner level aggregation, and a simple average of models on the reducer level. This results in a highly horizontally scalable FedAvg scheme. The strategy works well with most artificial neural network (ANNs) models, and can in general be applied to  models where it is possible and makes sense to form mean values of model parameters (for example SVMs). Additional FedML training protocols, including support for various types of federated ensemble models. 
 
 ## Getting started 
 
