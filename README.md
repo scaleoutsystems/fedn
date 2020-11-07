@@ -13,7 +13,7 @@ FEDn is designed to allow for flexible and easy scaling to meet both the demands
 The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework - the only requirement is that it should make sense from a machine learning perspective to average model parameters. Support for Keras Sequential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
 
 ### Built for real-world distributed computing scenarios 
-FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distribured mode for convenient testing and devepment.  
+FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distributed mode for convenient testing and devepment.  
 
 ## Architecture
 
