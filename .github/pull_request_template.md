@@ -26,7 +26,7 @@ This is simply a reminder of what we are going to look for before merging your c
 - [ ] This pull request is against **develop** branch (not applicable for hotfixes)
 - [ ] I have included a link to the issue on GitHub or JIRA (if any)
 - [ ] I have included migration files (if there are changes to the model classes)
-- [ ] I have read the [CONTRIBUTING](https://github.com/scaleoutsystems/stackn/blob/master/CONTRIBUTING.md) doc
+- [ ] I have read the [CONTRIBUTING](https://github.com/scaleoutsystems/fedn/blob/master/CONTRIBUTING.md) doc
 - [ ] I have included tests to complement my changes
 - [ ] I have updated the related documentation (if necessary) 
 - [ ] I have added a reviewer for this pull request
