@@ -17,7 +17,7 @@ The branching strategy we follow is [GitFlow](https://datasift.github.io/gitflow
 
 ### GitHub Issues
 
-Report a bug or propose a feature by [opening a new GitHub Issue](https://github.com/scaleoutsystems/stackn/issues/new/choose). We have set up templates accordingly so, choose the one that matches your case. Please try to provide all the required information in the template. If you believe some of the sections are not relevant to your case, you can omit them.
+Report a bug or propose a feature by [opening a new GitHub Issue](https://github.com/scaleoutsystems/fedn/issues/new/choose). We have set up templates accordingly so, choose the one that matches your case. Please try to provide all the required information in the template. If you believe some of the sections are not relevant to your case, you can omit them.
 
 ### Branches & Pull Requests
 
