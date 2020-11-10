@@ -10,12 +10,11 @@ services:
     #  combiner: ${FEDN_HOST}
     #  combiner2: ${FEDN_HOST}
     #  combiner3: ${FEDN_HOST}
-    env_file:
-      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/
-    command: /bin/bash -c "fedn run client -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN}"
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
     volumes:
+      - ./config:/app/config
       - ./test/${EXAMPLE}/data:/app/data

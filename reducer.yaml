@@ -12,9 +12,9 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} --init=./conf/settings-reducer.yaml"
+    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
     volumes:
-      - ./conf:/app/client/conf
+      - ./config:/app/client/config
       - ./test/${EXAMPLE}/reducer:/app/client
       - ./test/${EXAMPLE}/package/:/app/client/package
     ports:

@@ -7,14 +7,13 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-    env_file:
-      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
+    command: fedn run combiner -h combiner -i 12080 -n combiner -in config/settings-combiner.yaml 
     volumes:
+      - ./config:/app/client/config
       - ./tmp/c1-models:/mnt/models
     ports:
       - 12080:12080
@@ -24,14 +23,13 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-    env_file:
-      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner2 -i 12081 -n combiner2
+    command: fedn run combiner -h combiner2 -i 12081 -n combiner2 -in config/settings-combiner.yaml
     volumes:
+      - ./config:/app/client/config
       - ./tmp/c2-models:/mnt/models
     ports:
       - 12081:12081
