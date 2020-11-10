@@ -194,6 +194,15 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             for key,val in reducer_config.items():
                 config[key] = val
 
+        if 'combiner' in settings:
+            combiner_config = settings['combiner']
+            config['myname'] = combiner_config['name']
+            config['myhost'] = combiner_config['host']
+            config['myport'] = combiner_config['port']
+
+            for key,val in reducer_config.items():
+                config[key] = val
+
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)

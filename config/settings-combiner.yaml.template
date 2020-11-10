@@ -3,3 +3,8 @@ controller:
     discover_host: reducer
     discover_port: 8090
     token: token
+
+combiner:
+    name: combiner
+    host: combiner
+    port: 12080

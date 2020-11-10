@@ -11,25 +11,9 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run combiner -h combiner -i 12080 -n combiner -in config/settings-combiner.yaml 
+    command: fedn run combiner -in config/settings-combiner.yaml 
     volumes:
       - ./config:/app/client/config
       - ./tmp/c1-models:/mnt/models
     ports:
       - 12080:12080
-
-  combiner2:
-    image: "scaleoutsystems/client:latest"
-    environment:
-      - PYTHONUNBUFFERED=0
-      - GET_HOSTS_FROM=dns
-    build:
-      context: .
-      dockerfile: components/client/Dockerfile
-    working_dir: /app/client
-    command: fedn run combiner -h combiner2 -i 12081 -n combiner2 -in config/settings-combiner.yaml
-    volumes:
-      - ./config:/app/client/config
-      - ./tmp/c2-models:/mnt/models
-    ports:
-      - 12081:12081
