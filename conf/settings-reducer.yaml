@@ -1,14 +1,15 @@
-state: idle
-model: 879fa112-c861-4cb1-a25d-775153e5b548
-context: mnist.tar.gz
 
-network_id: ac435faef-c2df-442e-b349-7f633d3d5523
+network_id: fedn-test-network
+
+control:
+  state: idle
+  context: mnist.tar.gz
 
 statestore:
   type: MongoDB
   mongo_config:
     username: fedn_admin
-    password: 932448c1-8f6a-402a-9b73-da05a182bb6a
+    password: password
     host: mongo
     port: 6534
 
@@ -18,6 +19,6 @@ storage:
     storage_hostname: minio
     storage_port: 9000
     storage_access_key: fedn_admin
-    storage_secret_key: 932448c1-8f6a-402a-9b73-da05a182bb6a
-    storage_bucket: fednmodels
+    storage_secret_key: password
+    storage_bucket: fedn-models
     storage_secure_mode: False 

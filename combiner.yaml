@@ -3,10 +3,12 @@ version: '3.7'
 services:
 
   combiner:
+    image: "scaleoutsystems/client:latest"
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/client:latest"
+    env_file:
+      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile
@@ -18,10 +20,12 @@ services:
       - 12080:12080
 
   combiner2:
+    image: "scaleoutsystems/client:latest"
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/client:latest"
+    env_file:
+      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile

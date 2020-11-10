@@ -3,11 +3,6 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-      - CLIENT_NAME=${CLIENT_NAME_BASE}1
-#      - FEDN_MINIO_HOST=${FEDN_MINIO_HOST}
-#      - FEDN_MINIO_PORT=${FEDN_MINIO_PORT}
-#      - FEDN_MINIO_ACCESS_KEY=${FEDN_MINIO_ACCESS_KEY}
-#      - FEDN_MINIO_SECRET_KEY=${FEDN_MINIO_SECRET_KEY}
     image: "scaleoutsystems/client:latest"
     # NOTE: if working on a remote host then you can override dns mapping like this:
     #extra_hosts:
@@ -15,6 +10,8 @@ services:
     #  combiner: ${FEDN_HOST}
     #  combiner2: ${FEDN_HOST}
     #  combiner3: ${FEDN_HOST}
+    env_file:
+      ./conf/site.env
     build:
       context: .
       dockerfile: components/client/Dockerfile

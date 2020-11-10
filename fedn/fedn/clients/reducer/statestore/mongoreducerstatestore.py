@@ -20,7 +20,6 @@ class MongoReducerStateStore(ReducerStateStore):
             # Control 
             self.control = self.mdb['control']
             self.state = self.control['state']
-            #self.model = self.mdb["model"]
             self.algorithm = self.control['algorithm']
             self.compute_context = self.control['compute_context']
             self.compute_context_trail = self.control['compute_context_trail']
@@ -53,17 +52,26 @@ class MongoReducerStateStore(ReducerStateStore):
                     print(settings, flush=True)
 
                     # Control settings
-                    self.transition(str(settings['state']))
-                    if not self.get_latest():
-                        self.set_latest(str(settings['model']))
-                    else:
-                        print("Model trail already initialized - refusing to overwrite from config. Delete the entire trail if you want to reseed the system.",flush=True)
-                    print("Setting filepath to {}".format(settings['context']), flush=True)
-                    # self.set_compute_context(str())
-                    # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
-                    # TODO fix with unboxing of value before storing and where consuming.
-                    self.compute_context.update({'key': 'package'},
-                                                {'$set': {'filename': {'filename': settings['context']}}}, True)
+                    if "control" in settings and settings["control"]:
+                        control = settings['control']
+                        try:
+                            self.transition(str(control['state']))
+                        except KeyError:
+                            self.transition("idle")
+
+                        if "model" in control:
+                            if not self.get_latest():
+                                self.set_latest(str(control['model']))
+                            else:
+                                print("Model trail already initialized - refusing to overwrite from config. Purge model trail if you want to reseed the system.",flush=True)
+                    
+                        if "context" in control:
+                            print("Setting filepath to {}".format(control['context']), flush=True)
+                            # self.set_compute_context(str())
+                            # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
+                            # TODO fix with unboxing of value before storing and where consuming.
+                            self.compute_context.update({'key': 'package'},
+                                                        {'$set': {'filename': {'filename': control['context']}}}, True)
 
                     # Storage settings
                     self.set_storage_backend(settings['storage'])

@@ -83,8 +83,8 @@ CLIENT_NAME_BASE=client-fedn1-
 > you set the EXAMPLE variable to the example you are working on imported with base path from test/your_example
 or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=data_center docker-compose up```
 
-### Standalone deployment 
-We provide templates for a minimal standalone Docker deployment, useful for local testing and development. 
+### Pseudo-distributed deployment 
+We provide templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development. 
 
 1. To deploy the supporting services (Minio and MongoDB):
 
@@ -114,29 +114,35 @@ Make sure that you can access the Reducer UI at https://localhost:8090, and that
 
 ### Train a federated model
 
-#### Seed the system with an initial model
+#### Seed the system with a base model
 
-Navigate to the Minio dashboard and log in. To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/seed). Creating and staging the seed model is typically done by founding members of the ML alliance. For testing purposes, you find pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
+To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/history). Creating and staging the seed model is typically done by the founding members of the ML alliance. For testing purposes, you find a pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
 
-Navigate to the Reducer UI. To initialize the federated model we need to upload a seed model. For testing purposes, you find a pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples). 
+* There is a script "test/mnist/seed/init_model.py" that you can edit if you want to alter the neural network achitecture of the seed model.*
 
-* Creating and staging the seed model in the FEDn network is typically done by one of the founding members of the ML alliance, or the user deploying and managing the FEDn network. There is a script "test/mnist/seed/init_model.py" that you can edit if you would like to alter the neural network achitecture of the seed model.*
-
-#### Start training
-To start training, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually in from the "Dashboard" menu (https://localhost:8090/plot)
-
+#### Start training the model
+To start training the model, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually at https://localhost:8090/plot. 
  
 ## Distributed deployment
 
-The actual deployment, sizing and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of models, and on the available infrastructure and the desired strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate architecture plan. Then deploy reducers and combiners as needed by modifying the .env files and docker-compose files accordingly for each host/service. Reference deployment descriptions for representative scenarios and hardware are coming soon.  
+The actual deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate deployment/architecture plan.   
 
 *Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
 
-### Reference deployment of a FEDn network
-This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one reducer, two combiners (on one host) and a number of clients. 
+### Reference deployment of a distributed FEDn network
+This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one host serving the supporting services (Minio, MongoDB), one host serving the reducer, one host running two combiners, and one host running a variable number of clients. 
 
 #### Prerequisite
-Access to 3 Ubuntu 20.04 hosts (typically virtual machines) 
+Access to 4 Ubuntu 20.04 hosts. We recommend at least 4 CPU, 8GB RAM flavors for the base services and the reducer, and 4 CPU, 16BG RAM for the combiner host. The client host sizing depends on the number of clients you plan to run. You need to be able to configure security groups / ingress settings for the service node, combiner and reducer host.    
+
+#### 1. Deploy supporting services  
+First deploy Minio and Mongo services. Edit conf
+
+#### 2. Deploy the reducer
+
+#### 3. Deploy the combiners
+
+#### 4. Deploy clients
 
 ## Where to go from here?
 Explore our other example models, or use them as templates to create your own project. 
@@ -157,11 +163,6 @@ The simplest way to take your keras project to an FEDn federation is to copy pas
  
 You can now follow the steps in _Standalone deployment_ and _Train a federated model_ to test and train your FEDn implementation.  
  
- 
- 
-
-
-
 ## Support
 Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.
 
