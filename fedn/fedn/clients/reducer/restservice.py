@@ -70,7 +70,7 @@ class ReducerRestService:
                 return jsonify({'status': 'retry'})
             # TODO check for get variables
             name = request.args.get('name', None)
-            address = request.args.get('address', None)
+            address = str(request.args.get('address', None))
             port = request.args.get('port', None)
             # token = request.args.get('token')
             # TODO do validation
