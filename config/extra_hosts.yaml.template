@@ -1,0 +1,11 @@
+version: '3.3'
+services:
+  client:
+     extra_hosts:
+        combiner-north: 130.30.300.300
+        combiner-west: 130.30.300.300
+
+   reducer:
+      extra_hosts:
+         combiner-north: 130.30.300.300
+         combiner-west: 130.30.300.300

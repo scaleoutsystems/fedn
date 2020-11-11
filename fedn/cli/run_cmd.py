@@ -200,7 +200,6 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             config['myhost'] = combiner_config['host']
             config['myport'] = combiner_config['port']
 
-
     from fedn.combiner import Combiner
     combiner = Combiner(config)
     combiner.run()
