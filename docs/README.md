@@ -19,7 +19,7 @@ FEDn is built to support real-world, production deployments. FEDn relies on prov
 
 Constructing a federated model with FEDn amounts to a) specifying the details of the client side training code and data integrations, and b) deploying the  reducer-combiner network. A FEDn network, as illustrated in the picture below, is made up of three main components: the *Reducer*, one or more *Combiners* and a number of *Clients*. The combiner network forms the backbone of the FedML orchestration mechanism, while the Reducer provides discovery services and provides controls to coordinate training over the combiner network. By horizontally scaling the combiner network, one can meet the needs from a growing number of clients.  
  
-![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
+![alt text](img/overview.png)
 
 ### Main components
 
@@ -35,14 +35,14 @@ The reducer fills three main roles in the FEDn network: 1.) it lays out the over
 ### Services and communication
 The figure below provides a logical archiecture view of the services provided by each agent and how they interact. 
 
-![Alt text](docs/img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
+![alt text](img/FEDn-arch-overview.png)
 
 ### Control flows and algorithms
 FEDn is desinged to allow customization of the FedML algorithm, following a specified pattern, or programming model. Model aggregation happens on two levels in the system. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. Then, a configurable aggregation protocol on Reducer level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, many different possible outcomes can be achieved. Good staring configurations are provided out-of-the box to help the user get started. 
 
 #### Hierarachical Federated Averaging
 The currently implemented default scheme uses a local SGD strategy on the Combiner level aggregation, and a simple average of models on the reducer level. This results in a highly horizontally scalable FedAvg scheme. The strategy works well with most artificial neural network (ANNs) models, and can in general be applied to  models where it is possible and makes sense to form mean values of model parameters (for example SVMs). Additional FedML training protocols, including support for various types of federated ensemble models, are in active development.  
-![Alt text](docs/img/HFedAvg.png?raw=true "FEDn architecture overview")
+![alt text](img/HFedAvg.png)
 
 
 ## Getting started 
@@ -53,8 +53,8 @@ Clone the repository (make sure to use git-lfs!) and follow these steps:
 
 
 1. Create a file named '.env' in the repository root folder and set the following variables (alter values as necessary):
-```yaml
 
+```yaml
 ALLIANCE_UID=ac435faef-c2df-442e-b349-7f633d3d5523
 
 FEDN_REDUCER_HOST=reducer
