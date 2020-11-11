@@ -9,6 +9,9 @@ from flask import redirect, url_for, flash
 import json
 import plotly
 import pandas as pd
+import numpy
+import math
+            
 import plotly.express as px
 import geoip2.database
 
@@ -226,14 +229,23 @@ class ReducerRestService:
 
             from fedn import get_data
             dbpath = get_data('geolite2/GeoLite2-City.mmdb')
-
+            
             with geoip2.database.Reader(dbpath) as reader:
                 for combiner in self.control.statestore.list_combiners():
                     try:
                         response = reader.city(combiner['ip'])
                         cities_dict['city'].append(response.city.name)
-                        cities_dict['lat'].append(response.location.latitude)
-                        cities_dict['lon'].append(response.location.longitude)
+
+                        r = 1.0 # Rougly 100km 
+                        w = r*math.sqrt(numpy.random.random())
+                        t = 2.0*math.pi*numpy.random.random()
+                        x = w * math.cos(t)
+                        y = w * math.sin(t)
+                        lat = str(float(response.location.latitude) + x)
+                        lon = str(float(response.location.longitude) + y)
+                        cities_dict['lat'].append(lat)
+                        cities_dict['lon'].append(lon)
+
                         cities_dict['country'].append(response.country.iso_code)
 
                         cities_dict['name'].append(combiner['name'])
