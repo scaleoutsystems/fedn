@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: components/client/Dockerfile
     working_dir: /app/client
-    command: fedn run combiner -in config/settings-combiner.yaml 
+    command: fedn run combiner -in ./config/settings-combiner.yaml 
     volumes:
       - ./config:/app/client/config
       - ./tmp/c1-models:/mnt/models
