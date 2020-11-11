@@ -141,7 +141,7 @@
                     <form id="delete_models_form" method="post" action="/delete" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="input-group mb-3">
-                          <button class="btn btn-primary" type="submit">Delete DB and Models</button>
+                          <button class="btn btn-primary" type="submit">Delete DB and Models [{{model_info|length}}]</button>
                         </div>
                     </form>
 
