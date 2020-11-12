@@ -102,7 +102,7 @@ class FEDAVGCombiner:
                 model_str = self._load_model_fault_tolerant(model_id)
                 if model_str:
                     try:
-                        model_next = self.helper.load_model(model_str.getbuffer())
+                        model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
                     except IOError:
                         self.report_status("COMBINER: Failed to load model!")
                         raise

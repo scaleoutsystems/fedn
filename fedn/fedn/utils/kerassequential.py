@@ -3,6 +3,8 @@ import tempfile
 import numpy as np
 import tensorflow.keras.models as krm
 import collections
+import tempfile
+
 from .helpers import HelperBase
 
 class KerasSequentialHelper(HelperBase):
@@ -33,17 +35,26 @@ class KerasSequentialHelper(HelperBase):
     def get_weights(self, model):
         return model.get_weights()
 
-    def save_model(self, model, path):
-        model.save(path)
+    def get_tmp_path(self):
+        _ , path = tempfile.mkstemp(suffix='.h5')
+        return path
 
-    def load_model(self, model):
-        """ We need to go via a tmpfile to load bytestream serializd models retrieved from the miniorepository. """
-        fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-        with open(outfile_name, 'wb') as fh:
-            s = fh.write(model)
-            print("Written {}".format(s),flush=True)
-            fh.flush()
-        fh.close()
-        model = krm.load_model(outfile_name)
-        os.unlink(outfile_name)
+    def save_model(self, model, path=None):
+        if not path:
+            _ , path = tempfile.mkstemp(suffix='.h5')
+
+        model.save(path)
+        return path
+
+    def load_model(self, path):
+        model = krm.load_model(path)
         return model
+
+    def load_model_from_BytesIO(self,model_bytesio):
+        """ Load a model from a BytesIO object. """
+        path = self.get_tmp_path()
+        with open(path, 'wb') as fh:
+            fh.write(model_bytesio)
+            fh.flush()
+
+        return self.load_model(path)
