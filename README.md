@@ -51,38 +51,6 @@ The easiest way to start with FEDn is to use the provided docker-compose templat
 
 Clone the repository (make sure to use git-lfs!) and follow these steps:
 
-
-1. Create a file named '.env' in the repository root folder and set the following variables (alter values as necessary):
-```yaml
-
-ALLIANCE_UID=ac435faef-c2df-442e-b349-7f633d3d5523
-
-FEDN_REDUCER_HOST=reducer
-FEDN_REDUCER_PORT=8090
-
-FEDN_MONGO_USER=fedn_admin
-FEDN_MONGO_PASSWORD=password
-FEDN_MONGO_HOST=mongo
-FEDN_MONGO_PORT=27017
-FEDN_ME_USERNAME=fedn_admin
-FEDN_ME_PASSWORD=password
-
-FEDN_MINIO_HOST=minio
-FEDN_MINIO_PORT=9000
-FEDN_MINIO_ACCESS_KEY=fedn_admin
-FEDN_MINIO_SECRET_KEY=password
-
-FEDN_ALLIANCE_AUTH_TOKEN=auth_token
-FEDN_ALLIANCE_ADMIN_AUTH_TOKEN=auth_token
-
-EXAMPLE=mnist
-CLIENT_NAME_BASE=client-fedn1-
-
-```
-
-> you set the EXAMPLE variable to the example you are working on imported with base path from test/your_example
-or start all commands below by prepending ```EXAMPLE=mnist``` like ```$ EXAMPLE=data_center docker-compose up```
-
 ### Pseudo-distributed deployment 
 We provide templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development. 
 
@@ -96,18 +64,27 @@ Make sure you can access the following services before proceeding to next steps:
  - Mongo Express: localhost:8081
  
 2. Start a Reducer
+
+Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
+
 ````bash 
-$ docker-compose -f reducer.yaml up 
+$ EXAMPLE=mnist docker-compose -f reducer.yaml up 
 ````
 
-3. Attach two combiners:
+> You set the EXAMPLE variable to the example you are working on imported with base path from test/your_example. 
+
+3. Start a combiner:
+Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
+
 ````bash 
 $ docker-compose -f combiner.yaml up 
 ````
 
-3. Attach a number of Clients (assuming you are running the MNIST example):
+3. Attach two Clients:
+Copy the settings config file for the reducer, 'config/settings-client.yaml.template' to 'config/settings-client.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
+
 ````bash 
-$ docker-compose -f client.yaml up --scale client=5
+$ EXAMPLE=mnist docker-compose -f client.yaml up --scale client=2
 ````
 
 Make sure that you can access the Reducer UI at https://localhost:8090, and that the combiner and clients are up and running, before proceeding to the next step.
@@ -124,44 +101,51 @@ To prepare FEDn to run training, we need to upload a seed model via this endpoin
 To start training the model, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually at https://localhost:8090/plot. 
  
 ## Distributed deployment
-
 The actual deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate deployment/architecture plan.   
 
-*Warning, there are many additional security considerations when deploying a live FEDn network, external to core FEDn functionality. Make sure to include these aspects in your deployment plans.*
+*Warning, there are additional security considerations when deploying a live FEDn network, outside of core FEDn functionality. Make sure to include these aspects in your deployment plans.*
 
-### Reference deployment of a distributed FEDn network
 This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one host serving the supporting services (Minio, MongoDB), one host serving the reducer, one host running two combiners, and one host running a variable number of clients. 
 
-#### Prerequisite
-Access to 4 Ubuntu 20.04 hosts. We recommend at least 4 CPU, 8GB RAM flavors for the base services and the reducer, and 4 CPU, 16BG RAM for the combiner host. The client host sizing depends on the number of clients you plan to run. You need to be able to configure security groups / ingress settings for the service node, combiner and reducer host.    
+### Prerequisite for the reference deployment
 
-#### 1. Deploy supporting services  
-First deploy Minio and Mongo services. Edit conf
+#### Hosts
+This example assumes root access to 4 Ubuntu 20.04 hosts for the FEDn network. We recommend at least 4 CPU, 8GB RAM flavors for the base services and the reducer, and 4 CPU, 16BG RAM for the combiner host. Client host sizing depends on the number of clients you plan to run. You need to be able to configure security groups / ingress settings for the service node, combiner and reducer host.
 
-#### 2. Deploy the reducer
+#### Certificates
+Certificates are needed for the reducer and combiner services. By default, FEDn will generate unsigned certificates for the reducer and combiner nodes using OpenSSL. 
 
-#### 3. Deploy the combiners
+> Certificates based on IP addresses are not supported due to incompatibilities with gRPC. 
 
-#### 4. Deploy clients
+### 1. Deploy supporting services  
+First deploy Minio and Mongo services. Edit the config files 'config/minio.env', 'config/mongodb.env' and 'config/mongoexpress.env' according to your setup. Make sure to change the default passwords. The deploy as in the above example. Confirm that you can access MongoDB via the MongoExpress dashboard before proceeding with the reducer.  
 
-## Where to go from here?
-Explore our other example models, or use them as templates to create your own project. 
+> Skip this step if you already have access to production Minio and MongoDB 
 
-## Put your keras project into a FEDn implementation
+### 2. Deploy the reducer
+Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  
 
-The simplest way to take your keras project to an FEDn federation is to copy paste one of the test examples in the test folder.
+```bash
+EXAMPLE=mnist sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 
+```
 
-- Replace the files in the dataset folder to the dataset for your project.
-- Update the script: client/read_data.py so it imports your data correctly.
-- Review the scripts: client/train.py and client/validate.py so it fits your requierments
-- Replace the keras model in the seed/init_project.py to your keras model and run the script to produce a seed-model.
-- Open minio by typing: localhost:9000 in our Chrome browser. Log in with the .env variables (FEDN_MINIO_ACCESS_KEY, FEDN_MINIO_SECRET_KEY) and upload the seed-model under models. 
-- Copy paste the client folder into the package folder. 
-- Package the copied client folder by standing in the package folder in a terminal and type:  tar -czvf <project-name>.tar.gz client
-- Update the context variable in reducer/settings.yaml to the name of your package: <project-name>.tar.gz 
-- Update the EXAMPLE variable in the .env file (described in Getting started) to the name of you project.
- 
-You can now follow the steps in _Standalone deployment_ and _Train a federated model_ to test and train your FEDn implementation.  
+### 3. Deploy combiners
+Edit 'config/settings-combiner.yaml' to provide a name for the combiner (used as a unique identifier for the combiner in the network), a host name (which is used by reducer and clients to connect to combiner RPC) and the port. Also provide connection information to the reducer under 'controller'. Then deploy the combiner: 
+
+```bash
+sudo docker-compose -f combiner.yaml up 
+```
+
+Repeate the same step for the second combiner node. Make sure to provide unique names for the two combiners. 
+
+> Note that is is not currently possible to use the node IP as 'host'. This is due to gRPC not being able to handle certificates based on IP. 
+
+### 4. Attach clients to the FEDn network
+Once the FEDn network is deployed, you can attach clients to it in the same way as for the pseudo-distributed deployment. You need to provide clients with DNS information for all combiner nodes in the network, via 'config/extra-hosts-clients.yaml'. For example, to start 5 unique MNIST clients on a host: 
+
+```bash
+EXAMPLE=mnist sudo docker-compose -f client.yaml -f config/extra-hosts-client.yaml up --scale client=5 
+```
  
 ## Support
 Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.

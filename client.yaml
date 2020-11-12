@@ -4,12 +4,6 @@ services:
     environment:
       - GET_HOSTS_FROM=dns
     image: "scaleoutsystems/client:latest"
-    # NOTE: if working on a remote host then you can override dns mapping like this:
-    #extra_hosts:
-    #  reducer: ${FEDN_HOST}
-    #  combiner: ${FEDN_HOST}
-    #  combiner2: ${FEDN_HOST}
-    #  combiner3: ${FEDN_HOST}
     build:
       context: .
       dockerfile: components/client/Dockerfile
