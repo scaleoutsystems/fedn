@@ -95,7 +95,7 @@ Make sure that you can access the Reducer UI at https://localhost:8090, and that
 
 To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/history). Creating and staging the seed model is typically done by the founding members of the ML alliance. For testing purposes, you find a pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
 
-* There is a script "test/mnist/seed/init_model.py" that you can edit if you want to alter the neural network achitecture of the seed model.*
+> There is a script "test/mnist/seed/init_model.py" that you can edit if you want to alter the neural network achitecture of the seed model.
 
 #### Start training the model
 To start training the model, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually at https://localhost:8090/plot. 
@@ -103,7 +103,7 @@ To start training the model, navigate to the Reducer REST API endpoint: localhos
 ## Distributed deployment
 The actual deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. To deploy a FEDn network across different hosts in a live environment, first analyze the use case and create an appropriate deployment/architecture plan.   
 
-*Warning, there are additional security considerations when deploying a live FEDn network, outside of core FEDn functionality. Make sure to include these aspects in your deployment plans.*
+> Warning, there are additional security considerations when deploying a live FEDn network, outside of core FEDn functionality. Make sure to include these aspects in your deployment plans.
 
 This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one host serving the supporting services (Minio, MongoDB), one host serving the reducer, one host running two combiners, and one host running a variable number of clients. 
 
@@ -120,7 +120,7 @@ Certificates are needed for the reducer and combiner services. By default, FEDn 
 ### 1. Deploy supporting services  
 First deploy Minio and Mongo services. Edit the config files 'config/minio.env', 'config/mongodb.env' and 'config/mongoexpress.env' according to your setup. Make sure to change the default passwords. The deploy as in the above example. Confirm that you can access MongoDB via the MongoExpress dashboard before proceeding with the reducer.  
 
-> Skip this step if you already have access to production Minio and MongoDB 
+> Skip this step if you already have API access to Minio and MongoDB services. 
 
 ### 2. Deploy the reducer
 Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  
