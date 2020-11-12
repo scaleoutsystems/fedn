@@ -34,6 +34,12 @@ setup(
         "Flask-WTF==0.14.3",
         "pyopenssl",
         "plotly",
+        "ttictoc",
+        "flask_profiler",
+        "psutil",
+        "click",
+        "jinja2==2.11.1",
+
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,
