@@ -14,7 +14,7 @@ def read_data(filename, sample_fraction=1.0):
 
     # The entire dataset is 60k images, we can subsample here for quicker testing. 
     if sample_fraction < 1.0:
-        foo, X, bar, y = train_test_split(X, y, test_size=sample_fraction)
+        _, X, _, y = train_test_split(X, y, test_size=sample_fraction)
     classes = range(10)
 
     # Input image dimensions
