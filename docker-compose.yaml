@@ -6,7 +6,7 @@ services:
     image: minio/minio:latest
     hostname: minio
     env_file:
-      ./conf/minio.env
+      ./config/minio.env
     command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
@@ -22,7 +22,7 @@ services:
     image: mongo:latest
     restart: always
     env_file:
-      ./conf/mongodb.env
+      ./config/mongodb.env
     ports:
       - 6534:6534
     command: mongod --port 6534
@@ -33,7 +33,7 @@ services:
     ports:
       - 8081:8081
     env_file:
-      ./conf/mongoexpress.env
+      ./config/mongoexpress.env
 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
