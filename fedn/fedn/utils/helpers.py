@@ -30,10 +30,15 @@ class HelperBase(ABC):
     def load_model(self, path):
         """ Load the model save with save_model from disk on path.  """
         pass
+    
+    @abstractmethod
+    def serialize_model_to_BytesIO(self,model):
+        """ Serialize a model to a BytesIO buffered object. """
+        pass
 
     @abstractmethod
     def load_model_from_BytesIO(self,model_bytesio):
-        """ Load a model from a BytesIO buffered object (such as read from Minio/S3). """
+        """ Load a model from a BytesIO buffered object. """
         pass
 
 def get_helper(helper):

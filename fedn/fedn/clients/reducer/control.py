@@ -39,10 +39,19 @@ class ReducerControl:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()
         
+        helper_type = 'numpymodel'
+        if helper_type == 'numpymodel':
+            from fedn.utils.numpymodel import NumpyHelper
+            self.helper = NumpyHelper()
+        else:
+            from fedn.utils.kerassequential import KerasSequentialHelper
+            self.helper = KerasSequentialHelper()
+
+
         # TODO: Refactor and make all these configurable
-        from fedn.utils.kerassequential import KerasSequentialHelper
+        #from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
-        self.helper = KerasSequentialHelper()
+        #self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
@@ -82,9 +91,8 @@ class ReducerControl:
     def commit(self, model_id, model=None):
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
-        if model:
-            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            self.helper.save_model(model, outfile_name)
+        if model is not None:
+            outfile_name = self.helper.save_model(model)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
@@ -217,11 +225,12 @@ class ReducerControl:
         # 3. Reduce combiner models into a global model
         try:
             model = self.reduce(updated)
-        except:
+        except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            print(e,flush=True)
             return None
 
-        if model:
+        if model is not None:
             # Commit to model ledger
             import uuid
             model_id = uuid.uuid4()
@@ -311,9 +320,10 @@ class ReducerControl:
             except:
                 pass
 
-            if data:
+            if data is not None:
                 try:
-                    model_next = self.helper.load_model_from_BytesIO(combiner.get_model().getbuffer())
+                    model_str=combiner.get_model().getbuffer()
+                    model_next = self.helper.load_model_from_BytesIO(model_str)
                     self.helper.increment_average(model, model_next, i)
                 except:
                     model = self.helper.load_model_from_BytesIO(data.getbuffer())

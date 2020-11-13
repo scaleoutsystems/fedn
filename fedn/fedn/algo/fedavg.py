@@ -35,8 +35,14 @@ class FEDAVGCombiner:
         self.validations = {}
 
         # TODO: make choice of helper configurable on Recucer level
-        from fedn.utils.kerassequential import KerasSequentialHelper
-        self.helper = KerasSequentialHelper()
+        helper_type = 'numpymodel'
+        if helper_type == 'numpymodel':
+            from fedn.utils.numpymodel import NumpyHelper
+            self.helper = NumpyHelper()
+        else:
+            from fedn.utils.kerassequential import KerasSequentialHelper
+            self.helper = KerasSequentialHelper()
+
         self.model_updates = queue.Queue()
 
     def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
@@ -98,8 +104,10 @@ class FEDAVGCombiner:
         while nr_processed_models < nr_expected_models:
             try:
                 model_id = self.model_updates.get(block=False)
+
                 self.report_status("Received model update with id {}".format(model_id))
                 model_str = self._load_model_fault_tolerant(model_id)
+
                 if model_str:
                     try:
                         model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
@@ -184,7 +192,7 @@ class FEDAVGCombiner:
                     self.run_configs_lock.release()
                     self.config = compute_plan
 
-                    ready = self.__check_nr_round_clients(compute_plan,timeout=10.0)
+                    ready = self.__check_nr_round_clients(compute_plan)
                     if ready:
                         if compute_plan['task'] == 'training':
                             self.exec_training(compute_plan)
@@ -243,7 +251,7 @@ class FEDAVGCombiner:
 
         return clients
 
-    def __check_nr_round_clients(self, config, timeout=10.0):
+    def __check_nr_round_clients(self, config, timeout=0.0):
         """ Check that the minimal number of required clients to start a round are connected. """
 
         import time
@@ -257,13 +265,14 @@ class FEDAVGCombiner:
             else:
                 self.report_status("waiting for {} clients to get started, currently: {}".format(int(config['clients_requested']) - active,
                                                                                     active), flush=True)
-            time.sleep(1.0)
-            t += 1.0
             if t >= timeout:
                 if active >= int(config['clients_required']):
                     return True
                 else:
                     return False
+
+            time.sleep(1.0)
+            t += 1.0
 
         return ready    
 
@@ -288,25 +297,16 @@ class FEDAVGCombiner:
             clients = self.__assign_round_clients(self.server.max_clients)
             model = self.__training_round(config, clients)
 
-            if not model:
+            if model is None:
                 self.report_status("\t Failed to update global model in round {0}!".format(r))
 
-        if model:
-            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            self.helper.save_model(model, outfile_name)
-
-            # Save to local storage for sharing with clients.
-            from io import BytesIO
-            a = BytesIO()
-            a.seek(0, 0)
-            with open(outfile_name, 'rb') as f:
-                a.write(f.read())
-
+        if model is not None:
+     
+            a = self.helper.serialize_model_to_BytesIO(model)
             # Send aggregated model to server 
             model_id = str(uuid.uuid4())        
             self.modelservice.set_model(a, model_id)
-            os.unlink(outfile_name)
-
+     
             # Update Combiner latest model
             self.server.set_active_model(model_id)
 

@@ -108,7 +108,9 @@ class ReducerRestService:
                 # upload seed file
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
-                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+                    model = self.control.helper.load_model(uploaded_seed)
+                    self.control.commit(uploaded_seed.filename, model)
+                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
