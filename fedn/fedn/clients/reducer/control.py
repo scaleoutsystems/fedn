@@ -7,6 +7,8 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
+from fedn.utils.helpers import get_helper
+
 
 class UnsupportedStorageBackend(Exception):
     pass
@@ -39,13 +41,10 @@ class ReducerControl:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()
         
-        helper_type = 'numpymodel'
-        if helper_type == 'numpymodel':
-            from fedn.utils.numpymodel import NumpyHelper
-            self.helper = NumpyHelper()
-        else:
-            from fedn.utils.kerassequential import KerasSequentialHelper
-            self.helper = KerasSequentialHelper()
+        self.helper_type = self.statestore.get_framework()
+        self.helper = get_helper(self.helper_type)
+        if not self.helper:
+            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
 
 
         # TODO: Refactor and make all these configurable
@@ -163,6 +162,8 @@ class ReducerControl:
         compute_plan['rounds'] = 1
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
+        compute_plan['helper_type'] = self.helper_type
+
 
         combiners = []
         for combiner in self.network.get_combiners():
@@ -247,6 +248,7 @@ class ReducerControl:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
+            combiner_config['helper_type'] = self.helper_type
             for combiner in updated:
                 try:
                     combiner.start(combiner_config)

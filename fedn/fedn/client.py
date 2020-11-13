@@ -93,14 +93,11 @@ class Client:
 
         self.lock = threading.Lock()
 
-        helper = None
-        if 'helper' in client_config.keys():
-            helper = get_helper(client_config['helper'])
-        if not helper:
-            # Default
-            helper = get_helper('KerasSequential')
-
-        self.helper = helper
+        if 'model_type' in client_config.keys():
+            self.helper = get_helper(client_config['model_type'])
+    
+        if not self.helper:
+            print("Failed to retrive helper class settings! {}".format(client_config),flush=True)
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()

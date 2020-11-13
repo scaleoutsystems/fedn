@@ -10,6 +10,7 @@ import sys
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import tensorflow as tf
 from threading import Thread, Lock
+from  fedn.utils.helpers import get_helper 
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
@@ -33,15 +34,6 @@ class FEDAVGCombiner:
 
         self.config = {}
         self.validations = {}
-
-        # TODO: make choice of helper configurable on Recucer level
-        helper_type = 'numpymodel'
-        if helper_type == 'numpymodel':
-            from fedn.utils.numpymodel import NumpyHelper
-            self.helper = NumpyHelper()
-        else:
-            from fedn.utils.kerassequential import KerasSequentialHelper
-            self.helper = KerasSequentialHelper()
 
         self.model_updates = queue.Queue()
 
@@ -191,6 +183,7 @@ class FEDAVGCombiner:
                     compute_plan = self.run_configs.pop()
                     self.run_configs_lock.release()
                     self.config = compute_plan
+                    self.helper = get_helper(self.config['helper_type'])
 
                     ready = self.__check_nr_round_clients(compute_plan)
                     if ready:
