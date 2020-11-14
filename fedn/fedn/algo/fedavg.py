@@ -85,7 +85,7 @@ class FEDAVGCombiner:
         return model_str
  
 
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=120):
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=180):
         """ Compute an iterative/running average of models arriving to the combiner. """
 
         import time
@@ -105,14 +105,14 @@ class FEDAVGCombiner:
                         model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
                     except IOError:
                         self.report_status("COMBINER: Failed to load model!")
-                        raise
+                    #    raise
                 else: 
                     raise
 
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    self.helper.increment_average(model, model_next, nr_processed_models)
+                    self.helper.increment_average(model, model_next, nr_processed_models+1)
 
                 nr_processed_models += 1
                 self.model_updates.task_done()
