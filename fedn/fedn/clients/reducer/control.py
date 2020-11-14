@@ -48,7 +48,7 @@ class ReducerControl:
             self.__state = ReducerState.idle
 
     def delet_bucket_objects(self):
-        return self.model_repository.delete_objects(self.bucket_name)
+        return self.model_repository.delete_objects()
 
     def get_state(self):
         return self.__state

@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 from datetime import datetime,timedelta
 import plotly
 import os
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
 
 
 class Plot:

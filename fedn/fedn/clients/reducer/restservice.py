@@ -121,7 +121,8 @@ class ReducerRestService:
         def delete():
             if request.method == 'POST':
                 from fedn.common.storage.db.mongo import drop_mongodb
-                drop_mongodb()
+                statestore_config = self.control.statestore.get_config()
+                self.mdb = drop_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
                 self.control.delet_bucket_objects()
                 return redirect(url_for('seed'))
             seed = True
@@ -305,17 +306,17 @@ class ReducerRestService:
 
         def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
-            self.plot = Plot(self.control.statestore)
+            plot = Plot(self.control.statestore)
             if feature == 'table':
-                return self.plot.create_table_plot()
+                return plot.create_table_plot()
             elif feature == 'timeline':
-                return self.plot.create_timeline_plot()
+                return plot.create_timeline_plot()
             elif feature == 'round_time':
-                return self.plot.create_round_plot()
+                return plot.create_round_plot()
             elif feature == 'box':
-                return self.plot.create_box_plot()
+                return plot.create_box_plot()
             elif feature == 'cpu':
-                return self.plot.create_cpu_plot()
+                return plot.create_cpu_plot()
             else:
                 return 'No plot!'
 

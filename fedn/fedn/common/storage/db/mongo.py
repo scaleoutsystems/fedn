@@ -15,11 +15,10 @@ def connect_to_mongodb(config, network_id):
         raise
 
 
-def drop_mongodb():
-    config = get_mongo_config()
+def drop_mongodb(config, network_id):
     try:
         mc = pymongo.MongoClient(**config)
-        mdb = mc[os.environ['ALLIANCE_UID']]
+        mdb = mc[network_id]
         mc.drop_database(mdb)
     except Exception:
         raise

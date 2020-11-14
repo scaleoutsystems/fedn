@@ -115,15 +115,15 @@ class MINIORepository(Repository):
             print(err)
             print('Could not delete artifact: {}'.format(instance_name))
 
-    def delete_objects(self, bucket):
+    def delete_objects(self):
         objects_to_delete = self.list_artifacts()
-        if not bucket:
-            bucket = self.bucket
+        # if not self.bucket:
+        #     bucket = self.bucket
         # Remove multiple objects in a single library call.
         try:
             # force evaluation of the remove_objects() call by iterating over
             # the returned value.
-            for del_err in self.client.remove_objects(bucket, objects_to_delete):
+            for del_err in self.client.remove_objects(self.bucket, objects_to_delete):
                 print("Deletion Error: {}".format(del_err))
         except ResponseError as err:
             print(err)
