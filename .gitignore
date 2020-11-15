@@ -148,3 +148,8 @@ media/visualisers/
 ./test/data-center/client/certs/*
 ./test/data-center/combiner/certs/*
 ./test/data-center/reducer/*
+
+# nlp_text_cl test-case
+./test/nlp_text_cl/client/certs/*
+./test/nlp_text_cl/combiner/certs/*
+./test/nlp_text_cl/reducer/*
