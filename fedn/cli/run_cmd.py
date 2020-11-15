@@ -105,32 +105,19 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @click.option('-p', '--discoverport', required=False)
 @click.option('-t', '--token', required=False,default="reducer_token")
 @click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
-@click.option('-i', '--init', required=False, default=None, help='Set to a filename to (re)init reducer from file state.')
+@click.option('-i', '--init', required=True, default=None, help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
 
-    if config['init']:
-        # Read settings from config file
-        try:
-            fedn_config = get_statestore_config_from_file(config['init'])
-        # Todo: Make more specific
-        except Exception as e:
-            print('Failed to read config from settings file, exiting.',flush=True)
-            print(e,flush=True)
-            exit(-1)
-
-    # Old mechanism of reading from env, deprecated.
-    else:
-        try:
-            # From ENV
-            fedn_config = {}
-            fedn_config['statestore'] = get_statestore_config_from_env()
-            fedn_config['storage'] = get_storage_config_from_env()
-            fedn_config['network_id'] = get_network_id_from_env()
-        except Exception as e:
-            print("Failed to get statestore config from environment: {}".format(e),flush=True)
-            exit(-1)
+    # Read settings from config file
+    try:
+        fedn_config = get_statestore_config_from_file(config['init'])
+    # Todo: Make more specific
+    except Exception as e:
+        print('Failed to read config from settings file, exiting.',flush=True)
+        print(e,flush=True)
+        exit(-1)
 
     try:
         network_id = fedn_config['network_id']

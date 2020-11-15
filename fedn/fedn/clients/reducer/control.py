@@ -7,6 +7,8 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
+from fedn.utils.helpers import get_helper
+
 
 class UnsupportedStorageBackend(Exception):
     pass
@@ -39,10 +41,16 @@ class ReducerControl:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()
         
+        self.helper_type = self.statestore.get_framework()
+        self.helper = get_helper(self.helper_type)
+        if not self.helper:
+            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
+
+
         # TODO: Refactor and make all these configurable
-        from fedn.utils.kerassequential import KerasSequentialHelper
+        #from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
-        self.helper = KerasSequentialHelper()
+        #self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
@@ -82,9 +90,8 @@ class ReducerControl:
     def commit(self, model_id, model=None):
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
-        if model:
-            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            self.helper.save_model(model, outfile_name)
+        if model is not None:
+            outfile_name = self.helper.save_model(model)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
@@ -155,6 +162,8 @@ class ReducerControl:
         compute_plan['rounds'] = 1
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
+        compute_plan['helper_type'] = self.helper_type
+
 
         combiners = []
         for combiner in self.network.get_combiners():
@@ -217,11 +226,12 @@ class ReducerControl:
         # 3. Reduce combiner models into a global model
         try:
             model = self.reduce(updated)
-        except:
+        except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            print(e,flush=True)
             return None
 
-        if model:
+        if model is not None:
             # Commit to model ledger
             import uuid
             model_id = uuid.uuid4()
@@ -238,6 +248,7 @@ class ReducerControl:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
+            combiner_config['helper_type'] = self.helper_type
             for combiner in updated:
                 try:
                     combiner.start(combiner_config)
@@ -311,9 +322,10 @@ class ReducerControl:
             except:
                 pass
 
-            if data:
+            if data is not None:
                 try:
-                    model_next = self.helper.load_model_from_BytesIO(combiner.get_model().getbuffer())
+                    model_str=combiner.get_model().getbuffer()
+                    model_next = self.helper.load_model_from_BytesIO(model_str)
                     self.helper.increment_average(model, model_next, i)
                 except:
                     model = self.helper.load_model_from_BytesIO(data.getbuffer())

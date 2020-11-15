@@ -34,7 +34,9 @@ def validate(model,data,sample_fraction=1):
 
 if __name__ == '__main__':
 
-    model = krm.load_model(sys.argv[1])
+    from fedn.utils.kerassequential import KerasSequentialHelper
+    helper = KerasSequentialHelper()
+    model = helper.load_model(sys.argv[1])
     report = validate(model,'../data/train.csv',sample_fraction=0.01)
 
     with open(sys.argv[2],"w") as fh:

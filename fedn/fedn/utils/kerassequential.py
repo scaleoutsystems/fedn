@@ -10,18 +10,6 @@ from .helpers import HelperBase
 class KerasSequentialHelper(HelperBase):
     """ FEDn helper class for keras.Sequential. """
 
-    def average_weights(self, models):
-        """ Average weights of Keras Sequential models. """
-        weights = [model.get_weights() for model in models]
-
-        avg_w = []
-        for l in range(len(weights[0])):
-            lay_l = np.array([w[l] for w in weights])
-            weight_l_avg = np.mean(lay_l, 0)
-            avg_w.append(weight_l_avg)
-
-        return avg_w
-
     def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
         w_prev = self.get_weights(model)
@@ -49,6 +37,18 @@ class KerasSequentialHelper(HelperBase):
     def load_model(self, path):
         model = krm.load_model(path)
         return model
+
+
+    def serialize_model_to_BytesIO(self,model):
+        outfile_name = self.save_model(model)
+
+        from io import BytesIO
+        a = BytesIO()
+        a.seek(0, 0)
+        with open(outfile_name, 'rb') as f:
+            a.write(f.read())
+        os.unlink(outfile_name)
+        return a
 
     def load_model_from_BytesIO(self,model_bytesio):
         """ Load a model from a BytesIO object. """

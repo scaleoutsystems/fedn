@@ -32,15 +32,21 @@ class HelperBase(ABC):
         pass
 
     @abstractmethod
-    def load_model_from_BytesIO(self,model_bytesio):
-        """ Load a model from a BytesIO buffered object (such as read from Minio/S3). """
+    def serialize_model_to_BytesIO(self,model):
+        """ Serialize a model to a BytesIO buffered object. """
         pass
 
-def get_helper(helper):
-    if helper == 'KerasSequential':
+    @abstractmethod
+    def load_model_from_BytesIO(self,model_bytesio):
+        """ Load a model from a BytesIO buffered object. """
+        pass
+
+def get_helper(helper_type):
+    if helper_type == 'numpymodel':
+        from fedn.utils.numpymodel import NumpyHelper
+        return NumpyHelper()
+    elif helper_type == 'keras_sequential':
         from fedn.utils.kerassequential import KerasSequentialHelper
         return KerasSequentialHelper()
-    else: 
-        print("Helper not found.",flush=True) 
+    else:
         return None
-
