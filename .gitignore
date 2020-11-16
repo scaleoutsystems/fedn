@@ -157,4 +157,7 @@ media/visualisers/
 ./test/nlp_imdb_senti/client/certs/*
 ./test/nlp_imdb_senti/combiner/certs/*
 ./test/nlp_imdb_senti/reducer/*
-./test/nlp_imdb_senti/data/*
+
+# config files
+./config/*
+
