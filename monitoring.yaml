@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+
+  cadvisor: 
+    container_name: fedn_cadvisor  
+    image: google/cadvisor:latest
+    ports: 
+      - 7001:8080 
+    volumes: 
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    
+  node_exporter:
+    container_name: fedn_node_exporter
+    image: prom/node-exporter
+    #ports:
+    #  - 9100:9100
+        
+  prometheus:
+    environment:
+      GET_HOSTS_FROM: dns      
+    container_name: fedn_prometheus       
+    image: prom/prometheus:v2.14.0
+    #ports:
+    #  - 9090:9090
+    volumes:
+      - ./fedn/config/prometheus.yml:/etc/prometheus/prometheus.yml         
+
+  grafana:
+    environment:
+      GET_HOSTS_FROM: dns       
+    image: grafana/grafana:7.3.2      
+    container_name: fedn_grafana
+    ports: 
+      - 3000:3000     
