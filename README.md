@@ -123,7 +123,7 @@ First deploy Minio and Mongo services. Edit the config files 'config/minio.env',
 > Skip this step if you already have API access to Minio and MongoDB services. 
 
 ### 2. Deploy the reducer
-Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  
+Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  s
 
 ```bash
 EXAMPLE=mnist sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 
