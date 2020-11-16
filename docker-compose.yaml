@@ -38,3 +38,4 @@ services:
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
   minio-data:
+

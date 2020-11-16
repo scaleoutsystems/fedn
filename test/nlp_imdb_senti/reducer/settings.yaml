@@ -1,0 +1,3 @@
+state: idle
+model: 879fa112-c861-4cb1-a25d-775153e5b550
+context: text_classification.tar.gz

@@ -144,12 +144,17 @@ media/visualisers/
 ./test/mnist/reducer/*
 ./components/dashboard/templates/*
 
+./test/arrays/client/certs/*
+./test/arrays/combiner/certs/*
+./test/arrays/reducer/*
+
 # data center test-case
 ./test/data-center/client/certs/*
 ./test/data-center/combiner/certs/*
 ./test/data-center/reducer/*
 
-# nlp_text_cl test-case
-./test/nlp_text_cl/client/certs/*
-./test/nlp_text_cl/combiner/certs/*
-./test/nlp_text_cl/reducer/*
+# nlp_imdb_senti test-case
+./test/nlp_imdb_senti/client/certs/*
+./test/nlp_imdb_senti/combiner/certs/*
+./test/nlp_imdb_senti/reducer/*
+./test/nlp_imdb_senti/data/*

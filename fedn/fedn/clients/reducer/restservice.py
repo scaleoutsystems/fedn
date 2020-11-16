@@ -107,7 +107,14 @@ class ReducerRestService:
                 # upload seed file
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
-                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+                    from io import BytesIO
+                    a = BytesIO()
+                    a.seek(0, 0)
+                    uploaded_seed.seek(0)
+                    a.write(uploaded_seed.read()) 
+                    model = self.control.helper.load_model_from_BytesIO(a.getbuffer())
+                    self.control.commit(uploaded_seed.filename, model)
+                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
@@ -181,16 +188,21 @@ class ReducerRestService:
             client = {
                     'name': name,
                     'combiner_preferred': combiner_preferred, 
-                    'ip': request.remote_addr
+                    'ip': request.remote_addr,
+                    'status': 'available'
                 }
             self.control.network.add_client(client)
 
             if combiner:
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
-                            'certificate': str(cert_b64).split('\'')[1]}
-
+                response = {
+                    'status': 'assigned', 
+                    'host': combiner.address,
+                    'port': combiner.port,
+                    'certificate': str(cert_b64).split('\'')[1],
+                    'model_type': self.control.helper_type
+                }
 
                 return jsonify(response)
             elif combiner is None:
