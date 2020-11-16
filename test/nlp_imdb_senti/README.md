@@ -1,12 +1,15 @@
-# NLP task: Text classification/ sentiment analysis
-If you plan to generate your own seed file, you need to download the Glove word embeddings
-from this link: https://archive.org/download/glove.6B.50d-300d/glove.6B.50d.txt
-and put it in the folder /test/nlp_text_cl/data/word_embeddings
-# datasets
-- IMDB: 50K - https://www.kaggle.com/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews (folder data1)
+# NLP downstream task: Text classification/ sentiment analysis
+For large data transfer reason we uploaded a data folder in this use case to archive.org.
+To test this use-case you need to download data and Glove word embeddings from this link:
+https://archive.org/download/data_20201116_202011/data.zip
+- Decompress the file
+- Copy the content to the data folder in nlp_imdb_senti
+
+# Datasets -data folder
+- IMDB 50k (data1 & train.csv)
 - YLP, IMDB, AMAZON: 3k - (folder data2)
 
-# Models
-- CNN
-- CNN-BILSTM
+# Seed models
+- CNN : imdb_40k_cnn_saved_model.h5
+- CNN-BILSTM : imdb_40k_cnn_bilstm_saved_model.h5
 
