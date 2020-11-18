@@ -1,9 +1,12 @@
 # MNIST test project
 This classsic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain at least 5 clients. The example is also useful for general scalability tests in fully distributed mode. 
 
-To make testing flexible, clients create their own local dataset upon first training invocation, by sampling from the full dataset in CSV format (can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available).  
+## Setting up the client
 
-## Configuring the tests
+### Provide local training and test data
+This example assumes that trainig and test data is available as 'test/mnist/data/train.csv' and 'test/mnist/data/test.csv'. Data can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available. To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. The subsample size is configured as described in the next section. 
+
+### Configuring the tests
 We have made it possible to configure a couple of settings to vary the conditions for the training. These configurataions are expsosed in the file 'settings.yaml': 
 
 ```yaml 
@@ -18,7 +21,7 @@ batch_size: 32
 epochs: 1
 ```
 
-## Create the compute package
+### Creating a compute package
 To train a model in FEDn you provide the client code (in 'client') as a tarball (you set the name of the package in 'settings-reducer.yaml'). For convenience, we ship a pre-made package. Whenever you make updates to the client code (such as altering any of the settings in the above mentioned file), you need to re-package the code (as a .tar.gz archive) and copy the updated package to 'packages'. From 'test/mnist':
 
 ```bash
@@ -27,14 +30,14 @@ gzip mnist.tar
 cp mnist.tar.gz packages/
 ```
 
-## Create the seed model
+## Creating a seed model
 The baseline CNN is specified in the file 'seed/init_model.py'. This script creates an untrained neural network and serialized that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed model in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file:
 
 ```bash
 python init_model.py 
 ```
 
-## Start a client
+## Start the client
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
 
 ```bash
