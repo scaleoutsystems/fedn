@@ -38,7 +38,8 @@ python init_model.py
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. From the root directory of the FEDn repository: 
 
 ```bash
-EXAMPLE=mnist sudo docker-compose -f client.yaml -f config/extra-hosts-client.yaml up --scale client=2 
+sudo docker-compose -f docker-compose.local.yaml up --scale client=2 
 ```
+> The above assumes you are testing againts a local pseudo-distributed FEDn network. Use docker-compose.yaml if you are connecting against a reducer part of a distribured setup.
 
 > This assumes that a FEDn network is running and that the client config and extra_hosts are configured correctly. See the FEDn quick start guide for details.    
