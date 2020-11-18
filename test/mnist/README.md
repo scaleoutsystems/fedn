@@ -4,7 +4,7 @@ This classsic example of hand-written text recognition is well suited both as a 
 To make testing flexible, clients create their own local dataset upon first training invocation, by sampling from the full dataset in CSV format (can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available).  
 
 ## Configuring the tests
-We have made it possible to configure a couple of settings to vary the conditions for the training. These configurataions are expsosed in the file 'mnist_settings.yaml': 
+We have made it possible to configure a couple of settings to vary the conditions for the training. These configurataions are expsosed in the file 'settings.yaml': 
 
 ```yaml 
 # Number of training samples used by each client
@@ -35,11 +35,9 @@ python init_model.py
 ```
 
 ## Start a client
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. From the root directory of the FEDn repository: 
+The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
 
 ```bash
 sudo docker-compose -f docker-compose.local.yaml up --scale client=2 
 ```
-> The above assumes you are testing againts a local pseudo-distributed FEDn network. Use docker-compose.yaml if you are connecting against a reducer part of a distribured setup.
-
-> This assumes that a FEDn network is running and that the client config and extra_hosts are configured correctly. See the FEDn quick start guide for details.    
+> Note that this assumes that a FEDn network is running (see separate deployment instructions). The file 'docker-compose.local.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
