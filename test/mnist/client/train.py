@@ -25,7 +25,7 @@ def train(model,data,settings):
         with open('/app/mnist_train/classes.pyb','rb') as fh:
             classes=pickle.loads(fh.read())
     except:
-        (x_train, y_train, classes) = read_data(data,examples=settings['training_examples'])
+        (x_train, y_train, classes) = read_data(data,nr_examples=settings['training_samples'])
 
         try:
             os.mkdir('/app/mnist_train')
@@ -48,7 +48,6 @@ if __name__ == '__main__':
     with open('settings.yaml', 'r') as fh:
         try:
             settings = dict(yaml.safe_load(fh))
-            return settings
         except yaml.YAMLError as e:
             raise(e)
 

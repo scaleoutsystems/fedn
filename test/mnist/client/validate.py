@@ -4,7 +4,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import tensorflow.keras as keras
 import tensorflow.keras.models as krm
 from read_data import read_data
-import pickles
+import pickle
 import json
 from sklearn import metrics
 import numpy
@@ -95,7 +95,6 @@ if __name__ == '__main__':
     with open('settings.yaml', 'r') as fh:
         try:
             settings = dict(yaml.safe_load(fh))
-            return settings
         except yaml.YAMLError as e:
             raise(e)   
 
