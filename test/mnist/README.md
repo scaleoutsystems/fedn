@@ -1,13 +1,13 @@
 # MNIST test project
 This classsic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain at least 5 clients. The example is also useful for general scalability tests in fully distributed mode. 
 
-## Setting up the client
+## Setting up a client
 
 ### Provide local training and test data
 This example assumes that trainig and test data is available as 'test/mnist/data/train.csv' and 'test/mnist/data/test.csv'. Data can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available. To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. The subsample size is configured as described in the next section. 
 
 ### Configuring the tests
-We have made it possible to configure a couple of settings to vary the conditions for the training. These configurataions are expsosed in the file 'settings.yaml': 
+We have made it possible to configure a couple of settings to vary the conditions for the training. These configurations are expsosed in the file 'settings.yaml': 
 
 ```yaml 
 # Number of training samples used by each client
