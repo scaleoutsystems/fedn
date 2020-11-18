@@ -18,7 +18,7 @@ setup(
         "chardet",
         "Click==7.1.2",
         "PyYAML",
-        "requests==2.24.0",
+        "requests==2.25.0",
         "urllib3",
         "minio==6.0.0",
         "six",
