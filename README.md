@@ -10,7 +10,7 @@ Three key design objectives are guiding development in the project and is reflec
 FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latency and throughput requirements spanning cross-silo and cross-device cases. This is addressed by allowing for a tiered model update and model aggregation scheme where multiple combiners divide up the work for global aggregation steps.  
 
 ### A ML-framework agnostic, black-box design
-The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework - the only requirement is that it should make sense from a machine learning perspective to average model parameters. Support for Keras Sequential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
+The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework. Support for Keras Sequential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
 
 ### Built for real-world distributed computing scenarios 
 FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distributed mode for convenient testing and devepment.  
@@ -24,7 +24,7 @@ Constructing a federated model with FEDn amounts to a) specifying the details of
 ### Main components
 
 #### Client
-A Client is a data node, holding private data and connecting to a Combiner to recieve model update requests and model validation requests during trainig rounds. Clients do not require any open ingress ports, they recieve the code to be executed from its combiner, and they need to be configured prior to connection to read the local datasets in order to be able to execute model training and validation. Python3 clients are provided out of the box, and it is possible to write clients in a variery of languages to target different execution environments and hardware.  
+A Client is a data node, holding private data and connecting to a Combiner to recieve model update requests and model validation requests during trainig rounds. Importantly, clients do not require any open ingress ports. A client recieves the code to be executed from the Reducer upon connecting to the network, and thus they only need to be configured prior to connection to read the local datasets during training and validation. A Python3 client implementation is provided out of the box, and it is possible to write clients in a variery of languages to target different software and hardware requirements.  
 
 #### Combiner
 A combiner is an actor which main role is to orchestrate and aggregat model updates from a number clients during a training round. When and how to trigger such orchestration rounds are specified in the overall *compute plan* laid out by the Reducer. Each combiner in the network runs an independent gRPC server, providing RPCs for interacting with the alliance subsystem it controls. Hence, the total number of clients that can be accomodated in a FEDn network is proportional to the number of active combiners in the FEDn network. Combiners can be deployed anywhere, e.g. in a cloud or on a fog node to provide aggregation services near the cloud edge. 
@@ -123,7 +123,7 @@ First deploy Minio and Mongo services. Edit the config files 'config/minio.env',
 > Skip this step if you already have API access to Minio and MongoDB services. 
 
 ### 2. Deploy the reducer
-Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  
+Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  s
 
 ```bash
 EXAMPLE=mnist sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 

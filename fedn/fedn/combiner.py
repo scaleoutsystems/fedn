@@ -91,6 +91,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self,self.modelservice, grpc_config)
 
+        # TODO: Make configurable
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
