@@ -117,9 +117,6 @@ class MINIORepository(Repository):
 
     def delete_objects(self):
         objects_to_delete = self.list_artifacts()
-        # if not self.bucket:
-        #     bucket = self.bucket
-        # Remove multiple objects in a single library call.
         try:
             # force evaluation of the remove_objects() call by iterating over
             # the returned value.

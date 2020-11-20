@@ -287,11 +287,17 @@ class ReducerControl:
         # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(statestore_config['mongo_config'],statestore_config['network_id'])
-        self.tracer.drop_performances()
-        self.tracer.drop_ps_util_monitor()
+        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+        # self.tracer.drop_round_time()
+        # self.tracer.drop_ps_util_monitor()
+        last_round = self.tracer.get_latest_round()
 
-        for round in range(int(config['rounds'])):
+        for round in range(1, int(config['rounds'])):
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
             from datetime import datetime
             start_time = datetime.now()
             # start round monitor
@@ -301,7 +307,7 @@ class ReducerControl:
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
                 round_time = end_time - start_time
-                self.tracer.set_latest_time(round, round_time.seconds)
+                self.tracer.set_latest_time(current_round, round_time.seconds)
             else:
                 print("REDUCER: Global round failed!")
             

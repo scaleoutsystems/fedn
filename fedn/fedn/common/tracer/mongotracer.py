@@ -10,8 +10,8 @@ class MongoTracer(Tracer):
         try:
             self.mdb = connect_to_mongodb(mongo_config,network_id)
             self.collection = self.mdb['status']
-            self.performances = self.mdb['performances']
-            self.psutil_usage = self.mdb['psutil_usage']
+            self.round_time = self.mdb['round_time']
+            self.psutil_monitoring = self.mdb['psutil_monitoring']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.collection = None
@@ -26,17 +26,22 @@ class MongoTracer(Tracer):
         if self.collection:
             self.collection.insert_one(data)
 
-    def drop_performances(self):
-        if self.performances:
-            self.performances.drop()
+    def drop_round_time(self):
+        if self.round_time:
+            self.round_time.drop()
 
     def drop_ps_util_monitor(self):
-        if self.psutil_usage:
-            self.psutil_usage.drop()
+        if self.psutil_monitoring:
+            self.psutil_monitoring.drop()
 
     def set_latest_time(self, round, round_time):
-        self.performances.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
-        self.performances.update({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
+        self.round_time.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
+        self.round_time.update({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
+
+    def get_latest_round(self):
+        for post in self.round_time.find({'key': 'round_time'}):
+            last_round = post['round'][-1]
+            return last_round
 
     def ps_util_monitor(self, round=None):
         global running
@@ -48,10 +53,10 @@ class MongoTracer(Tracer):
             mem_percents = currentProcess.memory_percent()
             ps_time = str(datetime.now())
 
-            self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'cpu': cpu_percents}}, True)
-            self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'mem': mem_percents}}, True)
-            self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
-            self.psutil_usage.update({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
+            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'cpu': cpu_percents}}, True)
+            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'mem': mem_percents}}, True)
+            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
+            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
 
     def start_monitor(self, round=None):
         global t
