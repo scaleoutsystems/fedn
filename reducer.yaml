@@ -7,7 +7,7 @@ services:
       - GET_HOSTS_FROM=dns
       - USER=test
       - PROJECT=project
-    image: "scaleoutsystems/client:latest"
+    image: "scaleoutsystems/fedn-client:latest"
     build:
       context: .
       dockerfile: components/client/Dockerfile
