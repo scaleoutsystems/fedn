@@ -22,7 +22,7 @@ services:
     working_dir: /app/client
     command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner -i 12080 -n combiner
     volumes:
-      - ./tmp/c1-models:/mnt/models
+      - ./tmp/c1-models:/tmp/models
     ports:
       - 12080:12080
 
@@ -46,6 +46,6 @@ services:
     working_dir: /app/client
     command: fedn run combiner -d ${FEDN_REDUCER_HOST} -p ${FEDN_REDUCER_PORT} -t ${FEDN_ALLIANCE_ADMIN_AUTH_TOKEN} -h combiner2 -i 12081 -n combiner2
     volumes:
-      - ./tmp/c2-models:/mnt/models
+      - ./tmp/c2-models:/tmp/models
     ports:
       - 12081:12081
