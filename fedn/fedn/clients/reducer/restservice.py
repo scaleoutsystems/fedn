@@ -232,12 +232,6 @@ class ReducerRestService:
                 return str(e)
 
         def create_map():
-            #IPs = []
-            #for combiner in self.control.statestore.list_combiners():
-            #    IPs.append(combiner['ip'])
-
-            #for client in self.control.statestore.list_clients():
-            #    IPs.append(client['ip'])
 
             cities_dict = {
                 'city': [],

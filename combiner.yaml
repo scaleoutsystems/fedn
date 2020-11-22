@@ -3,7 +3,7 @@ version: '3.3'
 services:
 
   combiner:
-    image: "scaleoutsystems/client:latest"
+    image: "scaleoutsystems/fedn-client:latest"
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
@@ -14,6 +14,6 @@ services:
     command: fedn run combiner -in ./config/settings-combiner.yaml 
     volumes:
       - ./config:/app/client/config
-      - ./tmp/c1-models:/mnt/models
+      - ./tmp/c1-models:/tmp/models
     ports:
       - 12080:12080
