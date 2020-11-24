@@ -1,10 +1,8 @@
-import keras
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import GlobalMaxPooling1D, Embedding, GlobalMaxPool1D
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv1D
-
-from tensorflow.keras.preprocessing.text import Tokenizer
 import numpy as np
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Conv1D
+from tensorflow.keras.layers import GlobalMaxPooling1D, Embedding
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 
 def create_embedding_matrix(filepath, word_index, embedding_dim):
@@ -26,7 +24,6 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
 def create_seed_model():
     embedding_dim = 50
     max_sequence_lenght = 100
-    # embedding = "https://tfhub.dev/google/nnlm-en-dim50/2"
     tokenizer = Tokenizer(num_words=100000)
     embedding_matrix = create_embedding_matrix('../data/word_embeddings/glove.6B.50d.txt',
                                                tokenizer.word_index,
@@ -48,10 +45,6 @@ def create_seed_model():
 
 
 if __name__ == '__main__':
-    # import keras
-    # import tensorflow as tf
-    # print('TF', tf.__version__)
-    # print('KERAS', keras.__version__)
     # Create a seed model and push to Minio
     model = create_seed_model()
     outfile_name = "879fa112-c861-4cb1-a25d-775153e5b550"
