@@ -269,7 +269,6 @@ class ReducerControl:
         for combiner in combiners:
             response = combiner.set_model_id(model_id)
 
-
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
 
@@ -292,7 +291,7 @@ class ReducerControl:
         # self.tracer.drop_ps_util_monitor()
         last_round = self.tracer.get_latest_round()
 
-        for round in range(1, int(config['rounds'])):
+        for round in range(int(config['rounds'])):
             if last_round:
                 current_round = last_round + round
             else:
