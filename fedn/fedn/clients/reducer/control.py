@@ -4,36 +4,67 @@ import tempfile
 import time
 
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
-
+from fedn.clients.reducer.network import Network
 from .state import ReducerState
+
+from fedn.utils.helpers import get_helper
+
+
+class UnsupportedStorageBackend(Exception):
+    pass
+
+class MisconfiguredStorageBackend(Exception):
+    pass
 
 class ReducerControl:
 
     def __init__(self, statestore):
         self.__state = ReducerState.setup
         self.statestore = statestore
-        self.combiners = []
-
-        s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-                     'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-                     'storage_bucket': 'models',
-                     'storage_secure_mode': False,
-                     'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-                     'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
-
-        from fedn.common.storage.s3.s3repo import S3ModelRepository
-        self.model_repository = S3ModelRepository(s3_config)
-        self.bucket_name = s3_config["storage_bucket"]
         
+        if self.statestore.is_inited():
+            self.network = Network(self, statestore)
+
+        try:
+            config = self.statestore.get_storage_backend()
+        except:
+            print("REDUCER CONTROL: Failed to retrive storage configuration, exiting.",flush=True)
+            raise MisconfiguredStorageBackend()
+        if not config:
+            print("REDUCER CONTROL: No storage configuration available, exiting.",flush=True)
+            raise MisconfiguredStorageBackend() 
+
+        if config['storage_type'] == 'S3': 
+            from fedn.common.storage.s3.s3repo import S3ModelRepository
+            self.model_repository = S3ModelRepository(config['storage_config'])
+        else:
+            print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
+            raise UnsupportedStorageBackend()
+        
+        self.helper_type = self.statestore.get_framework()
+        self.helper = get_helper(self.helper_type)
+        if not self.helper:
+            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
+
+
         # TODO: Refactor and make all these configurable
-        from fedn.utils.kerassequential import KerasSequentialHelper
+        #from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
-        self.helper = KerasSequentialHelper()
+        #self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
 
+    def get_state(self):
+        return self.__state
+        
+    def idle(self):
+        if self.__state == ReducerState.idle:
+            return True
+        else:
+            return False
+        
     def get_latest_model(self):
         return self.statestore.get_latest()
 
@@ -52,15 +83,15 @@ class ReducerControl:
             return None
 
     def set_compute_context(self, filename):
+        """ Persist the configuration for the compute package. """ 
         self.statestore.set_compute_context(filename)
 
 
     def commit(self, model_id, model=None):
-        """ Commit a model to the gloval model trail. The model commited becomes the lastest consensus model. """
+        """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
-        if model:
-            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
-            self.helper.save_model(model, outfile_name)
+        if model is not None:
+            outfile_name = self.helper.save_model(model)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
             os.unlink(outfile_name)
 
@@ -69,7 +100,7 @@ class ReducerControl:
     def _out_of_sync(self,combiners=None):
 
         if not combiners:
-            combiners = self.combiners
+            combiners = self.network.get_combiners()
 
         osync = []
         for combiner in combiners:
@@ -87,6 +118,7 @@ class ReducerControl:
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """
+
         if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
             return True
         else:
@@ -121,7 +153,7 @@ class ReducerControl:
 
         # TODO: Set / update reducer states and such
         # TODO: Do a General Health check on Combiners in the beginning of the round.
-        if len(self.combiners) < 1:
+        if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
             return
 
@@ -130,9 +162,11 @@ class ReducerControl:
         compute_plan['rounds'] = 1
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
+        compute_plan['helper_type'] = self.helper_type
+
 
         combiners = []
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
 
             try:
                 combiner_state = combiner.report()
@@ -145,10 +179,8 @@ class ReducerControl:
                 if is_participating:
                     combiners.append((combiner,compute_plan))
 
-        print("REDUCER CONTROL: Participating combiners: {}".format(combiners),flush=True)
-
         round_start = self.check_round_start_policy(combiners)
-        print("ROUND START POLICY: {}".format(round_start),flush=True)
+        print("ROUND START POLICY MET: participating combiners {}".format(round_start),flush=True)
         if not round_start:
             print("REDUCER CONTROL: Round start policy not met, skipping round!",flush=True)
             return None
@@ -194,11 +226,12 @@ class ReducerControl:
         # 3. Reduce combiner models into a global model
         try:
             model = self.reduce(updated)
-        except:
+        except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            print(e,flush=True)
             return None
 
-        if model:
+        if model is not None:
             # Commit to model ledger
             import uuid
             model_id = uuid.uuid4()
@@ -215,6 +248,7 @@ class ReducerControl:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
+            combiner_config['helper_type'] = self.helper_type
             for combiner in updated:
                 try:
                     combiner.start(combiner_config)
@@ -244,14 +278,15 @@ class ReducerControl:
 
         self.__state = ReducerState.instructing
 
-        # TODO - move seeding from config to explicit step, use Reducer REST API reducer/seed/... ?
         if not self.get_latest_model():
             print("No model in model chain, please seed the alliance!")
 
         self.__state = ReducerState.monitoring
 
+        # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer()
+        statestore_config = self.statestore.get_config()
+        self.tracer = MongoTracer(statestore_config['mongo_config'],statestore_config['network_id'])
         self.tracer.drop_performances()
         self.tracer.drop_ps_util_monitor()
 
@@ -267,11 +302,11 @@ class ReducerControl:
                 print('-------------------------------')
                 round_time = end_time - start_time
                 self.tracer.set_latest_time(round, round_time.seconds)
-                # stop round monitor
-                self.tracer.stop_monitor()
-
             else:
                 print("REDUCER: Global round failed!")
+            
+            # stop round monitor
+            self.tracer.stop_monitor()
 
         self.__state = ReducerState.idle
 
@@ -287,45 +322,26 @@ class ReducerControl:
             except:
                 pass
 
-            if data:
+            if data is not None:
                 try:
-                    model_next = self.helper.load_model(combiner.get_model().getbuffer())
+                    model_str=combiner.get_model().getbuffer()
+                    model_next = self.helper.load_model_from_BytesIO(model_str)
                     self.helper.increment_average(model, model_next, i)
                 except:
-                    model = self.helper.load_model(data.getbuffer())
+                    model = self.helper.load_model_from_BytesIO(data.getbuffer())
                 i = i+1
         return model
 
     def monitor(self, config=None):
+        #status = self.network.check_health()
         pass
-
-    def add(self, combiner):
-        if self.__state != ReducerState.idle:
-            print("Reducer is not idle, cannot add additional combiner")
-            return
-        if self.find(combiner.name):
-            return
-        print("adding combiner {}".format(combiner.name), flush=True)
-        self.combiners.append(combiner)
-
-    def remove(self, combiner):
-        if self.__state != ReducerState.idle:
-            print("Reducer is not idle, cannot remove combiner")
-            return
-        self.combiners.remove(combiner)
-
-    def find(self, name):
-        for combiner in self.combiners:
-            if name == combiner.name:
-                return combiner
-        return None
 
     def client_allocation_policy_first_available(self):
         """ 
             Allocate client to the first available combiner in the combiner list. 
             Packs one combiner full before filling up next combiner. 
         """
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
                 return combiner
         return None
@@ -341,7 +357,7 @@ class ReducerControl:
         min_clients = None
         selected_combiner = None
 
-        for combiner in self.combiners:
+        for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
                 combiner_state = combiner.report()
                 nac = combiner_state['nr_active_clients']
@@ -359,6 +375,7 @@ class ReducerControl:
         combiner = self.client_allocation_policy()
         return combiner
 
-
     def state(self):
         return self.__state
+
+

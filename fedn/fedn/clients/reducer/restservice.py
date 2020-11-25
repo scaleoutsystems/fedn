@@ -6,6 +6,15 @@ from werkzeug.utils import secure_filename
 from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 
+import json
+import plotly
+import pandas as pd
+import numpy
+import math
+            
+import plotly.express as px
+import geoip2.database
+
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
 
@@ -21,8 +30,13 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-
         self.current_compute_context = self.control.get_compute_context()
+
+    def to_dict(self):
+        data = {
+            'name': self.name
+        }
+        return data
 
     def run(self):
         app = Flask(__name__)
@@ -46,22 +60,20 @@ class ReducerRestService:
             logs = None
             refresh = True
             if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
-                                       dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
-                                       dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh)
 
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
-                                   dashboardhost=os.environ["FEDN_DASHBOARD_HOST"],
-                                   dashboardport=os.environ["FEDN_DASHBOARD_PORT"])
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/add')
         def add():
+
+            """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
             # TODO check for get variables
             name = request.args.get('name', None)
-            address = request.args.get('address', None)
+            address = str(request.args.get('address', None))
             port = request.args.get('port', None)
             # token = request.args.get('token')
             # TODO do validation
@@ -76,11 +88,18 @@ class ReducerRestService:
 
             # TODO append and redirect to index.
             import copy
-            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key))
-            self.control.add(combiner)
+            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
+            self.control.network.add_combiner(combiner)
 
-            ret = {'status': 'added', 'certificate': str(cert_b64).split('\'')[1],
-                   'key': str(key_b64).split('\'')[1]}  # TODO remove ugly string hack
+             # TODO remove ugly string hack
+            ret = {
+                'status': 'added', 
+                'certificate': str(cert_b64).split('\'')[1],
+                'key': str(key_b64).split('\'')[1], 
+                'storage': self.control.statestore.get_storage_backend(),
+                'statestore': self.control.statestore.get_config(),
+            }     
+
             return jsonify(ret)
 
         @app.route('/seed', methods=['GET', 'POST'])
@@ -89,7 +108,14 @@ class ReducerRestService:
                 # upload seed file
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
-                    self.control.commit(uploaded_seed.filename, uploaded_seed)
+                    from io import BytesIO
+                    a = BytesIO()
+                    a.seek(0, 0)
+                    uploaded_seed.seek(0)
+                    a.write(uploaded_seed.read()) 
+                    model = self.control.helper.load_model_from_BytesIO(a.getbuffer())
+                    self.control.commit(uploaded_seed.filename, model)
+                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
@@ -119,9 +145,6 @@ class ReducerRestService:
                           'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task}
 
-                # from fedn.common.tracer.mongotracer import MongoTracer
-                # self.tracer = MongoTracer()
-                # self.tracer.ps_util_monitor(target=self.control.instruct(config))
                 self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
 
@@ -139,24 +162,37 @@ class ReducerRestService:
 
         @app.route('/assign')
         def assign():
+            """Handle client assignment requests. """
+
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
+
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
-            import uuid
-            id = str(uuid.uuid4())
 
             if combiner_preferred:
                 combiner = self.control.find(combiner_preferred)
             else:
                 combiner = self.control.find_available_combiner()
 
+            client = {
+                    'name': name,
+                    'combiner_preferred': combiner_preferred, 
+                    'ip': request.remote_addr,
+                    'status': 'available'
+                }
+            self.control.network.add_client(client)
+
             if combiner:
-                # certificate, _ = self.certificate_manager.get_or_create(combiner.name).get_keypair_raw()
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
-                response = {'status': 'assigned', 'host': combiner.address, 'port': combiner.port,
-                            'certificate': str(cert_b64).split('\'')[1]}
+                response = {
+                    'status': 'assigned', 
+                    'host': combiner.address,
+                    'port': combiner.port,
+                    'certificate': str(cert_b64).split('\'')[1],
+                    'model_type': self.control.helper_type
+                }
 
                 return jsonify(response)
             elif combiner is None:
@@ -177,6 +213,86 @@ class ReducerRestService:
             return result
 
 
+        @app.route('/network')
+        def map_view():
+            map = create_map()
+            try:
+                return render_template('index.html', show_map=True, map=map)
+            except Exception as e:
+                return str(e)
+
+        def create_map():
+
+            cities_dict = {
+                'city': [],
+                'lat': [],
+                'lon': [],
+                'country': [],
+                'name': [],
+                'role': [],
+                'size': []
+            }
+
+            from fedn import get_data
+            dbpath = get_data('geolite2/GeoLite2-City.mmdb')
+            
+            with geoip2.database.Reader(dbpath) as reader:
+                for combiner in self.control.statestore.list_combiners():
+                    try:
+                        response = reader.city(combiner['ip'])
+                        cities_dict['city'].append(response.city.name)
+
+                        r = 1.0 # Rougly 100km 
+                        w = r*math.sqrt(numpy.random.random())
+                        t = 2.0*math.pi*numpy.random.random()
+                        x = w * math.cos(t)
+                        y = w * math.sin(t)
+                        lat = str(float(response.location.latitude) + x)
+                        lon = str(float(response.location.longitude) + y)
+                        cities_dict['lat'].append(lat)
+                        cities_dict['lon'].append(lon)
+
+                        cities_dict['country'].append(response.country.iso_code)
+
+                        cities_dict['name'].append(combiner['name'])
+                        cities_dict['role'].append('Combiner')
+                        cities_dict['size'].append(10)
+
+
+                    except geoip2.errors.AddressNotFoundError as err:
+                        print(err)
+
+            with geoip2.database.Reader(dbpath) as reader:
+                for client in self.control.statestore.list_clients():
+                    try:
+                        response = reader.city(client['ip'])
+                        cities_dict['city'].append(response.city.name)
+                        cities_dict['lat'].append(response.location.latitude)
+                        cities_dict['lon'].append(response.location.longitude)
+                        cities_dict['country'].append(response.country.iso_code)
+
+                        cities_dict['name'].append(client['name'])
+                        cities_dict['role'].append('Client')
+                        # TODO: Optionally relate to data size
+                        cities_dict['size'].append(6)
+
+                    except geoip2.errors.AddressNotFoundError as err:
+                        print(err)
+
+            config = self.control.statestore.get_config()
+
+            cities_df = pd.DataFrame(cities_dict)
+
+            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", color="role", size="size", hover_name="city",
+                                 hover_data={"city": False, "lon": False, "lat": False,'size': False, 'name': True,'role': True}, width=1000, height=800)
+
+            #fig.update_traces(marker=dict(size=12, color="#EC7063"))
+            fig.update_geos(fitbounds="locations", showcountries=True)
+            fig.update_layout(title="FEDn network: {}".format(config['network_id']))
+
+            fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            return fig
+
         @app.route('/plot')
         def plot():
             box = 'box'
@@ -186,7 +302,7 @@ class ReducerRestService:
 
         def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
-            self.plot = Plot()
+            self.plot = Plot(self.control.statestore)
             if feature == 'table':
                 return self.plot.create_table_plot()
             elif feature == 'timeline':

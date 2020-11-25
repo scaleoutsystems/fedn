@@ -42,14 +42,14 @@ jobs:
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
        
-    - name: docker build controller
+    - name: docker build fedn-client
       env:      
         DOCKER_URL: scaleoutsystems
       working-directory: ${{env.working-directory}}
       run: |
         docker build -t $DOCKER_URL/${{ steps.wf-vars.outputs.IMAGE_NAME }}:${{ steps.wf-vars.outputs.IMAGE_TAG }} -f components/client/Dockerfile .
     
-    - name: docker push controller
+    - name: docker push fedn-client
       env:      
         DOCKER_URL: scaleoutsystems
       working-directory: ${{env.working-directory}}
