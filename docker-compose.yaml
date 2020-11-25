@@ -1,41 +1,50 @@
-version: '3.3'
+version: '3.7'
 
 services:
 
   minio:
     image: minio/minio:latest
     hostname: minio
-    env_file:
-      ./config/minio.env
+    environment:
+      GET_HOSTS_FROM: dns
+      MINIO_HOST: ${FEDN_MINIO_HOST}
+      MINIO_PORT: ${FEDN_MINIO_PORT}
+      MINIO_ACCESS_KEY: ${FEDN_MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${FEDN_MINIO_SECRET_KEY}
     command: server /data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://${FEDN_MINIO_HOST}:${FEDN_MINIO_PORT}/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
     ports:
-      - 9000:9000
+      - "${FEDN_MINIO_PORT}:${FEDN_MINIO_PORT}"
     volumes:
       - minio-data:/data
 
   mongo:
     image: mongo:latest
     restart: always
-    env_file:
-      ./config/mongodb.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${FEDN_MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${FEDN_MONGO_PASSWORD}
     ports:
-      - 6534:6534
-    command: mongod --port 6534
+      - "${FEDN_MONGO_PORT}:${FEDN_MONGO_PORT}"
+    command: mongod --port ${FEDN_MONGO_PORT}
 
   mongo-express:
     image: mongo-express:latest
     restart: always
     ports:
       - 8081:8081
-    env_file:
-      ./config/mongoexpress.env
+    environment:
+      ME_CONFIG_MONGODB_SERVER: ${FEDN_MONGO_HOST}
+      ME_CONFIG_MONGODB_PORT: ${FEDN_MONGO_PORT}
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${FEDN_MONGO_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${FEDN_MONGO_PASSWORD}
+      ME_CONFIG_BASICAUTH_USERNAME: ${FEDN_ME_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${FEDN_ME_PASSWORD}
 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
   minio-data:
-

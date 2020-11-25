@@ -6,9 +6,9 @@ import psutil
 from datetime import datetime
 
 class MongoTracer(Tracer):
-    def __init__(self,mongo_config,network_id):
+    def __init__(self):
         try:
-            self.mdb = connect_to_mongodb(mongo_config,network_id)
+            self.mdb = connect_to_mongodb()
             self.collection = self.mdb['status']
             self.performances = self.mdb['performances']
             self.psutil_usage = self.mdb['psutil_usage']

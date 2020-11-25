@@ -18,7 +18,7 @@ setup(
         "chardet",
         "Click==7.1.2",
         "PyYAML",
-        "requests==2.25.0",
+        "requests",
         "urllib3",
         "minio==6.0.0",
         "six",
@@ -39,8 +39,6 @@ setup(
         "psutil",
         "click",
         "jinja2==2.11.1",
-        "geoip2",
-        "deprecated"
 
     ],
     license="Copyright Scaleout Systems AB. See license for details",

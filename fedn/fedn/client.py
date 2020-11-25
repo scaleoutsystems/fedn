@@ -15,10 +15,8 @@ from datetime import datetime
 
 from fedn.clients.client.state import ClientState, ClientStateToString
 
-from fedn.utils.helpers import get_helper
 
 class Client:
-    """FEDn Client. """
 
     def __init__(self, config):
 
@@ -36,10 +34,11 @@ class Client:
         self.started_at = datetime.now()
         self.logs = []
         client_config = {}
-        print("Asking for assignment",flush=True)
+        print("Asking for assignment")
         import time
         while True:
             status, response = self.connector.assign()
+            print(status,response,flush=True)
             if status == Status.TryAgain:
                 time.sleep(5)
                 continue
@@ -48,9 +47,26 @@ class Client:
                 break
             time.sleep(5)
             print(".", end=' ', flush=True)
-
+            # print("try to reconnect to REDUCER", flush=True)
         # connect_config = None
         print("Got assigned!", flush=True)
+        tries = 180
+        # while True:
+        # connect_config = {'host': 'combiner', 'port': 12080}
+
+        # TODO REMOVE ONLY FOR TESTING (only used for partial restructuring)
+        # import os
+
+        repo_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+                       'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                       'storage_bucket': 'models',
+                       'storage_secure_mode': False,
+                       'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                       'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+
+        # repo_config, _ = self.controller.get_config()
+
+        self.bucket_name = repo_config['storage_bucket']
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         if client_config['certificate']:
@@ -83,7 +99,6 @@ class Client:
             except KeyError:
                 print("No startup code present. skipping")
         else:
-            # TODO: Deprecate
             dispatch_config = {'entry_points':
                                    {'predict': {'command': 'python3 predict.py'},
                                     'train': {'command': 'python3 train.py'},
@@ -93,12 +108,6 @@ class Client:
 
         self.lock = threading.Lock()
 
-        if 'model_type' in client_config.keys():
-            self.helper = get_helper(client_config['model_type'])
-    
-        if not self.helper:
-            print("Failed to retrive helper class settings! {}".format(client_config),flush=True)
-
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_validation_request_stream, daemon=True).start()
@@ -106,26 +115,30 @@ class Client:
         self.state = ClientState.idle
 
     def get_model(self, id):
-        """Fetch model from the Combiner. """
 
         from io import BytesIO
         data = BytesIO()
+        # print("REACHED DOWNLOAD Trying now with id {}".format(id), flush=True)
 
+        # print("TRYING DOWNLOAD 1.", flush=True)
         for part in self.models.Download(fedn.ModelRequest(id=id)):
 
+            # print("TRYING DOWNLOAD 2.", flush=True)
             if part.status == fedn.ModelStatus.IN_PROGRESS:
+                # print("WRITING PART FOR MODEL:{}".format(id), flush=True)
                 data.write(part.data)
 
             if part.status == fedn.ModelStatus.OK:
-                return data
+                # print("DONE WRITING MODEL RETURNING {}".format(id), flush=True)
 
+                return data
             if part.status == fedn.ModelStatus.FAILED:
+                # print("FAILED TO DOWNLOAD MODEL::: bailing!",flush=True)
                 return None
-    
+        # print("ERROR NO PARTS!",flush=True)
         return data
 
     def set_model(self, model, id):
-        """Upload a model to the Combiner. """
 
         from io import BytesIO
 
@@ -137,6 +150,7 @@ class Client:
         else:
             bt = model
 
+        # print("SETTING MODEL OF SIZE {}".format(sys.getsizeof(bt)), flush=True)
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
@@ -157,7 +171,7 @@ class Client:
         return result
 
     def __listen_to_model_update_request_stream(self):
-        """Subscribe to the model update request stream. """
+        """ Subscribe to the model update request stream. """
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
@@ -202,7 +216,7 @@ class Client:
                 time.sleep(timeout)
 
     def __listen_to_model_validation_request_stream(self):
-        """Subscribe to the model validation request stream. """
+        """ Subscribe to the model update request stream. """
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
@@ -244,66 +258,64 @@ class Client:
 
     def __process_training_request(self, model_id):
         self.send_status("\t Processing training request for model_id {}".format(model_id))
-
         self.state = ClientState.training
-
         try:
-
+            # print("IN TRAINING REQUEST 1", flush=True)
             mdl = self.get_model(str(model_id))
             import sys
+            # print("did i get a model? model_id: {} size:{}".format(model_id, sys.getsizeof(mdl)))
+            # print("IN TRAINING REQUEST 2", flush=True)
+            # model = self.repository.get_model(model_id)
+            fid, infile_name = tempfile.mkstemp(suffix='.h5')
+            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
 
-            inpath = self.helper.get_tmp_path()
-            with open(inpath,'wb') as fh:
+            with open(infile_name, "wb") as fh:
                 fh.write(mdl.getbuffer())
-
-            outpath = self.helper.get_tmp_path()
-            print(inpath,outpath,flush=True)
-
-            self.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+            # print("IN TRAINING REQUEST 3", flush=True)
+            self.dispatcher.run_cmd("train {} {}".format(infile_name, outfile_name))
+            # print("IN TRAINING REQUEST 4", flush=True)
+            # model_id = self.repository.set_model(outfile_name, is_file=True)
 
             import io
             out_model = None
-            with open(outpath, "rb") as fr:
+            with open(outfile_name, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
-
+            # print("IN TRAINING REQUEST 5", flush=True)
             import uuid
-            updated_model_id = uuid.uuid4()
-            self.set_model(out_model, str(updated_model_id))
-
-            os.unlink(inpath)
-            os.unlink(outpath)
+            model_id = uuid.uuid4()
+            self.set_model(out_model, str(model_id))
+            # print("IN TRAINING REQUEST 6", flush=True)
+            os.unlink(infile_name)
+            os.unlink(outfile_name)
 
         except Exception as e:
-            print("ERROR could not process training request due to error: {}".format(e),flush=True)
-            raise
-            updated_model_id = None
+            print("ERROR could not process training request due to error: {}".format(e))
+            model_id = None
 
         self.state = ClientState.idle
 
-        return updated_model_id
+        return model_id
 
     def __process_validation_request(self, model_id):
         self.send_status("Processing validation request for model_id {}".format(model_id))
         self.state = ClientState.validating
         try:
-            model = self.get_model(str(model_id))  
-            inpath = self.helper.get_tmp_path()
-
-            with open(inpath, "wb") as fh:
+            model = self.get_model(str(model_id))  # repository.get_model(model_id)
+            fid, infile_name = tempfile.mkstemp(suffix='.h5')
+            fod, outfile_name = tempfile.mkstemp(suffix='.h5')
+            with open(infile_name, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            _,outpath = tempfile.mkstemp()
-            self.dispatcher.run_cmd("validate {} {}".format(inpath, outpath))
+            self.dispatcher.run_cmd("validate {} {}".format(infile_name, outfile_name))
 
-            with open(outpath, "r") as fh:
+            with open(outfile_name, "r") as fh:
                 validation = json.loads(fh.read())
 
-            os.unlink(inpath)
-            os.unlink(outpath)
+            os.unlink(infile_name)
+            os.unlink(outfile_name)
 
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
-            raise 
             self.state = ClientState.idle
             return None
 
@@ -311,7 +323,6 @@ class Client:
         return validation
 
     def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
-        """Send status message. """
         print("SEND_STATUS REPORTS:{}".format(msg), flush=True)
         from google.protobuf.json_format import MessageToJson
         status = fedn.Status()
@@ -332,11 +343,11 @@ class Client:
         response = self.connection.SendStatus(status)
 
     def _send_heartbeat(self, update_frequency=2.0):
-        """Send a heartbeat to the Combiner. """
         while True:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER))
             try:
                 self.connection.SendHeartbeat(heartbeat)
+            # self.send_status("HEARTBEAT from {}".format(self.client),log_level=fedn.Status.INFO)
             except grpc.RpcError as e:
                 status_code = e.code()
                 print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name), flush=True)
@@ -355,6 +366,8 @@ class Client:
                 logs_fancy += "<p>" + log + "</p>\n"
 
             return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
+            # return {"name": self.name, "State": ClientStateToString(self.state), "Runtime": str(datetime.now() - self.started_at),
+            #        "Since": str(self.started_at)}
 
         import os, sys
         self._original_stdout = sys.stdout
