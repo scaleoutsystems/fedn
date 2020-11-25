@@ -2,7 +2,7 @@ network_id: fedn-test-network
 
 control:
   state: idle
-  context: nlp_imdb_senti.tar.gz
+  context: mnist.tar.gz
   helper: keras_sequential
 
 statestore:
