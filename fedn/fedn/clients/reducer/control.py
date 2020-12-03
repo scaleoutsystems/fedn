@@ -21,7 +21,6 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.setup
         self.statestore = statestore
-        
         if self.statestore.is_inited():
             self.network = Network(self, statestore)
 
@@ -40,12 +39,11 @@ class ReducerControl:
         else:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()
-        
+
         self.helper_type = self.statestore.get_framework()
         self.helper = get_helper(self.helper_type)
         if not self.helper:
             print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
-
 
         # TODO: Refactor and make all these configurable
         #from fedn.utils.kerassequential import KerasSequentialHelper
@@ -56,6 +54,9 @@ class ReducerControl:
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
 
+    def delet_bucket_objects(self):
+        return self.model_repository.delete_objects()
+
     def get_state(self):
         return self.__state
         
@@ -64,7 +65,7 @@ class ReducerControl:
             return True
         else:
             return False
-        
+
     def get_latest_model(self):
         return self.statestore.get_latest()
 
@@ -268,7 +269,6 @@ class ReducerControl:
         for combiner in combiners:
             response = combiner.set_model_id(model_id)
 
-
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
 
@@ -286,11 +286,17 @@ class ReducerControl:
         # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(statestore_config['mongo_config'],statestore_config['network_id'])
-        self.tracer.drop_performances()
-        self.tracer.drop_ps_util_monitor()
+        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+        # self.tracer.drop_round_time()
+        # self.tracer.drop_ps_util_monitor()
+        last_round = self.tracer.get_latest_round()
 
-        for round in range(int(config['rounds'])):
+        for round in range(1, int(config['rounds'] + 1)):
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
             from datetime import datetime
             start_time = datetime.now()
             # start round monitor
@@ -299,9 +305,8 @@ class ReducerControl:
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
-                print('-------------------------------')
                 round_time = end_time - start_time
-                self.tracer.set_latest_time(round, round_time.seconds)
+                self.tracer.set_latest_time(current_round, round_time.seconds)
             else:
                 print("REDUCER: Global round failed!")
             

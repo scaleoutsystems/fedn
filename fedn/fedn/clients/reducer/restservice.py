@@ -49,7 +49,6 @@ class ReducerRestService:
         app.config['SECRET_KEY'] = SECRET_KEY
         csrf.init_app(app)
 
-
         @app.route('/')
         def index():
             # logs_fancy = str()
@@ -125,6 +124,37 @@ class ReducerRestService:
             seed = True
             return redirect(url_for('seed', seed=seed))
 
+        @app.route('/delete', methods=['GET', 'POST'])
+        def delete():
+            if request.method == 'POST':
+                from fedn.common.tracer.mongotracer import MongoTracer
+                statestore_config = self.control.statestore.get_config()
+                self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+                try:
+                    self.tracer.drop_round_time()
+                    self.tracer.drop_ps_util_monitor()
+                    self.tracer.drop_model_trail()
+                    self.tracer.drop_latest_model()
+                    self.tracer.drop_status()
+                except:
+                    pass
+
+                # drop objects in minio
+                self.control.delet_bucket_objects()
+                return redirect(url_for('seed'))
+            seed = True
+            return redirect(url_for('seed', seed=seed))
+
+        @app.route('/drop_db', methods=['GET', 'POST'])
+        def drop_db():
+            if request.method == 'POST':
+                from fedn.common.storage.db.mongo import drop_mongodb
+                statestore_config = self.control.statestore.get_config()
+                self.mdb = drop_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
+                return redirect(url_for('seed'))
+            seed = True
+            return redirect(url_for('seed', seed=seed))
+
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
         def start():
@@ -137,7 +167,7 @@ class ReducerRestService:
 
                 task = (request.form.get('task', ''))
                 active_clients = request.form.get('active_clients', 2)
-                clients_required = request.form.get('clients_required', 2)
+                clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
 
                 latest_model_id = self.control.get_latest_model()
@@ -150,7 +180,7 @@ class ReducerRestService:
 
             else:
                 # Select rounds UI
-                rounds = range(1, 100)
+                rounds = range(1, 500)
                 latest_model_id = self.control.get_latest_model()
                 return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
 
@@ -302,17 +332,17 @@ class ReducerRestService:
 
         def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
-            self.plot = Plot(self.control.statestore)
+            plot = Plot(self.control.statestore)
             if feature == 'table':
-                return self.plot.create_table_plot()
+                return plot.create_table_plot()
             elif feature == 'timeline':
-                return self.plot.create_timeline_plot()
+                return plot.create_timeline_plot()
             elif feature == 'round_time':
-                return self.plot.create_round_plot()
+                return plot.create_round_plot()
             elif feature == 'box':
-                return self.plot.create_box_plot()
+                return plot.create_box_plot()
             elif feature == 'cpu':
-                return self.plot.create_cpu_plot()
+                return plot.create_cpu_plot()
             else:
                 return 'No plot!'
 

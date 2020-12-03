@@ -39,6 +39,7 @@ setup(
         "psutil",
         "click",
         "jinja2==2.11.1",
+        "nltk",
         "geoip2",
         "deprecated"
 

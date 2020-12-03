@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 from datetime import datetime,timedelta
 import plotly
 import os
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
 
 
 class Plot:
@@ -14,8 +14,8 @@ class Plot:
             statestore_config = statestore.get_config()
             self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
             self.alliance = self.mdb["status"]
-            self.round_time = self.mdb["performances"]
-            self.psutil_usage = self.mdb["psutil_usage"]
+            self.round_time = self.mdb["control.round_time"]
+            self.psutil_usage = self.mdb["control.psutil_monitoring"]
 
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -115,14 +115,12 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds())
+            x.append(ts.total_seconds()/60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
-            x=x,
-            y=y,
-            orientation='h',
-            base=base,
+            x=y,
+            y=x,
             marker=dict(color='royalblue'),
             name="Training",
         ))
@@ -142,14 +140,12 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds())
+            x.append(ts.total_seconds()/60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
-            x=x,
-            y=y,
-            orientation='h',
-            base=base,
+            x=y,
+            y=x,
             marker=dict(color='lightskyblue'),
             name="Validation",
         ))
@@ -160,7 +156,8 @@ class Plot:
         )
 
         fig = go.Figure(data=trace_data, layout=layout)
-        fig.update_xaxes(title_text='Timestamp')
+        fig.update_xaxes(title_text='Alliance/client')
+        fig.update_yaxes(title_text='Time (Min)')
         fig.update_layout(title_text='Alliance timeline')
         timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return timeline
