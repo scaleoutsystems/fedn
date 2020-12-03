@@ -14,8 +14,8 @@ class Plot:
             statestore_config = statestore.get_config()
             self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
             self.alliance = self.mdb["status"]
-            self.round_time = self.mdb["round_time"]
-            self.psutil_usage = self.mdb["psutil_monitoring"]
+            self.round_time = self.mdb["control.round_time"]
+            self.psutil_usage = self.mdb["control.psutil_monitoring"]
 
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)

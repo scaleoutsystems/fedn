@@ -9,12 +9,14 @@ class MongoTracer(Tracer):
     def __init__(self,mongo_config,network_id):
         try:
             self.mdb = connect_to_mongodb(mongo_config,network_id)
-            self.collection = self.mdb['status']
-            self.round_time = self.mdb['round_time']
-            self.psutil_monitoring = self.mdb['psutil_monitoring']
+            self.status = self.mdb['status']
+            self.round_time = self.mdb['control.round_time']
+            self.psutil_monitoring = self.mdb['control.psutil_monitoring']
+            self.model_trail = self.mdb['control.model_trail']
+            self.latest_model = self.mdb['control.latest_model']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
-            self.collection = None
+            self.status = None
             raise
 
     def report(self, msg):
@@ -23,8 +25,8 @@ class MongoTracer(Tracer):
 
         print("LOG: \n {} \n".format(data),flush=True)
 
-        if self.collection:
-            self.collection.insert_one(data)
+        if self.status:
+            self.status.insert_one(data)
 
     def drop_round_time(self):
         if self.round_time:
@@ -33,6 +35,18 @@ class MongoTracer(Tracer):
     def drop_ps_util_monitor(self):
         if self.psutil_monitoring:
             self.psutil_monitoring.drop()
+
+    def drop_model_trail(self):
+        if self.model_trail:
+            self.model_trail.drop()
+
+    def drop_latest_model(self):
+        if self.latest_model:
+            self.latest_model.drop()
+
+    def drop_status(self):
+        if self.status:
+            self.status.drop()
 
     def set_latest_time(self, round, round_time):
         self.round_time.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
