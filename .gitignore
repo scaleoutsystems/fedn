@@ -148,3 +148,12 @@ media/visualisers/
 ./test/data-center/client/certs/*
 ./test/data-center/combiner/certs/*
 ./test/data-center/reducer/*
+
+# nlp_imdb_senti test-case
+./test/nlp_imdb_senti/client/certs/*
+./test/nlp_imdb_senti/combiner/certs/*
+./test/nlp_imdb_senti/reducer/*
+
+# config files
+./config/*
+

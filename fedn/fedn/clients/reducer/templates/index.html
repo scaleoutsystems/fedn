@@ -148,6 +148,23 @@
 
                     </form>
                     {% else %}
+
+                    <!-- delete objects in minio-->
+                    <form id="delete_models_form" method="post" action="/delete" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="input-group mb-3">
+                          <button class="btn btn-primary" type="submit">Drop Models [{{model_info|length}}]</button>
+                        </div>
+                    </form>
+
+                    <!-- drop DB-->
+                    <form id="delete_db_form" method="post" action="/drop_db" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="input-group mb-3">
+                          <button class="btn btn-primary" type="submit">Drop DB</button>
+                        </div>
+                    </form>
+
                     <table class="table table-hover">
                         <thead>
                             <tr>

@@ -24,3 +24,12 @@ def connect_to_mongodb():
         return mdb
     except Exception:
         raise
+
+
+def drop_mongodb(config, network_id):
+    try:
+        mc = pymongo.MongoClient(**config)
+        mdb = mc[network_id]
+        mc.drop_database(mdb)
+    except Exception:
+        raise

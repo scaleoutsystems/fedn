@@ -39,6 +39,10 @@ setup(
         "psutil",
         "click",
         "jinja2==2.11.1",
+        "nltk",
+        "geoip2",
+        "deprecated"
+
 
     ],
     license="Copyright Scaleout Systems AB. See license for details",

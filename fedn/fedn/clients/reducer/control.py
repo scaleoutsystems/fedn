@@ -12,27 +12,50 @@ class ReducerControl:
     def __init__(self, statestore):
         self.__state = ReducerState.setup
         self.statestore = statestore
-        self.combiners = []
+        if self.statestore.is_inited():
+            self.network = Network(self, statestore)
 
-        s3_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-                     'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-                     'storage_bucket': 'models',
-                     'storage_secure_mode': False,
-                     'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-                     'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+        try:
+            config = self.statestore.get_storage_backend()
+        except:
+            print("REDUCER CONTROL: Failed to retrive storage configuration, exiting.",flush=True)
+            raise MisconfiguredStorageBackend()
+        if not config:
+            print("REDUCER CONTROL: No storage configuration available, exiting.",flush=True)
+            raise MisconfiguredStorageBackend() 
 
-        from fedn.common.storage.s3.s3repo import S3ModelRepository
-        self.model_repository = S3ModelRepository(s3_config)
-        self.bucket_name = s3_config["storage_bucket"]
-        
+        if config['storage_type'] == 'S3': 
+            from fedn.common.storage.s3.s3repo import S3ModelRepository
+            self.model_repository = S3ModelRepository(config['storage_config'])
+        else:
+            print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
+            raise UnsupportedStorageBackend()
+
+        self.helper_type = self.statestore.get_framework()
+        self.helper = get_helper(self.helper_type)
+        if not self.helper:
+            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
+
         # TODO: Refactor and make all these configurable
-        from fedn.utils.kerassequential import KerasSequentialHelper
+        # from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
-        self.helper = KerasSequentialHelper()
+        # self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed 
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
+
+    def delet_bucket_objects(self):
+        return self.model_repository.delete_objects()
+
+    def get_state(self):
+        return self.__state
+        
+    def idle(self):
+        if self.__state == ReducerState.idle:
+            return True
+        else:
+            return False
 
     def get_latest_model(self):
         return self.statestore.get_latest()
@@ -234,7 +257,6 @@ class ReducerControl:
         for combiner in combiners:
             response = combiner.set_model_id(model_id)
 
-
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
 
@@ -251,11 +273,19 @@ class ReducerControl:
         self.__state = ReducerState.monitoring
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer()
-        self.tracer.drop_performances()
-        self.tracer.drop_ps_util_monitor()
+        statestore_config = self.statestore.get_config()
+        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+        # self.tracer.drop_round_time()
+        # self.tracer.drop_ps_util_monitor()
+        last_round = self.tracer.get_latest_round()
 
-        for round in range(int(config['rounds'])):
+        for round in range(1, int(config['rounds'] + 1)):
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
+
             from datetime import datetime
             start_time = datetime.now()
             # start round monitor
@@ -264,11 +294,9 @@ class ReducerControl:
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
-                print('-------------------------------')
                 round_time = end_time - start_time
+
                 self.tracer.set_latest_time(round, round_time.seconds)
-                # stop round monitor
-                self.tracer.stop_monitor()
 
             else:
                 print("REDUCER: Global round failed!")
