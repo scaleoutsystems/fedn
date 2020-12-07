@@ -1,28 +1,30 @@
 import collections
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
+
 
 class HelperBase(ABC):
     """ Abstract class defining helpers. """
+
     def __init__(self):
         """  """
 
     @abstractmethod
-    def increment_average(self,model,model_next,n):
+    def increment_average(self, model, model_next, n):
         """ Compute one increment of incremental averaging. 
             n: the iteration index 1...N  in the sequence. 
         """
         pass
-    
+
     @abstractmethod
     def get_tmp_path(self):
         """ Return a temporary output path compatible with save_model, load_model. """
         pass
 
     @abstractmethod
-    def save_model(self,model,path):
-        """ 
-            Serialize the model to file on disk on path. 
-            The serialized model must be a single binary object. 
+    def save_model(self, model, path):
+        """
+            Serialize the model to file on disk on path.
+            The serialized model must be a single binary object.
         """
         pass
 
@@ -32,14 +34,15 @@ class HelperBase(ABC):
         pass
 
     @abstractmethod
-    def serialize_model_to_BytesIO(self,model):
+    def serialize_model_to_BytesIO(self, model):
         """ Serialize a model to a BytesIO buffered object. """
         pass
 
     @abstractmethod
-    def load_model_from_BytesIO(self,model_bytesio):
+    def load_model_from_BytesIO(self, model_bytesio):
         """ Load a model from a BytesIO buffered object. """
         pass
+
 
 def get_helper(helper_type):
     if helper_type == 'numpymodel':
@@ -48,5 +51,11 @@ def get_helper(helper_type):
     elif helper_type == 'keras_sequential':
         from fedn.utils.kerassequential import KerasSequentialHelper
         return KerasSequentialHelper()
+    elif helper_type == 'keras_weights':
+        from fedn.utils.kerasweights import KerasWeightsHelper
+        return KerasWeightsHelper()
+    elif helper_type == 'kerasweights_modeltar':
+        from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
+        return KerasWeightsHelper()
     else:
         return None

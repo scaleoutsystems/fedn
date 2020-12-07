@@ -40,6 +40,8 @@ def train(model,data,settings):
 
     model.fit(x_train, y_train, batch_size=settings['batch_size'], epochs=settings['epochs'], verbose=1)
 
+
+
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 
@@ -51,8 +53,11 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.kerassequential import KerasSequentialHelper
-    helper = KerasSequentialHelper()
+    from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
+    helper = KerasWeightsHelper()
+    # from fedn.utils.kerassequential import KerasSequentialHelper
+    # helper = KerasSequentialHelper()
     model = helper.load_model(sys.argv[1])
-    model = train(model,'../data/train.csv',settings)
+    model['model'] = train(model['model'],'../data/train.csv',settings)
     helper.save_model(model,sys.argv[2])
+    print('Mattias updated training model----------- -- -- ---- ---')
