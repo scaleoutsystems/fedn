@@ -76,11 +76,11 @@ def run_cmd(ctx):
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert,combiner, init):
+               verify_cert,preferred_combiner, init):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'combiner':combiner, 'init':init}
+              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 'init':init}
 
     if config['init']:
         with open(config['init'], 'r') as file:
