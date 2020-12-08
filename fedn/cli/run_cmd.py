@@ -72,14 +72,15 @@ def run_cmd(ctx):
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-v', '--preshared-cert', required=False, default=False)
 @click.option('-v', '--verify-cert', required=False, default=False)
+@click.option('-c', '--preferred-combiner', required=False, default=False)
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert,init):
+               verify_cert,combiner, init):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'init':init}
+              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'combiner':combiner, 'init':init}
 
     if config['init']:
         with open(config['init'], 'r') as file:
@@ -99,7 +100,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     client = Client(config)
     client.run()
 
-   
+
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
@@ -126,24 +127,24 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         exit(-1)
 
     statestore_config = fedn_config['statestore']
-    if statestore_config['type'] == 'MongoDB': 
+    if statestore_config['type'] == 'MongoDB':
         from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
         statestore = MongoReducerStateStore(network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ",flush=True)
         exit(-1)
-    
+
     try:
         statestore.set_reducer(config)
     except:
         print("Failed to set reducer config in statestore, exiting.",flush=True)
         exit(-1)
-    
+
     try:
         statestore.set_storage_backend(fedn_config['storage'])
     except KeyError:
         print("storage configuration missing in statestore_config.",flush=True)
-        exit(-1)        
+        exit(-1)
     except:
         print("Failed to set storage config in statestore, exiting.",flush=True)
         exit(-1)
