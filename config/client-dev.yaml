@@ -3,12 +3,12 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/client:latest"
+    image: "scaleoutsystems/fedn-client:develop"
     build:
-      context: .
-      dockerfile: components/client/Dockerfile
+      context: ${PWD}
+      dockerfile: ${PWD} components/client/Dockerfile
     working_dir: /app/
     command: /bin/bash -c "sleep 10 && fedn run client -in ./config/settings-client.yaml"
     volumes:
-      - ./config:/app/config
-      - ./test/${EXAMPLE}/data:/app/data
+      - ${PWD}/config:/app/config
+      - ${PWD}/test/${EXAMPLE}/data:/app/data
