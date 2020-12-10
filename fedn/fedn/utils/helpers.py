@@ -43,7 +43,6 @@ class HelperBase(ABC):
         """ Load a model from a BytesIO buffered object. """
         pass
 
-
 def get_helper(helper_type):
     if helper_type == 'numpymodel':
         from fedn.utils.numpymodel import NumpyHelper
