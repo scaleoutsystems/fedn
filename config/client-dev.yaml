@@ -6,7 +6,7 @@ services:
     image: "scaleoutsystems/fedn-client:develop"
     build:
       context: ${PWD}
-      dockerfile: ${PWD} components/client/Dockerfile
+      dockerfile: ${PWD}/components/client/Dockerfile
     working_dir: /app/
     command: /bin/bash -c "sleep 10 && fedn run client -in ./config/settings-client.yaml"
     volumes:
