@@ -53,11 +53,13 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
+    from fedn.utils.kerasweights import KerasWeightsHelper
+
     helper = KerasWeightsHelper()
-    # from fedn.utils.kerassequential import KerasSequentialHelper
-    # helper = KerasSequentialHelper()
-    model = helper.load_model(sys.argv[1])
-    model['model'] = train(model['model'],'../data/train.csv',settings)
-    helper.save_model(model,sys.argv[2])
-    print('Mattias updated training model----------- -- -- ---- ---')
+    weights = helper.load_model(sys.argv[1])
+    from init_model import create_seed_model
+    model = create_seed_model()
+    model.set_weights(weights)
+    model = train(model,'../data/train.csv',settings)
+    helper.save_model(model.get_weights(),sys.argv[2])
+

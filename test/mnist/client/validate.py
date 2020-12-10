@@ -91,21 +91,22 @@ def validate(model,data,settings):
 
 if __name__ == '__main__':
 
-    print("Mattias validation starts with updates")
     with open('settings.yaml', 'r') as fh:
         try:
             settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
+    from fedn.utils.kerasweights import KerasWeightsHelper
     helper = KerasWeightsHelper()
-    # from fedn.utils.kerassequential import KerasSequentialHelper
-    #
-    # helper = KerasSequentialHelper()
-    model = helper.load_model(sys.argv[1])
-    report = validate(model['model'],'../data/train.csv',settings)
+    weights = helper.load_model(sys.argv[1])
+
+    from init_model import create_seed_model
+
+    model = create_seed_model()
+    model.set_weights(weights)
+    report = validate(model,'../data/train.csv',settings)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))
-    print("Mattias validation finnish")
+

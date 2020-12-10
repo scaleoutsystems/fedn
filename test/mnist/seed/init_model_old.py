@@ -3,10 +3,6 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
 import os
-import sys
-sys.path.append('/Users/mattiasakesson/Documents/projects/fedn/fedn')
-from fedn.utils.kerasweights import KerasWeightsHelper
-
 
 
 import tempfile
@@ -42,10 +38,8 @@ if __name__ == '__main__':
 	model = create_seed_model()
 	outfile_name = "879fa112-c861-4cb1-a25d-775153e5b548"
 #	fod, outfile_name = tempfile.mkstemp(suffix='.h5') 
-	#model.save(outfile_name)
-	weights = model.get_weights()
-	helper = KerasWeightsHelper()
-	helper.save_model(weights, 'weights.npz')
+	model.save(outfile_name)
+
 	#project = Project()
 	#from scaleout.repository.helpers import get_repository
 
