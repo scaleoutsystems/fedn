@@ -1,4 +1,4 @@
-FROM scaleoutsystems/base:latest
+FROM scaleoutsystems/fedn-base:latest
 
 RUN mkdir -p /app/client
 RUN mkdir /app/certs
