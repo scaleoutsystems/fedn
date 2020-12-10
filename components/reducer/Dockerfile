@@ -7,4 +7,3 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -f /app/requirements.txt
 RUN pip install -e /app/fedn
 WORKDIR /app
-
