@@ -31,9 +31,9 @@ class ReducerControl:
             raise MisconfiguredStorageBackend()
         if not config:
             print("REDUCER CONTROL: No storage configuration available, exiting.",flush=True)
-            raise MisconfiguredStorageBackend() 
+            raise MisconfiguredStorageBackend()
 
-        if config['storage_type'] == 'S3': 
+        if config['storage_type'] == 'S3':
             from fedn.common.storage.s3.s3repo import S3ModelRepository
             self.model_repository = S3ModelRepository(config['storage_config'])
         else:
@@ -49,7 +49,7 @@ class ReducerControl:
         #from fedn.utils.kerassequential import KerasSequentialHelper
         # TODO: Refactor and make all these configurable
         #self.helper = KerasSequentialHelper()
-        self.client_allocation_policy = self.client_allocation_policy_least_packed 
+        self.client_allocation_policy = self.client_allocation_policy_least_packed
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -59,7 +59,7 @@ class ReducerControl:
 
     def get_state(self):
         return self.__state
-        
+
     def idle(self):
         if self.__state == ReducerState.idle:
             return True
@@ -84,7 +84,7 @@ class ReducerControl:
             return None
 
     def set_compute_context(self, filename):
-        """ Persist the configuration for the compute package. """ 
+        """ Persist the configuration for the compute package. """
         self.statestore.set_compute_context(filename)
 
 
@@ -133,11 +133,11 @@ class ReducerControl:
             return False
 
     def check_round_validity_policy(self,combiners):
-        """ 
-            At the end of the round, before committing a model to the model ledger, 
-            we check if a round validity policy has been met. This can involve 
+        """
+            At the end of the round, before committing a model to the model ledger,
+            we check if a round validity policy has been met. This can involve
             e.g. asserting that a certain number of combiners have reported in an
-            updated model, or that criteria on model performance have been met. 
+            updated model, or that criteria on model performance have been met.
         """
         if combiners == []:
             return False
@@ -145,8 +145,8 @@ class ReducerControl:
             return True
 
     def _handle_unavailable_combiner(self,combiner):
-        """ This callback is triggered if a combiner is found to be unresponsive. """ 
-        # TODO: Implement strategy to handle the case. 
+        """ This callback is triggered if a combiner is found to be unresponsive. """
+        # TODO: Implement strategy to handle the case.
         print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name),flush=True)
 
     def round(self, config):
@@ -200,7 +200,7 @@ class ReducerControl:
                 raise
 
         # Wait until participating combiners have a model that is out of sync with the current global model.
-        # TODO: Implement strategies to handle timeouts. 
+        # TODO: Implement strategies to handle timeouts.
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
         for combiner,plan in combiners:
@@ -243,7 +243,7 @@ class ReducerControl:
             return None
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
-        # TODO: Move to config - are we validating in a round, and if so, in what way. 
+        # TODO: Move to config - are we validating in a round, and if so, in what way.
         validate = True
         if validate:
             combiner_config = copy.deepcopy(config)
@@ -309,7 +309,7 @@ class ReducerControl:
                 self.tracer.set_latest_time(current_round, round_time.seconds)
             else:
                 print("REDUCER: Global round failed!")
-            
+
             # stop round monitor
             self.tracer.stop_monitor()
 
@@ -342,9 +342,9 @@ class ReducerControl:
         pass
 
     def client_allocation_policy_first_available(self):
-        """ 
-            Allocate client to the first available combiner in the combiner list. 
-            Packs one combiner full before filling up next combiner. 
+        """
+            Allocate client to the first available combiner in the combiner list.
+            Packs one combiner full before filling up next combiner.
         """
         for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
@@ -352,11 +352,11 @@ class ReducerControl:
         return None
 
     def client_allocation_policy_least_packed(self):
-        """ 
-            Allocate client to the available combiner with the smallest number of clients. 
-            Spreads clients evenly over all active combiners.  
+        """
+            Allocate client to the available combiner with the smallest number of clients.
+            Spreads clients evenly over all active combiners.
 
-            TODO: Not thread safe - not garanteed to result in a perfectly even partition. 
+            TODO: Not thread safe - not garanteed to result in a perfectly even partition.
 
         """
         min_clients = None
@@ -375,6 +375,11 @@ class ReducerControl:
 
         return selected_combiner
 
+    def find(self, name):
+        for combiner in self.network.get_combiners():
+            if name == combiner.name:
+                return combiner
+        return None
 
     def find_available_combiner(self):
         combiner = self.client_allocation_policy()
@@ -382,5 +387,3 @@ class ReducerControl:
 
     def state(self):
         return self.__state
-
-
