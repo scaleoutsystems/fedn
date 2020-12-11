@@ -72,6 +72,7 @@ class MongoReducerStateStore(ReducerStateStore):
                             # TODO fix with unboxing of value before storing and where consuming.
                             self.compute_context.update({'key': 'package'},
                                                         {'$set': {'filename': {'filename': control['context']}}}, True)
+                        if "helper" in control:
                             self.compute_context.update({'key': 'framework'},
                                                         {'$set': {'helper': control['helper']}}, True)                                                        
 
