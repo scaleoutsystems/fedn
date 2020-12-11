@@ -30,7 +30,7 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-        self.current_compute_context = self.control.get_compute_context()
+        self.current_compute_context = None #self.control.get_compute_context()
 
     def to_dict(self):
         data = {
