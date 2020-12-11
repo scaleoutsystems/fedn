@@ -113,6 +113,7 @@
         </div>
 
         <div class="content">
+        {% block content %}
             {% if refresh %}
             <div class="jumbotron">
                 <div class="container">
@@ -250,6 +251,7 @@
             </div>
         </div>
         {% endif %}
+        {% endblock %}
 
         {% if show_plot %}
         <div class="jumbotron">
