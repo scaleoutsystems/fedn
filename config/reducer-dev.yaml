@@ -15,7 +15,5 @@ services:
     command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
     volumes:
       - ${PWD}/config:/app/client/config
-      - ${PWD}/test/${EXAMPLE}/reducer:/app/client
-      - ${PWD}/test/${EXAMPLE}/package/:/app/client/package
     ports:
         - 8090:8090
