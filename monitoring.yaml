@@ -28,7 +28,7 @@ services:
     #ports:
     #  - 9090:9090
     volumes:
-      - ./fedn/config/prometheus.yml:/etc/prometheus/prometheus.yml         
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml         
 
   grafana:
     environment:
