@@ -129,8 +129,8 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_compute_context(self):
         ret = self.compute_context.find({'key': 'package'})
         try:
-            retcheck = ret[0]['filename']
-            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            retcheck = ret[0]
+            if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):

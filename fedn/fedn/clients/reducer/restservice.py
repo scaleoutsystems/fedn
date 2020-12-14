@@ -168,8 +168,13 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
+            try:
+                self.current_compute_context = self.control.get_compute_context()
+            except:
+                self.current_compute_context = None
+
             if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False, message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False, message='No compute context is set. Please set one here <a href="/context">/context</a>')
 
             if self.control.state() == ReducerState.setup:
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh, message='Warning. Reducer is not base-configured. please do so with config file.')
@@ -196,7 +201,7 @@ class ReducerRestService:
                 # Select rounds UI
                 rounds = range(1, 500)
                 latest_model_id = self.control.get_latest_model()
-                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id)
+                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id, compute_package=self.current_compute_context)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -395,9 +400,10 @@ class ReducerRestService:
 
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
-                    self.current_compute_context = filename  # uploading new files will always set this to latest
+                    
+                    #self.current_compute_context = filename  # uploading new files will always set this to latest
                     self.control.set_compute_context(filename)
-                    return redirect(url_for('index'))
+                    return redirect(url_for('start'))
                     #return "success!"
 
             from flask import send_from_directory
