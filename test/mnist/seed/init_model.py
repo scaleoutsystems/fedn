@@ -1,12 +1,7 @@
-import keras
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Dense, Dropout, Flatten
-from keras.models import Sequential
-import os
 import sys
-sys.path.append('/Users/mattiasakesson/Documents/projects/fedn/fedn')
-from fedn.utils.kerasweights import KerasWeightsHelper
-from ..client.keras_model_structure import create_seed_model
+sys.path.insert(0,'../../..')
+from fedn.fedn.utils.kerasweights import KerasWeightsHelper
+from test.mnist.client.keras_model_structure import create_seed_model
 
 
 
