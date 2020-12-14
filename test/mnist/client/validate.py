@@ -101,7 +101,7 @@ if __name__ == '__main__':
     helper = KerasWeightsHelper()
     weights = helper.load_model(sys.argv[1])
 
-    from init_model import create_seed_model
+    from keras_model_structure import create_seed_model
 
     model = create_seed_model()
     model.set_weights(weights)
