@@ -74,7 +74,17 @@ class Client:
             from fedn.common.control.package import PackageRuntime
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
-            retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+            retval = None
+            tries = 10
+
+            while tries > 0:
+                retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+                if retval:
+                    break
+                time.sleep(60)
+                print("No compute package availabe... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                tries -= 1
+
             if retval:
                 pr.unpack()
 
