@@ -1,0 +1,280 @@
+version: '3.3'
+services:
+  client_vm1_1:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c0:/app/data
+  client_vm1_2:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c1:/app/data
+  client_vm1_3:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c2:/app/data
+  client_vm1_4:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c3:/app/data
+
+  client_vm1_5:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c4:/app/data
+
+  client_vm1_6:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/client:latest"
+    build:
+      context: .
+      dockerfile: components/client/Dockerfile
+    working_dir: /app/
+    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+    volumes:
+      - ./config:/app/config
+      - ./test/${EXAMPLE}/data/casa1/c5:/app/data
+
+#  client_vm1_7:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa1/c6:/app/data
+#
+#  client_vm1_8:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa1/c7:/app/data
+#  client_vm1_9:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa1/c8:/app/data
+#
+#  client_vm1_10:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa1/c9:/app/data
+#
+#  client_vm1_11:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa1/c10:/app/data
+
+
+#  client_vm1_12:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c0:/app/data
+#  client_vm1_13:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c1:/app/data
+#  client_vm1_14:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c2:/app/data
+#  client_vm1_15:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c3:/app/data
+#
+#  client_vm1_16:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c4:/app/data
+#
+#  client_vm1_17:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c5:/app/data
+#
+#  client_vm1_18:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c6:/app/data
+#
+#  client_vm1_19:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c7:/app/data
+#  client_vm1_20:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c8:/app/data
+#
+#  client_vm1_21:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c9:/app/data
+#
+#  client_vm1_22:
+#    environment:
+#      - GET_HOSTS_FROM=dns
+#    image: "scaleoutsystems/client:latest"
+#    build:
+#      context: .
+#      dockerfile: components/client/Dockerfile
+#    working_dir: /app/
+#    command: /bin/bash -c "fedn run client -in ./config/settings-client.yaml"
+#    volumes:
+#      - ./config:/app/config
+#      - ./test/${EXAMPLE}/data/casa2/c10:/app/data

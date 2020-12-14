@@ -27,6 +27,7 @@ class Client:
                                          config['discover_port'],
                                          config['token'],
                                          config['name'],
+                                         config['preferred_combiner'],
                                          config['client_id'],
                                          secure=config['secure'],
                                          preshared_cert=['preshared_cert'],

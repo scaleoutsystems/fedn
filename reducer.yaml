@@ -19,3 +19,8 @@ services:
       - ./test/${EXAMPLE}/package/:/app/client/package
     ports:
         - 8090:8090
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
