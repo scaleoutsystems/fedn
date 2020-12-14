@@ -72,6 +72,7 @@ class MongoReducerStateStore(ReducerStateStore):
                             # TODO fix with unboxing of value before storing and where consuming.
                             self.compute_context.update({'key': 'package'},
                                                         {'$set': {'filename': {'filename': control['context']}}}, True)
+                        if "helper" in control:
                             self.compute_context.update({'key': 'framework'},
                                                         {'$set': {'helper': control['helper']}}, True)                                                        
 
@@ -128,8 +129,8 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_compute_context(self):
         ret = self.compute_context.find({'key': 'package'})
         try:
-            retcheck = ret[0]['filename']
-            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            retcheck = ret[0]
+            if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):

@@ -27,6 +27,7 @@ class Client:
                                          config['discover_port'],
                                          config['token'],
                                          config['name'],
+                                         config['preferred_combiner'],
                                          config['client_id'],
                                          secure=config['secure'],
                                          preshared_cert=['preshared_cert'],
@@ -73,7 +74,17 @@ class Client:
             from fedn.common.control.package import PackageRuntime
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
-            retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+            retval = None
+            tries = 10
+
+            while tries > 0:
+                retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+                if retval:
+                    break
+                time.sleep(60)
+                print("No compute package availabe... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                tries -= 1
+
             if retval:
                 pr.unpack()
 
@@ -95,7 +106,7 @@ class Client:
 
         if 'model_type' in client_config.keys():
             self.helper = get_helper(client_config['model_type'])
-    
+
         if not self.helper:
             print("Failed to retrive helper class settings! {}".format(client_config),flush=True)
 
@@ -121,7 +132,7 @@ class Client:
 
             if part.status == fedn.ModelStatus.FAILED:
                 return None
-    
+
         return data
 
     def set_model(self, model, id):
@@ -286,7 +297,7 @@ class Client:
         self.send_status("Processing validation request for model_id {}".format(model_id))
         self.state = ClientState.validating
         try:
-            model = self.get_model(str(model_id))  
+            model = self.get_model(str(model_id))
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
@@ -303,7 +314,7 @@ class Client:
 
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
-            raise 
+            raise
             self.state = ClientState.idle
             return None
 

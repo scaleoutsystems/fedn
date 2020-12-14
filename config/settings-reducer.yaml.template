@@ -2,7 +2,6 @@ network_id: fedn-test-network
 
 control:
   state: idle
-  context: mnist.tar.gz
   helper: keras_sequential
 
 statestore:

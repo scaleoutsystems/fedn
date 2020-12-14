@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fedn',
-    version='0.0.1',
+    version='0.1.5',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -16,7 +16,6 @@ setup(
         "attrdict",
         "certifi",
         "chardet",
-        "Click==7.1.2",
         "PyYAML",
         "requests==2.25.0",
         "urllib3",

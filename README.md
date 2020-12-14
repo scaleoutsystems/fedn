@@ -57,7 +57,7 @@ We provide templates for a minimal standalone, pseudo-distributed Docker deploym
 1. To deploy the supporting services (Minio and MongoDB):
 
 ````bash 
-$ docker-compose up 
+$ docker-compose -f config/docker-compose.yaml up 
 ````
 Make sure you can access the following services before proceeding to next steps: 
  - Minio: localhost:9000
@@ -68,7 +68,7 @@ Make sure you can access the following services before proceeding to next steps:
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
 ````bash 
-$ EXAMPLE=mnist docker-compose -f reducer.yaml up 
+$ docker-compose -f config/reducer-dev.yaml up 
 ````
 
 > You set the EXAMPLE variable to the example you are working on imported with base path from test/your_example. 
@@ -77,19 +77,23 @@ $ EXAMPLE=mnist docker-compose -f reducer.yaml up
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
-$ docker-compose -f combiner.yaml up 
+$ docker-compose -f config/combiner-dev.yaml up 
 ````
 
 3. Attach two Clients:
-Copy the settings config file for the reducer, 'config/settings-client.yaml.template' to 'config/settings-client.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
+Go to the directory "test/mnist". To start two clients and attach them to the combiner:
 
 ````bash 
-$ EXAMPLE=mnist docker-compose -f client.yaml up --scale client=2
+docker-compose -f docker-compose.dev.yaml up --scale client=2
 ````
 
 Make sure that you can access the Reducer UI at https://localhost:8090, and that the combiner and clients are up and running, before proceeding to the next step.
 
 ### Train a federated model
+
+#### Upload the compute package
+
+Navigate to https://localhost:8090/context and upload the compute package in 'test/mnist/package/mnist.tar.gz'. 
 
 #### Seed the system with a base model
 
@@ -126,7 +130,7 @@ First deploy Minio and Mongo services. Edit the config files 'config/minio.env',
 Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  s
 
 ```bash
-EXAMPLE=mnist sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 
+sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 
 ```
 
 ### 3. Deploy combiners
@@ -141,10 +145,12 @@ Repeate the same step for the second combiner node. Make sure to provide unique 
 > Note that is is not currently possible to use the node IP as 'host'. This is due to gRPC not being able to handle certificates based on IP. 
 
 ### 4. Attach clients to the FEDn network
-Once the FEDn network is deployed, you can attach clients to it in the same way as for the pseudo-distributed deployment. You need to provide clients with DNS information for all combiner nodes in the network, via 'config/extra-hosts-clients.yaml'. For example, to start 5 unique MNIST clients on a host: 
+Once the FEDn network is deployed, you can attach clients to it in the same way as for the pseudo-distributed deployment. You need to provide clients with DNS information for all combiner nodes in the network. For example, to start 5 unique MNIST clients on a host: 
+
+Copy  'config/extra-hosts-clients.template.yaml' to 'test/mnist/extra-hosts.yaml' and edit it to provide name/IP for the combiners in the network. Then, from 'test/mnist':
 
 ```bash
-EXAMPLE=mnist sudo docker-compose -f client.yaml -f config/extra-hosts-client.yaml up --scale client=5 
+sudo docker-compose -f docker-compose.yaml -f config/extra-hosts.yaml up --scale client=5 
 ```
  
 ## Support
