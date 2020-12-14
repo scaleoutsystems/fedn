@@ -43,18 +43,27 @@ class KerasWeightsHelper(HelperBase):
         fod, path = tempfile.mkstemp(prefix='kerasmodel')
 
     def save_model(self, weights, path=None):
-        import tarfile
-        #model = outer_model['model']
 
         if not path:
             path = self.get_tmp_path()
-        np.savez_compressed(path, weights=weights)
+
+        weights_dict = {}
+        i = 0
+        for w in weights:
+            weights_dict[str(i)] = w
+            i += 1
+        np.savez_compressed(path, **weights_dict)
 
         return path
 
     def load_model(self, path="weights.npz"):
 
-        weights = np.load(path, allow_pickle=True)['weights'].tolist()
+        a = np.load(path)
+        names = a.files
+        weights = []
+        for name in names:
+            weights += [a[name]]
+
         return weights
 
     def load_model_from_BytesIO(self, model_bytesio):
