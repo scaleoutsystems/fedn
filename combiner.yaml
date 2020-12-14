@@ -17,3 +17,9 @@ services:
       - ./tmp/c1-models:/tmp/models
     ports:
       - 12080:12080
+
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
