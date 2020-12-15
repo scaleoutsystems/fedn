@@ -8,7 +8,7 @@ import pickle
 import yaml
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-from read_data import read_data
+from data.read_data import read_data
 import os   
 
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     helper = KerasWeightsHelper()
     weights = helper.load_model(sys.argv[1])
-    from keras_model_structure import create_seed_model
+    from models.mnist_model import create_seed_model
     model = create_seed_model()
     model.set_weights(weights)
     model = train(model,'../data/train.csv',settings)

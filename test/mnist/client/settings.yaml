@@ -7,6 +7,3 @@ bias: 0.7
 # Parameters for local training
 batch_size: 32
 epochs: 1
-
-
-

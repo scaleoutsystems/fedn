@@ -12,7 +12,6 @@ class KerasWeightsHelper(HelperBase):
 
     def average_weights(self, weights):
         """ Average weights of Keras Sequential models. """
-        #weights = [w for w in weights]
 
         avg_w = []
         for l in range(len(weights[0])):
