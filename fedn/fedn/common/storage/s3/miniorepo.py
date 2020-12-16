@@ -30,7 +30,11 @@ class MINIORepository(Repository):
         try:
             self.bucket = config['storage_bucket']
         except Exception:
-            self.bucket = 'models'
+            self.bucket = 'fedn-models'
+        try:
+            self.context_bucket = config['context_bucket']
+        except Exception:
+            self.bucket = 'fedn-context'
         try:
             self.secure_mode = bool(config['storage_secure_mode'])
         except Exception:
@@ -52,6 +56,9 @@ class MINIORepository(Repository):
                                 secret_key=secret_key,
                                 secure=self.secure_mode)
 
+        # TODO: generalize
+        self.context_bucket = 'fedn-context'
+        self.create_bucket(self.context_bucket)
         self.create_bucket(self.bucket)
 
     def create_bucket(self, bucket_name):
@@ -78,10 +85,13 @@ class MINIORepository(Repository):
 
         return True
 
-    def get_artifact(self, instance_name):
+    def get_artifact(self, instance_name,bucket=''):
+
+        if bucket == '':
+            bucket = self.bucket
 
         try:
-            data = self.client.get_object(self.bucket, instance_name)
+            data = self.client.get_object(bucket, instance_name)
             return data.read()
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))

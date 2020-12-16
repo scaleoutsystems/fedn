@@ -20,4 +20,5 @@ storage:
     storage_access_key: fedn_admin
     storage_secret_key: password
     storage_bucket: fedn-models
+    context_bucket: fedn-context
     storage_secure_mode: False 
