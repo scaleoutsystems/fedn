@@ -3,7 +3,7 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/mnist-client:develop"
+    image: "scaleoutsystems/mnist-client:latest"
     build:
       context: .
     working_dir: /app
