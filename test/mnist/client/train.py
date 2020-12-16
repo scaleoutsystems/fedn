@@ -8,7 +8,7 @@ import pickle
 import yaml
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-from read_data import read_data
+from data.read_data import read_data
 import os   
 
 
@@ -40,6 +40,8 @@ def train(model,data,settings):
 
     model.fit(x_train, y_train, batch_size=settings['batch_size'], epochs=settings['epochs'], verbose=1)
 
+
+
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 
@@ -51,8 +53,13 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.kerassequential import KerasSequentialHelper
-    helper = KerasSequentialHelper()
-    model = helper.load_model(sys.argv[1])
+    from fedn.utils.kerasweights import KerasWeightsHelper
+
+    helper = KerasWeightsHelper()
+    weights = helper.load_model(sys.argv[1])
+    from models.mnist_model import create_seed_model
+    model = create_seed_model()
+    model.set_weights(weights)
     model = train(model,'../data/train.csv',settings)
-    helper.save_model(model,sys.argv[2])
+    helper.save_model(model.get_weights(),sys.argv[2])
+
