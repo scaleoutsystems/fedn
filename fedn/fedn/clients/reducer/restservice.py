@@ -335,7 +335,6 @@ class ReducerRestService:
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", color="role", size="size", hover_name="city",
                                  hover_data={"city": False, "lon": False, "lat": False,'size': False, 'name': True,'role': True}, width=1000, height=800)
 
-            #fig.update_traces(marker=dict(size=12, color="#EC7063"))
             fig.update_geos(fitbounds="locations", showcountries=True)
             fig.update_layout(title="FEDn network: {}".format(config['network_id']))
 
@@ -412,6 +411,8 @@ class ReducerRestService:
 
             if name == '': 
                 name = self.control.get_compute_context()
+                if name == None or name == '':
+                    return render_template('context.html')
 
             try:
                 data = self.control.get_compute_package(name)
@@ -425,22 +426,8 @@ class ReducerRestService:
 
             return render_template('context.html')
 
-        # import os, sys
-        # self._original_stdout = sys.stdout
-        # sys.stdout = open(os.devnull, 'w')
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port="8090",
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
-        # secure = False
-        # secure_adhoc = False
-
-        # if secure and secure_adhoc:
-        #    app.run(host="0.0.0.0", port="8090", ssl_context='adhoc')
-        # elif secure:
-        #    app.run(host="0.0.0.0", port="8090", ssl_context=('cert.pem', 'key.pem'))
-        # else:
-        #    app.run(host="0.0.0.0", port="8090")
-        # sys.stdout.close()
-        # sys.stdout = self._original_stdout
