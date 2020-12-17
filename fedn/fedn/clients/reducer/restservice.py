@@ -396,23 +396,32 @@ class ReducerRestService:
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
 
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
-                    
+
                     #self.current_compute_context = filename  # uploading new files will always set this to latest
-                    self.control.set_compute_context(filename)
+                    self.control.set_compute_context(filename,file_path)
                     return redirect(url_for('start'))
                     #return "success!"
 
             from flask import send_from_directory
             name = request.args.get('name', '')
-            if name != '':
+
+            if name == '': 
+                name = self.control.get_compute_context()
+
+            try:
+                data = self.control.get_compute_package(name)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
+                with open(file_path,'wb') as fh:
+                    fh.write(data)
+
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-            if name == '' and self.current_compute_context:
-                return send_from_directory(app.config['UPLOAD_FOLDER'], self.current_compute_context,
-                                           as_attachment=True)
+            except:
+                raise
 
             return render_template('context.html')
 
