@@ -144,6 +144,10 @@ media/visualisers/
 ./test/mnist/reducer/*
 ./components/dashboard/templates/*
 
+./test/arrays/client/certs/*
+./test/arrays/combiner/certs/*
+./test/arrays/reducer/*
+
 # data center test-case
 ./test/data-center/client/certs/*
 ./test/data-center/combiner/certs/*

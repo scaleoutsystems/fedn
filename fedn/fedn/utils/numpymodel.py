@@ -1,43 +1,33 @@
 import os
 import tempfile
 import numpy as np
-import tensorflow.keras.models as krm
+import pickle
 import collections
 import tempfile
 
 from .helpers import HelperBase
 
-class KerasSequentialHelper(HelperBase):
-    """ FEDn helper class for keras.Sequential. """
+class NumpyHelper(HelperBase):
+    """ FEDn helper class for numpy arrays. """
 
     def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
-        w_prev = self.get_weights(model)
-        w_next = self.get_weights(model_next)
-        w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
-        self.set_weights(model, w)
-
-    def set_weights(self, model, weights):
-        model.set_weights(weights)
-
-    def get_weights(self, model):
-        return model.get_weights()
+        temp = np.add(model, (model_next - model) / n)
+        model[:] = temp[:]
 
     def get_tmp_path(self):
-        _ , path = tempfile.mkstemp(suffix='.h5')
+        _ , path = tempfile.mkstemp()
         return path
 
     def save_model(self, model, path=None):
         if not path:
-            _ , path = tempfile.mkstemp(suffix='.h5')
-
-        model.save(path)
+            _ , path = tempfile.mkstemp()
+        np.savetxt(path,model)
         return path
 
     def load_model(self, path):
-        model = krm.load_model(path)
+        model = np.loadtxt(path)
         return model
-
 
     def serialize_model_to_BytesIO(self,model):
         outfile_name = self.save_model(model)
@@ -56,5 +46,6 @@ class KerasSequentialHelper(HelperBase):
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
             fh.flush()
-
-        return self.load_model(path)
+        model = np.loadtxt(path)
+        os.unlink(path)
+        return model
