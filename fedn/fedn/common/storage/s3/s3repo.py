@@ -45,6 +45,6 @@ class S3ModelRepository(MINIORepository):
         try:
             self.delete_artifact(compute_package, bucket=['fedn-context'])
         except Exception as e:
-            print("Failed to delete compute_package from repository.")s
+            print("Failed to delete compute_package from repository.")
             raise
        
