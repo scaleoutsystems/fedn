@@ -8,9 +8,6 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.clients.combiner.modelservice import ModelService
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-import requests
-import json
-
 
 # from fedn.combiner.role import Role
 
@@ -80,25 +77,34 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
 
         import base64
-        cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
-        key = base64.b64decode(config['key'])  # .decode('utf-8')
+        cert = base64.b64decode(response['certificate'])  # .decode('utf-8')
+        key = base64.b64decode(response['key'])  # .decode('utf-8')
 
         grpc_config = {'port': port,
                        'secure': connect_config['secure'],
                        'certificate': cert,
                        'key': key}
 
-        self.repository = S3ModelRepository(config['storage']['storage_config'])
+        # TODO remove temporary hardcoded config of storage persistance backend
+        combiner_config = {'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
+                           'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
+                           'storage_bucket': 'models',
+                           'storage_secure_mode': False,
+                           'storage_hostname': os.environ['FEDN_MINIO_HOST'],
+                           'storage_port': int(os.environ['FEDN_MINIO_PORT'])}
+
+        self.repository = S3ModelRepository(combiner_config)
+        self.bucket_name = combiner_config["storage_bucket"]
+
         self.server = Server(self,self.modelservice, grpc_config)
 
-        # TODO: Make configurable
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer(config['statestore']['mongo_config'],config['statestore']['network_id'])
+        self.tracer = MongoTracer()
 
         self.server.start()
 
@@ -296,19 +302,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_unprocessed_tasks"
         p.value = str(len(self.combiner.run_configs))
-
-        # Get IP information
-        try:
-            url = 'http://ipinfo.io/json'
-            data = requests.get(url)
-            combiner_location = json.loads(data.text)
-            for key,value in combiner_location.items():
-                p = response.parameter.add()
-                p.key = str(key)
-                p.value = str(value)
-        except Exception as e:
-            print(e,flush=True)
-            pass
         
         return response
 

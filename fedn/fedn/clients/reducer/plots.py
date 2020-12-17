@@ -9,10 +9,9 @@ from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
 
 
 class Plot:
-    def __init__(self,statestore):
+    def __init__(self):
         try:
-            statestore_config = statestore.get_config()
-            self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
+            self.mdb = connect_to_mongodb()
             self.alliance = self.mdb["status"]
             self.round_time = self.mdb["control.round_time"]
             self.psutil_usage = self.mdb["control.psutil_monitoring"]
