@@ -1,46 +1,44 @@
-import numpy as np
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Conv1D
-from tensorflow.keras.layers import GlobalMaxPooling1D, Embedding
-from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.layers import Dense, Dropout, Activation
+from tensorflow.keras.layers import Embedding, LSTM
+from tensorflow.keras.layers import Conv1D, MaxPooling1D
 
 
-def create_embedding_matrix(filepath, word_index, embedding_dim):
-    vocab_size = len(word_index) + 1  # Adding again 1 because of reserved 0 index
-    embedding_matrix = np.zeros((vocab_size, embedding_dim))
-
-    with open(filepath) as f:
-        for line in f:
-            word, *vector = line.split()
-            if word in word_index:
-                idx = word_index[word]
-                embedding_matrix[idx] = np.array(
-                    vector, dtype=np.float32)[:embedding_dim]
-
-    return embedding_matrix
-
-
-# Create an initial CNN Model
 def create_seed_model():
-    embedding_dim = 50
-    max_sequence_lenght = 100
-    tokenizer = Tokenizer(num_words=100000)
-    embedding_matrix = create_embedding_matrix('../data/word_embeddings/glove.6B.50d.txt',
-                                               tokenizer.word_index,
-                                               embedding_dim)
+    """
+    Helper function to generate an initial seed model.
+    Define CNN-LSTM architecture
+    :return: model
+    """
+    # Embedding
+    max_features = 20000
+    maxlen = 100
+    embedding_size = 128
+
+    # Convolution
+    kernel_size = 5
+    filters = 64
+    pool_size = 4
+
+    # LSTM
+    lstm_output_size = 70
+
     model = Sequential()
-    model.add(Embedding(len(tokenizer.word_index) + 1, embedding_dim,
-                        weights=[embedding_matrix],
-                        input_length=max_sequence_lenght,
-                        trainable=False))
-    model.add(Conv1D(128, 5, activation='relu'))
-    model.add(GlobalMaxPooling1D())
-    model.add(Dense(10, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy',
+    model.add(Embedding(max_features, embedding_size, input_length=maxlen))
+    model.add(Dropout(0.25))
+    model.add(Conv1D(filters,
+                     kernel_size,
+                     padding='valid',
+                     activation='relu',
+                     strides=1))
+    model.add(MaxPooling1D(pool_size=pool_size))
+    model.add(LSTM(lstm_output_size))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam',
                   metrics=['accuracy'])
-    print(model.summary())
+
     return model
 
 

@@ -113,6 +113,7 @@
         </div>
 
         <div class="content">
+        {% block content %}
             {% if refresh %}
             <div class="jumbotron">
                 <div class="container">
@@ -219,17 +220,20 @@
                     <!-- enctype="multipart/form-data" important for file upload-->
                     <form id="start_control_form" method="post" action="/start" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <div class="form-group row">
+                            <!-- <div class="form-group row">
                                 <label for="package" class="col-sm-2 col-form-label">Package</label>
                                 <div class="col-sm-10">
                                     <select class="form-control" id="package">
                                       <option selected>default</option>
                                     </select>
                                 </div>
+                            </div> -->
+                            <div class="container">
+                                <h4>Active model: {{ compute_package }}</h4>
                             </div>
 
                             <div class="form-group row">
-                                <label for="rounds" class="col-sm-2 col-form-label">Rounds</label>
+                                <label for="rounds" class="col-sm-2 col-form-label">Run rounds:</label>
                                 <div class="col-sm-10">
                                     <select class="form-control" id="rounds" name="rounds">
                                         {% for rd in round_options %}
@@ -250,6 +254,7 @@
             </div>
         </div>
         {% endif %}
+        {% endblock %}
 
         {% if show_plot %}
         <div class="jumbotron">

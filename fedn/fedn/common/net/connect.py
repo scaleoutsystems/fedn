@@ -20,7 +20,7 @@ from fedn.common.security.certificate import Certificate
 
 class ConnectorClient:
 
-    def __init__(self, host, port, token, name, id=None, secure=True, preshared_cert=True, verify_cert=False):
+    def __init__(self, host, port, token, name,combiner=None, id=None, secure=True, preshared_cert=True, verify_cert=False):
 
         if not verify_cert:
             import urllib3
@@ -30,6 +30,7 @@ class ConnectorClient:
         self.port = port
         self.token = token
         self.name = name
+        self.preferred_combiner = combiner
         self.id = id
         self.verify_cert = verify_cert
         #        self.state = State.Disconnected
@@ -56,8 +57,13 @@ class ConnectorClient:
 
         try:
             cert = str(self.certificate) if self.verify_cert else False
-            retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=cert,
+            retval = None
+            if self.preferred_combiner:
+                retval = r.get("{}?name={}&combiner={}".format(self.connect_string + '/assign', self.name, self.preferred_combiner), verify=cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})
+            else:
+                retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=cert,
+                               headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             print('***** {}'.format(e), flush=True)
             # self.state = State.Disconnected

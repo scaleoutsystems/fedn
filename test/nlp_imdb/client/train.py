@@ -8,6 +8,10 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 def train(model, data, settings):
+    """
+    Helper function to train the model
+    :return: model
+    """
     print("-- RUNNING TRAINING --")
 
     x_train, y_train = read_data(data)
