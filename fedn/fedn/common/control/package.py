@@ -123,17 +123,18 @@ class PackageRuntime:
         import os
         import tarfile
 
-        f = None
-        if self.pkg_name.endswith('tar.gz'):
-            f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
-        if self.pkg_name.endswith('tar.bz2'):
-            f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:bz2')
+        if self.pkg_name:
+            f = None
+            if self.pkg_name.endswith('tar.gz'):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
+            if self.pkg_name.endswith('tar.bz2'):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:bz2')
+        else:
+            print("Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
+
         import os
         cwd = os.getcwd()
         try:
-
-            # os.makedirs(self.dir)
-
             os.chdir(self.dir)
 
             if f:
