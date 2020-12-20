@@ -1,4 +1,4 @@
-# IMDB test project
+# NLP- IMDB test project
 This classic example of sentiment analysis is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain at least 5 clients. The example is also useful for general scalability tests in fully distributed mode. 
 
 ### Provide local training and test data
@@ -18,32 +18,26 @@ epochs: 1
 ```
 
 ### Creating a compute package
-To train a model in FEDn you provide the client code (in 'client') as a tarball (you set the name of the package in 'settings-reducer.yaml'). For convenience, we ship a pre-made package. Whenever you make updates to the client code (such as altering any of the settings in the above mentioned file), you need to re-package the code (as a .tar.gz archive) and copy the updated package to 'packages'. From 'test/nlp_imdb_senti':
+To train a model in FEDn you provide the client code (in 'client') as a tarball (you set the name of the package in 'settings-reducer.yaml'). For convenience, we ship a pre-made package. Whenever you make updates to the client code (such as altering any of the settings in the above mentioned file), you need to re-package the code (as a .tar.gz archive) and copy the updated package to 'packages'. From 'test/nlp_imdb':
 
 ```bash
-tar -cf nlp_imdb_senti.tar client
-gzip nlp_imdb_senti.tar
-cp nlp_imdb_senti.tar.gz packages/
+tar -cf nlp_imdb.tar client
+gzip nlp_imdb.tar
+cp nlp_imdb.tar.gz packages/
 ```
 
 ## Creating a seed model
-The baseline CNN-LSTM is specified in the file 'seed/init_model.py'. This script creates an untrained neural network and serialized that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed models(CNN-LSTM : 879fa112-c861-4cb1-a25d-775153e5b550.h5) in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file:
-This example assumes that training and test data is available as 'test/nlp_imdb/data/train.csv'. Data can be downloaded from e.g. https://archive.org/download/data_20201119/data.zip, but there are several hosted versions available. To make testing flexible, each client sub-samples from this dataset upon first invocation of a training request, then cache this sub-sampled data for use for the remaining lifetime of the client. The subsample size is configured as described in the next section. 
-
+The baseline CNN-LSTM is specified in the file 'client/init_model.py'. This script creates an untrained neural network and serialized that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed model in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file:
 ```bash
 python init_model.py 
 ```
 
 ## Start the client
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
+The easiest way to start clients for quick testing is by using Docker. 
+We provide a docker-compose and docker-compose.dev templates for convenience. 
+First, edit 'fedn-network.yaml' to provide information about the 
+reducer endpoint Then:
 
 ```bash
-docker-compose -f docker-compose.local.yaml up --scale client=2 
-```
-> Note that this assumes that a FEDn network is running (see separate deployment instructions). The file 'docker-compose.local.yaml' is for testing against a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
-
-The easiest way to distribute data across client is to start this command instead of the previous one 
-```bash
-docker-compose -f docker-compose.decentralised.yaml up --build
+sudo docker-compose -f docker-compose.dev.yaml up --build
 ```
