@@ -32,10 +32,15 @@ def validate(model, data):
 
 
 if __name__ == '__main__':
-    from fedn.utils.kerassequential import KerasSequentialHelper
-    helper = KerasSequentialHelper()
-    model = helper.load_model(sys.argv[1])
+
+    from fedn.utils.kerasweights import KerasWeightsHelper
+    from models.imdb_model import create_seed_model
+
+    helper = KerasWeightsHelper()
+    weights = helper.load_model(sys.argv[1])
+    model = create_seed_model()
+    model.set_weights(weights)
     report = validate(model, '../data/test.csv')
 
-    with open(sys.argv[2], "w") as fh:
+    with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))

@@ -22,14 +22,19 @@ def train(model, data, settings):
 
 
 if __name__ == '__main__':
+
+    from fedn.utils.kerasweights import KerasWeightsHelper
+    from models.imdb_model import create_seed_model
+
     with open('settings.yaml', 'r') as fh:
         try:
             settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError as e:
             raise e
 
-    from fedn.utils.kerassequential import KerasSequentialHelper
-    helper = KerasSequentialHelper()
-    model = helper.load_model(sys.argv[1])
+    helper = KerasWeightsHelper()
+    weights = helper.load_model(sys.argv[1])
+    model = create_seed_model()
+    model.set_weights(weights)
     model = train(model, '../data/train.csv', settings)
-    helper.save_model(model, sys.argv[2])
+    helper.save_model(model.get_weights(), sys.argv[2])
