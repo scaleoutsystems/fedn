@@ -27,6 +27,7 @@ class KerasWeightsHelper(HelperBase):
         w_next = weights_next
         w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
         weights = w
+        return weights
 
     def set_weights(self, weights_, weights):
         weights_ = weights

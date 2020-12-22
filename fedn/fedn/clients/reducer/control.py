@@ -337,7 +337,7 @@ class ReducerControl:
                 try:
                     model_str=combiner.get_model().getbuffer()
                     model_next = self.helper.load_model_from_BytesIO(model_str)
-                    self.helper.increment_average(model, model_next, i)
+                    model = self.helper.increment_average(model, model_next, i)
                 except:
                     model = self.helper.load_model_from_BytesIO(data.getbuffer())
                 i = i+1
