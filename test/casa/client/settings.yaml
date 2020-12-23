@@ -1,0 +1,10 @@
+# Number of test size
+nr_examples: 1000
+# Percentage of test size
+test_size: 0.15
+# Flag that identify which value will takes (specific sample size or a percentage over all the data)
+# percentage= true will consider test_size otherwise will take nr_examples
+percentage: false
+# Parameters for local training
+batch_size: 32
+epochs: 3
