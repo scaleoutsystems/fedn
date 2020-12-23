@@ -160,4 +160,12 @@ media/visualisers/
 
 # config files
 ./config/*
+./config/settings-combiner.yaml
+./config/settings-reducer.yaml
 
+# Casa IoT case test-case
+./test/casa/data
+./test/casa/data/*
+./test/casa/client/certs/*
+./test/casa/combiner/certs/*
+./test/casa/reducer/*
