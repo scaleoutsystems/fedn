@@ -156,7 +156,4 @@ media/visualisers/
 # nlp_imdb_senti test-case
 ./test/nlp_imdb/reducer/*
 
-# config files
-./config/*
-config/
 

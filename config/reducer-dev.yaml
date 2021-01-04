@@ -1,0 +1,24 @@
+version: '3.3'
+
+services:
+
+  reducer:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - USER=test
+      - PROJECT=project
+    image: "scaleoutsystems/fedn-reducer:develop"
+    build:
+      context: ${PWD}
+      dockerfile: ${PWD}/components/reducer/Dockerfile
+    working_dir: /app/client
+    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
+    volumes:
+      - ${PWD}/config:/app/client/config
+    ports:
+        - 8090:8090
+
+networks:
+  default:
+    external:
+      name: fedn_default
