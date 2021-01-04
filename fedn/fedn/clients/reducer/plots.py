@@ -244,7 +244,8 @@ class Plot:
             x.append(model_id)
             y.append(numpy.mean([float(i) for i in acc]))
             if len(acc) >= 2:
-                box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False))
+                box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False,
+                                     boxpoints=False))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
