@@ -26,8 +26,7 @@ class KerasWeightsHelper(HelperBase):
         w_prev = weights
         w_next = weights_next
         w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
-        weights = w
-        return weights
+        return w
 
     def set_weights(self, weights_, weights):
         weights_ = weights
@@ -63,7 +62,6 @@ class KerasWeightsHelper(HelperBase):
         weights = []
         for name in names:
             weights += [a[name]]
-
         return weights
 
     def load_model_from_BytesIO(self, model_bytesio):
