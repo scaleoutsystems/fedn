@@ -24,22 +24,26 @@ class KerasSequentialHelper(HelperBase):
         return model.get_weights()
 
     def get_tmp_path(self):
-        _ , path = tempfile.mkstemp(suffix='.h5')
+        fd, path = tempfile.mkstemp(suffix='.h5')
+        os.close(fd)
         return path
 
     def save_model(self, model, path=None):
         if not path:
-            _ , path = tempfile.mkstemp(suffix='.h5')
+            fd, path = tempfile.mkstemp(suffix='.h5')
+            model.save(path)
+            os.close(fd)
+        else:
+            model.save(path)
 
-        model.save(path)
         return path
 
     def load_model(self, path):
         model = krm.load_model(path)
         return model
 
-
     def serialize_model_to_BytesIO(self,model):
+
         outfile_name = self.save_model(model)
 
         from io import BytesIO
@@ -57,4 +61,6 @@ class KerasSequentialHelper(HelperBase):
             fh.write(model_bytesio)
             fh.flush()
 
-        return self.load_model(path)
+        model = self.load_model(path)
+        os.unlink(path)
+        return model
