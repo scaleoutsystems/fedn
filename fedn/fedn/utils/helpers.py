@@ -1,23 +1,19 @@
 import collections
 from abc import ABC, abstractmethod
+import os 
+import tempfile
 
 
 class HelperBase(ABC):
     """ Abstract class defining helpers. """
 
     def __init__(self):
-        """  """
 
     @abstractmethod
     def increment_average(self, model, model_next, n):
         """ Compute one increment of incremental averaging. 
             n: the iteration index 1...N  in the sequence. 
         """
-        pass
-
-    @abstractmethod
-    def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model. """
         pass
 
     @abstractmethod
@@ -42,6 +38,12 @@ class HelperBase(ABC):
     def load_model_from_BytesIO(self, model_bytesio):
         """ Load a model from a BytesIO buffered object. """
         pass
+
+    def get_tmp_path(self, suffix='.npz'):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp(suffix='.h5')
+        os.close(fd)
+        return path
 
 def get_helper(helper_type):
     if helper_type == 'numpymodel':

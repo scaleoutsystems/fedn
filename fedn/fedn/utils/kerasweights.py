@@ -34,10 +34,6 @@ class KerasWeightsHelper(HelperBase):
     def get_weights(self, weights):
         return weights
 
-    def get_tmp_path(self):
-        fod, path = tempfile.mkstemp(suffix='.npz')
-        return path
-
     def get_model_struct(self):
         fod, path = tempfile.mkstemp(prefix='kerasmodel')
 
@@ -71,8 +67,10 @@ class KerasWeightsHelper(HelperBase):
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
             fh.flush()
+        model = self.load_model(path)
+        os.unlink(path)
+        return model
 
-        return self.load_model(path)
 
     def serialize_model_to_BytesIO(self, model):
         outfile_name = self.save_model(model)
