@@ -42,7 +42,7 @@ class HelperBase(ABC):
 
     def get_tmp_path(self, suffix='.npz'):
         """ Return a temporary output path compatible with save_model, load_model. """
-        fd, path = tempfile.mkstemp(suffix='.h5')
+        fd, path = tempfile.mkstemp(suffix)
         os.close(fd)
         return path
 
