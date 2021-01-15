@@ -299,6 +299,7 @@ class FEDAVGCombiner:
             # Send aggregated model to server 
             model_id = str(uuid.uuid4())        
             self.modelservice.set_model(a, model_id)
+            a.close()
      
             # Update Combiner latest model
             self.server.set_active_model(model_id)
