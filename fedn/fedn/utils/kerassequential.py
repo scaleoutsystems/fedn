@@ -16,6 +16,7 @@ class KerasSequentialHelper(HelperBase):
         w_next = self.get_weights(model_next)
         w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
         self.set_weights(model, w)
+        return model
 
     def set_weights(self, model, weights):
         model.set_weights(weights)
