@@ -54,12 +54,13 @@ if __name__ == '__main__':
             raise(e)
 
     from fedn.utils.kerasweights import KerasWeightsHelper
-
     helper = KerasWeightsHelper()
     weights = helper.load_model(sys.argv[1])
+
     from models.mnist_model import create_seed_model
     model = create_seed_model()
     model.set_weights(weights)
+    
     model = train(model,'../data/train.csv',settings)
     helper.save_model(model.get_weights(),sys.argv[2])
 

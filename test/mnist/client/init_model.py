@@ -9,5 +9,4 @@ if __name__ == '__main__':
 
 	weights = model.get_weights()
 	helper = KerasWeightsHelper()
-	#helper.save_model(weights, 'weights.npz')
 	helper.save_model(weights, outfile_name)
