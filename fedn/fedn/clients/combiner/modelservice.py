@@ -57,7 +57,7 @@ class ModelService(rpc.ModelServiceServicer):
                 yield result
                 if not b:
                     break
-
+        # TODO: Check result
         result = self.Upload(upload_request_generator(bt), self)
 
     ## Model Service
