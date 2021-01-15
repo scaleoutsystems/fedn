@@ -34,9 +34,6 @@ class KerasWeightsHelper(HelperBase):
     def get_weights(self, weights):
         return weights
 
-    def get_model_struct(self):
-        fod, path = tempfile.mkstemp(prefix='kerasmodel')
-
     def save_model(self, weights, path=None):
 
         if not path:

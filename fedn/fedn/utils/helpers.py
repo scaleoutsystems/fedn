@@ -8,6 +8,7 @@ class HelperBase(ABC):
     """ Abstract class defining helpers. """
 
     def __init__(self):
+        """ """
 
     @abstractmethod
     def increment_average(self, model, model_next, n):
