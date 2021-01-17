@@ -57,6 +57,7 @@ class KerasSequentialHelper(HelperBase):
 
     def load_model_from_BytesIO(self,model_bytesio):
         """ Load a model from a BytesIO object. """
+
         path = self.get_tmp_path()
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
