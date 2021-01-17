@@ -26,7 +26,7 @@ class KerasWeightsHelper(HelperBase):
         w_prev = weights
         w_next = weights_next
         w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
-        weights = w
+        return w
 
     def set_weights(self, weights_, weights):
         weights_ = weights
@@ -34,16 +34,21 @@ class KerasWeightsHelper(HelperBase):
     def get_weights(self, weights):
         return weights
 
+    def get_tmp_path(selfs):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp(suffix='.npz')
+        os.close(fd)
+        return path
+
     def save_model(self, weights, path=None):
 
         if not path:
             path = self.get_tmp_path()
 
         weights_dict = {}
-        i = 0
-        for w in weights:
+        for i,w in enumerate(weights):
             weights_dict[str(i)] = w
-            i += 1
+
         np.savez_compressed(path, **weights_dict)
 
         return path
@@ -51,11 +56,9 @@ class KerasWeightsHelper(HelperBase):
     def load_model(self, path="weights.npz"):
 
         a = np.load(path)
-        names = a.files
         weights = []
-        for name in names:
-            weights += [a[name]]
-
+        for i in range(len(a.files)):
+            weights.append(a[str(i)])
         return weights
 
     def load_model_from_BytesIO(self, model_bytesio):

@@ -16,6 +16,7 @@ class KerasSequentialHelper(HelperBase):
         w_next = self.get_weights(model_next)
         w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
         self.set_weights(model, w)
+        return model
 
     def set_weights(self, model, weights):
         model.set_weights(weights)
@@ -23,9 +24,15 @@ class KerasSequentialHelper(HelperBase):
     def get_weights(self, model):
         return model.get_weights()
 
+    def get_tmp_path(self):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp(suffix='.h5')
+        os.close(fd)
+        return path
+
     def save_model(self, model, path=None):
         if not path:
-            path = self.get_tmp_path(suffix='.h5')
+            path = self.get_tmp_path()
             model.save(path)
         else:
             model.save(path)
@@ -50,7 +57,8 @@ class KerasSequentialHelper(HelperBase):
 
     def load_model_from_BytesIO(self,model_bytesio):
         """ Load a model from a BytesIO object. """
-        path = self.get_tmp_path(suffix='.h5')
+
+        path = self.get_tmp_path()
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
             fh.flush()

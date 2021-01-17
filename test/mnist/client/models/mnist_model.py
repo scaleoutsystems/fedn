@@ -28,7 +28,7 @@ def create_seed_model():
 	model.add(Dense(num_classes, activation='softmax'))
 
 	model.compile(loss=keras.losses.categorical_crossentropy,
-    	          optimizer=keras.optimizers.Adadelta(),
+    	          optimizer=keras.optimizers.Adam(),
         	      metrics=['accuracy'])
 	return model
 

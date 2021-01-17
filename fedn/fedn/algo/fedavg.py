@@ -112,7 +112,7 @@ class FEDAVGCombiner:
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    self.helper.increment_average(model, model_next, nr_processed_models+1)
+                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)
 
                 nr_processed_models += 1
                 self.model_updates.task_done()

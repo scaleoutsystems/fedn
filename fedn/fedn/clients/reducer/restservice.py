@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 
+from threading import Lock
+
 import json
 import plotly
 import pandas as pd
@@ -14,6 +16,7 @@ import math
             
 import plotly.express as px
 import geoip2.database
+
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -401,10 +404,8 @@ class ReducerRestService:
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
 
-                    #self.current_compute_context = filename  # uploading new files will always set this to latest
                     self.control.set_compute_context(filename,file_path)
                     return redirect(url_for('start'))
-                    #return "success!"
 
             from flask import send_from_directory
             name = request.args.get('name', '')
@@ -414,15 +415,23 @@ class ReducerRestService:
                 if name == None or name == '':
                     return render_template('context.html')
 
+            # There is a potential race condition here, if one client requests a package and at
+            # the same time another one triggers a fetch from Minio and writes to disk. 
             try:
-                data = self.control.get_compute_package(name)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
-                with open(file_path,'wb') as fh:
-                    fh.write(data)
-
+                mutex = Lock()
+                mutex.acquire()
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
             except:
-                raise
+                try:
+                    data = self.control.get_compute_package(name)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
+                    with open(file_path,'wb') as fh:
+                        fh.write(data)
+                    return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
+                except:
+                    raise
+            finally:
+                mutex.release()
 
             return render_template('context.html')
 
