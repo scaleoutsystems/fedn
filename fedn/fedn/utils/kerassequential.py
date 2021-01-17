@@ -26,7 +26,7 @@ class KerasSequentialHelper(HelperBase):
 
     def save_model(self, model, path=None):
         if not path:
-            path = self.get_tmp_path(prefix='.h5')
+            path = self.get_tmp_path(suffix='.h5')
             model.save(path)
         else:
             model.save(path)
@@ -51,7 +51,7 @@ class KerasSequentialHelper(HelperBase):
 
     def load_model_from_BytesIO(self,model_bytesio):
         """ Load a model from a BytesIO object. """
-        path = self.get_tmp_path(prefix='.h5')
+        path = self.get_tmp_path(suffix='.h5')
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
             fh.flush()
