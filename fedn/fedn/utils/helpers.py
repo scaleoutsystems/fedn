@@ -40,11 +40,10 @@ class HelperBase(ABC):
         """ Load a model from a BytesIO buffered object. """
         pass
 
-    def get_tmp_path(self, suffix='.npz'):
+    @abstractmethod
+    def get_tmp_path(self):
         """ Return a temporary output path compatible with save_model, load_model. """
-        fd, path = tempfile.mkstemp(suffix)
-        os.close(fd)
-        return path
+        pass
 
 def get_helper(helper_type):
     if helper_type == 'numpymodel':

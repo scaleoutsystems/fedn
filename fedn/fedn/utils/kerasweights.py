@@ -34,6 +34,12 @@ class KerasWeightsHelper(HelperBase):
     def get_weights(self, weights):
         return weights
 
+    def get_tmp_path(selfs):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp(suffix='.npz')
+        os.close(fd)
+        return path
+
     def save_model(self, weights, path=None):
 
         if not path:
