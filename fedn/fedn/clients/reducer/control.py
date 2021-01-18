@@ -45,10 +45,6 @@ class ReducerControl:
         if not self.helper:
             print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
 
-        # TODO: Refactor and make all these configurable
-        #from fedn.utils.kerassequential import KerasSequentialHelper
-        # TODO: Refactor and make all these configurable
-        #self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed
 
         if self.statestore.is_inited():

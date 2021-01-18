@@ -379,9 +379,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if len(active_clients) < requested:
                 response.status = fedn.ConnectionStatus.ACCEPTING
                 return response
-
+                
         except Exception as e:
-            print("Combiner not properly configured!", flush=True)
+            print("Combiner not properly configured! {}".format(e), flush=True)
             raise
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
