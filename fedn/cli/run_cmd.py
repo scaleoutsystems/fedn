@@ -168,6 +168,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
               'myport': port, 'myname': name, 'secure': secure, 'max_clients': max_clients,'init':init}
 
+
     if config['init']:
         with open(config['init'], 'r') as file:
             try:
@@ -175,11 +176,10 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             except yaml.YAMLError as e:
                 print('Failed to read config from settings file, exiting.',flush=True)
                 raise(e)
-
         # Read/overide settings from config file
         if 'controller' in settings:
-            reducer_config = settings['controller']
-            for key,val in reducer_config.items():
+            controller_config = settings['controller']
+            for key,val in controller_config.items():
                 config[key] = val
 
         if 'combiner' in settings:
@@ -187,6 +187,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             config['myname'] = combiner_config['name']
             config['myhost'] = combiner_config['host']
             config['myport'] = combiner_config['port']
+            config['max_clients'] = combiner_config['max_clients']
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)
