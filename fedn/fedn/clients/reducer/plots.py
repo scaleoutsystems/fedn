@@ -256,7 +256,8 @@ class Plot:
 
         box.update_xaxes(title_text='Model ID')
         box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric))
+        box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric),
+                          margin=dict(l=20, r=20, t=45, b=20))
         box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
         return box
 

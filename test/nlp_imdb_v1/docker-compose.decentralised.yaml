@@ -1,0 +1,117 @@
+version: '3.3'
+services:
+  client1:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client1:/app/data
+
+  client2:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client2:/app/data
+
+  client3:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client3:/app/data
+
+  client4:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client4:/app/data
+
+  client5:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client5:/app/data
+
+  client6:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client6:/app/data
+
+  client7:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client7:/app/data
+
+  client8:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client8:/app/data
+
+  client9:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client9:/app/data
+
+  client10:
+    environment:
+      - GET_HOSTS_FROM=dns
+    image: "scaleoutsystems/nlp-client:latest"
+    build:
+      context: .
+    working_dir: /app
+    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    volumes:
+      - ./data/client10:/app/data
+
+
+networks:
+  default:
+    external:
+      name: fedn_default
