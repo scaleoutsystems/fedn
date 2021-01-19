@@ -4,3 +4,4 @@ keras
 pandas
 tensorflow==2.3.2
 sklearn
+torch

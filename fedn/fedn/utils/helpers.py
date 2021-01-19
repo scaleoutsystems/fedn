@@ -58,5 +58,8 @@ def get_helper(helper_type):
     elif helper_type == 'kerasweights_modeltar':
         from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
         return KerasWeightsHelper()
+    elif helper_type == 'pytorch_model':
+        from fedn.utils.pytorchmodel import PytorchModelHelper
+        return PytorchModelHelper()
     else:
         return None
