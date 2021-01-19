@@ -10,6 +10,12 @@ from fedn.clients.combiner.modelservice import ModelService
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 import requests
 import json
+import io
+import time
+import base64
+
+from collections import defaultdict
+
 
 
 # from fedn.combiner.role import Role
@@ -44,21 +50,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def __init__(self, connect_config):
         self.clients = {}
 
-        import io
-        from collections import defaultdict
         self.modelservice = ModelService()
 
-        self.model_id = None
-
-        self.role = Role.COMBINER
-
         self.id = connect_config['myname']
-        address = connect_config['myhost']
-        port = connect_config['myport']
-
+        self.role = Role.COMBINER
         self.max_clients = connect_config['max_clients']
 
-        
+        self.active_model_id = None
+
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -67,7 +66,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                                             token=connect_config['token'],
                                             name=connect_config['myname'])
 
-        import time
         response = None
         while True:
             status, response = announce_client.announce()
@@ -79,11 +77,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
 
-        import base64
         cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
         key = base64.b64decode(config['key'])  # .decode('utf-8')
 
-        grpc_config = {'port': port,
+        grpc_config = {'port': connect_config['myport'],
                        'secure': connect_config['secure'],
                        'certificate': cert,
                        'key': key}
@@ -91,7 +88,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self,self.modelservice, grpc_config)
 
-        # TODO: Make configurable
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
@@ -119,10 +115,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return client
 
     def get_active_model(self):
-        return self.model_id
+        return self.active_model_id
 
-    def set_active_model(self, model_id):
-        self.model_id = model_id
+    def set_active_model(self, active_model_id):
+        self.active_model_id = active_model_id
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask members in from_clients list to update the current global model. """
@@ -135,19 +131,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         if len(clients) == 0:
             # Broadcast request to all active member clients
-            request.receiver.name = ""
+            clients = self.get_active_trainers()
+
+        for client in clients:
+            request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
-            response = self.SendModelUpdateRequest(request, self)
+            self.SendModelUpdateRequest(request, self)
 
-        else:
-            # Send to all specified clients
-            for client in clients:
-                request.receiver.name = client.name
-                request.receiver.role = fedn.WORKER
-                self.SendModelUpdateRequest(request, self)
-        # print("Requesting model update from clients {}".format(clients), flush=True)
-
-    def request_model_validation(self, model_id, from_clients=[]):
+    def request_model_validation(self, model_id, clients=[]):
         """ Send a request for members in from_client to validate the model <model_id>.
             The default is to broadcast the request to all active members.
         """
@@ -157,16 +148,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
 
-        if len(from_clients) == 0:
-            request.receiver.name = ""  # Broadcast request to all active member clients
+
+        if len(clients) == 0:
+            clients = self.get_active_validators()
+
+        for client in from_clients:
+            request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
-        else:
-            # Send to specified clients
-            for client in from_clients:
-                request.receiver.name = client.name
-                request.receiver.role = fedn.WORKER
-                self.SendModelValidationRequest(request, self)
 
         print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 

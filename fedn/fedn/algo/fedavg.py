@@ -8,12 +8,11 @@ import sys
 #import retrying
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
-import tensorflow as tf
+#import tensorflow as tf
 from threading import Thread, Lock
 from  fedn.utils.helpers import get_helper 
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
+#tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 class FEDAVGCombiner:
     """ 
