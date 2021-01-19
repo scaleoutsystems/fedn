@@ -158,10 +158,18 @@ media/visualisers/
 ./test/data-center/combiner/certs/*
 ./test/data-center/reducer/*
 
-# nlp_imdb_senti test-case
+# nlp_imdb test-case
+./test/nlp_imdb/client/certs/*
+./test/nlp_imdb/combiner/certs/*
 ./test/nlp_imdb/reducer/*
 ./test/nlp_imdb/data/*
-./test/nlp_imdb_v1/*
+
+# nlp_imdb_v1 test-case
+./test/nlp_imdb_v1/client/certs/*
+./test/nlp_imdb_v1/combiner/certs/*
+./test/nlp_imdb_v1/reducer/*
+./test/nlp_imdb_v1/data/*
+
 
 # config files
 ./config/settings-reducer.yaml
