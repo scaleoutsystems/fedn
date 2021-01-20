@@ -16,7 +16,7 @@ from  fedn.utils.helpers import get_helper
 
 class FEDAVGCombiner:
     """ 
-        A Local SGD / Federated Averaging (FedAvg) combiner. This 
+        A Local SGD / Federated Averaging (FedAvg) aggregator. This 
         class is resonsible for coordinating the update of the Combiner global 
         model by requesting and aggregating model updates from Clients. 
 

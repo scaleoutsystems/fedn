@@ -15,9 +15,6 @@ import time
 import base64
 
 from collections import defaultdict
-
-
-
 # from fedn.combiner.role import Role
 
 from enum import Enum
@@ -183,10 +180,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ####################################################################################################################
 
     def __join_client(self, client):
+        """ Add a client to the combiner. """
         if not client.name in self.clients.keys():
             self.clients[client.name] = {"lastseen": datetime.now()}
-            print("New client connected:{}".format(client), flush=True)
-
+  
     def _subscribe_client_to_queue(self, client, queue_name):
         self.__join_client(client)
         if not queue_name in self.clients[client.name].keys():
@@ -230,9 +227,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 pass
 
     def __register_heartbeat(self, client):
-        """ Adds a client entry in the clients dict if first time connecting.
-            Updates heartbeat timestamp.
-        """
+        """ Register a client if first time connecting. Update heartbeat timestamp. """
         self.__join_client(client)
         self.clients[client.name]["lastseen"] = datetime.now()
 
@@ -265,6 +260,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def Report(self, control: fedn.ControlRequest, context):
         """ Descibe current state of the Combiner. """
+
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
 
