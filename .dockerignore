@@ -1,3 +1,6 @@
 .git
 .cache
 *.pyc
+tmp/*
+test/*
+docs/*
