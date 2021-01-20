@@ -5,14 +5,10 @@ import tempfile
 import time
 import uuid
 import sys
-#import retrying
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
-#import tensorflow as tf
 from threading import Thread, Lock
 from  fedn.utils.helpers import get_helper 
-
-#tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 class FEDAVGCombiner:
     """ 
@@ -104,7 +100,6 @@ class FEDAVGCombiner:
                         model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
                     except IOError:
                         self.report_status("COMBINER: Failed to load model!")
-                    #    raise
                 else: 
                     raise
 
@@ -159,7 +154,7 @@ class FEDAVGCombiner:
         return model
 
     def __validation_round(self,config,clients,model_id):
-        self.server.request_model_validation(model_id, from_clients=clients)
+        self.server.request_model_validation(model_id, clients=clients)
 
     def push_run_config(self, plan):
         self.run_configs_lock.acquire()

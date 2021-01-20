@@ -149,7 +149,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients) == 0:
             clients = self.get_active_validators()
 
-        for client in from_clients:
+        for client in clients:
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
