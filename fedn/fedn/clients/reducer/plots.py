@@ -15,6 +15,7 @@ class Plot:
             self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
             self.alliance = self.mdb["status"]
             self.round_time = self.mdb["control.round_time"]
+            self.combiner_round_time = self.mdb["control.combiner_round_time"]
             self.psutil_usage = self.mdb["control.psutil_monitoring"]
 
         except Exception as e:
@@ -262,6 +263,7 @@ class Plot:
         return box
 
     def create_round_plot(self):
+        trace_data = []
         metrics = self.round_time.find_one({'key': 'round_time'})
         if metrics == None:
             fig = go.Figure(data=[])
@@ -273,19 +275,50 @@ class Plot:
             rounds = post['round']
             traces_data = post['round_time']
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
+        trace_data.append(go.Scatter(
             x=rounds,
             y=traces_data,
             mode='lines+markers',
-            name='Time'
+            name='Reducer'
         ))
 
+        for rec in self.combiner_round_time.find({'key': 'combiner_round_time'}):
+            c_traces_data = rec['round_time']
+
+        trace_data.append(go.Scatter(
+            x=rounds,
+            y=c_traces_data,
+            mode='lines+markers',
+            name='Combiner'
+        ))
+
+        fig = go.Figure(data=trace_data)
         fig.update_xaxes(title_text='Round')
         fig.update_yaxes(title_text='Time (s)')
         fig.update_layout(title_text='Round time')
         round_t = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return round_t
+
+    def create_client_plot(self):
+        x = []
+        for p in self.alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
+            e = json.loads(p['data'])
+            cid = e['correlationId']
+            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
+                da = json.loads(cc['data'])
+                if da['correlationId'] == cid:
+                    cp = cc
+
+            cd = json.loads(cp['data'])
+            tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+            tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+            ts = tu - tr
+            x.append(ts.total_seconds()/60.0)
+
+        fig = go.Figure(data=go.Histogram(x=x))
+        fig.update_layout(title_text='Training time distribution')
+        histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return histogram
 
     def create_cpu_plot(self):
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
