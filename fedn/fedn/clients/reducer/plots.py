@@ -162,6 +162,27 @@ class Plot:
         timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return timeline
 
+    def create_client_plot(self):
+        x = []
+        for p in self.alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
+            e = json.loads(p['data'])
+            cid = e['correlationId']
+            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
+                da = json.loads(cc['data'])
+                if da['correlationId'] == cid:
+                    cp = cc
+
+            cd = json.loads(cp['data'])
+            tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+            tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
+            ts = tu - tr
+            x.append(ts.total_seconds()/60.0)
+
+        fig = go.Figure(data=go.Histogram(x=x))
+        fig.update_layout(title_text='Training time distribution')
+        histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return histogram
+
     def create_ml_plot(self):
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
