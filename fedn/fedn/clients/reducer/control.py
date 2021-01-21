@@ -151,7 +151,7 @@ class ReducerControl:
         # TODO: Implement strategy to handle the case.
         print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name),flush=True)
 
-    def round(self, config):
+    def round(self, config, round_number):
         """ Execute one global round. """
 
         # TODO: Set / update reducer states and such
@@ -189,10 +189,22 @@ class ReducerControl:
             return None
 
         # 2. Sync up and ask participating combiners to coordinate model updates
+        # TODO refactor
+        from datetime import datetime
+        from fedn.common.tracer.mongotracer import MongoTracer
+        statestore_config = self.statestore.get_config()
+        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+
+        start_time = datetime.now()
+        print('----------------------------------')
+        print('START COMBINER Round:', start_time)
+        print('COMBINER Round:', round_number)
+
         for combiner,compute_plan in combiners:
             try:
                 self.sync_combiners([combiner],self.get_latest_model())
                 response = combiner.start(compute_plan)
+
             except CombinerUnavailableError:
                 # This is OK, handled by round accept policy
                 self._handle_unavailable_combiner(combiner)
@@ -214,6 +226,13 @@ class ReducerControl:
             wait += 1.0
             if wait >= config['round_timeout']:
                 break
+
+        # TODO refactor
+        end_time = datetime.now()
+        round_time = end_time - start_time
+        self.tracer.set_combiner_time(round_number, round_time.seconds)
+        print('----------------------------------')
+        print('END COMBINER Round', end_time)
 
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
@@ -303,7 +322,7 @@ class ReducerControl:
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
-            model_id = self.round(config)
+            model_id = self.round(config, round)
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)

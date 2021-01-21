@@ -8,4 +8,4 @@ combiner:
     name: combiner
     host: combiner
     port: 12080
-    max_clients: 4
+    max_clients: 100

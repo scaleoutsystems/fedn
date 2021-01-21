@@ -14,6 +14,7 @@ class MongoTracer(Tracer):
             self.psutil_monitoring = self.mdb['control.psutil_monitoring']
             self.model_trail = self.mdb['control.model_trail']
             self.latest_model = self.mdb['control.latest_model']
+            self.combiner_time = self.mdb['control.combiner_time']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -51,6 +52,10 @@ class MongoTracer(Tracer):
     def set_latest_time(self, round, round_time):
         self.round_time.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
         self.round_time.update({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
+
+    def set_combiner_time(self, round, round_time):
+        self.combiner_time.update({'key': 'combiner_round_time'}, {'$push': {'round': round}}, True)
+        self.combiner_time.update({'key': 'combiner_round_time'}, {'$push': {'round_time': round_time}}, True)
 
     def get_latest_round(self):
         for post in self.round_time.find({'key': 'round_time'}):
