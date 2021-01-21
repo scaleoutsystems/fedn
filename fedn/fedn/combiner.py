@@ -118,7 +118,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.active_model_id = active_model_id
 
     def request_model_update(self, model_id, clients=[]):
-        """ Ask members in from_clients list to update the current global model. """
+        """ Ask clients to update the current global model. If an empty list
+            is passed, broadcasts to all active clients. s
+        """
+
         print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
@@ -127,7 +130,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.timestamp = str(datetime.now())
 
         if len(clients) == 0:
-            # Broadcast request to all active member clients
             clients = self.get_active_trainers()
 
         for client in clients:
@@ -136,15 +138,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             self.SendModelUpdateRequest(request, self)
 
     def request_model_validation(self, model_id, clients=[]):
-        """ Send a request for members in from_client to validate the model <model_id>.
-            The default is to broadcast the request to all active members.
+        """ Ask clients to validate the current global model. If an empty list
+            is passed, broadcasts to all active clients. s
         """
         request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
-
 
         if len(clients) == 0:
             clients = self.get_active_validators()
