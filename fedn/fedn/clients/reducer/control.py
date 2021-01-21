@@ -190,13 +190,14 @@ class ReducerControl:
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
-        # monitor round time
+        # extend time monitoring to combiner
         from datetime import datetime
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
         self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
 
         start_time = datetime.now()
+
         for combiner,compute_plan in combiners:
             try:
                 self.sync_combiners([combiner],self.get_latest_model())
