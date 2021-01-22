@@ -130,14 +130,14 @@ First deploy Minio and Mongo services. Edit the config files 'config/minio.env',
 Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio. Also, copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it to provide mappings from the 'host' parameter in the combiner configuration. The you can start the reducer:  s
 
 ```bash
-sudo docker-compose -f reducer.yaml -f config/extra-hosts-reducer.yaml up 
+sudo docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up 
 ```
 
 ### 3. Deploy combiners
 Edit 'config/settings-combiner.yaml' to provide a name for the combiner (used as a unique identifier for the combiner in the network), a host name (which is used by reducer and clients to connect to combiner RPC) and the port. Also provide connection information to the reducer under 'controller'. Then deploy the combiner: 
 
 ```bash
-sudo docker-compose -f combiner.yaml up 
+sudo docker-compose -f config/combiner.yaml up 
 ```
 
 Repeate the same step for the second combiner node. Make sure to provide unique names for the two combiners. 
@@ -150,7 +150,7 @@ Once the FEDn network is deployed, you can attach clients to it in the same way 
 Copy  'config/extra-hosts-clients.template.yaml' to 'test/mnist/extra-hosts.yaml' and edit it to provide name/IP for the combiners in the network. Then, from 'test/mnist':
 
 ```bash
-sudo docker-compose -f docker-compose.yaml -f config/extra-hosts.yaml up --scale client=5 
+sudo docker-compose -f docker-compose.yaml -f config/extra-hosts-client.yaml up --scale client=5 
 ```
  
 ## Support

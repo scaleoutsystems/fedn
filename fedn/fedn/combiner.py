@@ -464,7 +464,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response. """
-        # self._send_request(request,fedn.Channel.MODEL_UPDATES)
         self.combiner.receive_model_candidate(request.model_update_id)
         print("ORCHESTRATOR: Received model update", flush=True)
 

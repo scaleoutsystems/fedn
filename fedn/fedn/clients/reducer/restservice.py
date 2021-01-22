@@ -55,10 +55,7 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
-            # logs_fancy = str()
-            # for log in self.logs:
-            #    logs_fancy += "<p>" + log + "</p>\n"
-
+ 
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -145,6 +142,7 @@ class ReducerRestService:
                     self.tracer.drop_model_trail()
                     self.tracer.drop_latest_model()
                     self.tracer.drop_status()
+                    self.tracer.drop_combiner_round_time()
                 except:
                     pass
 
@@ -364,6 +362,9 @@ class ReducerRestService:
                 return plot.create_box_plot()
             elif feature == 'cpu':
                 return plot.create_cpu_plot()
+            elif feature == 'clients':
+                return plot.create_client_plot()
+
             else:
                 return 'No plot!'
 
