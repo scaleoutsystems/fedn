@@ -42,7 +42,6 @@ class Client:
         import time
         while True:
             status, response = self.connector.assign()
-            print(status, response, flush=True)
             if status == Status.TryAgain:
                 time.sleep(5)
                 continue
@@ -203,7 +202,7 @@ class Client:
                             update.timestamp = str(datetime.now())
                             update.correlation_id = request.correlation_id
                             update.meta = json.dumps(meta)
-                            #TODO: Check response
+                            #TODO: Check responses
                             response = self.orchestrator.SendModelUpdate(update)
 
                             self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,

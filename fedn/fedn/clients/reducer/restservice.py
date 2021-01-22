@@ -363,8 +363,6 @@ class ReducerRestService:
             elif feature == 'cpu':
                 return plot.create_cpu_plot()
             elif feature == 'clients':
-                return plot.create_client_training_distribution()
-            elif feature == 'clients2':
                 return plot.create_client_plot()
 
             else:
