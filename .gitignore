@@ -164,12 +164,6 @@ media/visualisers/
 ./test/nlp_imdb/reducer/*
 ./test/nlp_imdb/data/*
 
-# nlp_imdb_v1 test-case
-./test/nlp_imdb_v1/client/certs/*
-./test/nlp_imdb_v1/combiner/certs/*
-./test/nlp_imdb_v1/reducer/*
-./test/nlp_imdb_v1/data/*
-
 
 # config files
 ./config/settings-reducer.yaml
