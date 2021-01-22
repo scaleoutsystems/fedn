@@ -142,6 +142,7 @@ class ReducerRestService:
                     self.tracer.drop_model_trail()
                     self.tracer.drop_latest_model()
                     self.tracer.drop_status()
+                    self.tracer.drop_combiner_round_time()
                 except:
                     pass
 
