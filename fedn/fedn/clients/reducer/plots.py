@@ -163,48 +163,49 @@ class Plot:
         timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return timeline
 
-    def create_ml_plot(self):
-        metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
-        if metrics == None:
-            fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for Mean Absolute Error')
-            ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return ml
+    def create_client_training_distribution(self):
+        training = []
+        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
+            e = json.loads(p['data'])
+            meta = json.loads(e['meta'])
+            training.append(meta['exec_training'])
 
-        data = json.loads(metrics['data'])
-        data = json.loads(data['data'])
-        valid_metrics = []
-        for metric, val in data.items():
-            # Check if scalar - is this robust ?
-            if isinstance(val, float):
-                valid_metrics.append(metric)
+        fig = go.Figure(data=go.Histogram(x=training))
+        fig.update_layout(title_text='Client model training time, mean: {}'.format(numpy.mean(training)))
+        histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return histogram
 
-        # Assemble a dict with all validations
-        validations = {}
-        clients = {}
+    def create_client_plot(self):
+        processing = []
+        upload = []
+        download = []
+        training =[]
+        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
+            e = json.loads(p['data'])
+            meta = json.loads(e['meta'])
+            upload.append(meta['upload_model'])
+            download.append(meta['fetch_model'])
+            training.append(meta['exec_training'])
+            processing.append(meta['processing_time'])
 
-        for post in self.alliance.find({'type': 'MODEL_VALIDATION'}):
-            try:
-                e = json.loads(post['data'])
-                clients[post['sender']['name']].append(json.loads(e['data'])[metric])
-            except KeyError:
-                clients[post['sender']['name']] = []
+        from plotly.subplots import make_subplots
+        fig = make_subplots(rows=1,cols=2, specs=[[{"type": "pie"}, {"type": "histogram"}]])
 
-        rounds = []
-        traces_data = []
+        fig.update_layout(
+            template="simple_white",
+            xaxis=dict(title_text="Seconds"),
+            title="Total mean client processing time: {}".format(numpy.mean(processing)),
+            showlegend=True
+        )
 
-        for c in clients:
-            traces_data.append(go.Scatter(
-                x=rounds,
-                y=clients[c],
-                name=c
-            ))
-        fig = go.Figure(traces_data)
-        fig.update_xaxes(title_text='Rounds')
-        fig.update_yaxes(title_text='MAE', tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        fig.update_layout(title_text='Mean Absolute Error Plot')
-        ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return ml
+        data = [numpy.mean(training),numpy.mean(upload),numpy.mean(download)]
+        labels = ["Training","Model upload","Model download"]
+        fig.add_trace(go.Pie(labels=labels,values=data),row=1,col=1)
+        
+        fig.add_trace(go.Histogram(x=training),row=1,col=2)
+        
+        plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return plot
 
     def create_box_plot(self):
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
@@ -298,27 +299,6 @@ class Plot:
         fig.update_layout(title_text='Round time')
         round_t = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return round_t
-
-    def create_client_plot(self):
-        x = []
-        for p in self.alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
-            e = json.loads(p['data'])
-            cid = e['correlationId']
-            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
-                da = json.loads(cc['data'])
-                if da['correlationId'] == cid:
-                    cp = cc
-
-            cd = json.loads(cp['data'])
-            tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-            tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-            ts = tu - tr
-            x.append(ts.total_seconds()/60.0)
-
-        fig = go.Figure(data=go.Histogram(x=x))
-        fig.update_layout(title_text='Training time distribution')
-        histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return histogram
 
     def create_cpu_plot(self):
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
