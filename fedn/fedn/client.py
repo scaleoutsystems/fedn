@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -173,6 +174,7 @@ class Client:
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
         metadata = [('client', r.sender.name)]
+        import time
         while True:
             try:
                 for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
@@ -182,10 +184,15 @@ class Client:
                         # TODO: Error handling
                         self.send_status("Received model update request.", log_level=fedn.Status.AUDIT,
                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
-                        model_id = self.__process_training_request(global_model_id)
+
+                        tic = time.time()
+                        model_id, meta = self.__process_training_request(global_model_id)
+                        processing_time = time.time()-tic
+                        meta['processing_time'] = processing_time
+                        print(meta,flush=True)
 
                         if model_id != None:
-                            # Notify the requesting client that a model update is available
+                            # Notify the combiner that a model update is available
                             update = fedn.ModelUpdate()
                             update.sender.name = self.name
                             update.sender.role = fedn.WORKER
@@ -195,6 +202,8 @@ class Client:
                             update.model_update_id = str(model_id)
                             update.timestamp = str(datetime.now())
                             update.correlation_id = request.correlation_id
+                            update.meta = json.dumps(meta)
+                            #TODO: Check response
                             response = self.orchestrator.SendModelUpdate(update)
 
                             self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
@@ -254,24 +263,27 @@ class Client:
                 time.sleep(timeout)
 
     def __process_training_request(self, model_id):
-        self.send_status("\t Processing training request for model_id {}".format(model_id))
 
+        self.send_status("\t Starting processing of training request for model_id {}".format(model_id))
         self.state = ClientState.training
 
         try:
-
+            meta = {}
+            tic = time.time()
             mdl = self.get_model(str(model_id))
-            import sys
+            meta['fetch_model'] = time.time()-tic
 
+            import sys
             inpath = self.helper.get_tmp_path()
             with open(inpath,'wb') as fh:
                 fh.write(mdl.getbuffer())
 
             outpath = self.helper.get_tmp_path()
-            print(inpath,outpath,flush=True)
-
+            tic = time.time()
             self.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+            meta['exec_training'] = time.time()-tic
 
+            tic = time.time()
             import io
             out_model = None
             with open(outpath, "rb") as fr:
@@ -280,18 +292,19 @@ class Client:
             import uuid
             updated_model_id = uuid.uuid4()
             self.set_model(out_model, str(updated_model_id))
+            meta['upload_model'] = time.time()-tic
 
             os.unlink(inpath)
             os.unlink(outpath)
 
         except Exception as e:
             print("ERROR could not process training request due to error: {}".format(e),flush=True)
-            raise
             updated_model_id = None
+            meta = {'status':'failed','error':str(e)}
 
         self.state = ClientState.idle
 
-        return updated_model_id
+        return updated_model_id, meta 
 
     def __process_validation_request(self, model_id):
         self.send_status("Processing validation request for model_id {}".format(model_id))
@@ -323,10 +336,11 @@ class Client:
 
     def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
         """Send status message. """
-        print("SEND_STATUS REPORTS:{}".format(msg), flush=True)
-        from google.protobuf.json_format import MessageToJson
-        status = fedn.Status()
 
+        from google.protobuf.json_format import MessageToJson
+        
+        status = fedn.Status()
+        status.timestamp = str(datetime.now())
         status.sender.name = self.name
         status.sender.role = fedn.WORKER
         status.log_level = log_level

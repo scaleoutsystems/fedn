@@ -55,10 +55,7 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
-            # logs_fancy = str()
-            # for log in self.logs:
-            #    logs_fancy += "<p>" + log + "</p>\n"
-
+ 
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -365,6 +362,8 @@ class ReducerRestService:
             elif feature == 'cpu':
                 return plot.create_cpu_plot()
             elif feature == 'clients':
+                return plot.create_client_training_distribution()
+            elif feature == 'clients2':
                 return plot.create_client_plot()
 
             else:

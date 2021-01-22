@@ -162,26 +162,50 @@ class Plot:
         timeline = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return timeline
 
-    def create_client_plot(self):
-        x = []
-        for p in self.alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
+    def create_client_training_distribution(self):
+        training = []
+        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
-            cid = e['correlationId']
-            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
-                da = json.loads(cc['data'])
-                if da['correlationId'] == cid:
-                    cp = cc
+            meta = json.loads(e['meta'])
+            training.append(meta['exec_training'])
 
-            cd = json.loads(cp['data'])
-            tr = datetime.strptime(e['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-            tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
-            ts = tu - tr
-            x.append(ts.total_seconds()/60.0)
-
-        fig = go.Figure(data=go.Histogram(x=x))
-        fig.update_layout(title_text='Training time distribution')
+        fig = go.Figure(data=go.Histogram(x=training))
+        fig.update_layout(title_text='Model training distribution')
         histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return histogram
+
+    def create_client_plot(self):
+        processing = []
+        upload = []
+        download = []
+        training =[]
+        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
+            e = json.loads(p['data'])
+            meta = json.loads(e['meta'])
+            upload.append(meta['upload_model'])
+            download.append(meta['fetch_model'])
+            training.append(meta['exec_training'])
+            processing.append(meta['processing_time'])
+
+            
+        
+        fig = go.Figure()
+
+        fig.update_layout(
+            template="simple_white",
+            yaxis=dict(title_text="Seconds"),
+            barmode="stack",
+            title="Total mean client processing time: {}".format(numpy.mean(processing)),
+            showlegend=True
+        )
+
+        data = [numpy.mean(processing),numpy.mean(upload),numpy.mean(download)]
+        labels = ["Training","Model upload","Model download"]
+
+        fig.add_trace(go.Pie(labels=labels,values=data))
+        
+        plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return plot
 
     def create_ml_plot(self):
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
