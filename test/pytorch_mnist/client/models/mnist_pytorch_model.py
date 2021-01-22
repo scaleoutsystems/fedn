@@ -8,7 +8,7 @@ import tempfile
 def create_seed_model():
     model = CNN()
     loss = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adadelta(model.parameters(), lr=1, rho=0.95, eps=1e-07)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, eps=1e-07)
     return model, loss, optimizer
 
 class CNN(nn.Module):
@@ -30,7 +30,7 @@ class CNN(nn.Module):
         self.act3 = nn.ReLU()
         self.dropout2 = nn.Dropout(p=0.5)
         self.dense2 = nn.Linear(128, 10)
-        self.output_act = nn.Softmax(dim=0)
+        self.output_act = nn.Softmax(dim=1)
 
 
     def forward(self, x):

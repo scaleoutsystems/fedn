@@ -2,6 +2,7 @@ from __future__ import print_function
 import sys
 import yaml
 import torch
+import os
 
 from data.read_data import read_data
 
@@ -17,11 +18,11 @@ def train(model, loss, optimizer, data, settings):
         dataloader = read_data(data, nr_examples=settings['training_samples'],
                                batch_size=settings['batch_size'])
         try:
-            torch.save("/app/mnist_train/dataloader.pth")
+            os.mkdir("/app/mnist_train/")
+            torch.save(dataloader, "/app/mnist_train/dataloader.pth")
         except:
             pass
 
-    # model.fit(x_train, y_train, batch_size=settings['batch_size'], epochs=settings['epochs'], verbose=1)
     for i in range(settings['epochs']):
         for x, y in dataloader:
             optimizer.zero_grad()
@@ -29,17 +30,17 @@ def train(model, loss, optimizer, data, settings):
             error = loss(output, y)
             error.backward()
             optimizer.step()
-
-    def evaluate(model, test_dl):
-        model.eval()
-        count = 0
-        for x, y in test_dl:
-            output = model(x)
-            predicted = torch.max(output.data, 1)[1]
-            count += (predicted == y).sum()
-        return count / (len(test_dl) * test_dl.batch_size)
-    print("Local accuracy: {}".format(evaluate(model, dataloader)),
-          flush=True)
+    #
+    # def evaluate(model, test_dl):
+    #     model.eval()
+    #     count = 0
+    #     for x, y in test_dl:
+    #         output = model(x)
+    #         predicted = torch.max(output.data, 1)[1]
+    #         count += (predicted == y).sum()
+    #     return count / (len(test_dl) * test_dl.batch_size)
+    # print("Local accuracy: {}".format(evaluate(model, dataloader)),
+    #       flush=True)
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 

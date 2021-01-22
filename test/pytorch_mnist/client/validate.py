@@ -3,6 +3,7 @@ from data.read_data import read_data
 import json
 import yaml
 import torch
+import os
 
 def validate(model, data, settings):
     print("-- RUNNING VALIDATION --", flush=True)
@@ -19,7 +20,8 @@ def validate(model, data, settings):
         train_loader = read_data(data, nr_examples=settings['training_samples'],
                                batch_size=settings['batch_size'])
         try:
-            torch.save("/app/mnist_train/dataloader.pth")
+            os.mkdir("/app/mnist_train")
+            torch.save(train_loader, "/app/mnist_train/dataloader.pth")
         except:
             pass
 
@@ -30,7 +32,8 @@ def validate(model, data, settings):
         test_loader = read_data(data, nr_examples=settings['test_samples'],
                                batch_size=settings['batch_size'])
         try:
-            torch.save("/app/mnist_test/dataloader.pth")
+            os.mkdir("/app/mnist_test")
+            torch.save(test_loader, "/app/mnist_test/dataloader.pth")
         except:
             pass
 
