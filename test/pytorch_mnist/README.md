@@ -11,9 +11,9 @@ We have made it possible to configure a couple of settings to vary the condition
 
 ```yaml 
 # Number of training samples used by each client
-training_samples: 20000
+training_samples: 600
 # Number of test samples used by each client (validation)
-test_samples: 20000
+test_samples: 100
 # How much to bias the client data samples towards certain classes (non-IID data partitions)
 bias: 0.7
 # Parameters for local training

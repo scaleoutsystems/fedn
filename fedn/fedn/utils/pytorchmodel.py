@@ -7,35 +7,18 @@ from functools import reduce
 
 class PytorchModelHelper(HelperBase):
 
-    def average_weights(self, models):
-        weights = models
-        avg_w = OrderedDict()
-        for name in weights[0].keys():
-            tensorList = [weight[name] for weight in weights]
-            tensorSum = reduce(torch.add, tensorList)
-            avg_w[name] = torch.div(tensorSum, len(weights))
-        return avg_w
-
     def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
-        w_0 = self.get_weights(model)
-        w_1 = self.get_weights(model_next)
         w = OrderedDict()
-        for name in w_0.keys():
-            tensorDiff = w_1[name] - w_0[name]
-            w[name] = w_0[name] + tensorDiff/n
-        self.set_weights(model, w)
+        for name in model.keys():
+            tensorDiff = model_next[name] - model[name]
+            w[name] = model[name] + tensorDiff/n
+        return w
 
-    def set_weights(self, model, weights):
-        for key, value in weights.items():
-            model[key] = value
 
-    def get_weights(self, model):
-        return model
-
-    # def get_tmp_path(self):
-    #     _ , path = tempfile.mkstemp(suffix='.pth')
-    #     return path
+    def get_tmp_path(self):
+        _ , path = tempfile.mkstemp(suffix='.pth')
+        return path
 
     def save_model(self, model, path=None):
         if not path:

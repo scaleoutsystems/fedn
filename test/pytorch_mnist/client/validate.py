@@ -27,7 +27,7 @@ def validate(model, data, settings):
     try:
         test_loader = torch.load("/app/mnist_test/dataloader.pth")
     except:
-        test_loader = read_data("../data/test.csv", nr_examples=settings['test_samples'],
+        test_loader = read_data(data, nr_examples=settings['test_samples'],
                                batch_size=settings['batch_size'])
         try:
             torch.save("/app/mnist_test/dataloader.pth")
