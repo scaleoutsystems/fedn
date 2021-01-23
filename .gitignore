@@ -172,4 +172,6 @@ media/visualisers/
 ./config/extra-hosts-reducer.yaml
 ./config/settings-client.yaml
 
+./tmp/*
+
 
