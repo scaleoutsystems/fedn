@@ -169,10 +169,9 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
-
+                self.server._log_queue_length()
                 self.run_configs_lock.acquire()
                 if len(self.run_configs) > 0:
-
                     compute_plan = self.run_configs.pop()
                     self.run_configs_lock.release()
                     self.config = compute_plan

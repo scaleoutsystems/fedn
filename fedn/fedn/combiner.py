@@ -53,7 +53,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.role = Role.COMBINER
         self.max_clients = connect_config['max_clients']
 
-        self.active_model_id = None
+        self.model_id = None
 
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
@@ -112,10 +112,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return client
 
     def get_active_model(self):
-        return self.active_model_id
+        return self.model_id
 
-    def set_active_model(self, active_model_id):
-        self.active_model_id = active_model_id
+    def set_active_model(self, model_id):
+        self.model_id = model_id
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask clients to update the current global model. If an empty list
@@ -179,6 +179,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return len(self.get_active_validators())
 
     ####################################################################################################################
+
+    def _log_queue_length(self):
+        ql = self.combiner.model_updates.qsize()
+        if ql > 0:
+            self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
 
     def __join_client(self, client):
         """ Add a client to the combiner. """
@@ -501,7 +506,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             response.model_id = self.get_active_model()
         return response
-
 
 
     ####################################################################################################################
