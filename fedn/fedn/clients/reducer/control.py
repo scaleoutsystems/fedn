@@ -45,7 +45,7 @@ class ReducerControl:
         if not self.helper:
             print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
 
-        self.client_allocation_policy = self.client_allocation_policy_first_available
+        self.client_allocation_policy = self.client_allocation_policy_least_packed
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
@@ -163,10 +163,10 @@ class ReducerControl:
         # 1. Formulate compute plans for this round and decide which combiners should participate in the round.
         compute_plan = copy.deepcopy(config)
         compute_plan['rounds'] = 1
+        compute_plan['round_id'] = round_number
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
         compute_plan['helper_type'] = self.helper_type
-
 
         combiners = []
         for combiner in self.network.get_combiners():
@@ -190,7 +190,6 @@ class ReducerControl:
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
-        # extend time monitoring to combiner
         from datetime import datetime
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
@@ -318,7 +317,7 @@ class ReducerControl:
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
-            model_id = self.round(config, round)
+            model_id = self.round(config, current_round)
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)

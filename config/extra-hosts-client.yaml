@@ -1,7 +1,0 @@
-version: '3.3'
-services:
-   client:
-     extra_hosts:
-        combiner1: 130.239.81.105
-        combiner2: 129.16.123.131
-

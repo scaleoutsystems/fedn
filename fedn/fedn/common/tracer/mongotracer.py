@@ -15,6 +15,8 @@ class MongoTracer(Tracer):
             self.model_trail = self.mdb['control.model_trail']
             self.latest_model = self.mdb['control.latest_model']
             self.combiner_round_time = self.mdb['control.combiner_round_time']
+            self.comniner_queue_length = self.mdb['control.combiner_queue_length']
+            self.round = self.mdb['control.round']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -60,6 +62,15 @@ class MongoTracer(Tracer):
     def set_combiner_time(self, round, round_time):
         self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round': round}}, True)
         self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round_time': round_time}}, True)
+
+    def set_combiner_queue_length(self,timestamp,ql):
+        self.combiner_queue_length({'key': 'combiner_queue_length'}, {'$push': {'queue_length': ql}}, True)
+        self.combiner_queue_length.update({'key': 'combiner_queue_length'}, {'$push': {'timestamp': timestamp}}, True)
+
+    # Round statistics
+    def set_round_meta(self, round_meta):
+        self.round.update({'key': str(round_meta['round_id'])}, {'$push': {'combiners': round_meta}}, True)
+
 
     def get_latest_round(self):
         for post in self.round_time.find({'key': 'round_time'}):

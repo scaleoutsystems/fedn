@@ -207,6 +207,36 @@ class Plot:
         plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return plot
 
+    def create_combiner_plot(self):
+        waiting = []
+        aggregation = []
+        model_load = []
+        combination=[]
+        for round in self.mdb['control.round'].find():
+            for combiner in round['combiners']:
+                data = combiner
+                stats = data['local_round']['1']
+                ml = stats['aggregation_time']['time_model_load']
+                ag = stats['aggregation_time']['time_model_aggregation']
+                combination.append(stats['time_combination'])
+                waiting.append(stats['time_combination']-ml-ag)
+                model_load.append(ml)
+                aggregation.append(ag)
+        
+        labels = ['Waiting for updates','Aggregating model updates','Loading model updates']
+        val = [numpy.mean(waiting),numpy.mean(aggregation),numpy.mean(model_load)]
+        fig = go.Figure()
+
+        fig.update_layout(
+            template="simple_white",
+            title="Total mean combiner round time: {}".format(numpy.mean(combination)),
+            showlegend=True
+        )
+
+        fig.add_trace(go.Pie(labels=labels,values=val))
+        plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return plot
+
     def create_box_plot(self):
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
