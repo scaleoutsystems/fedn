@@ -5,13 +5,27 @@ import yaml
 import torch
 import os
 
+
 def validate(model, data, settings):
     print("-- RUNNING VALIDATION --", flush=True)
-    model.eval()
     # The data, split between train and test sets. We are caching the partition in 
     # the container home dir so that the same data subset is used for 
-    # each iteration. 
+    # each iteration.
 
+    def evaluate(model, loss, dataloader):
+        print("-- RUNNING VALIDATION --", flush=True)
+        model.eval()
+        train_loss = 0
+        train_correct = 0
+        with torch.no_grad():
+            for x, y in dataloader:
+                output = model(x)
+                train_loss += 32 * loss(output, y).item()
+                pred = output.argmax(dim=1, keepdim=True)
+                train_correct += pred.eq(y.view_as(pred)).sum().item()
+            train_loss /= len(dataloader.dataset)
+            train_acc = train_correct / len(dataloader.dataset)
+        return float(train_loss), float(train_acc)
 
     # Training error (Client validates global model on same data as it trains on.)
     try:
@@ -38,23 +52,8 @@ def validate(model, data, settings):
             pass
 
     try:
-        count = 0
-        for x, y in train_loader:
-            output = model(x)
-            predicted = torch.max(output.data, 1)[1]
-            count += (predicted == y).sum()
-        print('Training loss:', 'unevaluated')
-        train_acc = count/(len(train_loader)*train_loader.batch_size)
-        print('Training accuracy: {}%'.format(100*float(train_acc)), flush=True)
-
-        count = 0
-        for x, y in test_loader:
-            output = model(x)
-            predicted = torch.max(output.data, 1)[1]
-            count += (predicted == y).sum()
-        print('Test loss:', 'unevaluated')
-        test_acc = count/(len(test_loader)*test_loader.batch_size)
-        print('Test accuracy: {}%'.format(100*float(test_acc)), flush=True)
+        training_loss, training_acc = evaluate(model, loss, train_loader)
+        test_loss, test_acc = evaluate(model, loss, test_loader)
 
     except Exception as e:
         print("failed to validate the model {}".format(e), flush=True)
@@ -62,10 +61,10 @@ def validate(model, data, settings):
     
     report = { 
                 "classification_report": 'unevaluated',
-                "training_loss": 'unevaluated',
-                "training_accuracy": float(train_acc),
-                "test_loss": 'unevaluated',
-                "test_accuracy": float(test_acc),
+                "training_loss": training_loss,
+                "training_accuracy": training_acc,
+                "test_loss": test_loss,
+                "test_accuracy": test_acc,
             }
 
     print("-- VALIDATION COMPLETE! --", flush=True)

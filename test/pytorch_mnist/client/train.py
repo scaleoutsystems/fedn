@@ -10,6 +10,7 @@ from data.read_data import read_data
 def train(model, loss, optimizer, data, settings):
     print("-- RUNNING TRAINING --", flush=True)
 
+    model.train()
     # We are caching the partition in the container home dir so that
     # the same training subset is used for each iteration for a client. 
     try:
@@ -30,17 +31,7 @@ def train(model, loss, optimizer, data, settings):
             error = loss(output, y)
             error.backward()
             optimizer.step()
-    #
-    # def evaluate(model, test_dl):
-    #     model.eval()
-    #     count = 0
-    #     for x, y in test_dl:
-    #         output = model(x)
-    #         predicted = torch.max(output.data, 1)[1]
-    #         count += (predicted == y).sum()
-    #     return count / (len(test_dl) * test_dl.batch_size)
-    # print("Local accuracy: {}".format(evaluate(model, dataloader)),
-    #       flush=True)
+
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 
