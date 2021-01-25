@@ -364,6 +364,8 @@ class ReducerRestService:
                 return plot.create_cpu_plot()
             elif feature == 'clients':
                 return plot.create_client_plot()
+            elif feature == 'combiners':
+                return plot.create_combiner_plot()
 
             else:
                 return 'No plot!'

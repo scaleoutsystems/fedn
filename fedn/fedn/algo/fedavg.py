@@ -85,15 +85,19 @@ class FEDAVGCombiner:
         import time
         round_time = 0.0
         print("COMBINER: combining model updates from Clients...")
+        data = {}
+        data['time_model_load'] = 0.0
+        data['time_model_aggregation'] = 0.0 
 
+        polling_interval = 1.0
         nr_processed_models = 0
         while nr_processed_models < nr_expected_models:
             try:
                 model_id = self.model_updates.get(block=False)
-
                 self.report_status("Received model update with id {}".format(model_id))
-                model_str = self._load_model_fault_tolerant(model_id)
 
+                tic = time.time()
+                model_str = self._load_model_fault_tolerant(model_id)
                 if model_str:
                     try:
                         model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
@@ -102,18 +106,22 @@ class FEDAVGCombiner:
                 else: 
                     raise
 
+                data['time_model_load'] += time.time()-tic
+
+                tic = time.time()
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)
+                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)                
+                data['time_model_aggregation'] += time.time()-tic 
 
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
                 self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
                     ,nr_expected_models))
-                time.sleep(1.0)
-                round_time += 1.0
+                time.sleep(polling_interval)
+                round_time += polling_interval
             except IOError:
                 self.report_status("COMBINER: Failed to read model update, skipping!")
                 self.model_updates.task_done()
@@ -122,8 +130,8 @@ class FEDAVGCombiner:
                     return None
             except Exception as e:
                 self.report_status("COMBINER: Exception in combine_models: {}".format(e))
-                time.sleep(1.0)
-                round_time += 1.0
+                time.sleep(polling_interval)
+                round_time += polling_interval
 
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
@@ -137,8 +145,8 @@ class FEDAVGCombiner:
         self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
                            log_level=fedn.Status.INFO)
         self.report_status("DONE, combined {} models".format(nr_processed_models))
-        return model
-
+        data['nr_successful_updates'] = nr_processed_models
+        return model, data
 
     def __training_round(self,config,clients):
 
@@ -149,51 +157,19 @@ class FEDAVGCombiner:
 
         self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
-        model = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=int(config['round_timeout']))
-        return model
+
+        meta = {}
+        meta['nr_expected_updates'] = len(clients)
+        meta['nr_required_updates'] = int(config['clients_required'])
+        meta['timeout'] = int(config['round_timeout'])
+        tic = time.time()
+        model,data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=int(config['round_timeout']))
+        meta['time_combination'] = time.time()-tic
+        meta['aggregation_time'] = data
+        return model,meta
 
     def __validation_round(self,config,clients,model_id):
         self.server.request_model_validation(model_id, clients=clients)
-
-    def push_run_config(self, plan):
-        self.run_configs_lock.acquire()
-        import uuid
-        plan['_job_id'] = str(uuid.uuid4())
-        self.run_configs.append(plan)
-        self.run_configs_lock.release()
-        return plan['_job_id']
-
-    def run(self):
-
-        import time
-        try:
-            while True:
-                time.sleep(1)
-                self.server._log_queue_length()
-                self.run_configs_lock.acquire()
-                if len(self.run_configs) > 0:
-                    compute_plan = self.run_configs.pop()
-                    self.run_configs_lock.release()
-                    self.config = compute_plan
-                    self.helper = get_helper(self.config['helper_type'])
-
-                    ready = self.__check_nr_round_clients(compute_plan)
-                    if ready:
-                        if compute_plan['task'] == 'training':
-                            self.exec_training(compute_plan)
-                        elif compute_plan['task'] == 'validation':
-                            self.exec_validation(compute_plan, compute_plan['model_id'])
-                        else:
-                            self.report_status("COMBINER: Compute plan contains unkown task type.", flush=True)
-                    else:
-                        self.report_status("COMBINER: Failed to meet client allocation requirements for this compute plan.", flush=True)
-
-                if self.run_configs_lock.locked():
-                    self.run_configs_lock.release()
-
-        except (KeyboardInterrupt, SystemExit):
-            pass
-
 
     def stage_model(self,model_id):
         """ Download model from persistent storage. """ 
@@ -273,15 +249,20 @@ class FEDAVGCombiner:
     def exec_training(self, config):
         """ Coordinates clients to executee training and validation tasks. """
 
+        round_meta = {}
+        round_meta['config'] = config
+        round_meta['round_id'] = config['round_id']
+
         self.stage_model(config['model_id'])
 
         # Execute the configured number of rounds
+        round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
             self.report_status("COMBINER: Starting training round {}".format(r), flush=True)
             #clients = self.__assign_round_clients(int(config['clients_requested']))
             clients = self.__assign_round_clients(self.server.max_clients)
-            model = self.__training_round(config, clients)
-
+            model, meta = self.__training_round(config, clients)
+            round_meta['local_round'][str(r)] = meta
             if model is None:
                 self.report_status("\t Failed to update global model in round {0}!".format(r))
 
@@ -299,5 +280,48 @@ class FEDAVGCombiner:
             print("------------------------------------------")
             self.report_status("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
             print("\n")
+        return round_meta
 
- 
+    def push_run_config(self, plan):
+        self.run_configs_lock.acquire()
+        import uuid
+        plan['_job_id'] = str(uuid.uuid4())
+        self.run_configs.append(plan)
+        self.run_configs_lock.release()
+        return plan['_job_id']
+
+    def run(self):
+
+        import time
+        try:
+            while True:
+                time.sleep(1)
+                self.server._log_queue_length()
+
+                self.run_configs_lock.acquire()
+                if len(self.run_configs) > 0:
+                    compute_plan = self.run_configs.pop()
+                    self.run_configs_lock.release()
+                    self.config = compute_plan
+                    self.helper = get_helper(self.config['helper_type'])
+
+                    ready = self.__check_nr_round_clients(compute_plan)
+                    if ready:
+                        if compute_plan['task'] == 'training':
+                            tic = time.time()
+                            round_meta = self.exec_training(compute_plan)
+                            round_meta['time_exec_training'] = time.time()-tic
+                            round_meta['name'] = self.id
+                            self.server.tracer.set_round_meta(round_meta)
+                        elif compute_plan['task'] == 'validation':
+                            self.exec_validation(compute_plan, compute_plan['model_id'])
+                        else:
+                            self.report_status("COMBINER: Compute plan contains unkown task type.", flush=True)
+                    else:
+                        self.report_status("COMBINER: Failed to meet client allocation requirements for this compute plan.", flush=True)
+
+                if self.run_configs_lock.locked():
+                    self.run_configs_lock.release()
+
+        except (KeyboardInterrupt, SystemExit):
+            pass 
