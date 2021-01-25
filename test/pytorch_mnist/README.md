@@ -38,9 +38,9 @@ python init_model.py
 ```
 
 ## Start the client
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
+The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory (!!! NOT in "test/pytorch_mnist"):
 
 ```bash
 docker-compose -f test/pytorch_mnist/docker-compose.dev.yaml up --scale client=2 --build
 ```
-> Note that this assumes that a FEDn network is running (see separate deployment instructions). The file 'docker-compose.dev.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
+> Note that this assumes that a FEDn network is running with "pytorch_model" helper, which is identified in "config/settings-reducer.yaml" (see separate deployment instructions). The file 'docker-compose.dev.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
