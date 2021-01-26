@@ -96,6 +96,7 @@ class FEDAVGCombiner:
                 model_id = self.model_updates.get(block=False)
                 self.report_status("Received model update with id {}".format(model_id))
 
+                # Load the model update
                 tic = time.time()
                 model_str = self._load_model_fault_tolerant(model_id)
                 if model_str:
@@ -105,9 +106,10 @@ class FEDAVGCombiner:
                         self.report_status("COMBINER: Failed to load model!")
                 else: 
                     raise
-
+    
                 data['time_model_load'] += time.time()-tic
 
+                # Aggregate
                 tic = time.time()
                 if nr_processed_models == 0:
                     model = model_next
@@ -124,14 +126,16 @@ class FEDAVGCombiner:
                 round_time += polling_interval
             except IOError:
                 self.report_status("COMBINER: Failed to read model update, skipping!")
-                self.model_updates.task_done()
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
                     return None
+                self.model_updates.task_done()
             except Exception as e:
-                self.report_status("COMBINER: Exception in combine_models: {}".format(e))
-                time.sleep(polling_interval)
-                round_time += polling_interval
+                self.report_status("COMBINER: Unknown exception in combine_models: {}".format(e))
+                nr_expected_models -= 1
+                if nr_expected_models <= 0:
+                    return None
+                self.model_updates.task_done()
 
             if round_time >= timeout:
                 self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
