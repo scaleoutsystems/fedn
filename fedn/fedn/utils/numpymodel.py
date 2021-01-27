@@ -10,7 +10,7 @@ from .helpers import HelperBase
 class NumpyHelper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
-    def model = increment_average(self, model, model_next, n):
+    def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
         return np.add(model, (model_next - model) / n)
 
