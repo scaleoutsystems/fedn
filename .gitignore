@@ -1,4 +1,9 @@
+#certificate files
+*.pem
+*.cer
+
 # Byte-compiled / optimized / DLL files
+
 tmp/
 *tempin.pyb
 *tempout.pyb
@@ -154,10 +159,6 @@ media/visualisers/
 ./test/data-center/reducer/*
 
 # nlp_imdb_senti test-case
-./test/nlp_imdb_senti/client/certs/*
-./test/nlp_imdb_senti/combiner/certs/*
-./test/nlp_imdb_senti/reducer/*
+./test/nlp_imdb/reducer/*
 
-# config files
-./config/*
 

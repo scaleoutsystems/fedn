@@ -45,10 +45,6 @@ class ReducerControl:
         if not self.helper:
             print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
 
-        # TODO: Refactor and make all these configurable
-        #from fedn.utils.kerassequential import KerasSequentialHelper
-        # TODO: Refactor and make all these configurable
-        #self.helper = KerasSequentialHelper()
         self.client_allocation_policy = self.client_allocation_policy_least_packed
 
         if self.statestore.is_inited():
@@ -337,7 +333,7 @@ class ReducerControl:
                 try:
                     model_str=combiner.get_model().getbuffer()
                     model_next = self.helper.load_model_from_BytesIO(model_str)
-                    self.helper.increment_average(model, model_next, i)
+                    model = self.helper.increment_average(model, model_next, i)
                 except:
                     model = self.helper.load_model_from_BytesIO(data.getbuffer())
                 i = i+1

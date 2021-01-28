@@ -15,10 +15,6 @@ class NumpyHelper(HelperBase):
         temp = np.add(model, (model_next - model) / n)
         model[:] = temp[:]
 
-    def get_tmp_path(self):
-        _ , path = tempfile.mkstemp()
-        return path
-
     def save_model(self, model, path=None):
         if not path:
             _ , path = tempfile.mkstemp()

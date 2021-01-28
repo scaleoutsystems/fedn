@@ -112,7 +112,7 @@ class FEDAVGCombiner:
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    self.helper.increment_average(model, model_next, nr_processed_models+1)
+                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)
 
                 nr_processed_models += 1
                 self.model_updates.task_done()
@@ -299,6 +299,7 @@ class FEDAVGCombiner:
             # Send aggregated model to server 
             model_id = str(uuid.uuid4())        
             self.modelservice.set_model(a, model_id)
+            a.close()
      
             # Update Combiner latest model
             self.server.set_active_model(model_id)

@@ -1,23 +1,20 @@
 import collections
 from abc import ABC, abstractmethod
+import os 
+import tempfile
 
 
 class HelperBase(ABC):
     """ Abstract class defining helpers. """
 
     def __init__(self):
-        """  """
+        """ """
 
     @abstractmethod
     def increment_average(self, model, model_next, n):
         """ Compute one increment of incremental averaging. 
             n: the iteration index 1...N  in the sequence. 
         """
-        pass
-
-    @abstractmethod
-    def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model. """
         pass
 
     @abstractmethod
@@ -43,6 +40,11 @@ class HelperBase(ABC):
         """ Load a model from a BytesIO buffered object. """
         pass
 
+    @abstractmethod
+    def get_tmp_path(self):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        pass
+
 def get_helper(helper_type):
     if helper_type == 'numpymodel':
         from fedn.utils.numpymodel import NumpyHelper
@@ -56,5 +58,8 @@ def get_helper(helper_type):
     elif helper_type == 'kerasweights_modeltar':
         from fedn.utils.kerasweights_modeltar import KerasWeightsHelper
         return KerasWeightsHelper()
+    elif helper_type == 'pytorch_model':
+        from fedn.utils.pytorchmodel import PytorchModelHelper
+        return PytorchModelHelper()
     else:
         return None
