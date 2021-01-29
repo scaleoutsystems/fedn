@@ -55,7 +55,7 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
-
+ 
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -268,7 +268,7 @@ class ReducerRestService:
             for combiner in self.control.network.combiners:
                 report = combiner.report()
                 combiner_info.append(report)
-
+            
             try:
                 return render_template('index.html', show_combiners=True,combiner_info=combiner_info)
             except Exception as e:

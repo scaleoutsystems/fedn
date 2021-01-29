@@ -201,9 +201,9 @@ class Plot:
         data = [numpy.mean(training),numpy.mean(upload),numpy.mean(download)]
         labels = ["Training","Model upload","Model download"]
         fig.add_trace(go.Pie(labels=labels,values=data),row=1,col=1)
-
+        
         fig.add_trace(go.Histogram(x=training),row=1,col=2)
-
+        
         plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return plot
 
@@ -222,7 +222,7 @@ class Plot:
                 waiting.append(stats['time_combination']-ml-ag)
                 model_load.append(ml)
                 aggregation.append(ag)
-
+        
         labels = ['Waiting for updates','Aggregating model updates','Loading model updates']
         val = [numpy.mean(waiting),numpy.mean(aggregation),numpy.mean(model_load)]
         fig = go.Figure()

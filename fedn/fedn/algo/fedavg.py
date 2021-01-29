@@ -12,7 +12,7 @@ from  fedn.utils.helpers import get_helper
 
 class FEDAVGCombiner:
     """ 
-        A Local SGD / Federated Averaging (FedAvg) aggregator. Coordinating the update of the Combiner global
+        A Local SGD / Federated Averaging (FedAvg) aggregator. Coordinating the update of the Combiner global 
         model by requesting and aggregating model updates from Clients. 
 
     """
@@ -87,7 +87,7 @@ class FEDAVGCombiner:
         print("COMBINER: combining model updates from Clients...")
         data = {}
         data['time_model_load'] = 0.0
-        data['time_model_aggregation'] = 0.0
+        data['time_model_aggregation'] = 0.0 
 
         polling_interval = 1.0
         nr_processed_models = 0
@@ -106,7 +106,7 @@ class FEDAVGCombiner:
                         self.report_status("COMBINER: Failed to load model!")
                 else: 
                     raise
-
+    
                 data['time_model_load'] += time.time()-tic
 
                 # Aggregate
@@ -114,8 +114,8 @@ class FEDAVGCombiner:
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)
-                data['time_model_aggregation'] += time.time()-tic
+                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)                
+                data['time_model_aggregation'] += time.time()-tic 
 
                 nr_processed_models += 1
                 self.model_updates.task_done()
@@ -328,4 +328,4 @@ class FEDAVGCombiner:
                     self.run_configs_lock.release()
 
         except (KeyboardInterrupt, SystemExit):
-            pass
+            pass 

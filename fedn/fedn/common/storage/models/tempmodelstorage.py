@@ -9,7 +9,7 @@ import os
 class TempModelStorage(ModelStorage):
 
     def __init__(self):
-        # self.dir = tempfile.TemporaryDirectory()
+
         self.default_dir = os.environ.get('FEDN_MODEL_DIR', '/tmp/models')  # set default to tmp
         if not os.path.exists(self.default_dir):
             os.makedirs(self.default_dir)

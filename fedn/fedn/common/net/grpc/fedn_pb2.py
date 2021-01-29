@@ -926,8 +926,8 @@ _GETGLOBALMODELRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1339,
-  serialized_end=1443,
+  serialized_start=1367,
+  serialized_end=1471,
 )
 
 
@@ -958,8 +958,8 @@ _HEARTBEAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1445,
-  serialized_end=1486,
+  serialized_start=1473,
+  serialized_end=1514,
 )
 
 
@@ -1004,8 +1004,8 @@ _CLIENTAVAILABLEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1488,
-  serialized_end=1575,
+  serialized_start=1516,
+  serialized_end=1603,
 )
 
 
@@ -1043,8 +1043,8 @@ _LISTCLIENTSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1577,
-  serialized_end=1659,
+  serialized_start=1605,
+  serialized_end=1687,
 )
 
 
@@ -1075,8 +1075,8 @@ _CLIENTLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1661,
-  serialized_end=1703,
+  serialized_start=1689,
+  serialized_end=1731,
 )
 
 
@@ -1114,8 +1114,8 @@ _CLIENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1705,
-  serialized_end=1753,
+  serialized_start=1733,
+  serialized_end=1781,
 )
 
 
@@ -1167,8 +1167,8 @@ _REASSIGNREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1755,
-  serialized_end=1864,
+  serialized_start=1783,
+  serialized_end=1892,
 )
 
 
@@ -1213,8 +1213,8 @@ _RECONNECTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1866,
-  serialized_end=1965,
+  serialized_start=1894,
+  serialized_end=1993,
 )
 
 
@@ -1252,8 +1252,8 @@ _PARAMETER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1967,
-  serialized_end=2006,
+  serialized_start=1995,
+  serialized_end=2034,
 )
 
 
@@ -1291,8 +1291,8 @@ _CONTROLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2008,
-  serialized_end=2092,
+  serialized_start=2036,
+  serialized_end=2120,
 )
 
 
@@ -1330,8 +1330,8 @@ _CONTROLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2094,
-  serialized_end=2164,
+  serialized_start=2122,
+  serialized_end=2192,
 )
 
 
@@ -1369,8 +1369,8 @@ _REPORTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2166,
-  serialized_end=2248,
+  serialized_start=2194,
+  serialized_end=2276,
 )
 
 
@@ -1394,8 +1394,8 @@ _CONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2250,
-  serialized_end=2269,
+  serialized_start=2278,
+  serialized_end=2297,
 )
 
 
@@ -1426,8 +1426,8 @@ _CONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2271,
-  serialized_end=2331,
+  serialized_start=2299,
+  serialized_end=2359,
 )
 
 _RESPONSE.fields_by_name['sender'].message_type = _CLIENT
@@ -1668,8 +1668,8 @@ _MODELSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2870,
-  serialized_end=2992,
+  serialized_start=2898,
+  serialized_end=3020,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upload',
@@ -1704,8 +1704,8 @@ _CONTROL = _descriptor.ServiceDescriptor(
   index=1,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2995,
-  serialized_end=3222,
+  serialized_start=3023,
+  serialized_end=3250,
   methods=[
   _descriptor.MethodDescriptor(
     name='Start',
@@ -1760,8 +1760,8 @@ _REDUCER = _descriptor.ServiceDescriptor(
   index=2,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3224,
-  serialized_end=3310,
+  serialized_start=3252,
+  serialized_end=3338,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetGlobalModel',
@@ -1786,8 +1786,8 @@ _CONNECTOR = _descriptor.ServiceDescriptor(
   index=3,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3313,
-  serialized_end=3740,
+  serialized_start=3341,
+  serialized_end=3768,
   methods=[
   _descriptor.MethodDescriptor(
     name='AllianceStatusStream',
@@ -1872,8 +1872,8 @@ _COMBINER = _descriptor.ServiceDescriptor(
   index=4,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3743,
-  serialized_end=4345,
+  serialized_start=3771,
+  serialized_end=4373,
   methods=[
   _descriptor.MethodDescriptor(
     name='ModelUpdateRequestStream',
