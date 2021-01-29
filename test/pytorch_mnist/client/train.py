@@ -48,6 +48,6 @@ if __name__ == '__main__':
     helper = PytorchModelHelper()
     model, loss, optimizer = create_seed_model()
     model.load_state_dict(helper.load_model(sys.argv[1]))
-    model = train(model, loss, optimizer, '../data/train.csv', settings)
+    model = train(model, loss, optimizer, '/app/data/train.csv', settings)
     helper.save_model(model.state_dict(), sys.argv[2])
-
+    
