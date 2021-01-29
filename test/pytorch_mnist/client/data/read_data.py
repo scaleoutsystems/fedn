@@ -6,7 +6,10 @@ import numpy
 def read_data(filename, nr_examples=1000, batch_size=100):
     """ Helper function to read and preprocess data for training with pytorch. """
 
+    print("inside read data: filename: ", filename)
+
     data = numpy.array(pd.read_csv(filename))
+    print("data: ", data.shape)
     X = data[:, 1::]
     y = data[:, 0]
 

@@ -55,9 +55,6 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
-            # logs_fancy = str()
-            # for log in self.logs:
-            #    logs_fancy += "<p>" + log + "</p>\n"
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -145,6 +142,7 @@ class ReducerRestService:
                     self.tracer.drop_model_trail()
                     self.tracer.drop_latest_model()
                     self.tracer.drop_status()
+                    self.tracer.drop_combiner_round_time()
                 except:
                     pass
 
@@ -264,12 +262,28 @@ class ReducerRestService:
 
             return result
 
+        @app.route('/combiners')
+        def combiner_info():
+            combiner_info = []
+            for combiner in self.control.network.combiners:
+                report = combiner.report()
+                combiner_info.append(report)
+
+            try:
+                return render_template('index.html', show_combiners=True,combiner_info=combiner_info)
+            except Exception as e:
+                return str(e)
 
         @app.route('/network')
         def map_view():
+            combiner_info = []
+            for combiner in self.control.network.combiners:
+                report = combiner.report()
+                combiner_info.append(report)
+
             map = create_map()
             try:
-                return render_template('index.html', show_map=True, map=map)
+                return render_template('index.html', show_map=True, map=map, combiner_info=combiner_info)
             except Exception as e:
                 return str(e)
 
@@ -364,6 +378,11 @@ class ReducerRestService:
                 return plot.create_box_plot()
             elif feature == 'cpu':
                 return plot.create_cpu_plot()
+            elif feature == 'clients':
+                return plot.create_client_plot()
+            elif feature == 'combiners':
+                return plot.create_combiner_plot()
+
             else:
                 return 'No plot!'
 

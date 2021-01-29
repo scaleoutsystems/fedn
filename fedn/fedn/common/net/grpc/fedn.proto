@@ -63,6 +63,7 @@ message ModelUpdate {
   string model_update_id = 4;
   string correlation_id = 5;
   string timestamp = 6;
+  string meta = 7;
 }
 
 message ModelValidationRequest {
@@ -81,6 +82,7 @@ message ModelValidation {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6;
+  string meta = 7;
 }
 
 enum ModelStatus {
@@ -95,7 +97,6 @@ message ModelRequest {
   bytes data = 3;
   string id = 4;
   ModelStatus status = 5;
-
 }
 
 message ModelResponse {

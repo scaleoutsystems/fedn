@@ -50,4 +50,3 @@ if __name__ == '__main__':
     model.load_state_dict(helper.load_model(sys.argv[1]))
     model = train(model, loss, optimizer, '/app/data/train.csv', settings)
     helper.save_model(model.state_dict(), sys.argv[2])
-    
