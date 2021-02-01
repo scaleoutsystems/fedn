@@ -40,8 +40,6 @@ def train(model,data,settings):
 
     model.fit(x_train, y_train, batch_size=settings['batch_size'], epochs=settings['epochs'], verbose=1)
 
-
-
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 

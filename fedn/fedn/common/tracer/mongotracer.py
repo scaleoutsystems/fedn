@@ -70,7 +70,9 @@ class MongoTracer(Tracer):
     # Round statistics
     def set_round_meta(self, round_meta):
         self.round.update({'key': str(round_meta['round_id'])}, {'$push': {'combiners': round_meta}}, True)
-
+    
+    def set_round_meta_reducer(self, round_meta):
+        self.round.update({'key': str(round_meta['round_id'])}, {'$push': {'reducer': round_meta}}, True)
 
     def get_latest_round(self):
         for post in self.round_time.find({'key': 'round_time'}):
