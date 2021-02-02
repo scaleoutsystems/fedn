@@ -244,7 +244,7 @@ class ReducerControl:
         if round_valid == False:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!",flush=True)
-            return None
+            return None, round_meta
 
         # 3. Reduce combiner models into a global model
         try:
@@ -253,7 +253,7 @@ class ReducerControl:
         except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
             print(e,flush=True)
-            return None
+            return None, round_meta
 
         if model is not None:
             # Commit to model ledger
@@ -264,7 +264,7 @@ class ReducerControl:
             round_meta['time_commit']=time.time()-tic
         else:
             print("REDUCER: failed to update model in round with config {}".format(config),flush=True)
-            return None
+            return None, round_meta
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         # TODO: Move to config - are we validating in a round, and if so, in what way.
