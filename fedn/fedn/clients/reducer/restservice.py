@@ -266,8 +266,11 @@ class ReducerRestService:
         def combiner_info():
             combiner_info = []
             for combiner in self.control.network.combiners:
-                report = combiner.report()
-                combiner_info.append(report)
+                try:
+                    report = combiner.report()
+                    combiner_info.append(report)
+                except:
+                    pass
             
             try:
                 return render_template('index.html', show_combiners=True,combiner_info=combiner_info)
