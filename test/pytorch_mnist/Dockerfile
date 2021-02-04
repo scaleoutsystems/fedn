@@ -1,7 +1,6 @@
-FROM scaleoutsystems/fedn-client:develop
-COPY test/pytorch_mnist/fedn-network.yaml /app/
-COPY test/pytorch_mnist/requirements.txt /app/requirements.txt
-COPY fedn /app/fedn
-RUN pip install -r /app/requirements.txt &&\
-    pip install -e /app/fedn
+FROM python:3.8.5
+RUN pip install -e git://github.com/scaleoutsystems/fedn.git@pytorch-helper#egg=fedn\&subdirectory=fedn
+COPY fedn-network.yaml /app/
+COPY requirements.txt /app/
 WORKDIR /app
+RUN pip install -r requirements.txt

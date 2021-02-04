@@ -3,14 +3,13 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/mnist-client:latest"
+    image: "torch-mnist-client:latest"
     build:
-      context: ${PWD}
-      dockerfile: ${PWD}/test/pytorch_mnist/Dockerfile
+      context: .
     working_dir: /app
     command: /bin/bash -c "fedn run client -in fedn-network.yaml"
     volumes:
-      - ${PWD}/test/pytorch_mnist/data:/app/data
+      - ./data:/app/data
 
 networks:
   default:
