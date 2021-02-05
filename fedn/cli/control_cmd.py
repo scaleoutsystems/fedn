@@ -34,7 +34,7 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 
-    from fedn.common.control.package import Package
+    from fedncommon.control.package import Package
     package = Package(config)
 
     print("CONTROL: Bundling package..")
@@ -65,7 +65,7 @@ def unpack_cmd(ctx, reducer, port, token, name, download, validate, cwd):
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 
-    from fedn.common.control.package import PackageRuntime
+    from fedncommon.control.package import PackageRuntime
     package = PackageRuntime(cwd, os.path.join(cwd, 'client'))
     package.download(reducer, port, token)
     package.unpack()

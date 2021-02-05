@@ -1,5 +1,5 @@
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedncommon.net.grpc.fedn_pb2 as fedn
+import fedncommon.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 import json
 

@@ -1,5 +1,5 @@
 from fedn.clients.reducer.state import ReducerStateToString, StringToReducerState
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.storage.db.mongo import connect_to_mongodb
 from .reducerstatestore import ReducerStateStore
 
 

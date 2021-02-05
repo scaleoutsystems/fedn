@@ -3,11 +3,11 @@ import queue
 import threading
 import uuid
 from datetime import datetime, timedelta
-from fedn.common.net.grpc.server import Server
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedncommon.net.grpc.server import Server
+import fedncommon.net.grpc.fedn_pb2 as fedn
+import fedncommon.net.grpc.fedn_pb2_grpc as rpc
 from fedn.clients.combiner.modelservice import ModelService
-from fedn.common.storage.s3.s3repo import S3ModelRepository
+from fedn.storage.s3.s3repo import S3ModelRepository
 import requests
 import json
 import io
@@ -55,7 +55,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.model_id = None
 
-        from fedn.common.net.connect import ConnectorCombiner, Status
+        from fedncommon.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
@@ -90,7 +90,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
-        from fedn.common.tracer.mongotracer import MongoTracer
+        from fedn.tracer.mongotracer import MongoTracer
         self.tracer = MongoTracer(config['statestore']['mongo_config'],config['statestore']['network_id'])
 
         self.server.start()

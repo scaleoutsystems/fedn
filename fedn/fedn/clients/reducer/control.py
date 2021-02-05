@@ -7,7 +7,7 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
-from fedn.utils.helpers import get_helper
+from fedncommon.utils.helpers import get_helper
 
 
 class UnsupportedStorageBackend(Exception):
@@ -34,7 +34,7 @@ class ReducerControl:
             raise MisconfiguredStorageBackend()
 
         if config['storage_type'] == 'S3':
-            from fedn.common.storage.s3.s3repo import S3ModelRepository
+            from fedn.storage.s3.s3repo import S3ModelRepository
             self.model_repository = S3ModelRepository(config['storage_config'])
         else:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)

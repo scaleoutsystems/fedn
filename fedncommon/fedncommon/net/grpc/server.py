@@ -1,6 +1,6 @@
 from concurrent import futures
 
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedncommon.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 
 class Server:

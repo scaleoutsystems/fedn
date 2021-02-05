@@ -1,6 +1,6 @@
 import os
 
-from fedn.utils.dispatcher import Dispatcher
+from fedncommon.utils.dispatcher import Dispatcher
 
 
 class Package:

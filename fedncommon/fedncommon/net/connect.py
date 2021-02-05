@@ -15,7 +15,7 @@ class Status(enum.Enum):
     TryAgain = 2
 
 
-from fedn.common.security.certificate import Certificate
+from fedncommon.security.certificate import Certificate
 
 
 class ConnectorClient:
