@@ -1,5 +1,5 @@
-import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.common.storage.models.modelstorage import ModelStorage
+import fedncommon.net.grpc.fedn_pb2 as fedn
+from fedn.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 

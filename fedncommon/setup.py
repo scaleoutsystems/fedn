@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='fedn',
+    name='fedncommon',
     version='0.1.5',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
@@ -10,10 +10,9 @@ setup(
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
     include_package_data=True,
-    py_modules=['fedn'],
+    py_modules=['fedncommon'],
     python_requires='>=3.6,<4',
     install_requires=[
-        "fedncommon",
         "wheel",
         "attrdict",
         "certifi",
@@ -30,7 +29,7 @@ setup(
         "protobuf",
         "pypandoc==1.5",
         "wheel",
-        "pymongo===3.11.0",
+        "pymongo==3.11.0",
         "Flask==1.1.2",
         "Flask-WTF==0.14.3",
         "pyopenssl",
@@ -43,13 +42,9 @@ setup(
         "nltk",
         "geoip2",
         "deprecated"
-
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,
-    entry_points={
-        'console_scripts': ["fedn=cli:main"]
-    },
     keywords='Federated learning',
     packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[

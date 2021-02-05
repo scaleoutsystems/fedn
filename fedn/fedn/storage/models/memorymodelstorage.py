@@ -1,4 +1,4 @@
-from fedn.common.storage.models.modelstorage import ModelStorage
+from fedn.storage.models.modelstorage import ModelStorage
 from collections import defaultdict
 import io
 

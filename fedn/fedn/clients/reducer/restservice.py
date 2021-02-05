@@ -133,7 +133,7 @@ class ReducerRestService:
         @app.route('/delete', methods=['GET', 'POST'])
         def delete():
             if request.method == 'POST':
-                from fedn.common.tracer.mongotracer import MongoTracer
+                from fedn.tracer.mongotracer import MongoTracer
                 statestore_config = self.control.statestore.get_config()
                 self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
@@ -155,7 +155,7 @@ class ReducerRestService:
         @app.route('/drop_db', methods=['GET', 'POST'])
         def drop_db():
             if request.method == 'POST':
-                from fedn.common.storage.db.mongo import drop_mongodb
+                from fedn.storage.db.mongo import drop_mongodb
                 statestore_config = self.control.statestore.get_config()
                 self.mdb = drop_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
                 return redirect(url_for('seed'))

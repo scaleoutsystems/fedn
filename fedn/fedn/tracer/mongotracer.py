@@ -1,5 +1,5 @@
-from fedn.common.tracer.tracer import Tracer
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.tracer.tracer import Tracer
+from fedn.storage.db.mongo import connect_to_mongodb
 import time
 import threading
 import psutil

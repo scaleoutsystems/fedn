@@ -1,6 +1,6 @@
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+import fedncommon.net.grpc.fedn_pb2 as fedn
+import fedncommon.net.grpc.fedn_pb2_grpc as rpc
+from fedn.storage.models.tempmodelstorage import TempModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 

@@ -4,7 +4,7 @@ import time
 import fedn.common.net.grpc.fedn_pb2 as alliance
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.storage.db.mongo import connect_to_mongodb
 from google.protobuf.json_format import MessageToDict
 
 

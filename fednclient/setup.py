@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='fedn',
-    version='0.1.5',
+    name='fednclient',
+    version='0.1.6',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -10,45 +10,15 @@ setup(
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
     include_package_data=True,
-    py_modules=['fedn'],
+    py_modules=['fednclient'],
     python_requires='>=3.6,<4',
     install_requires=[
         "fedncommon",
-        "wheel",
-        "attrdict",
-        "certifi",
-        "chardet==3.0.4",
-        "PyYAML",
-        "requests>=2.25.1",
-        "urllib3",
-        "minio==6.0.0",
-        "six",
-        "python-slugify==4.0.1",
-        "prettytable==1.0.1",
-        "grpcio-tools>=1.34.0",
-        "grpcio>=1.34.0",
-        "protobuf",
-        "pypandoc==1.5",
-        "wheel",
-        "pymongo===3.11.0",
-        "Flask==1.1.2",
-        "Flask-WTF==0.14.3",
-        "pyopenssl",
-        "plotly",
-        "ttictoc",
-        "flask_profiler",
-        "psutil",
-        "click",
-        "jinja2==2.11.1",
-        "nltk",
-        "geoip2",
-        "deprecated"
-
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,
     entry_points={
-        'console_scripts': ["fedn=cli:main"]
+        'console_scripts': ["fednclient=cli:main"]
     },
     keywords='Federated learning',
     packages=find_packages(exclude=["tests", "tests.*"]),

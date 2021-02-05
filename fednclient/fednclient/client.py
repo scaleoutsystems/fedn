@@ -4,26 +4,26 @@ import tempfile
 import threading
 import time
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedncommon.net.grpc.fedn_pb2 as fedn
+import fedncommon.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 # TODO Remove from this level. Abstract to unified non implementation specific client.
-from fedn.utils.dispatcher import Dispatcher
+from fedncommon.utils.dispatcher import Dispatcher
 
 CHUNK_SIZE = 1024 * 1024
 
 from datetime import datetime
 
-from fedn.clients.client.state import ClientState, ClientStateToString
+from fednclient.state import ClientState, ClientStateToString
 
-from fedn.utils.helpers import get_helper
+from fedncommon.utils.helpers import get_helper
 
 class Client:
     """FEDn Client. """
 
     def __init__(self, config):
 
-        from fedn.common.net.connect import ConnectorClient, Status
+        from fedncommon.net.connect import ConnectorClient, Status
         self.connector = ConnectorClient(config['discover_host'],
                                          config['discover_port'],
                                          config['token'],
@@ -71,7 +71,7 @@ class Client:
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
         if config['remote_compute_context']:
-            from fedn.common.control.package import PackageRuntime
+            from fedncommon.control.package import PackageRuntime
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
             retval = None
@@ -368,29 +368,8 @@ class Client:
             import time
             time.sleep(update_frequency)
 
-    def run_web(self):
-        from flask import Flask
-        app = Flask(__name__)
-
-        from fedn.common.net.web.client import page, style
-        @app.route('/')
-        def index():
-            logs_fancy = str()
-            for log in self.logs:
-                logs_fancy += "<p>" + log + "</p>\n"
-
-            return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
-
-        import os, sys
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-        app.run(host="0.0.0.0", port="8080")
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
-
     def run(self):
         import time
-        threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state
