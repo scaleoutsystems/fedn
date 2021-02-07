@@ -7,6 +7,7 @@ services:
     build:
       context: .
     working_dir: /app
+    runtime: nvidia
     command: /bin/bash -c "fedn run client -in fedn-network.yaml"
     volumes:
       - ./data:/app/data
