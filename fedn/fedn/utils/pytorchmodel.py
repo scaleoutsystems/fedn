@@ -1,9 +1,9 @@
 import os
 import tempfile
-import torch
 from collections import OrderedDict
 from .helpers import HelperBase
 from functools import reduce
+import numpy as np
 
 class PytorchModelHelper(HelperBase):
 
@@ -20,14 +20,21 @@ class PytorchModelHelper(HelperBase):
         _ , path = tempfile.mkstemp(suffix='.pth')
         return path
 
-    def save_model(self, model, path=None):
+    def save_model(self, weights_dict, path=None):
         if not path:
             path = self.get_tmp_path()
-        torch.save(model, path)
+        #torch.save(model, path)
+        np.savez_compressed(path, **weights_dict)
         return path
 
     def load_model(self, path="weights.pth"):
-        return torch.load(path)
+        #return torch.load(path)
+        import collections
+        b = np.load(path)
+        weights_np = collections.OrderedDict()
+        for i in b.files:
+            weights_np[i] = b[i]
+        return weights_np
 
     def load_model_from_BytesIO(self, model_bytesio):
         """ Load a model from a BytesIO object. """
