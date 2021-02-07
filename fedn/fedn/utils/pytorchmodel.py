@@ -24,13 +24,10 @@ class PytorchModelHelper(HelperBase):
     def save_model(self, weights_dict, path=None):
         if not path:
             path = self.get_tmp_path()
-        print("we are saving: ", path)
-        print("weights_dict type: ", type(weights_dict))
         np.savez_compressed(path, **weights_dict)
         return path
 
     def load_model(self, path="weights.npz"):
-        print("load model: ", path)
         b = np.load(path)
         weights_np = OrderedDict()
         for i in b.files:
