@@ -19,7 +19,7 @@ FEDn is built to support real-world, production deployments. FEDn relies on prov
 
 Constructing a federated model with FEDn amounts to a) specifying the details of the client side training code and data integrations, and b) deploying the  reducer-combiner network. A FEDn network, as illustrated in the picture below, is made up of three main components: the *Reducer*, one or more *Combiners* and a number of *Clients*. The combiner network forms the backbone of the FedML orchestration mechanism, while the Reducer provides discovery services and provides controls to coordinate training over the combiner network. By horizontally scaling the combiner network, one can meet the needs from a growing number of clients.  
  
-![alt-text](https://github.com/scaleoutsystems/fedn/blob/update-readme/docs/img/overview.png)
+![alt-text](docs/img/overview.png?raw=true "FEDn network")
 
 ### Main components
 

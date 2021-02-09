@@ -94,8 +94,12 @@ class ReducerControl:
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
         if model is not None:
+            print("Saving model to disk...",flush=True)
             outfile_name = self.helper.save_model(model)
+            print("DONE",flush=True)
+            print("Uploading model to Minio...",flush=True)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
+            print("DONE",flush=True)
             os.unlink(outfile_name)
 
         self.statestore.set_latest(model_id)
@@ -238,14 +242,18 @@ class ReducerControl:
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._out_of_sync()
-        print("UPDATED: {}".format(updated),flush=True)
+        print("COMBINERS UPDATED MODELS: {}".format(updated),flush=True)
 
+        print("Checking round validity policy...",flush=True)
         round_valid = self.check_round_validity_policy(updated)
         if round_valid == False:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!",flush=True)
-            return None
+            return None, round_meta
+        print("OK")
 
+
+        print("Starting reducing models...",flush=True)
         # 3. Reduce combiner models into a global model
         try:
             model,data = self.reduce(updated)
@@ -253,7 +261,10 @@ class ReducerControl:
         except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
             print(e,flush=True)
-            return None
+            return None, round_meta
+        print("DONE",flush=True)
+
+        print("Committing global model...",flush=True)
 
         if model is not None:
             # Commit to model ledger
@@ -264,7 +275,9 @@ class ReducerControl:
             round_meta['time_commit']=time.time()-tic
         else:
             print("REDUCER: failed to update model in round with config {}".format(config),flush=True)
-            return None
+            return None, round_meta
+        print("DONE",flush=True)
+
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         # TODO: Move to config - are we validating in a round, and if so, in what way.
