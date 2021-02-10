@@ -288,6 +288,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.key = "nr_unprocessed_compute_plans"
         p.value = str(len(self.combiner.run_configs))
 
+        p = response.parameter.add()
+        p.key = "name"
+        p.value = str(self.id)
 
         # Get IP information
         try:

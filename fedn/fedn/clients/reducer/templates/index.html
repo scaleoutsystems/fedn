@@ -86,10 +86,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/network" tabindex="-1" aria-disabled="true">
-                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tv" fill="currentColor"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M2.5 13.5A.5.5 0 0 1 3 13h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zM13.991 3H2c-.325 0-.502.078-.602.145a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3zM14 2H2C0 2 0 4 0 4v6c0 2 2 2 2 2h12c2 0 2-2 2-2V4c0-2-2-2-2-2z"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hdd-network" viewBox="0 0 16 16">
+                                  <path d="M4.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zM3 4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+                                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8.5v3a1.5 1.5 0 0 1 1.5 1.5h5.5a.5.5 0 0 1 0 1H10A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5H.5a.5.5 0 0 1 0-1H6A1.5 1.5 0 0 1 7.5 10V7H2a2 2 0 0 1-2-2V4zm1 0v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1zm6 7.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5z"/>
                                 </svg>
                                 Network</a>
                         </li>
@@ -196,7 +195,7 @@
             </div>
             {% endif %}
 
-            {% if not refresh and not seed and not show_plot and not show_map %}
+            {% if not refresh and not seed and not show_plot and not network_plot %}
             <script>
                 $(document).ready(function() {
                   $('#start_control_form').submit(function(e) {
@@ -258,28 +257,45 @@
 
         {% if show_plot %}
         <div class="jumbotron">
-            <div class="container">
-                <div class="form-group row">
-                    <label for="package" class="col-sm-2 col-form-label">Plot</label>
-                    <div class="col-sm-10">
-                        <select class="form-control" id ='plot_type'>
-                            <option value="box">Box</option>
-                            <option value="table">Table</option>
-                            <option value="timeline">Timeline</option>
-                            <option value="clients">Clients</option>
-                            <option value="combiners">Combiners</option>
-                            <option value="round_time">Round Time</option>
-                            <option value="cpu">Monitoring: CPU/MEM/ROUND</option>
-                        </select>
-                    </div>
+            <div class="col-md-12">
+                <h2>Box Plot: Evaluation</h2>
+                <div class="chart" id="box">
+                    <script>
+                        var graphs = {{box_plot | safe}};
+                        Plotly.plot('box',graphs,{});
+                    </script>
                 </div>
             </div>
 
             <div class="col-md-12">
-                <div class="chart" id="bargraph">
+                <h2>Table: Evaluation</h2>
+                <div class="chart" id="table">
+
                     <script>
-                        var graphs = {{plot | safe}};
-                        Plotly.plot('bargraph',graphs,{});
+                        var graphs = {{table_plot | safe}};
+                        Plotly.plot('table',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <h2>Timeline</h2>
+                <div class="chart" id="timeline">
+
+                    <script>
+                        var graphs = {{timeline_plot | safe}};
+                        Plotly.plot('timeline',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <h2>Clients</h2>
+                <div class="chart" id="client">
+
+                    <script>
+                        var graphs = {{clients_plot | safe}};
+                        Plotly.plot('client',graphs,{});
                     </script>
                 </div>
             </div>
@@ -287,28 +303,88 @@
         </div>
         {% endif %}
 
-        {% if show_map %}
+        {% if network_plot %}
         <div class="jumbotron">
-            <div class="col-md-12 d-flex justify-content-center">
-                <div id="id_map">
-                    <script>
-                        var graphs = {{ map | safe }};
-                        Plotly.plot('id_map', graphs, {});
-                    </script>
+           <div class="col-md-12">
+               <h2>Combiners stats</h2>
+               {% if not combiner_info %}
+                <div class="chart">
+                    <p><div class="alert alert-danger" role="alert">Unavailable combiners!! No combiners connected!!</div></p>
                 </div>
-            </div>
-        </div>
-        {% endif %}
+               {% endif %}
 
-        {% if show_combiners %}
-        <div class="jumbotron">
-            <div class="col-md-12 d-flex justify-content-center">
-            <div id="comniner_status">
+               {% if combiner_info %}
+               <table class="table table-hover">
+                    <thead>
+                        <tr>
+                          <th scope="col">Name </th>
+                          <th scope="col">Active clients</th>
+                          <th scope="col">IP </th>
+                          <th scope="col">Country </th>
+                          <th scope="col">Region </th>
+                          <th scope="col">City </th>
+                        </tr>
+                    </thead>
+
+                    {% for dict_item in combiner_info %}
+                        <tr>
+                            <td>{{dict_item['name']}}</td>
+                            <td>{{dict_item['nr_active_clients']}}</td>
+                            <td>{{dict_item['ip']}}</td>
+                            <td>{{dict_item['country']}}</td>
+                            <td>{{dict_item['region']}}</td>
+                            <td>{{dict_item['city']}}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+               {% endif %}
+            </div>
+
+            <div class="col-md-12">
                 <h2>Combiners</h2>
-                <p>{{ combiner_info }}</p>    
+                <div class="chart" id="combiner">
+                    <script>
+                        var graphs = {{combiners_plot | safe}};
+                        Plotly.plot('combiner',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <h2>Map</h2>
+                <div class="chart" id="map">
+
+                    <script>
+                        var graphs = {{map_plot | safe}};
+                        Plotly.plot('map',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <h2>Round Time</h2>
+                <div class="chart" id="round">
+
+                    <script>
+                        var graphs = {{round_time_plot | safe}};
+                        Plotly.plot('round',graphs,{});
+                    </script>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <h2>MEM and CPU Monitoring</h2>
+                <div class="chart" id="monitoring">
+
+                    <script>
+                        var graphs = {{mem_cpu_plot | safe}};
+                        Plotly.plot('monitoring',graphs,{});
+                    </script>
+                </div>
             </div>
         </div>
         {% endif %}
+
         
         <footer class="footer">
             <p>&copy; 2020 Scaleout Systems AB</p>
@@ -326,7 +402,7 @@
                 crossorigin="anonymous"></script>
 
         <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/plots.js') }}"></script>
+        <!--<script src="{{ url_for('static', filename='js/plots.js') }}"></script>-->
 
     </body>
 </html>

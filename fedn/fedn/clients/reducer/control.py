@@ -281,7 +281,7 @@ class ReducerControl:
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         # TODO: Move to config - are we validating in a round, and if so, in what way.
-        validate = False
+        validate = True
         if validate:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
