@@ -352,16 +352,6 @@
         </div>
 
         <div class="col-md-12">
-            <h2>Combiners</h2>
-            <div class="chart" id="combiner">
-                <script>
-                    var graphs = {{combiners_plot | safe}};
-                    Plotly.plot('combiner',graphs,{});
-                </script>
-            </div>
-        </div>
-
-        <div class="col-md-12">
             <h2>Round Time</h2>
             <div class="chart" id="round">
 
@@ -371,6 +361,17 @@
                 </script>
             </div>
         </div>
+
+        <div class="col-md-12">
+            <h2>Combiners</h2>
+            <div class="chart" id="combiner">
+                <script>
+                    var graphs = {{combiners_plot | safe}};
+                    Plotly.plot('combiner',graphs,{});
+                </script>
+            </div>
+        </div>
+
 
         <div class="col-md-12">
             <h2>MEM and CPU Monitoring</h2>
