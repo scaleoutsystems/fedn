@@ -4,7 +4,7 @@ This classic example of sentiment analysis is well suited both as a lightweight 
 ### Provide local training and test data
 For large data transfer reason we uploaded a data folder to archive.org.
 To test this use-case you need to download data from this link
-https://archive.org/download/data_20201217/data.zip, and decompress the file
+https://archive.org/download/data_20210128/data.zip, and decompress the file
 and then copy the content to the data folder in nlp_imdb
 
 ### Configuring the tests
