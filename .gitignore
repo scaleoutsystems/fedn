@@ -163,6 +163,7 @@ media/visualisers/
 ./test/nlp_imdb/combiner/certs/*
 ./test/nlp_imdb/reducer/*
 ./test/nlp_imdb/data/*
+./test/nlp_imdb/fedn-network.yaml
 
 
 # config files
