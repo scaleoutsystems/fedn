@@ -21,8 +21,8 @@ geoip2==4.1.0
 google-auth==1.23.0
 google-auth-oauthlib==0.4.2
 google-pasta==0.2.0
-grpcio==1.35.0
-grpcio-tools==1.35.0
+grpcio==1.34.0
+grpcio-tools==1.34.0
 h5py==2.10.0
 idna==2.10
 itsdangerous==1.1.0
