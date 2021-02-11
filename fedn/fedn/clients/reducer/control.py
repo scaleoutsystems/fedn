@@ -113,9 +113,11 @@ class ReducerControl:
         for combiner in combiners:
             try:
                 model_id = combiner.get_model_id()
+                print("COMBINER UPDATE, model ID", model_id, flush=True)
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 model_id = None
+                raise
             if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
         return osync
@@ -264,8 +266,9 @@ class ReducerControl:
             return None, round_meta
         print("DONE",flush=True)
 
-        print("Committing global model...",flush=True)
 
+        # 6. Commit the global model to the ledger
+        print("Committing global model...",flush=True)
         if model is not None:
             # Commit to model ledger
             tic = time.time()
@@ -278,10 +281,8 @@ class ReducerControl:
             return None, round_meta
         print("DONE",flush=True)
 
-
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
-        # TODO: Move to config - are we validating in a round, and if so, in what way.
-        validate = True
+        validate = config['validate']
         if validate:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
@@ -294,6 +295,11 @@ class ReducerControl:
                     # OK if validation fails for a combiner
                     self._handle_unavailable_combiner(combiner)
                     pass
+
+        # 5. Check commit policy based on validation result (optionally)
+        # TODO: Implement.
+                
+
 
         return model_id, round_meta
 
@@ -337,8 +343,10 @@ class ReducerControl:
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
-            model_id,round_meta = self.round(config, current_round)
+
+            model_id, round_meta = self.round(config, current_round)
             end_time = datetime.now()
+            
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
                 round_time = end_time - start_time

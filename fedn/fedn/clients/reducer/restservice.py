@@ -107,8 +107,8 @@ class ReducerRestService:
 
             return jsonify(ret)
 
-        @app.route('/seed', methods=['GET', 'POST'])
-        def seed():
+        @app.route('/history', methods=['GET', 'POST'])
+        def history():
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -120,7 +120,6 @@ class ReducerRestService:
                     a.write(uploaded_seed.read()) 
                     model = self.control.helper.load_model_from_BytesIO(a.getbuffer())
                     self.control.commit(uploaded_seed.filename, model)
-                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
@@ -128,7 +127,7 @@ class ReducerRestService:
                                        model_info=model_info)
 
             seed = True
-            return redirect(url_for('seed', seed=seed))
+            return redirect(url_for('history', seed=seed))
 
         @app.route('/delete', methods=['GET', 'POST'])
         def delete():
@@ -148,9 +147,9 @@ class ReducerRestService:
 
                 # drop objects in minio
                 self.control.delet_bucket_objects()
-                return redirect(url_for('seed'))
+                return redirect(url_for('history'))
             seed = True
-            return redirect(url_for('seed', seed=seed))
+            return redirect(url_for('history', seed=seed))
 
         @app.route('/drop_db', methods=['GET', 'POST'])
         def drop_db():
@@ -158,9 +157,9 @@ class ReducerRestService:
                 from fedn.common.storage.db.mongo import drop_mongodb
                 statestore_config = self.control.statestore.get_config()
                 self.mdb = drop_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
-                return redirect(url_for('seed'))
+                return redirect(url_for('history'))
             seed = True
-            return redirect(url_for('seed', seed=seed))
+            return redirect(url_for('history', seed=seed))
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
@@ -182,7 +181,7 @@ class ReducerRestService:
 
 
             if request.method == 'POST':
-                timeout = request.form.get('timeout', 180)
+                timeout = float(request.form.get('timeout'))
                 rounds = int(request.form.get('rounds', 1))
 
                 task = (request.form.get('task', ''))

@@ -149,6 +149,16 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print("Failed to set storage config in statestore, exiting.",flush=True)
         exit(-1)
 
+    # Control config
+    control_config = fedn_config['control']
+    print("CONTROL_CONFIG: ",control_config,flush=True)
+    try:
+        statestore.set_round_config(control_config)
+    except:
+        print("Failed to set control config, exiting.",flush=True)
+        exit(-1)
+
+
     from fedn.reducer import Reducer
     reducer = Reducer(statestore)
     reducer.run()

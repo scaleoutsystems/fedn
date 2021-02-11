@@ -74,6 +74,7 @@ class Plot:
                 models.append(model)
             all_vals.append(vals)
 
+
         header_vals = valid_metrics
         models.reverse()
         values = [models]
