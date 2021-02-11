@@ -41,11 +41,8 @@ class ReducerRestService:
         }
         return data
 
-
     def run(self):
         app = Flask(__name__)
-        # TODO support CSRF in monitoring dashboard
-        #dashboard.bind(app)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
         import os
@@ -61,11 +58,13 @@ class ReducerRestService:
             logs = None
             refresh = True
             if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False, message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
+                                       message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
 
 
             if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh, message='Warning. Reducer is not base-configured. please do so with config file.')
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
+                                       message='Warning. Reducer is not base-configured. please do so with config file.')
 
             return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
 
@@ -143,6 +142,7 @@ class ReducerRestService:
                     self.tracer.drop_latest_model()
                     self.tracer.drop_status()
                     self.tracer.drop_combiner_round_time()
+                    self.tracer.drop_combiner_round()
                 except:
                     pass
 
@@ -175,11 +175,12 @@ class ReducerRestService:
                 self.current_compute_context = None
 
             if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False, message='No compute context is set. Please set one here <a href="/context">/context</a>')
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
+                                       message='No compute context is set. Please set one here <a href="/context">/context</a>')
 
             if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh, message='Warning. Reducer is not base-configured. please do so with config file.')
-
+                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
+                                       message='Warning. Reducer is not base-configured. please do so with config file.')
 
             if request.method == 'POST':
                 timeout = request.form.get('timeout', 180)
@@ -200,9 +201,10 @@ class ReducerRestService:
 
             else:
                 # Select rounds UI
-                rounds = range(1, 500)
+                rounds = range(1, 200)
                 latest_model_id = self.control.get_latest_model()
-                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id, compute_package=self.current_compute_context)
+                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id,
+                                       compute_package=self.current_compute_context)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -262,33 +264,18 @@ class ReducerRestService:
 
             return result
 
-        @app.route('/combiners')
-        def combiner_info():
+        def combiner_stats():
             combiner_info = []
             for combiner in self.control.network.combiners:
-                report = combiner.report()
-                combiner_info.append(report)
-            
-            try:
-                return render_template('index.html', show_combiners=True,combiner_info=combiner_info)
-            except Exception as e:
-                return str(e)
-
-        @app.route('/network')
-        def map_view():
-            combiner_info = []
-            for combiner in self.control.network.combiners:
-                report = combiner.report()
-                combiner_info.append(report)
-
-            map = create_map()
-            try:
-                return render_template('index.html', show_map=True, map=map, combiner_info=combiner_info)
-            except Exception as e:
-                return str(e)
+                try:
+                    report = combiner.report()
+                    combiner_info.append(report)
+                except:
+                    pass
+                return combiner_info
+            return False
 
         def create_map():
-
             cities_dict = {
                 'city': [],
                 'lat': [],
@@ -301,14 +288,14 @@ class ReducerRestService:
 
             from fedn import get_data
             dbpath = get_data('geolite2/GeoLite2-City.mmdb')
-            
+
             with geoip2.database.Reader(dbpath) as reader:
                 for combiner in self.control.statestore.list_combiners():
                     try:
                         response = reader.city(combiner['ip'])
                         cities_dict['city'].append(response.city.name)
 
-                        r = 1.0 # Rougly 100km 
+                        r = 1.0 # Rougly 100km
                         w = r*math.sqrt(numpy.random.random())
                         t = 2.0*math.pi*numpy.random.random()
                         x = w * math.cos(t)
@@ -323,7 +310,6 @@ class ReducerRestService:
                         cities_dict['name'].append(combiner['name'])
                         cities_dict['role'].append('Combiner')
                         cities_dict['size'].append(10)
-
 
                     except geoip2.errors.AddressNotFoundError as err:
                         print(err)
@@ -349,8 +335,10 @@ class ReducerRestService:
 
             cities_df = pd.DataFrame(cities_dict)
 
-            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth", color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False,'size': False, 'name': True,'role': True}, width=1000, height=800)
+            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
+                                 color="role", size="size", hover_name="city",
+                                 hover_data={"city": False, "lon": False, "lat": False,'size': False,
+                                 'name': True,'role': True})
 
             fig.update_geos(fitbounds="locations", showcountries=True)
             fig.update_layout(title="FEDn network: {}".format(config['network_id']))
@@ -360,38 +348,34 @@ class ReducerRestService:
 
         @app.route('/plot')
         def plot():
-            box = 'box'
-            plot = create_plot(box)
-            show_plot = True
-            return render_template('index.html', show_plot=show_plot, plot=plot)
-
-        def create_plot(feature):
             from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
-            if feature == 'table':
-                return plot.create_table_plot()
-            elif feature == 'timeline':
-                return plot.create_timeline_plot()
-            elif feature == 'round_time':
-                return plot.create_round_plot()
-            elif feature == 'box':
-                return plot.create_box_plot()
-            elif feature == 'cpu':
-                return plot.create_cpu_plot()
-            elif feature == 'clients':
-                return plot.create_client_plot()
-            elif feature == 'combiners':
-                return plot.create_combiner_plot()
+            box_plot = plot.create_box_plot()
+            table_plot = plot.create_table_plot()
+            timeline_plot = plot.create_timeline_plot()
+            clients_plot = plot.create_client_plot()
+            return render_template('index.html', show_plot=True,
+                                   box_plot=box_plot,
+                                   table_plot=table_plot,
+                                   timeline_plot=timeline_plot,
+                                   clients_plot=clients_plot,
+                                   )
 
-            else:
-                return 'No plot!'
-
-        @app.route('/plot_type', methods=['GET', 'POST'])
-        def change_features():
-            feature = request.args['selected']
-            graphJSON = create_plot(feature)
-            return graphJSON
-
+        @app.route('/network')
+        def network():
+            from fedn.clients.reducer.plots import Plot
+            plot = Plot(self.control.statestore)
+            round_time_plot = plot.create_round_plot()
+            mem_cpu_plot = plot.create_cpu_plot()
+            combiners_plot = plot.create_combiner_plot()
+            map_plot = create_map()
+            combiner_info = combiner_stats()
+            return render_template('index.html', map_plot=map_plot, network_plot=True,
+                                   round_time_plot=round_time_plot,
+                                   mem_cpu_plot=mem_cpu_plot,
+                                   combiners_plot=combiners_plot,
+                                   combiner_info=combiner_info
+                                   )
 
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py

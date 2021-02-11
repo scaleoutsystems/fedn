@@ -279,6 +279,7 @@ class Client:
 
             outpath = self.helper.get_tmp_path()
             tic = time.time()
+            #TODO: Check return status, fail gracefully
             self.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
             meta['exec_training'] = time.time()-tic
 

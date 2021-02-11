@@ -94,8 +94,12 @@ class ReducerControl:
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
         if model is not None:
+            print("Saving model to disk...",flush=True)
             outfile_name = self.helper.save_model(model)
+            print("DONE",flush=True)
+            print("Uploading model to Minio...",flush=True)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
+            print("DONE",flush=True)
             os.unlink(outfile_name)
 
         self.statestore.set_latest(model_id)
@@ -154,19 +158,23 @@ class ReducerControl:
     def round(self, config, round_number):
         """ Execute one global round. """
 
+        round_meta = {'round_id': round_number}
+
         # TODO: Set / update reducer states and such
         # TODO: Do a General Health check on Combiners in the beginning of the round.
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
             return
 
-        # 1. Formulate compute plans for this round and decide which combiners should participate in the round.
+        # 1. Formulate compute plans for this round and determine which combiners should participate in the round.
         compute_plan = copy.deepcopy(config)
         compute_plan['rounds'] = 1
         compute_plan['round_id'] = round_number
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
         compute_plan['helper_type'] = self.helper_type
+
+        round_meta['compute_plan'] = compute_plan
 
         combiners = []
         for combiner in self.network.get_combiners():
@@ -182,6 +190,7 @@ class ReducerControl:
                 if is_participating:
                     combiners.append((combiner,compute_plan))
 
+
         round_start = self.check_round_start_policy(combiners)
         print("ROUND START POLICY MET: participating combiners {}".format(round_start),flush=True)
         if not round_start:
@@ -193,6 +202,7 @@ class ReducerControl:
         from datetime import datetime
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
+
         self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
 
         start_time = datetime.now()
@@ -201,7 +211,6 @@ class ReducerControl:
             try:
                 self.sync_combiners([combiner],self.get_latest_model())
                 response = combiner.start(compute_plan)
-
             except CombinerUnavailableError:
                 # This is OK, handled by round accept policy
                 self._handle_unavailable_combiner(combiner)
@@ -211,7 +220,6 @@ class ReducerControl:
                 raise
 
         # Wait until participating combiners have a model that is out of sync with the current global model.
-        # TODO: Implement strategies to handle timeouts.
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
         for combiner,plan in combiners:
@@ -229,34 +237,47 @@ class ReducerControl:
         round_time = end_time - start_time
         self.tracer.set_combiner_time(round_number, round_time.seconds)
 
+        round_meta['time_combiner_update'] = round_time.seconds
+
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._out_of_sync()
-        print("UPDATED: {}".format(updated),flush=True)
+        print("COMBINERS UPDATED MODELS: {}".format(updated),flush=True)
 
+        print("Checking round validity policy...",flush=True)
         round_valid = self.check_round_validity_policy(updated)
         if round_valid == False:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!",flush=True)
-            return None
+            return None, round_meta
+        print("OK")
 
+
+        print("Starting reducing models...",flush=True)
         # 3. Reduce combiner models into a global model
         try:
-            model = self.reduce(updated)
+            model,data = self.reduce(updated)
+            round_meta['reduce'] = data
         except Exception as e:
             print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
             print(e,flush=True)
-            return None
+            return None, round_meta
+        print("DONE",flush=True)
+
+        print("Committing global model...",flush=True)
 
         if model is not None:
             # Commit to model ledger
+            tic = time.time()
             import uuid
             model_id = uuid.uuid4()
             self.commit(model_id,model)
-
+            round_meta['time_commit']=time.time()-tic
         else:
             print("REDUCER: failed to update model in round with config {}".format(config),flush=True)
-            return None
+            return None, round_meta
+        print("DONE",flush=True)
+
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         # TODO: Move to config - are we validating in a round, and if so, in what way.
@@ -274,7 +295,7 @@ class ReducerControl:
                     self._handle_unavailable_combiner(combiner)
                     pass
 
-        return model_id
+        return model_id, round_meta
 
     def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
@@ -303,11 +324,10 @@ class ReducerControl:
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
         self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
-        # self.tracer.drop_round_time()
-        # self.tracer.drop_ps_util_monitor()
         last_round = self.tracer.get_latest_round()
 
         for round in range(1, int(config['rounds'] + 1)):
+            tic = time.time()
             if last_round:
                 current_round = last_round + round
             else:
@@ -317,41 +337,61 @@ class ReducerControl:
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
-            model_id = self.round(config, current_round)
+            model_id,round_meta = self.round(config, current_round)
             end_time = datetime.now()
             if model_id:
                 print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
                 round_time = end_time - start_time
                 self.tracer.set_latest_time(current_round, round_time.seconds)
+                round_meta['status'] = 'Success'
             else:
                 print("REDUCER: Global round failed!")
+                round_meta['status'] = 'Failed'
 
             # stop round monitor
             self.tracer.stop_monitor()
+            round_meta['time_round'] = time.time()-tic
+            self.tracer.set_round_meta_reducer(round_meta)
+
 
         self.__state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
+
+        meta = {}
+        meta['time_fetch_model'] = 0.0
+        meta['time_load_model'] = 0.0
+        meta['time_aggregate_model'] = 0.0
+
         i = 1
         model = None
         for combiner in combiners:
 
             # TODO: Handle inactive RPC error in get_model and raise specific error
             try:
+                tic = time.time()
                 data = combiner.get_model()
+                meta['time_fetch_model'] += (time.time()-tic)
             except:
                 pass
 
             if data is not None:
                 try:
+                    tic = time.time()
                     model_str=combiner.get_model().getbuffer()
                     model_next = self.helper.load_model_from_BytesIO(model_str)
+                    meta['time_load_model'] += (time.time()-tic)
+                    tic = time.time()
                     model = self.helper.increment_average(model, model_next, i)
+                    meta['time_aggregate_model'] += (time.time()-tic)
                 except:
+                    tic = time.time()
                     model = self.helper.load_model_from_BytesIO(data.getbuffer())
+                    meta['time_aggregate_model'] += (time.time()-tic)
                 i = i+1
-        return model
+
+        return model, meta
 
     def monitor(self, config=None):
         #status = self.network.check_health()
