@@ -55,6 +55,10 @@ class MongoTracer(Tracer):
         if self.combiner_round_time:
             self.combiner_round_time.drop()
 
+    def drop_combiner_round(self):
+        if self.round:
+            self.round.drop()
+
     def set_latest_time(self, round, round_time):
         self.round_time.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
         self.round_time.update({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
