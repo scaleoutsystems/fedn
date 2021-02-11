@@ -53,7 +53,7 @@ def get_helper(helper_type):
         from fedn.utils.kerasweights import KerasWeightsHelper
         return KerasWeightsHelper()
     elif helper_type == 'pytorch':
-        from fedn.utils.pytorchmodel import PytorchModelHelper
-        return PytorchModelHelper()
+        from fedn.utils.pytorchhelper import PytorchHelper
+        return PytorchHelper()
     else:
         return None
