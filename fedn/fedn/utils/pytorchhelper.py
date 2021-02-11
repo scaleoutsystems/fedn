@@ -5,7 +5,7 @@ from .helpers import HelperBase
 from functools import reduce
 import numpy as np
 
-class PytorchModelHelper(HelperBase):
+class PytorchHelper(HelperBase):
 
     def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
