@@ -13,10 +13,9 @@ import plotly
 import pandas as pd
 import numpy
 import math
-            
+
 import plotly.express as px
 import geoip2.database
-
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -33,7 +32,7 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-        self.current_compute_context = None #self.control.get_compute_context()
+        self.current_compute_context = None  # self.control.get_compute_context()
 
     def to_dict(self):
         data = {
@@ -52,7 +51,7 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
- 
+
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -60,7 +59,6 @@ class ReducerRestService:
             if self.current_compute_context == None or self.current_compute_context == '':
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
                                        message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
-
 
             if self.control.state() == ReducerState.setup:
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
@@ -92,17 +90,18 @@ class ReducerRestService:
 
             # TODO append and redirect to index.
             import copy
-            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
+            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
+                                         request.remote_addr)
             self.control.network.add_combiner(combiner)
 
-             # TODO remove ugly string hack
+            # TODO remove ugly string hack
             ret = {
-                'status': 'added', 
+                'status': 'added',
                 'certificate': str(cert_b64).split('\'')[1],
-                'key': str(key_b64).split('\'')[1], 
+                'key': str(key_b64).split('\'')[1],
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
-            }     
+            }
 
             return jsonify(ret)
 
@@ -116,10 +115,10 @@ class ReducerRestService:
                     a = BytesIO()
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
-                    a.write(uploaded_seed.read()) 
+                    a.write(uploaded_seed.read())
                     model = self.control.helper.load_model_from_BytesIO(a.getbuffer())
                     self.control.commit(uploaded_seed.filename, model)
-                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
+                    # self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
@@ -228,18 +227,18 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             client = {
-                    'name': name,
-                    'combiner_preferred': combiner_preferred, 
-                    'ip': request.remote_addr,
-                    'status': 'available'
-                }
+                'name': name,
+                'combiner_preferred': combiner_preferred,
+                'ip': request.remote_addr,
+                'status': 'available'
+            }
             self.control.network.add_client(client)
 
             if combiner:
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
                 response = {
-                    'status': 'assigned', 
+                    'status': 'assigned',
                     'host': combiner.address,
                     'port': combiner.port,
                     'certificate': str(cert_b64).split('\'')[1],
@@ -248,7 +247,7 @@ class ReducerRestService:
 
                 return jsonify(response)
             elif combiner is None:
-                return jsonify({'status':'retry'})
+                return jsonify({'status': 'retry'})
 
             return jsonify({'status': 'retry'})
 
@@ -295,9 +294,9 @@ class ReducerRestService:
                         response = reader.city(combiner['ip'])
                         cities_dict['city'].append(response.city.name)
 
-                        r = 1.0 # Rougly 100km
-                        w = r*math.sqrt(numpy.random.random())
-                        t = 2.0*math.pi*numpy.random.random()
+                        r = 1.0  # Rougly 100km
+                        w = r * math.sqrt(numpy.random.random())
+                        t = 2.0 * math.pi * numpy.random.random()
                         x = w * math.cos(t)
                         y = w * math.sin(t)
                         lat = str(float(response.location.latitude) + x)
@@ -337,8 +336,8 @@ class ReducerRestService:
 
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
                                  color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False,'size': False,
-                                 'name': True,'role': True})
+                                 hover_data={"city": False, "lon": False, "lat": False, 'size': False,
+                                             'name': True, 'role': True})
 
             fig.update_geos(fitbounds="locations", showcountries=True)
             fig.update_layout(title="FEDn network: {}".format(config['network_id']))
@@ -382,7 +381,7 @@ class ReducerRestService:
         def context():
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
-            reset = request.args.get('reset',None) #if reset is not empty then allow context re-set
+            reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
             if reset:
                 return render_template('context.html')
 
@@ -407,13 +406,13 @@ class ReducerRestService:
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
 
-                    self.control.set_compute_context(filename,file_path)
+                    self.control.set_compute_context(filename, file_path)
                     return redirect(url_for('start'))
 
             from flask import send_from_directory
             name = request.args.get('name', '')
 
-            if name == '': 
+            if name == '':
                 name = self.control.get_compute_context()
                 if name == None or name == '':
                     return render_template('context.html')
@@ -428,7 +427,7 @@ class ReducerRestService:
                 try:
                     data = self.control.get_compute_package(name)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
-                    with open(file_path,'wb') as fh:
+                    with open(file_path, 'wb') as fh:
                         fh.write(data)
                     return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
                 except:
