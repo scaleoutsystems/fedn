@@ -159,20 +159,13 @@
                     {% else %}
 
                     <!-- delete objects in minio-->
-                    <form id="delete_models_form" method="post" action="/delete" enctype="multipart/form-data">
+                    <form id="delete_models_form" method="post" action="/delete_model_trail" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="input-group mb-3">
-                          <button class="btn btn-primary" type="submit">Drop Models [{{model_info|length}}]</button>
+                          <button class="btn btn-primary" type="submit">Delete models [{{model_info|length}}]</button>
                         </div>
                     </form>
 
-                    <!-- drop DB-->
-                    <form id="delete_db_form" method="post" action="/drop_db" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="input-group mb-3">
-                          <button class="btn btn-primary" type="submit">Drop DB</button>
-                        </div>
-                    </form>
 
                     <table class="table table-hover">
                         <thead>
@@ -217,6 +210,14 @@
             <div class="jumbotron">
                 <div class="container">
                     <!-- enctype="multipart/form-data" important for file upload-->
+                                        <!-- drop DB-->
+                    <form id="delete_db_form" method="post" action="/drop_control" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="input-group mb-3">
+                          <button class="btn btn-primary" type="submit">Drop control</button>
+                        </div>
+                    </form>
+
                     <form id="start_control_form" method="post" action="/start" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <!-- <div class="form-group row">
@@ -264,7 +265,7 @@
         {% if show_plot %}
         <div class="jumbotron">
             <div class="col-md-12">
-                <h2>Box Plot: Evaluation</h2>
+                <h2>Model evaluation: distribution over clients</h2>
                 <div class="chart" id="box">
                     <script>
                         var graphs = {{box_plot | safe}};
@@ -274,9 +275,8 @@
             </div>
 
             <div class="col-md-12">
-                <h2>Table: Evaluation</h2>
+                <h2>Model Evaluation: client average metrics</h2>
                 <div class="chart" id="table">
-
                     <script>
                         var graphs = {{table_plot | safe}};
                         Plotly.plot('table',graphs,{});
@@ -284,7 +284,7 @@
                 </div>
             </div>
 
-            <div class="col-md-12">
+            <!--<div class="col-md-12">
                 <h2>Timeline</h2>
                 <div class="chart" id="timeline">
 
@@ -293,12 +293,11 @@
                         Plotly.plot('timeline',graphs,{});
                     </script>
                 </div>
-            </div>
+            </div> -->
 
             <div class="col-md-12">
-                <h2>Clients</h2>
+                <h2>Aggregated client profile and training time distribution</h2>
                 <div class="chart" id="client">
-
                     <script>
                         var graphs = {{clients_plot | safe}};
                         Plotly.plot('client',graphs,{});
@@ -312,7 +311,7 @@
         {% if network_plot %}
         <div class="jumbotron">
            <div class="col-md-12">
-                <h2>Map</h2>
+                <h2>FEDn network</h2>
                 <div class="chart" id="map">
 
                     <script>
@@ -321,12 +320,22 @@
                     </script>
                 </div>
             </div>
+        
+        <div class="col-md-12">
+            <h3>Round time</h3>
+            <div class="chart" id="round">
+                <script>
+                    var graphs = {{round_time_plot | safe}};
+                    Plotly.plot('round',graphs,{});
+                </script>
+            </div>
+        </div>
 
         <div class="col-md-12">
-           <h2>Combiners stats</h2>
+           <h3>Combiners</h3>
            {% if not combiner_info %}
             <div class="chart">
-                <p><div class="alert alert-danger" role="alert">Unavailable combiners!! No combiners connected!!</div></p>
+                <p><div class="alert alert-danger" role="alert">No combiners online!</div></p>
             </div>
            {% endif %}
 
@@ -357,19 +366,9 @@
            {% endif %}
         </div>
 
-        <div class="col-md-12">
-            <h2>Round Time</h2>
-            <div class="chart" id="round">
-
-                <script>
-                    var graphs = {{round_time_plot | safe}};
-                    Plotly.plot('round',graphs,{});
-                </script>
-            </div>
-        </div>
 
         <div class="col-md-12">
-            <h2>Combiners</h2>
+            <h4>Combiner load</h4>
             <div class="chart" id="combiner">
                 <script>
                     var graphs = {{combiners_plot | safe}};
@@ -380,7 +379,7 @@
 
 
         <div class="col-md-12">
-            <h2>MEM and CPU Monitoring</h2>
+            <h2> Controller MEM and CPU Monitoring</h2>
             <div class="chart" id="monitoring">
 
                 <script>

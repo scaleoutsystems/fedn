@@ -50,7 +50,7 @@ class ReducerControl:
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
 
-    def delet_bucket_objects(self):
+    def delete_bucket_objects(self):
         return self.model_repository.delete_objects()
 
     def get_state(self):
@@ -166,7 +166,7 @@ class ReducerControl:
         # TODO: Do a General Health check on Combiners in the beginning of the round.
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
-            return
+            return None
 
         # 1. Formulate compute plans for this round and determine which combiners should participate in the round.
         compute_plan = copy.deepcopy(config)
@@ -325,6 +325,9 @@ class ReducerControl:
             print("No model in model chain, please seed the alliance!")
 
         self.__state = ReducerState.monitoring
+
+        # TODO: Set the round config object
+        self.set_config(config)
 
         # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer

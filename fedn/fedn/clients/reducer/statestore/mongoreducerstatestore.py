@@ -20,12 +20,13 @@ class MongoReducerStateStore(ReducerStateStore):
             self.certificates = self.network['certificates']
             # Control 
             self.control = self.mdb['control']
+            self.control_config = self.control['config']
             self.state = self.control['state']
             self.model = self.control['model']
             self.rounds = self.control["rounds"]
             # Logging and dashboards
-            self.status = self.mdb["status"]
-            self.round_time = self.rounds["performances"]
+            self.status = self.control["status"]
+            self.round_time = self.rounds["round_time"]
             self.psutil_usage = self.control["psutil_usage"]
 
             self.__inited = True
@@ -117,15 +118,17 @@ class MongoReducerStateStore(ReducerStateStore):
         self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
 
     def get_latest(self):
-        ret = self.model.find({'key': 'current_model'})
+        """ Return model_id for the latest model in the model_trail """
+        ret = self.model.find_one({'key': 'current_model'})
+        if ret == None:
+            return None
+
         try:
-            retcheck = ret[0]['model']
-            print("RET!!!: ", retcheck,flush=True)
-            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            model_id = ret['model']
+            if model_id == '' or model_id == ' ':  # ugly check for empty string
                 return None
-            return retcheck
+            return model_id
         except (KeyError, IndexError):
-            raise
             return None
 
     def set_round_config(self, config):
@@ -150,7 +153,6 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def get_compute_context(self):
         ret = self.control.config.find({'key': 'package'})
-        #ret = self.control.config.find({'key': 'package'})
         try:
             retcheck = ret[0]
             if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
@@ -266,4 +268,22 @@ class MongoReducerStateStore(ReducerStateStore):
             return list(ret)
         except:
             return None
+
+    def drop_control(self):
+        """ """
+        # Control 
+        self.state.drop() 
+        self.model.drop() 
+        self.control_config.drop()
+        self.rounds.drop()
+        self.status.drop()
+    
+        # Logging and dashboards
+        self.status.drop()
+        self.psutil_usage.drop() 
+        self.control.drop()
+    
+    def drop_model(self):
+        """ """
+        self.model.drop()
     

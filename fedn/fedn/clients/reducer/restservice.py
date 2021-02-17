@@ -128,7 +128,7 @@ class ReducerRestService:
             seed = True
             return redirect(url_for('history', seed=seed))
 
-        @app.route('/delete', methods=['GET', 'POST'])
+        @app.route('/delete_model_trail', methods=['GET', 'POST'])
         def delete():
             if request.method == 'POST':
                 from fedn.common.tracer.mongotracer import MongoTracer
@@ -146,7 +146,7 @@ class ReducerRestService:
                     pass
 
                 # drop objects in minio
-                self.control.delet_bucket_objects()
+                self.control.delete_bucket_objects()
                 return redirect(url_for('history'))
             seed = True
             return redirect(url_for('history', seed=seed))
@@ -160,6 +160,13 @@ class ReducerRestService:
                 return redirect(url_for('history'))
             seed = True
             return redirect(url_for('history', seed=seed))
+
+        @app.route('/drop_control', methods=['GET', 'POST'])
+        def drop_control():
+            if request.method == 'POST':
+                self.control.statestore.drop_control()
+                return redirect(url_for('start'))
+            return redirect(url_for('start'))
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
@@ -345,13 +352,14 @@ class ReducerRestService:
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
 
-        @app.route('/plot')
-        def plot():
+        @app.route('/dashboard')
+        def dashboard():
             from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
             box_plot = plot.create_box_plot()
             table_plot = plot.create_table_plot()
-            timeline_plot = plot.create_timeline_plot()
+            #timeline_plot = plot.create_timeline_plot()
+            timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('index.html', show_plot=True,
                                    box_plot=box_plot,

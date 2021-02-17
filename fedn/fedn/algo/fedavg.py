@@ -165,9 +165,9 @@ class FEDAVGCombiner:
         meta = {}
         meta['nr_expected_updates'] = len(clients)
         meta['nr_required_updates'] = int(config['clients_required'])
-        meta['timeout'] = int(config['round_timeout'])
+        meta['timeout'] = float(config['round_timeout'])
         tic = time.time()
-        model,data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=int(config['round_timeout']))
+        model,data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=float(config['round_timeout']))
         meta['time_combination'] = time.time()-tic
         meta['aggregation_time'] = data
         return model,meta
@@ -300,8 +300,7 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
-                self.server._log_queue_length()
-
+                #self.server._log_queue_length()
                 self.run_configs_lock.acquire()
                 if len(self.run_configs) > 0:
                     compute_plan = self.run_configs.pop()
