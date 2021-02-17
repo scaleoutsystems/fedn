@@ -6,6 +6,11 @@ from datetime import datetime,timedelta
 import plotly
 import os
 from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
+import math
+
+import plotly.express as px
+import geoip2.database
+import pandas as pd
 
 
 class Plot:
@@ -45,7 +50,7 @@ class Plot:
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for mean metrics')
+            fig.update_layout(title_text='No data currently available for table mean metrics')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return table
 
@@ -205,8 +210,8 @@ class Plot:
         
         fig.add_trace(go.Histogram(x=training),row=1,col=2)
         
-        plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return plot
+        client_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return client_plot
 
     def create_combiner_plot(self):
         waiting = []
@@ -235,8 +240,8 @@ class Plot:
         )
 
         fig.add_trace(go.Pie(labels=labels,values=val))
-        plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return plot
+        combiner_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return combiner_plot
 
     def create_box_plot(self):
         metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
@@ -335,7 +340,7 @@ class Plot:
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for CPU usage')
+            fig.update_layout(title_text='No data currently available for MEM and CPU usage')
             cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return cpu
 
