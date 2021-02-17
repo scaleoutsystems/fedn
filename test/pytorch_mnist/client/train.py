@@ -3,9 +3,23 @@ import sys
 import yaml
 import torch
 import os
+import collections
 
 from data.read_data import read_data
 
+def weights_to_np(weights):
+
+    weights_np = collections.OrderedDict()
+    for w in weights:
+        weights_np[w] = weights[w].cpu().detach().numpy()
+    return weights_np
+
+
+def np_to_weights(weights_np):
+    weights = collections.OrderedDict()
+    for w in weights_np:
+        weights[w] = torch.tensor(weights_np[w])
+    return weights
 
 def train(model, loss, optimizer, data, settings):
     print("-- RUNNING TRAINING --", flush=True)
@@ -43,10 +57,10 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.pytorchmodel import PytorchModelHelper
+    from fedn.utils.pytorchhelper import PytorchHelper
     from models.mnist_pytorch_model import create_seed_model
-    helper = PytorchModelHelper()
+    helper = PytorchHelper()
     model, loss, optimizer = create_seed_model()
-    model.load_state_dict(helper.load_model(sys.argv[1]))
+    model.load_state_dict(np_to_weights(helper.load_model(sys.argv[1])))
     model = train(model, loss, optimizer, '/app/data/train.csv', settings)
-    helper.save_model(model.state_dict(), sys.argv[2])
+    helper.save_model(weights_to_np(model.state_dict()), sys.argv[2])

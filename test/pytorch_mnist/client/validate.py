@@ -4,7 +4,13 @@ import json
 import yaml
 import torch
 import os
+import collections
 
+def np_to_weights(weights_np):
+    weights = collections.OrderedDict()
+    for w in weights_np:
+        weights[w] = torch.tensor(weights_np[w])
+    return weights
 
 def validate(model, data, settings):
     print("-- RUNNING VALIDATION --", flush=True)
@@ -78,11 +84,12 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.pytorchmodel import PytorchModelHelper
+    from fedn.utils.pytorchhelper import PytorchHelper
     from models.mnist_pytorch_model import create_seed_model
-    helper = PytorchModelHelper()
+    helper = PytorchHelper()
     model, loss, optimizer = create_seed_model()
-    model.load_state_dict(helper.load_model(sys.argv[1]))
+    model.load_state_dict(np_to_weights(helper.load_model(sys.argv[1])))
+
     report = validate(model, '../data/train.csv', settings)
 
     with open(sys.argv[2], "w") as fh:
