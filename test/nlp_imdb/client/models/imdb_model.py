@@ -2,6 +2,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras.layers import Embedding, LSTM
 from tensorflow.keras.layers import Conv1D, MaxPooling1D
+from tensorflow.keras.models import save_model, load_model
 
 
 def create_seed_model():
@@ -40,3 +41,7 @@ def create_seed_model():
                   metrics=['accuracy'])
 
     return model
+
+
+
+

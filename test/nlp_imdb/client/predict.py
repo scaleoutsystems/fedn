@@ -1,46 +1,37 @@
-import sys
-import tensorflow as tf
-from sklearn import metrics
-import json
-from read_data import read_data
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
-
-def validate(model, data):
-
-    print("-- RUNNING VALIDATION --", flush=True)
-    try:
-        x_test, y_test = read_data(data)
-        model_score = model.evaluate(x_test, y_test, verbose=0)
-        print('Testing loss:', model_score[0])
-        print('Testing accuracy:', model_score[1])
-        y_pred = model.predict_classes(x_test)
-        clf_report = metrics.classification_report(y_test, y_pred)
-
-    except Exception as e:
-        print("failed to validate the model {}".format(e), flush=True)
-        raise
-
-    report = {
-        "classification_report": clf_report,
-        "loss": model_score[0],
-        "accuracy": model_score[1]
-    }
-
-    print("-- VALIDATION COMPLETE! --", flush=True)
-    return report
-
-
-if __name__ == '__main__':
-
-    from fedn.utils.kerasweights import KerasWeightsHelper
-    from models.imdb_model import create_seed_model
-
-    helper = KerasWeightsHelper()
-    weights = helper.load_model(sys.argv[1])
-    model = create_seed_model()
-    model.set_weights(weights)
-    report = validate(model, '../data/test.csv')
-
-    with open(sys.argv[2],"w") as fh:
-        fh.write(json.dumps(report))
+# import keras as k
+# from fedn.utils.kerasweights import KerasWeightsHelper
+# from models.imdb_model import create_seed_model
+#
+#
+# def predict(global_model, review):
+#     print("-- RUNNING PREDICTION --", flush=True)
+#     helper = KerasWeightsHelper()
+#     weights = helper.load_model(global_model)
+#
+#     model = create_seed_model()
+#     model.set_weights(weights)
+#
+#     # use model
+#     d = k.datasets.imdb.get_word_index()
+#     words = review.split()
+#     review = []
+#     for word in words:
+#         if word not in d:
+#             review.append(2)
+#         else:
+#             review.append(d[word] + 3)
+#
+#     review = k.preprocessing.sequence.pad_sequences([review], truncating='pre', padding='pre', maxlen=100)
+#     prediction = model.predict(review)
+#     return prediction[0][0]
+#
+#
+# if __name__ == '__main__':
+#
+#     global_model = '7f06752e-66d4-4973-bd42-2c54490cb1c4' # global model name from minio repo
+#     review = "Movie Review: Nothing was typical about this.\
+#     Everything was beautifully done in this movie, the story, the flow,\
+#     the scenario, everything. I highly recommend it for mystery lovers, \
+#     for anyone who wants to watch a good movie!"
+#     result = predict(global_model, review)
+#     print("Prediction: (0 = negative, 1 = positive) = %0.4f" % result)
