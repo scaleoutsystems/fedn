@@ -211,23 +211,16 @@
                 <div class="container">
                     <!-- enctype="multipart/form-data" important for file upload-->
                                         <!-- drop DB-->
-                    <form id="delete_db_form" method="post" action="/drop_control" enctype="multipart/form-data">
+                    <!--<form id="delete_db_form" method="post" action="/drop_control" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="input-group mb-3">
                           <button class="btn btn-primary" type="submit">Drop control</button>
                         </div>
-                    </form>
+                    </form> -->
 
                     <form id="start_control_form" method="post" action="/start" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <!-- <div class="form-group row">
-                                <label for="package" class="col-sm-2 col-form-label">Package</label>
-                                <div class="col-sm-10">
-                                    <select class="form-control" id="package">
-                                      <option selected>default</option>
-                                    </select>
-                                </div>
-                            </div> -->
+
                             <div class="container">
                                 <h4>Active model: {{ compute_package }}</h4>
                             </div>
@@ -246,6 +239,17 @@
                                 <div class="col-sm-10">
                                         <input type="text" id="timeout" name="timeout" value="180">
                                 </div>
+
+                                <!-- <label for="validate" class="col-sm-2 col-form-label">Validate:</label>
+                                <div class="col-sm-10">
+                                        <input type="checkbox" id="validate" name="validate" checked={{ validate }}>
+                                </div> -->
+
+                                <!--<label for="helper" class="col-sm-2 col-form-label">Helper:</label>
+                                <div class="col-sm-10">
+                                        <input type="text" id="helper" name="helper" value={{ helper }}>
+                                </div>-->
+
 
                             </div>
 

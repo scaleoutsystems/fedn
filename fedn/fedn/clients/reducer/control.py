@@ -7,7 +7,7 @@ from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from .state import ReducerState
 
-from fedn.utils.helpers import get_helper
+import fedn.utils.helpers
 
 
 class UnsupportedStorageBackend(Exception):
@@ -40,15 +40,18 @@ class ReducerControl:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.",flush=True)
             raise UnsupportedStorageBackend()
 
-        self.helper_type = self.statestore.get_framework()
-        self.helper = get_helper(self.helper_type)
-        if not self.helper:
-            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(self.helper_type),flush=True)
-
         self.client_allocation_policy = self.client_allocation_policy_least_packed
 
         if self.statestore.is_inited():
             self.__state = ReducerState.idle
+
+    def get_helper(self):
+        helper_type = self.statestore.get_framework()
+        helper = fedn.utils.helpers.get_helper(helper_type)
+        if not helper:
+            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(helper_type),flush=True)
+            return None
+        return helper
 
     def delete_bucket_objects(self):
         return self.model_repository.delete_objects()
@@ -67,6 +70,9 @@ class ReducerControl:
 
     def get_model_info(self):
         return self.statestore.get_model_info()
+
+    def drop_models(self):
+        self.statestore.drop_models()
 
     def get_compute_context(self):
         definition = self.statestore.get_compute_context()
@@ -93,9 +99,10 @@ class ReducerControl:
     def commit(self, model_id, model=None):
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
+        helper = self.get_helper()
         if model is not None:
             print("Saving model to disk...",flush=True)
-            outfile_name = self.helper.save_model(model)
+            outfile_name = helper.save_model(model)
             print("DONE",flush=True)
             print("Uploading model to Minio...",flush=True)
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
@@ -174,7 +181,7 @@ class ReducerControl:
         compute_plan['round_id'] = round_number
         compute_plan['task'] = 'training'
         compute_plan['model_id'] = self.get_latest_model()
-        compute_plan['helper_type'] = self.helper_type
+        compute_plan['helper_type'] = self.statestore.get_framework()
 
         round_meta['compute_plan'] = compute_plan
 
@@ -194,9 +201,9 @@ class ReducerControl:
 
 
         round_start = self.check_round_start_policy(combiners)
-        print("ROUND START POLICY MET: participating combiners {}".format(round_start),flush=True)
+        print("CONTROL: round start policy met, participating combiners {}".format(round_start),flush=True)
         if not round_start:
-            print("REDUCER CONTROL: Round start policy not met, skipping round!",flush=True)
+            print("CONTROL: Round start policy not met, skipping round!",flush=True)
             return None
 
         # 2. Sync up and ask participating combiners to coordinate model updates
@@ -254,14 +261,13 @@ class ReducerControl:
             return None, round_meta
         print("OK")
 
-
         print("Starting reducing models...",flush=True)
         # 3. Reduce combiner models into a global model
         try:
             model,data = self.reduce(updated)
             round_meta['reduce'] = data
         except Exception as e:
-            print("REDUCER CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
+            print("CONTROL: Failed to reduce models from combiners: {}".format(updated),flush=True)
             print(e,flush=True)
             return None, round_meta
         print("DONE",flush=True)
@@ -287,7 +293,8 @@ class ReducerControl:
             combiner_config = copy.deepcopy(config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
-            combiner_config['helper_type'] = self.helper_type
+            combiner_config['helper_type'] = self.statestore.get_framework()
+
             for combiner in updated:
                 try:
                     combiner.start(combiner_config)
@@ -326,8 +333,8 @@ class ReducerControl:
 
         self.__state = ReducerState.monitoring
 
-        # TODO: Set the round config object
-        self.set_config(config)
+        # TODO: Validate and set the round config object
+        #self.set_config(config)
 
         # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
@@ -387,18 +394,20 @@ class ReducerControl:
             except:
                 pass
 
+            helper = self.get_helper()
+
             if data is not None:
                 try:
                     tic = time.time()
                     model_str=combiner.get_model().getbuffer()
-                    model_next = self.helper.load_model_from_BytesIO(model_str)
+                    model_next = helper.load_model_from_BytesIO(model_str)
                     meta['time_load_model'] += (time.time()-tic)
                     tic = time.time()
-                    model = self.helper.increment_average(model, model_next, i)
+                    model = helper.increment_average(model, model_next, i)
                     meta['time_aggregate_model'] += (time.time()-tic)
                 except:
                     tic = time.time()
-                    model = self.helper.load_model_from_BytesIO(data.getbuffer())
+                    model = helper.load_model_from_BytesIO(data.getbuffer())
                     meta['time_aggregate_model'] += (time.time()-tic)
                 i = i+1
 

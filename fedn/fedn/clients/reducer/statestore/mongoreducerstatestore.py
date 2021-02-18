@@ -23,11 +23,15 @@ class MongoReducerStateStore(ReducerStateStore):
             self.control_config = self.control['config']
             self.state = self.control['state']
             self.model = self.control['model']
-            self.rounds = self.control["rounds"]
+            self.round = self.control["round"]
+
             # Logging and dashboards
             self.status = self.control["status"]
-            self.round_time = self.rounds["round_time"]
-            self.psutil_usage = self.control["psutil_usage"]
+            self.round_time = self.control["round_time"]
+            self.psutil_monitoring = self.control["psutil_monitoring"]
+            self.combiner_round_time = self.control['combiner_round_time']
+
+
 
             self.__inited = True
         except Exception as e:
@@ -68,8 +72,7 @@ class MongoReducerStateStore(ReducerStateStore):
                             self.control.config.update({'key': 'package'},
                                                         {'$set': {'filename': {'filename': control['context']}}}, True)
                         if "helper" in control:
-                            self.control.config.update({'key': 'framework'},
-                                                        {'$set': {'helper': control['helper']}}, True)
+                            self.set_framework(control['helper'])
 
                         round_config = {'timeout':180, 'validate':True}
                         try:
@@ -161,6 +164,11 @@ class MongoReducerStateStore(ReducerStateStore):
         except (KeyError, IndexError):
             return None
 
+    def set_framework(self,helper):
+        self.control.config.update({'key': 'framework'},
+                                    {'$set': {'helper': helper}}, True)
+
+
     def get_framework(self):
         ret = self.control.config.find({'key': 'framework'})
         try:
@@ -227,10 +235,19 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_combiner(self,name):
         """ """
         try:
-            ret = self.combiners.find({'key': name})
+            ret = self.combiners.find_one({'name': name})
             return ret
         except:
             return None
+
+    def get_combiners(self):
+        """ """
+        try:
+            ret = self.combiners.find()
+            return list(ret)
+        except:
+            return None      
+
 
     def set_combiner(self,combiner_data):
         """ 
@@ -240,6 +257,13 @@ class MongoReducerStateStore(ReducerStateStore):
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
         ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
+
+    def delete_combiner(self,combiner):
+        """ """
+        try:
+            self.combiners.delete_one({'name': combiner})
+        except:
+            print("WARNING, failed to delete combiner: {}".format(combiner), flush=True)
 
     def set_client(self,client_data):
         """ 
@@ -273,17 +297,23 @@ class MongoReducerStateStore(ReducerStateStore):
         """ """
         # Control 
         self.state.drop() 
-        self.model.drop() 
         self.control_config.drop()
-        self.rounds.drop()
-        self.status.drop()
-    
-        # Logging and dashboards
-        self.status.drop()
-        self.psutil_usage.drop() 
         self.control.drop()
-    
-    def drop_model(self):
+
+        self.drop_models() 
+
+
+    def drop_models(self):
         """ """
         self.model.drop()
+        self.combiner_round_time.drop()
+        self.status.drop()
+        self.psutil_monitoring.drop()
+        self.round_time.drop()
+        self.round.drop()
+
+
+
+
+
     

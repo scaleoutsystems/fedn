@@ -18,7 +18,7 @@ class Plot:
         try:
             statestore_config = statestore.get_config()
             self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
-            self.alliance = self.mdb["status"]
+            self.status = self.mdb['control.status']
             self.round_time = self.mdb["control.round_time"]
             self.combiner_round_time = self.mdb["control.combiner_round_time"]
             self.psutil_usage = self.mdb["control.psutil_monitoring"]
@@ -47,7 +47,7 @@ class Plot:
         return valid_metrics
 
     def create_table_plot(self):
-        metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
+        metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for table mean metrics')
@@ -65,7 +65,7 @@ class Plot:
         models = []
         for metric in valid_metrics:
             validations = {}
-            for post in self.alliance.find({'type': 'MODEL_VALIDATION'}):
+            for post in self.status.find({'type': 'MODEL_VALIDATION'}):
                 e = json.loads(post['data'])
                 try:
                     validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
@@ -109,10 +109,10 @@ class Plot:
         x = []
         y = []
         base = []
-        for p in self.alliance.find({'type': 'MODEL_UPDATE_REQUEST'}):
+        for p in self.status.find({'type': 'MODEL_UPDATE_REQUEST'}):
             e = json.loads(p['data'])
             cid = e['correlationId']
-            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
+            for cc in self.status.find({'sender': p['sender'], 'type': 'MODEL_UPDATE'}):
                 da = json.loads(cc['data'])
                 if da['correlationId'] == cid:
                     cp = cc
@@ -135,10 +135,10 @@ class Plot:
         x = []
         y = []
         base = []
-        for p in self.alliance.find({'type': 'MODEL_VALIDATION_REQUEST'}):
+        for p in self.status.find({'type': 'MODEL_VALIDATION_REQUEST'}):
             e = json.loads(p['data'])
             cid = e['correlationId']
-            for cc in self.alliance.find({'sender': p['sender'], 'type': 'MODEL_VALIDATION'}):
+            for cc in self.status.find({'sender': p['sender'], 'type': 'MODEL_VALIDATION'}):
                 da = json.loads(cc['data'])
                 if da['correlationId'] == cid:
                     cp = cc
@@ -171,7 +171,7 @@ class Plot:
 
     def create_client_training_distribution(self):
         training = []
-        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
+        for p in self.status.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
             meta = json.loads(e['meta'])
             training.append(meta['exec_training'])
@@ -186,7 +186,7 @@ class Plot:
         upload = []
         download = []
         training =[]
-        for p in self.alliance.find({'type': 'MODEL_UPDATE'}):
+        for p in self.status.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
             meta = json.loads(e['meta'])
             upload.append(meta['upload_model'])
@@ -244,10 +244,10 @@ class Plot:
         return combiner_plot
 
     def create_box_plot(self):
-        metrics = self.alliance.find_one({'type': 'MODEL_VALIDATION'})
+        metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for metric distribution over alliance '
+            fig.update_layout(title_text='No data currently available for metric distribution over  '
                                          'participants')
             box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return box
@@ -266,7 +266,7 @@ class Plot:
         else:
             metric = valid_metrics[0]
         validations = {}
-        for post in self.alliance.find({'type': 'MODEL_VALIDATION'}):
+        for post in self.status.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])
             try:
                 validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
@@ -294,7 +294,7 @@ class Plot:
 
         box.update_xaxes(title_text='Model ID')
         box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        box.update_layout(title_text='Metric distribution over alliance participants: {}'.format(metric),
+        box.update_layout(title_text='Metric distribution over clients: {}'.format(metric),
                           margin=dict(l=20, r=20, t=45, b=20))
         box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
         return box
