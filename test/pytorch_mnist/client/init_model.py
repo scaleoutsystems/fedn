@@ -1,6 +1,7 @@
 from fedn.utils.pytorchhelper import PytorchHelper
 from models.mnist_pytorch_model import create_seed_model
 import collections
+
 def weights_to_np(weights):
 
     weights_np = collections.OrderedDict()
