@@ -88,7 +88,6 @@ class ReducerRestService:
 
             # Try to retrieve combiner from db
             combiner = self.control.network.get_combiner(name)
-            print("COMNINER!!!!",combiner,flush=Trues)
             if not combiner:
                 # Create a new combiner
                 import base64
