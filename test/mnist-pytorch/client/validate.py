@@ -4,16 +4,22 @@ import json
 import yaml
 import torch
 import os
+import collections
+import pickle
 
+def np_to_weights(weights_np):
+    weights = collections.OrderedDict()
+    for w in weights_np:
+        weights[w] = torch.tensor(weights_np[w])
+    return weights
 
-def validate(model, data, settings):
+def validate(model, settings):
     print("-- RUNNING VALIDATION --", flush=True)
     # The data, split between train and test sets. We are caching the partition in 
     # the container home dir so that the same data subset is used for 
     # each iteration.
 
     def evaluate(model, loss, dataloader):
-        print("-- RUNNING VALIDATION --", flush=True)
         model.eval()
         train_loss = 0
         train_correct = 0
@@ -27,29 +33,35 @@ def validate(model, data, settings):
             train_acc = train_correct / len(dataloader.dataset)
         return float(train_loss), float(train_acc)
 
-    # Training error (Client validates global model on same data as it trains on.)
+    # Load data
     try:
-        train_loader = torch.load("/app/mnist_train/dataloader.pth")
+        with open('/app/mnist_data/trainset.pyb', 'rb') as fh:
+            trainset = pickle.loads(fh.read())
     except:
-        train_loader = read_data(data, nr_examples=settings['training_samples'],
-                               batch_size=settings['batch_size'])
+        trainset = read_data(True, nr_examples=settings['training_samples'])
         try:
-            os.mkdir("/app/mnist_train")
-            torch.save(train_loader, "/app/mnist_train/dataloader.pth")
+            if not os.path.isdir('/app/mnist_data'):
+                os.mkdir('/app/mnist_data')
+            with open('/app/mnist_data/trainset.pyb', 'wb') as fh:
+                fh.write(pickle.dumps(trainset))
         except:
             pass
 
-    # Test error (Client has a small dataset set aside for validation)
     try:
-        test_loader = torch.load("/app/mnist_test/dataloader.pth")
+        with open('/app/mnist_data/testset.pyb', 'rb') as fh:
+            testset = pickle.loads(fh.read())
     except:
-        test_loader = read_data(data, nr_examples=settings['test_samples'],
-                               batch_size=settings['batch_size'])
+        testset = read_data(False, nr_examples=settings['training_samples'])
         try:
-            os.mkdir("/app/mnist_test")
-            torch.save(test_loader, "/app/mnist_test/dataloader.pth")
+            if not os.path.isdir('/app/mnist_data'):
+                os.mkdir('/app/mnist_data')
+            with open('/app/mnist_data/trainset.pyb', 'wb') as fh:
+                fh.write(pickle.dumps(testset))
         except:
             pass
+
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=settings['batch_size'], shuffle=True)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=settings['batch_size'], shuffle=True)
 
     try:
         training_loss, training_acc = evaluate(model, loss, train_loader)
@@ -78,12 +90,13 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.pytorchmodel import PytorchModelHelper
+    from fedn.utils.pytorchhelper import PytorchHelper
     from models.mnist_pytorch_model import create_seed_model
-    helper = PytorchModelHelper()
+    helper = PytorchHelper()
     model, loss, optimizer = create_seed_model()
-    model.load_state_dict(helper.load_model(sys.argv[1]))
-    report = validate(model, '../data/train.csv', settings)
+    model.load_state_dict(np_to_weights(helper.load_model(sys.argv[1])))
+
+    report = validate(model, settings)
 
     with open(sys.argv[2], "w") as fh:
         fh.write(json.dumps(report))
