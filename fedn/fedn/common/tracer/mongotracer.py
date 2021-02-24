@@ -9,13 +9,13 @@ class MongoTracer(Tracer):
     def __init__(self,mongo_config,network_id):
         try:
             self.mdb = connect_to_mongodb(mongo_config,network_id)
-            self.status = self.mdb['status']
+            self.status = self.mdb['control.status']
             self.round_time = self.mdb['control.round_time']
             self.psutil_monitoring = self.mdb['control.psutil_monitoring']
             self.model_trail = self.mdb['control.model_trail']
             self.latest_model = self.mdb['control.latest_model']
             self.combiner_round_time = self.mdb['control.combiner_round_time']
-            self.comniner_queue_length = self.mdb['control.combiner_queue_length']
+            #self.combiner_queue_length = self.mdb['control.combiner_queue_length']
             self.round = self.mdb['control.round']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -67,9 +67,9 @@ class MongoTracer(Tracer):
         self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round': round}}, True)
         self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round_time': round_time}}, True)
 
-    def set_combiner_queue_length(self,timestamp,ql):
-        self.combiner_queue_length({'key': 'combiner_queue_length'}, {'$push': {'queue_length': ql}}, True)
-        self.combiner_queue_length.update({'key': 'combiner_queue_length'}, {'$push': {'timestamp': timestamp}}, True)
+    #def set_combiner_queue_length(self,timestamp,ql):
+    #    self.combiner_queue_length({'key': 'combiner_queue_length'}, {'$push': {'queue_length': ql}}, True)
+    #    self.combiner_queue_length.update({'key': 'combiner_queue_length'}, {'$push': {'timestamp': timestamp}}, True)
 
     # Round statistics
     def set_round_meta(self, round_meta):

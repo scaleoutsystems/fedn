@@ -180,10 +180,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ####################################################################################################################
 
-    def _log_queue_length(self):
-        ql = self.combiner.model_updates.qsize()
-        if ql > 0:
-            self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
+    #def _log_queue_length(self):
+    #    ql = self.combiner.model_updates.qsize()
+    #    if ql > 0:
+    #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
 
     def __join_client(self, client):
         """ Add a client to the combiner. """

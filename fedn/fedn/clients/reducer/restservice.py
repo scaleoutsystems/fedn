@@ -75,6 +75,7 @@ class ReducerRestService:
             """ Add a combiner to the network. """
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
+
             # TODO check for get variables
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
@@ -85,29 +86,35 @@ class ReducerRestService:
             if port is None or address is None or name is None:
                 return "Please specify correct parameters."
 
-            certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
-            import base64
-            cert_b64 = base64.b64encode(certificate)
-            key_b64 = base64.b64encode(key)
+            # Try to retrieve combiner from db
+            combiner = self.control.network.get_combiner(name)
+            if not combiner:
+                # Create a new combiner
+                import base64
+                certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
+                cert_b64 = base64.b64encode(certificate)
+                key_b64 = base64.b64encode(key)
 
-            # TODO append and redirect to index.
-            import copy
-            combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
-            self.control.network.add_combiner(combiner)
+                # TODO append and redirect to index.
+                import copy
+                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
+                self.control.network.add_combiner(combiner)
 
-             # TODO remove ugly string hack
+
+            combiner = self.control.network.get_combiner(name)
+
             ret = {
                 'status': 'added', 
-                'certificate': str(cert_b64).split('\'')[1],
-                'key': str(key_b64).split('\'')[1], 
+                'certificate': combiner['certificate'],
+                'key': combiner['key'], 
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
-            }     
-
+            }                  
+                
             return jsonify(ret)
 
-        @app.route('/seed', methods=['GET', 'POST'])
-        def seed():
+        @app.route('/history', methods=['GET', 'POST'])
+        def history():
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -116,10 +123,10 @@ class ReducerRestService:
                     a = BytesIO()
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
-                    a.write(uploaded_seed.read()) 
-                    model = self.control.helper.load_model_from_BytesIO(a.getbuffer())
+                    a.write(uploaded_seed.read())
+                    helper = self.control.get_helper()                        
+                    model = helper.load_model_from_BytesIO(a.getbuffer())
                     self.control.commit(uploaded_seed.filename, model)
-                    #self.control.commit(uploaded_seed.filename, uploaded_seed)
             else:
                 h_latest_model_id = self.control.get_latest_model()
                 model_info = self.control.get_model_info()
@@ -127,40 +134,31 @@ class ReducerRestService:
                                        model_info=model_info)
 
             seed = True
-            return redirect(url_for('seed', seed=seed))
+            return redirect(url_for('history', seed=seed))
 
-        @app.route('/delete', methods=['GET', 'POST'])
-        def delete():
+        @app.route('/delete_model_trail', methods=['GET', 'POST'])
+        def delete_model_trail():
             if request.method == 'POST':
                 from fedn.common.tracer.mongotracer import MongoTracer
                 statestore_config = self.control.statestore.get_config()
                 self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
-                    self.tracer.drop_round_time()
-                    self.tracer.drop_ps_util_monitor()
-                    self.tracer.drop_model_trail()
-                    self.tracer.drop_latest_model()
-                    self.tracer.drop_status()
-                    self.tracer.drop_combiner_round_time()
-                    self.tracer.drop_combiner_round()
+                    self.control.drop_models()
                 except:
                     pass
 
                 # drop objects in minio
-                self.control.delet_bucket_objects()
-                return redirect(url_for('seed'))
+                self.control.delete_bucket_objects()
+                return redirect(url_for('history'))
             seed = True
-            return redirect(url_for('seed', seed=seed))
+            return redirect(url_for('history', seed=seed))
 
-        @app.route('/drop_db', methods=['GET', 'POST'])
-        def drop_db():
+        @app.route('/drop_control', methods=['GET', 'POST'])
+        def drop_control():
             if request.method == 'POST':
-                from fedn.common.storage.db.mongo import drop_mongodb
-                statestore_config = self.control.statestore.get_config()
-                self.mdb = drop_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
-                return redirect(url_for('seed'))
-            seed = True
-            return redirect(url_for('seed', seed=seed))
+                self.control.statestore.drop_control()
+                return redirect(url_for('start'))
+            return redirect(url_for('start'))
 
         # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/start', methods=['GET', 'POST'])
@@ -183,18 +181,25 @@ class ReducerRestService:
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
             if request.method == 'POST':
-                timeout = request.form.get('timeout', 180)
-                rounds = int(request.form.get('rounds', 1))
 
+                timeout = float(request.form.get('timeout'))
+                rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
-                active_clients = request.form.get('active_clients', 2)
                 clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
 
+                #TODO: Enable in UI
+                validate = request.form.get('validate', True)
+
+                helper_type = request.form.get('helper', 'keras_weights')
+                self.control.statestore.set_framework(helper_type)
+
                 latest_model_id = self.control.get_latest_model()
+
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,
-                          'rounds': rounds, 'active_clients': active_clients, 'clients_required': clients_required,
-                          'clients_requested': clients_requested, 'task': task}
+                          'rounds': rounds, 'clients_required': clients_required,
+                          'clients_requested': clients_requested, 'task': task,
+                          'validate': validate}
 
                 self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
@@ -204,7 +209,7 @@ class ReducerRestService:
                 rounds = range(1, 200)
                 latest_model_id = self.control.get_latest_model()
                 return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id,
-                                       compute_package=self.current_compute_context)
+                                       compute_package=self.current_compute_context,helper=self.control.statestore.get_framework(),validate=True)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -243,7 +248,7 @@ class ReducerRestService:
                     'host': combiner.address,
                     'port': combiner.port,
                     'certificate': str(cert_b64).split('\'')[1],
-                    'model_type': self.control.helper_type
+                    'model_type': self.control.statestore.get_framework()
                 }
 
                 return jsonify(response)
@@ -266,7 +271,7 @@ class ReducerRestService:
 
         def combiner_stats():
             combiner_info = []
-            for combiner in self.control.network.combiners:
+            for combiner in self.control.network.get_combiners():
                 try:
                     report = combiner.report()
                     combiner_info.append(report)
@@ -346,13 +351,14 @@ class ReducerRestService:
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
 
-        @app.route('/plot')
-        def plot():
+        @app.route('/dashboard')
+        def dashboard():
             from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
             box_plot = plot.create_box_plot()
             table_plot = plot.create_table_plot()
-            timeline_plot = plot.create_timeline_plot()
+            #timeline_plot = plot.create_timeline_plot()
+            timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('index.html', show_plot=True,
                                    box_plot=box_plot,
