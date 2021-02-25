@@ -229,8 +229,7 @@
                                 <label for="helper" class="col-sm-2 col-form-label">Helper:</label>
                                 <div class="col-sm-10">
                                     <select class="form-control" id="helper" name="helper">
-                                        <option value="keras_weights">Keras</option>
-                                        <option value="pytorch">Pytorch</option>
+                                        <option value={{ helper }}>{{helper}}</option>
                                     </select>
                                        <!-- <input class="form-control" type="text" id="helper" name="helper" value={{ helper }}>-->
                                 </div>
@@ -251,7 +250,7 @@
 
                                 <label for="validate" class="col-sm-2 col-form-label">Validate:</label>
                                 <div class="col-sm-10">
-                                        <input class="form-control" type="checkbox" id="validate" name="validate" checked={{ validate }}>
+                                        <input class="form-control" type="checkbox" id="validate" name="validate" value="True" checked={{ validate }}>
                                 </div>
 
                             </div>

@@ -185,7 +185,7 @@ class ReducerRestService:
                 clients_requested = request.form.get('clients_requested', 8)
 
                 #TODO: Enable in UI
-                validate = request.form.get('validate', True)
+                validate = request.form.get('validate', False)
                 helper_type = request.form.get('helper', 'keras_weights')
                 self.control.statestore.set_framework(helper_type)
                 latest_model_id = self.control.get_latest_model()
