@@ -1,16 +1,16 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 ## What is FEDn?
-FEDn is an open source, modular framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. It enables developers to configure and deploy *FEDn networks* to support different federated scenarios, ranging from cross-silo to cross-device use-cases.   
+FEDn is an open source framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. It enables developers to configure and deploy *FEDn networks* to support different federated scenarios, ranging from cross-silo to cross-device use-cases.      
   
 ## Core Features
 
-Three key design objectives are guiding development in the project and is reflected in the core features: 
-
-### Horizontally scalable through a tiered aggregation scheme 
-FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latency and throughput requirements spanning cross-silo and cross-device cases. This is addressed by allowing for a tiered model update and model aggregation scheme where multiple combiners divide up the work for global aggregation steps.  
+FEDn is developed gound up for full-scale depolyments in distributed, heterogenous environments. A key feature is the ability to seamlessly go from local developement and testing to live production depolyments. Three key design objectives are guiding development in the project: 
 
 ### A ML-framework agnostic, black-box design
-The framework treats client model updates and model validations as black-boxes. A developer can follow a structured design pattern to implement a custom helper class to support any ML model type or framework. Support for Keras Sequential models are available out-of-the box, and support for the TF functional API, PyTorch and SKLearn are in active development.  
+The framework treats client model updates and model validations as black-box computations. A developer can follow a structured design pattern to implement clients, and to extend the framework with support for viturally any ML model type or framework. Support for Keras and PyTorch artificial neural network models are available out-of-the box, and support for others, inlcuding select models from SKLearn, are in active development.  
+
+### Horizontally scalable through a tiered aggregation scheme 
+FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients, and from latency and throughput requirements spanning cross-silo and cross-device cases. This is achieved by a tiered architecture for model upates and model aggregation where multiple combiners divide up the work. Thus, the computing model in FEDn draws parallells to the MapReduce programming model, assuring good horizontal scalability. Recent benchmarks show high performance both for thousands of clients in a cross-device setting, and for 40 clients with large model updates (1GB) in a cross-silo setting.   
 
 ### Built for real-world distributed computing scenarios 
 FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distributed mode for convenient testing and devepment.  
@@ -152,9 +152,16 @@ Copy  'config/extra-hosts-clients.template.yaml' to 'test/mnist/extra-hosts.yaml
 ```bash
 sudo docker-compose -f docker-compose.yaml -f config/extra-hosts-client.yaml up --scale client=5 
 ```
- 
+## Where to go from here? 
+
+Additional example projects/clients:
+
+- Sentiment analyis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
+- VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
+- Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
+
 ## Support
-Reach out to Scaleout (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.
+Reach out to the Scaleout team (https://scaleoutsystems.com) to learn how to configure and deploy zero-trust FEDn networks in production based on FEDn, and how to adapt FEDn to support a range of use-case scenarios.
 
 ## Contributions
 All pull requests will be considered. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get started. 

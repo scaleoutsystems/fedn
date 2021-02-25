@@ -10,6 +10,7 @@ class MongoReducerStateStore(ReducerStateStore):
             self.config = config
             self.network_id = network_id
             self.mdb = connect_to_mongodb(self.config, self.network_id)
+
             # FEDn network
             self.network = self.mdb['network']
             self.reducer = self.network['reducer']
@@ -19,26 +20,25 @@ class MongoReducerStateStore(ReducerStateStore):
             self.certificates = self.network['certificates']
             # Control 
             self.control = self.mdb['control']
+            self.control_config = self.control['config']
             self.state = self.control['state']
-            self.algorithm = self.control['algorithm']
-            self.compute_context = self.control['compute_context']
-            self.compute_context_trail = self.control['compute_context_trail']
-            self.models = self.control['model_trail']
-            self.latest_model = self.control['latest_model']
-            self.rounds = self.control["rounds"]
+            self.model = self.control['model']
+            self.round = self.control["round"]
+
             # Logging and dashboards
-            self.status = self.mdb["status"]
-            self.round_time = self.rounds["performances"]
-            self.psutil_usage = self.control["psutil_usage"]
+            self.status = self.control["status"]
+            self.round_time = self.control["round_time"]
+            self.psutil_monitoring = self.control["psutil_monitoring"]
+            self.combiner_round_time = self.control['combiner_round_time']
+
+
 
             self.__inited = True
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.state = None
-            self.models = None
-            self.latest_model = None
-            self.compute_context = None
-            self.compute_context_trail = None
+            self.model = None
+            self.control = None
             self.network = None
             self.combiners = None
             self.clients = None
@@ -67,14 +67,24 @@ class MongoReducerStateStore(ReducerStateStore):
                     
                         if "context" in control:
                             print("Setting filepath to {}".format(control['context']), flush=True)
-                            # self.set_compute_context(str())
                             # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
                             # TODO fix with unboxing of value before storing and where consuming.
-                            self.compute_context.update({'key': 'package'},
+                            self.control.config.update({'key': 'package'},
                                                         {'$set': {'filename': {'filename': control['context']}}}, True)
                         if "helper" in control:
-                            self.compute_context.update({'key': 'framework'},
-                                                        {'$set': {'helper': control['helper']}}, True)                                                        
+                            self.set_framework(control['helper'])
+
+                        round_config = {'timeout':180, 'validate':True}
+                        try:
+                            round_config['timeout'] = control['timeout']
+                        except:
+                            pass
+
+                        try:
+                            round_config['validate'] = control['validate']
+                        except:
+                            pass
+  
 
                     # Storage settings
                     self.set_storage_backend(settings['storage'])
@@ -107,27 +117,29 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def set_latest(self, model_id):
         from datetime import datetime
-        x = self.latest_model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
-        self.models.update({'key': 'models'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
+        x = self.model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
+        self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
 
     def get_latest(self):
-        ret = self.latest_model.find({'key': 'current_model'})
+        """ Return model_id for the latest model in the model_trail """
+        ret = self.model.find_one({'key': 'current_model'})
+        if ret == None:
+            return None
+
         try:
-            retcheck = ret[0]['model']
-            if retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            model_id = ret['model']
+            if model_id == '' or model_id == ' ':  # ugly check for empty string
                 return None
-            return retcheck
+            return model_id
         except (KeyError, IndexError):
             return None
 
-    def set_compute_context(self, filename):
+    def set_round_config(self, config):
         from datetime import datetime
-        x = self.compute_context.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
-        self.compute_context_trail.update({'key': 'package'},
-                                          {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+        x = self.control.config.update({'key': 'round_config'}, {'$set': config}, True)
 
-    def get_compute_context(self):
-        ret = self.compute_context.find({'key': 'package'})
+    def get_round_config(self):
+        ret = self.control.config.find({'key': 'round_config'})
         try:
             retcheck = ret[0]
             if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
@@ -136,8 +148,29 @@ class MongoReducerStateStore(ReducerStateStore):
         except (KeyError, IndexError):
             return None
 
+    def set_compute_context(self, filename):
+        from datetime import datetime
+        x = self.control.config.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
+        self.control.config.update({'key': 'package_trail'},
+                                          {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+
+    def get_compute_context(self):
+        ret = self.control.config.find({'key': 'package'})
+        try:
+            retcheck = ret[0]
+            if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
+                return None
+            return retcheck
+        except (KeyError, IndexError):
+            return None
+
+    def set_framework(self,helper):
+        self.control.config.update({'key': 'framework'},
+                                    {'$set': {'helper': helper}}, True)
+
+
     def get_framework(self):
-        ret = self.compute_context.find({'key': 'framework'})
+        ret = self.control.config.find({'key': 'framework'})
         try:
             retcheck = ret[0]['helper']
             if retcheck == '' or retcheck == ' ':  # ugly check for empty string
@@ -147,8 +180,7 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def get_model_info(self):
-        # TODO: get all document in model collection...
-        ret = self.models.find_one()
+        ret = self.model.find_one({'key': 'model_trail'})
         try:
             if ret:
                 committed_at = ret['committed_at']
@@ -203,10 +235,19 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_combiner(self,name):
         """ """
         try:
-            ret = self.combiners.find({'key': name})
+            ret = self.combiners.find_one({'name': name})
             return ret
         except:
             return None
+
+    def get_combiners(self):
+        """ """
+        try:
+            ret = self.combiners.find()
+            return list(ret)
+        except:
+            return None      
+
 
     def set_combiner(self,combiner_data):
         """ 
@@ -216,6 +257,13 @@ class MongoReducerStateStore(ReducerStateStore):
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
         ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
+
+    def delete_combiner(self,combiner):
+        """ """
+        try:
+            self.combiners.delete_one({'name': combiner})
+        except:
+            print("WARNING, failed to delete combiner: {}".format(combiner), flush=True)
 
     def set_client(self,client_data):
         """ 
@@ -244,4 +292,28 @@ class MongoReducerStateStore(ReducerStateStore):
             return list(ret)
         except:
             return None
+
+    def drop_control(self):
+        """ """
+        # Control 
+        self.state.drop() 
+        self.control_config.drop()
+        self.control.drop()
+
+        self.drop_models() 
+
+
+    def drop_models(self):
+        """ """
+        self.model.drop()
+        self.combiner_round_time.drop()
+        self.status.drop()
+        self.psutil_monitoring.drop()
+        self.round_time.drop()
+        self.round.drop()
+
+
+
+
+
     
