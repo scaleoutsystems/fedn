@@ -182,7 +182,7 @@ class ReducerRestService:
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
             if request.method == 'POST':
-                timeout = request.form.get('timeout', 180)
+                timeout = request.form.get('timeout', 400)
                 rounds = int(request.form.get('rounds', 1))
 
                 task = (request.form.get('task', ''))

@@ -337,6 +337,7 @@ class ReducerControl:
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
+            # todo add try except bloc for round meta
             model_id,round_meta = self.round(config, current_round)
             end_time = datetime.now()
             if model_id:
