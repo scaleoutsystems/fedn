@@ -151,7 +151,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def set_compute_context(self, filename):
         from datetime import datetime
-        x = self.control.config.update({'key': 'package'}, {'$set': {'filename': filename, 'helper': 'helper'}}, True)
+        x = self.control.config.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
         self.control.config.update({'key': 'package_trail'},
                                           {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
