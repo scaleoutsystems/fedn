@@ -8,8 +8,24 @@
             <p>{{ message }}</p>
             <form method=post enctype=multipart/form-data>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <input type=file name=file>
-                <input type=submit value=Upload>
+                <div class="form-group row">
+                    <label for="helper" class="col-sm-2 col-form-label">Helper:</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" id="helper" name="helper" required>
+                            <option value='keras_weights'>Keras</option>
+                            <option value='pytorch'>PyTorch</option>
+                        </select>
+                    </div>
+
+                    <label for="file" class="col-sm-2 col-form-label">Package:</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="file" id="file" name="file">
+                    </div>
+                    <div class="col-sm-10">
+                        <input class="btn btn-primary my-1" type=submit value=Upload>
+                    </div>
+                </div>
+
             </form>
         </div>
     </div>

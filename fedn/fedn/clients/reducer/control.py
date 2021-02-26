@@ -85,12 +85,12 @@ class ReducerControl:
         else:
             return None
 
-    def set_compute_context(self, filename,path):
+    def set_compute_context(self, filename, path):
         """ Persist the configuration for the compute package. """
-        self.model_repository.set_compute_context(filename,path)
+        self.model_repository.set_compute_context(filename, path)
         self.statestore.set_compute_context(filename)
 
-    def get_compute_package(self,compute_package=''):
+    def get_compute_package(self, compute_package=''):
         if compute_package == '':
             compute_package = self.get_compute_context()
         return self.model_repository.get_compute_package(compute_package)

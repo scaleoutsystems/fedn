@@ -187,7 +187,7 @@ class ReducerRestService:
                 #TODO: Enable in UI
                 validate = request.form.get('validate', False)
                 helper_type = request.form.get('helper', 'keras_weights')
-                self.control.statestore.set_framework(helper_type)
+                # self.control.statestore.set_framework(helper_type)
                 latest_model_id = self.control.get_latest_model()
 
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,
@@ -393,6 +393,7 @@ class ReducerRestService:
                     return redirect(request.url)
 
                 file = request.files['file']
+                helper_type = request.form.get('helper', 'keras')
                 # if user does not select file, browser also
                 # submit an empty part without filename
                 if file.filename == '':
@@ -408,6 +409,7 @@ class ReducerRestService:
                         return "Not allowed to change context while execution is ongoing."
 
                     self.control.set_compute_context(filename, file_path)
+                    self.control.statestore.set_framework(helper_type)
                     return redirect(url_for('start'))
 
             from flask import send_from_directory
