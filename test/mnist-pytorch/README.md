@@ -37,6 +37,11 @@ The baseline CNN is specified in the file 'client/init_model.py'. This script cr
 python init_model.py 
 ```
 
+## Load the dataset
+```bash
+python load_dataset.py 
+```
+
 ## Start the client
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory (!!! NOT in "test/pytorch_mnist"):
 
