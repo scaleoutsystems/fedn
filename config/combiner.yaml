@@ -14,3 +14,8 @@ services:
       - ${PWD}/tmp/c1-models:/tmp/models
     ports:
       - 12080:12080
+
+networks:
+  default:
+    external:
+      name: fedn_default
