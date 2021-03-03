@@ -5,8 +5,12 @@ services:
   minio:
     image: minio/minio:latest
     hostname: minio
-    env_file:
-      ${PWD}/config/minio.env
+    environment:
+      - GET_HOSTS_FROM=dns
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=fedn_admin
+      - MINIO_SECRET_KEY=password
     command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
@@ -21,8 +25,9 @@ services:
   mongo:
     image: mongo:latest
     restart: always
-    env_file:
-      ${PWD}/config/mongodb.env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=fedn_admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
     ports:
       - 6534:6534
     command: mongod --port 6534
@@ -30,11 +35,16 @@ services:
   mongo-express:
     image: mongo-express:latest
     restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=6534
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=fedn_admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_BASICAUTH_USERNAME=fedn_admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password 
     ports:
       - 8081:8081
-    env_file:
-      ${PWD}/config/mongoexpress.env
-
+ 
 volumes:
   # CHANGE THIS IF YOU WANT TO PERSIST DATA ACROSS RUN's
   minio-data:
