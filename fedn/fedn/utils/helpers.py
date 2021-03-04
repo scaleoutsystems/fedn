@@ -46,12 +46,12 @@ class HelperBase(ABC):
         pass
 
 def get_helper(helper_type):
-    if helper_type == 'numpymodel':
-        from fedn.utils.numpymodel import NumpyHelper
-        return NumpyHelper()
-    elif helper_type == 'keras_weights':
-        from fedn.utils.kerasweights import KerasWeightsHelper
-        return KerasWeightsHelper()
+    if helper_type == 'numpyarray':
+        from fedn.utils.numpyarrayhelper import NumpyArrayHelper
+        return NumpyArrayHelper()
+    elif helper_type == 'keras':
+        from fedn.utils.kerashelper import KerasHelper
+        return KerasHelper()
     elif helper_type == 'pytorch':
         from fedn.utils.pytorchhelper import PytorchHelper
         return PytorchHelper()
