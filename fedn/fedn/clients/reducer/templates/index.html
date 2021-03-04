@@ -1,418 +1,414 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        {% if refresh %}
-        <meta http-equiv="refresh" content="5">
-        {% endif %}
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <link rel="icon" href="../../favicon.ico">
-        <link rel="canonical" href="https://getbootstrap.com/docs/3.4/examples/jumbotron-narrow/">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-              integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-        <!-- include style file-->
-        <link href="{{url_for('static',filename='css/style.css')}}" rel="stylesheet"/>
 
-        <title>FEDn Reducer</title>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {% if refresh %}
+    <meta http-equiv="refresh" content="5">
+    {% endif %}
 
+    <title>FEDn Reducer</title>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.16.0/jquery.validate.js"></script>
-        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-        <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-        <![endif]-->
+    <link rel="canonical" href="https://appstack.bootlab.io/pages-blank.html" />
 
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-    </head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <body>
-        <div class="header clearfix" style="height:40px;background-color:#fff;">
-            <nav class="navbar navbar-expand-md navbar-light fixed-top" style="background-color:#fff;">
-                <a class="navbar-brand" href="/"><img height="50"
-                                                      src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"></img></a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
-                        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="/">
-                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clipboard-data"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                                    <path fill-rule="evenodd"
-                                          d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
-                                    <path d="M4 11a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0v-1zm6-4a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0V7zM7 9a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V9z"/>
-                                </svg>
-                                Status <span class="sr-only">(current)</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/start">
-                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-sliders" fill="currentColor"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
-                                </svg>
-                                Control <span class="sr-only"></span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/history">
-                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-clock" fill="currentColor"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm8-7A8 8 0 1 1 0 8a8 8 0 0 1 16 0z"/>
-                                    <path fill-rule="evenodd"
-                                          d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
-                                </svg>
-                                History <span class="sr-only"></span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/dashboard" tabindex="-1" aria-disabled="true">
-                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tv" fill="currentColor"
-                                     xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M2.5 13.5A.5.5 0 0 1 3 13h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zM13.991 3H2c-.325 0-.502.078-.602.145a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3zM14 2H2C0 2 0 4 0 4v6c0 2 2 2 2 2h12c2 0 2-2 2-2V4c0-2-2-2-2-2z"/>
-                                </svg>
-                                Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/network" tabindex="-1" aria-disabled="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hdd-network" viewBox="0 0 16 16">
-                                  <path d="M4.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zM3 4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
-                                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8.5v3a1.5 1.5 0 0 1 1.5 1.5h5.5a.5.5 0 0 1 0 1H10A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5H.5a.5.5 0 0 1 0-1H6A1.5 1.5 0 0 1 7.5 10V7H2a2 2 0 0 1-2-2V4zm1 0v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1zm6 7.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5z"/>
-                                </svg>
-                                Network</a>
+    <link href="{{ url_for('static', filename='dist/css/light.css') }}" rel="stylesheet">
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+</head>
+
+<body data-theme="light" data-layout="fluid" data-sidebar-position="left" data-sidebar-behavior="sticky">
+    <div class="wrapper">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-content js-simplebar">
+                <a class="sidebar-brand" href="/">
+                    <img src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"
+                        style="height: 55px;"></img>
+                </a>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/">
+                            <i class="align-middle" data-feather="clipboard"></i>
+                            <span class="align-middle">Status</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/start">
+                            <i class="align-middle" data-feather="sliders"></i>
+                            <span class="align-middle">Control</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/history">
+                            <i class="align-middle" data-feather="clock"></i>
+                            <span class="align-middle">History</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/dashboard">
+                            <i class="align-middle" data-feather="monitor"></i>
+                            <span class="align-middle">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/network">
+                            <i class="align-middle" data-feather="compass"></i>
+                            <span class="align-middle">Network</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="main">
+            <nav class="navbar navbar-expand navbar-light navbar-bg">
+                <a class="sidebar-toggle">
+                    <i class="hamburger align-self-center"></i>
+                </a>
+                <div class="navbar-collapse collapse">
+                    <ul class="navbar-nav navbar-align">
+                        <li class="nav-item dropdown">
+                            <a class="nav-icon dropdown-toggle" href="https://scaleoutsystems.github.io/fedn/">
+                                <div class="position-relative">
+                                    <i class="align-middle" data-feather="help-circle"></i>
+                                </div>
+                            </a>
                         </li>
                     </ul>
-                    <a class="nav-link" href="https://scaleoutsystems.github.io/fedn/" tabindex="-1" aria-disabled="true">
-                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-patch-question" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM8.05 9.6c.336 0 .504-.24.554-.627.04-.534.198-.815.847-1.26.673-.475 1.049-1.09 1.049-1.986 0-1.325-.92-2.227-2.262-2.227-1.02 0-1.792.492-2.1 1.29A1.71 1.71 0 0 0 6 5.48c0 .393.203.64.545.64.272 0 .455-.147.564-.51.158-.592.525-.915 1.074-.915.61 0 1.03.446 1.03 1.084 0 .563-.208.885-.822 1.325-.619.433-.926.914-.926 1.64v.111c0 .428.208.745.585.745z">
-                            </path>
-                            <path fill-rule="evenodd"
-                                d="M10.273 2.513l-.921-.944.715-.698.622.637.89-.011a2.89 2.89 0 0 1 2.924 2.924l-.01.89.636.622a2.89 2.89 0 0 1 0 4.134l-.637.622.011.89a2.89 2.89 0 0 1-2.924 2.924l-.89-.01-.622.636a2.89 2.89 0 0 1-4.134 0l-.622-.637-.89.011a2.89 2.89 0 0 1-2.924-2.924l.01-.89-.636-.622a2.89 2.89 0 0 1 0-4.134l.637-.622-.011-.89a2.89 2.89 0 0 1 2.924-2.924l.89.01.622-.636a2.89 2.89 0 0 1 4.134 0l-.715.698a1.89 1.89 0 0 0-2.704 0l-.92.944-1.32-.016a1.89 1.89 0 0 0-1.911 1.912l.016 1.318-.944.921a1.89 1.89 0 0 0 0 2.704l.944.92-.016 1.32a1.89 1.89 0 0 0 1.912 1.911l1.318-.016.921.944a1.89 1.89 0 0 0 2.704 0l.92-.944 1.32.016a1.89 1.89 0 0 0 1.911-1.912l-.016-1.318.944-.921a1.89 1.89 0 0 0 0-2.704l-.944-.92.016-1.32a1.89 1.89 0 0 0-1.912-1.911l-1.318.016z">
-                            </path>
-                        </svg>
-                    </a>
-                    <form class="form-inline mt-2 mt-md-0">
-
-                    </form>
                 </div>
             </nav>
-        </div>
 
-        <div class="content">
-        {% block content %}
-            {% if refresh %}
-            <div class="jumbotron">
-                <div class="container">
-                    <h3 class="text-muted">{{client}}</h3>
-                    <p><a class="btn btn-lg btn-success" href="#" role="button">{{state}}</a></p>
-                </div>
-            </div>
-            {% endif %}
+            <main class="content">
+                <div class="container-fluid p-0">
+                    <h1 class="h3 mb-3"></h1>
+                    <div class="row">
+                        <div class="col-12">
+                            {% block content %}
 
-            {% if seed %}
-            <script>
-                $(document).ready(function() {
-                  $('#seed_upload_form').submit(function(e) {
-                    e.preventDefault();
-                    var h_latest_model_id = "{{h_latest_model_id}}";
-                    console.log('latest seed model id', h_latest_model_id);
-                    $(".error").remove();
-                    if (h_latest_model_id != 'None') {
-                      console.log('Model already exist!');
-                      document.getElementById("error").innerHTML = '<div class="alert alert-danger" role="alert">Seed model already exist!</div>';
-                    }
-                    else {
-                        $("#seed_upload_form")[0].submit();
-                    }
-                  });
-
-                });
-            </script>
-            <div class="jumbotron">
-                <div class="container">
-                    {% if not h_latest_model_id %}
-                    <!-- enctype="multipart/form-data" important for file upload-->
-                    <form id="seed_upload_form" method="post" action="/history" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="input-group mb-3">
-                          <input type="file" name="seed" id="file" class="form-control" aria-label="Upload seed file" aria-describedby="basic-addon2" required>
-                          <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">Upload</button>
-                          </div>
-                        </div>
-                        <div id="error"></div>
-
-                    </form>
-                    {% else %}
-
-                    <!-- delete objects in minio-->
-                    <form id="delete_models_form" method="post" action="/delete_model_trail" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="input-group mb-3">
-                          <button class="btn btn-primary" type="submit">Delete models [{{model_info|length}}]</button>
-                        </div>
-                    </form>
-
-
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                              <th scope="col">Model ID</th>
-                              <th scope="col">Committed at</th>
-                            </tr>
-                        </thead>
-                        {% for key in model_info.keys() %}
-                            <tr>
-                                <td>{{key}}</td>
-                                <td>{{model_info[key]}}</td>
-                            </tr>
-                        {% endfor %}
-
-                    </table>
-
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if not refresh and not seed and not show_plot and not network_plot %}
-            <script>
-                $(document).ready(function() {
-                  $('#start_control_form').submit(function(e) {
-                    e.preventDefault();
-                    var latest_model_id = "{{latest_model_id}}";
-                    console.log('latest seed model id', latest_model_id);
-                    $(".error").remove();
-                    if (latest_model_id === 'None') {
-                      console.log('Please upload a new seed model!');
-                      document.getElementById("start_error").innerHTML = '<div class="alert alert-danger" role="alert">No model found! Please upload a new seed model!</div>';
-                    }
-                    else {
-                        $("#start_control_form")[0].submit();
-                    }
-                  });
-
-                });
-            </script>
-            <div class="jumbotron">
-                <div class="container">
-                    <!-- enctype="multipart/form-data" important for file upload-->
-                                        <!-- drop DB-->
-                    <!--<form id="delete_db_form" method="post" action="/drop_control" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="input-group mb-3">
-                          <button class="btn btn-primary" type="submit">Drop control</button>
-                        </div>
-                    </form> -->
-
-                    <form id="start_control_form" method="post" action="/start" enctype="multipart/form-data">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
-                            <div class="container">
-                                <h4>Active model: {{ compute_package }}</h4>
-                            </div>
-
-                            <div class="form-group row">
-                                <label for="rounds" class="col-sm-2 col-form-label">Run rounds:</label>
-                                <div class="col-sm-10">
-                                    <select class="form-control" id="rounds" name="rounds">
-                                        {% for rd in round_options %}
-                                        <option>{{rd}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <label for="timeout" class="col-sm-2 col-form-label">Timeout:</label>
-                                <div class="col-sm-10">
-                                        <input type="text" id="timeout" name="timeout" value="180">
-                                </div>
-
-                                <!-- <label for="validate" class="col-sm-2 col-form-label">Validate:</label>
-                                <div class="col-sm-10">
-                                        <input type="checkbox" id="validate" name="validate" checked={{ validate }}>
-                                </div> -->
-
-                                <!--<label for="helper" class="col-sm-2 col-form-label">Helper:</label>
-                                <div class="col-sm-10">
-                                        <input type="text" id="helper" name="helper" value={{ helper }}>
-                                </div>-->
-
-
-                            </div>
-
-                            <div class="form-group row">
-                                <label for="rounds" class="col-sm-2 col-form-label"></label>
-                                <div id="start_error" class="col-sm-10">
+                            {% if refresh %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-success alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>{{ client }}</strong> {{ state }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                          <button type="submit" class="btn btn-primary my-1">Submit</button>
-                    </form>
+                            {% endif %}
+
+                            {% if seed %}
+                            <script>
+                                $(document).ready(function () {
+                                    $('#seed_upload_form').submit(function (e) {
+                                        e.preventDefault();
+                                        var h_latest_model_id = "{{h_latest_model_id}}";
+                                        console.log('latest seed model id', h_latest_model_id);
+                                        $(".error").remove();
+                                        if (h_latest_model_id != 'None') {
+                                            console.log('Model already exist!');
+                                            document.getElementById("error").innerHTML = '<div class="alert alert-danger" role="alert">Seed model already exist!</div>';
+                                        }
+                                        else {
+                                            $("#seed_upload_form")[0].submit();
+                                        }
+                                    });
+
+                                });
+                            </script>
+                            <div class="card">
+                                <div class="card-body">
+                                    {% if not h_latest_model_id %}
+                                    <form id="seed_upload_form" method="post" action="/history"
+                                        enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                        <div class="mb-3 row">
+                                            <label class="col-form-label col-sm-2 text-sm-right" for="file">File input:
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <input class="form-control" type="file" id="file" name="seed" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <div class="col-sm-10 ml-sm-auto">
+                                                <button type="submit" class="btn btn-square btn-primary">Upload</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    {% else %}
+                                    <form id="delete_models_form" method="post" action="/delete_model_trail"
+                                        enctype="multipart/form-data" style="margin-bottom: 24px;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                        <div class="mb-3 row">
+                                            <div class="col-sm-10 ml-sm-auto">
+                                                <button type="submit" class="btn btn-square btn-danger">Delete models
+                                                    [{{ model_info|length }}]</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:70%;">Model ID</th>
+                                                <th style="width:30%">Committed at</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for key in model_info.keys() %}
+                                            <tr>
+                                                <td>{{ key }}</td>
+                                                <td>{{ model_info[key] }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if not refresh and not seed and not show_plot and not network_plot %}
+                            <script>
+                                $(document).ready(function () {
+                                    $('#start_control_form').submit(function (e) {
+                                        e.preventDefault();
+                                        var latest_model_id = "{{latest_model_id}}";
+                                        console.log('latest seed model id', latest_model_id);
+                                        $(".error").remove();
+                                        if (latest_model_id === 'None') {
+                                            console.log('Please upload a new seed model!');
+                                            document.getElementById("start_error").innerHTML = '<div class="alert alert-danger" role="alert">No model found! Please upload a new seed model!</div>';
+                                        }
+                                        else {
+                                            $("#start_control_form")[0].submit();
+                                        }
+                                    });
+
+                                });
+                            </script>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Active model: {{ compute_package }}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="start_control_form" method="post" action="/start"
+                                        enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                        <div class="mb-3 row">
+                                            <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
+                                                rounds: </label>
+                                            <div class="col-sm-10">
+                                                <select class="form-control" id="rounds" name="rounds">
+                                                    {% for rd in round_options %}
+                                                    <option>{{ rd }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <label class="col-form-label col-sm-2 text-sm-right" for="timeout">Timeout:
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <input class="form-control" type="text" id="timeout" name="timeout"
+                                                    value="180">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 row">
+                                            <div class="col-sm-10 ml-sm-auto">
+                                                <button type="submit" class="btn btn-square btn-primary">Submit</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% endblock %}
+
+                            {% if show_plot %}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Model evaluation</h5>
+                                    <h6 class="card-subtitle text-muted">Distribution over clients</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="box">
+                                        <script>
+                                            var graphs = {{ box_plot | safe }};
+                                            Plotly.plot('box', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Model evaluation</h5>
+                                    <h6 class="card-subtitle text-muted">Client average metrics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="table">
+                                        <script>
+                                            var graphs = {{ table_plot | safe }};
+                                            Plotly.plot('table', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Aggregated client profile and training time distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="client">
+                                        <script>
+                                            var graphs = {{ clients_plot | safe }};
+                                            Plotly.plot('client', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if network_plot %}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">FEDn network</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map">
+                                        <script>
+                                            var graphs = {{ map_plot | safe }};
+                                            Plotly.plot('map', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Round time</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="round">
+                                        <script>
+                                            var graphs = {{ round_time_plot | safe }};
+                                            Plotly.plot('round', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Combiners</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if not combiner_info %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No combiners online!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Active clients</th>
+                                                <th>IP</th>
+                                                <th>Country</th>
+                                                <th>Region</th>
+                                                <th>City</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for dict_item in combiner_info %}
+                                            <tr>
+                                                <td>{{ dict_item['name'] }}</td>
+                                                <td>{{ dict_item['nr_active_clients'] }}</td>
+                                                <td>{{ dict_item['ip'] }}</td>
+                                                <td>{{ dict_item['country'] }}</td>
+                                                <td>{{ dict_item['region'] }}</td>
+                                                <td>{{ dict_item['city'] }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Combiner load</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="combiner">
+                                        <script>
+                                            var graphs = {{ combiners_plot | safe }};
+                                            Plotly.plot('combiner', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Controller MEM and CPU Monitoring</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="monitoring">
+                                        <script>
+                                            var graphs = {{ mem_cpu_plot | safe }};
+                                            Plotly.plot('monitoring', graphs, {});
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        {% endif %}
-        {% endblock %}
+            </main>
 
-        {% if show_plot %}
-        <div class="jumbotron">
-            <div class="col-md-12">
-                <h2>Model evaluation: distribution over clients</h2>
-                <div class="chart" id="box">
-                    <script>
-                        var graphs = {{box_plot | safe}};
-                        Plotly.plot('box',graphs,{});
-                    </script>
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row text-muted">
+                        <div class="col-6 text-start">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a class="text-muted" href="https://www.maxmind.com/">MAXMIND</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-6 text-end">
+                            <p class="mb-0">
+                                &copy; 2020 - <a href="#" class="text-muted">Scaleout Systems AB</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-md-12">
-                <h2>Model Evaluation: client average metrics</h2>
-                <div class="chart" id="table">
-                    <script>
-                        var graphs = {{table_plot | safe}};
-                        Plotly.plot('table',graphs,{});
-                    </script>
-                </div>
-            </div>
-
-            <!--<div class="col-md-12">
-                <h2>Timeline</h2>
-                <div class="chart" id="timeline">
-
-                    <script>
-                        var graphs = {{timeline_plot | safe}};
-                        Plotly.plot('timeline',graphs,{});
-                    </script>
-                </div>
-            </div> -->
-
-            <div class="col-md-12">
-                <h2>Aggregated client profile and training time distribution</h2>
-                <div class="chart" id="client">
-                    <script>
-                        var graphs = {{clients_plot | safe}};
-                        Plotly.plot('client',graphs,{});
-                    </script>
-                </div>
-            </div>
-
+            </footer>
         </div>
-        {% endif %}
+    </div>
 
-        {% if network_plot %}
-        <div class="jumbotron">
-           <div class="col-md-12">
-                <h2>FEDn network</h2>
-                <div class="chart" id="map">
+    <script src="{{ url_for('static', filename='dist/js/app.js') }}"></script>
+</body>
 
-                    <script>
-                        var graphs = {{map_plot | safe}};
-                        Plotly.plot('map',graphs,{});
-                    </script>
-                </div>
-            </div>
-        
-        <div class="col-md-12">
-            <h3>Round time</h3>
-            <div class="chart" id="round">
-                <script>
-                    var graphs = {{round_time_plot | safe}};
-                    Plotly.plot('round',graphs,{});
-                </script>
-            </div>
-        </div>
-
-        <div class="col-md-12">
-           <h3>Combiners</h3>
-           {% if not combiner_info %}
-            <div class="chart">
-                <p><div class="alert alert-danger" role="alert">No combiners online!</div></p>
-            </div>
-           {% endif %}
-
-           {% if combiner_info %}
-           <table class="table table-hover">
-                <thead>
-                    <tr>
-                      <th scope="col">Name </th>
-                      <th scope="col">Active clients</th>
-                      <th scope="col">IP </th>
-                      <th scope="col">Country </th>
-                      <th scope="col">Region </th>
-                      <th scope="col">City </th>
-                    </tr>
-                </thead>
-
-                {% for dict_item in combiner_info %}
-                    <tr>
-                        <td>{{dict_item['name']}}</td>
-                        <td>{{dict_item['nr_active_clients']}}</td>
-                        <td>{{dict_item['ip']}}</td>
-                        <td>{{dict_item['country']}}</td>
-                        <td>{{dict_item['region']}}</td>
-                        <td>{{dict_item['city']}}</td>
-                    </tr>
-                {% endfor %}
-            </table>
-           {% endif %}
-        </div>
-
-
-        <div class="col-md-12">
-            <h4>Combiner load</h4>
-            <div class="chart" id="combiner">
-                <script>
-                    var graphs = {{combiners_plot | safe}};
-                    Plotly.plot('combiner',graphs,{});
-                </script>
-            </div>
-        </div>
-
-
-        <div class="col-md-12">
-            <h2> Controller MEM and CPU Monitoring</h2>
-            <div class="chart" id="monitoring">
-
-                <script>
-                    var graphs = {{mem_cpu_plot | safe}};
-                    Plotly.plot('monitoring',graphs,{});
-                </script>
-            </div>
-        </div>
-        </div>
-        {% endif %}
-
-        
-        <footer class="footer">
-            <p>&copy; 2020 Scaleout Systems AB</p>
-        </footer>
-
-        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-                crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-                integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-                crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-                integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-                crossorigin="anonymous"></script>
-
-        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
-        <!--<script src="{{ url_for('static', filename='js/plots.js') }}"></script>-->
-
-    </body>
 </html>

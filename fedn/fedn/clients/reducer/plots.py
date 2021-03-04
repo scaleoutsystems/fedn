@@ -219,15 +219,18 @@ class Plot:
         model_load = []
         combination=[]
         for round in self.mdb['control.round'].find():
-            for combiner in round['combiners']:
-                data = combiner
-                stats = data['local_round']['1']
-                ml = stats['aggregation_time']['time_model_load']
-                ag = stats['aggregation_time']['time_model_aggregation']
-                combination.append(stats['time_combination'])
-                waiting.append(stats['time_combination']-ml-ag)
-                model_load.append(ml)
-                aggregation.append(ag)
+            try:
+                for combiner in round['combiners']:
+                    data = combiner
+                    stats = data['local_round']['1']
+                    ml = stats['aggregation_time']['time_model_load']
+                    ag = stats['aggregation_time']['time_model_aggregation']
+                    combination.append(stats['time_combination'])
+                    waiting.append(stats['time_combination']-ml-ag)
+                    model_load.append(ml)
+                    aggregation.append(ag)
+            except:
+                pass
         
         labels = ['Waiting for updates','Aggregating model updates','Loading model updates']
         val = [numpy.mean(waiting),numpy.mean(aggregation),numpy.mean(model_load)]
