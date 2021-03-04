@@ -51,8 +51,8 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
-    from fedn.utils.kerasweights import KerasWeightsHelper
-    helper = KerasWeightsHelper()
+    from fedn.utils.kerashelper import KerasHelper
+    helper = KerasHelper()
     weights = helper.load_model(sys.argv[1])
 
     from models.mnist_model import create_seed_model
