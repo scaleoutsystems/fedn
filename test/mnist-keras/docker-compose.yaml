@@ -11,3 +11,7 @@ services:
     volumes:
       - ./data:/app/data
 
+networks:
+  default:
+    external:
+      name: fedn_default

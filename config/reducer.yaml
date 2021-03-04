@@ -14,3 +14,8 @@ services:
       - ${PWD}/config:/app/client/config
     ports:
         - 8090:8090
+
+networks:
+  default:
+    external:
+      name: fedn_default
