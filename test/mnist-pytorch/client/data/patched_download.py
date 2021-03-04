@@ -48,19 +48,3 @@ def patched_download(self):
         torch.save(training_set, f)
     with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
         torch.save(test_set, f)
-if __name__ == '__main__':
-    MNIST.download = patched_download
-
-    _ = torchvision.datasets.MNIST('./data', train=True, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ]))
-
-    _ = torchvision.datasets.MNIST('./data', train=False, download=True,
-                                   transform=torchvision.transforms.Compose([
-                                       torchvision.transforms.ToTensor(),
-                                       torchvision.transforms.Normalize(
-                                           (0.1307,), (0.3081,))
-                                   ]))
