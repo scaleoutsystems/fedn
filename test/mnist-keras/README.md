@@ -1,6 +1,8 @@
 # MNIST test project
 This classsic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain at least 5 clients. The example is also useful for general scalability tests in fully distributed mode. 
 
+> Note that this assumes that a FEDn network is running with the "keras" helper, which is set in in "config/settings-reducer.yaml" (see separate deployment instructions). If you are connecting against a reducer part of a distributed setup. provide a 'extra_hosts' file.
+
 ## Setting up a client
 
 ### Provide local training and test data
@@ -41,6 +43,10 @@ python init_model.py
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
 
 ```bash
-sudo docker-compose -f docker-compose.dev.yaml up --scale client=2 
+docker-compose -f docker-compose.dev.yaml up --scale client=2 
 ```
-> Note that this assumes that a FEDn network is running (see separate deployment instructions). The file 'docker-compose.dev.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
+> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions). If you are connecting to a reducer part of a distributed setup, provide a 'extra_hosts' file with combiner:host mappings (edit the file according to your network)
+
+```bash
+docker-compose -f docker-compose.dev.yaml -f extra-hosts.yaml up 
+```
