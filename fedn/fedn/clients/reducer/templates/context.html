@@ -1,12 +1,13 @@
-<!doctype html>
 {% extends "index.html" %}
-{% block content %}
 
-    <div class="jumbotron">
-        <div class="container">
-            <h3 class="text-muted">Upload and set compute context</h3>
-            <p>{{ message }}</p>
-            <form method=post enctype=multipart/form-data>
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Upload and set compute context</h5>
+        <h6 class="card-subtitle text-muted">{{ message }}</h6>
+    </div>
+    <div class="card-body">
+        <form method=post enctype=multipart/form-data>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="form-group row">
                     <label for="helper" class="col-sm-2 col-form-label">Helper:</label>
@@ -28,5 +29,7 @@
 
             </form>
         </div>
+
     </div>
+</div>
 {% endblock %}

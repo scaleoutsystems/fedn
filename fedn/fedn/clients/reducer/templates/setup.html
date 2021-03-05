@@ -1,10 +1,19 @@
 {% extends "index.html" %}
-{% block content %}
 
-     <div class="jumbotron">
-                <div class="container">
-                    <h3 class="text-muted">Warning, reducer is not configured.</h3>
-                    <p>{{message | safe}}</p>
-                </div>
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Warning!</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning alert-outline alert-dismissible" role="alert">
+            <div class="alert-icon">
+                <i class="far fa-fw fa-bell"></i>
             </div>
+            <div class="alert-message">
+                <strong>Reducer is not configured!</strong> {{message | safe}}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

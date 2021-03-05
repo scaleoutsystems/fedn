@@ -188,6 +188,7 @@ class ReducerRestService:
                 validate = request.form.get('validate', False)
                 helper_type = request.form.get('helper', 'keras_weights')
                 # self.control.statestore.set_framework(helper_type)
+
                 latest_model_id = self.control.get_latest_model()
 
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,
