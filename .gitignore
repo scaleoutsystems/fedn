@@ -1,4 +1,9 @@
+#certificate files
+*.pem
+*.cer
+
 # Byte-compiled / optimized / DLL files
+
 tmp/
 *tempin.pyb
 *tempout.pyb
@@ -152,3 +157,22 @@ media/visualisers/
 ./test/data-center/client/certs/*
 ./test/data-center/combiner/certs/*
 ./test/data-center/reducer/*
+
+# nlp_imdb test-case
+./test/nlp_imdb/client/certs/*
+./test/nlp_imdb/combiner/certs/*
+./test/nlp_imdb/reducer/*
+./test/nlp_imdb/data/*
+./test/nlp_imdb/fedn-network.yaml
+
+
+# config files
+./config/settings-reducer.yaml
+./config/settings-combiner.yaml
+./config/extra-hosts-client.yaml
+./config/extra-hosts-reducer.yaml
+./config/settings-client.yaml
+
+./tmp/*
+
+

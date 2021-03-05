@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fedn',
-    version='0.0.1',
+    version='0.1.5',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -16,7 +16,6 @@ setup(
         "attrdict",
         "certifi",
         "chardet",
-        "Click==7.1.2",
         "PyYAML",
         "requests==2.25.0",
         "urllib3",
@@ -24,8 +23,8 @@ setup(
         "six",
         "python-slugify==4.0.1",
         "prettytable==1.0.1",
-        "grpcio-tools>=1.32.0",
-        "grpcio>=1.32.0",
+        "grpcio-tools>=1.34.0",
+        "grpcio>=1.34.0",
         "protobuf",
         "pypandoc==1.5",
         "wheel",
@@ -39,6 +38,7 @@ setup(
         "psutil",
         "click",
         "jinja2==2.11.1",
+        "nltk",
         "geoip2",
         "deprecated"
 

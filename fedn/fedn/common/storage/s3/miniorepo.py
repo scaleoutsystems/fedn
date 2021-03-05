@@ -30,7 +30,11 @@ class MINIORepository(Repository):
         try:
             self.bucket = config['storage_bucket']
         except Exception:
-            self.bucket = 'models'
+            self.bucket = 'fedn-models'
+        try:
+            self.context_bucket = config['context_bucket']
+        except Exception:
+            self.bucket = 'fedn-context'
         try:
             self.secure_mode = bool(config['storage_secure_mode'])
         except Exception:
@@ -52,6 +56,9 @@ class MINIORepository(Repository):
                                 secret_key=secret_key,
                                 secure=self.secure_mode)
 
+        # TODO: generalize
+        self.context_bucket = 'fedn-context'
+        self.create_bucket(self.context_bucket)
         self.create_bucket(self.bucket)
 
     def create_bucket(self, bucket_name):
@@ -78,10 +85,13 @@ class MINIORepository(Repository):
 
         return True
 
-    def get_artifact(self, instance_name):
+    def get_artifact(self, instance_name,bucket=''):
+
+        if bucket == '':
+            bucket = self.bucket
 
         try:
-            data = self.client.get_object(self.bucket, instance_name)
+            data = self.client.get_object(bucket, instance_name)
             return data.read()
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
@@ -95,12 +105,15 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
+        objects_to_delete = []
         try:
             objs = self.client.list_objects(self.bucket)
             for obj in objs:
-                print(obj)
+                print(obj.object_name)
+                objects_to_delete.append(obj.object_name)
         except Exception as e:
             raise Exception("Could not list models in bucket {}".format(self.bucket))
+        return objects_to_delete
 
     def delete_artifact(self, instance_name, bucket=[]):
         if not bucket:
@@ -111,3 +124,16 @@ class MINIORepository(Repository):
         except ResponseError as err:
             print(err)
             print('Could not delete artifact: {}'.format(instance_name))
+
+    def delete_objects(self):
+        objects_to_delete = self.list_artifacts()
+        try:
+            # force evaluation of the remove_objects() call by iterating over
+            # the returned value.
+            for del_err in self.client.remove_objects(self.bucket, objects_to_delete):
+                print("Deletion Error: {}".format(del_err))
+        except ResponseError as err:
+            print(err)
+
+
+

@@ -1,2 +1,0 @@
-# FEDn client base image
-

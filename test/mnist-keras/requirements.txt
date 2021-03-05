@@ -1,0 +1,5 @@
+numpy==1.18.0
+tensorflow==2.3.2
+pandas
+keras
+sklearn

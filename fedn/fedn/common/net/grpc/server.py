@@ -6,7 +6,7 @@ import grpc
 class Server:
     def __init__(self, servicer, modelservicer, config):
 
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=350))
         self.certificate = None
 
         if isinstance(servicer, rpc.CombinerServicer):

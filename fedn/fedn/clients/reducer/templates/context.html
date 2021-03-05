@@ -1,8 +1,28 @@
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
+{% extends "index.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Upload and set compute context</h5>
+        <h6 class="card-subtitle text-muted">{{ message }}</h6>
+    </div>
+    <div class="card-body">
+        <form method=post enctype=multipart/form-data>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="mb-3 row">
+                <label class="col-form-label col-sm-2 text-sm-right" for="file">File input:
+                </label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="file" id="file" name="file">
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-sm-10 ml-sm-auto">
+                    <button type="submit" class="btn btn-square btn-primary">Upload</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

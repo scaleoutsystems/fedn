@@ -72,14 +72,15 @@ def run_cmd(ctx):
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-v', '--preshared-cert', required=False, default=False)
 @click.option('-v', '--verify-cert', required=False, default=False)
+@click.option('-c', '--preferred-combiner', required=False, default=False)
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert,init):
+               verify_cert,preferred_combiner, init):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'init':init}
+              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 'init':init}
 
     if config['init']:
         with open(config['init'], 'r') as file:
@@ -99,7 +100,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     client = Client(config)
     client.run()
 
-   
+
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
@@ -126,27 +127,37 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         exit(-1)
 
     statestore_config = fedn_config['statestore']
-    if statestore_config['type'] == 'MongoDB': 
+    if statestore_config['type'] == 'MongoDB':
         from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
         statestore = MongoReducerStateStore(network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ",flush=True)
         exit(-1)
-    
+
     try:
         statestore.set_reducer(config)
     except:
         print("Failed to set reducer config in statestore, exiting.",flush=True)
         exit(-1)
-    
+
     try:
         statestore.set_storage_backend(fedn_config['storage'])
     except KeyError:
         print("storage configuration missing in statestore_config.",flush=True)
-        exit(-1)        
+        exit(-1)
     except:
         print("Failed to set storage config in statestore, exiting.",flush=True)
         exit(-1)
+
+    # Control config
+    control_config = fedn_config['control']
+    print("CONTROL_CONFIG: ",control_config,flush=True)
+    try:
+        statestore.set_round_config(control_config)
+    except:
+        print("Failed to set control config, exiting.",flush=True)
+        exit(-1)
+
 
     from fedn.reducer import Reducer
     reducer = Reducer(statestore)
@@ -167,6 +178,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
               'myport': port, 'myname': name, 'secure': secure, 'max_clients': max_clients,'init':init}
 
+
     if config['init']:
         with open(config['init'], 'r') as file:
             try:
@@ -174,11 +186,10 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             except yaml.YAMLError as e:
                 print('Failed to read config from settings file, exiting.',flush=True)
                 raise(e)
-
         # Read/overide settings from config file
         if 'controller' in settings:
-            reducer_config = settings['controller']
-            for key,val in reducer_config.items():
+            controller_config = settings['controller']
+            for key,val in controller_config.items():
                 config[key] = val
 
         if 'combiner' in settings:
@@ -186,6 +197,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             config['myname'] = combiner_config['name']
             config['myhost'] = combiner_config['host']
             config['myport'] = combiner_config['port']
+            config['max_clients'] = combiner_config['max_clients']
 
     from fedn.combiner import Combiner
     combiner = Combiner(config)

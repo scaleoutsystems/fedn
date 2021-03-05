@@ -2,8 +2,7 @@ network_id: fedn-test-network
 
 control:
   state: idle
-  context: mnist.tar.gz
-  helper: keras_sequential
+  helper: keras
 
 statestore:
   type: MongoDB
@@ -21,4 +20,5 @@ storage:
     storage_access_key: fedn_admin
     storage_secret_key: password
     storage_bucket: fedn-models
+    context_bucket: fedn-context
     storage_secure_mode: False 

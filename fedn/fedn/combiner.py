@@ -10,8 +10,11 @@ from fedn.clients.combiner.modelservice import ModelService
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 import requests
 import json
+import io
+import time
+import base64
 
-
+from collections import defaultdict
 # from fedn.combiner.role import Role
 
 from enum import Enum
@@ -44,21 +47,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def __init__(self, connect_config):
         self.clients = {}
 
-        import io
-        from collections import defaultdict
         self.modelservice = ModelService()
+
+        self.id = connect_config['myname']
+        self.role = Role.COMBINER
+        self.max_clients = connect_config['max_clients']
 
         self.model_id = None
 
-        self.role = Role.COMBINER
-
-        self.id = connect_config['myname']
-        address = connect_config['myhost']
-        port = connect_config['myport']
-
-        self.max_clients = connect_config['max_clients']
-
-        
         from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -67,7 +63,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                                             token=connect_config['token'],
                                             name=connect_config['myname'])
 
-        import time
         response = None
         while True:
             status, response = announce_client.announce()
@@ -79,11 +74,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
 
-        import base64
         cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
         key = base64.b64decode(config['key'])  # .decode('utf-8')
 
-        grpc_config = {'port': port,
+        grpc_config = {'port': connect_config['myport'],
                        'secure': connect_config['secure'],
                        'certificate': cert,
                        'key': key}
@@ -91,7 +85,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self,self.modelservice, grpc_config)
 
-        # TODO: Make configurable
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
 
@@ -125,7 +118,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.model_id = model_id
 
     def request_model_update(self, model_id, clients=[]):
-        """ Ask members in from_clients list to update the current global model. """
+        """ Ask clients to update the current global model. If an empty list
+            is passed, broadcasts to all active clients. s
+        """
+
         print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
@@ -134,22 +130,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.timestamp = str(datetime.now())
 
         if len(clients) == 0:
-            # Broadcast request to all active member clients
-            request.receiver.name = ""
+            clients = self.get_active_trainers()
+
+        for client in clients:
+            request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
-            response = self.SendModelUpdateRequest(request, self)
+            self.SendModelUpdateRequest(request, self)
 
-        else:
-            # Send to all specified clients
-            for client in clients:
-                request.receiver.name = client.name
-                request.receiver.role = fedn.WORKER
-                self.SendModelUpdateRequest(request, self)
-        # print("Requesting model update from clients {}".format(clients), flush=True)
-
-    def request_model_validation(self, model_id, from_clients=[]):
-        """ Send a request for members in from_client to validate the model <model_id>.
-            The default is to broadcast the request to all active members.
+    def request_model_validation(self, model_id, clients=[]):
+        """ Ask clients to validate the current global model. If an empty list
+            is passed, broadcasts to all active clients. s
         """
         request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
@@ -157,16 +147,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
 
-        if len(from_clients) == 0:
-            request.receiver.name = ""  # Broadcast request to all active member clients
+        if len(clients) == 0:
+            clients = self.get_active_validators()
+
+        for client in clients:
+            request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
-        else:
-            # Send to specified clients
-            for client in from_clients:
-                request.receiver.name = client.name
-                request.receiver.role = fedn.WORKER
-                self.SendModelValidationRequest(request, self)
 
         print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
 
@@ -193,11 +180,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ####################################################################################################################
 
+    #def _log_queue_length(self):
+    #    ql = self.combiner.model_updates.qsize()
+    #    if ql > 0:
+    #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
+
     def __join_client(self, client):
+        """ Add a client to the combiner. """
         if not client.name in self.clients.keys():
             self.clients[client.name] = {"lastseen": datetime.now()}
-            print("New client connected:{}".format(client), flush=True)
-
+  
     def _subscribe_client_to_queue(self, client, queue_name):
         self.__join_client(client)
         if not queue_name in self.clients[client.name].keys():
@@ -241,9 +233,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 pass
 
     def __register_heartbeat(self, client):
-        """ Adds a client entry in the clients dict if first time connecting.
-            Updates heartbeat timestamp.
-        """
+        """ Register a client if first time connecting. Update heartbeat timestamp. """
         self.__join_client(client)
         self.clients[client.name]["lastseen"] = datetime.now()
 
@@ -276,6 +266,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def Report(self, control: fedn.ControlRequest, context):
         """ Descibe current state of the Combiner. """
+
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
 
@@ -294,8 +285,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.value = str(model_id)
 
         p = response.parameter.add()
-        p.key = "nr_unprocessed_tasks"
+        p.key = "nr_unprocessed_compute_plans"
         p.value = str(len(self.combiner.run_configs))
+
+        p = response.parameter.add()
+        p.key = "name"
+        p.value = str(self.id)
 
         # Get IP information
         try:
@@ -379,9 +374,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if len(active_clients) < requested:
                 response.status = fedn.ConnectionStatus.ACCEPTING
                 return response
-
+                
         except Exception as e:
-            print("Combiner not properly configured!", flush=True)
+            print("Combiner not properly configured! {}".format(e), flush=True)
             raise
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
@@ -478,7 +473,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response. """
-        # self._send_request(request,fedn.Channel.MODEL_UPDATES)
         self.combiner.receive_model_candidate(request.model_update_id)
         print("ORCHESTRATOR: Received model update", flush=True)
 
@@ -516,7 +510,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             response.model_id = self.get_active_model()
         return response
-
 
 
     ####################################################################################################################
