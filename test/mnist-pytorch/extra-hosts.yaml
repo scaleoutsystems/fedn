@@ -2,4 +2,4 @@ version: '3.3'
 services:
  client:
   extra_hosts:
-    combiner-name: 13.53.197.49
+    combiner-name: 130.xx.xxx.xx
