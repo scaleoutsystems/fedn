@@ -45,9 +45,13 @@ python load_dataset.py
 ```
 
 ## Start the client
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory:
+The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience:
 
 ```bash
 docker-compose up --scale client=2 --build
 ```
-\]]
+> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions) and uses the default service names. If you are connecting to a reducer part of a distributed setup, first, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory: provide a 'extra_hosts' file with combiner:host mappings (edit the file according to your network)
+
+```bash
+docker-compose -f docker-compose.yaml -f extra-hosts.yaml up 
+```

@@ -43,10 +43,11 @@ python init_model.py
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
 
 ```bash
-docker-compose -f docker-compose.dev.yaml up --scale client=2 
+docker-compose -f docker-compose.yaml up --scale client=2 
 ```
-> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions). If you are connecting to a reducer part of a distributed setup, provide a 'extra_hosts' file with combiner:host mappings (edit the file according to your network)
+
+> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions) and uses the default service names. If you are connecting to a reducer part of a distributed setup, first, edit 'fedn-network.yaml' to provide IP address to the reducer. Also provide an 'extra_hosts.yaml' file with combiner:host mappings (edit the file according to your network)
 
 ```bash
-docker-compose -f docker-compose.dev.yaml -f extra-hosts.yaml up 
+docker-compose -f docker-compose.yaml -f extra-hosts.yaml up 
 ```
