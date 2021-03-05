@@ -4,9 +4,12 @@
 
 ### What's new?
 
+- Support for PyTorch models
 - It's now possible to have examples in external repositories
 - Support for models constructed with the Keras Functional API
 - Set maximum number of clients in the settings file
+- Now possible to upload the compute package through the UI
+- Configure round timeout in the UI
 
 ```yaml
 combiner:
@@ -16,16 +19,17 @@ combinerport: 12080
 max_clients: 50
 ```
 
-- Added visualizations on FEDn communication performance to the dashboard
+- Added several new views in UI including combiner performance and client training time distribution. 
+- Updated look-and-feel for UI.
 - Added client allocation policy to spread the clients evenly over the combiners
 - Use config for s3 model commits instead of a hard-coded bucket name
 - Memory management to prevent combiners from going off
-- Now possible to upload the compute package through the UI
-- Reducer, client and combiner now have their own Dockerfile definitions
+- Reducer, client and combiner now have their own separate Dockerfile definitions
 
 ### Fixes
 
-- Combiners now handle the case when all clients fail to update a model
+- Harmonizes naming of helper classes
+- Many bugfixes and stability improvements
 
 ### Other
 
