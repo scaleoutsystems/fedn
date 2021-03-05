@@ -5,54 +5,54 @@ import tensorflow.keras as keras
 import tensorflow.keras.models as krm
 
 import pickle
+import yaml
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from read_data import read_data
 import os   
 
 
-def train(model,data,sample_fraction):
+def train(model,data,settings):
     print("-- RUNNING TRAINING --", flush=True)
 
-    batch_size = 32
-    num_classes = 10
-    epochs = 1
-
-    # Input image dimensions
-    img_rows, img_cols = 28, 28
-
-    # The data, split between train and test sets. We are caching the partition in 
-    # the container home dir so that the same training subset is used for 
-    # each iteration. 
+    # We are caching the partition in the container home dir so that
+    # the same training subset is used for each iteration for a client. 
     try:
-        with open('/app/mnist_data/x.pyb','rb') as fh:
+        with open('/app/mnist_train/x.pyb','rb') as fh:
             x_train=pickle.loads(fh.read())
-        with open('/app/mnist_data/y.pyb','rb') as fh:
+        with open('/app/mnist_train/y.pyb','rb') as fh:
             y_train=pickle.loads(fh.read())
-        with open('/app/mnist_data/classes.pyb','rb') as fh:
+        with open('/app/mnist_train/classes.pyb','rb') as fh:
             classes=pickle.loads(fh.read())
     except:
-        (x_train, y_train, classes) = read_data(data,sample_fraction=sample_fraction)
+        (x_train, y_train, classes) = read_data(data,nr_examples=settings['training_samples'])
 
-    try:
-        os.mkdir('/app/mnist_data')
-        with open('/app/mnist_data/x.pyb','wb') as fh:
-            fh.write(pickle.dumps(x_train))
-        with open('/app/mnist_data/y.pyb','wb') as fh:
-            fh.write(pickle.dumps(y_train))
-        with open('/app/mnist_data/classes.pyb','wb') as fh:
-            fh.write(pickle.dumps(classes))
-    except:
-        pass
+        try:
+            os.mkdir('/app/mnist_train')
+            with open('/app/mnist_train/x.pyb','wb') as fh:
+                fh.write(pickle.dumps(x_train))
+            with open('/app/mnist_train/y.pyb','wb') as fh:
+                fh.write(pickle.dumps(y_train))
+            with open('/app/mnist_train/classes.pyb','wb') as fh:
+                fh.write(pickle.dumps(classes))
+        except:
+            pass
 
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
+    model.fit(x_train, y_train, batch_size=settings['batch_size'], epochs=settings['epochs'], verbose=1)
 
     print("-- TRAINING COMPLETED --", flush=True)
     return model
 
 if __name__ == '__main__':
-    model = krm.load_model(sys.argv[1])
-    model = train(model,'../data/train.csv',sample_fraction=0.001)
-    model.save(sys.argv[2])
 
+    with open('settings.yaml', 'r') as fh:
+        try:
+            settings = dict(yaml.safe_load(fh))
+        except yaml.YAMLError as e:
+            raise(e)
 
+    from fedn.utils.kerassequential import KerasSequentialHelper
+    helper = KerasSequentialHelper()
+    model = helper.load_model(sys.argv[1])
+    model = train(model,'../data/train.csv',settings)
+    helper.save_model(model,sys.argv[2])
