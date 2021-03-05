@@ -6,7 +6,7 @@ import tempfile
 
 from .helpers import HelperBase
 
-class KerasWeightsHelper(HelperBase):
+class KerasHelper(HelperBase):
     """ FEDn helper class for keras.Sequential. """
 
     def average_weights(self, weights):

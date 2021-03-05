@@ -7,7 +7,7 @@ import tempfile
 
 from .helpers import HelperBase
 
-class NumpyHelper(HelperBase):
+class NumpyArrayHelper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
     def increment_average(self, model, model_next, n):

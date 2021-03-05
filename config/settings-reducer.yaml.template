@@ -2,7 +2,7 @@ network_id: fedn-test-network
 
 control:
   state: idle
-  helper: keras_weights
+  helper: keras
 
 statestore:
   type: MongoDB
