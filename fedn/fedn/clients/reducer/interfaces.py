@@ -203,7 +203,6 @@ class CombinerInterface:
 
         return False
 
-
 class ReducerInferenceInterface:
     def __init__(self):
         self.model_wrapper = None
