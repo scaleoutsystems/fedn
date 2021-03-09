@@ -130,7 +130,7 @@ class ReducerControl:
         return osync
 
     def check_round_participation_policy(self,compute_plan,combiner_state):
-        """ Evaluate reducer level policy for combiner round-paarticipation.
+        """ Evaluate reducer level policy for combiner round-participation.
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """

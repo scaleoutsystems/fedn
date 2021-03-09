@@ -272,10 +272,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
         nr_active_clients = len(active_clients)
-
+        
         p = response.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(nr_active_clients)
+
+        active_trainers = self.get_active_trainers()
+        p = response.parameter.add()
+        p.key = "nr_active_trainers"
+        p.value = str(len(active_trainers))
+        
+        active_validators = self.get_active_validators()
+        p = response.parameter.add()
+        p.key = "nr_active_validators"
+        p.value = str(len(active_validators))
         
         p = response.parameter.add()
         p.key = "model_id"

@@ -111,8 +111,11 @@ class Client:
             print("Failed to retrive helper class settings! {}".format(client_config),flush=True)
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
-        threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
-        threading.Thread(target=self.__listen_to_model_validation_request_stream, daemon=True).start()
+    
+        if config['trainer']:
+            threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
+        if config['validator']:
+            threading.Thread(target=self.__listen_to_model_validation_request_stream, daemon=True).start()
 
         self.state = ClientState.idle
 
@@ -180,7 +183,6 @@ class Client:
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         global_model_id = request.model_id
-                        # TODO: Error handling
                         self.send_status("Received model update request.", log_level=fedn.Status.AUDIT,
                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
 
@@ -228,9 +230,8 @@ class Client:
         while True:
             try:
                 for request in self.orchestrator.ModelValidationRequestStream(r):
-                    # Process training request
+                    # Process validation request
                     model_id = request.model_id
-                    # TODO: Error handling
                     self.send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
                                      type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
                     metrics = self.__process_validation_request(model_id)
