@@ -112,6 +112,7 @@ class Client:
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
     
+        print(config,flush=True)
         if config['trainer'] == True:
             threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
         if config['validator'] == True:
