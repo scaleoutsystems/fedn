@@ -83,7 +83,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 
-              'validator':validator, 'trainer':trainer, 'init':init}
+              'validator': validator, 'trainer': trainer, 'init': init}
 
     if config['init']:
         with open(config['init'], 'r') as file:
