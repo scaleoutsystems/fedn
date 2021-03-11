@@ -70,7 +70,7 @@ class MongoReducerStateStore(ReducerStateStore):
                             # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
                             # TODO fix with unboxing of value before storing and where consuming.
                             self.control.config.update({'key': 'package'},
-                                                        {'$set': {'filename': {'filename': control['context']}}}, True)
+                                                        {'$set': {'filename': control['context']}}, True)
                         if "helper" in control:
                             self.set_framework(control['helper'])
 
