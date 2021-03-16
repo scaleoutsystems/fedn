@@ -16,6 +16,7 @@ import math
 
 import plotly.express as px
 import geoip2.database
+from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -346,13 +347,20 @@ class ReducerRestService:
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
 
+        @app.route('/metric_type', methods=['GET', 'POST'])
+        def change_features():
+            feature = request.args['selected']
+            plot = Plot(self.control.statestore)
+            graphJSON = plot.create_box_plot(feature)
+            return graphJSON
+
         @app.route('/dashboard')
         def dashboard():
-            from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
-            box_plot = plot.create_box_plot()
+            valid_metrics = plot.fetch_valid_metrics()
+            box_plot = plot.create_box_plot(valid_metrics[0])
             table_plot = plot.create_table_plot()
-            #timeline_plot = plot.create_timeline_plot()
+            # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('index.html', show_plot=True,
@@ -360,11 +368,11 @@ class ReducerRestService:
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
+                                   metrics=valid_metrics
                                    )
 
         @app.route('/network')
         def network():
-            from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
