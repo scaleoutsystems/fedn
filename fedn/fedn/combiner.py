@@ -358,6 +358,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 active_clients.append(client)
         return active_clients
 
+    def _drop_inactive_clients(self):
+        """ Clean up clients that has missed heartbeat """
+
     def ListActiveClients(self, request: fedn.ListClientsRequest, context):
         """ RPC endpoint that returns a ClientList containing the names of all active clients.
             An active client has sent a status message / responded to a heartbeat

@@ -83,7 +83,6 @@ class Plot:
         header_vals = valid_metrics
         models.reverse()
         values = [models]
-        print(all_vals, flush=True)
         for vals in all_vals:
             vals.reverse()
             values.append(vals)

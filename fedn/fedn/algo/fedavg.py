@@ -216,6 +216,25 @@ class FEDAVGCombiner:
 
         return clients
 
+
+    def __assign_round_clients(self, n, type="trainers"):
+        """  Obtain a list of clients to talk to in a round. """
+
+        if type == "validators":
+            clients = self.server.get_active_validators()
+        elif type == "trainers":
+            clients = self.server.get_active_trainers()
+
+        # If the number of requested trainers exceeds the number of available, use all available. 
+        if n > len(clients):
+            n = len(clients)
+            
+        # If not, we pick a random subsample of all available clients.
+        import random
+        clients = random.sample(clients, n)
+
+        return clients
+
     def __check_nr_round_clients(self, config, timeout=0.0):
         """ Check that the minimal number of required clients to start a round are connected. """
 
@@ -239,7 +258,7 @@ class FEDAVGCombiner:
             time.sleep(1.0)
             t += 1.0
 
-        return ready    
+        return ready
 
     def exec_validation(self,config,model_id):
         """ Coordinate validation rounds as specified in config. """
@@ -247,7 +266,7 @@ class FEDAVGCombiner:
         self.report_status("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
         #validators = self.__assign_round_clients(int(config['clients_requested']))
-        validators = self.__assign_round_clients(self.server.max_clients)
+        validators = self.__assign_round_clients(self.server.max_clients,type="validators")
         self.__validation_round(config,validators,model_id)        
 
     def exec_training(self, config):

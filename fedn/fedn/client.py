@@ -187,6 +187,7 @@ class Client:
                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
 
                         tic = time.time()
+                        self.state = ClientState.training
                         model_id, meta = self.__process_training_request(global_model_id)
                         processing_time = time.time()-tic
                         meta['processing_time'] = processing_time
@@ -214,6 +215,7 @@ class Client:
                             self.send_status("Client {} failed to complete model update.",
                                              log_level=fedn.Status.WARNING,
                                              request=request)
+                        self.state = ClientState.idle
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
@@ -234,6 +236,8 @@ class Client:
                     model_id = request.model_id
                     self.send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
                                      type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
+
+                    self.state = ClientState.validating
                     metrics = self.__process_validation_request(model_id)
 
                     if metrics != None:
@@ -254,6 +258,8 @@ class Client:
                     else:
                         self.send_status("Client {} failed to complete model validation.".format(self.name),
                                          log_level=fedn.Status.WARNING, request=request)
+
+                    self.state = ClientState.idle
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
