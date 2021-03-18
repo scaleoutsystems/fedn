@@ -103,6 +103,8 @@
                                     </div>
                                 </div>
                             </div>
+
+
                             {% endif %}
 
                             {% if seed %}
@@ -199,11 +201,20 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">Active model: {{ compute_package }}</h5>
+
                                 </div>
                                 <div class="card-body">
                                     <form id="start_control_form" method="post" action="/start"
                                         enctype="multipart/form-data">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                        <div class="mb-3 row">
+                                            <label class="col-form-label col-sm-2 text-sm-right" for="helper">Helper: </label>
+                                            <div class="col-sm-10">
+                                                <input type="text" placeholder={{helper}} readonly class="form-control-plaintext" id="helper"
+                                                       name="helper" value={{ helper }}>
+                                            </div>
+                                        </div>
 
                                         <div class="mb-3 row">
                                             <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
@@ -224,6 +235,16 @@
                                                     value="180">
                                             </div>
                                         </div>
+
+                                        <div class="mb-3 row">
+                                            <label class="col-form-label col-sm-2 text-sm-right" for="validate">Validate:
+                                            </label>
+                                            <div class="col-sm-10">
+                                                <input class="form-check-input" type="checkbox" id="validate" name="validate" value="True"
+                                                       checked={{ validate }}>
+                                            </div>
+                                        </div>
+
                                         <div class="mb-3 row">
                                             <div class="col-sm-10 ml-sm-auto">
                                                 <button type="submit" class="btn btn-square btn-primary">Submit</button>
@@ -233,8 +254,8 @@
                                 </div>
                             </div>
                             {% endif %}
-
                             {% endblock %}
+
 
                             {% if show_plot %}
                             <div class="card">
@@ -242,6 +263,18 @@
                                     <h5 class="card-title">Model evaluation</h5>
                                     <h6 class="card-subtitle text-muted">Distribution over clients</h6>
                                 </div>
+
+                                <div class="form-group row">
+                                <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
+                                    <div class="col-sm-6">
+                                        <select class="form-control" id="metric_type">
+                                            {% for metric in metrics %}
+                                            <option value={{metric}}>{{ metric }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="card-body">
                                     <div id="box">
                                         <script>
@@ -409,6 +442,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='dist/js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='dist/js/plot.js') }}"></script>
 </body>
 
 </html>

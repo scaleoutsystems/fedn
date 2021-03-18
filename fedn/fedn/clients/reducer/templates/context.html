@@ -8,21 +8,28 @@
     </div>
     <div class="card-body">
         <form method=post enctype=multipart/form-data>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group row">
+                    <label for="helper" class="col-sm-2 col-form-label">Helper:</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" id="helper" name="helper" required>
+                            <option value='keras_weights'>Keras</option>
+                            <option value='pytorch'>PyTorch</option>
+                        </select>
+                    </div>
 
-            <div class="mb-3 row">
-                <label class="col-form-label col-sm-2 text-sm-right" for="file">File input:
-                </label>
-                <div class="col-sm-10">
-                    <input class="form-control" type="file" id="file" name="file">
+                    <label for="file" class="col-sm-2 col-form-label">Package:</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="file" id="file" name="file">
+                    </div>
+                    <div class="col-sm-10">
+                        <input class="btn btn-primary my-1" type=submit value=Upload>
+                    </div>
                 </div>
-            </div>
-            <div class="mb-3 row">
-                <div class="col-sm-10 ml-sm-auto">
-                    <button type="submit" class="btn btn-square btn-primary">Upload</button>
-                </div>
-            </div>
-        </form>
+
+            </form>
+        </div>
+
     </div>
 </div>
 {% endblock %}
