@@ -220,11 +220,13 @@
                                             <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
                                                 rounds: </label>
                                             <div class="col-sm-10">
-                                                <select class="form-control" id="rounds" name="rounds">
+                                                <input class="form-control" type="text" id="rounds" name="rounds"
+                                                    value="1">
+                                                <!--<select class="form-control" id="rounds" name="rounds">
                                                     {% for rd in round_options %}
                                                     <option>{{ rd }}</option>
                                                     {% endfor %}
-                                                </select>
+                                                </select>-->
                                             </div>
                                         </div>
                                         <div class="mb-3 row">
@@ -268,9 +270,11 @@
                                 <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
                                     <div class="col-sm-6">
                                         <select class="form-control" id="metric_type">
+                                            {% if metrics %}
                                             {% for metric in metrics %}
                                             <option value={{metric}}>{{ metric }}</option>
                                             {% endfor %}
+                                            {% endif %}
                                         </select>
                                     </div>
                                 </div>

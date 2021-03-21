@@ -201,10 +201,8 @@ class ReducerRestService:
                 return redirect(url_for('index', message="Sent execution plan."))
 
             else:
-                # Select rounds UI
-                rounds = range(1, 200)
                 latest_model_id = self.control.get_latest_model()
-                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id,
+                return render_template('index.html', latest_model_id=latest_model_id,
                                        compute_package=self.current_compute_context, helper=self.control.statestore.get_framework(), validate=True)
 
             client = self.name
@@ -357,8 +355,12 @@ class ReducerRestService:
         @app.route('/dashboard')
         def dashboard():
             plot = Plot(self.control.statestore)
-            valid_metrics = plot.fetch_valid_metrics()
-            box_plot = plot.create_box_plot(valid_metrics[0])
+            try:
+                valid_metrics = plot.fetch_valid_metrics()
+                box_plot = plot.create_box_plot(valid_metrics[0])
+            except:
+                valid_metrics = None
+                box_plot = None
             table_plot = plot.create_table_plot()
             # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
