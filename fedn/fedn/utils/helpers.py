@@ -49,7 +49,7 @@ def get_helper(helper_type):
     if helper_type == 'numpymodel':
         from fedn.utils.numpymodel import NumpyHelper
         return NumpyHelper()
-    elif helper_type == 'keras_weights':
+    elif helper_type == 'keras':
         from fedn.utils.kerasweights import KerasWeightsHelper
         return KerasWeightsHelper()
     elif helper_type == 'pytorch':
