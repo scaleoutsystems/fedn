@@ -3,7 +3,7 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    image: "scaleoutsystems/mnist-client:latest"
+    image: "scaleoutsystems/mnist-client-pytorch:latest"
     build:
       context: .
     working_dir: /app
@@ -11,3 +11,7 @@ services:
     volumes:
       - ./data:/app/data
 
+networks:
+  default:
+    external:
+      name: fedn_default

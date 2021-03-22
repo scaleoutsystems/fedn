@@ -7,17 +7,12 @@ import tempfile
 
 from .helpers import HelperBase
 
-class NumpyHelper(HelperBase):
+class NumpyArrayHelper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
     def increment_average(self, model, model_next, n):
         """ Update an incremental average. """
-        temp = np.add(model, (model_next - model) / n)
-        model[:] = temp[:]
-
-    def get_tmp_path(self):
-        _ , path = tempfile.mkstemp()
-        return path
+        return np.add(model, (model_next - model) / n)
 
     def save_model(self, model, path=None):
         if not path:
@@ -39,6 +34,12 @@ class NumpyHelper(HelperBase):
             a.write(f.read())
         os.unlink(outfile_name)
         return a
+
+    def get_tmp_path(self):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        return path
 
     def load_model_from_BytesIO(self,model_bytesio):
         """ Load a model from a BytesIO object. """

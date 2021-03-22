@@ -1,8 +1,6 @@
 # MNIST test project
 This classsic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain at least 5 clients. The example is also useful for general scalability tests in fully distributed mode. 
 
-> Note that this assumes that a FEDn network is running with the "keras" helper, which is set in in "config/settings-reducer.yaml" (see separate deployment instructions). If you are connecting against a reducer part of a distributed setup. provide a 'extra_hosts' file.
-
 ## Setting up a client
 
 ### Provide local training and test data
@@ -33,7 +31,7 @@ cp mnist.tar.gz packages/
 ```
 
 ## Creating a seed model
-The baseline CNN is specified in the file 'client/init_model.py'. This script creates an untrained neural network and serialized that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed model in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file:
+The baseline CNN is specified in the file 'seed/init_model.py'. This script creates an untrained neural network and serialized that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed model in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file:
 
 ```bash
 python init_model.py 
@@ -43,11 +41,6 @@ python init_model.py
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then:
 
 ```bash
-docker-compose -f docker-compose.yaml up --scale client=2 
+sudo docker-compose -f docker-compose.local.yaml up --scale client=2 
 ```
-
-> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions) and uses the default service names. If you are connecting to a reducer part of a distributed setup, first, edit 'fedn-network.yaml' to provide IP address to the reducer. Also provide an 'extra_hosts.yaml' file with combiner:host mappings (edit the file according to your network)
-
-```bash
-docker-compose -f docker-compose.yaml -f extra-hosts.yaml up 
-```
+> Note that this assumes that a FEDn network is running (see separate deployment instructions). The file 'docker-compose.local.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.

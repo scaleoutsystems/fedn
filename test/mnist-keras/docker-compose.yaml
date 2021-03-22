@@ -3,7 +3,7 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    image: "mnist-client:latest"
+    image: "mnist-client-keras:latest"
     build:
       context: .
     working_dir: /app
@@ -11,3 +11,7 @@ services:
     volumes:
       - ./data:/app/data
 
+networks:
+  default:
+    external:
+      name: fedn_default

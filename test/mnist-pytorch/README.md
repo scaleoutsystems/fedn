@@ -3,6 +3,8 @@ This classsic example of hand-written text recognition is well suited both as a 
 
 ## Setting up a client
 
+> Note that this assumes that a FEDn network is up and running with the "pytorch" helper, which is identified in "config/settings-reducer.yaml" (see separate deployment instructions). If you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
+
 ### Provide local training and test data
 This example assumes that trainig and test data is available as 'test/mnist/data/train.csv' and 'test/mnist/data/test.csv'. Data can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available. To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. The subsample size is configured as described in the next section. 
 
@@ -37,10 +39,19 @@ The baseline CNN is specified in the file 'client/init_model.py'. This script cr
 python init_model.py 
 ```
 
+## Load the dataset
+```bash
+python load_dataset.py 
+```
+
 ## Start the client
-The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience. First, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory (!!! NOT in "test/pytorch_mnist"):
+The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience:
 
 ```bash
-docker-compose -f test/pytorch_mnist/docker-compose.dev.yaml up --scale client=2 --build
+docker-compose up --scale client=2 --build
 ```
-> Note that this assumes that a FEDn network is running with "pytorch_model" helper, which is identified in "config/settings-reducer.yaml" (see separate deployment instructions). The file 'docker-compose.dev.yaml' is for testing againts a local pseudo-distributed FEDn network. Use 'docker-compose.yaml' if you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
+> Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions) and uses the default service names. If you are connecting to a reducer part of a distributed setup, first, edit 'fedn-network.yaml' to provide information about the reducer endpoint. Then run following command in project directory: provide a 'extra_hosts' file with combiner:host mappings (edit the file according to your network)
+
+```bash
+docker-compose -f docker-compose.yaml -f extra-hosts.yaml up 
+```

@@ -3,7 +3,7 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import tensorflow.keras as keras
 import tensorflow.keras.models as krm
-from data.read_data import read_data
+from read_data import read_data
 import pickle
 import json
 from sklearn import metrics
@@ -91,22 +91,17 @@ def validate(model,data,settings):
 
 if __name__ == '__main__':
 
+
     with open('settings.yaml', 'r') as fh:
         try:
             settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError as e:
-            raise(e)
+            raise(e)   
 
-    from fedn.utils.kerashelper import KerasHelper
-    helper = KerasHelper()
-    weights = helper.load_model(sys.argv[1])
-
-    from models.mnist_model import create_seed_model
-    model = create_seed_model()
-    model.set_weights(weights)
-    
+    from fedn.utils.kerassequential import KerasSequentialHelper
+    helper = KerasSequentialHelper()
+    model = helper.load_model(sys.argv[1])
     report = validate(model,'../data/train.csv',settings)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))
-
