@@ -246,7 +246,12 @@ class Plot:
         combiner_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return combiner_plot
 
-    def create_box_plot(self):
+    def fetch_valid_metrics(self):
+        metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
+        valid_metrics = self._scalar_metrics(metrics)
+        return valid_metrics
+
+    def create_box_plot(self, metric):
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
@@ -264,10 +269,10 @@ class Plot:
 
         # Just grab the first metric in the list.
         # TODO: Let the user choose, or plot all of them.
-        if "accuracy" in valid_metrics:
-            metric = "accuracy"
-        else:
-            metric = valid_metrics[0]
+        # if "accuracy" in valid_metrics:
+        #     metric = "accuracy"
+        # else:
+        #     metric = valid_metrics[0]
         validations = {}
         for post in self.status.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])

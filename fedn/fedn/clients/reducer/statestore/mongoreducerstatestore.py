@@ -72,7 +72,8 @@ class MongoReducerStateStore(ReducerStateStore):
                             self.control.config.update({'key': 'package'},
                                                         {'$set': {'filename': control['context']}}, True)
                         if "helper" in control:
-                            self.set_framework(control['helper'])
+                            #self.set_framework(control['helper'])
+                            pass
 
                         round_config = {'timeout':180, 'validate':True}
                         try:
@@ -164,13 +165,12 @@ class MongoReducerStateStore(ReducerStateStore):
         except (KeyError, IndexError):
             return None
 
-    def set_framework(self,helper):
-        self.control.config.update({'key': 'framework'},
+    def set_framework(self, helper):
+        self.control.config.update({'key': 'package'},
                                     {'$set': {'helper': helper}}, True)
 
-
     def get_framework(self):
-        ret = self.control.config.find({'key': 'framework'})
+        ret = self.control.config.find({'key': 'package'})
         try:
             retcheck = ret[0]['helper']
             if retcheck == '' or retcheck == ' ':  # ugly check for empty string
