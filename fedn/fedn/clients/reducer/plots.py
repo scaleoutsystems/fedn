@@ -52,14 +52,14 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for table mean metrics')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return table
+            return False
 
         valid_metrics = self._scalar_metrics(metrics)
         if valid_metrics == []:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No scalar metrics found')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return table
+            return False
 
         all_vals = []
         models = []
@@ -176,6 +176,8 @@ class Plot:
             meta = json.loads(e['meta'])
             training.append(meta['exec_training'])
 
+        if not training:
+            return False
         fig = go.Figure(data=go.Histogram(x=training))
         fig.update_layout(title_text='Client model training time, mean: {}'.format(numpy.mean(training)))
         histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -203,7 +205,8 @@ class Plot:
             title="Total mean client processing time: {}".format(numpy.mean(processing)),
             showlegend=True
         )
-
+        if not processing:
+            return False
         data = [numpy.mean(training),numpy.mean(upload),numpy.mean(download)]
         labels = ["Training","Model upload","Model download"]
         fig.add_trace(go.Pie(labels=labels,values=data),row=1,col=1)
@@ -241,7 +244,8 @@ class Plot:
             title="Total mean combiner round time: {}".format(numpy.mean(combination)),
             showlegend=True
         )
-
+        if not combination:
+            return False
         fig.add_trace(go.Pie(labels=labels,values=val))
         combiner_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return combiner_plot
@@ -314,7 +318,7 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for round time')
             ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return ml
+            return False
 
         for post in self.round_time.find({'key': 'round_time'}):
             rounds = post['round']
@@ -350,7 +354,7 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for MEM and CPU usage')
             cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return cpu
+            return False
 
         for post in self.psutil_usage.find({'key': 'cpu_mem_usage'}):
             cpu = post['cpu']
