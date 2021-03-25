@@ -89,25 +89,9 @@ $ docker-compose -f config/combiner.yaml up
 Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step.
 
 ### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package, seeding the model, and attaching clients to the network. 
+Training a federated model on the FEDn network involves uploading a compute package, seeding the model, and attaching clients to the network. Follow the instruction here to set the environment up to train a model for digits classification using the MNIST dataset: 
 
-#### Upload a compute package
-
-Navigate to https://localhost:8090/context and upload the compute package in 'test/mnist/package/mnist.tar.gz'. 
-
-#### Seed the system with a base model
-
-To prepare FEDn to run training, we need to upload a seed model via this endpoint (https://localhost:8090/history). Creating and staging the seed model is typically done by the founding members of the ML alliance. For testing purposes, you find a pre-generated seed model in "test/mnist/seed" (and correspondingly for the other examples).
-
-#### Attach two Clients to the FEDn network:
-Go to the directory "test/mnist-keras". This will build the needed environment and start two clients and attach them to the combiner:
-
-````bash 
-docker-compose -f docker-compose.yaml up --scale client=2
-````
-
-#### Start training the model
-To start training the model, navigate to the Reducer REST API endpoint: localhost:8090/start.  You can follow the progress of training visually at https://localhost:8090/dashboard.
+https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 
 #### Developing on FEDn 
 For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. 
