@@ -26,7 +26,7 @@ grpcio-tools==1.34.0
 h5py==2.10.0
 idna==2.10
 itsdangerous==1.1.0
-Jinja2==2.11.1
+Jinja2==2.11.3
 joblib==0.17.0
 Markdown==3.3.3
 MarkupSafe==1.1.1
