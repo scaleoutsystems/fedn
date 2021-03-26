@@ -37,7 +37,7 @@ setup(
         "flask_profiler",
         "psutil",
         "click",
-        "jinja2==2.11.1",
+        "jinja2==2.11.3",
         "nltk",
         "geoip2",
         "deprecated"
