@@ -333,7 +333,8 @@ class ReducerRestService:
             config = self.control.statestore.get_config()
 
             cities_df = pd.DataFrame(cities_dict)
-
+            if cities_df.empty:
+                return False
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
                                  color="role", size="size", hover_name="city",
                                  hover_data={"city": False, "lon": False, "lat": False, 'size': False,

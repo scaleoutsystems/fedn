@@ -266,14 +266,24 @@
                                     <h6 class="card-subtitle text-muted">Distribution over clients</h6>
                                 </div>
 
+                                {% if not box_plot %}
+                                <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                    <div class="alert-icon">
+                                        <i class="far fa-fw fa-bell"></i>
+                                    </div>
+                                    <div class="alert-message">
+                                        <strong>No data currently available for distribution over clients!</strong>
+                                    </div>
+                                </div>
+                                {% else %}
                                 <div class="form-group row">
-                                <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
+                                    <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
                                     <div class="col-sm-6">
                                         <select class="form-control" id="metric_type">
                                             {% if metrics %}
-                                            {% for metric in metrics %}
-                                            <option value={{metric}}>{{ metric }}</option>
-                                            {% endfor %}
+                                                {% for metric in metrics %}
+                                                <option value={{metric}}>{{ metric }}</option>
+                                                {% endfor %}
                                             {% endif %}
                                         </select>
                                     </div>
@@ -287,6 +297,7 @@
                                         </script>
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
 
                             <div class="card">
@@ -295,12 +306,23 @@
                                     <h6 class="card-subtitle text-muted">Client average metrics</h6>
                                 </div>
                                 <div class="card-body">
+                                    {% if not table_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for client average metrics!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="table">
                                         <script>
                                             var graphs = {{ table_plot | safe }};
                                             Plotly.plot('table', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -309,12 +331,23 @@
                                     <h5 class="card-title">Aggregated client profile and training time distribution</h5>
                                 </div>
                                 <div class="card-body">
+                                    {% if not clients_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for client profile and training time distribution!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="client">
                                         <script>
                                             var graphs = {{ clients_plot | safe }};
                                             Plotly.plot('client', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}
@@ -325,12 +358,23 @@
                                     <h5 class="card-title">FEDn network</h5>
                                 </div>
                                 <div class="card-body">
+                                    {% if not map_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for FEDn network!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="map">
                                         <script>
                                             var graphs = {{ map_plot | safe }};
                                             Plotly.plot('map', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -339,12 +383,23 @@
                                     <h5 class="card-title">Round time</h5>
                                 </div>
                                 <div class="card-body">
+                                    {% if not round_time_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for round time!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="round">
                                         <script>
                                             var graphs = {{ round_time_plot | safe }};
                                             Plotly.plot('round', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -396,12 +451,23 @@
                                     <h5 class="card-title">Combiner load</h5>
                                 </div>
                                 <div class="card-body">
+                                    {% if not combiners_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for combiners!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="combiner">
                                         <script>
                                             var graphs = {{ combiners_plot | safe }};
                                             Plotly.plot('combiner', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -410,12 +476,23 @@
                                     <h5 class="card-title">Controller MEM and CPU Monitoring</h5>
                                 </div>
                                 <div class="card-body">
+                                    {% if not mem_cpu_plot %}
+                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                        <div class="alert-icon">
+                                            <i class="far fa-fw fa-bell"></i>
+                                        </div>
+                                        <div class="alert-message">
+                                            <strong>No data currently available for MEM and CPU usage!</strong>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div id="monitoring">
                                         <script>
                                             var graphs = {{ mem_cpu_plot | safe }};
                                             Plotly.plot('monitoring', graphs, {});
                                         </script>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}
