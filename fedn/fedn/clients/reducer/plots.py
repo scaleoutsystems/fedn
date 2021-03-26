@@ -83,7 +83,7 @@ class Plot:
         header_vals = valid_metrics
         models.reverse()
         values = [models]
-        print(all_vals, flush=True)
+
         for vals in all_vals:
             vals.reverse()
             values.append(vals)
@@ -271,12 +271,6 @@ class Plot:
             box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return box
 
-        # Just grab the first metric in the list.
-        # TODO: Let the user choose, or plot all of them.
-        # if "accuracy" in valid_metrics:
-        #     metric = "accuracy"
-        # else:
-        #     metric = valid_metrics[0]
         validations = {}
         for post in self.status.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])
@@ -304,8 +298,8 @@ class Plot:
             name='Mean'
         ))
 
-        box.update_xaxes(title_text='Model ID')
-        box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        box.update_xaxes(title_text='Rounds')
+        box.update_yaxes(tickvals=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         box.update_layout(title_text='Metric distribution over clients: {}'.format(metric),
                           margin=dict(l=20, r=20, t=45, b=20))
         box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
