@@ -48,7 +48,6 @@ class PytorchHelper(HelperBase):
                 weight_factor = i
             else:
                 weights_np[i] = b[i]
-            weights_np[i] = b[i]
 
         model_pack = {'weights': weights_np, 'k': weight_factor}
         return model_pack
