@@ -72,7 +72,7 @@ Make sure you can access the following services before proceeding to the next st
  - Minio: localhost:9000
  - Mongo Express: localhost:8081
  
-2. Start the Reducer  
+3. Start the Reducer  
 
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
@@ -80,7 +80,7 @@ Copy the settings config file for the reducer, 'config/settings-reducer.yaml.tem
 $ docker-compose -f config/reducer.yaml up 
 ````
 
-3. Start a combiner  
+4. Start a combiner  
 
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
@@ -95,9 +95,9 @@ Training a federated model on the FEDn network involves uploading a compute pack
 
 https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 
-#### Developing on FEDn 
-For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. 
- 
+#### Updating/changing the compute package and/or the seed model
+By design, it is not possible to simply delete the compute package to restart the alliance -  this is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (localhost:8081), log in (credentials are found in the config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
+
 ## Distributed deployment
 The actual deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. You can easily use the provided docker-compose templates to deploy FEDn network across different hosts in a live environment, but note that it might be necessary to modify them slightly depending on your target environment and host configurations.   
 
@@ -163,6 +163,8 @@ Reach out to Scaleout (https://scaleoutsystems.com) or start a ticket directly h
 
 ## Contributions
 All pull requests will be considered and are much appreciated. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
+
+For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. You might also want to use a Dockerfile for the client that installs fedn from your local clone of FEDn, alternatively mounts the source. 
 
 ## License
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
