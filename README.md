@@ -54,14 +54,15 @@ Clone the repository (make sure to use git-lfs!) and follow these steps:
 ### Pseudo-distributed deployment
 We provide docker-compose templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development on a single host machine. 
 
-1. Create a default docker network 
+1. Create a default docker network  
+
 We need to make sure that all services deployed on our single host can communicate on the same docker network. Therefore, our provided docker-compose templates use a default external network 'fedn_default'. First, create this network: 
 
 ````bash 
 $ docker network create fedn_default
 ````
 
-2. Deploy the base services (Minio and MongoDB):
+2. Deploy the base services (Minio and MongoDB)  
 
 ````bash 
 $ docker-compose -f config/base-services.yaml up 
@@ -71,7 +72,7 @@ Make sure you can access the following services before proceeding to the next st
  - Minio: localhost:9000
  - Mongo Express: localhost:8081
  
-2. Start the Reducer
+2. Start the Reducer  
 
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
@@ -79,7 +80,8 @@ Copy the settings config file for the reducer, 'config/settings-reducer.yaml.tem
 $ docker-compose -f config/reducer.yaml up 
 ````
 
-3. Start a combiner:
+3. Start a combiner  
+
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
