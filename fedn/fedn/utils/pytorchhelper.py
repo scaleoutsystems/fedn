@@ -10,6 +10,7 @@ class PytorchHelper(HelperBase):
 
     def increment_average(self, model_pack_a, model_pack_b, n):
         """ Update an incremental average. """
+        print("---NEW INCREMENT AVERAGE-------")
         weights_a = model_pack_a['weights']
         k_a = model_pack_a['k']
         weights_b = model_pack_b['weights']
@@ -28,6 +29,8 @@ class PytorchHelper(HelperBase):
         return path
 
     def save_model(self, model_pack, path=None):
+        print("---NEW SAVE MODEL-------")
+
         if not path:
             path = self.get_tmp_path()
         weights_dict = model_pack['weights']
@@ -36,6 +39,8 @@ class PytorchHelper(HelperBase):
         return path
 
     def load_model(self, path="weights.npz"):
+        print("---NEW LOAD MODEL-------")
+
         b = np.load(path)
         weights_np = OrderedDict()
         for i in b.files:
