@@ -46,6 +46,8 @@ class HelperBase(ABC):
         pass
 
 def get_helper(helper_type):
+
+    print("helper_type: ", helper_type)
     if helper_type == 'numpyarray':
         from fedn.utils.numpyarrayhelper import NumpyArrayHelper
         return NumpyArrayHelper()
