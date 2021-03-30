@@ -68,10 +68,21 @@ if __name__ == '__main__':
         except yaml.YAMLError as e:
             raise(e)
 
+    import numpy as np
     from fedn.utils.pytorchhelper import PytorchHelper
     from models.mnist_pytorch_model import create_seed_model
     helper = PytorchHelper()
     model, loss, optimizer = create_seed_model()
-    model.load_state_dict(np_to_weights(helper.load_model(sys.argv[1])))
+
+    model_pack = helper.load_model(sys.argv[1])
+    weights = np_to_weights(model_pack['weights'])
+    k = model_pack['k']
+    print("global weights k: ", k)
+    model.load_state_dict(weights)
     model = train(model, loss, optimizer, settings)
-    helper.save_model(weights_to_np(model.state_dict()), sys.argv[2])
+    weights = weights_to_np(model.state_dict())
+    k = np.random.rand()
+    print("new k: ", k)
+
+    model_pack = {'weights': weights, 'k': k}
+    helper.save_model(model_pack, sys.argv[2])

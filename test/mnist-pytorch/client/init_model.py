@@ -15,5 +15,8 @@ if __name__ == '__main__':
 	model, _, _ = create_seed_model()
 	outfile_name = "../seed/seed.npz"
 	helper = PytorchHelper()
-	helper.save_model(weights_to_np(model.state_dict()), outfile_name)
+
+	model_pack = {'weights': weights_to_np(model.state_dict()), 'k': 1}
+
+	helper.save_model(model_pack, outfile_name)
 
