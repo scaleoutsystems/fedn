@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.2.1
+
+### What's new?
+
+- It is now possible to choose which validation metrics to plot in the Dashboard
+
+### Fixes
+
+- Plots backed by no current data is no longer shown as empty plots. 
+
+### Other
+- Docs updates 
+
 ## v0.2.0
 
 ### What's new?

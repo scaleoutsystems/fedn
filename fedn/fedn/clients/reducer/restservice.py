@@ -13,10 +13,10 @@ import plotly
 import pandas as pd
 import numpy
 import math
-            
+
 import plotly.express as px
 import geoip2.database
-
+from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
@@ -33,7 +33,7 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-        self.current_compute_context = None #self.control.get_compute_context()
+        self.current_compute_context = None  # self.control.get_compute_context()
 
     def to_dict(self):
         data = {
@@ -52,7 +52,7 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
- 
+
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -60,7 +60,6 @@ class ReducerRestService:
             if self.current_compute_context == None or self.current_compute_context == '':
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
                                        message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
-
 
             if self.control.state() == ReducerState.setup:
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
@@ -100,7 +99,6 @@ class ReducerRestService:
                 combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
                 self.control.network.add_combiner(combiner)
 
-
             combiner = self.control.network.get_combiner(name)
 
             ret = {
@@ -110,7 +108,7 @@ class ReducerRestService:
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
             }                  
-                
+
             return jsonify(ret)
 
         @app.route('/history', methods=['GET', 'POST'])
@@ -181,7 +179,6 @@ class ReducerRestService:
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
             if request.method == 'POST':
-
                 timeout = float(request.form.get('timeout'))
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
@@ -189,24 +186,24 @@ class ReducerRestService:
                 clients_requested = request.form.get('clients_requested', 8)
 
                 #TODO: Enable in UI
-                validate = request.form.get('validate', True)
+                validate = request.form.get('validate', False)
+                helper_type = request.form.get('helper', 'keras')
+                # self.control.statestore.set_framework(helper_type)
 
                 latest_model_id = self.control.get_latest_model()
 
                 config = {'round_timeout': timeout, 'model_id': latest_model_id,
                           'rounds': rounds, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task,
-                          'validate': validate}
+                          'validate': validate, 'helper_type': helper_type}
 
                 self.control.instruct(config)
                 return redirect(url_for('index', message="Sent execution plan."))
 
             else:
-                # Select rounds UI
-                rounds = range(1, 200)
                 latest_model_id = self.control.get_latest_model()
-                return render_template('index.html', round_options=rounds, latest_model_id=latest_model_id,
-                                       compute_package=self.current_compute_context,helper=self.control.statestore.get_framework(),validate=True)
+                return render_template('index.html', latest_model_id=latest_model_id,
+                                       compute_package=self.current_compute_context, helper=self.control.statestore.get_framework(), validate=True)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
@@ -230,18 +227,18 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             client = {
-                    'name': name,
-                    'combiner_preferred': combiner_preferred, 
-                    'ip': request.remote_addr,
-                    'status': 'available'
-                }
+                'name': name,
+                'combiner_preferred': combiner_preferred,
+                'ip': request.remote_addr,
+                'status': 'available'
+            }
             self.control.network.add_client(client)
 
             if combiner:
                 import base64
                 cert_b64 = base64.b64encode(combiner.certificate)
                 response = {
-                    'status': 'assigned', 
+                    'status': 'assigned',
                     'host': combiner.address,
                     'port': combiner.port,
                     'certificate': str(cert_b64).split('\'')[1],
@@ -250,7 +247,7 @@ class ReducerRestService:
 
                 return jsonify(response)
             elif combiner is None:
-                return jsonify({'status':'retry'})
+                return jsonify({'status': 'retry'})
 
             return jsonify({'status': 'retry'})
 
@@ -297,9 +294,9 @@ class ReducerRestService:
                         response = reader.city(combiner['ip'])
                         cities_dict['city'].append(response.city.name)
 
-                        r = 1.0 # Rougly 100km
-                        w = r*math.sqrt(numpy.random.random())
-                        t = 2.0*math.pi*numpy.random.random()
+                        r = 1.0  # Rougly 100km
+                        w = r * math.sqrt(numpy.random.random())
+                        t = 2.0 * math.pi * numpy.random.random()
                         x = w * math.cos(t)
                         y = w * math.sin(t)
                         lat = str(float(response.location.latitude) + x)
@@ -336,11 +333,12 @@ class ReducerRestService:
             config = self.control.statestore.get_config()
 
             cities_df = pd.DataFrame(cities_dict)
-
+            if cities_df.empty:
+                return False
             fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
                                  color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False,'size': False,
-                                 'name': True,'role': True})
+                                 hover_data={"city": False, "lon": False, "lat": False, 'size': False,
+                                             'name': True, 'role': True})
 
             fig.update_geos(fitbounds="locations", showcountries=True)
             fig.update_layout(title="FEDn network: {}".format(config['network_id']))
@@ -348,13 +346,24 @@ class ReducerRestService:
             fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return fig
 
+        @app.route('/metric_type', methods=['GET', 'POST'])
+        def change_features():
+            feature = request.args['selected']
+            plot = Plot(self.control.statestore)
+            graphJSON = plot.create_box_plot(feature)
+            return graphJSON
+
         @app.route('/dashboard')
         def dashboard():
-            from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
-            box_plot = plot.create_box_plot()
+            try:
+                valid_metrics = plot.fetch_valid_metrics()
+                box_plot = plot.create_box_plot(valid_metrics[0])
+            except:
+                valid_metrics = None
+                box_plot = None
             table_plot = plot.create_table_plot()
-            #timeline_plot = plot.create_timeline_plot()
+            # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('index.html', show_plot=True,
@@ -362,11 +371,11 @@ class ReducerRestService:
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
+                                   metrics=valid_metrics
                                    )
 
         @app.route('/network')
         def network():
-            from fedn.clients.reducer.plots import Plot
             plot = Plot(self.control.statestore)
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
@@ -385,7 +394,7 @@ class ReducerRestService:
         def context():
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
-            reset = request.args.get('reset',None) #if reset is not empty then allow context re-set
+            reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
             if reset:
                 return render_template('context.html')
 
@@ -396,6 +405,7 @@ class ReducerRestService:
                     return redirect(request.url)
 
                 file = request.files['file']
+                helper_type = request.form.get('helper', 'keras')
                 # if user does not select file, browser also
                 # submit an empty part without filename
                 if file.filename == '':
@@ -410,13 +420,14 @@ class ReducerRestService:
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
 
-                    self.control.set_compute_context(filename,file_path)
+                    self.control.set_compute_context(filename, file_path)
+                    self.control.statestore.set_framework(helper_type)
                     return redirect(url_for('start'))
 
             from flask import send_from_directory
             name = request.args.get('name', '')
 
-            if name == '': 
+            if name == '':
                 name = self.control.get_compute_context()
                 if name == None or name == '':
                     return render_template('context.html')
@@ -431,7 +442,7 @@ class ReducerRestService:
                 try:
                     data = self.control.get_compute_package(name)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
-                    with open(file_path,'wb') as fh:
+                    with open(file_path, 'wb') as fh:
                         fh.write(data)
                     return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
                 except:

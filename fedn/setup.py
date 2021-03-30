@@ -28,7 +28,7 @@ setup(
         "protobuf",
         "pypandoc==1.5",
         "wheel",
-        "pymongo===3.11.0",
+        "pymongo==3.11.0",
         "Flask==1.1.2",
         "Flask-WTF==0.14.3",
         "pyopenssl",
@@ -37,7 +37,7 @@ setup(
         "flask_profiler",
         "psutil",
         "click",
-        "jinja2==2.11.1",
+        "jinja2==2.11.3",
         "nltk",
         "geoip2",
         "deprecated"
