@@ -92,9 +92,15 @@ if __name__ == '__main__':
 
     from fedn.utils.pytorchhelper import PytorchHelper
     from models.mnist_pytorch_model import create_seed_model
+
     helper = PytorchHelper()
     model, loss, optimizer = create_seed_model()
-    model.load_state_dict(np_to_weights(helper.load_model(sys.argv[1])))
+
+    model_pack = helper.load_model(sys.argv[1])
+    weights = np_to_weights(model_pack['weights'])
+    k = model_pack['k']
+    print("global weights k: ", k)
+    model.load_state_dict(weights)
 
     report = validate(model, settings)
 
