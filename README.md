@@ -1,19 +1,19 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 ## What is FEDn?
-FEDn is an open-source, modular framework for Federated Machine Learning (FedML), developed and maintained by Scaleout Systems. It enables developers to configure and deploy *FEDn networks* to support different federated scenarios, ranging from cross-silo to cross-device use-cases.   
+FEDn is an open-source, modular and ML-framework agnostic framework for Federated Machine Learning (FedML) developed and maintained by Scaleout Systems. It enables developers to configure and deploy highly scalable cross-silo to cross-device use-cases over *FEDn networks*.   
   
 ## Core Features
 
-FEDn is developed ground up for full-scale deployments in distributed, heterogeneous environments. A key feature is the ability to seamlessly go from local development and testing to live production deployments. Three key design objectives are guiding development in the project: 
+FEDn lets you seamlessly go from local development and testing in a pseudo-distributed sandbox to live production deployments in distributed, heterogeneous environments. Three key design objectives are guiding the project: 
 
 ### A ML-framework agnostic, black-box design
-The framework treats client model updates and model validations as black-box computations. A developer can follow a structured design pattern to implement clients, and to extend the framework with support for virtually any ML model type or framework. Support for Keras and PyTorch artificial neural network models are available out-of-the-box, and support for others, including select models from SKLearn, are in active development.  
+Client model updates and model validations are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial neural network models are available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development. A developer follows a structured design pattern to implement clients but there is a lot of flexibility in the toolchains used.  
 
 ### Horizontally scalable through a tiered aggregation scheme 
-FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients and latency and throughput requirements spanning cross-silo and cross-device cases. This is achieved by a tiered architecture for model updates and model aggregation where multiple combiners divide up the work. Thus, the computing model in FEDn draws parallels to the MapReduce programming model, assuring good horizontal scalability. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for 40 clients with large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.   
+FEDn is designed to allow for flexible and easy scaling to meet both the demands from a growing number of clients and latency and throughput requirements spanning cross-silo and cross-device cases. This is achieved by a tiered architecture where multiple combiners (akin to the server in a typical implementation) divide up the work to talk to clients and to aggregate model updates. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for 40 clients with large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148. 
 
 ### Built for real-world distributed computing scenarios 
-FEDn is built to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in a pseudo-distributed mode for convenient testing and development.  
+FEDn is built groud up to support real-world, production deployments. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in a pseudo-distributed mode for convenient testing and development.  
 
 ## Architecture
 
