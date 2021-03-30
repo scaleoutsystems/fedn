@@ -5,25 +5,33 @@ from .helpers import HelperBase
 from functools import reduce
 import numpy as np
 
+
 class PytorchHelper(HelperBase):
 
-    def increment_average(self, model, model_next, n):
+    def increment_average(self, model_pack_a, model_pack_b, n):
         """ Update an incremental average. """
-        w = OrderedDict()
-        for name in model.keys():
-            tensorDiff = model_next[name] - model[name]
-            w[name] = model[name] + tensorDiff/n
-        return w
+        weights_a = model_pack_a['weights']
+        k_a = model_pack_a['k']
+        weights_b = model_pack_b['weights']
+        k_b = model_pack_b['k']
 
+        weights_c = OrderedDict()
+        for name in weights_a.keys():
+            weights_c[name] = k_a / (k_a + k_b) * weights_a[name] + k_b / (k_a + k_b) * weights_b[name]
+        k_c = k_a + k_b
+        pack_c = {'weights': weights_c, 'k': k_c}
+        return pack_c
 
     def get_tmp_path(self):
         fd , path = tempfile.mkstemp(suffix='.npz')
         os.close(fd)
         return path
 
-    def save_model(self, weights_dict, path=None):
+    def save_model(self, model_pack, path=None):
         if not path:
             path = self.get_tmp_path()
+        weights_dict = model_pack['weights']
+        weights_dict['weight_factor'] = model_pack['k']
         np.savez_compressed(path, **weights_dict)
         return path
 
@@ -31,8 +39,14 @@ class PytorchHelper(HelperBase):
         b = np.load(path)
         weights_np = OrderedDict()
         for i in b.files:
+            if i == 'weight_factor':
+                weight_factor = i
+            else:
+                weights_np[i] = b[i]
             weights_np[i] = b[i]
-        return weights_np
+
+        model_pack = {'weights': weights_np, 'k': weight_factor}
+        return model_pack
 
     def load_model_from_BytesIO(self, model_bytesio):
         """ Load a model from a BytesIO object. """

@@ -55,7 +55,7 @@ def read_data(trainset=True, nr_examples=1000,bias=0.7):
     """ Helper function to read and preprocess data for training with Keras. """
     torchvision.datasets.MNIST.download = patched_download
 
-    dataset = torchvision.datasets.MNIST('../app/data', train=trainset, download=True,
+    dataset = torchvision.datasets.MNIST('/app/data', train=trainset, download=True,
                                    transform=torchvision.transforms.Compose([
                                        torchvision.transforms.ToTensor(),
                                        torchvision.transforms.Normalize(
