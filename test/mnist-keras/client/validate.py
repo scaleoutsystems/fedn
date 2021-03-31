@@ -1,13 +1,10 @@
 import sys
 import tensorflow as tf 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import tensorflow.keras as keras
-import tensorflow.keras.models as krm
 from data.read_data import read_data
 import pickle
 import json
 from sklearn import metrics
-import numpy
 import os
 import yaml
 import numpy as np
@@ -22,32 +19,32 @@ def validate(model,data,settings):
 
     # Training error (Client validates global model on same data as it trains on.)
     try:
-        x_train = np.save('local_dataset/x_train.npz')
-        y_train = np.save('local_dataset/y_train.npz')
+        x_train = np.save('/app/local_dataset/x_train.npz')
+        y_train = np.save('/app/local_dataset/y_train.npz')
     except:
         (x_train, y_train, classes) = read_data(data,
                                                 nr_examples=settings['training_samples'],
                                                 trainset=True)
         try:
-            os.mkdir('local_dataset')
-            np.save('local_dataset/x_train.npz', x_train)
-            np.save('local_dataset/y_train.npz', y_train)
+            os.mkdir('/app/local_dataset')
+            np.save('/app/local_dataset/x_train.npz', x_train)
+            np.save('/app/local_dataset/y_train.npz', y_train)
 
         except:
             pass
 
     # Test error (Client has a small dataset set aside for validation)
     try:
-        x_test = np.save('local_dataset/x_test.npz')
-        y_test = np.save('local_dataset/y_test.npz')
+        x_test = np.save('/app/local_dataset/x_test.npz')
+        y_test = np.save('/app/local_dataset/y_test.npz')
     except:
         (x_test, y_test, classes) = read_data(data,
                                                 nr_examples=settings['test_samples'],
                                                 trainset=False)
         try:
-            os.mkdir('local_dataset')
-            np.save('local_dataset/x_test.npz', x_test)
-            np.save('local_dataset/y_test.npz', y_test)
+            os.mkdir('/app/local_dataset')
+            np.save('/app/local_dataset/x_test.npz', x_test)
+            np.save('/app/local_dataset/y_test.npz', y_test)
 
         except:
             pass
@@ -95,7 +92,7 @@ if __name__ == '__main__':
     model = create_seed_model()
     model.set_weights(weights)
     
-    report = validate(model,'../data/train.csv',settings)
+    report = validate(model,'../data/mnist.npz',settings)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))
