@@ -2,24 +2,11 @@ import numpy as np
 import os
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
-
 import keras
 
 def read_data(path, nr_examples=1000,trainset=True):
     """ Helper function to read and preprocess data for training with Keras. """
 
-    if not os.path.exists('data'):
-        os.mkdir('data')
-
-
-    if not os.path.isfile(path):
-
-        import urllib.request
-        url = 'https://s3.amazonaws.com/img-datasets/mnist.npz'
-        urllib.request.urlretrieve(url, path)
-
-    ret = np.load(path)
-    print("len ret: ", len(ret))
     pack = np.load(path)
 
     if trainset:
