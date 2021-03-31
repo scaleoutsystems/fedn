@@ -33,29 +33,30 @@ def validate(model, settings):
             train_acc = train_correct / len(dataloader.dataset)
         return float(train_loss), float(train_acc)
 
-    # Load data
+    # Load train data
     try:
-        with open('/app/mnist_data/trainset.pyb', 'rb') as fh:
+        with open('/app/local_dataset/trainset.pyb', 'rb') as fh:
             trainset = pickle.loads(fh.read())
     except:
-        trainset = read_data(True, nr_examples=settings['training_samples'])
+        trainset = read_data(trainset=True, nr_examples=settings['training_samples'], data_path='../data/mnist.npz')
         try:
-            if not os.path.isdir('/app/mnist_data'):
-                os.mkdir('/app/mnist_data')
-            with open('/app/mnist_data/trainset.pyb', 'wb') as fh:
+            if not os.path.isdir('/app/local_dataset'):
+                os.mkdir('/app/local_dataset')
+            with open('/app/local_dataset/trainset.pyb', 'wb') as fh:
                 fh.write(pickle.dumps(trainset))
         except:
             pass
 
+    # Load test data
     try:
-        with open('/app/mnist_data/testset.pyb', 'rb') as fh:
+        with open('/app/local_dataset/testset.pyb', 'rb') as fh:
             testset = pickle.loads(fh.read())
     except:
-        testset = read_data(False, nr_examples=settings['training_samples'])
+        testset = read_data(trainset=False, nr_examples=settings['test_samples'],  data_path='../data/mnist.npz')
         try:
-            if not os.path.isdir('/app/mnist_data'):
-                os.mkdir('/app/mnist_data')
-            with open('/app/mnist_data/trainset.pyb', 'wb') as fh:
+            if not os.path.isdir('/app/local_dataset'):
+                os.mkdir('/app/local_dataset')
+            with open('/app/local_dataset/trainset.pyb', 'wb') as fh:
                 fh.write(pickle.dumps(testset))
         except:
             pass
