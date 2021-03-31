@@ -26,6 +26,13 @@ The baseline CNN is specified in the file 'client/init_model.py'. This script cr
 python init_model.py 
 ```
 
+## Load the mnist dataset
+```bash
+mkdir data
+wget https://s3.amazonaws.com/img-datasets/mnist.npz data/mnist.npz
+```
+
+
 Navigate to 'localhost:8090/history' to upload the seed model. 
 
 ## Start the client
