@@ -10,6 +10,7 @@ from sklearn import metrics
 import numpy
 import os
 import yaml
+import numpy as np
 
 def validate(model,data,settings):
     print("-- RUNNING VALIDATION --", flush=True)
@@ -21,47 +22,36 @@ def validate(model,data,settings):
 
     # Training error (Client validates global model on same data as it trains on.)
     try:
-        with open('/app/mnist_train/x.pyb','rb') as fh:
-            x_train=pickle.loads(fh.read())
-        with open('/app/mnist_train/y.pyb','rb') as fh:
-            y_train=pickle.loads(fh.read())
-        with open('/app/mnist_train/classes.pyb','rb') as fh:
-            classes=pickle.loads(fh.read())
+        x_train = np.save('local_dataset/x_train.npz')
+        y_train = np.save('local_dataset/y_train.npz')
     except:
-        (x_train, y_train, classes) = read_data(data,nr_examples=settings['training_samples'])
-
+        (x_train, y_train, classes) = read_data(data,
+                                                nr_examples=settings['training_samples'],
+                                                trainset=True)
         try:
-            os.mkdir('/app/mnist_train')
-            with open('/app/mnist_train/x.pyb','wb') as fh:
-                fh.write(pickle.dumps(x_train))
-            with open('/app/mnist_train/y.pyb','wb') as fh:
-                fh.write(pickle.dumps(y_train))
-            with open('/app/mnist_train/classes.pyb','wb') as fh:
-                fh.write(pickle.dumps(classes))
+            os.mkdir('local_dataset')
+            np.save('local_dataset/x_train.npz', x_train)
+            np.save('local_dataset/y_train.npz', y_train)
+
         except:
             pass
 
     # Test error (Client has a small dataset set aside for validation)
     try:
-        with open('/app/mnist_test/x_test.pyb','rb') as fh:
-            x_test=pickle.loads(fh.read())
-        with open('/app/mnist_test/y_test.pyb','rb') as fh:
-            y_test=pickle.loads(fh.read())
-        with open('/app/mnist_test/classes_test.pyb','rb') as fh:
-            classes_test=pickle.loads(fh.read())
+        x_test = np.save('local_dataset/x_test.npz')
+        y_test = np.save('local_dataset/y_test.npz')
     except:
-        (x_test, y_test, classes_test) = read_data("../data/test.csv",nr_examples=settings['test_samples'])
-
+        (x_test, y_test, classes) = read_data(data,
+                                                nr_examples=settings['test_samples'],
+                                                trainset=False)
         try:
-            os.mkdir('/app/mnist_test')
-            with open('/app/mnist_test/x_test.pyb','wb') as fh:
-                fh.write(pickle.dumps(x_test))
-            with open('/app/mnist_test/y_test.pyb','wb') as fh:
-                fh.write(pickle.dumps(y_test))
-            with open('/app/mnist_test/classes_test.pyb','wb') as fh:
-                fh.write(pickle.dumps(classes_test))
+            os.mkdir('local_dataset')
+            np.save('local_dataset/x_test.npz', x_test)
+            np.save('local_dataset/y_test.npz', y_test)
+
         except:
             pass
+
 
     try:
         model_score = model.evaluate(x_train, y_train, verbose=0)
