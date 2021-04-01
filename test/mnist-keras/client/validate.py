@@ -92,7 +92,7 @@ if __name__ == '__main__':
     model = create_seed_model()
     model.set_weights(weights)
     
-    report = validate(model,'../data/mnist.npz',settings)
+    report = validate(model,'/app/data/mnist.npz',settings)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))

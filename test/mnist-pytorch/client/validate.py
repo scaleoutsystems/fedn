@@ -52,7 +52,7 @@ def validate(model, settings):
         with open('/app/local_dataset/testset.pyb', 'rb') as fh:
             testset = pickle.loads(fh.read())
     except:
-        testset = read_data(trainset=False, nr_examples=settings['test_samples'],  data_path='../data/mnist.npz')
+        testset = read_data(trainset=False, nr_examples=settings['test_samples'],  data_path='/app/data/mnist.npz')
         try:
             if not os.path.isdir('/app/local_dataset'):
                 os.mkdir('/app/local_dataset')

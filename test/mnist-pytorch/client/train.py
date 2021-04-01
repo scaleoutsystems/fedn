@@ -34,7 +34,7 @@ def train(model, loss, optimizer, settings):
         print("load local trainset")
 
     except:
-        trainset = read_data(trainset=True, nr_examples=settings['training_samples'],  data_path='../data/mnist.npz')
+        trainset = read_data(trainset=True, nr_examples=settings['training_samples'],  data_path='/app/data/mnist.npz')
         print("sample new local trainset")
 
         try:

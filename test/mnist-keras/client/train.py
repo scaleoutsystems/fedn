@@ -54,6 +54,6 @@ if __name__ == '__main__':
     model = create_seed_model()
     model.set_weights(weights)
     
-    model = train(model,'../data/mnist.npz',settings)
+    model = train(model,'/app/data/mnist.npz',settings)
     helper.save_model(model.get_weights(),sys.argv[2])
 
