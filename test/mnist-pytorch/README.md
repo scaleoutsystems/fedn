@@ -6,8 +6,8 @@ This classsic example of hand-written text recognition is well suited both as a 
 > Note that this assumes that a FEDn network is up and running with the "pytorch" helper, which is identified in "config/settings-reducer.yaml" (see separate deployment instructions). If you are connecting against a reducer part of a distributed setup and provide a 'extra_hosts' file.
 
 ### Provide local training and test data
-This example assumes that trainig and test data is available as 'test/mnist/data/train.csv' and 'test/mnist/data/test.csv'. Data can be downloaded from e.g. https://www.kaggle.com/oddrationale/mnist-in-csv, but there are several hosted versions available. To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. The subsample size is configured as described in the next section. 
-
+This example is provided with the mnist dataset from https://s3.amazonaws.com/img-datasets/mnist.npz data/mnist.npz. 
+To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. 
 ### Configuring the tests
 We have made it possible to configure a couple of settings to vary the conditions for the training. These configurations are expsosed in the file 'settings.yaml': 
 
@@ -37,11 +37,6 @@ The baseline CNN is specified in the file 'client/init_model.py'. This script cr
 
 ```bash
 python init_model.py 
-```
-
-## Load the dataset
-```bash
-python load_dataset.py 
 ```
 
 ## Start the client
