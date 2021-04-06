@@ -6,8 +6,8 @@ This classic example of hand-written text recognition is well suited both as a l
 ## Setting up a client
 
 ### Provide local training and test data
-This example is provided with the mnist dataset from https://s3.amazonaws.com/img-datasets/mnist.npz data/mnist.npz.
-To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. 
+This example is provided with the mnist dataset from https://s3.amazonaws.com/img-datasets/mnist.npz in 'data/mnist.npz'.
+To make testing flexible, each client subsamples from this dataset upon first invokation of a training request, then cache this subsampled data for use for the remaining lifetime of the client. It is thus normal that the first training round takes a bit longer than subssequent ones.  
 
 ### Create and upload a compute package
 To train a model in FEDn you provide the client code (in 'client') as a tarball. For convenience, we ship a pre-made package. Whenever you make updates to the client code (such as altering any of the settings in the above mentioned file), you need to re-package the code (as a .tar.gz archive) and copy the updated package to 'packages'. From 'test/mnist-keras':
