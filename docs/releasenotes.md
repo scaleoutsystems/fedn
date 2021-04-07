@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.2.2
+
+### What's new?
+- The MNIST examples (Keras and PyTorch) have been updated so that they now bundle the example data in .npz format.
+
+### Other
+- Docs updates 
+
 ## v0.2.1
 
 ### What's new?
