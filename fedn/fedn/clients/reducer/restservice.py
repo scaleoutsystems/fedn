@@ -178,6 +178,9 @@ class ReducerRestService:
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
+            if self.control.state() == ReducerState.monitoring:
+                return redirect(url_for('index', state=state, refresh= refresh, message="Reducer is in monitoring state"))
+
             if request.method == 'POST':
                 timeout = float(request.form.get('timeout'))
                 rounds = int(request.form.get('rounds', 1))
@@ -198,7 +201,7 @@ class ReducerRestService:
                           'validate': validate, 'helper_type': helper_type}
 
                 self.control.instruct(config)
-                return redirect(url_for('index', message="Sent execution plan."))
+                return redirect(url_for('index', state=state, refresh= refresh, message="Sent execution plan."))
 
             else:
                 latest_model_id = self.control.get_latest_model()
