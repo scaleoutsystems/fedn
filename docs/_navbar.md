@@ -2,3 +2,4 @@
 
 * [Home](/)
 * [Release Notes](/releasenotes)
+* [FAQ](/FAQ)
