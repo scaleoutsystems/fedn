@@ -1,6 +1,6 @@
 # Frequently asked questions
 
-### How do I remove/replace the compute package?
+### Q: How do I remove/replace the compute package?
 
 We do not provide an out-of-the box way to clear the compute package for a model that has been intitialized. 
 This is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. 
