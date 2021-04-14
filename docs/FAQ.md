@@ -11,3 +11,7 @@ it will be necessary to reinitialize. Then you can follow this procedure:
   2. Restart the reducer, combiner and reattach the clients. 
 
 There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.  
+
+### Q: The client fails to connect to the combiner, what can be the problem? 
+
+ 
