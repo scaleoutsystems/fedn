@@ -147,7 +147,7 @@ sudo docker-compose -f docker-compose.yaml -f config/extra-hosts-client.yaml up 
 Helm charts for deployment to Kubernetes are developed and maintained by Scaleout as part of the [STACKn platform](https://github.com/scaleoutsystems/stackn). 
 
 ## Using FEDn from STACKn
-STACKn, Scaleout's SaaS for MLOps in distributed cloud, has experimental UI functionality for deploying and testing a FEDn network as 'Apps' directly from the UI, as well as Apps for serving the federated model using e.g. Tensorflow Serving, Torch Serving or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
+STACKn, Scaleout's SaaS for MLOps in distributed cloud, has experimental UI functionality for deploying and testing a FEDn network as 'Apps' directly from the UI, as well as one-click Apps for serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
 
 ## Where to go from here
 Additional example projects/clients:
