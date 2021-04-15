@@ -15,6 +15,8 @@ FEDn is designed to allow for flexible and easy scaling to handle growing number
 ### Built for real-world distributed computing scenarios 
 FEDn is built groud up to support real-world, production deployments in the distributed cloud. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distributed mode for testing and development.  
 
+More details about architecture and implementation can be foudn in the [Documentation](https://scaleoutsystems.github.io/fedn/#/architecture). 
+
 ## Getting started 
 
 The easiest way to start with FEDn is to use the provided docker-compose templates to launch a local sandbox / simulated environment consisting of one Reducer, two Combiners, and five Clients. Together with the supporting storage and database services (currently Minio and MongoDB), this constitutes a minimal system for training a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training. This repository bundles a number of such test projects in the 'test' folder. These projects can be used as templates for creating your own custom federated model. 
