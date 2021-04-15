@@ -113,10 +113,7 @@ Once the FEDn network is deployed, you can attach clients to it in the same way 
 sudo docker-compose -f docker-compose.yaml -f config/extra-hosts-client.yaml up --scale client=5 
 ```
 
-## Deploying to Kubernetes
-Helm charts for deployment to Kubernetes are developed and maintained by Scaleout as part of the [STACKn platform](https://github.com/scaleoutsystems/stackn). 
-
-## Using FEDn from STACKn
+## Using FEDn from the STACKn SaaS
 STACKn, Scaleout's SaaS for MLOps in distributed cloud, has experimental UI functionality for deploying and testing a FEDn network as 'Apps' directly from the UI, as well as one-click Apps for serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
 
 ## Where to go from here
