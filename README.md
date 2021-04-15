@@ -159,7 +159,7 @@ Additional example projects/clients:
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
  
 ## Support
-Reach out to Scaleout (https://scaleoutsystems.com) or start a ticket directly here on GitHub.
+For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you don't find the information that you're looking for, please reach out to Scaleout (https://scaleoutsystems.com) or start a ticket directly here on GitHub.
 
 ## Contributions
 All pull requests will be considered and are much appreciated. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
