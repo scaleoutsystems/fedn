@@ -12,6 +12,5 @@ it will be necessary to reinitialize. Then you can follow this procedure:
 
 There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.  
 
-### Q: The client fails to connect to the combiner, what can be the problem? 
 
  
