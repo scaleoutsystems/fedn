@@ -70,7 +70,7 @@ https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 #### Updating/changing the compute package and/or the seed model
 By design, it is not possible to simply delete the compute package to restart the alliance -  this is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (localhost:8081), log in (credentials are found in the config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
 
-## Using FEDn from the STACKn SaaS
+## Using FEDn in STACKn
 [STACKn](https://github.com/scaleoutsystems/stackn) lets a user set up FEDn networks as 'Apps' directly from the WebUI. STACKn also provide useful additional functionality such as serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
 
 ## Distributed deployment
