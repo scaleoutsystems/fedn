@@ -4,22 +4,22 @@ FEDn is an open-source, modular and ML-framework agnostic framework for Federate
   
 ## Core Features
 
-FEDn lets you seamlessly go from local development and testing in a pseudo-distributed sandbox to live production deployments in distributed, heterogeneous environments. Three key design objectives are guiding the project: 
+FEDn lets you seamlessly go from local development of a federated model in a pseudo-distributed sandbox to live production deployments in distributed, heterogeneous environments. Three key design objectives are guiding the project: 
 
-### A ML-framework agnostic, black-box design
+### A ML-framework agnostic black-box design
 Client model updates and model validations are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial neural network models are available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development. A developer follows a structured design pattern to implement clients and there is a lot of flexibility in the toolchains used.  
 
 ### Horizontally scalable through a tiered aggregation scheme 
-FEDn is designed to allow for flexible and easy scaling to handle growing numbers of clients and to meet latency and throughput requirements spanning cross-silo and cross-device use-cases. This is achieved by a tiered architecture where multiple independent combiners divide up the work to talk to clients and to aggregate local model updates. A reducer protocol then aggregates combiner-level updates into a global model. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for 40 clients with large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148. 
+FEDn is designed to allow for flexible and easy horizontal scaling to handle growing numbers of clients and to meet latency and throughput requirements. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for 40 clients with large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148. 
 
 ### Built for real-world distributed computing scenarios 
-FEDn is built groud up to support real-world, production deployments in the distributed cloud. FEDn relies on proven best-practices in distributed computing, uses battle-hardened components, and incorporates enterprise security features. There is no "simulated mode", only distributed mode. However, it is of course possible to run a local sandbox system in pseudo-distributed mode for testing and development.  
+FEDn is built groud up to support real-world, production deployments in the distributed cloud. FEDn relies on proven best-practices in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.  
 
-More details about architecture and implementation can be foudn in the [Documentation](https://scaleoutsystems.github.io/fedn/#/architecture). 
+More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/#/architecture). 
 
 ## Getting started 
 
-The easiest way to start with FEDn is to use the provided docker-compose templates to launch a local sandbox / simulated environment consisting of one Reducer, two Combiners, and five Clients. Together with the supporting storage and database services (currently Minio and MongoDB), this constitutes a minimal system for training a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training. This repository bundles a number of such test projects in the 'test' folder. These projects can be used as templates for creating your own custom federated model. 
+The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training. This repository bundles two such test projects in the 'test' folder, and many more are available in external repositories. These projects can be used as templates for creating your own custom federated model. 
 
 Clone the repository (make sure to use git-lfs!) and follow these steps:
 
