@@ -19,7 +19,7 @@ FEDn is built groud up to support real-world, production deployments in the dist
 
 Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the reducer-combiner network. A FEDn network, as illustrated in the picture below, is made up of three main components: the *Reducer*, one or more *Combiners*, and a number of *Clients*. The combiner network forms the backbone of the FedML orchestration mechanism, while the Reducer provides discovery services and provides controls to coordinate training over the combiner network. By horizontally scaling the combiner network, one can meet the needs of a growing number of clients.  
  
-![alt-text](docs/img/overview.png?raw=true "FEDn network")
+![alt-text](img/overview.png?raw=true "FEDn network")
 
 ### Main components
 
@@ -35,7 +35,7 @@ The reducer fills three main roles in the FEDn network: 1.) it lays out the over
 ### Services and communication
 The figure below provides a logical architecture view of the services provided by each agent and how they interact. 
 
-![Alt text](docs/img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
+![Alt text](img/FEDn-arch-overview.png?raw=true "FEDn architecture overview")
 
 ### Control flows and algorithms
 FEDn is designed to allow customization of the FedML algorithm, following a specified pattern, or programming model. Model aggregation happens on two levels in the system. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. Then, a configurable aggregation protocol on the Reducer level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, many different possible outcomes can be achieved. Good staring configurations are provided out-of-the-box to help the user get started. 
