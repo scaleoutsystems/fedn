@@ -73,6 +73,12 @@ By design, it is not possible to simply delete the compute package to restart th
 ## Using FEDn from the STACKn SaaS
 STACKn, Scaleout's SaaS for MLOps in distributed cloud, has experimental UI functionality for deploying and testing a FEDn network as 'Apps' directly from the UI, as well as one-click Apps for serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
 
+## Distributed deployment
+The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. 
+
+We provide instruction for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment)     
+
+
 ## Where to go from here
 Additional example projects/clients:
 
