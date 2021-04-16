@@ -71,7 +71,7 @@ https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 By design, it is not possible to simply delete the compute package to restart the alliance -  this is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (localhost:8081), log in (credentials are found in the config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
 
 ## Using FEDn from the STACKn SaaS
-STACKn, Scaleout's SaaS for MLOps in distributed cloud, has experimental UI functionality for deploying and testing a FEDn network as 'Apps' directly from the UI, as well as one-click Apps for serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
+[STACKn](https://github.com/scaleoutsystems/stackn) lets a user set up FEDn networks as 'Apps' directly from the WebUI. STACKn also provide useful additional functionality such as serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
 
 ## Distributed deployment
 The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. 
