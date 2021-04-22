@@ -303,7 +303,7 @@ class Plot:
                 box.add_trace(go.Box(y=acc, name=str(j), marker_color="royalblue", showlegend=False,
                                      boxpoints=False))
             else:
-                box.add_trace(go.Scatter(x=[str(j)],y=[y[j]]))
+                box.add_trace(go.Scatter(x=[str(j)],y=[y[j]],showlegend=False))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
