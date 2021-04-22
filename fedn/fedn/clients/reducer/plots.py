@@ -279,21 +279,35 @@ class Plot:
             except KeyError:
                 validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
 
+        # Make sure validations are plotted in chronological order
+        model_trail = self.mdb.control.model.find_one({'key': 'model_trail'})
+        model_trail_ids = model_trail['model']
+        validations_sorted = []
+        for model_id in model_trail_ids:
+            try:
+                validations_sorted.append(validations[model_id])
+            except:
+                pass
+
+        validations = validations_sorted
+
         box = go.Figure()
 
         x = []
         y = []
         box_trace = []
-        for model_id, acc in validations.items():
-            x.append(model_id)
+        for j,acc in enumerate(validations):
+            #x.append(j)
             y.append(numpy.mean([float(i) for i in acc]))
             if len(acc) >= 2:
-                box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False,
+                box.add_trace(go.Box(y=acc, name=str(j), marker_color="royalblue", showlegend=False,
                                      boxpoints=False))
+            else:
+                box.add_trace(go.Scatter(x=[str(j)],y=[y[j]]))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
-            x=x,
+            x=rounds,
             y=y,
             name='Mean'
         ))

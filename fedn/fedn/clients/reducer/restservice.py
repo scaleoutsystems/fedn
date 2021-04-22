@@ -359,9 +359,10 @@ class ReducerRestService:
             try:
                 valid_metrics = plot.fetch_valid_metrics()
                 box_plot = plot.create_box_plot(valid_metrics[0])
-            except:
+            except Exception as e:
                 valid_metrics = None
                 box_plot = None
+                print(e,flush=True)
             table_plot = plot.create_table_plot()
             # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
