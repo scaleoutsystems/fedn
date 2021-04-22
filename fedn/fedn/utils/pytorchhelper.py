@@ -45,7 +45,7 @@ class PytorchHelper(HelperBase):
         weights_np = OrderedDict()
         for i in b.files:
             if i == 'weight_factor':
-                weight_factor = i
+                weight_factor = b[i]
             else:
                 weights_np[i] = b[i]
 
