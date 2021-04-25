@@ -5,45 +5,6 @@ from deprecated import deprecated
 
 from .main import main
 
-@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
-def get_statestore_config_from_env():
-    import os
-    config = {
-        'type': 'MongoDB',
-        'mongo_config': {
-            'username': os.environ.get('FEDN_MONGO_USER', 'default'),
-            'password': os.environ.get('FEDN_MONGO_PASSWORD', 'password'),
-            'host': os.environ.get('FEDN_MONGO_HOST', 'localhost'),
-            'port': int(os.environ.get('FEDN_MONGO_PORT', '27017')),
-        },
-    }
-    return config
-
-@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
-def get_storage_config_from_env():
-    """ Deprecated. """
-    import os
-    s3_config = {
-        'storage_type': 'S3',
-        'storage_config': {
-            'storage_access_key': os.environ['FEDN_MINIO_ACCESS_KEY'],
-            'storage_secret_key': os.environ['FEDN_MINIO_SECRET_KEY'],
-            'storage_bucket': 'fednmodels',
-            'storage_secure_mode': False,
-            'storage_hostname': os.environ['FEDN_MINIO_HOST'],
-            'storage_port': int(os.environ['FEDN_MINIO_PORT'])
-            },
-        }
-    return s3_config
-
-@deprecated(version='0.2.0', reason="You should switch to using a configuration file.")
-def get_network_id_from_env():
-    """ Deprecated. """
-    import os
-    network_id = os.environ['ALLIANCE_UID']
-    return network_id
-
-
 def get_statestore_config_from_file(init):
     with open(init, 'r') as file:
         try:
@@ -52,14 +13,12 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise(e)
 
-
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
     # if daemon:
     #    print('{} NYI should run as daemon...'.format(__file__))
     pass
-
 
 @run_cmd.command('client')
 @click.option('-d', '--discoverhost', required=False)
@@ -202,22 +161,3 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
     from fedn.combiner import Combiner
     combiner = Combiner(config)
     combiner.run()
-
-@run_cmd.command('monitor')
-@click.option('-h', '--combinerhost', required=False)
-@click.option('-p', '--combinerport', required=False)
-@click.option('-t', '--token', required=True)
-@click.option('-n', '--name', required=False, default="monitor")
-@click.option('-s', '--secure', required=False, default=False)
-def monitor_cmd(ctx, combinerhost, combinerport, token, name, secure):
-    import os
-    if not combinerhost:
-        combinerhost = os.environ['MONITOR_HOST']
-    if not combinerport:
-        combinerport = os.environ['MONITOR_PORT']
-
-    config = {'host': combinerhost, 'port': combinerport, 'token': token, 'name': name, 'secure': secure}
-    from fedn.monitor import Monitor
-
-    monitor = Monitor(config)
-    monitor.run()
