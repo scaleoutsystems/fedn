@@ -87,6 +87,7 @@ Additional example projects/clients:
 - Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
+- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/Li-Ju666/FEDn-client-fraud_keras  
  
 ## Support
 For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you don't find the information that you're looking for, please reach out to Scaleout (https://scaleoutsystems.com) or start a ticket directly here on GitHub.
