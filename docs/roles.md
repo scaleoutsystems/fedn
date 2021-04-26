@@ -20,7 +20,7 @@ Please refer to the getting started guide, and the [deployment](deployment.md)
     - Packages the model in a compute package and initializes the network.
     - Provides execution environment definitions (typically as Docker-templates) 
     - Creates the seed model and uploads that to the network.  
-    - Configures FEDn control strategies (algorithm)
+    - Configures FEDn [control strategies](control.md) (algorithm)
 
 This [tutorial](tutorial.md) details the model inititor tasks. 
  
