@@ -2,8 +2,7 @@ import os
 import requests
 from .base import Repository
 from minio import Minio
-from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
-                         BucketAlreadyExists)
+from minio.error import InvalidResponseError
 
 import io
 import logging
@@ -62,14 +61,13 @@ class MINIORepository(Repository):
         self.create_bucket(self.bucket)
 
     def create_bucket(self, bucket_name):
-        try:
-            response = self.client.make_bucket(bucket_name)
-        except BucketAlreadyOwnedByYou as err:
-            pass
-        except BucketAlreadyExists as err:
-            pass
-        except ResponseError as err:
-            raise
+
+        found = self.client.bucket_exists(bucket_name)
+        if not found:
+            try:
+                response = self.client.make_bucket(bucket_name)
+            except InvalidResponseError as err:
+                raise
 
     def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
         """ Instance must be a byte-like object. """
