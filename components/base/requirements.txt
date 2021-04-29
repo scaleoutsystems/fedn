@@ -64,7 +64,7 @@ threadpoolctl==2.1.0
 tqdm==4.54.1
 ttictoc==0.5.6
 typing-extensions==3.7.4.3
-urllib3==1.26.3
+urllib3==1.26.4
 wcwidth==0.2.5
 Werkzeug==1.0.1
 wrapt==1.12.1
