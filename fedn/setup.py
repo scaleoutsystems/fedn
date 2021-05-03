@@ -5,7 +5,7 @@ setup(
     version='0.2.2',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
-    long_descriptiosn_content_type="text/markdown",
+    long_description_content_type="text/markdown",
     author='Morgan Ekmefjord',
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
