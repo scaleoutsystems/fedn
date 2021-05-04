@@ -1,7 +1,6 @@
 import click
 import uuid
 import yaml
-from deprecated import deprecated
 
 from .main import main
 
