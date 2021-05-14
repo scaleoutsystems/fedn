@@ -39,6 +39,7 @@ setup(
         "jinja2",
         "nltk",
         "geoip2",
+        "numpy",
         "pandas"
     ],
     license="Copyright Scaleout Systems AB. See license for details",
