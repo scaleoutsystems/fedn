@@ -43,12 +43,15 @@ class ConnectorClient:
             import os
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem").cert_path
+            print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+
         else:
             self.verify_cert = False
+            self.certificate = None
+            
         self.prefix = prefix
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
-        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
 
     def state(self):
         return self.state
