@@ -70,7 +70,7 @@ def run_cmd(ctx):
 @click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
-@click.option('-v', '--preshared-cert', required=False, default=False)
+@click.option('-pc', '--preshared-cert', required=False, default=False)
 @click.option('-v', '--verify-cert', required=False, default=False)
 @click.option('-c', '--preferred-combiner', required=False, default=False)
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
