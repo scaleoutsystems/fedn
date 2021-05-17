@@ -31,7 +31,7 @@ class Client:
                                          config['preferred_combiner'],
                                          config['client_id'],
                                          secure=config['secure'],
-                                         preshared_cert=['preshared_cert'],
+                                         preshared_cert=config['preshared_cert'],
                                          verify_cert=config['verify_cert'])
         self.name = config['name']
 
