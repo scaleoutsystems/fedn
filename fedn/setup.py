@@ -35,7 +35,7 @@ setup(
         "plotly",
         "ttictoc",
         "psutil",
-        "click",
+        "click==7.1.2",
         "jinja2",
         "nltk",
         "geoip2",
