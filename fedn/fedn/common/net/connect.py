@@ -35,6 +35,7 @@ class ConnectorClient:
         self.verify_cert = verify_cert
         #        self.state = State.Disconnected
         self.secure = secure
+        self.certificate = None
         if not secure:
             prefix = "http://"
         else:
@@ -48,7 +49,8 @@ class ConnectorClient:
         self.prefix = prefix
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
-        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+        if self.certificate:
+            print("Securely connecting with certificate {}".format(self.certificate), flush=True)
 
     def state(self):
         return self.state
