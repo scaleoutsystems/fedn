@@ -42,7 +42,6 @@ setup(
         "nltk",
         "geoip2",
         "pandas",
-        "tensorflow>=2.4.0"
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,

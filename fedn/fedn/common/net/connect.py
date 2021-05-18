@@ -46,6 +46,7 @@ class ConnectorClient:
                                            cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
+            
         self.prefix = prefix
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
