@@ -204,6 +204,7 @@
 
                                 </div>
                                 <div class="card-body">
+
                                     <form id="start_control_form" method="post" action="/start"
                                         enctype="multipart/form-data">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -222,11 +223,6 @@
                                             <div class="col-sm-10">
                                                 <input class="form-control" type="text" id="rounds" name="rounds"
                                                     value="1">
-                                                <!--<select class="form-control" id="rounds" name="rounds">
-                                                    {% for rd in round_options %}
-                                                    <option>{{ rd }}</option>
-                                                    {% endfor %}
-                                                </select>-->
                                             </div>
                                         </div>
                                         <div class="mb-3 row">
@@ -253,6 +249,7 @@
                                             </div>
                                         </div>
                                     </form>
+
                                 </div>
                             </div>
                             {% endif %}

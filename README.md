@@ -19,7 +19,7 @@ More details about architecture and implementation can be found in the [Document
 
 ## Getting started 
 
-The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training. This repository bundles two such test projects in the 'test' folder, and many more are available in external repositories. These projects can be used as templates for creating your own custom federated model. 
+The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training, referred to as the *compute package*. We bundle two such test projects in the 'test' folder, and many more are available in external repositories. These projects can be used as templates for creating your own custom federated model. 
 
 Clone the repository (make sure to use git-lfs!) and follow these steps:
 
@@ -41,8 +41,8 @@ $ docker-compose -f config/base-services.yaml up
 ````
 
 Make sure you can access the following services before proceeding to the next steps: 
- - Minio: localhost:9000
- - Mongo Express: localhost:8081
+ - Minio: http://localhost:9000
+ - Mongo Express: http://localhost:8081
  
 3. Start the Reducer  
 
@@ -60,39 +60,37 @@ Copy the settings config file for the reducer, 'config/settings-combiner.yaml.te
 $ docker-compose -f config/combiner.yaml up 
 ````
 
-Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step.
+Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step. You should see the combiner listed on https://localhost:8090/network. 
 
 ### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package, seeding the model, and attaching clients to the network. Follow the instruction here to set the environment up to train a model for digits classification using the MNIST dataset: 
+Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set the environment up to train a model for digits classification using the MNIST dataset: 
 
 https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 
 #### Updating/changing the compute package and/or the seed model
-By design, it is not possible to simply delete the compute package to restart the alliance -  this is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (localhost:8081), log in (credentials are found in the config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
+By design, it is not possible to simply delete the compute package to reset the model -  this is a security constraint enforced to not allow for arbitrary code  replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (http://localhost:8081), log in (credentials are found/set in config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
 
-## Using FEDn in STACKn
-[STACKn](https://github.com/scaleoutsystems/stackn) lets a user set up FEDn networks as 'Apps' directly from the WebUI. STACKn also provide useful additional functionality such as serving the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set this up, or reach out to Scaleout for a demo/access to a pre-alpha SaaS deployment.   
+## Using FEDn in STACKn (relies on Kubernetes)
+[STACKn](https://github.com/scaleoutsystems/stackn), Scaleout's cloud native (Fed)MLOps platform lets a user set up, monitor and manage FEDn networks (base services, reducer and combiners) in Kubernetes as 'Apps' deployed from a WebUI. STACKn also provides useful additional functionality such as Jupyter Labs, storage managmement, and model serving for the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set it up on your own cluster, or sign up on the waiting list for a private-beta SaaS deployment at https://scaleoutsystems.com/.   
 
-## Distributed deployment
-The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. 
-
-We provide instruction for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment)     
-
+## Fully distributed deployment
+The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment).     
 
 ## Where to go from here
 Additional example projects/clients:
 
 - PyTorch version of the MNIST getting-started example in test/mnist-pytorch
-- Sentiment analyis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
-- Sentiment analyis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
+- Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
+- Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
+- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/Li-Ju666/FEDn-client-fraud_keras  
  
 ## Support
-For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you don't find the information that you're looking for, please reach out to Scaleout (https://scaleoutsystems.com) or start a ticket directly here on GitHub.
+For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you do not find the information that you're looking for, have a bug report, or a feature request, start a ticket directly here on GitHub, or reach out to Scaleout (https://scaleoutsystems.com) to inquire about Enterprise support.
 
-## Contributions
-All pull requests will be considered and are much appreciated. We are currently managing issues in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
+## Making contributions
+All pull requests will be considered and are much appreciated. We are currently managing issues and the release roadmap in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
 
 For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. You might also want to use a Dockerfile for the client that installs fedn from your local clone of FEDn, alternatively mounts the source. 
 

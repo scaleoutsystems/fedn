@@ -178,6 +178,9 @@ class ReducerRestService:
                 return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
+            if self.control.state() == ReducerState.monitoring:
+                return redirect(url_for('index', state=state, refresh= refresh, message="Reducer is in monitoring state"))
+
             if request.method == 'POST':
                 timeout = float(request.form.get('timeout'))
                 rounds = int(request.form.get('rounds', 1))
@@ -198,7 +201,7 @@ class ReducerRestService:
                           'validate': validate, 'helper_type': helper_type}
 
                 self.control.instruct(config)
-                return redirect(url_for('index', message="Sent execution plan."))
+                return redirect(url_for('index', state=state, refresh= refresh, message="Sent execution plan."))
 
             else:
                 latest_model_id = self.control.get_latest_model()
@@ -359,9 +362,10 @@ class ReducerRestService:
             try:
                 valid_metrics = plot.fetch_valid_metrics()
                 box_plot = plot.create_box_plot(valid_metrics[0])
-            except:
+            except Exception as e:
                 valid_metrics = None
                 box_plot = None
+                print(e,flush=True)
             table_plot = plot.create_table_plot()
             # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
