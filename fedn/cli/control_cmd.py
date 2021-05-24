@@ -30,7 +30,7 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
     if not name:
         from datetime import datetime
         name = str(os.path.basename(cwd)) + '-' + datetime.today().strftime('%Y-%m-%d-%H%M%S')
-
+        
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 

@@ -52,14 +52,14 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for table mean metrics')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return table
+            return False
 
         valid_metrics = self._scalar_metrics(metrics)
         if valid_metrics == []:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No scalar metrics found')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return table
+            return False
 
         all_vals = []
         models = []
@@ -83,6 +83,7 @@ class Plot:
         header_vals = valid_metrics
         models.reverse()
         values = [models]
+
         for vals in all_vals:
             vals.reverse()
             values.append(vals)
@@ -175,6 +176,8 @@ class Plot:
             meta = json.loads(e['meta'])
             training.append(meta['exec_training'])
 
+        if not training:
+            return False
         fig = go.Figure(data=go.Histogram(x=training))
         fig.update_layout(title_text='Client model training time, mean: {}'.format(numpy.mean(training)))
         histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -202,7 +205,8 @@ class Plot:
             title="Total mean client processing time: {}".format(numpy.mean(processing)),
             showlegend=True
         )
-
+        if not processing:
+            return False
         data = [numpy.mean(training),numpy.mean(upload),numpy.mean(download)]
         labels = ["Training","Model upload","Model download"]
         fig.add_trace(go.Pie(labels=labels,values=data),row=1,col=1)
@@ -240,12 +244,18 @@ class Plot:
             title="Total mean combiner round time: {}".format(numpy.mean(combination)),
             showlegend=True
         )
-
+        if not combination:
+            return False
         fig.add_trace(go.Pie(labels=labels,values=val))
         combiner_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return combiner_plot
 
-    def create_box_plot(self):
+    def fetch_valid_metrics(self):
+        metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
+        valid_metrics = self._scalar_metrics(metrics)
+        return valid_metrics
+
+    def create_box_plot(self, metric):
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
@@ -261,12 +271,6 @@ class Plot:
             box = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return box
 
-        # Just grab the first metric in the list.
-        # TODO: Let the user choose, or plot all of them.
-        if "accuracy" in valid_metrics:
-            metric = "accuracy"
-        else:
-            metric = valid_metrics[0]
         validations = {}
         for post in self.status.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])
@@ -275,27 +279,41 @@ class Plot:
             except KeyError:
                 validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
 
+        # Make sure validations are plotted in chronological order
+        model_trail = self.mdb.control.model.find_one({'key': 'model_trail'})
+        model_trail_ids = model_trail['model']
+        validations_sorted = []
+        for model_id in model_trail_ids:
+            try:
+                validations_sorted.append(validations[model_id])
+            except:
+                pass
+
+        validations = validations_sorted
+
         box = go.Figure()
 
         x = []
         y = []
         box_trace = []
-        for model_id, acc in validations.items():
-            x.append(model_id)
+        for j,acc in enumerate(validations):
+            #x.append(j)
             y.append(numpy.mean([float(i) for i in acc]))
             if len(acc) >= 2:
-                box.add_trace(go.Box(y=acc, name=str(model_id), marker_color="royalblue", showlegend=False,
+                box.add_trace(go.Box(y=acc, name=str(j), marker_color="royalblue", showlegend=False,
                                      boxpoints=False))
+            else:
+                box.add_trace(go.Scatter(x=[str(j)],y=[y[j]],showlegend=False))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
-            x=x,
+            x=rounds,
             y=y,
             name='Mean'
         ))
 
-        box.update_xaxes(title_text='Model ID')
-        box.update_yaxes(tickvals=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        box.update_xaxes(title_text='Rounds')
+        box.update_yaxes(tickvals=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         box.update_layout(title_text='Metric distribution over clients: {}'.format(metric),
                           margin=dict(l=20, r=20, t=45, b=20))
         box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
@@ -308,7 +326,7 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for round time')
             ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return ml
+            return False
 
         for post in self.round_time.find({'key': 'round_time'}):
             rounds = post['round']
@@ -344,7 +362,7 @@ class Plot:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for MEM and CPU usage')
             cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return cpu
+            return False
 
         for post in self.psutil_usage.find({'key': 'cpu_mem_usage'}):
             cpu = post['cpu']
