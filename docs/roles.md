@@ -9,9 +9,9 @@ Three distinct technical roles can be distinguished in the life cycle of a feder
 - Responsible for end-to-end enterprise security (configures networks, certificates etc)
 - Typically a data engineer / DevOps engineer
 
-Please refer to the getting started guide, and the [deployment](deployment.md)  
+Please refer to the getting started guide, and the [deployment guidelines](deployment.md)  
 
-# Model initiator - Develops the code associated with the FedML model. 
+## Model initiator - Develops the code associated with the FedML model. 
 
 - Develops the base model (the actual machine learning model). 
 - Develops the code to be executed by clients during model updates and validations.
@@ -24,7 +24,7 @@ Please refer to the getting started guide, and the [deployment](deployment.md)
 
 This [tutorial](tutorial.md) details the model inititor tasks. 
  
-# Data provider: Attaches to the network and provides local data. 
+## Data provider: Attaches to the network and provides local data. 
 
 - Prepares local data according to instructions from model initiator. 
 - Attaches clients to the network. 
