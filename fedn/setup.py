@@ -26,7 +26,7 @@ setup(
         "prettytable",
         "grpcio-tools",
         "grpcio~=1.34.0",
-        "numpy~=1.19.2",
+        "numpy~=1.19.5",
         "protobuf",
         "pypandoc",
         "wheel",
