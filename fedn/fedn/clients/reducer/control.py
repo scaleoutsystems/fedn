@@ -357,7 +357,13 @@ class ReducerControl:
             # start round monitor
             self.tracer.start_monitor(round)
             # todo add try except bloc for round meta
-            model_id, round_meta = self.round(config, current_round)
+            model_id = None
+            round_meta = {'round_id':current_round}
+            try:
+                model_id, round_meta = self.round(config, current_round)
+            except TypeError:
+                print("Could not unpack data from round...", flush=True)
+
             end_time = datetime.now()
             
             if model_id:
