@@ -71,6 +71,9 @@ class ReducerControl:
     def get_model_info(self):
         return self.statestore.get_model_info()
 
+    def get_events(self):
+        return self.statestore.get_events()
+
     def drop_models(self):
         self.statestore.drop_models()
 

@@ -191,7 +191,11 @@ class MongoReducerStateStore(ReducerStateStore):
                 return None
         except (KeyError, IndexError):
             return None
-    
+
+    def get_events(self):
+        ret = self.control.status.find({})
+        return ret
+
     def get_storage_backend(self):
         """  """
         try:

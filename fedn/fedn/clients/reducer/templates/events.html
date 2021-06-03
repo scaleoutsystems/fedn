@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Events</h5>
+    </div>
+  <div class="card-body">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+                            <script>
+                                $(document).ready(function () {
+                                    function update_trackdata() {
+                                        $.getJSON("/events", function (data) {
+                                            var div_data = ""; //<div class='events'>" + data.state + "</div>";
+                                            $.each(data.events, function (i, data) {
+                                                elem = JSON.parse(data);
+                                                div_data += "<div class='row'>" + elem.status + "</div>";
+                                                ("#eventdata");
+                                            });
+                                            $("#eventdata").html(div_data);
+                                        });
+                                        return false;
+                                    }
+
+                                    update_trackdata();
+
+                                    var interval = setInterval(update_trackdata, 2000);
+
+                                });
+                            </script>
+                            <div id="eventdata">fff</div>
+
+    </div>
+</div>
+
+
+{% endblock %}
