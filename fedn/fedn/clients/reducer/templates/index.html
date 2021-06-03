@@ -137,12 +137,26 @@
                 <h1 class="h3 mb-3"></h1>
                 <div class="row">
                     <div class="col-12">
+                            {% if message %}
+                                {% if message_type == 'WARNING' %}
+                                <div class="alert alert-danger alert-dismissible" role="alert">
+                                {% elif message_type == 'SUCCESS' %}
+                                <div class="alert alert-success alert-dismissible" role="alert">
+                                {% else %}
+                                    <div class="alert alert-info alert-dismissible" role="alert">
+                                    {% endif %}
+
+											<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+											<div class="alert-icon">
+												<i class="far fa-fw fa-bell"></i>
+											</div>
+											<div class="alert-message">
+												{{ message }}
+											</div>
+										</div>
+                            {% endif %}
+
                         {% block content %}
-
-
-
-
-
                             {% if not refresh and not seed and not show_plot and not network_plot %}
                                 <script>
                                     $(document).ready(function () {
@@ -180,13 +194,58 @@
                                                            name="helper" value={{ helper }}>
                                                 </div>
                                             </div>
+    <script>$(document).ready(function(){
 
+var rounds=0;
+   $('.quantity-right-plus').click(function(e){
+
+        // Stop acting like a button
+        e.preventDefault();
+        // Get the field name
+        var quantity = parseInt($('#rounds').val());
+
+        // If is not undefined
+
+            $('#rounds').val(quantity + 1);
+
+
+            // Increment
+
+    });
+
+     $('.quantity-left-minus').click(function(e){
+        // Stop acting like a button
+        e.preventDefault();
+        // Get the field name
+        var quantity = parseInt($('#rounds').val());
+
+        // If is not undefined
+
+            // Increment
+            if(quantity>1){
+            $('#rounds').val(quantity - 1);
+            }
+    });
+
+});</script>
                                             <div class="mb-3 row">
                                                 <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
                                                     rounds: </label>
                                                 <div class="col-sm-10">
-                                                    <input class="form-control" type="text" id="rounds" name="rounds"
-                                                           value="1">
+                                                        <div class="input-group" style="max-width:200px;">
+                                                                <span class="input-group-btn">
+                                                                    <button type="button" class="quantity-left-minus btn btn-danger btn-number"  data-type="minus" data-field="">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus align-middle me-2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                    </button>
+                                                                </span>
+                                                                <input type="text" id="rounds" name="rounds" class="form-control input-number" value="5" min="1" max="100">
+                                                                <span class="input-group-btn">
+                                                                    <button type="button" class="quantity-right-plus btn btn-success btn-number" data-type="plus" data-field="">
+
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus align-middle me-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                    </button>
+                                                                </span>
+                                                            </div>
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">

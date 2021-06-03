@@ -72,8 +72,10 @@ class ReducerRestService:
             if not_configured:
                 return not_configured
             events = self.control.get_events()
+            message = request.args.get('message',None)
+            message_type = request.args.get('message_type',None)
             return render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()), events=events,
-                                   logs=None, refresh=True, configured=True)
+                                   logs=None, refresh=True, configured=True, message=message, message_type=message_type)
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
@@ -223,6 +225,20 @@ class ReducerRestService:
                 clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
 
+                # checking if there are enough clients connected to start!
+                clients_available = 0
+                for combiner in self.control.network.get_combiners():
+                    if combiner.allowing_clients():
+                        combiner_state = combiner.report()
+                        nac = combiner_state['nr_active_clients']
+
+                        clients_available = clients_available + int(nac)
+
+
+                if clients_available < clients_required:
+                    return redirect(url_for('index', state=state,
+                                            message="Not enough clients available to start rounds.",message_type='warning'))
+
                 # TODO: Enable in UI
                 validate = request.form.get('validate', False)
                 helper_type = request.form.get('helper', 'keras')
@@ -235,8 +251,10 @@ class ReducerRestService:
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
-                self.control.instruct(config)
-                return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan."))
+                import threading
+                threading.Thread(target=self.control.instruct, args=(config,)).start()
+                #self.control.instruct(config)
+                return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",message_type='SUCCESS'))
 
             else:
                 latest_model_id = self.control.get_latest_model()
