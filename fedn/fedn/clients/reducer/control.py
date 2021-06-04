@@ -65,6 +65,9 @@ class ReducerControl:
         else:
             return False
 
+    def get_first_model(self):
+        return self.statestore.get_first()
+
     def get_latest_model(self):
         return self.statestore.get_latest()
 
