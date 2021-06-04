@@ -3,15 +3,18 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h5 class="card-title">Warning!</h5>
+        <h5 class="card-title">Configuration required</h5>
     </div>
     <div class="card-body">
+
         <div class="alert alert-warning alert-outline alert-dismissible" role="alert">
             <div class="alert-icon">
                 <i class="far fa-fw fa-bell"></i>
             </div>
+
             <div class="alert-message">
-                <strong>Reducer is not configured!</strong> {{message | safe}}
+                  <strong>Reducer requires a configured compute package</strong>
+                <p>Please set a compute context with <a href="/context">/context</a></p>
             </div>
         </div>
     </div>
