@@ -177,7 +177,7 @@
                                 </script>
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title">Configure instructions </h5
+                                        <h5 class="card-title">Configure run</h5
 
                                     </div>
                                     <div class="card-body">
@@ -186,32 +186,32 @@
                                               enctype="multipart/form-data">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                                                         <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Seed model </label>
-                                                <div class="col-sm-10">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Seed Model </label>
+                                                <div class="col-sm-9">
                                                     <input type="text" placeholder={{ seed_model_id }} readonly
                                                            class="form-control-plaintext" id="helper"
                                                            name="seed_model_id" value={{ seed_model_id }}>
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Latest global model</label>
-                                                <div class="col-sm-10">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Latest Global Model</label>
+                                                <div class="col-sm-9">
                                                     <input type="text" placeholder={{ latest_model_id }} readonly
                                                            class="form-control-plaintext" id="helper"
                                                            name="latest_model" value={{ latest_model_id }}>
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Compute Package </label>
-                                                <div class="col-sm-10">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Compute Package </label>
+                                                <div class="col-sm-9">
                                                     <input type="text" placeholder={{ compute_package }} readonly
                                                            class="form-control-plaintext" id="helper"
                                                            name="compute_package" value={{ compute_package }}>
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Helper: </label>
-                                                <div class="col-sm-10">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Helper: </label>
+                                                <div class="col-sm-9">
                                                     <input type="text" placeholder={{ helper }} readonly
                                                            class="form-control-plaintext" id="helper"
                                                            name="helper" value={{ helper }}>
@@ -252,9 +252,9 @@ var rounds=0;
 
 });</script>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Run
                                                     rounds: </label>
-                                                <div class="col-sm-10">
+                                                <div class="col-sm-9">
                                                         <div class="input-group" style="max-width:200px;">
                                                                 <span class="input-group-btn">
                                                                     <button type="button" class="quantity-left-minus btn btn-danger btn-number"  data-type="minus" data-field="">
@@ -272,18 +272,18 @@ var rounds=0;
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="timeout">Timeout:
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Timeout:
                                                 </label>
-                                                <div class="col-sm-10">
+                                                <div class="col-sm-9">
                                                     <input class="form-control" type="text" id="timeout" name="timeout"
                                                            value="180">
                                                 </div>
                                             </div>
 
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-2 text-sm-right" for="validate">Validate:
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="validate">Validate:
                                                 </label>
-                                                <div class="col-sm-10">
+                                                <div class="col-sm-9">
                                                     <input class="form-check-input" type="checkbox" id="validate"
                                                            name="validate" value="True"
                                                            checked={{ validate }}>
@@ -291,8 +291,10 @@ var rounds=0;
                                             </div>
 
                                             <div class="mb-3 row">
-                                                <div class="col-sm-10 ml-sm-auto">
-                                                    <button type="submit" class="btn btn-square btn-primary">Submit instructions
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="">
+                                                </label>
+                                                <div class="col-sm-9 ml-sm-auto">
+                                                    <button type="submit" class="btn btn-square btn-primary">Start run
                                                     </button>
                                                 </div>
                                             </div>
