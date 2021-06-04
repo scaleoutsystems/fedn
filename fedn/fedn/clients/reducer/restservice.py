@@ -257,9 +257,17 @@ class ReducerRestService:
                 return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",message_type='SUCCESS'))
 
             else:
-                latest_model_id = self.control.get_latest_model()
+                seed_model_id = None
+                latest_model_id = None
+                try:
+                    seed_model_id = self.control.get_first_model()[0]
+                    latest_model_id = self.control.get_latest_model()
+                except Exception as e:
+                    pass
+
                 return render_template('index.html', latest_model_id=latest_model_id,
                                        compute_package=self.current_compute_context,
+                                       seed_model_id=seed_model_id,
                                        helper=self.control.statestore.get_framework(), validate=True, configured=True)
 
             client = self.name

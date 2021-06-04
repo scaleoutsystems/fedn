@@ -151,7 +151,7 @@
 												<i class="far fa-fw fa-bell"></i>
 											</div>
 											<div class="alert-message">
-												{{ message }}
+												{{ message | safe}}
 											</div>
 										</div>
                             {% endif %}
@@ -177,7 +177,7 @@
                                 </script>
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title">Active model: {{ compute_package }}</h5>
+                                        <h5 class="card-title">Configure instructions </h5
 
                                     </div>
                                     <div class="card-body">
@@ -185,7 +185,30 @@
                                         <form id="start_control_form" method="post" action="/control"
                                               enctype="multipart/form-data">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
+                                                                                        <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Seed model </label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" placeholder={{ seed_model_id }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="seed_model_id" value={{ seed_model_id }}>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Latest global model</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" placeholder={{ latest_model_id }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="latest_model" value={{ latest_model_id }}>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-2 text-sm-right" for="helper">Compute Package </label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" placeholder={{ compute_package }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="compute_package" value={{ compute_package }}>
+                                                </div>
+                                            </div>
                                             <div class="mb-3 row">
                                                 <label class="col-form-label col-sm-2 text-sm-right" for="helper">Helper: </label>
                                                 <div class="col-sm-10">
@@ -269,7 +292,7 @@ var rounds=0;
 
                                             <div class="mb-3 row">
                                                 <div class="col-sm-10 ml-sm-auto">
-                                                    <button type="submit" class="btn btn-square btn-primary">Submit
+                                                    <button type="submit" class="btn btn-square btn-primary">Submit instructions
                                                     </button>
                                                 </div>
                                             </div>
