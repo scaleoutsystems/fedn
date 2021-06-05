@@ -119,7 +119,7 @@ class MINIORepository(Repository):
 
         try:
             self.client.remove_object(bucket, instance_name)
-        except ResponseError as err:
+        except InvalidResponseError as err:
             print(err)
             print('Could not delete artifact: {}'.format(instance_name))
 
@@ -128,10 +128,14 @@ class MINIORepository(Repository):
         try:
             # force evaluation of the remove_objects() call by iterating over
             # the returned value.
-            for del_err in self.client.remove_objects(self.bucket, objects_to_delete):
-                print("Deletion Error: {}".format(del_err))
-        except ResponseError as err:
-            print(err)
+            # Remove list of objects.
+            errors = self.client.remove_objects(
+                self.bucket, objects_to_delete
+            )
+            for error in errors:
+                print("error occured when deleting object", error)
+        except:
+            print("error occured when deleting object list")
 
 
 
