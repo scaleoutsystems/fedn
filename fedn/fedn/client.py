@@ -56,6 +56,8 @@ class Client:
         self.started_at = datetime.now()
         self.logs = []
 
+        self.inbox = queue.Queue()
+
         # Ask controller for a combiner and connect to that combiner.
         client_config = self._assign()
         self._connect(client_config)
@@ -91,8 +93,6 @@ class Client:
                                     'validate': {'command': 'python3 validate.py'}}}
             dispatch_dir = os.getcwd()
             self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
-
-        self.lock = threading.Lock()
 
         if 'model_type' in client_config.keys():
             self.helper = get_helper(client_config['model_type'])
@@ -157,6 +157,11 @@ class Client:
         print("Client: {} connected {} to {}:{}".format(self.name,
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
+
+    def execute(self): 
+        """Handle next message in the inbox. """
+
+
 
     def get_model(self, id):
         """Fetch a model from the assigned combiner. 
