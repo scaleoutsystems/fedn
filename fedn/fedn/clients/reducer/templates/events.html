@@ -15,7 +15,7 @@
                 $(document).ready(function () {
                     function update_trackdata() {
                         $.getJSON("/events", function (data) {
-                            var div_data = "<table class='table'><thead><tr><th>Timestamp</th><th>Sender</th><th>Role</th><th>Status</th></tr></thead><tbody>"; //<div class='events'>" + data.state + "</div>";
+                            var div_data = "<table class='table table-striped'><thead><tr><th>Timestamp</th><th>Sender</th><th>Role</th><th>Status</th></tr></thead><tbody>"; //<div class='events'>" + data.state + "</div>";
                             $.each(data.events, function (i, data) {
                                 elem = JSON.parse(data);
                                 div_data += "<tr><td>" + elem.timestamp + "</td><td>" + elem.sender.name + "</td><td>" + elem.sender.role + "</td><td>" + elem.status + "</td></tr>";
