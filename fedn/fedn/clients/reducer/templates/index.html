@@ -178,7 +178,7 @@
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title">Configure run</h5
-
+                                        <p>Configure your run with a round configuration. After the run is started the number of rounds will execute on clients with the configuration set here.</p>
                                     </div>
                                     <div class="card-body">
 
@@ -252,16 +252,15 @@ var rounds=0;
 
 });</script>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Run
-                                                    rounds: </label>
-                                                <div class="col-sm-9">
-                                                        <div class="input-group" style="max-width:200px;">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Number of rounds:</label>
+                                                <div class="col-sm-2">
+                                                        <div class="input-group">
                                                                 <span class="input-group-btn">
                                                                     <button type="button" class="quantity-left-minus btn btn-danger btn-number"  data-type="minus" data-field="">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus align-middle me-2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                                                     </button>
                                                                 </span>
-                                                                <input type="text" id="rounds" name="rounds" class="form-control input-number" value="5" min="1" max="100">
+                                                                <input type="text" id="rounds" name="rounds" class="form-control input-number align-content-center" value="5" min="1" max="10000">
                                                                 <span class="input-group-btn">
                                                                     <button type="button" class="quantity-right-plus btn btn-success btn-number" data-type="plus" data-field="">
 
@@ -272,25 +271,31 @@ var rounds=0;
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Timeout:
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Round timeout:
                                                 </label>
-                                                <div class="col-sm-9">
+                                                <div class="col-sm-2" >
                                                     <input class="form-control" type="text" id="timeout" name="timeout"
                                                            value="180">
                                                 </div>
+
                                             </div>
 
                                             <div class="mb-3 row">
                                                 <label class="col-form-label col-sm-3 text-sm-right" for="validate">Validate:
                                                 </label>
-                                                <div class="col-sm-9">
-                                                    <input class="form-check-input" type="checkbox" id="validate"
-                                                           name="validate" value="True"
-                                                           checked={{ validate }}>
+                                                <div class="col-sm-2">
+                                                    <div class="form-floating">
+										<select class="form-select" id="validate" aria-label="" name="validate">
+            <option selected="" value="True">Validate</option>
+            <option value="False">Dont validate</option>
+          </select>
+										<label for="validate">Validate at clients and combiner</label>
+									</div>
+
                                                 </div>
                                             </div>
 
-                                            <div class="mb-3 row">
+                                            <div class="mb-3 row" style="padding-top:50px;">
                                                 <label class="col-form-label col-sm-3 text-sm-right" for="">
                                                 </label>
                                                 <div class="col-sm-9 ml-sm-auto">

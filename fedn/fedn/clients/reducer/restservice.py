@@ -219,7 +219,7 @@ class ReducerRestService:
                     url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
 
             if request.method == 'POST':
-                timeout = float(request.form.get('timeout'))
+                timeout = float(request.form.get('timeout', 180))
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
                 clients_required = request.form.get('clients_required', 1)
@@ -239,8 +239,9 @@ class ReducerRestService:
                     return redirect(url_for('index', state=state,
                                             message="Not enough clients available to start rounds.",message_type='warning'))
 
-                # TODO: Enable in UI
                 validate = request.form.get('validate', False)
+                if validate == 'False':
+                    validate = False
                 helper_type = request.form.get('helper', 'keras')
                 # self.control.statestore.set_framework(helper_type)
 
