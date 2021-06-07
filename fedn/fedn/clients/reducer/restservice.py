@@ -292,6 +292,11 @@ class ReducerRestService:
             else:
                 combiner = self.control.find_available_combiner()
 
+            ## Check that a framework has been selected prior to assigning clients.
+            framework = self.control.statestore.get_framework()
+            if not framework:
+                return jsonify({'status': 'retry'})
+
             client = {
                 'name': name,
                 'combiner_preferred': combiner_preferred,
@@ -299,6 +304,7 @@ class ReducerRestService:
                 'status': 'available'
             }
             self.control.network.add_client(client)
+
 
             if combiner:
                 import base64
