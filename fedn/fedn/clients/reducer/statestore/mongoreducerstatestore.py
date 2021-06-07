@@ -121,6 +121,21 @@ class MongoReducerStateStore(ReducerStateStore):
         x = self.model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
         self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
 
+    def get_first(self):
+        """ Return model_id for the latest model in the model_trail """
+        import pymongo
+        ret = self.model.find_one({'key': 'model_trail'}, sort=[("committed_at", pymongo.ASCENDING)])
+        if ret == None:
+            return None
+
+        try:
+            model_id = ret['model']
+            if model_id == '' or model_id == ' ':  # ugly check for empty string
+                return None
+            return model_id
+        except (KeyError, IndexError):
+            return None
+
     def get_latest(self):
         """ Return model_id for the latest model in the model_trail """
         ret = self.model.find_one({'key': 'current_model'})
@@ -191,7 +206,11 @@ class MongoReducerStateStore(ReducerStateStore):
                 return None
         except (KeyError, IndexError):
             return None
-    
+
+    def get_events(self):
+        ret = self.control.status.find({})
+        return ret
+
     def get_storage_backend(self):
         """  """
         try:

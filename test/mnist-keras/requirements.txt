@@ -1,5 +1,4 @@
-numpy
-tensorflow
+tensorflow==2.3.2
 pandas
 keras
 sklearn
