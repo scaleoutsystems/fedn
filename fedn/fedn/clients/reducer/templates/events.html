@@ -1,0 +1,43 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Events</h5>
+        </div>
+        <div class="card-body">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+            <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+            <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+            <script>
+                $(document).ready(function () {
+                    function update_trackdata() {
+                        $.getJSON("/events", function (data) {
+                            var div_data = "<table class='table table-striped'><thead><tr><th>Timestamp</th><th>Sender</th><th>Role</th><th>Status</th></tr></thead><tbody>"; //<div class='events'>" + data.state + "</div>";
+                            $.each(data.events, function (i, data) {
+                                elem = JSON.parse(data);
+                                div_data += "<tr><td>" + elem.timestamp + "</td><td>" + elem.sender.name + "</td><td>" + elem.sender.role + "</td><td>" + elem.status + "</td></tr>";
+                                ("#eventdata");
+                            });
+                            div_data += "</tbody></table>";
+                            $("#eventdata").html(div_data);
+                            $('#table').DataTable({responsive: true});
+                        });
+                        return false;
+                    }
+
+                    update_trackdata();
+
+                    var interval = setInterval(update_trackdata, 2000);
+
+                });
+            </script>
+            <div id="eventdata"></div>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
