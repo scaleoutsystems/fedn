@@ -86,8 +86,9 @@ class ReducerControl:
             try:
                 context = definition['filename']
                 return context
-            except IndexError:
+            except (IndexError, KeyError):
                 print("No context filename set for compute context definition", flush=True)
+                return None
         else:
             return None
 
