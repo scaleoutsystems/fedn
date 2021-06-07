@@ -90,9 +90,10 @@ class Client:
 
             self.dispatcher = pr.dispatcher()
             try:
+                print("Running Dispatcher for entrypoint: startup", flush=True)
                 self.dispatcher.run_cmd("startup")
             except KeyError:
-                print("No startup code present. skipping")
+                pass
         else:
             # TODO: Deprecate
             dispatch_config = {'entry_points':
