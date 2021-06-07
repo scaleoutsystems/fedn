@@ -45,7 +45,7 @@ class ReducerRestService:
         if not self.control.get_compute_context():
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=False,
-                                   message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
+                                   message='')
 
         if self.control.state() == ReducerState.setup:
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
