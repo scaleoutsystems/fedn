@@ -1,4 +1,4 @@
-FROM python:3.8.5
+FROM python:3.8.9
 RUN mkdir -p /app && \
     mkdir -p /app/client &&\
     mkdir -p /app/certs

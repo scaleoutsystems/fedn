@@ -7,47 +7,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    {% if refresh %}
-    <meta http-equiv="refresh" content="5">
+    {% if fffrefresh %}
+        <meta http-equiv="refresh" content="5">
     {% endif %}
 
     <title>FEDn Reducer</title>
 
-    <link rel="canonical" href="https://appstack.bootlab.io/pages-blank.html" />
+    <link rel="canonical" href="https://appstack.bootlab.io/pages-blank.html"/>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
     <link href="{{ url_for('static', filename='dist/css/light.css') }}" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 </head>
 
 <body data-theme="light" data-layout="fluid" data-sidebar-position="left" data-sidebar-behavior="sticky">
-    <div class="wrapper">
-        <nav id="sidebar" class="sidebar">
-            <div class="sidebar-content js-simplebar">
-                <a class="sidebar-brand" href="/">
-                    <img src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"
-                        style="height: 55px;"></img>
-                </a>
+<div class="wrapper">
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-content js-simplebar">
+            <a class="sidebar-brand" href="/">
+                <img src="https://camo.githubusercontent.com/febac576ace4dc0b09da70714eed341a03ded0d3/68747470733a2f2f7468756d622e74696c646163646e2e636f6d2f74696c64363633372d333933372d343536352d623836312d3338363333303338363133322f2d2f726573697a652f353630782f2d2f666f726d61742f776562702f4645446e5f6c6f676f2e706e67"
+                     style="height: 55px;"></img>
+            </a>
+            {% if configured %}
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+                <script>
+                    $(document).ready(function () {
+                        function update_trackdata() {
+                            $.getJSON("/status", function (data) {
+                                var div_data = "<div class='alert-message'>" + data.state + "</div>";
+                                //$.each(data.recent, function (i, data) {
+                                //    div_data += "<div class='card-body'>" + data.state + "</div>";
+                                //    ("#statusbody");
+                                //});
+                                $("#status").html(div_data);
+                            });
+                            return false;
+                        }
+
+                        update_trackdata();
+
+                        var interval = setInterval(update_trackdata, 2000);
+
+                    });
+                </script>
+                <div class="card">
+                    <div class="">
+                        <div class="card-body" id="statusbody">
+                            <div class="alert alert-success alert-outline alert-dismissible" role="alert">
+                                <div class="alert-icon">
+                                    <i class="far fa-fw fa-bell"></i>
+                                </div>
+                                <div id="status">
+                                    <div class="alert-message">
+                                        {% if state != 'idle' %}
+                                            <div class="spinner-border text-primary me-2" role="status">
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
+                                        {% endif %}
+
+                                        <strong>{{ client }}</strong> {{ state }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <ul class="sidebar-nav">
+
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="/">
                             <i class="align-middle" data-feather="clipboard"></i>
-                            <span class="align-middle">Status</span>
+                            <span class="align-middle">Events</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a class="sidebar-link" href="/start">
+                        <a class="sidebar-link" href="/control">
                             <i class="align-middle" data-feather="sliders"></i>
                             <span class="align-middle">Control</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a class="sidebar-link" href="/history">
+                        <a class="sidebar-link" href="/models">
                             <i class="align-middle" data-feather="clock"></i>
-                            <span class="align-middle">History</span>
+                            <span class="align-middle">Models</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
@@ -62,315 +108,258 @@
                             <span class="align-middle">Network</span>
                         </a>
                     </li>
+
+                </ul>{% endif %}
+        </div>
+    </nav>
+    <div class="main">
+        <nav class="navbar navbar-expand navbar-light navbar-bg">
+            <a class="sidebar-toggle">
+                <i class="hamburger align-self-center"></i>
+            </a>
+            <div class="navbar-collapse collapse">
+
+                <ul class="navbar-nav navbar-align">
+                    <li class="nav-item dropdown">
+
+                        <a class="nav-icon dropdown-toggle" href="https://scaleoutsystems.github.io/fedn/">
+                            <div class="position-relative">
+                                <i class="align-middle" data-feather="help-circle"></i>
+                            </div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
-        <div class="main">
-            <nav class="navbar navbar-expand navbar-light navbar-bg">
-                <a class="sidebar-toggle">
-                    <i class="hamburger align-self-center"></i>
-                </a>
-                <div class="navbar-collapse collapse">
-                    <ul class="navbar-nav navbar-align">
-                        <li class="nav-item dropdown">
-                            <a class="nav-icon dropdown-toggle" href="https://scaleoutsystems.github.io/fedn/">
-                                <div class="position-relative">
-                                    <i class="align-middle" data-feather="help-circle"></i>
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
 
-            <main class="content">
-                <div class="container-fluid p-0">
-                    <h1 class="h3 mb-3"></h1>
-                    <div class="row">
-                        <div class="col-12">
-                            {% block content %}
-
-                            {% if refresh %}
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="alert alert-success alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
-                                        </div>
-                                        <div class="alert-message">
-                                            <strong>{{ client }}</strong> {{ state }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
+        <main class="content">
+            <div class="container-fluid p-0">
+                <h1 class="h3 mb-3"></h1>
+                <div class="row">
+                    <div class="col-12">
+                        {% if message %}
+                            {% if message_type == 'WARNING' %}
+                                <div class="alert alert-danger alert-dismissible" role="alert">
+                            {% elif message_type == 'SUCCESS' %}
+                                <div class="alert alert-success alert-dismissible" role="alert">
+                            {% else %}
+                                <div class="alert alert-info alert-dismissible" role="alert">
                             {% endif %}
 
-                            {% if seed %}
-                            <script>
-                                $(document).ready(function () {
-                                    $('#seed_upload_form').submit(function (e) {
-                                        e.preventDefault();
-                                        var h_latest_model_id = "{{h_latest_model_id}}";
-                                        console.log('latest seed model id', h_latest_model_id);
-                                        $(".error").remove();
-                                        if (h_latest_model_id != 'None') {
-                                            console.log('Model already exist!');
-                                            document.getElementById("error").innerHTML = '<div class="alert alert-danger" role="alert">Seed model already exist!</div>';
-                                        }
-                                        else {
-                                            $("#seed_upload_form")[0].submit();
-                                        }
-                                    });
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <div class="alert-icon">
+                            <i class="far fa-fw fa-bell"></i>
+                        </div>
+                        <div class="alert-message">
+                            {{ message | safe }}
+                        </div>
+                        </div>
+                        {% endif %}
 
-                                });
-                            </script>
-                            <div class="card">
-                                <div class="card-body">
-                                    {% if not h_latest_model_id %}
-                                    <form id="seed_upload_form" method="post" action="/history"
-                                        enctype="multipart/form-data">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-                                        <div class="mb-3 row">
-                                            <label class="col-form-label col-sm-2 text-sm-right" for="file">File input:
-                                            </label>
-                                            <div class="col-sm-10">
-                                                <input class="form-control" type="file" id="file" name="seed" required>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 row">
-                                            <div class="col-sm-10 ml-sm-auto">
-                                                <button type="submit" class="btn btn-square btn-primary">Upload</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                    {% else %}
-                                    <form id="delete_models_form" method="post" action="/delete_model_trail"
-                                        enctype="multipart/form-data" style="margin-bottom: 24px;">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-                                        <div class="mb-3 row">
-                                            <div class="col-sm-10 ml-sm-auto">
-                                                <button type="submit" class="btn btn-square btn-danger">Delete models
-                                                    [{{ model_info|length }}]</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th style="width:70%;">Model ID</th>
-                                                <th style="width:30%">Committed at</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for key in model_info.keys() %}
-                                            <tr>
-                                                <td>{{ key }}</td>
-                                                <td>{{ model_info[key] }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-
+                        {% block content %}
                             {% if not refresh and not seed and not show_plot and not network_plot %}
-                            <script>
-                                $(document).ready(function () {
-                                    $('#start_control_form').submit(function (e) {
-                                        e.preventDefault();
-                                        var latest_model_id = "{{latest_model_id}}";
-                                        console.log('latest seed model id', latest_model_id);
-                                        $(".error").remove();
-                                        if (latest_model_id === 'None') {
-                                            console.log('Please upload a new seed model!');
-                                            document.getElementById("start_error").innerHTML = '<div class="alert alert-danger" role="alert">No model found! Please upload a new seed model!</div>';
-                                        }
-                                        else {
-                                            $("#start_control_form")[0].submit();
-                                        }
+                                <script>
+                                    $(document).ready(function () {
+                                        $('#start_control_form').submit(function (e) {
+                                            e.preventDefault();
+                                            var latest_model_id = "{{latest_model_id}}";
+                                            console.log('latest seed model id', latest_model_id);
+                                            $(".error").remove();
+                                            if (latest_model_id === 'None') {
+                                                console.log('Please upload a new seed model!');
+                                                document.getElementById("start_error").innerHTML = '<div class="alert alert-danger" role="alert">No model found! Please upload a new seed model!</div>';
+                                            } else {
+                                                $("#start_control_form")[0].submit();
+                                            }
+                                        });
+
                                     });
+                                </script>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Configure run</h5
+                                        <p>Configure your run with a round configuration. After the run is started the
+                                            number of rounds will execute on clients with the configuration set
+                                            here.</p>
+                                    </div>
+                                    <div class="card-body">
 
-                                });
-                            </script>
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title">Active model: {{ compute_package }}</h5>
+                                        <form id="start_control_form" method="post" action="/control"
+                                              enctype="multipart/form-data">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Seed
+                                                    Model </label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" placeholder={{ seed_model_id }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="seed_model_id" value={{ seed_model_id }}>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Latest
+                                                    Global Model</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" placeholder={{ latest_model_id }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="latest_model" value={{ latest_model_id }}>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Compute
+                                                    Package </label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" placeholder={{ compute_package }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="compute_package" value={{ compute_package }}>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Helper: </label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" placeholder={{ helper }} readonly
+                                                           class="form-control-plaintext" id="helper"
+                                                           name="helper" value={{ helper }}>
+                                                </div>
+                                            </div>
+                                            <script>$(document).ready(function () {
 
+                                                var rounds = 0;
+                                                $('.quantity-right-plus').click(function (e) {
+
+                                                    // Stop acting like a button
+                                                    e.preventDefault();
+                                                    // Get the field name
+                                                    var quantity = parseInt($('#rounds').val());
+
+                                                    // If is not undefined
+
+                                                    $('#rounds').val(quantity + 1);
+
+
+                                                    // Increment
+
+                                                });
+
+                                                $('.quantity-left-minus').click(function (e) {
+                                                    // Stop acting like a button
+                                                    e.preventDefault();
+                                                    // Get the field name
+                                                    var quantity = parseInt($('#rounds').val());
+
+                                                    // If is not undefined
+
+                                                    // Increment
+                                                    if (quantity > 1) {
+                                                        $('#rounds').val(quantity - 1);
+                                                    }
+                                                });
+
+                                            });</script>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Number
+                                                    of rounds:</label>
+                                                <div class="col-sm-2" style="min-width:300px;">
+                                                    <div class="input-group">
+                                                                <span class="input-group-btn">
+                                                                    <button type="button"
+                                                                            class="quantity-left-minus btn btn-danger btn-number"
+                                                                            data-type="minus" data-field="">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus align-middle me-2"><line
+        x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                    </button>
+                                                                </span>
+                                                        <input type="text" id="rounds" name="rounds"
+                                                               class="form-control input-number align-content-center"
+                                                               value="5" min="1" max="10000">
+                                                        <span class="input-group-btn">
+                                                                    <button type="button"
+                                                                            class="quantity-right-plus btn btn-success btn-number"
+                                                                            data-type="plus" data-field="">
+
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                             width="24" height="24" viewBox="0 0 24 24"
+                                                                             fill="none" stroke="currentColor"
+                                                                             stroke-width="2" stroke-linecap="round"
+                                                                             stroke-linejoin="round"
+                                                                             class="feather feather-plus align-middle me-2"><line
+                                                                                x1="12" y1="5" x2="12" y2="19"></line><line
+                                                                                x1="5" y1="12" x2="19"
+                                                                                y2="12"></line></svg>
+                                                                    </button>
+                                                                </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 row" >
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Round
+                                                    timeout:
+                                                </label>
+                                                <div class="col-sm-2" style="min-width:300px;">
+                                                    <input class="form-control" type="text" id="timeout" name="timeout"
+                                                           value="180">
+                                                </div>
+
+                                            </div>
+
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="validate">Validate:
+                                                </label>
+                                                <div class="col-sm-2" style="min-width:300px;">
+                                                    <div class="form-floating">
+                                                        <select class="form-select" id="validate" aria-label=""
+                                                                name="validate">
+                                                            <option selected="" value="True">Validate</option>
+                                                            <option value="False">Dont validate</option>
+                                                        </select>
+                                                        <label for="validate">Validate at clients and combiner</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-10">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3 row" style="padding-top:50px;">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="">
+                                                </label>
+                                                <div class="col-sm-9 ml-sm-auto">
+                                                    <button type="submit" class="btn btn-square btn-primary">Start run
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+
+                                    </div>
                                 </div>
-                                <div class="card-body">
-
-                                    <form id="start_control_form" method="post" action="/start"
-                                        enctype="multipart/form-data">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-                                        <div class="mb-3 row">
-                                            <label class="col-form-label col-sm-2 text-sm-right" for="helper">Helper: </label>
-                                            <div class="col-sm-10">
-                                                <input type="text" placeholder={{helper}} readonly class="form-control-plaintext" id="helper"
-                                                       name="helper" value={{ helper }}>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3 row">
-                                            <label class="col-form-label col-sm-2 text-sm-right" for="rounds">Run
-                                                rounds: </label>
-                                            <div class="col-sm-10">
-                                                <input class="form-control" type="text" id="rounds" name="rounds"
-                                                    value="1">
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 row">
-                                            <label class="col-form-label col-sm-2 text-sm-right" for="timeout">Timeout:
-                                            </label>
-                                            <div class="col-sm-10">
-                                                <input class="form-control" type="text" id="timeout" name="timeout"
-                                                    value="180">
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3 row">
-                                            <label class="col-form-label col-sm-2 text-sm-right" for="validate">Validate:
-                                            </label>
-                                            <div class="col-sm-10">
-                                                <input class="form-check-input" type="checkbox" id="validate" name="validate" value="True"
-                                                       checked={{ validate }}>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3 row">
-                                            <div class="col-sm-10 ml-sm-auto">
-                                                <button type="submit" class="btn btn-square btn-primary">Submit</button>
-                                            </div>
-                                        </div>
-                                    </form>
-
-                                </div>
-                            </div>
                             {% endif %}
-                            {% endblock %}
+                        {% endblock %}
 
 
-                            {% if show_plot %}
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title">Model evaluation</h5>
-                                    <h6 class="card-subtitle text-muted">Distribution over clients</h6>
-                                </div>
 
-                                {% if not box_plot %}
-                                <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                    <div class="alert-icon">
-                                        <i class="far fa-fw fa-bell"></i>
-                                    </div>
-                                    <div class="alert-message">
-                                        <strong>No data currently available for distribution over clients!</strong>
-                                    </div>
-                                </div>
-                                {% else %}
-                                <div class="form-group row">
-                                    <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
-                                    <div class="col-sm-6">
-                                        <select class="form-control" id="metric_type">
-                                            {% if metrics %}
-                                                {% for metric in metrics %}
-                                                <option value={{metric}}>{{ metric }}</option>
-                                                {% endfor %}
-                                            {% endif %}
-                                        </select>
-                                    </div>
-                                </div>
 
-                                <div class="card-body">
-                                    <div id="box">
-                                        <script>
-                                            var graphs = {{ box_plot | safe }};
-                                            Plotly.plot('box', graphs, {});
-                                        </script>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title">Model evaluation</h5>
-                                    <h6 class="card-subtitle text-muted">Client average metrics</h6>
-                                </div>
-                                <div class="card-body">
-                                    {% if not table_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
-                                        </div>
-                                        <div class="alert-message">
-                                            <strong>No data currently available for client average metrics!</strong>
-                                        </div>
-                                    </div>
-                                    {% else %}
-                                    <div id="table">
-                                        <script>
-                                            var graphs = {{ table_plot | safe }};
-                                            Plotly.plot('table', graphs, {});
-                                        </script>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title">Aggregated client profile and training time distribution</h5>
-                                </div>
-                                <div class="card-body">
-                                    {% if not clients_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
-                                        </div>
-                                        <div class="alert-message">
-                                            <strong>No data currently available for client profile and training time distribution!</strong>
-                                        </div>
-                                    </div>
-                                    {% else %}
-                                    <div id="client">
-                                        <script>
-                                            var graphs = {{ clients_plot | safe }};
-                                            Plotly.plot('client', graphs, {});
-                                        </script>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if network_plot %}
+                        {% if network_plot %}
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">FEDn network (map) </h5>
                                 </div>
                                 <div class="card-body">
                                     {% if not map_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
+                                        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                            <div class="alert-icon">
+                                                <i class="far fa-fw fa-bell"></i>
+                                            </div>
+                                            <div class="alert-message">
+                                                <strong>No location data currently available for FEDn network!</strong>
+                                            </div>
                                         </div>
-                                        <div class="alert-message">
-                                            <strong>No location data currently available for FEDn network!</strong>
-                                        </div>
-                                    </div>
                                     {% else %}
-                                    <div id="map">
-                                        <script>
-                                            var graphs = {{ map_plot | safe }};
-                                            Plotly.plot('map', graphs, {});
-                                        </script>
-                                    </div>
+                                        <div id="map">
+                                            <script>
+                                                var graphs = {{ map_plot | safe }};
+                                                Plotly.plot('map', graphs, {});
+                                            </script>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -381,17 +370,17 @@
                                 </div>
                                 <div class="card-body">
                                     {% if not combiner_info %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
+                                        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                            <div class="alert-icon">
+                                                <i class="far fa-fw fa-bell"></i>
+                                            </div>
+                                            <div class="alert-message">
+                                                <strong>No combiners online!</strong>
+                                            </div>
                                         </div>
-                                        <div class="alert-message">
-                                            <strong>No combiners online!</strong>
-                                        </div>
-                                    </div>
                                     {% else %}
-                                    <table class="table">
-                                        <thead>
+                                        <table class="table">
+                                            <thead>
                                             <tr>
                                                 <th>Name</th>
                                                 <th>Active clients</th>
@@ -400,20 +389,20 @@
                                                 <th>Region</th>
                                                 <th>City</th>
                                             </tr>
-                                        </thead>
-                                        <tbody>
+                                            </thead>
+                                            <tbody>
                                             {% for dict_item in combiner_info %}
-                                            <tr>
-                                                <td>{{ dict_item['name'] }}</td>
-                                                <td>{{ dict_item['nr_active_clients'] }}</td>
-                                                <td>{{ dict_item['ip'] }}</td>
-                                                <td>{{ dict_item['country'] }}</td>
-                                                <td>{{ dict_item['region'] }}</td>
-                                                <td>{{ dict_item['city'] }}</td>
-                                            </tr>
+                                                <tr>
+                                                    <td>{{ dict_item['name'] }}</td>
+                                                    <td>{{ dict_item['nr_active_clients'] }}</td>
+                                                    <td>{{ dict_item['ip'] }}</td>
+                                                    <td>{{ dict_item['country'] }}</td>
+                                                    <td>{{ dict_item['region'] }}</td>
+                                                    <td>{{ dict_item['city'] }}</td>
+                                                </tr>
                                             {% endfor %}
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
                                     {% endif %}
                                 </div>
                             </div>
@@ -424,21 +413,21 @@
                                 </div>
                                 <div class="card-body">
                                     {% if not round_time_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
+                                        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                            <div class="alert-icon">
+                                                <i class="far fa-fw fa-bell"></i>
+                                            </div>
+                                            <div class="alert-message">
+                                                <strong>No data currently available for round time!</strong>
+                                            </div>
                                         </div>
-                                        <div class="alert-message">
-                                            <strong>No data currently available for round time!</strong>
-                                        </div>
-                                    </div>
                                     {% else %}
-                                    <div id="round">
-                                        <script>
-                                            var graphs = {{ round_time_plot | safe }};
-                                            Plotly.plot('round', graphs, {});
-                                        </script>
-                                    </div>
+                                        <div id="round">
+                                            <script>
+                                                var graphs = {{ round_time_plot | safe }};
+                                                Plotly.plot('round', graphs, {});
+                                            </script>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -449,21 +438,21 @@
                                 </div>
                                 <div class="card-body">
                                     {% if not combiners_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
+                                        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                            <div class="alert-icon">
+                                                <i class="far fa-fw fa-bell"></i>
+                                            </div>
+                                            <div class="alert-message">
+                                                <strong>No data currently available for combiners!</strong>
+                                            </div>
                                         </div>
-                                        <div class="alert-message">
-                                            <strong>No data currently available for combiners!</strong>
-                                        </div>
-                                    </div>
                                     {% else %}
-                                    <div id="combiner">
-                                        <script>
-                                            var graphs = {{ combiners_plot | safe }};
-                                            Plotly.plot('combiner', graphs, {});
-                                        </script>
-                                    </div>
+                                        <div id="combiner">
+                                            <script>
+                                                var graphs = {{ combiners_plot | safe }};
+                                                Plotly.plot('combiner', graphs, {});
+                                            </script>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -474,53 +463,53 @@
                                 </div>
                                 <div class="card-body">
                                     {% if not mem_cpu_plot %}
-                                    <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-                                        <div class="alert-icon">
-                                            <i class="far fa-fw fa-bell"></i>
+                                        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                                            <div class="alert-icon">
+                                                <i class="far fa-fw fa-bell"></i>
+                                            </div>
+                                            <div class="alert-message">
+                                                <strong>No data currently available for MEM and CPU usage!</strong>
+                                            </div>
                                         </div>
-                                        <div class="alert-message">
-                                            <strong>No data currently available for MEM and CPU usage!</strong>
-                                        </div>
-                                    </div>
                                     {% else %}
-                                    <div id="monitoring">
-                                        <script>
-                                            var graphs = {{ mem_cpu_plot | safe }};
-                                            Plotly.plot('monitoring', graphs, {});
-                                        </script>
-                                    </div>
+                                        <div id="monitoring">
+                                            <script>
+                                                var graphs = {{ mem_cpu_plot | safe }};
+                                                Plotly.plot('monitoring', graphs, {});
+                                            </script>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
-                            {% endif %}
+                        {% endif %}
+                        </div>
                         </div>
                     </div>
-                </div>
-            </main>
+        </main>
 
-            <footer class="footer">
-                <div class="container-fluid">
-                    <div class="row text-muted">
-                        <div class="col-6 text-start">
-                            <ul class="list-inline">
-                                <li class="list-inline-item">
-                                    <a class="text-muted" href="https://www.maxmind.com/">MAXMIND</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-6 text-end">
-                            <p class="mb-0">
-                                &copy; 2020 - <a href="#" class="text-muted">Scaleout Systems AB</a>
-                            </p>
-                        </div>
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row text-muted">
+                    <div class="col-6 text-start">
+                        <ul class="list-inline">
+                            <li class="list-inline-item">
+                                <a class="text-muted" href="https://www.maxmind.com/">MAXMIND</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="mb-0">
+                            &copy; 2020 - <a href="#" class="text-muted">Scaleout Systems AB</a>
+                        </p>
                     </div>
                 </div>
-            </footer>
-        </div>
+            </div>
+        </footer>
     </div>
+</div>
 
-    <script src="{{ url_for('static', filename='dist/js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='dist/js/plot.js') }}"></script>
+<script src="{{ url_for('static', filename='dist/js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='dist/js/plot.js') }}"></script>
 </body>
 
 </html>

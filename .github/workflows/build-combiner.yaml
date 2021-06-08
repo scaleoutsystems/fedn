@@ -3,14 +3,7 @@ name: Build combiner
 on:
   push:
     branches: '*'
-    paths:
-    - 'components/combiner/**'
-    - 'fedn/**'
-  pull_request:
-    branches: '*'
-    paths:
-    - 'components/combiner/**'
-    - 'fedn/**'
+
 
 jobs:
  

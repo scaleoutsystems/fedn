@@ -40,8 +40,11 @@ class Reducer:
 
     def run(self):
 
-        threading.Thread(target=self.rest.run, daemon=True).start()
+        threading.Thread(target=self.control_loop, daemon=True).start()
 
+        self.rest.run()
+
+    def control_loop(self):
         import time
         from datetime import datetime
         try:
