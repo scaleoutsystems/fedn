@@ -137,24 +137,24 @@
                 <h1 class="h3 mb-3"></h1>
                 <div class="row">
                     <div class="col-12">
-                            {% if message %}
-                                {% if message_type == 'WARNING' %}
+                        {% if message %}
+                            {% if message_type == 'WARNING' %}
                                 <div class="alert alert-danger alert-dismissible" role="alert">
-                                {% elif message_type == 'SUCCESS' %}
+                            {% elif message_type == 'SUCCESS' %}
                                 <div class="alert alert-success alert-dismissible" role="alert">
-                                {% else %}
-                                    <div class="alert alert-info alert-dismissible" role="alert">
-                                    {% endif %}
-
-											<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-											<div class="alert-icon">
-												<i class="far fa-fw fa-bell"></i>
-											</div>
-											<div class="alert-message">
-												{{ message | safe}}
-											</div>
-										</div>
+                            {% else %}
+                                <div class="alert alert-info alert-dismissible" role="alert">
                             {% endif %}
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <div class="alert-icon">
+                            <i class="far fa-fw fa-bell"></i>
+                        </div>
+                        <div class="alert-message">
+                            {{ message | safe }}
+                        </div>
+                        </div>
+                        {% endif %}
 
                         {% block content %}
                             {% if not refresh and not seed and not show_plot and not network_plot %}
@@ -178,15 +178,18 @@
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title">Configure run</h5
-                                        <p>Configure your run with a round configuration. After the run is started the number of rounds will execute on clients with the configuration set here.</p>
+                                        <p>Configure your run with a round configuration. After the run is started the
+                                            number of rounds will execute on clients with the configuration set
+                                            here.</p>
                                     </div>
                                     <div class="card-body">
 
                                         <form id="start_control_form" method="post" action="/control"
                                               enctype="multipart/form-data">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                                                        <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Seed Model </label>
+                                            <div class="mb-3 row">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Seed
+                                                    Model </label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ seed_model_id }} readonly
                                                            class="form-control-plaintext" id="helper"
@@ -194,7 +197,8 @@
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Latest Global Model</label>
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Latest
+                                                    Global Model</label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ latest_model_id }} readonly
                                                            class="form-control-plaintext" id="helper"
@@ -202,7 +206,8 @@
                                                 </div>
                                             </div>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Compute Package </label>
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="helper">Compute
+                                                    Package </label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ compute_package }} readonly
                                                            class="form-control-plaintext" id="helper"
@@ -217,63 +222,81 @@
                                                            name="helper" value={{ helper }}>
                                                 </div>
                                             </div>
-    <script>$(document).ready(function(){
+                                            <script>$(document).ready(function () {
 
-var rounds=0;
-   $('.quantity-right-plus').click(function(e){
+                                                var rounds = 0;
+                                                $('.quantity-right-plus').click(function (e) {
 
-        // Stop acting like a button
-        e.preventDefault();
-        // Get the field name
-        var quantity = parseInt($('#rounds').val());
+                                                    // Stop acting like a button
+                                                    e.preventDefault();
+                                                    // Get the field name
+                                                    var quantity = parseInt($('#rounds').val());
 
-        // If is not undefined
+                                                    // If is not undefined
 
-            $('#rounds').val(quantity + 1);
+                                                    $('#rounds').val(quantity + 1);
 
 
-            // Increment
+                                                    // Increment
 
-    });
+                                                });
 
-     $('.quantity-left-minus').click(function(e){
-        // Stop acting like a button
-        e.preventDefault();
-        // Get the field name
-        var quantity = parseInt($('#rounds').val());
+                                                $('.quantity-left-minus').click(function (e) {
+                                                    // Stop acting like a button
+                                                    e.preventDefault();
+                                                    // Get the field name
+                                                    var quantity = parseInt($('#rounds').val());
 
-        // If is not undefined
+                                                    // If is not undefined
 
-            // Increment
-            if(quantity>1){
-            $('#rounds').val(quantity - 1);
-            }
-    });
+                                                    // Increment
+                                                    if (quantity > 1) {
+                                                        $('#rounds').val(quantity - 1);
+                                                    }
+                                                });
 
-});</script>
+                                            });</script>
                                             <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Number of rounds:</label>
-                                                <div class="col-sm-2">
-                                                        <div class="input-group">
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="rounds">Number
+                                                    of rounds:</label>
+                                                <div class="col-sm-2" style="min-width:300px;">
+                                                    <div class="input-group">
                                                                 <span class="input-group-btn">
-                                                                    <button type="button" class="quantity-left-minus btn btn-danger btn-number"  data-type="minus" data-field="">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus align-middle me-2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                    <button type="button"
+                                                                            class="quantity-left-minus btn btn-danger btn-number"
+                                                                            data-type="minus" data-field="">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus align-middle me-2"><line
+        x1="5" y1="12" x2="19" y2="12"></line></svg>
                                                                     </button>
                                                                 </span>
-                                                                <input type="text" id="rounds" name="rounds" class="form-control input-number align-content-center" value="5" min="1" max="10000">
-                                                                <span class="input-group-btn">
-                                                                    <button type="button" class="quantity-right-plus btn btn-success btn-number" data-type="plus" data-field="">
+                                                        <input type="text" id="rounds" name="rounds"
+                                                               class="form-control input-number align-content-center"
+                                                               value="5" min="1" max="10000">
+                                                        <span class="input-group-btn">
+                                                                    <button type="button"
+                                                                            class="quantity-right-plus btn btn-success btn-number"
+                                                                            data-type="plus" data-field="">
 
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus align-middle me-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                             width="24" height="24" viewBox="0 0 24 24"
+                                                                             fill="none" stroke="currentColor"
+                                                                             stroke-width="2" stroke-linecap="round"
+                                                                             stroke-linejoin="round"
+                                                                             class="feather feather-plus align-middle me-2"><line
+                                                                                x1="12" y1="5" x2="12" y2="19"></line><line
+                                                                                x1="5" y1="12" x2="19"
+                                                                                y2="12"></line></svg>
                                                                     </button>
                                                                 </span>
-                                                            </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="mb-3 row">
-                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Round timeout:
+                                            <div class="mb-3 row" >
+                                                <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Round
+                                                    timeout:
                                                 </label>
-                                                <div class="col-sm-2" >
+                                                <div class="col-sm-2" style="min-width:300px;">
                                                     <input class="form-control" type="text" id="timeout" name="timeout"
                                                            value="180">
                                                 </div>
@@ -283,15 +306,17 @@ var rounds=0;
                                             <div class="mb-3 row">
                                                 <label class="col-form-label col-sm-3 text-sm-right" for="validate">Validate:
                                                 </label>
-                                                <div class="col-sm-2">
+                                                <div class="col-sm-2" style="min-width:300px;">
                                                     <div class="form-floating">
-										<select class="form-select" id="validate" aria-label="" name="validate">
-            <option selected="" value="True">Validate</option>
-            <option value="False">Dont validate</option>
-          </select>
-										<label for="validate">Validate at clients and combiner</label>
-									</div>
-
+                                                        <select class="form-select" id="validate" aria-label=""
+                                                                name="validate">
+                                                            <option selected="" value="True">Validate</option>
+                                                            <option value="False">Dont validate</option>
+                                                        </select>
+                                                        <label for="validate">Validate at clients and combiner</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-10">
                                                 </div>
                                             </div>
 
@@ -457,9 +482,9 @@ var rounds=0;
                                 </div>
                             </div>
                         {% endif %}
+                        </div>
+                        </div>
                     </div>
-                </div>
-            </div>
         </main>
 
         <footer class="footer">
