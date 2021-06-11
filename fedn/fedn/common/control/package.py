@@ -127,6 +127,8 @@ class PackageRuntime:
             f = None
             if self.pkg_name.endswith('tar.gz'):
                 f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
+            if self.pkg_name.endswith('.tgz'):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
             if self.pkg_name.endswith('tar.bz2'):
                 f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:bz2')
         else:
