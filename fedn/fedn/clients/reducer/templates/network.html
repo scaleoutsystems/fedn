@@ -16,7 +16,7 @@
     <div class="card-body">
         <style>
             #graph-container {
-                width: 300px;
+                width: 800px;
                 height: 300px;
             }
         </style>
@@ -30,6 +30,7 @@
             sigma.parsers.json('/netgraph', {
                 container: 'graph-container',
                 settings: {
+                    labelThreshold: 0,
                     defaultNodeColor: '#ec5148'
                 }
             });

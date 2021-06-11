@@ -91,7 +91,7 @@ class ReducerRestService:
             result['nodes'].append({
                 "id": "r0",
                 "label": "Reducer",
-                "x": 0,
+                "x": -1.2,
                 "y": 0,
                 "size": 25,
                 "type": 'reducer',
@@ -107,12 +107,19 @@ class ReducerRestService:
                     combiner_info.append(report)
                 except:
                     pass
+            y = y + 0.5
+            width = 5
+            if len(combiner_info) < 1:
+                return result
+            step = 5 / len(combiner_info)
+            x = -width/3.0
             for combiner in combiner_info:
-                y = y + 0.25
+                print("combiner info {}".format(combiner_info),flush=True)
+
                 try:
                     result['nodes'].append({
                         "id": combiner['name'],#"n{}".format(count),
-                        "label": "Combiner",
+                        "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
                         "x": x,
                         "y": y,
                         "size": 15,
@@ -124,30 +131,35 @@ class ReducerRestService:
                     print(err)
 
 
-                x = x + 0.25
+                x = x + step
                 count = count + 1
             y = y + 0.25
-            x = 0
+
             count = 0
-            for client in self.control.statestore.list_clients():
+            width = 5
+            step = 5 / len(combiner_info)
+            x = -width / 2.0
+            #for combiner in self.control.statestore.list_clients():
+            for combiner in combiner_info:
+                for a in range(0, int(combiner['nr_active_clients'])):
                 #y = y + 0.25
-                try:
-                    result['nodes'].append({
-                        "id": "c{}".format(count),
-                        "label": "Client",
-                        "x": x,
-                        "y": y,
-                        "size": 15,
-                        "name": client['name'],
-                        "combiner": client['combiner'],
-                        "type": 'client',
-                        #"color":'blue',
-                    })
-                except Exception as err:
-                    print(err)
-                #print("combiner prefferred name {}".format(client['combiner']), flush=True)
-                x = x + 0.25
-                count = count + 1
+                    try:
+                        result['nodes'].append({
+                            "id": "c{}".format(count),
+                            "label": "Client",
+                            "x": x,
+                            "y": y,
+                            "size": 15,
+                            "name": "c{}".format(count),
+                            "combiner": combiner['name'],
+                            "type": 'client',
+                            #"color":'blue',
+                        })
+                    except Exception as err:
+                        print(err)
+                    #print("combiner prefferred name {}".format(client['combiner']), flush=True)
+                    x = x + 0.25
+                    count = count + 1
 
             count = 0
             for node in result['nodes']:
@@ -326,12 +338,15 @@ class ReducerRestService:
 
                 # checking if there are enough clients connected to start!
                 clients_available = 0
-                for combiner in self.control.network.get_combiners():
-                    if combiner.allowing_clients():
-                        combiner_state = combiner.report()
-                        nac = combiner_state['nr_active_clients']
+                try:
+                    for combiner in self.control.network.get_combiners():
+                        if combiner.allowing_clients():
+                            combiner_state = combiner.report()
+                            nac = combiner_state['nr_active_clients']
 
-                        clients_available = clients_available + int(nac)
+                            clients_available = clients_available + int(nac)
+                except Exception as e:
+                    pass
 
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
