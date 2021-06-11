@@ -100,7 +100,14 @@ class ReducerRestService:
             y = 0
             count = 0
             meta = {}
-            for combiner in self.control.statestore.list_combiners():
+            combiner_info = []
+            for combiner in self.control.network.get_combiners():
+                try:
+                    report = combiner.report()
+                    combiner_info.append(report)
+                except:
+                    pass
+            for combiner in combiner_info:
                 y = y + 0.25
                 try:
                     result['nodes'].append({
