@@ -138,7 +138,7 @@ class ReducerRestService:
                     })
                 except Exception as err:
                     print(err)
-                print("combiner prefferred name {}".format(client['combiner']), flush=True)
+                #print("combiner prefferred name {}".format(client['combiner']), flush=True)
                 x = x + 0.25
                 count = count + 1
 
