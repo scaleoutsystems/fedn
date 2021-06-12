@@ -601,7 +601,7 @@ class ReducerRestService:
 
                 if 'file' not in request.files:
                     flash('No file part')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 file = request.files['file']
                 helper_type = request.form.get('helper', 'keras')
@@ -609,7 +609,7 @@ class ReducerRestService:
                 # submit an empty part without filename
                 if file.filename == '':
                     flash('No selected file')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
