@@ -167,10 +167,15 @@ class FEDAVGCombiner:
         meta['nr_required_updates'] = int(config['clients_required'])
         meta['timeout'] = float(config['round_timeout'])
         tic = time.time()
-        model,data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=float(config['round_timeout']))
+        model = None
+        data = None
+        try:
+            model, data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=float(config['round_timeout']))
+        except Exception as e:
+            print("FAILED TO UNPACK FROM COMBINER!",flush=True)
         meta['time_combination'] = time.time()-tic
         meta['aggregation_time'] = data
-        return model,meta
+        return model, meta
 
     def __validation_round(self,config,clients,model_id):
         self.server.request_model_validation(model_id, clients=clients)
@@ -307,10 +312,12 @@ class FEDAVGCombiner:
 
     def push_run_config(self, plan):
         self.run_configs_lock.acquire()
-        import uuid
-        plan['_job_id'] = str(uuid.uuid4())
-        self.run_configs.append(plan)
-        self.run_configs_lock.release()
+        try:
+            import uuid
+            plan['_job_id'] = str(uuid.uuid4())
+            self.run_configs.append(plan)
+        finally:
+            self.run_configs_lock.release()
         return plan['_job_id']
 
     def run(self):
@@ -319,11 +326,15 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
+                #print("combiner run loop...",flush=True)
                 #self.server._log_queue_length()
-                self.run_configs_lock.acquire()
+                compute_plan = None
                 if len(self.run_configs) > 0:
-                    compute_plan = self.run_configs.pop()
-                    self.run_configs_lock.release()
+                    try:
+                        self.run_configs_lock.acquire()
+                        compute_plan = self.run_configs.pop()
+                    finally:
+                        self.run_configs_lock.release()
                     self.config = compute_plan
                     self.helper = get_helper(self.config['helper_type'])
 
@@ -342,8 +353,8 @@ class FEDAVGCombiner:
                     else:
                         self.report_status("COMBINER: Failed to meet client allocation requirements for this compute plan.", flush=True)
 
-                if self.run_configs_lock.locked():
-                    self.run_configs_lock.release()
+               # if self.run_configs_lock.locked():
+                #    self.run_configs_lock.release()
 
         except (KeyboardInterrupt, SystemExit):
-            pass 
+            pass
