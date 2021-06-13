@@ -452,15 +452,18 @@ class ReducerControl:
         selected_combiner = None
 
         for combiner in self.network.get_combiners():
-            if combiner.allowing_clients():
-                combiner_state = combiner.report()
-                nac = combiner_state['nr_active_clients']
-                if not min_clients:
-                    min_clients = nac
-                    selected_combiner = combiner
-                elif nac<min_clients:
-                    min_clients = nac
-                    selected_combiner = combiner
+            try:
+                if combiner.allowing_clients():
+                    combiner_state = combiner.report()
+                    nac = combiner_state['nr_active_clients']
+                    if not min_clients:
+                        min_clients = nac
+                        selected_combiner = combiner
+                    elif nac<min_clients:
+                        min_clients = nac
+                        selected_combiner = combiner
+            except CombinerUnavailableError as err:
+                print("Combiner was not responding, continuing to next")
 
         return selected_combiner
 

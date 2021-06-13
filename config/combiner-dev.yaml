@@ -18,7 +18,3 @@ services:
     ports:
       - 12080:12080
 
-networks:
-  default:
-    external:
-      name: fedn_default
