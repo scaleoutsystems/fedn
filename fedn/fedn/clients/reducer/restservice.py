@@ -19,7 +19,7 @@ import geoip2.database
 from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
-ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
+ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
 
 
 def allowed_file(filename):
@@ -72,15 +72,119 @@ class ReducerRestService:
             if not_configured:
                 return not_configured
             events = self.control.get_events()
-            message = request.args.get('message',None)
-            message_type = request.args.get('message_type',None)
-            return render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()), events=events,
+            message = request.args.get('message', None)
+            message_type = request.args.get('message_type', None)
+            return render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
+                                   events=events,
                                    logs=None, refresh=True, configured=True, message=message, message_type=message_type)
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
         def status():
             return {'state': ReducerStateToString(self.control.state())}
+
+        @app.route('/netgraph')
+        def netgraph():
+
+            result = {'nodes': [], 'edges': []}
+
+            result['nodes'].append({
+                "id": "r0",
+                "label": "Reducer",
+                "x": -1.2,
+                "y": 0,
+                "size": 25,
+                "type": 'reducer',
+            })
+            x = 0
+            y = 0
+            count = 0
+            meta = {}
+            combiner_info = []
+            for combiner in self.control.network.get_combiners():
+                try:
+                    report = combiner.report()
+                    combiner_info.append(report)
+                except:
+                    pass
+            y = y + 0.5
+            width = 5
+            if len(combiner_info) < 1:
+                return result
+            step = 5 / len(combiner_info)
+            x = -width/3.0
+            for combiner in combiner_info:
+                print("combiner info {}".format(combiner_info),flush=True)
+
+                try:
+                    result['nodes'].append({
+                        "id": combiner['name'],#"n{}".format(count),
+                        "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
+                        "x": x,
+                        "y": y,
+                        "size": 15,
+                        "name": combiner['name'],
+                        "type": 'combiner',
+                        #"color":'blue',
+                    })
+                except Exception as err:
+                    print(err)
+
+
+                x = x + step
+                count = count + 1
+            y = y + 0.25
+
+            count = 0
+            width = 5
+            step = 5 / len(combiner_info)
+            x = -width / 2.0
+            #for combiner in self.control.statestore.list_clients():
+            for combiner in combiner_info:
+                for a in range(0, int(combiner['nr_active_clients'])):
+                #y = y + 0.25
+                    try:
+                        result['nodes'].append({
+                            "id": "c{}".format(count),
+                            "label": "Client",
+                            "x": x,
+                            "y": y,
+                            "size": 15,
+                            "name": "c{}".format(count),
+                            "combiner": combiner['name'],
+                            "type": 'client',
+                            #"color":'blue',
+                        })
+                    except Exception as err:
+                        print(err)
+                    #print("combiner prefferred name {}".format(client['combiner']), flush=True)
+                    x = x + 0.25
+                    count = count + 1
+
+            count = 0
+            for node in result['nodes']:
+                try:
+                    if node['type'] == 'combiner':
+                        result['edges'].append(
+                            {
+                                "id": "e{}".format(count),
+                                "source": node['id'],
+                                "target": 'r0',
+                            }
+                        )
+                    elif node['type'] == 'client':
+                        result['edges'].append(
+                            {
+                                "id": "e{}".format(count),
+                                "source": node['combiner'],
+                                "target": node['id'],
+                            }
+                        )
+                except Exception as e:
+                    pass
+                count = count + 1
+
+            return result
 
         @app.route('/events')
         def events():
@@ -138,6 +242,13 @@ class ReducerRestService:
             }
 
             return jsonify(ret)
+
+        @app.route('/eula', methods=['GET', 'POST'])
+        def eula():
+            for r in request.headers:
+                print("header contains: {}".format(r), flush=True)
+
+            return render_template('eula.html', configured=True)
 
         @app.route('/models', methods=['GET', 'POST'])
         def models():
@@ -227,17 +338,20 @@ class ReducerRestService:
 
                 # checking if there are enough clients connected to start!
                 clients_available = 0
-                for combiner in self.control.network.get_combiners():
-                    if combiner.allowing_clients():
-                        combiner_state = combiner.report()
-                        nac = combiner_state['nr_active_clients']
+                try:
+                    for combiner in self.control.network.get_combiners():
+                        if combiner.allowing_clients():
+                            combiner_state = combiner.report()
+                            nac = combiner_state['nr_active_clients']
 
-                        clients_available = clients_available + int(nac)
-
+                            clients_available = clients_available + int(nac)
+                except Exception as e:
+                    pass
 
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
-                                            message="Not enough clients available to start rounds.",message_type='warning'))
+                                            message="Not enough clients available to start rounds.",
+                                            message_type='warning'))
 
                 validate = request.form.get('validate', False)
                 if validate == 'False':
@@ -254,8 +368,9 @@ class ReducerRestService:
 
                 import threading
                 threading.Thread(target=self.control.instruct, args=(config,)).start()
-                #self.control.instruct(config)
-                return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",message_type='SUCCESS'))
+                # self.control.instruct(config)
+                return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",
+                                        message_type='SUCCESS'))
 
             else:
                 seed_model_id = None
@@ -301,11 +416,11 @@ class ReducerRestService:
             client = {
                 'name': name,
                 'combiner_preferred': combiner_preferred,
+                'combiner': combiner.name,
                 'ip': request.remote_addr,
                 'status': 'available'
             }
             self.control.network.add_client(client)
-
 
             if combiner:
                 import base64
@@ -313,6 +428,7 @@ class ReducerRestService:
                 response = {
                     'status': 'assigned',
                     'host': combiner.address,
+                    'ip': combiner.ip,
                     'port': combiner.port,
                     'certificate': str(cert_b64).split('\'')[1],
                     'model_type': self.control.statestore.get_framework()
@@ -464,7 +580,7 @@ class ReducerRestService:
             combiners_plot = plot.create_combiner_plot()
             map_plot = create_map()
             combiner_info = combiner_stats()
-            return render_template('index.html', map_plot=map_plot, network_plot=True,
+            return render_template('network.html', map_plot=map_plot, network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
                                    combiners_plot=combiners_plot,
@@ -485,7 +601,7 @@ class ReducerRestService:
 
                 if 'file' not in request.files:
                     flash('No file part')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 file = request.files['file']
                 helper_type = request.form.get('helper', 'keras')
@@ -493,7 +609,7 @@ class ReducerRestService:
                 # submit an empty part without filename
                 if file.filename == '':
                     flash('No selected file')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)

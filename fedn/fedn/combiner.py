@@ -303,17 +303,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.value = str(self.id)
 
         # Get IP information
-        try:
-            url = 'http://ipinfo.io/json'
-            data = requests.get(url)
-            combiner_location = json.loads(data.text)
-            for key,value in combiner_location.items():
-                p = response.parameter.add()
-                p.key = str(key)
-                p.value = str(value)
-        except Exception as e:
-            print(e,flush=True)
-            pass
+        #try:
+        #    url = 'http://ipinfo.io/json'
+        #    data = requests.get(url)
+        #    combiner_location = json.loads(data.text)
+        #    for key,value in combiner_location.items():
+        #        p = response.parameter.add()
+        #        p.key = str(key)
+        #        p.value = str(value)
+        #except Exception as e:
+        #    print(e,flush=True)
+        #    pass
         
         return response
 
@@ -529,7 +529,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def run(self):
         import signal
-        print("COMBINER:starting combiner", flush=True)
+        print("COMBINER:starting {}".format(self.id), flush=True)
         try:
             while True:
                 signal.pause()

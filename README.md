@@ -37,7 +37,7 @@ $ docker network create fedn_default
 2. Deploy the base services (Minio and MongoDB)  
 
 ````bash 
-$ docker-compose -f config/base-services.yaml up 
+$ docker-compose -f config/base-services.yaml -f config/private-network.yaml up 
 ````
 
 Make sure you can access the following services before proceeding to the next steps: 
@@ -49,7 +49,7 @@ Make sure you can access the following services before proceeding to the next st
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
 ````bash 
-$ docker-compose -f config/reducer.yaml up 
+$ docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
 ````
 
 4. Start a combiner  
@@ -57,7 +57,7 @@ $ docker-compose -f config/reducer.yaml up
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
-$ docker-compose -f config/combiner.yaml up 
+$ docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
 ````
 
 Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step. You should see the combiner listed on https://localhost:8090/network. 

@@ -15,7 +15,3 @@ services:
     ports:
         - 8090:8090
 
-networks:
-  default:
-    external:
-      name: fedn_default
