@@ -601,9 +601,9 @@ class ReducerRestService:
                                    configured=True
                                    )
 
-        @app.route('/config', methods=['GET'])
+        @app.route('/config/download', methods=['GET'])
         def config_download():
-            config = {}
+
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
@@ -622,8 +622,11 @@ controller:
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))
             obj.seek(0)
-            return send_file(obj, as_attachment=True, attachment_filename='config.yaml', mimetype='application/x-yaml')
-            # return config
+            return send_file(obj,
+                             as_attachment=True,
+                             attachment_filename='client.yaml',
+                             mimetype='application/x-yaml')
+
 
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
