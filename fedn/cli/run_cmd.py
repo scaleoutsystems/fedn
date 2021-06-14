@@ -64,7 +64,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
-@click.option('-p', '--discoverport', required=False)
+@click.option('-p', '--discoverport', required=False, default='8090')
 @click.option('-t', '--token', required=False,default="reducer_token")
 @click.option('-n', '--name', required=False, default="reducer"+str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None, help='Set to a filename to (re)init reducer from file state.')
