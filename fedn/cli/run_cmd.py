@@ -23,7 +23,7 @@ def run_cmd(ctx):
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
 @click.option('-t', '--token', required=False)
-@click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
+@click.option('-n', '--name', required=False, default="client"+str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
 @click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
 @click.option('-u', '--dry-run', required=False, default=False)
@@ -63,7 +63,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
 @click.option('-t', '--token', required=False,default="reducer_token")
-@click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
+@click.option('-n', '--name', required=False, default="reducer"+str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None, help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
 def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
@@ -125,7 +125,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
 @click.option('-t', '--token', required=False)
-@click.option('-n', '--name', required=False, default=str(uuid.uuid4()))
+@click.option('-n', '--name', required=False, default="combiner"+str(uuid.uuid4())[:8])
 @click.option('-h', '--hostname', required=False,default="combiner")
 @click.option('-i', '--port', required=False,default=12080)
 @click.option('-s', '--secure', required=False, default=True)
