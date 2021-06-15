@@ -12,16 +12,28 @@
         <h6 class="card-subtitle text-muted">Distribution of reducers, combiners and clients.</h6>
     </div>
 
-
+<div class="row">
+    <div class="col-9">
     <div class="card-body">
         <style>
             #graph-container {
-                width: 800px;
+                width: 600px;
                 height: 300px;
             }
         </style>
-        <div id="graph-container"></div>
-    </div>
+
+
+        <div class="col-9" id="graph-container"></div>
+            </div>
+</div>
+            <div class="col-2">
+                    <h5 class="card-title">Download config</h5>
+                    <h6 class="card-subtitle text-muted">To connect additional clients you need a configuration which you can download here.</h6>
+                <div class="mb-2 mt-4">
+                <a href="/config/download"><button class="btn btn-primary"><i class="far fa-file-download"></i> Download client config</button></a>
+                    </div>
+            </div>
+</div>
 </div>
 <script>
     $(document).ready(function () {

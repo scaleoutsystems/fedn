@@ -28,8 +28,22 @@ def allowed_file(filename):
 
 
 class ReducerRestService:
-    def __init__(self, name, control, certificate_manager, certificate=None):
-        self.name = name
+    def __init__(self, config, control, certificate_manager, certificate=None):
+
+        print("config object!: \n\n\n\n{}".format(config))
+        if config['discover_host']:
+            self.name = config['discover_host']
+        else:
+            self.name = config['name']
+        self.port = config['discover_port']
+        self.network_id = config['name'] + '-network'
+
+        if not config['token']:
+            import uuid
+            self.token = str(uuid.uuid4())
+        else:
+            self.token = config['token']
+
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
@@ -112,24 +126,23 @@ class ReducerRestService:
             if len(combiner_info) < 1:
                 return result
             step = 5 / len(combiner_info)
-            x = -width/3.0
+            x = -width / 3.0
             for combiner in combiner_info:
-                print("combiner info {}".format(combiner_info),flush=True)
+                print("combiner info {}".format(combiner_info), flush=True)
 
                 try:
                     result['nodes'].append({
-                        "id": combiner['name'],#"n{}".format(count),
+                        "id": combiner['name'],  # "n{}".format(count),
                         "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
                         "x": x,
                         "y": y,
                         "size": 15,
                         "name": combiner['name'],
                         "type": 'combiner',
-                        #"color":'blue',
+                        # "color":'blue',
                     })
                 except Exception as err:
                     print(err)
-
 
                 x = x + step
                 count = count + 1
@@ -139,10 +152,10 @@ class ReducerRestService:
             width = 5
             step = 5 / len(combiner_info)
             x = -width / 2.0
-            #for combiner in self.control.statestore.list_clients():
+            # for combiner in self.control.statestore.list_clients():
             for combiner in combiner_info:
                 for a in range(0, int(combiner['nr_active_clients'])):
-                #y = y + 0.25
+                    # y = y + 0.25
                     try:
                         result['nodes'].append({
                             "id": "c{}".format(count),
@@ -153,11 +166,11 @@ class ReducerRestService:
                             "name": "c{}".format(count),
                             "combiner": combiner['name'],
                             "type": 'client',
-                            #"color":'blue',
+                            # "color":'blue',
                         })
                     except Exception as err:
                         print(err)
-                    #print("combiner prefferred name {}".format(client['combiner']), flush=True)
+                    # print("combiner prefferred name {}".format(client['combiner']), flush=True)
                     x = x + 0.25
                     count = count + 1
 
@@ -588,6 +601,33 @@ class ReducerRestService:
                                    configured=True
                                    )
 
+        @app.route('/config/download', methods=['GET'])
+        def config_download():
+
+            network_id = self.network_id
+            discover_host = self.name
+            discover_port = self.port
+            token = self.token
+            ctx = """network_id: {network_id}
+controller:
+    discover_host: {discover_host}
+    discover_port: {discover_port}
+    token: {token}""".format(network_id=network_id,
+                             discover_host=discover_host,
+                             discover_port=discover_port,
+                             token=token)
+
+            from io import BytesIO
+            from flask import send_file
+            obj = BytesIO()
+            obj.write(ctx.encode('UTF-8'))
+            obj.seek(0)
+            return send_file(obj,
+                             as_attachment=True,
+                             attachment_filename='client.yaml',
+                             mimetype='application/x-yaml')
+
+
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
@@ -601,7 +641,7 @@ class ReducerRestService:
 
                 if 'file' not in request.files:
                     flash('No file part')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 file = request.files['file']
                 helper_type = request.form.get('helper', 'keras')
@@ -609,7 +649,7 @@ class ReducerRestService:
                 # submit an empty part without filename
                 if file.filename == '':
                     flash('No selected file')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
@@ -654,5 +694,5 @@ class ReducerRestService:
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                       str(self.certificate.key_path)), flush=True)
-            app.run(host="0.0.0.0", port="8090",
+            app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
