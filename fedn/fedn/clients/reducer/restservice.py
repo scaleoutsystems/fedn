@@ -19,7 +19,7 @@ import geoip2.database
 from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
-ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip'}
+ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
 
 
 def allowed_file(filename):
@@ -28,8 +28,22 @@ def allowed_file(filename):
 
 
 class ReducerRestService:
-    def __init__(self, name, control, certificate_manager, certificate=None):
-        self.name = name
+    def __init__(self, config, control, certificate_manager, certificate=None):
+
+        print("config object!: \n\n\n\n{}".format(config))
+        if config['discover_host']:
+            self.name = config['discover_host']
+        else:
+            self.name = config['name']
+        self.port = config['discover_port']
+        self.network_id = config['name'] + '-network'
+
+        if not config['token']:
+            import uuid
+            self.token = str(uuid.uuid4())
+        else:
+            self.token = config['token']
+
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
@@ -40,6 +54,22 @@ class ReducerRestService:
             'name': self.name
         }
         return data
+
+    def check_configured(self):
+        if not self.control.get_compute_context():
+            return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
+                                   logs=None, refresh=False,
+                                   message='')
+
+        if self.control.state() == ReducerState.setup:
+            return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
+                                   logs=None, refresh=True,
+                                   message='Warning. Reducer is not base-configured. please do so with config file.')
+
+        if not self.control.get_latest_model():
+            return render_template('setup_model.html', message="Please set the initial model.")
+
+        return None
 
     def run(self):
         app = Flask(__name__)
@@ -52,22 +82,136 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
-
-            client = self.name
-            state = ReducerStateToString(self.control.state())
-            logs = None
-            refresh = True
-            if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
-                                       message='Warning. No compute context is set. please set one with <a href="/context">/context</a>')
-
-            if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
-                                       message='Warning. Reducer is not base-configured. please do so with config file.')
-
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
+            events = self.control.get_events()
+            message = request.args.get('message', None)
+            message_type = request.args.get('message_type', None)
+            return render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
+                                   events=events,
+                                   logs=None, refresh=True, configured=True, message=message, message_type=message_type)
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
+        @app.route('/status')
+        def status():
+            return {'state': ReducerStateToString(self.control.state())}
+
+        @app.route('/netgraph')
+        def netgraph():
+
+            result = {'nodes': [], 'edges': []}
+
+            result['nodes'].append({
+                "id": "r0",
+                "label": "Reducer",
+                "x": -1.2,
+                "y": 0,
+                "size": 25,
+                "type": 'reducer',
+            })
+            x = 0
+            y = 0
+            count = 0
+            meta = {}
+            combiner_info = []
+            for combiner in self.control.network.get_combiners():
+                try:
+                    report = combiner.report()
+                    combiner_info.append(report)
+                except:
+                    pass
+            y = y + 0.5
+            width = 5
+            if len(combiner_info) < 1:
+                return result
+            step = 5 / len(combiner_info)
+            x = -width / 3.0
+            for combiner in combiner_info:
+                print("combiner info {}".format(combiner_info), flush=True)
+
+                try:
+                    result['nodes'].append({
+                        "id": combiner['name'],  # "n{}".format(count),
+                        "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
+                        "x": x,
+                        "y": y,
+                        "size": 15,
+                        "name": combiner['name'],
+                        "type": 'combiner',
+                        # "color":'blue',
+                    })
+                except Exception as err:
+                    print(err)
+
+                x = x + step
+                count = count + 1
+            y = y + 0.25
+
+            count = 0
+            width = 5
+            step = 5 / len(combiner_info)
+            x = -width / 2.0
+            # for combiner in self.control.statestore.list_clients():
+            for combiner in combiner_info:
+                for a in range(0, int(combiner['nr_active_clients'])):
+                    # y = y + 0.25
+                    try:
+                        result['nodes'].append({
+                            "id": "c{}".format(count),
+                            "label": "Client",
+                            "x": x,
+                            "y": y,
+                            "size": 15,
+                            "name": "c{}".format(count),
+                            "combiner": combiner['name'],
+                            "type": 'client',
+                            # "color":'blue',
+                        })
+                    except Exception as err:
+                        print(err)
+                    # print("combiner prefferred name {}".format(client['combiner']), flush=True)
+                    x = x + 0.25
+                    count = count + 1
+
+            count = 0
+            for node in result['nodes']:
+                try:
+                    if node['type'] == 'combiner':
+                        result['edges'].append(
+                            {
+                                "id": "e{}".format(count),
+                                "source": node['id'],
+                                "target": 'r0',
+                            }
+                        )
+                    elif node['type'] == 'client':
+                        result['edges'].append(
+                            {
+                                "id": "e{}".format(count),
+                                "source": node['combiner'],
+                                "target": node['id'],
+                            }
+                        )
+                except Exception as e:
+                    pass
+                count = count + 1
+
+            return result
+
+        @app.route('/events')
+        def events():
+            import json
+            from bson import json_util
+
+            json_docs = []
+            for doc in self.control.get_events():
+                json_doc = json.dumps(doc, default=json_util.default)
+                json_docs.append(json_doc)
+
+            json_docs.reverse()
+            return {'events': json_docs}
+
         @app.route('/add')
         def add():
 
@@ -96,23 +240,32 @@ class ReducerRestService:
 
                 # TODO append and redirect to index.
                 import copy
-                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),request.remote_addr)
+                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
+                                             request.remote_addr)
                 self.control.network.add_combiner(combiner)
 
             combiner = self.control.network.get_combiner(name)
 
             ret = {
-                'status': 'added', 
+                'status': 'added',
                 'certificate': combiner['certificate'],
-                'key': combiner['key'], 
+                'key': combiner['key'],
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
-            }                  
+            }
 
             return jsonify(ret)
 
-        @app.route('/history', methods=['GET', 'POST'])
-        def history():
+        @app.route('/eula', methods=['GET', 'POST'])
+        def eula():
+            for r in request.headers:
+                print("header contains: {}".format(r), flush=True)
+
+            return render_template('eula.html', configured=True)
+
+        @app.route('/models', methods=['GET', 'POST'])
+        def models():
+
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -122,17 +275,21 @@ class ReducerRestService:
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
                     a.write(uploaded_seed.read())
-                    helper = self.control.get_helper()                        
+                    helper = self.control.get_helper()
                     model = helper.load_model_from_BytesIO(a.getbuffer())
                     self.control.commit(uploaded_seed.filename, model)
             else:
+                not_configured = self.check_configured()
+                if not_configured:
+                    return not_configured
                 h_latest_model_id = self.control.get_latest_model()
+
                 model_info = self.control.get_model_info()
-                return render_template('index.html', h_latest_model_id=h_latest_model_id, seed=True,
-                                       model_info=model_info)
+                return render_template('models.html', h_latest_model_id=h_latest_model_id, seed=True,
+                                       model_info=model_info, configured=True)
 
             seed = True
-            return redirect(url_for('history', seed=seed))
+            return redirect(url_for('models', seed=seed))
 
         @app.route('/delete_model_trail', methods=['GET', 'POST'])
         def delete_model_trail():
@@ -147,20 +304,23 @@ class ReducerRestService:
 
                 # drop objects in minio
                 self.control.delete_bucket_objects()
-                return redirect(url_for('history'))
+                return redirect(url_for('models'))
             seed = True
-            return redirect(url_for('history', seed=seed))
+            return redirect(url_for('models', seed=seed))
 
         @app.route('/drop_control', methods=['GET', 'POST'])
         def drop_control():
             if request.method == 'POST':
                 self.control.statestore.drop_control()
-                return redirect(url_for('start'))
-            return redirect(url_for('start'))
+                return redirect(url_for('control'))
+            return redirect(url_for('control'))
 
-        # http://localhost:8090/start?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
-        @app.route('/start', methods=['GET', 'POST'])
-        def start():
+        # http://localhost:8090/control?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
+        @app.route('/control', methods=['GET', 'POST'])
+        def control():
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
@@ -179,17 +339,36 @@ class ReducerRestService:
                                        message='Warning. Reducer is not base-configured. please do so with config file.')
 
             if self.control.state() == ReducerState.monitoring:
-                return redirect(url_for('index', state=state, refresh= refresh, message="Reducer is in monitoring state"))
+                return redirect(
+                    url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
 
             if request.method == 'POST':
-                timeout = float(request.form.get('timeout'))
+                timeout = float(request.form.get('timeout', 180))
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
                 clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
 
-                #TODO: Enable in UI
+                # checking if there are enough clients connected to start!
+                clients_available = 0
+                try:
+                    for combiner in self.control.network.get_combiners():
+                        if combiner.allowing_clients():
+                            combiner_state = combiner.report()
+                            nac = combiner_state['nr_active_clients']
+
+                            clients_available = clients_available + int(nac)
+                except Exception as e:
+                    pass
+
+                if clients_available < clients_required:
+                    return redirect(url_for('index', state=state,
+                                            message="Not enough clients available to start rounds.",
+                                            message_type='warning'))
+
                 validate = request.form.get('validate', False)
+                if validate == 'False':
+                    validate = False
                 helper_type = request.form.get('helper', 'keras')
                 # self.control.statestore.set_framework(helper_type)
 
@@ -200,19 +379,32 @@ class ReducerRestService:
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
-                self.control.instruct(config)
-                return redirect(url_for('index', state=state, refresh= refresh, message="Sent execution plan."))
+                import threading
+                threading.Thread(target=self.control.instruct, args=(config,)).start()
+                # self.control.instruct(config)
+                return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",
+                                        message_type='SUCCESS'))
 
             else:
-                latest_model_id = self.control.get_latest_model()
+                seed_model_id = None
+                latest_model_id = None
+                try:
+                    seed_model_id = self.control.get_first_model()[0]
+                    latest_model_id = self.control.get_latest_model()
+                except Exception as e:
+                    pass
+
                 return render_template('index.html', latest_model_id=latest_model_id,
-                                       compute_package=self.current_compute_context, helper=self.control.statestore.get_framework(), validate=True)
+                                       compute_package=self.current_compute_context,
+                                       seed_model_id=seed_model_id,
+                                       helper=self.control.statestore.get_framework(), validate=True, configured=True)
 
             client = self.name
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = False
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh)
+            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
+                                   configured=True)
 
         @app.route('/assign')
         def assign():
@@ -229,9 +421,15 @@ class ReducerRestService:
             else:
                 combiner = self.control.find_available_combiner()
 
+            ## Check that a framework has been selected prior to assigning clients.
+            framework = self.control.statestore.get_framework()
+            if not framework:
+                return jsonify({'status': 'retry'})
+
             client = {
                 'name': name,
                 'combiner_preferred': combiner_preferred,
+                'combiner': combiner.name,
                 'ip': request.remote_addr,
                 'status': 'available'
             }
@@ -243,6 +441,7 @@ class ReducerRestService:
                 response = {
                     'status': 'assigned',
                     'host': combiner.address,
+                    'ip': combiner.ip,
                     'port': combiner.port,
                     'certificate': str(cert_b64).split('\'')[1],
                     'model_type': self.control.statestore.get_framework()
@@ -358,6 +557,10 @@ class ReducerRestService:
 
         @app.route('/dashboard')
         def dashboard():
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
+
             plot = Plot(self.control.statestore)
             try:
                 valid_metrics = plot.fetch_valid_metrics()
@@ -365,33 +568,65 @@ class ReducerRestService:
             except Exception as e:
                 valid_metrics = None
                 box_plot = None
-                print(e,flush=True)
+                print(e, flush=True)
             table_plot = plot.create_table_plot()
             # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
             clients_plot = plot.create_client_plot()
-            return render_template('index.html', show_plot=True,
+            return render_template('dashboard.html', show_plot=True,
                                    box_plot=box_plot,
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
-                                   metrics=valid_metrics
+                                   metrics=valid_metrics,
+                                   configured=True
                                    )
 
         @app.route('/network')
         def network():
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
             plot = Plot(self.control.statestore)
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
             map_plot = create_map()
             combiner_info = combiner_stats()
-            return render_template('index.html', map_plot=map_plot, network_plot=True,
+            return render_template('network.html', map_plot=map_plot, network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
                                    combiners_plot=combiners_plot,
-                                   combiner_info=combiner_info
+                                   combiner_info=combiner_info,
+                                   configured=True
                                    )
+
+        @app.route('/config/download', methods=['GET'])
+        def config_download():
+
+            network_id = self.network_id
+            discover_host = self.name
+            discover_port = self.port
+            token = self.token
+            ctx = """network_id: {network_id}
+controller:
+    discover_host: {discover_host}
+    discover_port: {discover_port}
+    token: {token}""".format(network_id=network_id,
+                             discover_host=discover_host,
+                             discover_port=discover_port,
+                             token=token)
+
+            from io import BytesIO
+            from flask import send_file
+            obj = BytesIO()
+            obj.write(ctx.encode('UTF-8'))
+            obj.seek(0)
+            return send_file(obj,
+                             as_attachment=True,
+                             attachment_filename='client.yaml',
+                             mimetype='application/x-yaml')
+
 
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
@@ -406,7 +641,7 @@ class ReducerRestService:
 
                 if 'file' not in request.files:
                     flash('No file part')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 file = request.files['file']
                 helper_type = request.form.get('helper', 'keras')
@@ -414,7 +649,7 @@ class ReducerRestService:
                 # submit an empty part without filename
                 if file.filename == '':
                     flash('No selected file')
-                    return redirect(request.url)
+                    return redirect(url_for('context'))
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
@@ -426,7 +661,7 @@ class ReducerRestService:
 
                     self.control.set_compute_context(filename, file_path)
                     self.control.statestore.set_framework(helper_type)
-                    return redirect(url_for('start'))
+                    return redirect(url_for('control'))
 
             from flask import send_from_directory
             name = request.args.get('name', '')
@@ -459,5 +694,5 @@ class ReducerRestService:
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                       str(self.certificate.key_path)), flush=True)
-            app.run(host="0.0.0.0", port="8090",
+            app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))

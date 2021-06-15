@@ -65,11 +65,17 @@ class ReducerControl:
         else:
             return False
 
+    def get_first_model(self):
+        return self.statestore.get_first()
+
     def get_latest_model(self):
         return self.statestore.get_latest()
 
     def get_model_info(self):
         return self.statestore.get_model_info()
+
+    def get_events(self):
+        return self.statestore.get_events()
 
     def drop_models(self):
         self.statestore.drop_models()
@@ -80,8 +86,9 @@ class ReducerControl:
             try:
                 context = definition['filename']
                 return context
-            except IndexError:
+            except (IndexError, KeyError):
                 print("No context filename set for compute context definition", flush=True)
+                return None
         else:
             return None
 
@@ -354,7 +361,13 @@ class ReducerControl:
             # start round monitor
             self.tracer.start_monitor(round)
             # todo add try except bloc for round meta
-            model_id, round_meta = self.round(config, current_round)
+            model_id = None
+            round_meta = {'round_id':current_round}
+            try:
+                model_id, round_meta = self.round(config, current_round)
+            except TypeError:
+                print("Could not unpack data from round...", flush=True)
+
             end_time = datetime.now()
             
             if model_id:
@@ -439,15 +452,18 @@ class ReducerControl:
         selected_combiner = None
 
         for combiner in self.network.get_combiners():
-            if combiner.allowing_clients():
-                combiner_state = combiner.report()
-                nac = combiner_state['nr_active_clients']
-                if not min_clients:
-                    min_clients = nac
-                    selected_combiner = combiner
-                elif nac<min_clients:
-                    min_clients = nac
-                    selected_combiner = combiner
+            try:
+                if combiner.allowing_clients():
+                    combiner_state = combiner.report()
+                    nac = combiner_state['nr_active_clients']
+                    if not min_clients:
+                        min_clients = nac
+                        selected_combiner = combiner
+                    elif nac<min_clients:
+                        min_clients = nac
+                        selected_combiner = combiner
+            except CombinerUnavailableError as err:
+                print("Combiner was not responding, continuing to next")
 
         return selected_combiner
 

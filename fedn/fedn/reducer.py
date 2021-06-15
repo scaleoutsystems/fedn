@@ -36,12 +36,15 @@ class Reducer:
         self.control = ReducerControl(self.statestore)
         self.inference = ReducerInferenceInterface()
         rest_certificate = self.certificate_manager.get_or_create("reducer")
-        self.rest = ReducerRestService(config['name'], self.control, self.certificate_manager, certificate=rest_certificate)
+        self.rest = ReducerRestService(config, self.control, self.certificate_manager, certificate=rest_certificate)
 
     def run(self):
 
-        threading.Thread(target=self.rest.run, daemon=True).start()
+        threading.Thread(target=self.control_loop, daemon=True).start()
 
+        self.rest.run()
+
+    def control_loop(self):
         import time
         from datetime import datetime
         try:

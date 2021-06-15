@@ -1,0 +1,99 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Model evaluation</h5>
+            <h6 class="card-subtitle text-muted">Distribution over clients</h6>
+        </div>
+
+        {% if not box_plot %}
+            <div class="card-body">
+                <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                    <div class="alert-icon">
+                        <i class="far fa-fw fa-bell"></i>
+                    </div>
+                    <div class="alert-message">
+                        <strong>No data currently available for distribution over clients!</strong>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+
+            <div class="form-group row">
+                <label for="metric_type" class="col-sm-1 col-form-label" style="margin-left: 40px;">Metric</label>
+                <div class="col-sm-6">
+                    <select class="form-control" id="metric_type">
+                        {% if metrics %}
+                            {% for metric in metrics %}
+                                <option value={{ metric }}>{{ metric }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div id="box">
+                    <script>
+                        var graphs = {{ box_plot | safe }};
+                        Plotly.plot('box', graphs, {});
+                    </script>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Model evaluation</h5>
+            <h6 class="card-subtitle text-muted">Client average metrics</h6>
+        </div>
+        <div class="card-body">
+            {% if not table_plot %}
+                <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                    <div class="alert-icon">
+                        <i class="far fa-fw fa-bell"></i>
+                    </div>
+                    <div class="alert-message">
+                        <strong>No data currently available for client average metrics!</strong>
+                    </div>
+                </div>
+            {% else %}
+                <div id="table">
+                    <script>
+                        var graphs = {{ table_plot | safe }};
+                        Plotly.plot('table', graphs, {});
+                    </script>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Aggregated client profile and training time distribution</h5>
+        </div>
+        <div class="card-body">
+            {% if not clients_plot %}
+                <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+                    <div class="alert-icon">
+                        <i class="far fa-fw fa-bell"></i>
+                    </div>
+                    <div class="alert-message">
+                        <strong>No data currently available for client profile and training time distribution!</strong>
+                    </div>
+                </div>
+            {% else %}
+                <div id="client">
+                    <script>
+                        var graphs = {{ clients_plot | safe }};
+                        Plotly.plot('client', graphs, {});
+                    </script>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

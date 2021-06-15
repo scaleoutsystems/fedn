@@ -1,0 +1,8 @@
+version: '3.3'
+
+
+networks:
+  default:
+    external:
+      name: fedn_default
+
