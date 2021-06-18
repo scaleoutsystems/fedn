@@ -1,19 +1,22 @@
 name: Build reducer
 
 on:
-  push:
-    branches: '*'
+  release:
+    types: [published]
 
 
 jobs:
  
-  build:
+  build_and_push_to_registries:
     
     runs-on: ubuntu-latest
     env:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       working-directory: .
+    permissions:
+      packages: write
+      contents: read
     steps:
     
     - uses: actions/checkout@v2
@@ -41,10 +44,29 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         docker build -t $DOCKER_URL/${{ steps.wf-vars.outputs.IMAGE_NAME }}:${{ steps.wf-vars.outputs.IMAGE_TAG }} -f components/reducer/Dockerfile .
-    
+
+
     - name: docker push fedn-reducer
       env:      
         DOCKER_URL: scaleoutsystems
       working-directory: ${{env.working-directory}}
       run: |
         docker push $DOCKER_URL/${{ steps.wf-vars.outputs.IMAGE_NAME }}:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+
+    - name: Log in to GitHub Docker Registry
+      uses: docker/login-action@v1
+      with:
+        registry: docker.pkg.github.com
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push to Docker Hub
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: morganekmefjord/fedn:${{ github.ref }}
+    - name: Build container image
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.pkg.github.com/${{ github.repository }}/fedn-reducer:${{ github.ref }}
+

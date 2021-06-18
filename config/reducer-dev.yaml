@@ -7,18 +7,16 @@ services:
       - GET_HOSTS_FROM=dns
       - USER=test
       - PROJECT=project
+      - FLASK_DEBUG=1
+      - FLASK_ENV=development
     image: "scaleoutsystems/fedn-reducer:develop"
     build:
       context: ${PWD}
       dockerfile: ${PWD}/components/reducer/Dockerfile
     working_dir: /app/client
-    command: sh -c "mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
+    command: sh -c "pip install -e /app/fedn/ && mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
     volumes:
       - ${PWD}/config:/app/client/config
+      - ${PWD}/fedn:/app/fedn
     ports:
         - 8090:8090
-
-networks:
-  default:
-    external:
-      name: fedn_default
