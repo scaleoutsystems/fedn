@@ -51,7 +51,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: morganekmefjord/fedn:${{ github.ref }}
+        tags: morganekmefjord/fedn:${{ steps.wf-vars.outputs.IMAGE_TAG }}
     - name: Build container image
       uses: docker/build-push-action@v2
       with:
