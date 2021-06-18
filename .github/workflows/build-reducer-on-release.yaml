@@ -56,5 +56,5 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: docker.pkg.github.com/${{ github.repository }}/fedn-reducer:${{ github.ref }}
+        tags: docker.pkg.github.com/${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }}
 
