@@ -9,7 +9,7 @@ services:
     working_dir: /app
     command: /bin/bash -c "fedn run client -in fedn-network.yaml"
     volumes:
-      - ./data:/app/data
+      - ./data:/data:ro #mount as READ ONLY
 
 networks:
   default:
