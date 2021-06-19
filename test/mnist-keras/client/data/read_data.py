@@ -18,9 +18,9 @@ def read_data(path, nr_examples=1000,trainset=True):
 
     print("X shape: ", X.shape, ", y shape: ", y.shape)
 
-    sample_fraction = float(nr_examples)/len(y)  
+    sample_fraction = float(nr_examples)/len(y)
 
-    # The entire dataset is 60k images, we can subsample here for quicker testing. 
+    # The entire dataset is 60k images, we can subsample here for quicker testing.
     if sample_fraction < 1.0:
         _, X, _, y = train_test_split(X, y, test_size=sample_fraction)
     classes = range(10)
@@ -33,7 +33,5 @@ def read_data(path, nr_examples=1000,trainset=True):
     X = X.astype('float32')
     X = np.expand_dims(X,-1)
     X /= 255
-    y = keras.utils.to_categorical(y, len(classes))
+    y = tf.keras.utils.to_categorical(y, len(classes))
     return  (X, y, classes)
-
-

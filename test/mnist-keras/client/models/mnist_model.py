@@ -1,7 +1,9 @@
-import keras
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Dense, Dropout, Flatten
-from keras.models import Sequential
+
+import tensorflow
+
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Dropout, Flatten
+from tensorflow.keras.models import Sequential
 import os
 
 
@@ -27,8 +29,7 @@ def create_seed_model():
 	model.add(Dropout(0.5))
 	model.add(Dense(num_classes, activation='softmax'))
 
-	model.compile(loss=keras.losses.categorical_crossentropy,
-    	          optimizer=keras.optimizers.Adam(),
+	model.compile(loss=tensorflow.keras.losses.categorical_crossentropy,
+    	          optimizer=tensorflow.keras.optimizers.Adam(),
         	      metrics=['accuracy'])
 	return model
-
