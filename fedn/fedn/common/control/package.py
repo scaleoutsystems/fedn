@@ -2,6 +2,8 @@ import os
 
 from fedn.utils.dispatcher import Dispatcher
 
+class PackageExistException(Exception):
+    pass
 
 class Package:
 
@@ -119,7 +121,7 @@ class PackageRuntime:
         # crosscheck checksum and unpack if security checks are ok.
         pass
 
-    def unpack(self):
+    def unpack(self, overwrite=True):
         import os
         import tarfile
 
@@ -136,9 +138,44 @@ class PackageRuntime:
 
         import os
         cwd = os.getcwd()
+
         try:
             os.chdir(self.dir)
+        except:
+            print("Failed to change directory! No such directory {}".format(self.dir))
 
+
+        path = os.path.join(self.dir,'client')
+        dir_walk = []
+        try:
+            dir_walk = os.listdir(path)
+        except FileNotFoundError:
+            pass
+        if not overwrite:
+
+            if dir_walk:
+                print("Existing files found and overwrite disabled, exiting!")
+                raise PackageExistException
+
+        if dir_walk:
+            print("\n\nCurrent directory consist of:\n")
+            dirs = []
+            files = []
+            for file in dir_walk:
+                if os.path.isdir(os.path.join(path,file)):
+                    dirs.append(file)
+                else:
+                    files.append(file)
+
+            for dir in dirs:
+                print("{}/".format(dir))
+            for file in files:
+                print(file)
+
+            print("Overwrite in 3 sec\n")
+            import time
+            time.sleep(3)
+        try:
             if f:
                 f.extractall()
                 print("Successfully extracted compute package content in {}".format(self.dir), flush=True)

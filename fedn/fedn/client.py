@@ -82,11 +82,15 @@ class Client:
                 if retval:
                     break
                 time.sleep(60)
-                print("No compute package availabe... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                print("No compute package available... retrying in 60s Trying {} more times.".format(tries),flush=True)
                 tries -= 1
 
-            if retval:
-                pr.unpack()
+            from fedn.common.control.package import PackageExistException
+            try:
+                if retval:
+                    pr.unpack(config['overwrite'])
+            except PackageExistException:
+                self.init_failed = True
 
             self.dispatcher = pr.dispatcher()
             try:
@@ -390,6 +394,8 @@ class Client:
         sys.stdout = self._original_stdout
 
     def run(self):
+        if self.init_failed:
+            return
         import time
         threading.Thread(target=self.run_web, daemon=True).start()
         try:
