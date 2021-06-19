@@ -34,7 +34,13 @@ class Client:
                                          preshared_cert=config['preshared_cert'],
                                          verify_cert=config['verify_cert'])
         self.name = config['name']
+        import time
+        dirname = time.strftime("%Y%m%d-%H%M%S")
+        self.run_path = os.path.join(os.getcwd(), dirname)
+        os.mkdir(self.run_path)
 
+        from fedn.utils.logger import Logger
+        self.logger = Logger(to_file=config['logfile'],file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
         client_config = {}
@@ -88,7 +94,7 @@ class Client:
             if retval:
                 pr.unpack()
 
-            self.dispatcher = pr.dispatcher()
+            self.dispatcher = pr.dispatcher(self.run_path)
             try:
                 print("Running Dispatcher for entrypoint: startup", flush=True)
                 self.dispatcher.run_cmd("startup")
@@ -101,7 +107,11 @@ class Client:
                                     'train': {'command': 'python3 train.py'},
                                     'validate': {'command': 'python3 validate.py'}}}
             dispatch_dir = os.getcwd()
-            self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
+            from_path = os.path.join(os.getcwd(),'client')
+
+            from distutils.dir_util import copy_tree
+            copy_tree(from_path, run_path)
+            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
         self.lock = threading.Lock()
 
