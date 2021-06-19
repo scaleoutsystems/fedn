@@ -91,6 +91,8 @@ class PackageRuntime:
         self.pkg_path = package_path
         self.pkg_name = None
         self.dir = package_dir
+        self.checksum = None
+        self.expected_checksum = None
 
     def download(self, host, port, token, name=None):
         import requests
@@ -113,11 +115,45 @@ class PackageRuntime:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
 
+
+        path = "https://{}:{}/checksum".format(host, port)
+
+        if name:
+            path = path + "?name={}".format(name)
+        with requests.get(path, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
+            if 200 <= r.status_code < 204:
+
+                data = r.json()
+                try:
+                    self.checksum = data['checksum']
+                except Exception as e:
+                    print("Could not extract checksum!")
+
+
         return True
 
-    def validate(self):
+    def validate(self, expected_checksum):
+
+        self.expected_checksum = expected_checksum
+
+        from fedn.utils.checksum import md5
+
         # crosscheck checksum and unpack if security checks are ok.
-        pass
+        #print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
+        file_checksum = str(md5(os.path.join(self.pkg_path,self.pkg_name)))
+
+        # catched by client, make configurable by governance network!
+        #if self.expected_checksum is None:
+        #    print("CAUTION: Package validation turned OFF on client", flush=True)
+        #    return True
+
+        if self.checksum == self.expected_checksum == file_checksum:
+            print("Package validated {}".format(self.checksum))
+            return True
+        else:
+            return False
+
+
 
     def unpack(self):
         import os
