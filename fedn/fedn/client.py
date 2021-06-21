@@ -23,6 +23,8 @@ class Client:
 
     def __init__(self, config):
 
+        self.state = None
+        self.error_state = False
         from fedn.common.net.connect import ConnectorClient, Status
         self.connector = ConnectorClient(config['discover_host'],
                                          config['discover_port'],
@@ -82,8 +84,18 @@ class Client:
                 if retval:
                     break
                 time.sleep(60)
-                print("No compute package availabe... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                print("No compute package available... retrying in 60s Trying {} more times.".format(tries),flush=True)
                 tries -= 1
+
+            if retval:
+                if not 'checksum' in config:
+                    print("\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",flush=True)
+                else:
+                    checks_out = pr.validate(config['checksum'])
+                    if not checks_out:
+                        print("Validation was enforced and invalid, client closing!")
+                        self.error_state = True
+                        return
 
             if retval:
                 pr.unpack()
@@ -403,5 +415,7 @@ class Client:
                 if cnt > 5:
                     print("CLIENT active", flush=True)
                     cnt = 0
+                if self.error_state:
+                    return
         except KeyboardInterrupt:
             print("ok exiting..")
