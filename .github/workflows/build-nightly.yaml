@@ -39,5 +39,5 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.GIT_SHA }},${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.GIT_SHA }},${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        tags: scaleoutsystems/fedn-reducer:${{ steps.wf-vars.outputs.GIT_SHA }},scaleoutsystems/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},scaleoutsystems/fedn-combiner:${{ steps.wf-vars.outputs.GIT_SHA }},scaleoutsystems/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
         file: components/base/Dockerfile
