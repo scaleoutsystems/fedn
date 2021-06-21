@@ -1,0 +1,43 @@
+name: Build reducer and combiner on branch push
+
+on:
+  push:
+    branches: '*'
+    branches-ignore:
+      - 'master'
+
+jobs:
+ 
+  build:
+    
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      working-directory: .
+    steps:
+    
+    - uses: actions/checkout@v2
+  
+    - name: Setup variables
+      id: wf-vars
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+      run: |
+        echo "name of github basebranch is ${BASE_BRANCH}"
+        BRANCH=${GITHUB_REF##*/}
+        IMAGE_TAG="$BRANCH"
+        echo ::set-output name=IMAGE_TAG::$IMAGE_TAG
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push to Docker
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: ${{ github.repository }}/fedn-reducer:$(echo ${GITHUB_SHA} | cut -c1-8),${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},${{ github.repository }}/fedn-combiner:$(echo ${GITHUB_SHA} | cut -c1-8),${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        file: components/base/Dockerfile
