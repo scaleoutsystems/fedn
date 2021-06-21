@@ -25,7 +25,9 @@ jobs:
         echo "name of github basebranch is develop"
         BRANCH=develop
         IMAGE_TAG=nightly
+        GIT_SHA=$(git rev-parse --short "$GITHUB_SHA")
         echo ::set-output name=IMAGE_TAG::$IMAGE_TAG
+        echo ::set-output name=GIT_SHA::$GIT_SHA
 
     - name: Login to DockerHub
       uses: docker/login-action@v1
@@ -37,5 +39,5 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ github.repository }}/fedn-reducer:$(echo ${GITHUB_SHA} | cut -c1-8),${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},${{ github.repository }}/fedn-combiner:$(echo ${GITHUB_SHA} | cut -c1-8),${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        tags: ${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.GIT_SHA }},${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.GIT_SHA }},${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
         file: components/base/Dockerfile
