@@ -7,11 +7,7 @@ services:
     build:
       context: .
     working_dir: /app
-    command: /bin/bash -c "fedn run client -in fedn-network.yaml"
+    command: /bin/bash -c "fedn run client -in client.yaml"
     volumes:
-      - ./data:/data:ro #mount as READ ONLY
-
-networks:
-  default:
-    external:
-      name: fedn_default
+      - ./data:/app/data:ro #mount as READ ONLY
+      - ./client.yaml:/app/client.yaml
