@@ -9,7 +9,7 @@ services:
       - GET_HOSTS_FROM=dns
     build:
       context: ${PWD}
-      dockerfile: ${PWD}/components/combiner/Dockerfile
+      dockerfile: ${PWD}/components/base/Dockerfile
     working_dir: /app/client
     command: sh -c "sleep 5 && fedn run combiner --init=./config/settings-combiner.yaml"
     volumes:

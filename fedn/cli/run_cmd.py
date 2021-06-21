@@ -32,13 +32,14 @@ def run_cmd(ctx):
 @click.option('-v', '--verify-cert', required=False, default=False)
 @click.option('-c', '--preferred-combiner', required=False, default=False)
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
+@click.option('-l','--logfile',required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")), help='Set logfile for client log to file.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert,preferred_combiner, init):
+               verify_cert,preferred_combiner, init, logfile):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 'init':init}
+              'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 'init':init, 'logfile':logfile}
 
     if config['init']:
         with open(config['init'], 'r') as file:
@@ -63,7 +64,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
             print("Missing required configuration: discover_host, discover_port",flush=True)
             return
     except Exception as e:
-        print("Could not load config approriately. Check config", flush=True)
+        print("Could not load config appropriately. Check config", flush=True)
         return
 
     from fedn.client import Client
