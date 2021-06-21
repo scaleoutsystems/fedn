@@ -28,13 +28,19 @@ python init_model.py
 ```
 
 Navigate to 'localhost:8090/history' to upload the seed model. 
+## Download or configure client.yaml
+Download client.yaml from the reducer and place it in the directory where your example resides.
+This client.yaml file will contain all the required information for a client to connect to a federation.
+The example is pre-configured to accept a client.yaml file as argument. Check docker-compose.yaml for more details of how the running of a client can be modified.
 
 ## Start the client
 The easiest way to start clients for quick testing is by using Docker. We provide a docker-compose template for convenience:
 
 ```bash
-docker-compose up --scale client=2 
+docker-compose up -f ../config/private-network.yaml --scale client=2 
 ```
+to start a client and attach it to the local private-network where you run reducer and combiner.
+
 
 > Note that this assumes that a FEDn network is running in pseudo-distributed mode (see separate deployment instructions) and uses the default service names. If you are connecting to a reducer part of a distributed setup, first, edit 'fedn-network.yaml' to provide IP address to the reducer. Also provide an 'extra_hosts.yaml' file with combiner:host mappings (edit the file according to your network)
 
