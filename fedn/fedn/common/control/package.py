@@ -181,13 +181,22 @@ class PackageRuntime:
         except:
             print("Error extracting files!")
 
-    def dispatcher(self):
+    def dispatcher(self, run_path):
 
-        os.chdir(os.path.join(self.dir, 'client'))
+        dispatch_dir = self.dir
+        from_path = os.path.join(os.getcwd(), 'client')
+        import time
+        dirname = time.strftime("%Y%m%d-%H%M%S")
+
+        from distutils.dir_util import copy_tree
+        copy_tree(from_path, run_path)
+
+        os.chdir(run_path)
+
 
         try:
             cfg = None
-            with open(os.path.join(os.path.join(self.dir, 'client'), 'fedn.yaml'), 'rb') as config_file:
+            with open(os.path.join(to_path, 'fedn.yaml'), 'rb') as config_file:
                 import yaml
                 cfg = yaml.safe_load(config_file.read())
                 self.dispatch_config = cfg
@@ -195,6 +204,6 @@ class PackageRuntime:
         except Exception as e:
             print("Error trying to load and unpack dispatcher config - trying default", flush=True)
 
-        dispatcher = Dispatcher(self.dispatch_config, os.path.join(self.dir, 'client'))
+        dispatcher = Dispatcher(self.dispatch_config, run_path)
 
         return dispatcher
