@@ -54,6 +54,17 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
             for key,val in reducer_config.items():
                 config[key] = val
 
+    try:
+        if config['discover_host'] is None or \
+            config['discover_host'] == '' or \
+            config['discover_host'] is None or \
+            config['discover_port'] == '':
+            print("Missing required configuration: discover_host, discover_port",flush=True)
+            return
+    except Exception as e:
+        print("Could not load config appropriately. Check config", flush=True)
+        return
+
     from fedn.client import Client
     client = Client(config)
     client.run()
