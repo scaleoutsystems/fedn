@@ -3,14 +3,7 @@ name: Build reducer
 on:
   push:
     branches: '*'
-    paths:
-    - 'components/reducer/**'
-    - 'fedn/**'
-  pull_request:
-    branches: '*'
-    paths:
-    - 'components/reducer/**'
-    - 'fedn/**'
+
 
 jobs:
  

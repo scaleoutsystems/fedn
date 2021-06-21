@@ -121,6 +121,21 @@ class MongoReducerStateStore(ReducerStateStore):
         x = self.model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
         self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
 
+    def get_first(self):
+        """ Return model_id for the latest model in the model_trail """
+        import pymongo
+        ret = self.model.find_one({'key': 'model_trail'}, sort=[("committed_at", pymongo.ASCENDING)])
+        if ret == None:
+            return None
+
+        try:
+            model_id = ret['model']
+            if model_id == '' or model_id == ' ':  # ugly check for empty string
+                return None
+            return model_id
+        except (KeyError, IndexError):
+            return None
+
     def get_latest(self):
         """ Return model_id for the latest model in the model_trail """
         ret = self.model.find_one({'key': 'current_model'})
@@ -269,7 +284,7 @@ class MongoReducerStateStore(ReducerStateStore):
         except:
             print("WARNING, failed to delete combiner: {}".format(combiner), flush=True)
 
-    def set_client(self,client_data):
+    def set_client(self, client_data):
         """ 
             Set or update client record. 
             client_data: dictionarys
@@ -278,7 +293,7 @@ class MongoReducerStateStore(ReducerStateStore):
         client_data['updated_at'] = str(datetime.now())
         ret = self.clients.update({'name': client_data['name']}, client_data, True)
 
-    def get_client(self,name):
+    def get_client(self, name):
         """ """
         try:
             ret = self.clients.find({'key': name})
