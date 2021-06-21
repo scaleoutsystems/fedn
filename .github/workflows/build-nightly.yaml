@@ -2,7 +2,7 @@ name: Build reducer
 
 on:
   schedule:
-    - cron: '0 04 * * 1-7'
+    - cron: '0 04 * * *'
 
 jobs:
 
