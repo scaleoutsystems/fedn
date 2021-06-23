@@ -15,7 +15,7 @@ To train a model in FEDn you provide the client code (in 'client') as a tarball.
 ```bash
 tar -cf mnist.tar client
 gzip mnist.tar
-cp mnist.tar.gz packages/
+cp mnist.tar.gz package/
 ```
 
 Navigate to 'https://localhost:8090/start' and follow the link to 'context' to upload the compute package. 
