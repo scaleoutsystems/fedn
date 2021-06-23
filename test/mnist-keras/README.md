@@ -18,7 +18,7 @@ gzip mnist.tar
 cp mnist.tar.gz packages/
 ```
 
-Navigate to 'https://localhost:8090/start' and follow the link to 'context' to upload the compute package. 
+Navigate to 'https://localhost:8090' and follow the link to 'context' to upload the compute package. 
  
 ## Creating a seed model
 The baseline CNN is specified in the file 'client/init_model.py'. This script creates an untrained neural network and serializes that to a file, which is uploaded as the seed model for federated training. For convenience we ship a pregenerated seed model in the 'seed/' directory. If you wish to alter the base model, edit 'init_model.py' and regenerate the seed file (install dependencies as needed):
