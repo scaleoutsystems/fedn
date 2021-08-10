@@ -1,6 +1,7 @@
 import click
 import uuid
 import yaml
+import time
 
 from .main import main
 
@@ -34,6 +35,7 @@ def run_cmd(ctx):
 @click.option('-va', '--validator', required=False, default=True)
 @click.option('-tr', '--trainer', required=False, default=True)
 @click.option('-in', '--init', required=False, default=None, help='Set to a filename to (re)init client from file state.')
+@click.option('-l','--logfile',required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")), help='Set logfile for client log to file.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
                verify_cert,preferred_combiner, validator, trainer, init):
@@ -47,15 +49,27 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
         with open(config['init'], 'r') as file:
             try:
                 settings = dict(yaml.safe_load(file))
-            except yaml.YAMLError as e:
+            except Exception as e:
                 print('Failed to read config from settings file, exiting.',flush=True)
-                raise(e)
+                return
+                #raise(e)
 
         # Read/overide settings from config file
         if 'controller' in settings:
             reducer_config = settings['controller']
             for key,val in reducer_config.items():
                 config[key] = val
+
+    try:
+        if config['discover_host'] is None or \
+            config['discover_host'] == '' or \
+            config['discover_host'] is None or \
+            config['discover_port'] == '':
+            print("Missing required configuration: discover_host, discover_port",flush=True)
+            return
+    except Exception as e:
+        print("Could not load config appropriately. Check config", flush=True)
+        return
 
     from fedn.client import Client
     client = Client(config)

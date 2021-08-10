@@ -1,0 +1,6 @@
+This is an example file! Please replace with downloading a file from the reducer!
+network_id: reducer-network
+controller:
+    discover_host: reducer
+    discover_port: 8090
+    token: reducer_token

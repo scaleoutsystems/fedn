@@ -421,6 +421,8 @@ class ReducerRestService:
             else:
                 combiner = self.control.find_available_combiner()
 
+            if combiner is None:
+                return jsonify({'status': 'retry'})
             ## Check that a framework has been selected prior to assigning clients.
             framework = self.control.statestore.get_framework()
             if not framework:
@@ -601,9 +603,24 @@ class ReducerRestService:
                                    configured=True
                                    )
 
-        @app.route('/config', methods=['GET'])
+        @app.route('/config/download', methods=['GET'])
         def config_download():
-            config = {}
+
+            chk_string = ""
+            name = self.control.get_compute_context()
+            if name is None or name == '':
+                chk_string = ''
+            else:
+                file_path = os.path.join(UPLOAD_FOLDER, name)
+                print("trying to get {}".format(file_path))
+                from fedn.utils.checksum import md5
+
+                try:
+                    sum = str(md5(file_path))
+                except FileNotFoundError as e:
+                    sum = ''
+                chk_string = "checksum: {}".format(sum)
+
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
@@ -612,18 +629,23 @@ class ReducerRestService:
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    token: {token}""".format(network_id=network_id,
+    token: {token}
+    {chk_string}""".format(network_id=network_id,
                              discover_host=discover_host,
                              discover_port=discover_port,
-                             token=token)
+                             token=token,
+                             chk_string=chk_string)
 
             from io import BytesIO
             from flask import send_file
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))
             obj.seek(0)
-            return send_file(obj, as_attachment=True, attachment_filename='config.yaml', mimetype='application/x-yaml')
-            # return config
+            return send_file(obj,
+                             as_attachment=True,
+                             attachment_filename='client.yaml',
+                             mimetype='application/x-yaml')
+
 
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
@@ -687,6 +709,29 @@ controller:
                 mutex.release()
 
             return render_template('context.html')
+
+        @app.route('/checksum', methods=['GET', 'POST'])
+        def checksum():
+
+            #sum = ''
+            name = request.args.get('name', None)
+            if name == '' or name is None:
+                name = self.control.get_compute_context()
+                if name == None or name == '':
+                    return jsonify({})
+
+            file_path = os.path.join(UPLOAD_FOLDER, name)
+            print("trying to get {}".format(file_path))
+            from fedn.utils.checksum import md5
+
+            try:
+                sum = str(md5(file_path))
+            except FileNotFoundError as e:
+                sum = ''
+
+            data = {'checksum': sum}
+            from flask import jsonify
+            return jsonify(data)
 
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),

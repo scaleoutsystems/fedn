@@ -1,0 +1,59 @@
+name: Build fedn reducer and combiner on release
+
+on:
+  release:
+    types: [published]
+
+
+jobs:
+
+  build_and_push_to_registries:
+
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      working-directory: .
+    permissions:
+      packages: write
+      contents: read
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Setup variables
+      id: wf-vars
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+      run: |
+        echo "name of github basebranch is ${BASE_BRANCH}"
+        BRANCH=${GITHUB_REF##*/}
+        IMAGE_TAG="$BRANCH"
+        echo ::set-output name=IMAGE_TAG::$IMAGE_TAG
+
+
+    - name: Log in to GitHub Docker Registry
+      uses: docker/login-action@v1
+      with:
+        registry: docker.pkg.github.com
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push to GitHub
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: docker.pkg.github.com/${{ github.repository }}/fedn-reducer:master,docker.pkg.github.com/${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},docker.pkg.github.com/${{ github.repository }}/fedn-combiner:master,docker.pkg.github.com/${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        file: components/base/Dockerfile
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push to Docker
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: scaleoutsystems/fedn-reducer:master,scaleoutsystems/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},scaleoutsystems/fedn-combiner:master,scaleoutsystems/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        file: components/base/Dockerfile

@@ -1,5 +1,5 @@
 import sys
-import tensorflow as tf 
+import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from data.read_data import read_data
 import pickle
@@ -12,39 +12,39 @@ import numpy as np
 def validate(model,data,settings):
     print("-- RUNNING VALIDATION --", flush=True)
 
-    # The data, split between train and test sets. We are caching the partition in 
-    # the container home dir so that the same data subset is used for 
-    # each iteration. 
+    # The data, split between train and test sets. We are caching the partition in
+    # the container home dir so that the same data subset is used for
+    # each iteration.
 
 
     # Training error (Client validates global model on same data as it trains on.)
     try:
-        x_train = np.save('/app/local_dataset/x_train.npz')
-        y_train = np.save('/app/local_dataset/y_train.npz')
+        x_train = np.load('/tmp/local_dataset/x_train.npz')
+        y_train = np.load('/tmp/local_dataset/y_train.npz')
     except:
         (x_train, y_train, classes) = read_data(data,
                                                 nr_examples=settings['training_samples'],
                                                 trainset=True)
         try:
-            os.mkdir('/app/local_dataset')
-            np.save('/app/local_dataset/x_train.npz', x_train)
-            np.save('/app/local_dataset/y_train.npz', y_train)
+            os.mkdir('/tmp/local_dataset')
+            np.save('/tmp/local_dataset/x_train.npz', x_train)
+            np.save('/tmp/local_dataset/y_train.npz', y_train)
 
         except:
             pass
 
     # Test error (Client has a small dataset set aside for validation)
     try:
-        x_test = np.save('/app/local_dataset/x_test.npz')
-        y_test = np.save('/app/local_dataset/y_test.npz')
+        x_test = np.load('/tmp/local_dataset/x_test.npz')
+        y_test = np.load('/tmp/local_dataset/y_test.npz')
     except:
         (x_test, y_test, classes) = read_data(data,
                                                 nr_examples=settings['test_samples'],
                                                 trainset=False)
         try:
-            os.mkdir('/app/local_dataset')
-            np.save('/app/local_dataset/x_test.npz', x_test)
-            np.save('/app/local_dataset/y_test.npz', y_test)
+            os.mkdir('/tmp/local_dataset')
+            np.save('/tmp/local_dataset/x_test.npz', x_test)
+            np.save('/tmp/local_dataset/y_test.npz', y_test)
 
         except:
             pass
@@ -64,8 +64,8 @@ def validate(model,data,settings):
     except Exception as e:
         print("failed to validate the model {}".format(e),flush=True)
         raise
-    
-    report = { 
+
+    report = {
                 "classification_report": clf_report,
                 "training_loss": model_score[0],
                 "training_accuracy": model_score[1],
@@ -91,9 +91,8 @@ if __name__ == '__main__':
     from models.mnist_model import create_seed_model
     model = create_seed_model()
     model.set_weights(weights)
-    
-    report = validate(model,'/app/data/mnist.npz',settings)
+
+    report = validate(model,'../data/mnist.npz',settings)
 
     with open(sys.argv[2],"w") as fh:
         fh.write(json.dumps(report))
-

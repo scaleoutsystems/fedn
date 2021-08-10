@@ -41,6 +41,8 @@ class Client:
             client-combiner assignment behavior.
         """
 
+        self.state = None
+        self.error_state = False
         from fedn.common.net.connect import ConnectorClient, Status
         self.connector = ConnectorClient(config['discover_host'],
                                          config['discover_port'],
@@ -53,6 +55,13 @@ class Client:
                                          verify_cert=config['verify_cert'])
                                          
         self.name = config['name']
+        import time
+        dirname = time.strftime("%Y%m%d-%H%M%S")
+        self.run_path = os.path.join(os.getcwd(), dirname)
+        os.mkdir(self.run_path)
+
+        from fedn.utils.logger import Logger
+        self.logger = Logger(to_file=config['logfile'],file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
 
@@ -74,13 +83,23 @@ class Client:
                 if retval:
                     break
                 time.sleep(60)
-                print("No compute package availabe... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                print("No compute package available... retrying in 60s Trying {} more times.".format(tries),flush=True)
                 tries -= 1
+
+            if retval:
+                if not 'checksum' in config:
+                    print("\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",flush=True)
+                else:
+                    checks_out = pr.validate(config['checksum'])
+                    if not checks_out:
+                        print("Validation was enforced and invalid, client closing!")
+                        self.error_state = True
+                        return
 
             if retval:
                 pr.unpack()
 
-            self.dispatcher = pr.dispatcher()
+            self.dispatcher = pr.dispatcher(self.run_path)
             try:
                 print("Running Dispatcher for entrypoint: startup", flush=True)
                 self.dispatcher.run_cmd("startup")
@@ -93,7 +112,11 @@ class Client:
                                     'train': {'command': 'python3 train.py'},
                                     'validate': {'command': 'python3 validate.py'}}}
             dispatch_dir = os.getcwd()
-            self.dispatcher = Dispatcher(dispatch_config, dispatch_dir)
+            from_path = os.path.join(os.getcwd(),'client')
+
+            from distutils.dir_util import copy_tree
+            copy_tree(from_path, run_path)
+            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
         if 'model_type' in client_config.keys():
             self.helper = get_helper(client_config['model_type'])
@@ -489,5 +512,7 @@ class Client:
                 if cnt > 5:
                     print("CLIENT active", flush=True)
                     cnt = 0
+                if self.error_state:
+                    return
         except KeyboardInterrupt:
             print("ok exiting..")
