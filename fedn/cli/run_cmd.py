@@ -46,9 +46,10 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
         with open(config['init'], 'r') as file:
             try:
                 settings = dict(yaml.safe_load(file))
-            except yaml.YAMLError as e:
+            except Exception as e:
                 print('Failed to read config from settings file, exiting.',flush=True)
-                raise(e)
+                return
+                #raise(e)
 
         # Read/overide settings from config file
         if 'controller' in settings:

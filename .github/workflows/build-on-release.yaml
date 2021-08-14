@@ -6,9 +6,9 @@ on:
 
 
 jobs:
- 
+
   build_and_push_to_registries:
-    
+
     runs-on: ubuntu-latest
     env:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
@@ -18,9 +18,9 @@ jobs:
       packages: write
       contents: read
     steps:
-    
+
     - uses: actions/checkout@v2
-  
+
     - name: Setup variables
       id: wf-vars
       env:
@@ -55,5 +55,5 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ github.repository }}/fedn-reducer:master,${{ github.repository }}/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},${{ github.repository }}/fedn-combiner:master,${{ github.repository }}/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+        tags: scaleoutsystems/fedn-reducer:master,scaleoutsystems/fedn-reducer:${{ steps.wf-vars.outputs.IMAGE_TAG }},scaleoutsystems/fedn-combiner:master,scaleoutsystems/fedn-combiner:${{ steps.wf-vars.outputs.IMAGE_TAG }}
         file: components/base/Dockerfile
