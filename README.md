@@ -94,5 +94,8 @@ All pull requests will be considered and are much appreciated. We are currently 
 
 For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. You might also want to use a Dockerfile for the client that installs fedn from your local clone of FEDn, alternatively mounts the source. 
 
+## Organizational collaborators, contributors and supporters 
+<img src="docs/img/logos/Scaleout.png" width="250"> <img src="docs/img/logos/UU.png" width="200"> <img src="docs/img/logos/Scania.png" width="250">
+
 ## License
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
