@@ -11,6 +11,9 @@ pip install fedn
 ```
 
 ## The compute package 
+
+![alt-text](img/ComputePackageOverview.png?raw=true "Compute package overview")
+
 The *compute package* is a bundle of the code to be executed by each data-provider/client. There only formal requirements on the compute package is that it defines a training entrypoint and a validation entrypoint. This also naturally involves relevant code to read local data. By default, the fedn client dispatcher will assume that the following SISO programs can be executed from the root of the compute package:   
 
 ```
