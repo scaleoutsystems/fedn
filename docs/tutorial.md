@@ -26,7 +26,7 @@ Typically, the actual model is defined in a small library, and does not depend o
 
 
 ## Default/suggested client structure
-We recommend the following project structure for a client implementation: 
+We recommend to use the client structure followed by most example projects [here](https://github.com/scaleoutsystems/examples).
 
 ## Training entrypoint
 ![alt-text](img/TrainSISO.png?raw=true "Training entrypoint")
