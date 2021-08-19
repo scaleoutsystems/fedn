@@ -11,18 +11,29 @@ pip install fedn
 ```
 
 ## The compute package 
-The *compute package* is a bundle of the code to be executed by each data-provider/client. There only formal requirements on the compute package is that it defines a training entrypoint and a validation entrypoint. This also naturally involves relevant code to read local data. By default, the fedn client dispatcher will assume that the following SISO programs can be executed from the root of the compute package:   
+
+![alt-text](img/ComputePackageOverview.png?raw=true "Compute package overview")
+
+The *compute package* is a tar.gz bundle of the code to be executed by each data-provider/client. This package is uploaded to the Reducer upon initialization of the FEDN Network (along with the initial model). When a client connects to the network, it downloads and unpacks the package locally and are then ready to participate in training and/or validation. 
+
+The logic is illustrated in the above figure. When the [FEDn client](https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/client.py) recieves a model update request from the combiner, it calls upon a Dispatcher that looks up entry point definitions in the compute package. These entrypoints define commands executed by the client to update/train or validate a model. Typically, the actual model is defined in a small library, and does not depend on FEDn. 
+
+The only formal requirements on the compute package is that it defines a training entrypoint and a validation entrypoint. This also naturally involves relevant code to read local data. By default, the fedn client dispatcher will assume that the following SISO programs can be executed from the root of the compute package:   
 
 ```
 python train.py model_in model_out 
 ```
-where the format of the input and output files (model updates) are dependent on the ML framework used. A helper class defines routines for serializaion and de-serialization of model updates. 
+where the format of the input and output files (model updates) are dependent on the ML framework used. A [helper class](https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py) defines serializaion and de-serialization of model updates. 
 
 For validations it is a requirement that the output is valid json: 
 
 ```
 python validate.py model_in validation.json 
 ```
+
+![alt-text](img/TrainSISO.png?raw=true "Training entrypoint")
+
+
 
 In a Linux terminal, create a new folder 'fraud-detection' with the following structure:
 ```
