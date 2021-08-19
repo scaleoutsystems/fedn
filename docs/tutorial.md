@@ -31,7 +31,7 @@ For validations it is a requirement that the output is valid json:
 python validate.py model_in validation.json 
 ```
 
-![alt-text](img/ComputePackageOverview.png?raw=true "Compute package overview")
+![alt-text](img/TrainSISO.png?raw=true "Training entrypoint")
 
 
 
