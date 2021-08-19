@@ -2,14 +2,6 @@
 
 This tutorial walks you through the key step done by the *model initiator* when setting up a federated project. [More about the key roles involved in the lifecycle of a federated project](roles.md). The example is based on the well-known MNIST example project. The task is to classify hand-written digits using a simple ANN-model.   
 
-## Prerequisites
-
-Install fedn:
-
-```bash 
-pip install fedn
-```
-
 ## The compute package explained
 
 ![alt-text](img/ComputePackageOverview.png?raw=true "Compute package overview")
@@ -107,6 +99,3 @@ if __name__ == '__main__':
 ## Data access 
 There are many possible ways to interact with the local dataset. In principle, the only requirement is that the train and validate endpoints are able to correctly read and use the data. In practice, it is then necessary to make some assumption on the local environemnt when writing train.py and validate.py. This is best explained by looking at the code above. Here we assume that the dataset is present in a file called "mnist.npz" in a folder "data" one level up in the file hierarchy relative to the exection of train.py. Then, independent on the preferred way to run the client (native, Docker, K8s etc) this structure needs to be maintained for this particular compute package. Note however, that there are many ways to accompish this on a local operational level.  
 
-
-
-## Providing the runtime environment
