@@ -98,7 +98,7 @@ Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with
 Scaleout offers flexible support agreements, reach out at (https://scaleoutsystems.com) to inquire about Enterprise support.
 
 ## Making contributions
-All pull requests will be considered and are much appreciated. We are currently managing issues and the release roadmap in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
+All pull requests will be considered and are much appreciated. Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
 
 For development, it is convenient to use the docker-compose templates config/reducer-dev.yaml and config/combiner-dev.yaml. These files will let you conveniently rebuild the reducer and combiner images with the current local version of the fedn source tree instead of the latest stable release. You might also want to use a Dockerfile for the client that installs fedn from your local clone of FEDn, alternatively mounts the source. 
 
