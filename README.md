@@ -1,7 +1,5 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
-[![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/KMg4VwszAd)  
-
 ## What is FEDn?
 FEDn is an open-source, modular and ML-framework agnostic framework for Federated Machine Learning (FedML) developed and maintained by Scaleout Systems. FEDn enables highly scalable cross-silo and cross-device use-cases over *FEDn networks*.   
   
