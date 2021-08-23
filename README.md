@@ -9,7 +9,7 @@ FEDn lets you seamlessly go from local development of a federated model in a pse
 - **A ML-framework agnostic black-box design**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial is available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development.
 - **Horizontally scalable through a tiered aggregation scheme**. FEDn is designed to allow for massive horizontal scaling. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
 - **Built for real-world distributed computing scenarios**. FEDn is built groud up to support real-world, production deployments. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.
-- **A WebUI to manage alliances, track training progress and follow client validations in real time **.   
+- **WebUI to manage alliances, track training progress and follow client validations in real time**.   
 
 ## Documentation 
 More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/). 
