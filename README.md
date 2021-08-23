@@ -1,4 +1,7 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
+
+[![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/KMg4VwszAd)  
+
 ## What is FEDn?
 FEDn is an open-source, modular and ML-framework agnostic framework for Federated Machine Learning (FedML) developed and maintained by Scaleout Systems. FEDn enables highly scalable cross-silo and cross-device use-cases over *FEDn networks*.   
   
@@ -70,11 +73,15 @@ https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
 #### Updating/changing the compute package and/or the seed model
 By design, it is not possible to simply delete the compute package to reset the model -  this is a security constraint enforced to not allow for arbitrary code  replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (http://localhost:8081), log in (credentials are found/set in config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
 
-## Using FEDn in STACKn (relies on Kubernetes)
-[STACKn](https://github.com/scaleoutsystems/stackn), Scaleout's cloud native (Fed)MLOps platform lets a user set up, monitor and manage FEDn networks (base services, reducer and combiners) in Kubernetes as 'Apps' deployed from a WebUI. STACKn also provides useful additional functionality such as Jupyter Labs, storage managmement, and model serving for the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. Refer to the STACKn documentation to set it up on your own cluster, or sign up on the waiting list for a private-beta SaaS deployment at https://scaleoutsystems.com/.   
-
 ## Fully distributed deployment
-The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment).     
+The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
+
+## Using FEDn in Scaleout Studio 
+[STACKn](https://github.com/scaleoutsystems/stackn), Scaleout's cloud native (Fed)MLOps platform helps a user set up, monitor and manage FEDn networks in Kubernetes as 'Apps' deployed from a WebUI. Scaleout Studio is a hosted SaaS intended to accelerate development of Decentralized AI applications, and provides useful functionality such as Jupyter Labs, storage managmement, and model serving for the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. End-to-end example here: https://www.youtube.com/watch?v=-a_nIzkSumI
+
+- Sign up for private-beta access at https://scaleoutsystems.com/.   
+- [Deploy STACKn on your own infrastructure] (https://github.com/scaleoutsystems/stackn) 
+    
 
 ## Where to go from here
 Additional example projects/clients:
@@ -86,8 +93,11 @@ Additional example projects/clients:
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
 - Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/Li-Ju666/FEDn-client-fraud_keras  
  
-## Support
-For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you do not find the information that you're looking for, have a bug report, or a feature request, start a ticket directly here on GitHub, or reach out to Scaleout (https://scaleoutsystems.com) to inquire about Enterprise support.
+## Community support 
+Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
+
+## Commercial support
+Scaleout Systems offers flexible support agreements, reach out at (https://scaleoutsystems.com) to inquire about Enterprise support.
 
 ## Making contributions
 All pull requests will be considered and are much appreciated. We are currently managing issues and the release roadmap in an external tracker (Jira). Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
