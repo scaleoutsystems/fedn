@@ -1,22 +1,18 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
-## What is FEDn?
 FEDn is an open-source, modular and ML-framework agnostic framework for Federated Machine Learning (FedML) developed and maintained by Scaleout Systems. FEDn enables highly scalable cross-silo and cross-device use-cases over *FEDn networks*.   
   
 ## Core Features
 
 FEDn lets you seamlessly go from local development of a federated model in a pseudo-distributed sandbox to live production deployments in distributed, heterogeneous environments. Three key design objectives are guiding the project: 
 
-### A ML-framework agnostic black-box design
-Client model updates and model validations are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial neural network models are available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development. A developer follows a structured design pattern to implement clients and there is a lot of flexibility in the toolchains used.  
+- **A ML-framework agnostic black-box design**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial is available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development.
+- **Horizontally scalable through a tiered aggregation scheme**. FEDn is designed to allow for massive horizontal scaling. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
+- **Built for real-world distributed computing scenarios**. FEDn is built groud up to support real-world, production deployments. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.
+- **A WebUI to manage alliances, track training progress and follow client validations in real time **.   
 
-### Horizontally scalable through a tiered aggregation scheme 
-FEDn is designed to allow for flexible and easy horizontal scaling to handle growing numbers of clients and to meet latency and throughput requirements. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for 40 clients with large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148. 
-
-### Built for real-world distributed computing scenarios 
-FEDn is built groud up to support real-world, production deployments in the distributed cloud. FEDn relies on proven best-practices in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.  
-
-More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/#/architecture). 
+## Documentation 
+More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/). 
 
 ## Getting started 
 
