@@ -1,15 +1,13 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
-FEDn is an open-source, modular and ML-framework agnostic framework for Federated Machine Learning (FedML) developed and maintained by Scaleout Systems. FEDn enables highly scalable cross-silo and cross-device use-cases over *FEDn networks*.   
+FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments, with performance supporting both to cross-silo and cross-device use-cases.    
   
 ## Core Features
-
-FEDn lets you seamlessly go from local development of a federated model in a pseudo-distributed sandbox to live production deployments in distributed, heterogeneous environments. Three key design objectives are guiding the project: 
 
 - **A ML-framework agnostic black-box design**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial is available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development.
 - **Horizontally scalable through a tiered aggregation scheme**. FEDn is designed to allow for massive horizontal scaling. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
 - **Built for real-world distributed computing scenarios**. FEDn is built groud up to support real-world, production deployments. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.
-- **WebUI to manage alliances, track training progress and follow client validations in real time**.   
+- **WebUI to manage alliances, track training progress and follow client validations in real time**. The FEDn frontend lets you efficiently manage and track events and training progress in the alliance, helping you monitor both client and server performance.   
 
 ## Documentation 
 More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/). 
