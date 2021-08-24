@@ -65,7 +65,7 @@ Make sure that you can access the Reducer UI at https://localhost:8090 and that 
 ### Train a federated model
 Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set the environment up to train a model for digits classification using the MNIST dataset: 
 
-https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
+https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
 #### Updating/changing the compute package and/or the seed model
 By design, it is not possible to simply delete the compute package to reset the model -  this is a security constraint enforced to not allow for arbitrary code  replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (http://localhost:8081), log in (credentials are found/set in config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
@@ -77,15 +77,15 @@ By design, it is not possible to simply delete the compute package to reset the 
 The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment).     
 
 ## Where to go from here
-Additional example projects/clients:
+Explore additional projects/clients:
 
-- PyTorch version of the MNIST getting-started example in test/mnist-pytorch
+- PyTorch version of the MNIST getting-started example: https://github.com/scaleoutsystems/examples/tree/main/mnist-pytorch
 - Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
 - Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
-- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/Li-Ju666/FEDn-client-fraud_keras  
- 
+- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/scaleoutsystems/FEDn-client-fraud_keras
+
 ## Support
 For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you do not find the information that you're looking for, have a bug report, or a feature request, start a ticket directly here on GitHub, or reach out to Scaleout (https://scaleoutsystems.com) to inquire about Enterprise support.
 
