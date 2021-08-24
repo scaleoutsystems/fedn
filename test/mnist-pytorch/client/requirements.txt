@@ -1,4 +1,0 @@
-numpy
-torch
-sklearn
-pandas
