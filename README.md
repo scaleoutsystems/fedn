@@ -1,20 +1,22 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
-FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments, with performance supporting both to cross-silo and cross-device use-cases.    
+FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments, with performance supporting both to cross-silo and cross-device use-cases.    
   
 ## Core Features
 
-- **A ML-framework agnostic black-box design**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch artificial is available out-of-the-box, and support for many other model types, including select models from SKLearn, are in active development.
-- **Horizontally scalable through a tiered aggregation scheme**. FEDn is designed to allow for massive horizontal scaling. This is achieved by a tiered architecture where multiple independent combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
-- **Built for real-world distributed computing scenarios**. FEDn is built groud up to support real-world, production deployments. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A central assumption is that data clients should not have to expose any ingress ports.
+- **ML-framework agnostic**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch is available out-of-the-box, and support for many other model types, including models from SKLearn, are in active development.
+- **Horizontally scalable through a tiered aggregation scheme**. FEDn allows for massive horizontal scaling. This is achieved by a tiered architecture where multiple combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
+- **Built for real-world production scenarios**. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A key feature is that data clients do not have to expose any ingress ports.
 - **WebUI to manage alliances, track training progress and follow client validations in real time**. The FEDn frontend lets you efficiently manage and track events and training progress in the alliance, helping you monitor both client and server performance.   
 
 ## Documentation 
-More details about architecture and implementation can be found in the [Documentation](https://scaleoutsystems.github.io/fedn/). 
+More details about the architecture and implementation:  
+- [Documentation](https://scaleoutsystems.github.io/fedn/)
+- [Paper](https://arxiv.org/abs/2103.00148)
 
 ## Getting started 
 
-The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture. FEDn projects are templated projects that contain the user-provided model application components needed for federated training, referred to as the *compute package*. We bundle two such test projects in the 'test' folder, and many more are available in external repositories. These projects can be used as templates for creating your own custom federated model. 
+The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture.  
 
 Clone the repository (make sure to use git-lfs!) and follow these steps:
 
@@ -58,27 +60,24 @@ $ docker-compose -f config/combiner.yaml -f config/private-network.yaml up
 Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step. You should see the combiner listed on https://localhost:8090/network. 
 
 ### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set the environment up to train a model for digits classification using the MNIST dataset: 
+Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
 
 https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
-
-#### Updating/changing the compute package and/or the seed model
-By design, it is not possible to simply delete the compute package to reset the model -  this is a security constraint enforced to not allow for arbitrary code  replacement in an already configured federation. To restart and reseed the alliance in development mode navigate to MongoExpress (http://localhost:8081), log in (credentials are found/set in config/base-services.yaml) and delete the entire collection 'fedn-test-network', then restart all services.
 
 ## Fully distributed deployment
 The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
 
 ## Using FEDn in Scaleout Studio 
-[STACKn](https://github.com/scaleoutsystems/stackn), Scaleout's cloud native (Fed)MLOps platform helps a user set up, monitor and manage FEDn networks in Kubernetes as 'Apps' deployed from a WebUI. Scaleout Studio is a hosted SaaS intended to accelerate development of Decentralized AI applications, and provides useful functionality such as Jupyter Labs, storage managmement, and model serving for the federated model using e.g. Tensorflow Serving, TorchServe, MLflow or custom serving. End-to-end example here: https://www.youtube.com/watch?v=-a_nIzkSumI
+Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applications. Studio lets you deploy, manage and monitor FEDn networks as apps deployed to Kubernetes, all from a graphical interface. In addtion to FEDn, Studio provides developer tools (e.g. Jupyter Labs and VSCode), storage managmement (Kubernetes volumes, minio, MongoDB etc), and model serving for the federated model (Tensorflow Serving, TorchServe, MLflow or custom serving). End-to-end example here: https://www.youtube.com/watch?v=-a_nIzkSumI
 
 - Sign up for private-beta access at https://scaleoutsystems.com/.   
 - [Deploy STACKn on your own infrastructure] (https://github.com/scaleoutsystems/stackn) 
-    
+
 
 ## Where to go from here
 Additional example projects/clients:
 
-- PyTorch version of the MNIST getting-started example in test/mnist-pytorch
+- PyTorch version of the MNIST example in test/mnist-pytorch
 - Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
 - Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
