@@ -1,5 +1,0 @@
-pandas
-sklearn
-torch
-torchvision
-

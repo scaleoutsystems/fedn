@@ -64,7 +64,7 @@ Make sure that you can access the Reducer UI at https://localhost:8090 and that 
 ### Train a federated model
 Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
 
-https://github.com/scaleoutsystems/fedn/blob/master/test/mnist-keras/README.md
+https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
 ## Fully distributed deployment
 The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
@@ -77,9 +77,9 @@ Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applicatio
 
 
 ## Where to go from here
-Additional example projects/clients:
+Explore additional projects/clients:
 
-- PyTorch version of the MNIST example in test/mnist-pytorch
+- PyTorch version of the MNIST getting-started example: https://github.com/scaleoutsystems/examples/tree/main/mnist-pytorch
 - Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
 - Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
@@ -88,6 +88,9 @@ Additional example projects/clients:
  
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
+
+## Support
+For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you do not find the information that you're looking for, have a bug report, or a feature request, start a ticket directly here on GitHub, or reach out to Scaleout (https://scaleoutsystems.com) to inquire about Enterprise support.
 
 ## Commercial support
 Scaleout offers flexible support agreements, reach out at (https://scaleoutsystems.com) to inquire about Enterprise support.
@@ -98,6 +101,7 @@ All pull requests will be considered and are much appreciated. Reach out to one 
 - [CONTRIBUTING.md](https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md)
 
 ## Citation
+
 If you use FEDn in your research, please cite: 
 ```
 @article{ekmefjord2021scalable,
