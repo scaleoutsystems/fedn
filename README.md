@@ -89,9 +89,6 @@ Explore additional projects/clients:
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
 
-## Support
-For more details please check out the FEDn documentation (https://scaleoutsystems.github.io/fedn/). If you do not find the information that you're looking for, have a bug report, or a feature request, start a ticket directly here on GitHub, or reach out to Scaleout (https://scaleoutsystems.com) to inquire about Enterprise support.
-
 ## Commercial support
 Scaleout offers flexible support agreements, reach out at (https://scaleoutsystems.com) to inquire about Enterprise support.
 
