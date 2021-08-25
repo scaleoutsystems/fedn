@@ -1,7 +1,9 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
 FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments, with performance supporting both to cross-silo and cross-device use-cases.    
-  
+
+[Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
+
 ## Core Features
 
 - **ML-framework agnostic**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch is available out-of-the-box, and support for many other model types, including models from SKLearn, are in active development.
@@ -92,6 +94,8 @@ Scaleout offers flexible support agreements, reach out at (https://scaleoutsyste
 
 ## Making contributions
 All pull requests will be considered and are much appreciated. Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
+
+- [CONTRIBUTING.md](https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md)
 
 ## Organizational collaborators, contributors and supporters 
 <img src="docs/img/logos/Scaleout.png" width="250"> <img src="docs/img/logos/UU.png" width="200"> <img src="docs/img/logos/Scania.png" width="250">
