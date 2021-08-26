@@ -126,13 +126,11 @@ class MINIORepository(Repository):
     def delete_objects(self):
         objects_to_delete = self.list_artifacts()
         try:
-            # force evaluation of the remove_objects() call by iterating over
-            # the returned value.
             # Remove list of objects.
             errors = self.client.remove_objects(
                 self.bucket, objects_to_delete
             )
-            for error in errors:
-                print("error occured when deleting object", error)
+            for del_err in errors:
+                print("Deletion Error: {}".format(del_err))
         except:
-            print("error occured when deleting object list")
+            print('Could not delete objects: {}'.format(objects_to_delete))
