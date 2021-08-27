@@ -1,4 +1,13 @@
 # Release Notes
+## v0.2.5
+### What's new?
+ - The examples previously residing in 'test' have been refactored into a separate repository: https://github.com/scaleoutsystems/examples 
+ - Docker-compose templates for Minio upgraded to support latest version 
+
+### Other
+ - Documentation updated
+ - Introduce Discord community server
+ 
 
 ## v0.2.4
 ### What's new?
