@@ -110,7 +110,7 @@ If you use FEDn in your research, please cite:
 ```
 
 ## Organizational collaborators, contributors and supporters 
-<img src="docs/img/logos/Scaleout.png" width="250"> <img src="docs/img/logos/UU.png" width="200"> <img src="docs/img/logos/Scania.png" width="250">
+<img src="img/logos/Scaleout.png" width="250"> <img src="img/logos/UU.png" width="200"> <img src="img/logos/Scania.png" width="250">
 
 ## License
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
