@@ -30,13 +30,13 @@ We provide docker-compose templates for a minimal standalone, pseudo-distributed
 We need to make sure that all services deployed on our single host can communicate on the same docker network. Therefore, our provided docker-compose templates use a default external network 'fedn_default'. First, create this network: 
 
 ````bash 
-$ docker network create fedn_default
+docker network create fedn_default
 ````
 
 2. Deploy the base services (Minio and MongoDB)  
 
 ````bash 
-$ docker-compose -f config/base-services.yaml -f config/private-network.yaml up 
+docker-compose -f config/base-services.yaml -f config/private-network.yaml up 
 ````
 
 Make sure you can access the following services before proceeding to the next steps: 
@@ -47,8 +47,10 @@ Make sure you can access the following services before proceeding to the next st
 
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
+Make sure that you can access the Reducer UI at https://localhost:8090. 
+
 ````bash 
-$ docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
+docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
 ````
 
 4. Start a combiner  
@@ -56,13 +58,11 @@ $ docker-compose -f config/reducer.yaml -f config/private-network.yaml up
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
-$ docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
+docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
 ````
 
-Make sure that you can access the Reducer UI at https://localhost:8090 and that the combiner is up and running before proceeding to the next step. You should see the combiner listed on https://localhost:8090/network. 
-
 ### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with a base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
+Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with an initial base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
 
 https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
@@ -84,7 +84,7 @@ Explore additional projects/clients:
 - Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
 - VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
 - Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
-- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/Li-Ju666/FEDn-client-fraud_keras  
+- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/scaleoutsystems/FEDn-client-fraud_keras  
  
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
@@ -110,7 +110,7 @@ If you use FEDn in your research, please cite:
 ```
 
 ## Organizational collaborators, contributors and supporters 
-<img src="img/logos/Scaleout.png" width="250"> <img src="img/logos/UU.png" width="200"> <img src="img/logos/Scania.png" width="250">
+<img src="docs/img/logos/Scaleout.png" width="250"> <img src="docs/img/logos/UU.png" width="200"> <img src="docs/img/logos/Scania.png" width="250">
 
 ## License
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
