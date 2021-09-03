@@ -2,7 +2,7 @@
 
 FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
 
-[Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
+Community support: [Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
 
 ## Core Features
 
