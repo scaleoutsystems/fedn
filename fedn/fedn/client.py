@@ -413,7 +413,7 @@ class Client:
 
     def run(self):
         import time
-        threading.Thread(target=self.run_web, daemon=True).start()
+        #threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state
