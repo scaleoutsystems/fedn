@@ -529,7 +529,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def run(self):
         import signal
-        print("COMBINER:starting {}".format(self.id), flush=True)
+        print("COMBINER: {} started, ready for requests. ".format(self.id), flush=True)
         try:
             while True:
                 signal.pause()

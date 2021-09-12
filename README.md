@@ -2,7 +2,7 @@
 
 FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
 
-[Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
+Community support: [Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
 
 ## Core Features
 
@@ -73,18 +73,14 @@ The deployment, sizing of nodes, and tuning of a FEDn network in production depe
 Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applications. Studio lets you deploy, manage and monitor FEDn networks as apps deployed to Kubernetes, all from a graphical interface. In addtion to FEDn, Studio provides developer tools (e.g. Jupyter Labs and VSCode), storage managmement (Kubernetes volumes, minio, MongoDB etc), and model serving for the federated model (Tensorflow Serving, TorchServe, MLflow or custom serving). End-to-end example here: https://www.youtube.com/watch?v=-a_nIzkSumI
 
 - Sign up for private-beta access at https://scaleoutsystems.com/.   
-- [Deploy STACKn on your own infrastructure] (https://github.com/scaleoutsystems/stackn) 
+- [Deploy STACKn on your own infrastructure](https://github.com/scaleoutsystems/stackn) 
 
 
 ## Where to go from here
-Explore additional projects/clients:
-
-- PyTorch version of the MNIST getting-started example: https://github.com/scaleoutsystems/examples/tree/main/mnist-pytorch
-- Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-keras 
-- Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git 
-- VGG16 trained on cifar-10 with a PyTorch client (cross-silo): https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch 
-- Human activity recognition with a Keras CNN based on the casa dataset (cross-device): https://github.com/scaleoutsystems/FEDn-client-casa-keras 
-- Fraud detection with a Keras auto-encoder (ANN encoder): https://github.com/scaleoutsystems/FEDn-client-fraud_keras  
+- Explore additional projects/clients: https://github.com/scaleoutsystems/examples 
+- Understand the architecture: https://scaleoutsystems.github.io/fedn/#/architecture 
+- Understand the compute package: https://github.com/scaleoutsystems/fedn/blob/master/docs/tutorial.md
+- Deploy a fully distributed network: https://github.com/scaleoutsystems/fedn/blob/master/docs/deployment.md
  
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
