@@ -9,7 +9,6 @@ setup(
     author='Morgan Ekmefjord',
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
-    include_package_data=True,
     py_modules=['fedn'],
     python_requires='>=3.6,<4',
     install_requires=[
