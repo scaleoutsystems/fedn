@@ -74,7 +74,8 @@
             <thead>
             <tr>
                 <th>Name</th>
-                <th>Active clients</th>
+                <th>Active trainers</th>
+                <th>Active validators</th>
                 <th>IP</th>
                 <th>Country</th>
                 <th>Region</th>
@@ -85,7 +86,8 @@
             {% for dict_item in combiner_info %}
             <tr>
                 <td>{{ dict_item['name'] }}</td>
-                <td>{{ dict_item['nr_active_clients'] }}</td>
+                <td>{{ dict_item['nr_active_trainers'] }}</td>
+                <td>{{ dict_item['nr_active_validators'] }}</td>
                 <td>{{ dict_item['ip'] }}</td>
                 <td>{{ dict_item['country'] }}</td>
                 <td>{{ dict_item['region'] }}</td>

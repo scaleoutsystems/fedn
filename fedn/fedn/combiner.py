@@ -419,6 +419,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         status = fedn.Status(status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
         status.log_level = fedn.Status.INFO
+        status.timestamp = str(datetime.now())
+
 
         self.__whoami(status.sender, self)
 
@@ -454,6 +456,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
+        status.timestamp = str(datetime.now())
+
 
         self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
