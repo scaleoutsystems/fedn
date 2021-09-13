@@ -1,7 +1,6 @@
 {% extends "index.html" %}
 
 {% block content %}
-{% if not map_plot %}
 <div class="card">
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
     <script src="/static/dist/js/sigma.min.js"></script>
@@ -55,23 +54,6 @@
 
     });
 </script>
-{% endif %}
-{% if map_plot %}
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">FEDn network (map) </h5>
-    </div>
-    <div class="card-body">
-        <div id="map">
-            <script>
-                var graphs = {{ map_plot | safe }};
-                Plotly.plot('map', graphs, {});
-            </script>
-        </div>
-
-    </div>
-</div>
-{% endif %}
 
 <div class="card">
     <div class="card-header">

@@ -318,6 +318,8 @@ class ReducerRestService:
         # http://localhost:8090/control?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/control', methods=['GET', 'POST'])
         def control():
+            """ Main page for round control. Configure, start and stop global training rounds. """
+
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -478,78 +480,6 @@ class ReducerRestService:
                 return combiner_info
             return False
 
-        def create_map():
-            cities_dict = {
-                'city': [],
-                'lat': [],
-                'lon': [],
-                'country': [],
-                'name': [],
-                'role': [],
-                'size': []
-            }
-
-            from fedn import get_data
-            dbpath = get_data('geolite2/GeoLite2-City.mmdb')
-
-            with geoip2.database.Reader(dbpath) as reader:
-                for combiner in self.control.statestore.list_combiners():
-                    try:
-                        response = reader.city(combiner['ip'])
-                        cities_dict['city'].append(response.city.name)
-
-                        r = 1.0  # Rougly 100km
-                        w = r * math.sqrt(numpy.random.random())
-                        t = 2.0 * math.pi * numpy.random.random()
-                        x = w * math.cos(t)
-                        y = w * math.sin(t)
-                        lat = str(float(response.location.latitude) + x)
-                        lon = str(float(response.location.longitude) + y)
-                        cities_dict['lat'].append(lat)
-                        cities_dict['lon'].append(lon)
-
-                        cities_dict['country'].append(response.country.iso_code)
-
-                        cities_dict['name'].append(combiner['name'])
-                        cities_dict['role'].append('Combiner')
-                        cities_dict['size'].append(10)
-
-                    except geoip2.errors.AddressNotFoundError as err:
-                        print(err)
-
-            with geoip2.database.Reader(dbpath) as reader:
-                for client in self.control.statestore.list_clients():
-                    try:
-                        response = reader.city(client['ip'])
-                        cities_dict['city'].append(response.city.name)
-                        cities_dict['lat'].append(response.location.latitude)
-                        cities_dict['lon'].append(response.location.longitude)
-                        cities_dict['country'].append(response.country.iso_code)
-
-                        cities_dict['name'].append(client['name'])
-                        cities_dict['role'].append('Client')
-                        # TODO: Optionally relate to data size
-                        cities_dict['size'].append(6)
-
-                    except geoip2.errors.AddressNotFoundError as err:
-                        print(err)
-
-            config = self.control.statestore.get_config()
-
-            cities_df = pd.DataFrame(cities_dict)
-            if cities_df.empty:
-                return False
-            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
-                                 color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False, 'size': False,
-                                             'name': True, 'role': True})
-
-            fig.update_geos(fitbounds="locations", showcountries=True)
-            fig.update_layout(title="FEDn network: {}".format(config['network_id']))
-
-            fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return fig
-
         @app.route('/metric_type', methods=['GET', 'POST'])
         def change_features():
             feature = request.args['selected']
@@ -593,9 +523,8 @@ class ReducerRestService:
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
-            map_plot = create_map()
             combiner_info = combiner_stats()
-            return render_template('network.html', map_plot=map_plot, network_plot=True,
+            return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
                                    combiners_plot=combiners_plot,
