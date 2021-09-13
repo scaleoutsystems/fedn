@@ -180,11 +180,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ####################################################################################################################
 
-    #def _log_queue_length(self):
-    #    ql = self.combiner.model_updates.qsize()
-    #    if ql > 0:
-    #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
-
     def __join_client(self, client):
         """ Add a client to the combiner. """
         if not client.name in self.clients.keys():
@@ -269,9 +264,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
-
-        #active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        #nr_active_clients = len(active_clients)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()

@@ -185,11 +185,6 @@ class Client:
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
 
-    def execute(self): 
-        """Handle next message in the inbox. """
-
-
-
     def get_model(self, id):
         """Fetch a model from the assigned combiner. 
 
@@ -262,6 +257,7 @@ class Client:
 
     def _listen_to_model_update_request_stream(self):
         """Subscribe to the model update request stream. """
+
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
@@ -287,6 +283,7 @@ class Client:
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream. """
+
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
@@ -502,8 +499,7 @@ class Client:
     def run_web(self):
         """Starts a local logging UI (Flask app) serving on port 8080. 
         
-        Currently not in use, but can/will be extended in the future
-        to serve client-local UI needs (for example local dashboards). 
+        Currently not in use as default. 
         
         """
         from flask import Flask
