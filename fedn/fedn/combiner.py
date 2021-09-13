@@ -270,12 +270,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
 
-        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        nr_active_clients = len(active_clients)
-        
-        p = response.parameter.add()
-        p.key = "nr_active_clients"
-        p.value = str(nr_active_clients)
+        #active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+        #nr_active_clients = len(active_clients)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()
@@ -286,6 +282,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_active_validators"
         p.value = str(len(active_validators))
+
+        p = response.parameter.add()
+        p.key = "nr_active_clients"
+        p.value = str(len(active_trainers)+len(active_validators))
         
         p = response.parameter.add()
         p.key = "model_id"
@@ -301,19 +301,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "name"
         p.value = str(self.id)
-
-        # Get IP information
-        #try:
-        #    url = 'http://ipinfo.io/json'
-        #    data = requests.get(url)
-        #    combiner_location = json.loads(data.text)
-        #    for key,value in combiner_location.items():
-        #        p = response.parameter.add()
-        #        p.key = str(key)
-        #        p.value = str(value)
-        #except Exception as e:
-        #    print(e,flush=True)
-        #    pass
         
         return response
 

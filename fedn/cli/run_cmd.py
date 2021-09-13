@@ -38,12 +38,12 @@ def run_cmd(ctx):
 @click.option('-l','--logfile',required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")), help='Set logfile for client log to file.')
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert,preferred_combiner, validator, trainer, init):
+               verify_cert,preferred_combiner, validator, trainer, init, logfile):
 
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert,'preferred_combiner':preferred_combiner, 
-              'validator': validator, 'trainer': trainer, 'init': init}
+              'validator': validator, 'trainer': trainer, 'init': init, 'logfile':logfile}
 
     if config['init']:
         with open(config['init'], 'r') as file:
