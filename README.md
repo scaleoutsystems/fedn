@@ -1,15 +1,15 @@
 ![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
-FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
+FEDn is a modular and model agnostic framework for Hierarchical Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
 
 Community support: [Scaleout Discord server](https://discord.gg/KMg4VwszAd) 
 
 ## Core Features
 
 - **ML-framework agnostic**. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch is available out-of-the-box, and support for many other model types, including models from SKLearn, are in active development.
-- **Horizontally scalable through a tiered aggregation scheme**. FEDn allows for massive horizontal scaling. This is achieved by a tiered architecture where multiple combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
-- **Built for real-world production scenarios**. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A key feature is that data clients do not have to expose any ingress ports.
-- **WebUI to manage alliances, track training progress and follow client validations in real time**. The FEDn frontend lets you efficiently manage and track events and training progress in the alliance, helping you monitor both client and server performance.   
+- **Hierarchical Federated Learning for high scalability**. FEDn allows for massive horizontal scaling. This is achieved by a hierarchical architecture where multiple combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see https://arxiv.org/abs/2103.00148.
+- **Built for real-world production scenarios**. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A key feature is that clients do not have to expose any ingress ports.
+- **UI to manage alliances, track training progress and follow client validations in real time**. FEDn has a UI that lets you efficiently track events, training progress, visualize model validations accross the federation, and monitor both client and server performance.   
 
 ## Documentation 
 More details about the architecture and implementation:  
