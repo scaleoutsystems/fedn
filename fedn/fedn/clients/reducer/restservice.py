@@ -483,36 +483,43 @@ class ReducerRestService:
         def client_status():
             client_info = self.control.get_client_info()
             active_clients = combiner_stats()
+            try:
+                for client in active_clients:
+                    active_trainers_str = client['active_trainers']
+                    active_validators_str = client['active_validators']
 
-            for client in active_clients:
-                active_trainers_str = client['active_trainers']
-                active_validators_str = client['active_validators']
+                active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
 
-            active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
-            active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
+                active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
+                active_validators_list = ' '.join(active_validators_str.split(" ")).split()
 
-            active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
-            active_validators_list = ' '.join(active_validators_str.split(" ")).split()
+                active_trainers_list_ = [client for client in client_info if client['name'] in active_trainers_list]
+                active_validators_list_ = [cl for cl in client_info if cl['name'] in active_validators_list]
 
-            active_trainers_list_ = [client for client in client_info if client['name'] in active_trainers_list]
-            active_validators_list_ = [cl for cl in client_info if cl['name'] in active_validators_list]
+                if active_trainers_list_ == active_validators_list_:
+                    new_list = active_validators_list_ + active_trainers_list_
+                    for cl in new_list:
+                        cl['role'] = 'trainer - validator'
+                    active_clients = active_trainers_list_
 
-            if active_trainers_list_ == active_validators_list_:
-                new_list = active_validators_list_ + active_trainers_list_
-                for cl in new_list:
-                    cl['role'] = 'trainer - validator'
-                active_clients = active_trainers_list_
+                else:
+                    for client in active_trainers_list_:
+                        client['role'] = 'trainer'
+                    for cl in active_validators_list_:
+                        cl['role'] = 'validator'
+                    active_clients = active_trainers_list_ + active_validators_list_
 
-            else:
-                for client in active_trainers_list_:
-                    client['role'] = 'trainer'
-                for cl in active_validators_list_:
-                    cl['role'] = 'validator'
-                active_clients = active_trainers_list_ + active_validators_list_
+                return {'active_clients': active_clients,
+                        'active_trainers': active_trainers_list_,
+                        'active_validators': active_validators_list_
+                        }
+            except:
+                 pass
 
-            return {'active_clients': active_clients,
-                    'active_trainers': active_trainers_list_,
-                    'active_validators': active_validators_list_
+            return {'active_clients': [],
+                    'active_trainers': [],
+                    'active_validators': []
                     }
 
         @app.route('/metric_type', methods=['GET', 'POST'])
