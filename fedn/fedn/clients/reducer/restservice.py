@@ -7,6 +7,7 @@ from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 
 from threading import Lock
+import re
 
 import json
 import plotly
@@ -479,7 +480,7 @@ class ReducerRestService:
                     pass
             return combiner_info
 
-        def client_stats():
+        def client_status():
             client_info = self.control.get_client_info()
             active_clients = combiner_stats()
 
@@ -487,7 +488,6 @@ class ReducerRestService:
                 active_trainers_str = client['active_trainers']
                 active_validators_str = client['active_validators']
 
-            import re
             active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
             active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
 
@@ -498,14 +498,12 @@ class ReducerRestService:
             active_validators_list_ = [cl for cl in client_info if cl['name'] in active_validators_list]
 
             if active_trainers_list_ == active_validators_list_:
-                print('ACTIVE CLIENTS ARE ALSO VALIDATORS')
                 new_list = active_validators_list_ + active_trainers_list_
                 for cl in new_list:
                     cl['role'] = 'trainer - validator'
                 active_clients = active_trainers_list_
 
             else:
-                print('ACTIVE CLIENTS ARE # to VALIDATORS')
                 for client in active_trainers_list_:
                     client['role'] = 'trainer'
                 for cl in active_validators_list_:
@@ -561,7 +559,7 @@ class ReducerRestService:
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
             combiner_info = combiner_stats()
-            active_clients = client_stats()
+            active_clients = client_status()
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
