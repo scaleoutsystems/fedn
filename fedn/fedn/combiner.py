@@ -283,6 +283,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.key = "nr_active_validators"
         p.value = str(len(active_validators))
 
+        active_trainers_ = self.get_active_trainers()
+        active_trainers = []
+        for client in active_trainers_:
+            active_trainers.append(client)
+        p = response.parameter.add()
+        p.key = "active_trainers"
+        p.value = str(active_trainers)
+
+        active_validators_ = self.get_active_validators()
+        active_validators = []
+        for client in active_validators_:
+            active_validators.append(client)
+        p = response.parameter.add()
+        p.key = "active_validators"
+        p.value = str(active_validators)
+
         p = response.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(len(active_trainers)+len(active_validators))

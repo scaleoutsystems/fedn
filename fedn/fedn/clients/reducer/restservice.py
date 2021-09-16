@@ -477,8 +477,45 @@ class ReducerRestService:
                     combiner_info.append(report)
                 except:
                     pass
-                return combiner_info
-            return False
+            return combiner_info
+
+        def client_stats():
+            client_info = self.control.get_client_info()
+            active_clients = combiner_stats()
+
+            for client in active_clients:
+                active_trainers_str = client['active_trainers']
+                active_validators_str = client['active_validators']
+
+            import re
+            active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
+            active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
+
+            active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
+            active_validators_list = ' '.join(active_validators_str.split(" ")).split()
+
+            active_trainers_list_ = [client for client in client_info if client['name'] in active_trainers_list]
+            active_validators_list_ = [cl for cl in client_info if cl['name'] in active_validators_list]
+
+            if active_trainers_list_ == active_validators_list_:
+                print('ACTIVE CLIENTS ARE ALSO VALIDATORS')
+                new_list = active_validators_list_ + active_trainers_list_
+                for cl in new_list:
+                    cl['role'] = 'trainer - validator'
+                active_clients = active_trainers_list_
+
+            else:
+                print('ACTIVE CLIENTS ARE # to VALIDATORS')
+                for client in active_trainers_list_:
+                    client['role'] = 'trainer'
+                for cl in active_validators_list_:
+                    cl['role'] = 'validator'
+                active_clients = active_trainers_list_ + active_validators_list_
+
+            return {'active_clients': active_clients,
+                    'active_trainers': active_trainers_list_,
+                    'active_validators': active_validators_list_
+                    }
 
         @app.route('/metric_type', methods=['GET', 'POST'])
         def change_features():
@@ -524,11 +561,15 @@ class ReducerRestService:
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
             combiner_info = combiner_stats()
+            active_clients = client_stats()
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
                                    combiners_plot=combiners_plot,
                                    combiner_info=combiner_info,
+                                   active_clients=active_clients['active_clients'],
+                                   active_trainers=active_clients['active_trainers'],
+                                   active_validators=active_clients['active_validators'],
                                    configured=True
                                    )
 
@@ -574,7 +615,6 @@ controller:
                              as_attachment=True,
                              attachment_filename='client.yaml',
                              mimetype='application/x-yaml')
-
 
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py

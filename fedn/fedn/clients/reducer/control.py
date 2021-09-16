@@ -74,6 +74,9 @@ class ReducerControl:
     def get_model_info(self):
         return self.statestore.get_model_info()
 
+    def get_client_info(self):
+        return self.statestore.list_clients()
+
     def get_events(self):
         return self.statestore.get_events()
 
