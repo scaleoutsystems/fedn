@@ -12,6 +12,16 @@ it will be necessary to reinitialize. Then you can follow this procedure:
 
 There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.  
 
+### Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package
+
+Yes, to facilitate interactive development of the compute package you can start a client that uses a local folder 'client' in your current working directory by: 
+
+```bash
+fedn run client --remote=False -in client.yaml 
+```
+
+Note that in production federations this options should in most cases be disallowed. 
+
 ### Q: How can other aggregation algorithms can be defined?
 
 Currently it is possible for the advanced user to implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:  
@@ -48,7 +58,4 @@ In the main control implementation https://github.com/scaleoutsystems/fedn/blob/
 
 Yes - we have focused on scalability in a tiered aggregation model, and Enterprise security features in early development. But we plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.   
 
-### Q: In the current implementaion, the Reducer is a serialization point, do you plan to provide additional 
-
-Yes. In a near future we will generalize that part into a _Reduce protocol_ executing over the combiner network. This will enable many different improved schemes such as ring allreduce, hierararchical/tree-based reduce, and even fully decentralized protocols (e.g. gossip protocols). 
 
