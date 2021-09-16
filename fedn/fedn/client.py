@@ -122,7 +122,7 @@ class Client:
             from_path = os.path.join(os.getcwd(),'client')
 
             from distutils.dir_util import copy_tree
-            copy_tree(from_path, run_path)
+            copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
         self.lock = threading.Lock()
