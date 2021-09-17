@@ -470,6 +470,7 @@ class ReducerRestService:
             return result
 
         def combiner_stats():
+            """ Get current status reports from all combiners registered in the network. """
             combiner_info = []
             for combiner in self.control.network.get_combiners():
                 try:
@@ -477,7 +478,7 @@ class ReducerRestService:
                     combiner_info.append(report)
                 except:
                     pass
-                return combiner_info
+            return combiner_info
             return False
 
         @app.route('/metric_type', methods=['GET', 'POST'])
