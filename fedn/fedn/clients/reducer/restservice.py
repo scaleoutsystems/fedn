@@ -484,35 +484,42 @@ class ReducerRestService:
             client_info = self.control.get_client_info()
             active_clients = combiner_stats()
             try:
+                all_active_trainers = []
+                all_active_validators = []
+
                 for client in active_clients:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
 
-                active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
-                active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
+                    active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                    # active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
 
-                active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
-                active_validators_list = ' '.join(active_validators_str.split(" ")).split()
+                    active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
+                    # active_validators_list = ' '.join(active_validators_str.split(" ")).split()
 
-                active_trainers_list_ = [client for client in client_info if client['name'] in active_trainers_list]
-                active_validators_list_ = [cl for cl in client_info if cl['name'] in active_validators_list]
+                    all_active_trainers.append(' '.join(active_trainers_str.split(" ")).split())
+                    all_active_validators.append(' '.join(active_validators_str.split(" ")).split())
+                    all_active_trainers[0].append('clientbcb81bf3b')
 
-                if active_trainers_list_ == active_validators_list_:
-                    new_list = active_validators_list_ + active_trainers_list_
+                active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers[0]]
+                active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators[0]]
+
+                if active_trainers_list == active_validators_list:
+                    new_list = active_validators_list + active_trainers_list
                     for cl in new_list:
                         cl['role'] = 'trainer - validator'
-                    active_clients = active_trainers_list_
+                        active_clients = active_trainers_list
 
-                else:
-                    for client in active_trainers_list_:
-                        client['role'] = 'trainer'
-                    for cl in active_validators_list_:
-                        cl['role'] = 'validator'
-                    active_clients = active_trainers_list_ + active_validators_list_
+                # else:
+                #     for client in active_trainers_list:
+                #         client['role'] = 'trainer'
+                #     for cl in active_validators_list:
+                #         cl['role'] = 'validator'
+                #     active_clients = active_trainers_list + active_validators_list
 
                 return {'active_clients': active_clients,
-                        'active_trainers': active_trainers_list_,
-                        'active_validators': active_validators_list_
+                        'active_trainers': active_trainers_list,
+                        'active_validators': active_validators_list
                         }
             except:
                  pass
