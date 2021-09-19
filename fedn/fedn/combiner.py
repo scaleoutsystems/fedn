@@ -15,10 +15,8 @@ import time
 import base64
 
 from collections import defaultdict
-# from fedn.combiner.role import Role
 
 from enum import Enum
-
 
 class Role(Enum):
     WORKER = 1
@@ -117,12 +115,23 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def set_active_model(self, model_id):
         self.model_id = model_id
 
+    def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
+        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
+
     def request_model_update(self, model_id, clients=[]):
-        """ Ask clients to update the current global model. If an empty list
-            is passed, broadcasts to all active clients. s
+        """ Ask clients to update the current global model.
+        
+        Parameters
+        ----------
+        model_id : str
+            The id of the model to be updated. 
+        clients : list 
+            List of clients to submit a model update request to. 
+            An empty list (default) results in a broadcast to 
+            all connected trainig clients.  
+          
         """
 
-        print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
@@ -136,11 +145,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelUpdateRequest(request, self)
+        
+        print("COMBINER: Sent model update request for model {} to clients {}".format(model_id,clients), flush=True)
+
 
     def request_model_validation(self, model_id, clients=[]):
-        """ Ask clients to validate the current global model. If an empty list
-            is passed, broadcasts to all active clients. s
+        """ Ask clients to validate the current global model. 
+
+        Parameters
+        ----------
+        model_id : str
+            The id of the model to be updated. 
+        clients : list 
+            List of clients to submit a model update request to. 
+            An empty list (default) results in a broadcast to 
+            all connected trainig clients.  
+          
         """
+        
         request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
@@ -155,7 +177,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
 
-        print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
+        print("COMBINER: Sent validation request for model {} to clients {}".format(model_id,clients), flush=True)
 
     def _list_clients(self, channel):
         request = fedn.ListClientsRequest()
@@ -179,11 +201,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return len(self.get_active_validators())
 
     ####################################################################################################################
-
-    #def _log_queue_length(self):
-    #    ql = self.combiner.model_updates.qsize()
-    #    if ql > 0:
-    #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
 
     def __join_client(self, client):
         """ Add a client to the combiner. """
@@ -269,9 +286,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
-
-        #active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        #nr_active_clients = len(active_clients)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()

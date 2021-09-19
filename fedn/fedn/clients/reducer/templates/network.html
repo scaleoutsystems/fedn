@@ -102,7 +102,7 @@
 
 
 <!-- Active Trainers table-->
-<div class="card">
+<!--<div class="card">
     <div class="card-header">
         <h5 class="card-title">Active clients</h5>
     </div>
@@ -143,7 +143,7 @@
         </table>
         {% endif %}
     </div>
-</div>
+</div>-->
 
 <!-- Active Trainers table-->
 <div class="card">
@@ -179,7 +179,7 @@
                 <td>{{ client['combiner'] }}</td>
                 <td>{{ client['ip'] }}</td>
                 <td>{{ client['updated_at'] }}</td>
-                <td>{{ client['role'] }}</td>
+                <td>trainer</td>
                 <td>{{ client['status'] }}</td>
             </tr>
             {% endfor %}
@@ -223,7 +223,7 @@
                 <td>{{ client['combiner'] }}</td>
                 <td>{{ client['ip'] }}</td>
                 <td>{{ client['updated_at'] }}</td>
-                <td>{{ client['role'] }}</td>
+                <td>validator</td>
                 <td>{{ client['status'] }}</td>
             </tr>
             {% endfor %}

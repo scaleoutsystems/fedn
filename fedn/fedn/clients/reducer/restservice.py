@@ -471,6 +471,7 @@ class ReducerRestService:
             return result
 
         def combiner_stats():
+            """ Get current status reports from all combiners registered in the network. """
             combiner_info = []
             for combiner in self.control.network.get_combiners():
                 try:
@@ -490,16 +491,10 @@ class ReducerRestService:
                 for client in active_clients:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
-
                     active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
-                    # active_trainers_list = ' '.join(active_trainers_str.split(" ")).split()
-
                     active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
-                    # active_validators_list = ' '.join(active_validators_str.split(" ")).split()
-
                     all_active_trainers.append(' '.join(active_trainers_str.split(" ")).split())
                     all_active_validators.append(' '.join(active_validators_str.split(" ")).split())
-                    all_active_trainers[0].append('clientbcb81bf3b')
 
                 active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers[0]]
                 active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators[0]]
@@ -508,14 +503,12 @@ class ReducerRestService:
                     new_list = active_validators_list + active_trainers_list
                     for cl in new_list:
                         cl['role'] = 'trainer - validator'
-                        active_clients = active_trainers_list
-
-                # else:
-                #     for client in active_trainers_list:
-                #         client['role'] = 'trainer'
-                #     for cl in active_validators_list:
-                #         cl['role'] = 'validator'
-                #     active_clients = active_trainers_list + active_validators_list
+                else:
+                    for client in active_trainers_list:
+                        client['role'] = 'trainer'
+                    for cl in active_validators_list:
+                        cl['role'] = 'validator'
+                active_clients = active_trainers_list + active_validators_list
 
                 return {'active_clients': active_clients,
                         'active_trainers': active_trainers_list,
