@@ -331,8 +331,18 @@ class MongoReducerStateStore(ReducerStateStore):
         self.round_time.drop()
         self.round.drop()
 
+    def update_client_status(self, client_data, status, role):
+        """
+            Set or update client record.
+            client_data: dictionarys
+        """
+        from datetime import datetime
+        # client_data['updated_at'] = str(datetime.now())
 
-
-
-
-    
+        self.clients.update_one({"name": client_data['name']},
+                                {"$set":
+                                    {
+                                        "status": status,
+                                        "role": role
+                                    }
+                                })

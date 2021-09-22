@@ -83,6 +83,9 @@ class ReducerControl:
     def drop_models(self):
         self.statestore.drop_models()
 
+    def update_client_data(self, client_data, status, role):
+        self.statestore.update_client_status(client_data, status, role)
+
     def get_compute_context(self):
         definition = self.statestore.get_compute_context()
         if definition:

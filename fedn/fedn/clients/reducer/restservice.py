@@ -499,18 +499,36 @@ class ReducerRestService:
                 active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers[0]]
                 active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators[0]]
 
-                if active_trainers_list == active_validators_list:
-                    new_list = active_validators_list + active_trainers_list
-                    for cl in new_list:
-                        cl['role'] = 'trainer - validator'
-                else:
-                    for client in active_trainers_list:
-                        client['role'] = 'trainer'
-                    for cl in active_validators_list:
-                        cl['role'] = 'validator'
-                active_clients = active_trainers_list + active_validators_list
+                all_clients = [cl for cl in client_info]
 
-                return {'active_clients': active_clients,
+                for client in all_clients:
+                    status = 'offline'
+                    role = 'None'
+                    self.control.update_client_data(client, status, role)
+
+                new_list = active_validators_list + active_trainers_list
+                if active_trainers_list == active_validators_list:
+                    for client in new_list:
+                        status = 'active'
+                        role = 'trainer-validator'
+                        self.control.update_client_data(client, status, role)
+
+                elif active_trainers_list:
+                    for client in active_trainers_list:
+                        status = 'active'
+                        role = 'trainer'
+                        self.control.update_client_data(client, status, role)
+
+                    for client in active_validators_list:
+                        status = 'active'
+                        role = 'validator'
+                        self.control.update_client_data(client, status, role)
+                else:
+                    pass
+
+                # active_clients = active_validators_list + all_clients
+
+                return {'active_clients': all_clients,
                         'active_trainers': active_trainers_list,
                         'active_validators': active_validators_list
                         }

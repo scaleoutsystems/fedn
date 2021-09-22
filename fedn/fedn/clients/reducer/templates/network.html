@@ -47,10 +47,9 @@
             });
             return false;
         }
-
         update_netgraph();
-
         var interval = setInterval(update_netgraph, 5000);
+        $('#all_combiners').DataTable();
 
     });
 </script>
@@ -70,7 +69,7 @@
             </div>
         </div>
         {% else %}
-        <table class="table">
+        <table id="all_combiners" class="table">
             <thead>
             <tr>
                 <th>Name</th>
@@ -102,7 +101,13 @@
 
 
 <!-- Active Trainers table-->
-<!--<div class="card">
+<script>
+    $(document).ready(function() {
+    $('#all_clients').DataTable();
+} );
+
+</script>
+<div class="card">
     <div class="card-header">
         <h5 class="card-title">Active clients</h5>
     </div>
@@ -117,7 +122,7 @@
             </div>
         </div>
         {% else %}
-        <table class="table">
+        <table id="all_clients" class="table">
             <thead>
             <tr>
                 <th>Name</th>
@@ -143,10 +148,10 @@
         </table>
         {% endif %}
     </div>
-</div>-->
+</div>
 
 <!-- Active Trainers table-->
-<div class="card">
+<!--<div class="card">
     <div class="card-header">
         <h5 class="card-title">Trainer clients</h5>
     </div>
@@ -187,10 +192,10 @@
         </table>
         {% endif %}
     </div>
-</div>
+</div>-->
 
 <!-- Active Validators table-->
-<div class="card">
+<!--<div class="card">
     <div class="card-header">
         <h5 class="card-title">Validator clients</h5>
     </div>
@@ -231,7 +236,7 @@
         </table>
         {% endif %}
     </div>
-</div>
+</div>-->
 
 <div class="card">
     <div class="card-header">
