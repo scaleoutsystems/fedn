@@ -2,7 +2,7 @@ import pymongo
 import json
 import numpy
 import plotly.graph_objs as go
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import plotly
 import os
 from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
@@ -14,10 +14,14 @@ import pandas as pd
 
 
 class Plot:
-    def __init__(self,statestore):
+    """
+
+    """
+
+    def __init__(self, statestore):
         try:
             statestore_config = statestore.get_config()
-            self.mdb = connect_to_mongodb(statestore_config['mongo_config'],statestore_config['network_id'])
+            self.mdb = connect_to_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
             self.status = self.mdb['control.status']
             self.round_time = self.mdb["control.round_time"]
             self.combiner_round_time = self.mdb["control.combiner_round_time"]
@@ -47,6 +51,10 @@ class Plot:
         return valid_metrics
 
     def create_table_plot(self):
+        """
+
+        :return:
+        """
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
@@ -79,7 +87,6 @@ class Plot:
                 models.append(model)
             all_vals.append(vals)
 
-
         header_vals = valid_metrics
         models.reverse()
         values = [models]
@@ -105,6 +112,10 @@ class Plot:
         return table
 
     def create_timeline_plot(self):
+        """
+
+        :return:
+        """
         trace_data = []
         x = []
         y = []
@@ -122,7 +133,7 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds()/60.0)
+            x.append(ts.total_seconds() / 60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
@@ -147,7 +158,7 @@ class Plot:
             tu = datetime.strptime(cd['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
             ts = tu - tr
             base.append(tr.timestamp())
-            x.append(ts.total_seconds()/60.0)
+            x.append(ts.total_seconds() / 60.0)
             y.append(p['sender']['name'])
 
         trace_data.append(go.Bar(
@@ -170,6 +181,10 @@ class Plot:
         return timeline
 
     def create_client_training_distribution(self):
+        """
+
+        :return:
+        """
         training = []
         for p in self.status.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
@@ -184,10 +199,14 @@ class Plot:
         return histogram
 
     def create_client_plot(self):
+        """
+
+        :return:
+        """
         processing = []
         upload = []
         download = []
-        training =[]
+        training = []
         for p in self.status.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
             meta = json.loads(e['meta'])
@@ -197,7 +216,7 @@ class Plot:
             processing.append(meta['processing_time'])
 
         from plotly.subplots import make_subplots
-        fig = make_subplots(rows=1,cols=2, specs=[[{"type": "pie"}, {"type": "histogram"}]])
+        fig = make_subplots(rows=1, cols=2, specs=[[{"type": "pie"}, {"type": "histogram"}]])
 
         fig.update_layout(
             template="simple_white",
@@ -207,20 +226,24 @@ class Plot:
         )
         if not processing:
             return False
-        data = [numpy.mean(training),numpy.mean(upload),numpy.mean(download)]
-        labels = ["Training","Model upload","Model download"]
-        fig.add_trace(go.Pie(labels=labels,values=data),row=1,col=1)
-        
-        fig.add_trace(go.Histogram(x=training),row=1,col=2)
-        
+        data = [numpy.mean(training), numpy.mean(upload), numpy.mean(download)]
+        labels = ["Training", "Model upload", "Model download"]
+        fig.add_trace(go.Pie(labels=labels, values=data), row=1, col=1)
+
+        fig.add_trace(go.Histogram(x=training), row=1, col=2)
+
         client_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return client_plot
 
     def create_combiner_plot(self):
+        """
+
+        :return:
+        """
         waiting = []
         aggregation = []
         model_load = []
-        combination=[]
+        combination = []
         for round in self.mdb['control.round'].find():
             try:
                 for combiner in round['combiners']:
@@ -229,14 +252,14 @@ class Plot:
                     ml = stats['aggregation_time']['time_model_load']
                     ag = stats['aggregation_time']['time_model_aggregation']
                     combination.append(stats['time_combination'])
-                    waiting.append(stats['time_combination']-ml-ag)
+                    waiting.append(stats['time_combination'] - ml - ag)
                     model_load.append(ml)
                     aggregation.append(ag)
             except:
                 pass
-        
-        labels = ['Waiting for updates','Aggregating model updates','Loading model updates']
-        val = [numpy.mean(waiting),numpy.mean(aggregation),numpy.mean(model_load)]
+
+        labels = ['Waiting for updates', 'Aggregating model updates', 'Loading model updates']
+        val = [numpy.mean(waiting), numpy.mean(aggregation), numpy.mean(model_load)]
         fig = go.Figure()
 
         fig.update_layout(
@@ -246,16 +269,25 @@ class Plot:
         )
         if not combination:
             return False
-        fig.add_trace(go.Pie(labels=labels,values=val))
+        fig.add_trace(go.Pie(labels=labels, values=val))
         combiner_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return combiner_plot
 
     def fetch_valid_metrics(self):
+        """
+
+        :return:
+        """
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         valid_metrics = self._scalar_metrics(metrics)
         return valid_metrics
 
     def create_box_plot(self, metric):
+        """
+
+        :param metric:
+        :return:
+        """
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
@@ -296,14 +328,14 @@ class Plot:
         x = []
         y = []
         box_trace = []
-        for j,acc in enumerate(validations):
-            #x.append(j)
+        for j, acc in enumerate(validations):
+            # x.append(j)
             y.append(numpy.mean([float(i) for i in acc]))
             if len(acc) >= 2:
                 box.add_trace(go.Box(y=acc, name=str(j), marker_color="royalblue", showlegend=False,
                                      boxpoints=False))
             else:
-                box.add_trace(go.Scatter(x=[str(j)],y=[y[j]],showlegend=False))
+                box.add_trace(go.Scatter(x=[str(j)], y=[y[j]], showlegend=False))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
@@ -320,6 +352,10 @@ class Plot:
         return box
 
     def create_round_plot(self):
+        """
+
+        :return:
+        """
         trace_data = []
         metrics = self.round_time.find_one({'key': 'round_time'})
         if metrics == None:
@@ -357,6 +393,10 @@ class Plot:
         return round_t
 
     def create_cpu_plot(self):
+        """
+
+        :return:
+        """
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
         if metrics == None:
             fig = go.Figure(data=[])

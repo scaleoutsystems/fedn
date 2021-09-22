@@ -6,6 +6,10 @@ from .main import main
 @main.group('control')
 @click.pass_context
 def control_cmd(ctx):
+    """
+
+    :param ctx:
+    """
     # if daemon:
     #    print('{} NYI should run as daemon...'.format(__file__))
     pass
@@ -21,6 +25,17 @@ def control_cmd(ctx):
 @click.option('-d', '--cwd', required=False, default=None)
 @click.pass_context
 def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
+    """
+
+    :param ctx:
+    :param reducer:
+    :param port:
+    :param token:
+    :param name:
+    :param upload:
+    :param validate:
+    :param cwd:
+    """
     if not cwd:
         import os
         cwd = os.getcwd()
@@ -30,7 +45,7 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
     if not name:
         from datetime import datetime
         name = str(os.path.basename(cwd)) + '-' + datetime.today().strftime('%Y-%m-%d-%H%M%S')
-        
+
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 
@@ -58,6 +73,17 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
 @click.option('-c', '--cwd', required=False, default=None)
 @click.pass_context
 def unpack_cmd(ctx, reducer, port, token, name, download, validate, cwd):
+    """
+
+    :param ctx:
+    :param reducer:
+    :param port:
+    :param token:
+    :param name:
+    :param download:
+    :param validate:
+    :param cwd:
+    """
     import os
     if not cwd:
         cwd = os.getcwd()
@@ -74,6 +100,10 @@ def unpack_cmd(ctx, reducer, port, token, name, download, validate, cwd):
 @control_cmd.command('template')
 @click.pass_context
 def template_cmd(ctx):
+    """
+
+    :param ctx:
+    """
     print("TODO: generate template")
     pass
 
@@ -84,5 +114,11 @@ def template_cmd(ctx):
 @click.option('-t', '--token', required=True)
 @click.pass_context
 def control_cmd(ctx, reducer, port, token):
-    pass
+    """
 
+    :param ctx:
+    :param reducer:
+    :param port:
+    :param token:
+    """
+    pass

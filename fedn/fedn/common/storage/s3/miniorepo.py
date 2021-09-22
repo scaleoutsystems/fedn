@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class MINIORepository(Repository):
+    """
+
+    """
     client = None
 
     def __init__(self, config):
@@ -61,7 +64,10 @@ class MINIORepository(Repository):
         self.create_bucket(self.bucket)
 
     def create_bucket(self, bucket_name):
+        """
 
+        :param bucket_name:
+        """
         found = self.client.bucket_exists(bucket_name)
         if not found:
             try:
@@ -84,7 +90,12 @@ class MINIORepository(Repository):
         return True
 
     def get_artifact(self, instance_name, bucket=''):
+        """
 
+        :param instance_name:
+        :param bucket:
+        :return:
+        """
         if bucket == '':
             bucket = self.bucket
 
@@ -95,7 +106,11 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def get_artifact_stream(self, instance_name):
+        """
 
+        :param instance_name:
+        :return:
+        """
         try:
             data = self.client.get_object(self.bucket, instance_name)
             return data
@@ -103,6 +118,10 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
+        """
+
+        :return:
+        """
         objects_to_delete = []
         try:
             objs = self.client.list_objects(self.bucket)
@@ -114,6 +133,11 @@ class MINIORepository(Repository):
         return objects_to_delete
 
     def delete_artifact(self, instance_name, bucket=[]):
+        """
+
+        :param instance_name:
+        :param bucket:
+        """
         if not bucket:
             bucket = self.bucket
 
@@ -124,6 +148,9 @@ class MINIORepository(Repository):
             print('Could not delete artifact: {}'.format(instance_name))
 
     def delete_objects(self):
+        """
+
+        """
         objects_to_delete = self.list_artifacts()
         try:
             # Remove list of objects.

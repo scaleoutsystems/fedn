@@ -23,11 +23,20 @@ ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
 
 
 def allowed_file(filename):
+    """
+
+    :param filename:
+    :return:
+    """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 class ReducerRestService:
+    """
+
+    """
+
     def __init__(self, config, control, certificate_manager, certificate=None):
 
         print("config object!: \n\n\n\n{}".format(config))
@@ -50,12 +59,20 @@ class ReducerRestService:
         self.current_compute_context = None  # self.control.get_compute_context()
 
     def to_dict(self):
+        """
+
+        :return:
+        """
         data = {
             'name': self.name
         }
         return data
 
     def check_configured(self):
+        """
+
+        :return:
+        """
         if not self.control.get_compute_context():
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=False,
@@ -72,6 +89,10 @@ class ReducerRestService:
         return None
 
     def run(self):
+        """
+
+        :return:
+        """
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
@@ -82,6 +103,10 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -95,11 +120,18 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
         def status():
+            """
+
+            :return:
+            """
             return {'state': ReducerStateToString(self.control.state())}
 
         @app.route('/netgraph')
         def netgraph():
+            """
 
+            :return:
+            """
             result = {'nodes': [], 'edges': []}
 
             result['nodes'].append({
@@ -201,6 +233,10 @@ class ReducerRestService:
 
         @app.route('/events')
         def events():
+            """
+
+            :return:
+            """
             import json
             from bson import json_util
 
@@ -258,6 +294,10 @@ class ReducerRestService:
 
         @app.route('/eula', methods=['GET', 'POST'])
         def eula():
+            """
+
+            :return:
+            """
             for r in request.headers:
                 print("header contains: {}".format(r), flush=True)
 
@@ -265,7 +305,10 @@ class ReducerRestService:
 
         @app.route('/models', methods=['GET', 'POST'])
         def models():
+            """
 
+            :return:
+            """
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -293,6 +336,10 @@ class ReducerRestService:
 
         @app.route('/delete_model_trail', methods=['GET', 'POST'])
         def delete_model_trail():
+            """
+
+            :return:
+            """
             if request.method == 'POST':
                 from fedn.common.tracer.mongotracer import MongoTracer
                 statestore_config = self.control.statestore.get_config()
@@ -310,6 +357,10 @@ class ReducerRestService:
 
         @app.route('/drop_control', methods=['GET', 'POST'])
         def drop_control():
+            """
+
+            :return:
+            """
             if request.method == 'POST':
                 self.control.statestore.drop_control()
                 return redirect(url_for('control'))
@@ -459,6 +510,10 @@ class ReducerRestService:
 
         @app.route('/infer')
         def infer():
+            """
+
+            :return:
+            """
             if self.control.state() == ReducerState.setup:
                 return "Error, not configured"
             result = ""
@@ -470,6 +525,10 @@ class ReducerRestService:
             return result
 
         def combiner_stats():
+            """
+
+            :return:
+            """
             combiner_info = []
             for combiner in self.control.network.get_combiners():
                 try:
@@ -482,6 +541,10 @@ class ReducerRestService:
 
         @app.route('/metric_type', methods=['GET', 'POST'])
         def change_features():
+            """
+
+            :return:
+            """
             feature = request.args['selected']
             plot = Plot(self.control.statestore)
             graphJSON = plot.create_box_plot(feature)
@@ -489,6 +552,10 @@ class ReducerRestService:
 
         @app.route('/dashboard')
         def dashboard():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -516,6 +583,10 @@ class ReducerRestService:
 
         @app.route('/network')
         def network():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -534,7 +605,10 @@ class ReducerRestService:
 
         @app.route('/config/download', methods=['GET'])
         def config_download():
+            """
 
+            :return:
+            """
             chk_string = ""
             name = self.control.get_compute_context()
             if name is None or name == '':
@@ -560,10 +634,10 @@ controller:
     discover_port: {discover_port}
     token: {token}
     {chk_string}""".format(network_id=network_id,
-                             discover_host=discover_host,
-                             discover_port=discover_port,
-                             token=token,
-                             chk_string=chk_string)
+                           discover_host=discover_host,
+                           discover_port=discover_port,
+                           token=token,
+                           chk_string=chk_string)
 
             from io import BytesIO
             from flask import send_file
@@ -575,10 +649,13 @@ controller:
                              attachment_filename='client.yaml',
                              mimetype='application/x-yaml')
 
-
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
+            """
+
+            :return:
+            """
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
             reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
@@ -641,8 +718,11 @@ controller:
 
         @app.route('/checksum', methods=['GET', 'POST'])
         def checksum():
+            """
 
-            #sum = ''
+            :return:
+            """
+            # sum = ''
             name = request.args.get('name', None)
             if name == '' or name is None:
                 name = self.control.get_compute_context()

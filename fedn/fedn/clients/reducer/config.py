@@ -1,12 +1,14 @@
-
 from abc import ABC, abstractmethod
+
 
 class Config(ABC):
     pass
 
 
 class ReducerConfig(Config):
+    """
 
+    """
     compute_bundle_dir = None
     models_dir = None
 
@@ -19,4 +21,3 @@ class ReducerConfig(Config):
 
     def __init__(self):
         pass
-

@@ -6,6 +6,7 @@ import tempfile
 
 from .helpers import HelperBase
 
+
 class KerasHelper(HelperBase):
     """ FEDn helper class for keras.Sequential. """
 
@@ -28,9 +29,19 @@ class KerasHelper(HelperBase):
         return w
 
     def set_weights(self, weights_, weights):
+        """
+
+        :param weights_:
+        :param weights:
+        """
         weights_ = weights
 
     def get_weights(self, weights):
+        """
+
+        :param weights:
+        :return:
+        """
         return weights
 
     def get_tmp_path(self):
@@ -40,12 +51,17 @@ class KerasHelper(HelperBase):
         return path
 
     def save_model(self, weights, path=None):
+        """
 
+        :param weights:
+        :param path:
+        :return:
+        """
         if not path:
             path = self.get_tmp_path()
 
         weights_dict = {}
-        for i,w in enumerate(weights):
+        for i, w in enumerate(weights):
             weights_dict[str(i)] = w
 
         np.savez_compressed(path, **weights_dict)
@@ -53,7 +69,11 @@ class KerasHelper(HelperBase):
         return path
 
     def load_model(self, path="weights.npz"):
+        """
 
+        :param path:
+        :return:
+        """
         a = np.load(path)
         weights = []
         for i in range(len(a.files)):
@@ -70,8 +90,12 @@ class KerasHelper(HelperBase):
         os.unlink(path)
         return model
 
-
     def serialize_model_to_BytesIO(self, model):
+        """
+
+        :param model:
+        :return:
+        """
         outfile_name = self.save_model(model)
 
         from io import BytesIO

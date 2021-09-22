@@ -28,6 +28,11 @@ class Role(Enum):
 
 
 def role_to_proto_role(role):
+    """
+
+    :param role:
+    :return:
+    """
     if role == Role.COMBINER:
         return fedn.COMBINER
     if role == Role.WORKER:
@@ -83,7 +88,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'key': key}
 
         self.repository = S3ModelRepository(config['storage']['storage_config'])
-        self.server = Server(self,self.modelservice, grpc_config)
+        self.server = Server(self, self.modelservice, grpc_config)
 
         from fedn.algo.fedavg import FEDAVGCombiner
         self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
@@ -91,13 +96,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         threading.Thread(target=self.combiner.run, daemon=True).start()
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer(config['statestore']['mongo_config'],config['statestore']['network_id'])
+        self.tracer = MongoTracer(config['statestore']['mongo_config'], config['statestore']['network_id'])
 
         self.server.start()
 
     def __whoami(self, client, instance):
 
         def role_to_proto_role(role):
+            """
+
+            :param role:
+            :return:
+            """
             if role == Role.COMBINER:
                 return fedn.COMBINER
             if role == Role.WORKER:
@@ -112,9 +122,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return client
 
     def get_active_model(self):
+        """
+
+        :return:
+        """
         return self.model_id
 
     def set_active_model(self, model_id):
+        """
+
+        :param model_id:
+        """
         self.model_id = model_id
 
     def request_model_update(self, model_id, clients=[]):
@@ -165,22 +183,38 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return clients.client
 
     def get_active_trainers(self):
+        """
+
+        :return:
+        """
         trainers = self._list_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
         return trainers
 
     def get_active_validators(self):
+        """
+
+        :return:
+        """
         validators = self._list_clients(fedn.Channel.MODEL_VALIDATION_REQUESTS)
         return validators
 
     def nr_active_trainers(self):
+        """
+
+        :return:
+        """
         return len(self.get_active_trainers())
 
     def nr_active_validators(self):
+        """
+
+        :return:
+        """
         return len(self.get_active_validators())
 
     ####################################################################################################################
 
-    #def _log_queue_length(self):
+    # def _log_queue_length(self):
     #    ql = self.combiner.model_updates.qsize()
     #    if ql > 0:
     #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
@@ -189,7 +223,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Add a client to the combiner. """
         if not client.name in self.clients.keys():
             self.clients[client.name] = {"lastseen": datetime.now()}
-  
+
     def _subscribe_client_to_queue(self, client, queue_name):
         self.__join_client(client)
         if not queue_name in self.clients[client.name].keys():
@@ -242,6 +276,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ## Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
+        """
+
+        :param control:
+        :param context:
+        :return:
+        """
         response = fedn.ControlResponse()
         print("\n\n\n GOT CONTROL **START** from Command {}\n\n\n".format(control.command), flush=True)
 
@@ -254,12 +294,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
+        """
+
+        :param control:
+        :param context:
+        :return:
+        """
         response = fedn.ControlResponse()
         for parameter in control.parameter:
             setattr(self, parameter.key, parameter.value)
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):
+        """
+
+        :param control:
+        :param context:
+        :return:
+        """
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **STOP** from Command\n\n\n\n\n", flush=True)
         return response
@@ -276,7 +328,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(nr_active_clients)
-        
+
         p = response.parameter.add()
         p.key = "model_id"
         model_id = self.get_active_model()
@@ -293,7 +345,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p.value = str(self.id)
 
         # Get IP information
-        #try:
+        # try:
         #    url = 'http://ipinfo.io/json'
         #    data = requests.get(url)
         #    combiner_location = json.loads(data.text)
@@ -301,10 +353,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         #        p = response.parameter.add()
         #        p.key = str(key)
         #        p.value = str(value)
-        #except Exception as e:
+        # except Exception as e:
         #    print(e,flush=True)
         #    pass
-        
+
         return response
 
     #####################################################################################################################
@@ -323,6 +375,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             yield q.get()
 
     def SendStatus(self, status: fedn.Status, context):
+        """
+
+        :param status:
+        :param context:
+        :return:
+        """
         # Add the status message to all subscribers of the status channel
         self._send_status(status)
 
@@ -360,13 +418,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients.client.append(fedn.Client(name=client, role=fedn.WORKER))
         return clients
 
-
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):
+        """
+
+        :param request:
+        :param context:
+        :return:
+        """
         response = fedn.ConnectionResponse()
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         try:
-            #requested = int(self.combiner.config['clients_requested'])
+            # requested = int(self.combiner.config['clients_requested'])
             requested = int(self.max_clients)
             if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
@@ -374,7 +437,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if len(active_clients) < requested:
                 response.status = fedn.ConnectionStatus.ACCEPTING
                 return response
-                
+
         except Exception as e:
             print("Combiner not properly configured! {}".format(e), flush=True)
             raise
@@ -395,6 +458,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ## Combiner Service
 
     def ModelUpdateStream(self, update, context):
+        """
+
+        :param update:
+        :param context:
+        """
         client = update.sender
         status = fedn.Status(status="Client {} connecting to ModelUpdateStream.".format(client.name))
         status.log_level = fedn.Status.INFO
@@ -431,6 +499,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             yield q.get()
 
     def ModelValidationStream(self, update, context):
+        """
+
+        :param update:
+        :param context:
+        """
         client = update.sender
         status = fedn.Status(status="Client {} connecting to ModelValidationStream.".format(client.name))
         status.log_level = fedn.Status.INFO
@@ -500,7 +573,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ## Reducer Service
 
     def GetGlobalModel(self, request, context):
+        """
 
+        :param request:
+        :param context:
+        :return:
+        """
         response = fedn.GetGlobalModelResponse()
         self.__whoami(response.sender, self)
         response.receiver.name = "reducer"
@@ -511,10 +589,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             response.model_id = self.get_active_model()
         return response
 
-
     ####################################################################################################################
 
     def run(self):
+        """
+
+        """
         import signal
         print("COMBINER: {} started, ready for requests. ".format(self.id), flush=True)
         try:

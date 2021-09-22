@@ -1,4 +1,4 @@
-$('#metric_type').on('change',function(){
+$('#metric_type').on('change', function () {
     $.ajax({
         url: "/metric_type",
         type: "GET",
@@ -7,9 +7,9 @@ $('#metric_type').on('change',function(){
             'selected': document.getElementById('metric_type').value
 
         },
-        dataType:"json",
+        dataType: "json",
         success: function (data) {
-            Plotly.newPlot('box', data );
+            Plotly.newPlot('box', data);
         }
     });
 })

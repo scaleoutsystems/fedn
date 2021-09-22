@@ -51,6 +51,13 @@ import os
 
 
 def train(model,data,settings):
+    """
+
+    :param model: 
+    :param data: 
+    :param settings: 
+    :return: 
+    """
     print("-- RUNNING TRAINING --", flush=True)
 
     # We are caching the partition in the container home dir so that
