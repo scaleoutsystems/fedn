@@ -482,51 +482,50 @@ class ReducerRestService:
             return combiner_info
 
         def client_status():
-            client_info = self.control.get_client_info()
-            active_clients = combiner_stats()
+            """
+            Get current status of clients (available) from DB compared with client status from all combiners,
+            update client status to DB and add their roles.
+            """
+            client_info = self.control.network.get_client_info()
+            combiner_info = combiner_stats()
             try:
                 all_active_trainers = []
                 all_active_validators = []
 
-                for client in active_clients:
+                for client in combiner_info:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
                     active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
                     active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
-                    all_active_trainers.append(' '.join(active_trainers_str.split(" ")).split())
-                    all_active_validators.append(' '.join(active_validators_str.split(" ")).split())
+                    all_active_trainers.extend(' '.join(active_trainers_str.split(" ")).split())
+                    all_active_validators.extend(' '.join(active_validators_str.split(" ")).split())
 
-                active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers[0]]
-                active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators[0]]
-
+                active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers]
+                active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators]
                 all_clients = [cl for cl in client_info]
 
                 for client in all_clients:
                     status = 'offline'
                     role = 'None'
-                    self.control.update_client_data(client, status, role)
+                    self.control.network.update_client_data(client, status, role)
 
-                new_list = active_validators_list + active_trainers_list
+                all_active_clients = active_validators_list + active_trainers_list
                 if active_trainers_list == active_validators_list:
-                    for client in new_list:
+                    for client in all_active_clients:
                         status = 'active'
                         role = 'trainer-validator'
-                        self.control.update_client_data(client, status, role)
+                        self.control.network.update_client_data(client, status, role)
 
-                elif active_trainers_list:
+                else:
                     for client in active_trainers_list:
                         status = 'active'
                         role = 'trainer'
-                        self.control.update_client_data(client, status, role)
+                        self.control.network.update_client_data(client, status, role)
 
                     for client in active_validators_list:
                         status = 'active'
                         role = 'validator'
-                        self.control.update_client_data(client, status, role)
-                else:
-                    pass
-
-                # active_clients = active_validators_list + all_clients
+                        self.control.network.update_client_data(client, status, role)
 
                 return {'active_clients': all_clients,
                         'active_trainers': active_trainers_list,

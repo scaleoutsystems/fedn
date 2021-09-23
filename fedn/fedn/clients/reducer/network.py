@@ -84,3 +84,11 @@ class Network:
     def check_health(self):
         """ """
         pass
+
+    def update_client_data(self, client_data, status, role):
+        """ Update client status on DB"""
+        self.statestore.update_client_status(client_data, status, role)
+
+    def get_client_info(self):
+        """ list available client in DB"""
+        return self.statestore.list_clients()
