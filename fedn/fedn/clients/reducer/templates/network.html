@@ -76,9 +76,9 @@
                 <th>Active trainers</th>
                 <th>Active validators</th>
                 <th>IP</th>
-                <th>Country</th>
+                <!-- <th>Country</th>
                 <th>Region</th>
-                <th>City</th>
+                <th>City</th>-->
             </tr>
             </thead>
             <tbody>
@@ -88,9 +88,9 @@
                 <td>{{ dict_item['nr_active_trainers'] }}</td>
                 <td>{{ dict_item['nr_active_validators'] }}</td>
                 <td>{{ dict_item['ip'] }}</td>
-                <td>{{ dict_item['country'] }}</td>
+                <!-- <td>{{ dict_item['country'] }}</td>
                 <td>{{ dict_item['region'] }}</td>
-                <td>{{ dict_item['city'] }}</td>
+                <td>{{ dict_item['city'] }}</td> -->
             </tr>
             {% endfor %}
             </tbody>
@@ -109,7 +109,7 @@
 </script>
 <div class="card">
     <div class="card-header">
-        <h5 class="card-title">Active clients</h5>
+        <h5 class="card-title">Clients</h5>
     </div>
     <div class="card-body">
         {% if not active_clients %}
