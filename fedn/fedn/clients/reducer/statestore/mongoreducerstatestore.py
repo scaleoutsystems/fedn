@@ -331,8 +331,15 @@ class MongoReducerStateStore(ReducerStateStore):
         self.round_time.drop()
         self.round.drop()
 
-
-
-
-
-    
+    def update_client_status(self, client_data, status, role):
+        """
+            Set or update client status.
+            assign roles to the active clients (trainer, validator, trainer-validator)
+        """
+        self.clients.update_one({"name": client_data['name']},
+                                {"$set":
+                                    {
+                                        "status": status,
+                                        "role": role
+                                    }
+                                })

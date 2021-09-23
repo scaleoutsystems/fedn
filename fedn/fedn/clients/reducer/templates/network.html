@@ -24,7 +24,7 @@
 
         <div class="col-9" id="graph-container"></div>
             </div>
-</div>
+    </div>
             <div class="col-2">
                     <h5 class="card-title">Download config</h5>
                     <h6 class="card-subtitle text-muted">To connect additional clients you need a configuration which you can download here.</h6>
@@ -47,10 +47,9 @@
             });
             return false;
         }
-
         update_netgraph();
-
         var interval = setInterval(update_netgraph, 5000);
+        $('#all_combiners').DataTable();
 
     });
 </script>
@@ -70,7 +69,7 @@
             </div>
         </div>
         {% else %}
-        <table class="table">
+        <table id="all_combiners" class="table">
             <thead>
             <tr>
                 <th>Name</th>
@@ -99,6 +98,145 @@
         {% endif %}
     </div>
 </div>
+
+
+<!-- Active Trainers table-->
+<script>
+    $(document).ready(function() {
+    $('#all_clients').DataTable();
+} );
+
+</script>
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Active clients</h5>
+    </div>
+    <div class="card-body">
+        {% if not active_clients %}
+        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+            <div class="alert-icon">
+                <i class="far fa-fw fa-bell"></i>
+            </div>
+            <div class="alert-message">
+                <strong>No active trainers online!</strong>
+            </div>
+        </div>
+        {% else %}
+        <table id="all_clients" class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Combiner</th>
+                <th>IP</th>
+                <th>Updated At</th>
+                <th>Role</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for client in active_clients %}
+            <tr>
+                <td>{{ client['name'] }}</td>
+                <td>{{ client['combiner'] }}</td>
+                <td>{{ client['ip'] }}</td>
+                <td>{{ client['updated_at'] }}</td>
+                <td>{{ client['role'] }}</td>
+                <td>{{ client['status'] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Active Trainers table-->
+<!--<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Trainer clients</h5>
+    </div>
+    <div class="card-body">
+        {% if not active_trainers %}
+        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+            <div class="alert-icon">
+                <i class="far fa-fw fa-bell"></i>
+            </div>
+            <div class="alert-message">
+                <strong>No active trainers online!</strong>
+            </div>
+        </div>
+        {% else %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Combiner</th>
+                <th>IP</th>
+                <th>Updated At</th>
+                <th>Role</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for client in active_trainers %}
+            <tr>
+                <td>{{ client['name'] }}</td>
+                <td>{{ client['combiner'] }}</td>
+                <td>{{ client['ip'] }}</td>
+                <td>{{ client['updated_at'] }}</td>
+                <td>trainer</td>
+                <td>{{ client['status'] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>-->
+
+<!-- Active Validators table-->
+<!--<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Validator clients</h5>
+    </div>
+    <div class="card-body">
+        {% if not active_validators %}
+        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
+            <div class="alert-icon">
+                <i class="far fa-fw fa-bell"></i>
+            </div>
+            <div class="alert-message">
+                <strong>No active validators online!</strong>
+            </div>
+        </div>
+        {% else %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Combiner</th>
+                <th>IP</th>
+                <th>Updated At</th>
+                <th>Role</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for client in active_validators %}
+            <tr>
+                <td>{{ client['name'] }}</td>
+                <td>{{ client['combiner'] }}</td>
+                <td>{{ client['ip'] }}</td>
+                <td>{{ client['updated_at'] }}</td>
+                <td>validator</td>
+                <td>{{ client['status'] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>-->
 
 <div class="card">
     <div class="card-header">
