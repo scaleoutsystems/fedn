@@ -58,7 +58,8 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+#html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -144,3 +145,8 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Uncomment the following in case we need a wider rendering
+# html_css_files = [
+#     'docs_theme.css',
+# ]
