@@ -1,3 +1,2 @@
-
 class ModelError(BaseException):
     pass

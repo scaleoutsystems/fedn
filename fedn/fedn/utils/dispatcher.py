@@ -6,12 +6,19 @@ logger = logging.getLogger(__name__)
 
 
 class Dispatcher:
+    """
+
+    """
+
     def __init__(self, config, dir):
         self.config = config
         self.project_dir = dir
 
     def run_cmd(self, cmd_type):
+        """
 
+        :param cmd_type:
+        """
         try:
             cmdsandargs = cmd_type.split(' ')
 
@@ -22,7 +29,7 @@ class Dispatcher:
 
             # add the corresponding process defined in project.yaml and append arguments from invoked command
             args = cmd + args
-            #print("trying to run process {} with args {}".format(cmd, args))
+            # print("trying to run process {} with args {}".format(cmd, args))
             run_process(args=args, cwd=self.project_dir)
 
             logger.info('DONE RUNNING {}'.format(cmd_type))

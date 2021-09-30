@@ -1,5 +1,5 @@
-
 from enum import Enum
+
 
 class ClientState(Enum):
     idle = 1
@@ -8,6 +8,11 @@ class ClientState(Enum):
 
 
 def ClientStateToString(state):
+    """
+
+    :param state:
+    :return:
+    """
     if state == ClientState.idle:
         return "IDLE"
     if state == ClientState.training:

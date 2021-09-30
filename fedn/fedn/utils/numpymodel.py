@@ -7,6 +7,7 @@ import tempfile
 
 from .helpers import HelperBase
 
+
 class NumpyHelper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
@@ -16,20 +17,40 @@ class NumpyHelper(HelperBase):
         model[:] = temp[:]
 
     def get_tmp_path(self):
-        _ , path = tempfile.mkstemp()
+        """
+
+        :return:
+        """
+        _, path = tempfile.mkstemp()
         return path
 
     def save_model(self, model, path=None):
+        """
+
+        :param model:
+        :param path:
+        :return:
+        """
         if not path:
-            _ , path = tempfile.mkstemp()
-        np.savetxt(path,model)
+            _, path = tempfile.mkstemp()
+        np.savetxt(path, model)
         return path
 
     def load_model(self, path):
+        """
+
+        :param path:
+        :return:
+        """
         model = np.loadtxt(path)
         return model
 
-    def serialize_model_to_BytesIO(self,model):
+    def serialize_model_to_BytesIO(self, model):
+        """
+
+        :param model:
+        :return:
+        """
         outfile_name = self.save_model(model)
 
         from io import BytesIO
@@ -40,7 +61,7 @@ class NumpyHelper(HelperBase):
         os.unlink(outfile_name)
         return a
 
-    def load_model_from_BytesIO(self,model_bytesio):
+    def load_model_from_BytesIO(self, model_bytesio):
         """ Load a model from a BytesIO object. """
         path = self.get_tmp_path()
         with open(path, 'wb') as fh:

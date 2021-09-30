@@ -14,4 +14,8 @@ CONTEXT_SETTINGS = dict(
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def main(ctx):
+    """
+
+    :param ctx:
+    """
     ctx.obj = dict()

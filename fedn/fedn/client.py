@@ -18,6 +18,7 @@ from fedn.clients.client.state import ClientState, ClientStateToString
 
 from fedn.utils.helpers import get_helper
 
+
 class Client:
     """FEDn Client. """
 
@@ -42,11 +43,11 @@ class Client:
         os.mkdir(self.run_path)
 
         from fedn.utils.logger import Logger
-        self.logger = Logger(to_file=config['logfile'],file_path=self.run_path)
+        self.logger = Logger(to_file=config['logfile'], file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
         client_config = {}
-        print("Asking for assignment",flush=True)
+        print("Asking for assignment", flush=True)
         import time
         while True:
             status, response = self.connector.assign()
@@ -86,16 +87,18 @@ class Client:
             tries = 10
 
             while tries > 0:
-                retval =  pr.download(config['discover_host'], config['discover_port'], config['token'])
+                retval = pr.download(config['discover_host'], config['discover_port'], config['token'])
                 if retval:
                     break
                 time.sleep(60)
-                print("No compute package available... retrying in 60s Trying {} more times.".format(tries),flush=True)
+                print("No compute package available... retrying in 60s Trying {} more times.".format(tries), flush=True)
                 tries -= 1
 
             if retval:
                 if not 'checksum' in config:
-                    print("\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",flush=True)
+                    print(
+                        "\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",
+                        flush=True)
                 else:
                     checks_out = pr.validate(config['checksum'])
                     if not checks_out:
@@ -119,7 +122,7 @@ class Client:
                                     'train': {'command': 'python3 train.py'},
                                     'validate': {'command': 'python3 validate.py'}}}
             dispatch_dir = os.getcwd()
-            from_path = os.path.join(os.getcwd(),'client')
+            from_path = os.path.join(os.getcwd(), 'client')
 
             from distutils.dir_util import copy_tree
             copy_tree(from_path, self.run_path)
@@ -131,7 +134,7 @@ class Client:
             self.helper = get_helper(client_config['model_type'])
 
         if not self.helper:
-            print("Failed to retrive helper class settings! {}".format(client_config),flush=True)
+            print("Failed to retrive helper class settings! {}".format(client_config), flush=True)
 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
         threading.Thread(target=self.__listen_to_model_update_request_stream, daemon=True).start()
@@ -174,6 +177,10 @@ class Client:
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
+            """
+
+            :param mdl:
+            """
             i = 1
             while True:
                 b = mdl.read(CHUNK_SIZE)
@@ -209,9 +216,9 @@ class Client:
 
                         tic = time.time()
                         model_id, meta = self.__process_training_request(global_model_id)
-                        processing_time = time.time()-tic
+                        processing_time = time.time() - tic
                         meta['processing_time'] = processing_time
-                        print(meta,flush=True)
+                        print(meta, flush=True)
 
                         if model_id != None:
                             # Notify the combiner that a model update is available
@@ -225,7 +232,7 @@ class Client:
                             update.timestamp = str(datetime.now())
                             update.correlation_id = request.correlation_id
                             update.meta = json.dumps(meta)
-                            #TODO: Check responses
+                            # TODO: Check responses
                             response = self.orchestrator.SendModelUpdate(update)
 
                             self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
@@ -293,18 +300,18 @@ class Client:
             meta = {}
             tic = time.time()
             mdl = self.get_model(str(model_id))
-            meta['fetch_model'] = time.time()-tic
+            meta['fetch_model'] = time.time() - tic
 
             import sys
             inpath = self.helper.get_tmp_path()
-            with open(inpath,'wb') as fh:
+            with open(inpath, 'wb') as fh:
                 fh.write(mdl.getbuffer())
 
             outpath = self.helper.get_tmp_path()
             tic = time.time()
-            #TODO: Check return status, fail gracefully
+            # TODO: Check return status, fail gracefully
             self.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
-            meta['exec_training'] = time.time()-tic
+            meta['exec_training'] = time.time() - tic
 
             tic = time.time()
             import io
@@ -315,19 +322,19 @@ class Client:
             import uuid
             updated_model_id = uuid.uuid4()
             self.set_model(out_model, str(updated_model_id))
-            meta['upload_model'] = time.time()-tic
+            meta['upload_model'] = time.time() - tic
 
             os.unlink(inpath)
             os.unlink(outpath)
 
         except Exception as e:
-            print("ERROR could not process training request due to error: {}".format(e),flush=True)
+            print("ERROR could not process training request due to error: {}".format(e), flush=True)
             updated_model_id = None
-            meta = {'status':'failed','error':str(e)}
+            meta = {'status': 'failed', 'error': str(e)}
 
         self.state = ClientState.idle
 
-        return updated_model_id, meta 
+        return updated_model_id, meta
 
     def __process_validation_request(self, model_id):
         self.send_status("Processing validation request for model_id {}".format(model_id))
@@ -339,7 +346,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            _,outpath = tempfile.mkstemp()
+            _, outpath = tempfile.mkstemp()
             self.dispatcher.run_cmd("validate {} {}".format(inpath, outpath))
 
             with open(outpath, "r") as fh:
@@ -361,7 +368,7 @@ class Client:
         """Send status message. """
 
         from google.protobuf.json_format import MessageToJson
-        
+
         status = fedn.Status()
         status.timestamp = str(datetime.now())
         status.sender.name = self.name
@@ -392,12 +399,20 @@ class Client:
             time.sleep(update_frequency)
 
     def run_web(self):
+        """
+
+        :return:
+        """
         from flask import Flask
         app = Flask(__name__)
 
         from fedn.common.net.web.client import page, style
         @app.route('/')
         def index():
+            """
+
+            :return:
+            """
             logs_fancy = str()
             for log in self.logs:
                 logs_fancy += "<p>" + log + "</p>\n"
@@ -412,8 +427,12 @@ class Client:
         sys.stdout = self._original_stdout
 
     def run(self):
+        """
+
+        :return:
+        """
         import time
-        #threading.Thread(target=self.run_web, daemon=True).start()
+        # threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state

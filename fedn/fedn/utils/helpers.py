@@ -1,6 +1,6 @@
 import collections
 from abc import ABC, abstractmethod
-import os 
+import os
 import tempfile
 
 
@@ -45,7 +45,13 @@ class HelperBase(ABC):
         """ Return a temporary output path compatible with save_model, load_model. """
         pass
 
+
 def get_helper(helper_type):
+    """
+
+    :param helper_type:
+    :return:
+    """
     if helper_type == 'numpyarray':
         from fedn.utils.numpyarrayhelper import NumpyArrayHelper
         return NumpyArrayHelper()

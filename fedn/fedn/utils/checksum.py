@@ -2,6 +2,11 @@ import hashlib
 
 
 def md5(fname):
+    """
+
+    :param fname:
+    :return:
+    """
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
