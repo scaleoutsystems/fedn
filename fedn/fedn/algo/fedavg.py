@@ -8,7 +8,8 @@ import sys
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from threading import Thread, Lock
-from  fedn.utils.helpers import get_helper 
+from fedn.utils.helpers import get_helper
+
 
 class FEDAVGCombiner:
     """ 
@@ -23,7 +24,7 @@ class FEDAVGCombiner:
         self.run_configs = []
         self.storage = storage
         self.id = id
-        self.server = server 
+        self.server = server
         self.modelservice = modelservice
 
         self.config = {}
@@ -57,7 +58,7 @@ class FEDAVGCombiner:
         self.server.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
                            log_level=fedn.Status.INFO)
 
-    def _load_model_fault_tolerant(self,model_id):
+    def _load_model_fault_tolerant(self, model_id):
         # Try reading it from local disk/combiner memory
         model_str = self.modelservice.models.get(model_id)
         # And if we cannot access that, try downloading from the server
@@ -74,7 +75,6 @@ class FEDAVGCombiner:
                     model_str = self.modelservice.get_model(model_id)
 
         return model_str
- 
 
     def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=180):
         """ Compute an iterative/running average of models arriving to the combiner. """
@@ -84,7 +84,7 @@ class FEDAVGCombiner:
         print("COMBINER: combining model updates from Clients...")
         data = {}
         data['time_model_load'] = 0.0
-        data['time_model_aggregation'] = 0.0 
+        data['time_model_aggregation'] = 0.0
 
         polling_interval = 1.0
         nr_processed_models = 0
@@ -103,22 +103,23 @@ class FEDAVGCombiner:
                         self.server.report_status("COMBINER: Failed to load model!")
                 else: 
                     raise
-    
-                data['time_model_load'] += time.time()-tic
+
+                data['time_model_load'] += time.time() - tic
 
                 # Aggregate
                 tic = time.time()
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    model = self.helper.increment_average(model, model_next, nr_processed_models+1)                
-                data['time_model_aggregation'] += time.time()-tic 
+                    model = self.helper.increment_average(model, model_next, nr_processed_models + 1)
+                data['time_model_aggregation'] += time.time() - tic
 
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
-                self.server.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
-                    ,nr_expected_models))
+                self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                                                                                                     ,
+                                                                                                     nr_expected_models))
                 time.sleep(polling_interval)
                 round_time += polling_interval
             except IOError:
@@ -149,7 +150,7 @@ class FEDAVGCombiner:
         data['nr_successful_updates'] = nr_processed_models
         return model, data
 
-    def __training_round(self,config,clients):
+    def __training_round(self, config, clients):
 
         # We flush the queue at a beginning of a round (no stragglers allowed)
         # TODO: Support other ways to handle stragglers. 
@@ -167,21 +168,23 @@ class FEDAVGCombiner:
         model = None
         data = None
         try:
-            model, data = self.combine_models(nr_expected_models=len(clients), nr_required_models=int(config['clients_required']), timeout=float(config['round_timeout']))
+            model, data = self.combine_models(nr_expected_models=len(clients),
+                                              nr_required_models=int(config['clients_required']),
+                                              timeout=float(config['round_timeout']))
         except Exception as e:
-            print("FAILED TO UNPACK FROM COMBINER!",flush=True)
-        meta['time_combination'] = time.time()-tic
+            print("FAILED TO UNPACK FROM COMBINER!", flush=True)
+        meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
 
-    def __validation_round(self,config,clients,model_id):
+    def __validation_round(self, config, clients, model_id):
         self.server.request_model_validation(model_id, clients=clients)
 
-    def stage_model(self,model_id):
-        """ Download model from persistent storage. """ 
+    def stage_model(self, model_id):
+        """ Download model from persistent storage. """
 
         # If the model is already in memory at the server we do not need to do anything.
-        #TODO ugly ! Need to be refactored
+        # TODO ugly ! Need to be refactored
         if self.modelservice.models.exist(model_id):
             return
 
@@ -195,7 +198,8 @@ class FEDAVGCombiner:
                 if model:
                     break
             except Exception as e:
-                self.server.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),flush=True)
+                self.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),
+                                   flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > 2:
@@ -249,8 +253,9 @@ class FEDAVGCombiner:
             if active >= int(config['clients_requested']):
                 return True
             else:
-                self.server.report_status("waiting for {} clients to get started, currently: {}".format(int(config['clients_requested']) - active,
-                                                                                    active), flush=True)
+                self.report_status("waiting for {} clients to get started, currently: {}".format(
+                    int(config['clients_requested']) - active,
+                    active), flush=True)
             if t >= timeout:
                 if active >= int(config['clients_required']):
                     return True
@@ -262,12 +267,11 @@ class FEDAVGCombiner:
 
         return ready
 
-    def exec_validation(self,config,model_id):
+    def exec_validation(self, config, model_id):
         """ Coordinate validation rounds as specified in config. """
 
         self.server.report_status("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        #validators = self.__assign_round_clients(int(config['clients_requested']))
         validators = self.__assign_round_clients(self.server.max_clients,type="validators")
         self.__validation_round(config,validators,model_id)        
 
@@ -284,7 +288,6 @@ class FEDAVGCombiner:
         round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
             self.server.report_status("COMBINER: Starting training round {}".format(r), flush=True)
-            #clients = self.__assign_round_clients(int(config['clients_requested']))
             clients = self.__assign_round_clients(self.server.max_clients)
             model, meta = self.__training_round(config, clients)
             round_meta['local_round'][str(r)] = meta
@@ -292,13 +295,12 @@ class FEDAVGCombiner:
                 self.server.report_status("\t Failed to update global model in round {0}!".format(r))
 
         if model is not None:
-     
             a = self.helper.serialize_model_to_BytesIO(model)
             # Send aggregated model to server 
-            model_id = str(uuid.uuid4())        
+            model_id = str(uuid.uuid4())
             self.modelservice.set_model(a, model_id)
             a.close()
-     
+
             # Update Combiner latest model
             self.server.set_active_model(model_id)
 
@@ -308,6 +310,11 @@ class FEDAVGCombiner:
         return round_meta
 
     def push_run_config(self, plan):
+        """
+
+        :param plan:
+        :return:
+        """
         self.run_configs_lock.acquire()
         try:
             import uuid
@@ -318,7 +325,9 @@ class FEDAVGCombiner:
         return plan['_job_id']
 
     def run(self):
+        """
 
+        """
         import time
         try:
             while True:
@@ -338,7 +347,7 @@ class FEDAVGCombiner:
                         if compute_plan['task'] == 'training':
                             tic = time.time()
                             round_meta = self.exec_training(compute_plan)
-                            round_meta['time_exec_training'] = time.time()-tic
+                            round_meta['time_exec_training'] = time.time() - tic
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_meta(round_meta)
                         elif compute_plan['task'] == 'validation':

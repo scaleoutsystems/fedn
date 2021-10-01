@@ -8,15 +8,22 @@ from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
 from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
 
+
 class InvalidReducerConfiguration(Exception):
     pass
+
 
 class MissingReducerConfiguration(Exception):
     pass
 
+
 class Reducer:
+    """
+
+    """
+
     def __init__(self, statestore):
-        """ """ 
+        """ """
         self.statestore = statestore
         config = self.statestore.get_reducer()
         if not config:
@@ -25,7 +32,7 @@ class Reducer:
 
         self.name = config['name']
         self.token = config['token']
-        
+
         try:
             path = config['path']
         except KeyError:
@@ -39,12 +46,17 @@ class Reducer:
         self.rest = ReducerRestService(config, self.control, self.certificate_manager, certificate=rest_certificate)
 
     def run(self):
+        """
 
+        """
         threading.Thread(target=self.control_loop, daemon=True).start()
 
         self.rest.run()
 
     def control_loop(self):
+        """
+
+        """
         import time
         from datetime import datetime
         try:
@@ -55,7 +67,12 @@ class Reducer:
                 time.sleep(1)
                 if old_state != self.control.state():
                     delta = datetime.now() - t1
-                    print("Reducer in state {} for {} seconds. Entering {} state".format(ReducerStateToString(old_state),delta.seconds,ReducerStateToString(self.control.state())), flush=True)
+                    print(
+                        "Reducer in state {} for {} seconds. Entering {} state".format(ReducerStateToString(old_state),
+                                                                                       delta.seconds,
+                                                                                       ReducerStateToString(
+                                                                                           self.control.state())),
+                        flush=True)
                     t1 = datetime.now()
                     old_state = self.control.state()
 

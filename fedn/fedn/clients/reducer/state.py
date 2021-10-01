@@ -9,6 +9,11 @@ class ReducerState(Enum):
 
 
 def ReducerStateToString(state):
+    """
+
+    :param state:
+    :return:
+    """
     if state == ReducerState.setup:
         return "setup"
     if state == ReducerState.idle:
@@ -22,6 +27,11 @@ def ReducerStateToString(state):
 
 
 def StringToReducerState(state):
+    """
+
+    :param state:
+    :return:
+    """
     if state == "setup":
         return ReducerState.setup
     if state == "idle":

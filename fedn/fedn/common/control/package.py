@@ -4,6 +4,9 @@ from fedn.utils.dispatcher import Dispatcher
 
 
 class Package:
+    """
+
+    """
 
     def __init__(self, config):
         self.config = config
@@ -21,7 +24,11 @@ class Package:
         self.package_hash = None
 
     def package(self, validate=False):
+        """
 
+        :param validate:
+        :return:
+        """
         # check config
         package_file = '{name}.tar.gz'.format(name=self.name)
 
@@ -57,6 +64,9 @@ class Package:
         return package_file, hsh.hexdigest()
 
     def upload(self):
+        """
+
+        """
         if self.package_file:
             import requests
             import os
@@ -80,6 +90,9 @@ class Package:
 
 
 class PackageRuntime:
+    """
+
+    """
 
     def __init__(self, package_path, package_dir):
 
@@ -95,6 +108,14 @@ class PackageRuntime:
         self.expected_checksum = None
 
     def download(self, host, port, token, name=None):
+        """
+
+        :param host:
+        :param port:
+        :param token:
+        :param name:
+        :return:
+        """
         import requests
 
         path = "https://{}:{}/context".format(host, port)
@@ -115,7 +136,6 @@ class PackageRuntime:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
 
-
         path = "https://{}:{}/checksum".format(host, port)
 
         if name:
@@ -129,21 +149,24 @@ class PackageRuntime:
                 except Exception as e:
                     print("Could not extract checksum!")
 
-
         return True
 
     def validate(self, expected_checksum):
+        """
 
+        :param expected_checksum:
+        :return:
+        """
         self.expected_checksum = expected_checksum
 
         from fedn.utils.checksum import md5
 
         # crosscheck checksum and unpack if security checks are ok.
-        #print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
-        file_checksum = str(md5(os.path.join(self.pkg_path,self.pkg_name)))
+        # print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
+        file_checksum = str(md5(os.path.join(self.pkg_path, self.pkg_name)))
 
         # catched by client, make configurable by governance network!
-        #if self.expected_checksum is None:
+        # if self.expected_checksum is None:
         #    print("CAUTION: Package validation turned OFF on client", flush=True)
         #    return True
 
@@ -153,9 +176,10 @@ class PackageRuntime:
         else:
             return False
 
-
-
     def unpack(self):
+        """
+
+        """
         import os
         import tarfile
 
@@ -168,7 +192,8 @@ class PackageRuntime:
             if self.pkg_name.endswith('tar.bz2'):
                 f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:bz2')
         else:
-            print("Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
+            print(
+                "Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
 
         import os
         cwd = os.getcwd()
@@ -182,7 +207,11 @@ class PackageRuntime:
             print("Error extracting files!")
 
     def dispatcher(self, run_path):
+        """
 
+        :param run_path:
+        :return:
+        """
         dispatch_dir = self.dir
         from_path = os.path.join(os.getcwd(), 'client')
         import time
@@ -192,7 +221,6 @@ class PackageRuntime:
         copy_tree(from_path, run_path)
 
         os.chdir(run_path)
-
 
         try:
             cfg = None

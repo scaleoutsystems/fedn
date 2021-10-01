@@ -4,6 +4,10 @@ from .reducerstatestore import ReducerStateStore
 
 
 class MongoReducerStateStore(ReducerStateStore):
+    """
+
+    """
+
     def __init__(self, network_id, config, defaults=None):
         self.__inited = False
         try:
@@ -30,8 +34,6 @@ class MongoReducerStateStore(ReducerStateStore):
             self.round_time = self.control["round_time"]
             self.psutil_monitoring = self.control["psutil_monitoring"]
             self.combiner_round_time = self.control['combiner_round_time']
-
-
 
             self.__inited = True
         except Exception as e:
@@ -63,19 +65,21 @@ class MongoReducerStateStore(ReducerStateStore):
                             if not self.get_latest():
                                 self.set_latest(str(control['model']))
                             else:
-                                print("Model trail already initialized - refusing to overwrite from config. Purge model trail if you want to reseed the system.",flush=True)
-                    
+                                print(
+                                    "Model trail already initialized - refusing to overwrite from config. Purge model trail if you want to reseed the system.",
+                                    flush=True)
+
                         if "context" in control:
                             print("Setting filepath to {}".format(control['context']), flush=True)
                             # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
                             # TODO fix with unboxing of value before storing and where consuming.
                             self.control.config.update({'key': 'package'},
-                                                        {'$set': {'filename': control['context']}}, True)
+                                                       {'$set': {'filename': control['context']}}, True)
                         if "helper" in control:
-                            #self.set_framework(control['helper'])
+                            # self.set_framework(control['helper'])
                             pass
 
-                        round_config = {'timeout':180, 'validate':True}
+                        round_config = {'timeout': 180, 'validate': True}
                         try:
                             round_config['timeout'] = control['timeout']
                         except:
@@ -85,20 +89,26 @@ class MongoReducerStateStore(ReducerStateStore):
                             round_config['validate'] = control['validate']
                         except:
                             pass
-  
 
                     # Storage settings
                     self.set_storage_backend(settings['storage'])
-
 
                     self.__inited = True
                 except yaml.YAMLError as e:
                     print(e)
 
     def is_inited(self):
+        """
+
+        :return:
+        """
         return self.__inited
 
     def get_config(self):
+        """
+
+        :return:
+        """
         data = {
             'type': 'MongoDB',
             'mongo_config': self.config,
@@ -107,9 +117,18 @@ class MongoReducerStateStore(ReducerStateStore):
         return data
 
     def state(self):
+        """
+
+        :return:
+        """
         return StringToReducerState(self.state.find_one()['current_state'])
 
     def transition(self, state):
+        """
+
+        :param state:
+        :return:
+        """
         old_state = self.state.find_one({'state': 'current_state'})
         if old_state != state:
             return self.state.update({'state': 'current_state'}, {'state': ReducerStateToString(state)}, True)
@@ -117,9 +136,14 @@ class MongoReducerStateStore(ReducerStateStore):
             print("Not updating state, already in {}".format(ReducerStateToString(state)))
 
     def set_latest(self, model_id):
+        """
+
+        :param model_id:
+        """
         from datetime import datetime
         x = self.model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
-        self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}}, True)
+        self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
+                          True)
 
     def get_first(self):
         """ Return model_id for the latest model in the model_trail """
@@ -151,10 +175,18 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def set_round_config(self, config):
+        """
+
+        :param config:
+        """
         from datetime import datetime
         x = self.control.config.update({'key': 'round_config'}, {'$set': config}, True)
 
     def get_round_config(self):
+        """
+
+        :return:
+        """
         ret = self.control.config.find({'key': 'round_config'})
         try:
             retcheck = ret[0]
@@ -165,12 +197,20 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def set_compute_context(self, filename):
+        """
+
+        :param filename:
+        """
         from datetime import datetime
         x = self.control.config.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
         self.control.config.update({'key': 'package_trail'},
-                                          {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+                                   {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
     def get_compute_context(self):
+        """
+
+        :return:
+        """
         ret = self.control.config.find({'key': 'package'})
         try:
             retcheck = ret[0]
@@ -181,10 +221,18 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def set_framework(self, helper):
+        """
+
+        :param helper:
+        """
         self.control.config.update({'key': 'package'},
-                                    {'$set': {'helper': helper}}, True)
+                                   {'$set': {'helper': helper}}, True)
 
     def get_framework(self):
+        """
+
+        :return:
+        """
         ret = self.control.config.find({'key': 'package'})
         try:
             retcheck = ret[0]['helper']
@@ -195,6 +243,10 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def get_model_info(self):
+        """
+
+        :return:
+        """
         ret = self.model.find_one({'key': 'model_trail'})
         try:
             if ret:
@@ -208,6 +260,10 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def get_events(self):
+        """
+
+        :return:
+        """
         ret = self.control.status.find({})
         return ret
 
@@ -218,7 +274,7 @@ class MongoReducerStateStore(ReducerStateStore):
             return ret[0]
         except (KeyError, IndexError):
             return None
-    
+
     def set_storage_backend(self, config):
         """ """
         from datetime import datetime
@@ -228,9 +284,8 @@ class MongoReducerStateStore(ReducerStateStore):
         config['status'] = 'enabled'
         ret = self.storage.update({'storage_type': config['storage_type']}, config, True)
 
-
-    def set_reducer(self,reducer_data):
-        """ """ 
+    def set_reducer(self, reducer_data):
+        """ """
         from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
         ret = self.reducer.update({'name': reducer_data['name']}, reducer_data, True)
@@ -244,14 +299,14 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def list_combiners(self):
-        """ """ 
+        """ """
         try:
             ret = self.combiners.find()
             return list(ret)
         except:
             return None
 
-    def get_combiner(self,name):
+    def get_combiner(self, name):
         """ """
         try:
             ret = self.combiners.find_one({'name': name})
@@ -265,10 +320,9 @@ class MongoReducerStateStore(ReducerStateStore):
             ret = self.combiners.find()
             return list(ret)
         except:
-            return None      
+            return None
 
-
-    def set_combiner(self,combiner_data):
+    def set_combiner(self, combiner_data):
         """ 
             Set or update combiner record. 
             combiner_data: dictionary, output of combiner.to_dict())
@@ -277,7 +331,7 @@ class MongoReducerStateStore(ReducerStateStore):
         combiner_data['updated_at'] = str(datetime.now())
         ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
 
-    def delete_combiner(self,combiner):
+    def delete_combiner(self, combiner):
         """ """
         try:
             self.combiners.delete_one({'name': combiner})
@@ -305,7 +359,7 @@ class MongoReducerStateStore(ReducerStateStore):
             return None
 
     def list_clients(self):
-        """ """ 
+        """ """
         try:
             ret = self.clients.find()
             return list(ret)
@@ -315,12 +369,11 @@ class MongoReducerStateStore(ReducerStateStore):
     def drop_control(self):
         """ """
         # Control 
-        self.state.drop() 
+        self.state.drop()
         self.control_config.drop()
         self.control.drop()
 
-        self.drop_models() 
-
+        self.drop_models()
 
     def drop_models(self):
         """ """
