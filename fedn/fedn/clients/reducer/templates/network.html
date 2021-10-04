@@ -20,8 +20,6 @@
                             height: 300px;
                         }
                     </style>
-
-
                     <div class="col-9" id="graph-container"></div>
                 </div>
             </div>
@@ -36,24 +34,25 @@
                     </a>
                 </div>
             </div>
-</div>
-</div>
-<script>
-    $(document).ready(function () {
-        function update_netgraph() {
-            $("#graph-container").html('');
-            sigma.parsers.json('/netgraph', {
-                container: 'graph-container',
-                settings: {
-                    labelThreshold: 0,
-                    defaultNodeColor: '#1d80ea'
-                }
-            });
-            return false;
-        }
-        update_netgraph();
-        var interval = setInterval(update_netgraph, 5000);
-        $('#all_combiners').DataTable();
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            function update_netgraph() {
+                $("#graph-container").html('');
+                sigma.parsers.json('/netgraph', {
+                    container: 'graph-container',
+                    settings: {
+                        labelThreshold: 0,
+                        defaultNodeColor: '#1d80ea'
+                    }
+                });
+                return false;
+            }
+
+            update_netgraph();
+            var interval = setInterval(update_netgraph, 5000);
 
         });
     </script>
@@ -72,61 +71,34 @@
                         <strong>No combiners online!</strong>
                     </div>
                 </div>
-            {% else %}
-                <table class="table">
+             {% else %}
+                <table id="all_combiners" class="table">
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Active clients</th>
+                        <th>Active trainers</th>
+                        <th>Active validators</th>
                         <th>IP</th>
-                        <th>Country</th>
+                        <!-- <th>Country</th>
                         <th>Region</th>
-                        <th>City</th>
+                        <th>City</th>-->
                     </tr>
                     </thead>
-                    <tbody>
-                    {% for dict_item in combiner_info %}
-                        <tr>
-                            <td>{{ dict_item['name'] }}</td>
-                            <td>{{ dict_item['nr_active_clients'] }}</td>
-                            <td>{{ dict_item['ip'] }}</td>
-                            <td>{{ dict_item['country'] }}</td>
-                            <td>{{ dict_item['region'] }}</td>
-                            <td>{{ dict_item['city'] }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
+                <tbody>
+                {% for dict_item in combiner_info %}
+                <tr>
+                    <td>{{ dict_item['name'] }}</td>
+                    <td>{{ dict_item['nr_active_trainers'] }}</td>
+                    <td>{{ dict_item['nr_active_validators'] }}</td>
+                    <td>{{ dict_item['ip'] }}</td>
+                    <!-- <td>{{ dict_item['country'] }}</td>
+                    <td>{{ dict_item['region'] }}</td>
+                    <td>{{ dict_item['city'] }}</td> -->
+                </tr>
+                {% endfor %}
+                </tbody>
                 </table>
             {% endif %}
-        </div>
-        {% else %}
-        <table id="all_combiners" class="table">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Active trainers</th>
-                <th>Active validators</th>
-                <th>IP</th>
-                <!-- <th>Country</th>
-                <th>Region</th>
-                <th>City</th>-->
-            </tr>
-            </thead>
-            <tbody>
-            {% for dict_item in combiner_info %}
-            <tr>
-                <td>{{ dict_item['name'] }}</td>
-                <td>{{ dict_item['nr_active_trainers'] }}</td>
-                <td>{{ dict_item['nr_active_validators'] }}</td>
-                <td>{{ dict_item['ip'] }}</td>
-                <!-- <td>{{ dict_item['country'] }}</td>
-                <td>{{ dict_item['region'] }}</td>
-                <td>{{ dict_item['city'] }}</td> -->
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
     </div>
 </div>
 
@@ -136,8 +108,8 @@
     $(document).ready(function() {
     $('#all_clients').DataTable();
 } );
-
 </script>
+
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Clients</h5>
@@ -179,109 +151,13 @@
         </table>
         {% endif %}
     </div>
-
-<!-- Active Trainers table-->
-<!--<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Trainer clients</h5>
-    </div>
-    <div class="card-body">
-        {% if not active_trainers %}
-        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-            <div class="alert-icon">
-                <i class="far fa-fw fa-bell"></i>
-            </div>
-            <div class="alert-message">
-                <strong>No active trainers online!</strong>
-            </div>
-        </div>
-        {% else %}
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Combiner</th>
-                <th>IP</th>
-                <th>Updated At</th>
-                <th>Role</th>
-                <th>Status</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for client in active_trainers %}
-            <tr>
-                <td>{{ client['name'] }}</td>
-                <td>{{ client['combiner'] }}</td>
-                <td>{{ client['ip'] }}</td>
-                <td>{{ client['updated_at'] }}</td>
-                <td>trainer</td>
-                <td>{{ client['status'] }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    </div>
-</div>-->
-
-<!-- Active Validators table-->
-<!--<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Validator clients</h5>
-    </div>
-    <div class="card-body">
-        {% if not active_validators %}
-        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-            <div class="alert-icon">
-                <i class="far fa-fw fa-bell"></i>
-            </div>
-            <div class="alert-message">
-                <strong>No active validators online!</strong>
-            </div>
-        </div>
-        {% else %}
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Combiner</th>
-                <th>IP</th>
-                <th>Updated At</th>
-                <th>Role</th>
-                <th>Status</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for client in active_validators %}
-            <tr>
-                <td>{{ client['name'] }}</td>
-                <td>{{ client['combiner'] }}</td>
-                <td>{{ client['ip'] }}</td>
-                <td>{{ client['updated_at'] }}</td>
-                <td>validator</td>
-                <td>{{ client['status'] }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    </div>
-</div>-->
+</div>>
 
 <div class="card">
     <div class="card-header">
         <h5 class="card-title">Round time</h5>
     </div>
     <div class="card-body">
-        {% if not round_time_plot %}
-        <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
-            <div class="alert-icon">
-                <i class="far fa-fw fa-bell"></i>
-            </div>
-            <div class="alert-message">
-                <strong>No data currently available for round time!</strong>
-            </div>
-        </div>
         <div class="card-body">
             {% if not round_time_plot %}
                 <div class="alert alert-danger alert-outline alert-dismissible" role="alert">
@@ -302,6 +178,7 @@
             {% endif %}
         </div>
     </div>
+</div>
 
     <div class="card">
         <div class="card-header">
@@ -352,6 +229,5 @@
             {% endif %}
         </div>
     </div>
-
 
 {% endblock %}
