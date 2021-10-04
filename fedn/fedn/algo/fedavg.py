@@ -253,7 +253,7 @@ class FEDAVGCombiner:
             if active >= int(config['clients_requested']):
                 return True
             else:
-                self.report_status("waiting for {} clients to get started, currently: {}".format(
+                self.server.report_status("waiting for {} clients to get started, currently: {}".format(
                     int(config['clients_requested']) - active,
                     active), flush=True)
             if t >= timeout:
