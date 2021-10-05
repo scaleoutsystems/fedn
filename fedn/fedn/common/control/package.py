@@ -219,7 +219,7 @@ class PackageRuntime:
 
         try:
             cfg = None
-            with open(os.path.join(to_path, 'fedn.yaml'), 'rb') as config_file:
+            with open(os.path.join(run_path, 'fedn.yaml'), 'rb') as config_file:
                 import yaml
                 cfg = yaml.safe_load(config_file.read())
                 self.dispatch_config = cfg
