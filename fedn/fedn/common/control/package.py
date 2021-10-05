@@ -212,15 +212,10 @@ class PackageRuntime:
         :param run_path:
         :return:
         """
-        dispatch_dir = self.dir
         from_path = os.path.join(os.getcwd(), 'client')
-        import time
-        dirname = time.strftime("%Y%m%d-%H%M%S")
-
+        
         from distutils.dir_util import copy_tree
         copy_tree(from_path, run_path)
-
-        os.chdir(run_path)
 
         try:
             cfg = None
