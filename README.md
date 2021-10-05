@@ -86,7 +86,7 @@ Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applicatio
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
 
 ## Commercial support
-Scaleout offers flexible support agreements, reach out at (https://scaleoutsystems.com) to inquire about Enterprise support.
+Scaleout offers flexible support agreements, reach out at (https://www.scaleoutsystems.com/contact) to inquire about Enterprise support.
 
 ## Making contributions
 All pull requests will be considered and are much appreciated. Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
