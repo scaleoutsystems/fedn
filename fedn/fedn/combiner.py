@@ -15,10 +15,8 @@ import time
 import base64
 
 from collections import defaultdict
-# from fedn.combiner.role import Role
 
 from enum import Enum
-
 
 class Role(Enum):
     WORKER = 1
@@ -135,12 +133,23 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         self.model_id = model_id
 
+    def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
+        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
+
     def request_model_update(self, model_id, clients=[]):
-        """ Ask clients to update the current global model. If an empty list
-            is passed, broadcasts to all active clients. s
+        """ Ask clients to update the current global model.
+        
+        Parameters
+        ----------
+        model_id : str
+            The id of the model to be updated. 
+        clients : list 
+            List of clients to submit a model update request to. 
+            An empty list (default) results in a broadcast to 
+            all connected trainig clients.  
+          
         """
 
-        print("COMBINER: Sending to clients {}".format(clients), flush=True)
         request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
@@ -154,11 +163,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelUpdateRequest(request, self)
+        
+        print("COMBINER: Sent model update request for model {} to clients {}".format(model_id,clients), flush=True)
+
 
     def request_model_validation(self, model_id, clients=[]):
-        """ Ask clients to validate the current global model. If an empty list
-            is passed, broadcasts to all active clients. s
+        """ Ask clients to validate the current global model. 
+
+        Parameters
+        ----------
+        model_id : str
+            The id of the model to be updated. 
+        clients : list 
+            List of clients to submit a model update request to. 
+            An empty list (default) results in a broadcast to 
+            all connected trainig clients.  
+          
         """
+        
         request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
@@ -173,7 +195,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
 
-        print("COMBINER: Sent validation request for model {}".format(model_id), flush=True)
+        print("COMBINER: Sent validation request for model {} to clients {}".format(model_id,clients), flush=True)
 
     def _list_clients(self, channel):
         request = fedn.ListClientsRequest()
@@ -213,11 +235,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return len(self.get_active_validators())
 
     ####################################################################################################################
-
-    # def _log_queue_length(self):
-    #    ql = self.combiner.model_updates.qsize()
-    #    if ql > 0:
-    #        self.tracer.set_combiner_queue_length(str(datetime.now()),ql)
 
     def __join_client(self, client):
         """ Add a client to the combiner. """
@@ -322,13 +339,36 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response = fedn.ControlResponse()
         print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
 
-        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
-        nr_active_clients = len(active_clients)
+        active_trainers = self.get_active_trainers()
+        p = response.parameter.add()
+        p.key = "nr_active_trainers"
+        p.value = str(len(active_trainers))
+        
+        active_validators = self.get_active_validators()
+        p = response.parameter.add()
+        p.key = "nr_active_validators"
+        p.value = str(len(active_validators))
+
+        active_trainers_ = self.get_active_trainers()
+        active_trainers = []
+        for client in active_trainers_:
+            active_trainers.append(client)
+        p = response.parameter.add()
+        p.key = "active_trainers"
+        p.value = str(active_trainers)
+
+        active_validators_ = self.get_active_validators()
+        active_validators = []
+        for client in active_validators_:
+            active_validators.append(client)
+        p = response.parameter.add()
+        p.key = "active_validators"
+        p.value = str(active_validators)
 
         p = response.parameter.add()
         p.key = "nr_active_clients"
-        p.value = str(nr_active_clients)
-
+        p.value = str(len(active_trainers)+len(active_validators))
+        
         p = response.parameter.add()
         p.key = "model_id"
         model_id = self.get_active_model()
@@ -343,20 +383,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "name"
         p.value = str(self.id)
-
-        # Get IP information
-        # try:
-        #    url = 'http://ipinfo.io/json'
-        #    data = requests.get(url)
-        #    combiner_location = json.loads(data.text)
-        #    for key,value in combiner_location.items():
-        #        p = response.parameter.add()
-        #        p.key = str(key)
-        #        p.value = str(value)
-        # except Exception as e:
-        #    print(e,flush=True)
-        #    pass
-
+        
         return response
 
     #####################################################################################################################
@@ -405,6 +432,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if (now - then) < timedelta(seconds=10):
                 active_clients.append(client)
         return active_clients
+
+    def _drop_inactive_clients(self):
+        """ Clean up clients that has missed heartbeat """
 
     def ListActiveClients(self, request: fedn.ListClientsRequest, context):
         """ RPC endpoint that returns a ClientList containing the names of all active clients.
@@ -487,6 +517,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         status = fedn.Status(status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
         status.log_level = fedn.Status.INFO
+        status.timestamp = str(datetime.now())
+
 
         self.__whoami(status.sender, self)
 
@@ -527,6 +559,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
+        status.timestamp = str(datetime.now())
+
 
         self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)

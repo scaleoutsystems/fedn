@@ -176,7 +176,6 @@ class ReducerControl:
         for combiner in combiners:
             try:
                 model_id = combiner.get_model_id()
-                print("COMBINER UPDATE, model ID", model_id, flush=True)
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 model_id = None
@@ -191,7 +190,15 @@ class ReducerControl:
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """
 
-        if int(compute_plan['clients_required']) <= int(combiner_state['nr_active_clients']):
+        if compute_plan['task'] == 'training':
+            nr_active_clients = int(combiner_state['nr_active_trainers'])
+        elif compute_plan['task'] == 'validation':
+            nr_active_clients = int(combiner_state['nr_active_validators'])
+        else:
+            print("Invalid task type!",flush=True)
+            return False
+
+        if int(compute_plan['clients_required']) <= nr_active_clients:
             return True
         else:
             return False
@@ -220,16 +227,30 @@ class ReducerControl:
         # TODO: Implement strategy to handle the case.
         print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name), flush=True)
 
+
+    def _select_round_combiners(self,compute_plan):
+        combiners = []
+        for combiner in self.network.get_combiners():
+            try:
+                combiner_state = combiner.report()
+            except CombinerUnavailableError:
+                self._handle_unavailable_combiner(combiner)
+                combiner_state = None
+
+            if combiner_state:
+                is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
+                if is_participating:
+                    combiners.append((combiner,compute_plan))
+        return combiners
+
     def round(self, config, round_number):
         """ Execute one global round. """
 
         round_meta = {'round_id': round_number}
 
-        # TODO: Set / update reducer states and such
-        # TODO: Do a General Health check on Combiners in the beginning of the round.
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
-            return None
+            return None, round_meta
 
         # 1. Formulate compute plans for this round and determine which combiners should participate in the round.
         compute_plan = copy.deepcopy(config)
@@ -314,7 +335,7 @@ class ReducerControl:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!", flush=True)
             return None, round_meta
-        print("OK")
+        print("Round valid.")
 
         print("Starting reducing models...", flush=True)
         # 3. Reduce combiner models into a global model
@@ -349,8 +370,11 @@ class ReducerControl:
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_framework()
 
-            for combiner in updated:
+            validating_combiners = self._select_round_combiners(combiner_config)
+
+            for combiner, combiner_config in validating_combiners:
                 try:
+                    self.sync_combiners([combiner],self.get_latest_model())
                     combiner.start(combiner_config)
                 except CombinerUnavailableError:
                     # OK if validation fails for a combiner

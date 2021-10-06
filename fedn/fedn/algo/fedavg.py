@@ -12,9 +12,7 @@ from fedn.utils.helpers import get_helper
 
 
 class FEDAVGCombiner:
-    """ 
-        A Local SGD / Federated Averaging (FedAvg) aggregator. Coordinating the update of the Combiner global 
-        model by requesting and aggregating model updates from Clients. 
+    """ Local SGD / Federated Averaging (FedAvg) aggregator. 
 
     """
 
@@ -32,28 +30,17 @@ class FEDAVGCombiner:
 
         self.model_updates = queue.Queue()
 
-    def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
-        """
-
-        :param msg:
-        :param log_level:
-        :param type:
-        :param request:
-        :param flush:
-        """
-        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
-
     def receive_model_candidate(self, model_id):
         """ Callback when a new model version is reported by a client. """
         try:
-            self.report_status("COMBINER: callback received model {}".format(model_id),
+            self.server.report_status("COMBINER: callback received model {}".format(model_id),
                                log_level=fedn.Status.INFO)
             # TODO - here would be a place to do some additional validation of the model contribution. 
             self.model_updates.put(model_id)
         except Exception as e:
-            self.report_status("COMBINER: Failed to receive candidate model! {}".format(e),
+            self.server.report_status("COMBINER: Failed to receive candidate model! {}".format(e),
                                log_level=fedn.Status.WARNING)
-            self.report_status("Failed to receive candidate model!")
+            self.server.report_status("Failed to receive candidate model!")
             pass
 
     def receive_validation(self, validation):
@@ -66,7 +53,7 @@ class FEDAVGCombiner:
         except KeyError:
             self.validations[model_id] = [data]
 
-        self.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
+        self.server.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
                            log_level=fedn.Status.INFO)
 
     def _load_model_fault_tolerant(self, model_id):
@@ -80,7 +67,7 @@ class FEDAVGCombiner:
             while tries < 3:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    self.report_status("COMBINER: Model download failed. retrying", flush=True)
+                    self.server.report_status("COMBINER: Model download failed. retrying", flush=True)
                     import time
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
@@ -88,7 +75,9 @@ class FEDAVGCombiner:
         return model_str
 
     def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=180):
-        """ Compute an iterative/running average of models arriving to the combiner. """
+        """ Compute a running average of model updates.
+
+        """
 
         import time
         round_time = 0.0
@@ -102,7 +91,7 @@ class FEDAVGCombiner:
         while nr_processed_models < nr_expected_models:
             try:
                 model_id = self.model_updates.get(block=False)
-                self.report_status("Received model update with id {}".format(model_id))
+                self.server.report_status("Received model update with id {}".format(model_id))
 
                 # Load the model update
                 tic = time.time()
@@ -111,8 +100,8 @@ class FEDAVGCombiner:
                     try:
                         model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
                     except IOError:
-                        self.report_status("COMBINER: Failed to load model!")
-                else:
+                        self.server.report_status("COMBINER: Failed to load model!")
+                else: 
                     raise
 
                 data['time_model_load'] += time.time() - tic
@@ -128,26 +117,26 @@ class FEDAVGCombiner:
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
-                self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                self.server.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
                                                                                                      ,
                                                                                                      nr_expected_models))
                 time.sleep(polling_interval)
                 round_time += polling_interval
             except IOError:
-                self.report_status("COMBINER: Failed to read model update, skipping!")
+                self.server.report_status("COMBINER: Failed to read model update, skipping!")
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
                     return None
                 self.model_updates.task_done()
             except Exception as e:
-                self.report_status("COMBINER: Unknown exception in combine_models: {}".format(e))
+                self.server.report_status("COMBINER: Unknown exception in combine_models: {}".format(e))
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
                     return None
                 self.model_updates.task_done()
 
             if round_time >= timeout:
-                self.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
+                self.server.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
                 print("COMBINER: Round timed out.")
                 # TODO: Generalize policy for what to do in case of timeout. 
                 if nr_processed_models >= nr_required_models:
@@ -155,9 +144,9 @@ class FEDAVGCombiner:
                 else:
                     return None
 
-        self.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
+        self.server.report_status("ORCHESTRATOR: Training round completed, combined {} models.".format(nr_processed_models),
                            log_level=fedn.Status.INFO)
-        self.report_status("DONE, combined {} models".format(nr_processed_models))
+        self.server.report_status("DONE, combined {} models".format(nr_processed_models))
         data['nr_successful_updates'] = nr_processed_models
         return model, data
 
@@ -168,7 +157,7 @@ class FEDAVGCombiner:
         with self.model_updates.mutex:
             self.model_updates.queue.clear()
 
-        self.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
+        self.server.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
 
         meta = {}
@@ -183,7 +172,7 @@ class FEDAVGCombiner:
                                               nr_required_models=int(config['clients_required']),
                                               timeout=float(config['round_timeout']))
         except Exception as e:
-            print("FAILED TO UNPACK FROM COMBINER!", flush=True)
+            print("FAILED TO UNPACK FROM COMBINER! {}".format(e), flush=True)
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
@@ -209,12 +198,12 @@ class FEDAVGCombiner:
                 if model:
                     break
             except Exception as e:
-                self.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),
+                self.server.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),
                                    flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > 2:
-                    self.report_status("COMBINER exiting. could not fetch seed model.", flush=True)
+                    self.server.report_status("COMBINER exiting. could not fetch seed model.", flush=True)
                     return
 
         self.modelservice.set_model(model, model_id)
@@ -233,6 +222,25 @@ class FEDAVGCombiner:
 
         return clients
 
+
+    def __assign_round_clients(self, n, type="trainers"):
+        """  Obtain a list of clients to talk to in a round. """
+
+        if type == "validators":
+            clients = self.server.get_active_validators()
+        elif type == "trainers":
+            clients = self.server.get_active_trainers()
+
+        # If the number of requested trainers exceeds the number of available, use all available. 
+        if n > len(clients):
+            n = len(clients)
+            
+        # If not, we pick a random subsample of all available clients.
+        import random
+        clients = random.sample(clients, n)
+
+        return clients
+
     def __check_nr_round_clients(self, config, timeout=0.0):
         """ Check that the minimal number of required clients to start a round are connected. """
 
@@ -245,7 +253,7 @@ class FEDAVGCombiner:
             if active >= int(config['clients_requested']):
                 return True
             else:
-                self.report_status("waiting for {} clients to get started, currently: {}".format(
+                self.server.report_status("waiting for {} clients to get started, currently: {}".format(
                     int(config['clients_requested']) - active,
                     active), flush=True)
             if t >= timeout:
@@ -262,11 +270,10 @@ class FEDAVGCombiner:
     def exec_validation(self, config, model_id):
         """ Coordinate validation rounds as specified in config. """
 
-        self.report_status("COMBINER orchestrating validation of model {}".format(model_id))
+        self.server.report_status("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        # validators = self.__assign_round_clients(int(config['clients_requested']))
-        validators = self.__assign_round_clients(self.server.max_clients)
-        self.__validation_round(config, validators, model_id)
+        validators = self.__assign_round_clients(self.server.max_clients,type="validators")
+        self.__validation_round(config,validators,model_id)        
 
     def exec_training(self, config):
         """ Coordinates clients to executee training and validation tasks. """
@@ -280,13 +287,12 @@ class FEDAVGCombiner:
         # Execute the configured number of rounds
         round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
-            self.report_status("COMBINER: Starting training round {}".format(r), flush=True)
-            # clients = self.__assign_round_clients(int(config['clients_requested']))
+            self.server.report_status("COMBINER: Starting training round {}".format(r), flush=True)
             clients = self.__assign_round_clients(self.server.max_clients)
             model, meta = self.__training_round(config, clients)
             round_meta['local_round'][str(r)] = meta
             if model is None:
-                self.report_status("\t Failed to update global model in round {0}!".format(r))
+                self.server.report_status("\t Failed to update global model in round {0}!".format(r))
 
         if model is not None:
             a = self.helper.serialize_model_to_BytesIO(model)
@@ -299,7 +305,7 @@ class FEDAVGCombiner:
             self.server.set_active_model(model_id)
 
             print("------------------------------------------")
-            self.report_status("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
+            self.server.report_status("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
             print("\n")
         return round_meta
 
@@ -326,8 +332,6 @@ class FEDAVGCombiner:
         try:
             while True:
                 time.sleep(1)
-                # print("combiner run loop...",flush=True)
-                # self.server._log_queue_length()
                 compute_plan = None
                 if len(self.run_configs) > 0:
                     try:
@@ -349,14 +353,9 @@ class FEDAVGCombiner:
                         elif compute_plan['task'] == 'validation':
                             self.exec_validation(compute_plan, compute_plan['model_id'])
                         else:
-                            self.report_status("COMBINER: Compute plan contains unkown task type.", flush=True)
+                            self.server.report_status("COMBINER: Compute plan contains unkown task type.", flush=True)
                     else:
-                        self.report_status(
-                            "COMBINER: Failed to meet client allocation requirements for this compute plan.",
-                            flush=True)
-
-            # if self.run_configs_lock.locked():
-            #    self.run_configs_lock.release()
+                        self.server.report_status("COMBINER: Failed to meet client allocation requirements for this compute plan.", flush=True)
 
         except (KeyboardInterrupt, SystemExit):
             pass
