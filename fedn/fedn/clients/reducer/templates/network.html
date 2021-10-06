@@ -106,7 +106,9 @@
 <!-- Active Trainers table-->
 <script>
     $(document).ready(function() {
-    $('#all_clients').DataTable();
+    $('#all_clients').DataTable({
+        "order": [[5, "asc" ]]
+    });
 } );
 </script>
 
@@ -144,7 +146,11 @@
                 <td>{{ client['ip'] }}</td>
                 <td>{{ client['updated_at'] }}</td>
                 <td>{{ client['role'] }}</td>
-                <td>{{ client['status'] }}</td>
+                {% if client['status'] == 'offline' %}
+                <td><p class="text-danger">{{ client['status'] }}</p></td>
+                {% else %}
+                <td><p class="text-success">{{ client['status'] }}</p></td>
+                {% endif %}
             </tr>
             {% endfor %}
             </tbody>

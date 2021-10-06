@@ -525,7 +525,7 @@ class ReducerRestService:
 
             return result
 
-        def combiner_stats():
+        def combiner_status():
             """ Get current status reports from all combiners registered in the network. 
 
             :return:
@@ -545,7 +545,7 @@ class ReducerRestService:
             update client status to DB and add their roles.
             """
             client_info = self.control.network.get_client_info()
-            combiner_info = combiner_stats()
+            combiner_info = combiner_status()
             try:
                 all_active_trainers = []
                 all_active_validators = []
@@ -568,22 +568,31 @@ class ReducerRestService:
                     self.control.network.update_client_data(client, status, role)
 
                 all_active_clients = active_validators_list + active_trainers_list
-                if active_trainers_list == active_validators_list:
-                    for client in all_active_clients:
-                        status = 'active'
+                #if active_trainers_list == active_validators_list:
+                for client in all_active_clients:
+                    status = 'active'
+                    if client in active_trainers_list and client in active_validators_list:
                         role = 'trainer-validator'
-                        self.control.network.update_client_data(client, status, role)
-
-                else:
-                    for client in active_trainers_list:
-                        status = 'active'
+                    elif client in active_trainers_list:
                         role = 'trainer'
-                        self.control.network.update_client_data(client, status, role)
-
-                    for client in active_validators_list:
-                        status = 'active'
+                    elif client in active_validators_list:
                         role = 'validator'
-                        self.control.network.update_client_data(client, status, role)
+                    else:
+                        role = 'unknown'
+                    self.control.network.update_client_data(client, status, role)
+
+                #else:
+                #for client in active_trainers_list:
+                #    status = 'active'
+                #    role = 'trainer'
+                #    self.control.network.update_client_data(client, status, role)
+
+                #for client in active_validators_list:
+                #    status = 'active'
+                #    if client in active_trainers_list:
+                #        role = 
+                #    role = 'validator'
+                #    self.control.network.update_client_data(client, status, role)
 
                 return {'active_clients': all_clients,
                         'active_trainers': active_trainers_list,
@@ -652,7 +661,7 @@ class ReducerRestService:
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
-            combiner_info = combiner_stats()
+            combiner_info = combiner_status()
             active_clients = client_status()
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
