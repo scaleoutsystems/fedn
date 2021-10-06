@@ -12,9 +12,7 @@ from fedn.utils.helpers import get_helper
 
 
 class FEDAVGCombiner:
-    """ 
-        A Local SGD / Federated Averaging (FedAvg) aggregator. Coordinating the update of the Combiner global 
-        model by requesting and aggregating model updates from Clients. 
+    """ Local SGD / Federated Averaging (FedAvg) aggregator. 
 
     """
 
@@ -77,7 +75,9 @@ class FEDAVGCombiner:
         return model_str
 
     def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=180):
-        """ Compute an iterative/running average of models arriving to the combiner. """
+        """ Compute a running average of model updates.
+
+        """
 
         import time
         round_time = 0.0
@@ -117,7 +117,7 @@ class FEDAVGCombiner:
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
-                self.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                self.server.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
                                                                                                      ,
                                                                                                      nr_expected_models))
                 time.sleep(polling_interval)
@@ -172,7 +172,7 @@ class FEDAVGCombiner:
                                               nr_required_models=int(config['clients_required']),
                                               timeout=float(config['round_timeout']))
         except Exception as e:
-            print("FAILED TO UNPACK FROM COMBINER!", flush=True)
+            print("FAILED TO UNPACK FROM COMBINER! {}".format(e), flush=True)
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
@@ -198,7 +198,7 @@ class FEDAVGCombiner:
                 if model:
                     break
             except Exception as e:
-                self.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),
+                self.server.report_status("COMBINER could not fetch model from bucket. retrying in {}".format(timeout_retry),
                                    flush=True)
                 time.sleep(timeout_retry)
                 tries += 1

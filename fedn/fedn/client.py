@@ -132,7 +132,6 @@ class Client:
         # Start sending heartbeats to the combiner. This also initiates queues combiner-side. 
         threading.Thread(target=self._send_heartbeat, daemon=True).start()
     
-        print(config)
         if config['trainer'] == True:
             threading.Thread(target=self._listen_to_model_update_request_stream, daemon=True).start()
         if config['validator'] == True:
