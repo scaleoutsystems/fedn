@@ -418,7 +418,7 @@ class ReducerRestService:
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
                                             message="Not enough clients available to start rounds! "
-                                                    "check client capacity by combiners",
+                                                    "check combiner client capacity",
                                             message_type='warning'))
 
                 validate = request.form.get('validate', False)
@@ -569,7 +569,6 @@ class ReducerRestService:
                     self.control.network.update_client_data(client, status, role)
 
                 all_active_clients = active_validators_list + active_trainers_list
-                #if active_trainers_list == active_validators_list:
                 for client in all_active_clients:
                     status = 'active'
                     if client in active_trainers_list and client in active_validators_list:
@@ -581,19 +580,6 @@ class ReducerRestService:
                     else:
                         role = 'unknown'
                     self.control.network.update_client_data(client, status, role)
-
-                #else:
-                #for client in active_trainers_list:
-                #    status = 'active'
-                #    role = 'trainer'
-                #    self.control.network.update_client_data(client, status, role)
-
-                #for client in active_validators_list:
-                #    status = 'active'
-                #    if client in active_trainers_list:
-                #        role = 
-                #    role = 'validator'
-                #    self.control.network.update_client_data(client, status, role)
 
                 return {'active_clients': all_clients,
                         'active_trainers': active_trainers_list,
