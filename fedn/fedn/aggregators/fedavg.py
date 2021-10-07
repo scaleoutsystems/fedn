@@ -16,7 +16,7 @@ class FEDAVGCombiner:
 
     """
 
-    def __init__(self, id, storage, server, modelservice):
+    def __init__(self, id, storage, server, modelservice, control):
 
         self.run_configs_lock = Lock()
         self.run_configs = []
@@ -24,6 +24,7 @@ class FEDAVGCombiner:
         self.id = id
         self.server = server
         self.modelservice = modelservice
+        self.control = control
 
         self.config = {}
         self.validations = {}
@@ -34,13 +35,13 @@ class FEDAVGCombiner:
         
         """
         try:
-            self.server.report_status("COMBINER: callback received model {}".format(model_id),
+            self.server.report_status("AGGREGATOR: callback received model {}".format(model_id),
                                log_level=fedn.Status.INFO)
 
             # Push the model update to the processing queue
             self.model_updates.put(model_id)
         except Exception as e:
-            self.server.report_status("COMBINER: Failed to receive candidate model! {}".format(e),
+            self.server.report_status("AGGREGATOR: Failed to receive candidate model! {}".format(e),
                                log_level=fedn.Status.WARNING)
             pass
 
@@ -60,7 +61,7 @@ class FEDAVGCombiner:
                            log_level=fedn.Status.INFO)
 
 
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, timeout=180):
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
         """ Compute a running average of model updates.
 
         """
@@ -81,10 +82,10 @@ class FEDAVGCombiner:
 
                 # Load the model update
                 tic = time.time()
-                model_str = self._load_model_fault_tolerant(model_id)
+                model_str = self.control.load_model_fault_tolerant(model_id)
                 if model_str:
                     try:
-                        model_next = self.helper.load_model_from_BytesIO(model_str.getbuffer())
+                        model_next = helper.load_model_from_BytesIO(model_str.getbuffer())
                     except IOError:
                         self.server.report_status("COMBINER: Failed to load model!")
                 else: 
@@ -97,7 +98,7 @@ class FEDAVGCombiner:
                 if nr_processed_models == 0:
                     model = model_next
                 else:
-                    model = self.helper.increment_average(model, model_next, nr_processed_models + 1)
+                    model = helper.increment_average(model, model_next, nr_processed_models + 1)
                 data['time_model_aggregation'] += time.time() - tic
 
                 nr_processed_models += 1
