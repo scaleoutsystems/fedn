@@ -142,7 +142,7 @@ class Client:
     def  _assign(self):
         """Contacts the controller and asks for combiner assignment. """
 
-        print("Asking for assignment",flush=True)
+        print("Asking for assignment! make sure to upload the compute package", flush=True)
         import time
         while True:
             status, response = self.connector.assign()
