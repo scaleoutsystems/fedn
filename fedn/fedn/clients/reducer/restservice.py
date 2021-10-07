@@ -417,7 +417,8 @@ class ReducerRestService:
 
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
-                                            message="Not enough clients available to start rounds.",
+                                            message="Not enough clients available to start rounds! "
+                                                    "check client capacity by combiners",
                                             message_type='warning'))
 
                 validate = request.form.get('validate', False)
