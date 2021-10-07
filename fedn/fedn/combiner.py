@@ -91,13 +91,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self, self.modelservice, grpc_config)
 
-        from fedn.aggregators.fedavg import FEDAVGCombiner
-        self.aggregator = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
-
-        threading.Thread(target=self.aggregator.run, daemon=True).start()
-
         from fedn.common.tracer.mongotracer import MongoTracer
         self.tracer = MongoTracer(config['statestore']['mongo_config'], config['statestore']['network_id'])
+
+        #from fedn.aggregators.fedavg import FEDAVGCombiner
+        #self.aggregator = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
+        #threading.Thread(target=self.aggregator.run, daemon=True).start()
+
+        from fedn.clients.combiner.roundcontrol import RoundControl
+        self.control = RoundControl(self.id, self.repository, self, self.modelservice)
+        threading.Thread(target=self.control.run, daemon=True).start()
+
+
+        
+
+        
 
         self.server.start()
 
