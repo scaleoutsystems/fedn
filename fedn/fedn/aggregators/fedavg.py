@@ -18,8 +18,6 @@ class FEDAVGCombiner:
 
     def __init__(self, id, storage, server, modelservice, control):
 
-        self.run_configs_lock = Lock()
-        self.run_configs = []
         self.storage = storage
         self.id = id
         self.server = server

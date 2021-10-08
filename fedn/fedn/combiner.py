@@ -380,7 +380,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         p = response.parameter.add()
         p.key = "nr_unprocessed_compute_plans"
-        p.value = str(len(self.control.round_configs))
+        p.value = str(self.control.round_configs.qsize())
 
         p = response.parameter.add()
         p.key = "name"
