@@ -545,9 +545,9 @@ class Client:
                 time.sleep(1)
                 cnt += 1
                 if self.state != old_state:
-                    print("CLIENT in {} state".format(ClientStateToString(self.state)), flush=True)
+                    print("{}:CLIENT in {} state".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ClientStateToString(self.state)), flush=True)
                 if cnt > 5:
-                    print("CLIENT active", flush=True)
+                    print("{}:CLIENT active".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
                 if self.error_state:
                     return
