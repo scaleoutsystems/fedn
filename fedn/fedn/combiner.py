@@ -136,7 +136,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.model_id = model_id
 
     def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
-        print("COMBINER({}):{} {}".format(self.id, log_level, msg), flush=flush)
+        print("{}:COMBINER({}):{} {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.id, log_level, msg), flush=flush)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask clients to update the current global model.
