@@ -53,6 +53,11 @@ class FEDAVGCombiner:
         :return:
         """
 
+        # Currently, the validations are actually sent as status messages 
+        # directly in the client, so here we are just storing them in the
+        # combiner memory. This will need to be refactored later so that this 
+        # callback is responsible for reporting the validation to the db. 
+
         model_id = validation.model_id
         data = json.loads(validation.data)
         try:
