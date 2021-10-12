@@ -17,12 +17,8 @@ class FedAvgAggregator(AggregatorBase):
 
     def __init__(self, id, storage, server, modelservice, control):
 
-        self.storage = storage
-        self.id = id
-        self.server = server
-        self.modelservice = modelservice
-        self.control = control
-
+        super().__init__(id,storage, server, modelservice, control)
+        
         self.validations = {}
         self.model_updates = queue.Queue()
 
