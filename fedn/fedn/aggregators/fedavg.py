@@ -10,7 +10,7 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.utils.helpers import get_helper
 
 
-class FedAggregator:
+class FedAvgAggregator:
     """ Local SGD / Federated Averaging (FedAvg) aggregator. 
 
     """
