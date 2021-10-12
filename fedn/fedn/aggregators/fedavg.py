@@ -10,7 +10,7 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.utils.helpers import get_helper
 
 
-class FedAvgAggregator:
+class FedAggregator:
     """ Local SGD / Federated Averaging (FedAvg) aggregator. 
 
     """
@@ -65,7 +65,7 @@ class FedAvgAggregator:
         except KeyError:
             self.validations[model_id] = [data]
 
-        self.server.report_status("COMBINER: callback processed validation {}".format(validation.model_id),
+        self.server.report_status("AGGREGATOR: callback processed validation {}".format(validation.model_id),
                            log_level=fedn.Status.INFO)
 
 
@@ -119,20 +119,20 @@ class FedAvgAggregator:
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
-                self.server.report_status("COMBINER: waiting for model updates: {} of {} completed.".format(nr_processed_models
+                self.server.report_status("AGGREGATOR: waiting for model updates: {} of {} completed.".format(nr_processed_models
                                                                                                      ,
                                                                                                      nr_expected_models))
                 time.sleep(polling_interval)
                 round_time += polling_interval
             except Exception as e:
-                self.server.report_status("COMBINER: Error encoutered while reading model update, skipping this update. {}".format(e))
+                self.server.report_status("AGGERGATOR: Error encoutered while reading model update, skipping this update. {}".format(e))
                 nr_expected_models -= 1
                 if nr_expected_models <= 0:
                     return None, data
                 self.model_updates.task_done()
            
             if round_time >= timeout:
-                self.server.report_status("COMBINER: training round timed out.", log_level=fedn.Status.WARNING)
+                self.server.report_status("AGGREGATOR: training round timed out.", log_level=fedn.Status.WARNING)
                 # TODO: Generalize policy for what to do in case of timeout. 
                 if nr_processed_models >= nr_required_models:
                     break
@@ -141,6 +141,6 @@ class FedAvgAggregator:
 
         data['nr_successful_updates'] = nr_processed_models
 
-        self.server.report_status("COMBINER: Training round completed, aggregated {} models.".format(nr_processed_models),
+        self.server.report_status("AGGREGATOR: Training round completed, aggregated {} models.".format(nr_processed_models),
                            log_level=fedn.Status.INFO)
         return model, data
