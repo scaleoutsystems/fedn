@@ -58,9 +58,10 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'alabaster'
 #html_theme = 'furo'
-html_theme = 'sphinx_book_theme'
+#html_theme = 'sphinx_book_theme'
+html_theme = 'press'
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -69,6 +70,12 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'fedndocs'
+
+# If defined shows an image instead of project name on page top-left (link to index page)
+html_logo = '_static/fedn_logo.webp'
+
+# Here we assume that the file is at _static/custom.css
+html_css_files = ["_static/custom.css"]
 
 
 # -- Options for LaTeX output ------------------------------------------------
