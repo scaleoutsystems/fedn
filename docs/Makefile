@@ -14,11 +14,9 @@ help:
 
 .PHONY: help Makefile
 
-# To keep the source and output separate, but still be able to both publish on GitHub Pages and preview builds locally.
-# One can run <make github> from the doc source directory to generate a local preview and move the docs where GitHub wants to serve them from
+# One can run <make github> from the doc source directory as an alias to mkae html
 github:
 	@make html
-	@cp -a build/html/. ./docs
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
