@@ -47,9 +47,9 @@ class HelperBase(ABC):
 
 
 def get_helper(helper_type):
-    """
+    """ Return an instance of the helper class. 
 
-    :param helper_type:
+    :param helper_type (str): The helper type ('keras','pytorch')
     :return:
     """
     if helper_type == 'numpyarray':

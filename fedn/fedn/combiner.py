@@ -3,11 +3,15 @@ import queue
 import threading
 import uuid
 from datetime import datetime, timedelta
+
+from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+
 from fedn.clients.combiner.modelservice import ModelService
 from fedn.common.storage.s3.s3repo import S3ModelRepository
+
 import requests
 import json
 import io
@@ -58,7 +62,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.model_id = None
 
-        from fedn.common.net.connect import ConnectorCombiner, Status
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
@@ -88,13 +91,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = S3ModelRepository(config['storage']['storage_config'])
         self.server = Server(self, self.modelservice, grpc_config)
 
-        from fedn.algo.fedavg import FEDAVGCombiner
-        self.combiner = FEDAVGCombiner(self.id, self.repository, self, self.modelservice)
-
-        threading.Thread(target=self.combiner.run, daemon=True).start()
-
         from fedn.common.tracer.mongotracer import MongoTracer
         self.tracer = MongoTracer(config['statestore']['mongo_config'], config['statestore']['network_id'])
+
+        from fedn.clients.combiner.roundcontrol import RoundControl
+        self.control = RoundControl(self.id, self.repository, self, self.modelservice)
+        threading.Thread(target=self.control.run, daemon=True).start()        
 
         self.server.start()
 
@@ -293,21 +295,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ## Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
-        """
+        """ Push a round config to the combiner Control. 
 
         :param control:
         :param context:
         :return:
         """
         response = fedn.ControlResponse()
-        print("\n\n\n GOT CONTROL **START** from Command {}\n\n\n".format(control.command), flush=True)
+        print("\n\n GOT CONTROL **START** from Command {}\n\n".format(control.command), flush=True)
 
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
-        print("\n\n\n\nSTARTING JOB AT COMBINER WITH {}\n\n\n\n".format(config), flush=True)
+        print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(config), flush=True)
 
-        job_id = self.combiner.push_run_config(config)
+        job_id = self.control.push_round_config(config)
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
@@ -378,7 +380,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         p = response.parameter.add()
         p.key = "nr_unprocessed_compute_plans"
-        p.value = str(len(self.combiner.run_configs))
+        p.value = str(self.control.round_configs.qsize())
 
         p = response.parameter.add()
         p.key = "name"
@@ -459,7 +461,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         try:
-            # requested = int(self.combiner.config['clients_requested'])
             requested = int(self.max_clients)
             if len(active_clients) >= requested:
                 response.status = fedn.ConnectionStatus.NOT_ACCEPTING
@@ -580,7 +581,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response. """
-        self.combiner.receive_model_candidate(request.model_update_id)
+        self.control.aggregator.on_model_update(request.model_update_id)
         print("ORCHESTRATOR: Received model update", flush=True)
 
         response = fedn.Response()
@@ -597,8 +598,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def SendModelValidation(self, request, context):
         """ Send a model update response. """
-        # self._send_request(request,fedn.Channel.MODEL_VALIDATIONS)
-        self.combiner.receive_validation(request)
+        self.control.aggregator.on_model_validation(request)
         print("ORCHESTRATOR received validation ", flush=True)
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)

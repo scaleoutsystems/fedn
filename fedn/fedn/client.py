@@ -1,5 +1,8 @@
 import json
 import os
+import sys
+import io
+import uuid
 import tempfile
 import threading, queue
 import time
@@ -397,7 +400,6 @@ class Client:
             mdl = self.get_model(str(model_id))
             meta['fetch_model'] = time.time() - tic
 
-            import sys
             inpath = self.helper.get_tmp_path()
             with open(inpath, 'wb') as fh:
                 fh.write(mdl.getbuffer())
@@ -409,12 +411,11 @@ class Client:
             meta['exec_training'] = time.time() - tic
 
             tic = time.time()
-            import io
             out_model = None
             with open(outpath, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
 
-            import uuid
+            # Push model update to combiner server
             updated_model_id = uuid.uuid4()
             self.set_model(out_model, str(updated_model_id))
             meta['upload_model'] = time.time() - tic
