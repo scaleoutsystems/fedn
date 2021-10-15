@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>Welcome to FEDn’s documentation!</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Architecture overview" href="architecture.html" />
+  <link rel="prev" title="FEDn documentation" href="index.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Welcome to FEDn’s documentation!</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#welcome-to-fedn-s-documentation" class="reference internal">Welcome to FEDn’s documentation!</a></li>
+                
+                  <li class="toctree-l2"><a href="#core-features" class="reference internal">Core Features</a></li>
+                
+                  <li class="toctree-l2"><a href="#documentation" class="reference internal">Documentation</a></li>
+                
+                  <li class="toctree-l2"><a href="#getting-started" class="reference internal">Getting started</a></li>
+                
+                  <li class="toctree-l2"><a href="#fully-distributed-deployment" class="reference internal">Fully distributed deployment</a></li>
+                
+                  <li class="toctree-l2"><a href="#using-fedn-in-scaleout-studio" class="reference internal">Using FEDn in Scaleout Studio</a></li>
+                
+                  <li class="toctree-l2"><a href="#where-to-go-from-here" class="reference internal">Where to go from here</a></li>
+                
+                  <li class="toctree-l2"><a href="#community-support" class="reference internal">Community support</a></li>
+                
+                  <li class="toctree-l2"><a href="#commercial-support" class="reference internal">Commercial support</a></li>
+                
+                  <li class="toctree-l2"><a href="#making-contributions" class="reference internal">Making contributions</a></li>
+                
+                  <li class="toctree-l2"><a href="#citation" class="reference internal">Citation</a></li>
+                
+                  <li class="toctree-l2"><a href="#organizational-collaborators-contributors-and-supporters" class="reference internal">Organizational collaborators, contributors and supporters</a></li>
+                
+                  <li class="toctree-l2"><a href="#license" class="reference internal">License</a></li>
+                
+                  <li class="toctree-l2"><a href="#indices-and-tables" class="reference internal">Indices and tables</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>Welcome to FEDn’s documentation!</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="index.html"
+       title="previous chapter">← FEDn documentation</a>
+  </li>
+  <li class="next">
+    <a href="architecture.html"
+       title="next chapter">Architecture overview →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="welcome-to-fedn-s-documentation">
+<h1>Welcome to FEDn’s documentation!<a class="headerlink" href="#welcome-to-fedn-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.</p>
+<p><a class="reference external" href="https://discord.gg/KMg4VwszAd">Scaleout Discord server</a>.</p>
+</section>
+<section id="core-features">
+<h1>Core Features<a class="headerlink" href="#core-features" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><strong>ML-framework agnostic</strong>. Model updates are treated as black-box computations. This means that it is possible to support virtually any ML model type or framework. Support for Keras and PyTorch is available out-of-the-box, and support for many other model types, including models from SKLearn, are in active development.</p></li>
+<li><p><strong>Horizontally scalable through a tiered aggregation scheme</strong>. FEDn allows for massive horizontal scaling. This is achieved by a tiered architecture where multiple combiners divide up the work to coordinate client updates and aggregation. Recent benchmarks show high performance both for thousands of clients in a cross-device setting and for large model updates (1GB) in a cross-silo setting, see <a class="reference external" href="https://arxiv.org/abs/2103.00148">https://arxiv.org/abs/2103.00148</a>.</p></li>
+<li><p><strong>Built for real-world production scenarios</strong>. The implementation is based on proven design patterns in distributed computing and incorporates enterprise security features. A key feature is that data clients do not have to expose any ingress ports.</p></li>
+<li><p><strong>WebUI to manage alliances, track training progress and follow client validations in real time</strong>. The FEDn frontend lets you efficiently manage and track events and training progress in the alliance, helping you monitor both client and server performance.</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<p>More details about the architecture and implementation:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://scaleoutsystems.github.io/fedn/">Documentation</a>.</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/2103.00148">Paper</a>.</p></li>
+</ul>
+</section>
+<section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture.</p>
+<p>Clone the repository (make sure to use git-lfs!) and follow these steps:</p>
+<section id="pseudo-distributed-deployment">
+<h2>Pseudo-distributed deployment<a class="headerlink" href="#pseudo-distributed-deployment" title="Permalink to this headline">¶</a></h2>
+<p>We provide docker-compose templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development on a single host machine.</p>
+<ol class="arabic simple">
+<li><p>Create a default docker network</p></li>
+</ol>
+<p>We need to make sure that all services deployed on our single host can communicate on the same docker network. Therefore, our provided docker-compose templates use a default external network ‘fedn_default’. First, create this network:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker network create fedn_default
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Deploy the base services (Minio and MongoDB)</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose -f config/base-services.yaml -f config/private-network.yaml up
+</pre></div>
+</div>
+<p>Make sure you can access the following services before proceeding to the next steps:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="http://localhost:9000">Minio</a>.</p></li>
+<li><p><a class="reference external" href="http://localhost:8081">Mongo Express</a>.</p></li>
+</ul>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Start the Reducer</p></li>
+</ol>
+<p>Copy the settings config file for the reducer, ‘config/settings-reducer.yaml.template’ to ‘config/settings-reducer.yaml’. You do not need to make any changes to this file to run the sandbox. To start the reducer service:</p>
+<p>Make sure that you can access the Reducer UI at <a class="reference external" href="https://localhost:8090">https://localhost:8090</a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose -f config/reducer.yaml -f config/private-network.yaml up
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Start a combiner</p></li>
+</ol>
+<p>Copy the settings config file for the reducer, ‘config/settings-combiner.yaml.template’ to ‘config/settings-combiner.yaml’. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker network create fedn_defaultdocker-compose -f config/combiner.yaml -f config/private-network.yaml up
+</pre></div>
+</div>
+</section>
+<section id="train-a-federated-model">
+<h2>Train a federated model<a class="headerlink" href="#train-a-federated-model" title="Permalink to this headline">¶</a></h2>
+<p>Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with an initial base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset:</p>
+<p><a class="reference external" href="https://github.com/scaleoutsystems/examples/tree/main/mnist-keras">https://github.com/scaleoutsystems/examples/tree/main/mnist-keras</a></p>
+</section>
+</section>
+<section id="fully-distributed-deployment">
+<h1>Fully distributed deployment<a class="headerlink" href="#fully-distributed-deployment" title="Permalink to this headline">¶</a></h1>
+<p>The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](<a class="reference external" href="https://scaleoutsystems.github.io/fedn/#/deployment">https://scaleoutsystems.github.io/fedn/#/deployment</a>).</p>
+</section>
+<section id="using-fedn-in-scaleout-studio">
+<h1>Using FEDn in Scaleout Studio<a class="headerlink" href="#using-fedn-in-scaleout-studio" title="Permalink to this headline">¶</a></h1>
+<p>Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applications. Studio lets you deploy, manage and monitor FEDn networks as apps deployed to Kubernetes, all from a graphical interface. In addtion to FEDn, Studio provides developer tools (e.g. Jupyter Labs and VSCode), storage managmement (Kubernetes volumes, minio, MongoDB etc), and model serving for the federated model (Tensorflow Serving, TorchServe, MLflow or custom serving). End-to-end example here: <a class="reference external" href="https://www.youtube.com/watch?v=-a_nIzkSumI">https://www.youtube.com/watch?v=-a_nIzkSumI</a></p>
+<ul class="simple">
+<li><p>Sign up for private-beta access at <a class="reference external" href="https://scaleoutsystems.com/">https://scaleoutsystems.com/</a>.</p></li>
+<li><p><a class="reference external" href="https://github.com/scaleoutsystems/stackn">Deploy STACKn on your own infrastructure</a>.</p></li>
+</ul>
+</section>
+<section id="where-to-go-from-here">
+<h1>Where to go from here<a class="headerlink" href="#where-to-go-from-here" title="Permalink to this headline">¶</a></h1>
+<p>Explore additional projects/clients:</p>
+<ul class="simple">
+<li><p>PyTorch version of the MNIST getting-started example: <a class="reference external" href="https://github.com/scaleoutsystems/examples/tree/main/mnist-pytorch">https://github.com/scaleoutsystems/examples/tree/main/mnist-pytorch</a></p></li>
+<li><p>Sentiment analysis with a Keras CNN-lstm trained on the IMDB dataset (cross-silo): <a class="reference external" href="https://github.com/scaleoutsystems/FEDn-client-imdb-keras">https://github.com/scaleoutsystems/FEDn-client-imdb-keras</a></p></li>
+<li><p>Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo): <a class="reference external" href="https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git">https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git</a></p></li>
+<li><p>VGG16 trained on cifar-10 with a PyTorch client (cross-silo): <a class="reference external" href="https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch">https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch</a></p></li>
+<li><p>Human activity recognition with a Keras CNN based on the casa dataset (cross-device): <a class="reference external" href="https://github.com/scaleoutsystems/FEDn-client-casa-keras">https://github.com/scaleoutsystems/FEDn-client-casa-keras</a></p></li>
+<li><p>Fraud detection with a Keras auto-encoder (ANN encoder): <a class="reference external" href="https://github.com/scaleoutsystems/FEDn-client-fraud_keras">https://github.com/scaleoutsystems/FEDn-client-fraud_keras</a></p></li>
+</ul>
+</section>
+<section id="community-support">
+<h1>Community support<a class="headerlink" href="#community-support" title="Permalink to this headline">¶</a></h1>
+<p>Join the <a class="reference external" href="https://discord.gg/KMg4VwszAd">Scaleout Discord Server</a>. to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub.</p>
+</section>
+<section id="commercial-support">
+<h1>Commercial support<a class="headerlink" href="#commercial-support" title="Permalink to this headline">¶</a></h1>
+<p>Scaleout offers flexible support agreements, reach out at (<a class="reference external" href="https://scaleoutsystems.com">https://scaleoutsystems.com</a>) to inquire about Enterprise support.</p>
+</section>
+<section id="making-contributions">
+<h1>Making contributions<a class="headerlink" href="#making-contributions" title="Permalink to this headline">¶</a></h1>
+<p>All pull requests will be considered and are much appreciated. Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p></li>
+</ul>
+</section>
+<section id="citation">
+<h1>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h1>
+<p>If you use FEDn in your research, please cite</p>
+<div class="highlight-bib notranslate"><div class="highlight"><pre><span></span><span class="nc">@article</span><span class="p">{</span><span class="nl">ekmefjord2021scalable</span><span class="p">,</span>
+<span class="na">title</span><span class="p">=</span><span class="s">{Scalable federated machine learning with FEDn}</span><span class="p">,</span>
+<span class="na">author</span><span class="p">=</span><span class="s">{Ekmefjord, Morgan and Ait-Mlouk, Addi and Alawadi, Sadi and {\AA}kesson, Mattias and Stoyanova, Desislava and Spjuth, Ola and Toor, Salman and Hellander, Andreas}</span><span class="p">,</span>
+<span class="na">journal</span><span class="p">=</span><span class="s">{arXiv preprint arXiv:2103.00148}</span><span class="p">,</span>
+<span class="na">year</span><span class="p">=</span><span class="s">{2021}</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="organizational-collaborators-contributors-and-supporters">
+<h1>Organizational collaborators, contributors and supporters<a class="headerlink" href="#organizational-collaborators-contributors-and-supporters" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="_images/Scaleout.png"><img alt="Scaleout logo" src="_images/Scaleout.png" style="width: 30%;" /></a> <a class="reference internal" href="_images/UU.png"><img alt="Uppsala University logo" src="_images/UU.png" style="width: 30%;" /></a> <a class="reference internal" href="_images/Scania.png"><img alt="Scania logo" src="_images/Scania.png" style="width: 30%;" /></a></p>
+</section>
+<section id="license">
+<h1>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h1>
+<p>FEDn is licensed under Apache-2.0 (see LICENSE file for full information).</p>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="index.html"
+       title="previous chapter">← FEDn documentation</a>
+  </li>
+  <li class="next">
+    <a href="architecture.html"
+       title="next chapter">Architecture overview →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

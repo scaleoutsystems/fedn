@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>Release Notes</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Frequently asked questions" href="faq.html" />
+  <link rel="prev" title="Creating a new federated model for use with FEDn" href="tutorial.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Release Notes</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#v0-2-5" class="reference internal">v0.2.5</a></li>
+                
+                  <li class="toctree-l2"><a href="#v0-2-4" class="reference internal">v0.2.4</a></li>
+                
+                  <li class="toctree-l2"><a href="#v0-2-3" class="reference internal">v0.2.3</a></li>
+                
+                  <li class="toctree-l2"><a href="#v0-2-2" class="reference internal">v0.2.2</a></li>
+                
+                  <li class="toctree-l2"><a href="#v0-2-1" class="reference internal">v0.2.1</a></li>
+                
+                  <li class="toctree-l2"><a href="#v0-2-0" class="reference internal">v0.2.0</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>Release Notes</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="tutorial.html"
+       title="previous chapter">← Creating a new federated model for use with FEDn</a>
+  </li>
+  <li class="next">
+    <a href="faq.html"
+       title="next chapter">Frequently asked questions →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<section id="v0-2-5">
+<h2>v0.2.5<a class="headerlink" href="#v0-2-5" title="Permalink to this headline">¶</a></h2>
+<section id="what-s-new">
+<h3>What’s new?<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>The examples previously residing in ‘test’ have been refactored into a separate repository: <a class="reference external" href="https://github.com/scaleoutsystems/examples">https://github.com/scaleoutsystems/examples</a></p></li>
+<li><p>Docker-compose templates for Minio upgraded to support latest version</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="other">
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>Documentation updated</p></li>
+<li><p>Introduce Discord community server</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="v0-2-4">
+<h2>v0.2.4<a class="headerlink" href="#v0-2-4" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>What’s new?<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Introduced a new events view.</p></li>
+<li><p>Introduced a new view for viewing network layout, (reducer, combiner and clients hierarchy)</p></li>
+<li><p>Introduced a new setup guide-phase to ensure prereqs like package and model are set before starting execution.</p></li>
+<li><p>Introduced a better form for parameter selection on run configuration.</p></li>
+<li><p>Introduced async dispatching of run configurations.</p></li>
+<li><p>Introduced async update refresh of several important fields for user convenincence like status, events, network hierarchy etc.</p></li>
+<li><p>Introduced a new download-client-config function to allow for faster and more convenient client configuration.
+(Just download config and point your local client and whoallah! You are online in this federation.)</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Other<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed logic bugs related to framework persistance.</p></li>
+<li><p>Fixed a logic bug causing clients to get assigned prior to compute package assignment (and hence will not account for assignment policy).</p></li>
+<li><p>Fixed a logic bug if reducer is resumed from previous state (to ensure) that the right compute package is selected.</p></li>
+<li><p>Update dependency versions.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-2-3">
+<h2>v0.2.3<a class="headerlink" href="#v0-2-3" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>What’s new?<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Support for latest Minio</p></li>
+<li><p>Improvements i UI - now not possible to submit jobs is in monitoring state.</p></li>
+<li><p>Improvement of Docker image hierarchy.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Docs updates</p></li>
+<li><p>Several bugfixes and security patches.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-2-2">
+<h2>v0.2.2<a class="headerlink" href="#v0-2-2" title="Permalink to this headline">¶</a></h2>
+<section id="id5">
+<h3>What’s new?<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The MNIST examples (Keras and PyTorch) have been updated so that they now bundle the example data in .npz format.</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Other<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Docs updates</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-2-1">
+<h2>v0.2.1<a class="headerlink" href="#v0-2-1" title="Permalink to this headline">¶</a></h2>
+<section id="id7">
+<h3>What’s new?<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>It is now possible to choose which validation metrics to plot in the Dashboard</p></li>
+</ul>
+</section>
+<section id="fixes">
+<h3>Fixes<a class="headerlink" href="#fixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Plots backed by no current data is no longer shown as empty plots.</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Other<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Docs updates</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-2-0">
+<h2>v0.2.0<a class="headerlink" href="#v0-2-0" title="Permalink to this headline">¶</a></h2>
+<section id="id9">
+<h3>What’s new?<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Support for PyTorch models</p></li>
+<li><p>It’s now possible to have examples in external repositories</p></li>
+<li><p>Support for models constructed with the Keras Functional API</p></li>
+<li><p>Set maximum number of clients in the settings file</p></li>
+<li><p>Now possible to upload the compute package through the UI</p></li>
+<li><p>Configure round timeout in the UI</p></li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">combiner</span><span class="p">:</span>
+<span class="nt">name</span><span class="p">:</span>
+<span class="nt">combinerhost</span><span class="p">:</span>
+<span class="nt">combinerport</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12080</span>
+<span class="nt">max_clients</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">50</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Added several new views in UI including combiner performance and client training time distribution.</p></li>
+<li><p>Updated look-and-feel for UI.</p></li>
+<li><p>Added client allocation policy to spread the clients evenly over the combiners</p></li>
+<li><p>Use config for s3 model commits instead of a hard-coded bucket name</p></li>
+<li><p>Memory management to prevent combiners from going off</p></li>
+<li><p>Reducer, client and combiner now have their own separate Dockerfile definitions</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>Fixes<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Harmonizes naming of helper classes</p></li>
+<li><p>Many bugfixes and stability improvements</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>Other<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Lots of product documentation updates</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="tutorial.html"
+       title="previous chapter">← Creating a new federated model for use with FEDn</a>
+  </li>
+  <li class="next">
+    <a href="faq.html"
+       title="next chapter">Frequently asked questions →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

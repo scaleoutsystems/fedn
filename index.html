@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>FEDn documentation</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Welcome to FEDn’s documentation!" href="readme.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="#" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+    
+    <li>FEDn documentation</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="next">
+    <a href="readme.html"
+       title="next chapter">Welcome to FEDn’s documentation! →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fedn-documentation">
+<h1>FEDn documentation<a class="headerlink" href="#fedn-documentation" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="_images/fedn.webp"><img alt="FEDn logo" class="align-center" src="_images/fedn.webp" style="width: 100%;" /></a>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Welcome to FEDn’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#core-features">Core Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#documentation">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#getting-started">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#pseudo-distributed-deployment">Pseudo-distributed deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#train-a-federated-model">Train a federated model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#fully-distributed-deployment">Fully distributed deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#using-fedn-in-scaleout-studio">Using FEDn in Scaleout Studio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#where-to-go-from-here">Where to go from here</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#community-support">Community support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#commercial-support">Commercial support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#making-contributions">Making contributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#citation">Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#organizational-collaborators-contributors-and-supporters">Organizational collaborators, contributors and supporters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#main-components">Main components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#services-and-communication">Services and communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#control-flows-and-algorithms">Control flows and algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="deployment.html">Distributed deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html#prerequisite-for-the-reference-deployment">Prerequisite for the reference deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html#deploy-supporting-services">1. Deploy supporting services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html#deploy-the-reducer">2. Deploy the reducer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html#deploy-combiners">3. Deploy combiners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html#attach-clients-to-the-fedn-network">4. Attach clients to the FEDn network</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Creating a new federated model for use with FEDn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#the-compute-package-explained">The compute package explained</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#default-suggested-client-structure">Default/suggested client structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#training-entrypoint">Training entrypoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#data-access">Data access</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-5">v0.2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-4">v0.2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-3">v0.2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-2">v0.2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-1">v0.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#v0-2-0">v0.2.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-how-do-i-remove-replace-the-compute-package">Q: How do I remove/replace the compute package?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package">Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-how-can-other-aggregation-algorithms-can-be-defined">Q: How can other aggregation algorithms can be defined?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc">Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-how-can-i-configure-the-round-participation-policy">Q: How can I configure the round participation policy:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-how-can-i-configure-the-round-validity-policy">Q: How can I configure the round validity policy:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks">Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="next">
+    <a href="readme.html"
+       title="next chapter">Welcome to FEDn’s documentation! →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

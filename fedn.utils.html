@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>fedn.utils package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fedn.utils package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fedn-utils-package">
+<h1>fedn.utils package<a class="headerlink" href="#fedn-utils-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.utils.checksum">
+<span id="fedn-utils-checksum-module"></span><h2>fedn.utils.checksum module<a class="headerlink" href="#module-fedn.utils.checksum" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="fedn.utils.checksum.md5">
+<span class="sig-prename descclassname"><span class="pre">fedn.utils.checksum.</span></span><span class="sig-name descname"><span class="pre">md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/checksum.html#md5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.checksum.md5" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-fedn.utils.dispatcher">
+<span id="fedn-utils-dispatcher-module"></span><h2>fedn.utils.dispatcher module<a class="headerlink" href="#module-fedn.utils.dispatcher" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.dispatcher.Dispatcher">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.dispatcher.</span></span><span class="sig-name descname"><span class="pre">Dispatcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/dispatcher.html#Dispatcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.dispatcher.Dispatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.dispatcher.Dispatcher.run_cmd">
+<span class="sig-name descname"><span class="pre">run_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/dispatcher.html#Dispatcher.run_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.dispatcher.Dispatcher.run_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd_type</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-fedn.utils.helpers">
+<span id="fedn-utils-helpers-module"></span><h2>fedn.utils.helpers module<a class="headerlink" href="#module-fedn.utils.helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">HelperBase</span></span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class defining helpers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.get_tmp_path">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_tmp_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.get_tmp_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.get_tmp_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a temporary output path compatible with save_model, load_model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.increment_average">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">increment_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_next</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.increment_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.increment_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute one increment of incremental averaging. 
+n: the iteration index 1…N  in the sequence.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.load_model">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the model save with save_model from disk on path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.load_model_from_BytesIO">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">load_model_from_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_bytesio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.load_model_from_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.load_model_from_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a model from a BytesIO buffered object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.save_model">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize the model to file on disk on path.
+The serialized model must be a single binary object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.helpers.HelperBase.serialize_model_to_BytesIO">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">serialize_model_to_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#HelperBase.serialize_model_to_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.HelperBase.serialize_model_to_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize a model to a BytesIO buffered object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fedn.utils.helpers.get_helper">
+<span class="sig-prename descclassname"><span class="pre">fedn.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">get_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">helper_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/helpers.html#get_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.helpers.get_helper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an instance of the helper class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>str</strong><strong>)</strong> (<em>helper_type</em>) – The helper type (‘keras’,’pytorch’)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="fedn-utils-kerashelper-module">
+<h2>fedn.utils.kerashelper module<a class="headerlink" href="#fedn-utils-kerashelper-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.utils.logger">
+<span id="fedn-utils-logger-module"></span><h2>fedn.utils.logger module<a class="headerlink" href="#module-fedn.utils.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.logger.Logger">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.logger.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/runner/work/fedn/fedn'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/logger.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.logger.Logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="fedn-utils-numpyarrayhelper-module">
+<h2>fedn.utils.numpyarrayhelper module<a class="headerlink" href="#fedn-utils-numpyarrayhelper-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-utils-numpymodel-module">
+<h2>fedn.utils.numpymodel module<a class="headerlink" href="#fedn-utils-numpymodel-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.utils.process">
+<span id="fedn-utils-process-module"></span><h2>fedn.utils.process module<a class="headerlink" href="#module-fedn.utils.process" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="fedn.utils.process.run_process">
+<span class="sig-prename descclassname"><span class="pre">fedn.utils.process.</span></span><span class="sig-name descname"><span class="pre">run_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/process.html#run_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.process.run_process" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>cwd</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="fedn-utils-pytorchhelper-module">
+<h2>fedn.utils.pytorchhelper module<a class="headerlink" href="#fedn-utils-pytorchhelper-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.utils" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

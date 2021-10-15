@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>fedn package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fedn package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fedn-package">
+<h1>fedn package<a class="headerlink" href="#fedn-package" title="Permalink to this headline">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fedn.algo.html">fedn.algo package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fedn.algo.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.algo.html#fedn-algo-fedavg-module">fedn.algo.fedavg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.algo.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fedn.clients.html">fedn.clients package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fedn.clients.client.html">fedn.clients.client package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.client.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.client.html#module-fedn.clients.client.state">fedn.clients.client.state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.client.html#module-fedn.clients.client">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.clients.combiner.html">fedn.clients.combiner package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.combiner.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.combiner.html#fedn-clients-combiner-modelservice-module">fedn.clients.combiner.modelservice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.combiner.html#module-fedn.clients.combiner">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.clients.reducer.html">fedn.clients.reducer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#module-fedn.clients.reducer.config">fedn.clients.reducer.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#fedn-clients-reducer-control-module">fedn.clients.reducer.control module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#fedn-clients-reducer-interfaces-module">fedn.clients.reducer.interfaces module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#fedn-clients-reducer-network-module">fedn.clients.reducer.network module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#fedn-clients-reducer-plots-module">fedn.clients.reducer.plots module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#fedn-clients-reducer-restservice-module">fedn.clients.reducer.restservice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#module-fedn.clients.reducer.state">fedn.clients.reducer.state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.clients.reducer.html#module-fedn.clients.reducer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.html#module-fedn.clients">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fedn.common.html">fedn.common package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fedn.common.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fedn.common.control.html">fedn.common.control package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.control.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.control.html#module-fedn.common.control.package">fedn.common.control.package module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.control.html#module-fedn.common.control">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.common.net.html">fedn.common.net package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.net.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.net.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.net.html#module-fedn.common.net.connect">fedn.common.net.connect module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.net.html#module-fedn.common.net">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.common.security.html">fedn.common.security package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.security.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.security.html#module-fedn.common.security.certificate">fedn.common.security.certificate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.security.html#module-fedn.common.security.certificatemanager">fedn.common.security.certificatemanager module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.security.html#module-fedn.common.security">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.common.storage.html">fedn.common.storage package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.storage.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.storage.html#module-fedn.common.storage">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fedn.common.tracer.html">fedn.common.tracer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.tracer.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.tracer.html#fedn-common-tracer-mongotracer-module">fedn.common.tracer.mongotracer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.tracer.html#module-fedn.common.tracer.tracer">fedn.common.tracer.tracer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fedn.common.tracer.html#module-fedn.common.tracer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.common.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.common.html#module-fedn.common.exceptions">fedn.common.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.common.html#module-fedn.common">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fedn.utils.html">fedn.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils.checksum">fedn.utils.checksum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils.dispatcher">fedn.utils.dispatcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils.helpers">fedn.utils.helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#fedn-utils-kerashelper-module">fedn.utils.kerashelper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils.logger">fedn.utils.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#fedn-utils-numpyarrayhelper-module">fedn.utils.numpyarrayhelper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#fedn-utils-numpymodel-module">fedn.utils.numpymodel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils.process">fedn.utils.process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#fedn-utils-pytorchhelper-module">fedn.utils.pytorchhelper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.utils.html#module-fedn.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-client-module">
+<h2>fedn.client module<a class="headerlink" href="#fedn-client-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-combiner-module">
+<h2>fedn.combiner module<a class="headerlink" href="#fedn-combiner-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-monitor-module">
+<h2>fedn.monitor module<a class="headerlink" href="#fedn-monitor-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-reducer-module">
+<h2>fedn.reducer module<a class="headerlink" href="#fedn-reducer-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

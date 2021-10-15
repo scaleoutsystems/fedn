@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.common.net.connect</title>
+    
+          <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../../index.html" class="home-link">
+    
+      <img class="logo" src="../../../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../../index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.common.net.connect</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.common.net.connect</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">enum</span>
+
+<span class="kn">import</span> <span class="nn">requests</span> <span class="k">as</span> <span class="nn">r</span>
+
+
+<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Disconnected</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Connected</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Error</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="Status"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.Status">[docs]</a><span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Unassigned</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Assigned</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TryAgain</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+<span class="kn">from</span> <span class="nn">fedn.common.security.certificate</span> <span class="k">import</span> <span class="n">Certificate</span>
+
+
+<div class="viewcode-block" id="ConnectorClient"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorClient">[docs]</a><span class="k">class</span> <span class="nc">ConnectorClient</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">combiner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preshared_cert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">verify_cert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify_cert</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">urllib3</span>
+            <span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preferred_combiner</span> <span class="o">=</span> <span class="n">combiner</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="n">verify_cert</span>
+        <span class="c1">#        self.state = State.Disconnected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secure</span> <span class="o">=</span> <span class="n">secure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">certificate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">secure</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;http://&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;https://&quot;</span>
+        <span class="k">if</span> <span class="n">secure</span> <span class="ow">and</span> <span class="n">preshared_cert</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">os</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">certificate</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/certs/&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;client&quot;</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="s2">&quot;client-key.pem&quot;</span><span class="p">,</span>
+                                           <span class="n">cert_name</span><span class="o">=</span><span class="s2">&quot;client-cert.pem&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cert_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Securely connecting with certificate </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConnectorClient.state"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorClient.state">[docs]</a>    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span></div>
+
+<div class="viewcode-block" id="ConnectorClient.assign"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorClient.assign">[docs]</a>    <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cert</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="k">else</span> <span class="kc">False</span>
+            <span class="n">retval</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preferred_combiner</span><span class="p">:</span>
+                <span class="n">retval</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">?name=</span><span class="si">{}</span><span class="s2">&amp;combiner=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">+</span> <span class="s1">&#39;/assign&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                               <span class="bp">self</span><span class="o">.</span><span class="n">preferred_combiner</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="n">cert</span><span class="p">,</span>
+                               <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">)})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">retval</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">?name=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">+</span> <span class="s1">&#39;/assign&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="n">cert</span><span class="p">,</span>
+                               <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">)})</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;***** </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># self.state = State.Disconnected</span>
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="kc">None</span>
+
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">,</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="ConnectorCombiner"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorCombiner">[docs]</a><span class="k">class</span> <span class="nc">ConnectorCombiner</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">myhost</span><span class="p">,</span> <span class="n">myport</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">secure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preshared_cert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verify_cert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify_cert</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">urllib3</span>
+            <span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myhost</span> <span class="o">=</span> <span class="n">myhost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myport</span> <span class="o">=</span> <span class="n">myport</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="n">verify_cert</span>
+        <span class="c1"># self.state = State.Disconnected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secure</span> <span class="o">=</span> <span class="n">secure</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">secure</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;http://&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;https://&quot;</span>
+        <span class="k">if</span> <span class="n">secure</span> <span class="ow">and</span> <span class="n">preshared_cert</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">os</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">certificate</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/certs/&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;client&quot;</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="s2">&quot;client-key.pem&quot;</span><span class="p">,</span>
+                                           <span class="n">cert_name</span><span class="o">=</span><span class="s2">&quot;client-cert.pem&quot;</span><span class="p">,</span>
+                                           <span class="p">)</span><span class="o">.</span><span class="n">cert_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Securely connecting with certificate </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConnectorCombiner.state"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorCombiner.state">[docs]</a>    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span></div>
+
+<div class="viewcode-block" id="ConnectorCombiner.announce"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorCombiner.announce">[docs]</a>    <span class="k">def</span> <span class="nf">announce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cert</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="k">else</span> <span class="kc">False</span>
+            <span class="n">retval</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">?name=</span><span class="si">{}</span><span class="s2">&amp;address=</span><span class="si">{}</span><span class="s2">&amp;port=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">+</span> <span class="s1">&#39;/add&#39;</span><span class="p">,</span>
+                                                                  <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                                  <span class="bp">self</span><span class="o">.</span><span class="n">myhost</span><span class="p">,</span>
+                                                                  <span class="bp">self</span><span class="o">.</span><span class="n">myport</span><span class="p">),</span>
+                           <span class="n">verify</span><span class="o">=</span><span class="n">cert</span><span class="p">,</span>
+                           <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">)})</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># self.state = State.Disconnected</span>
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">,</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="kc">None</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>fedn.clients.reducer package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fedn.clients.reducer package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fedn-clients-reducer-package">
+<h1>fedn.clients.reducer package<a class="headerlink" href="#fedn-clients-reducer-package" title="Permalink to this headline">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fedn.clients.reducer.statestore.html">fedn.clients.reducer.statestore package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#fedn-clients-reducer-statestore-mongoreducerstatestore-module">fedn.clients.reducer.statestore.mongoreducerstatestore module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#module-fedn.clients.reducer.statestore.reducerstatestore">fedn.clients.reducer.statestore.reducerstatestore module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#module-fedn.clients.reducer.statestore">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.clients.reducer.config">
+<span id="fedn-clients-reducer-config-module"></span><h2>fedn.clients.reducer.config module<a class="headerlink" href="#module-fedn.clients.reducer.config" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.Config">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="_modules/fedn/clients/reducer/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.config.Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.ReducerConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.config.</span></span><span class="sig-name descname"><span class="pre">ReducerConfig</span></span><a class="reference internal" href="_modules/fedn/clients/reducer/config.html#ReducerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.config.ReducerConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fedn.clients.reducer.config.Config" title="fedn.clients.reducer.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.clients.reducer.config.Config</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.ReducerConfig.compute_bundle_dir">
+<span class="sig-name descname"><span class="pre">compute_bundle_dir</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#fedn.clients.reducer.config.ReducerConfig.compute_bundle_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.ReducerConfig.initial_model">
+<span class="sig-name descname"><span class="pre">initial_model</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#fedn.clients.reducer.config.ReducerConfig.initial_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.ReducerConfig.models_dir">
+<span class="sig-name descname"><span class="pre">models_dir</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#fedn.clients.reducer.config.ReducerConfig.models_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.config.ReducerConfig.storage_backend">
+<span class="sig-name descname"><span class="pre">storage_backend</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'settings':</span> <span class="pre">{'bucket':</span> <span class="pre">'models'},</span> <span class="pre">'type':</span> <span class="pre">'s3'}</span></em><a class="headerlink" href="#fedn.clients.reducer.config.ReducerConfig.storage_backend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="fedn-clients-reducer-control-module">
+<h2>fedn.clients.reducer.control module<a class="headerlink" href="#fedn-clients-reducer-control-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-clients-reducer-interfaces-module">
+<h2>fedn.clients.reducer.interfaces module<a class="headerlink" href="#fedn-clients-reducer-interfaces-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-clients-reducer-network-module">
+<h2>fedn.clients.reducer.network module<a class="headerlink" href="#fedn-clients-reducer-network-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-clients-reducer-plots-module">
+<h2>fedn.clients.reducer.plots module<a class="headerlink" href="#fedn-clients-reducer-plots-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="fedn-clients-reducer-restservice-module">
+<h2>fedn.clients.reducer.restservice module<a class="headerlink" href="#fedn-clients-reducer-restservice-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.clients.reducer.state">
+<span id="fedn-clients-reducer-state-module"></span><h2>fedn.clients.reducer.state module<a class="headerlink" href="#module-fedn.clients.reducer.state" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerState">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.state.</span></span><span class="sig-name descname"><span class="pre">ReducerState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/state.html#ReducerState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.state.ReducerState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerState.idle">
+<span class="sig-name descname"><span class="pre">idle</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#fedn.clients.reducer.state.ReducerState.idle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerState.instructing">
+<span class="sig-name descname"><span class="pre">instructing</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#fedn.clients.reducer.state.ReducerState.instructing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerState.monitoring">
+<span class="sig-name descname"><span class="pre">monitoring</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#fedn.clients.reducer.state.ReducerState.monitoring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerState.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#fedn.clients.reducer.state.ReducerState.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.ReducerStateToString">
+<span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.state.</span></span><span class="sig-name descname"><span class="pre">ReducerStateToString</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/state.html#ReducerStateToString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.state.ReducerStateToString" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fedn.clients.reducer.state.StringToReducerState">
+<span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.state.</span></span><span class="sig-name descname"><span class="pre">StringToReducerState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/state.html#StringToReducerState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.state.StringToReducerState" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-fedn.clients.reducer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.clients.reducer" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

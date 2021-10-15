@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>Creating a new federated model for use with FEDn</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Release Notes" href="releasenotes.html" />
+  <link rel="prev" title="Distributed deployment" href="deployment.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Creating a new federated model for use with FEDn</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#the-compute-package-explained" class="reference internal">The compute package explained</a></li>
+                
+                  <li class="toctree-l2"><a href="#default-suggested-client-structure" class="reference internal">Default/suggested client structure</a></li>
+                
+                  <li class="toctree-l2"><a href="#training-entrypoint" class="reference internal">Training entrypoint</a></li>
+                
+                  <li class="toctree-l2"><a href="#data-access" class="reference internal">Data access</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>Creating a new federated model for use with FEDn</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="deployment.html"
+       title="previous chapter">← Distributed deployment</a>
+  </li>
+  <li class="next">
+    <a href="releasenotes.html"
+       title="next chapter">Release Notes →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="creating-a-new-federated-model-for-use-with-fedn">
+<h1>Creating a new federated model for use with FEDn<a class="headerlink" href="#creating-a-new-federated-model-for-use-with-fedn" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial walks you through the key step done by the <em>model initiator</em> when setting up a federated project. [More about the key roles involved in the lifecycle of a federated project](roles.md). The example is based on the well-known MNIST example project. The task is to classify hand-written digits using a simple ANN-model.</p>
+<section id="the-compute-package-explained">
+<h2>The compute package explained<a class="headerlink" href="#the-compute-package-explained" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/ComputePackageOverview.png"><img alt="Compute package overview" class="align-center" src="_images/ComputePackageOverview.png" style="width: 100%;" /></a>
+<p>The <em>compute package</em> is a tar.gz bundle of the code to be executed by each data-provider/client. This package is uploaded to the Reducer upon initialization of the FEDN Network (along with the initial model). When a client connects to the network, it downloads and unpacks the package locally and are then ready to participate in training and/or validation.</p>
+<p>The logic is illustrated in the above figure. When the <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/client.py">FEDn client</a>.  recieves a model update request from the combiner, it calls upon a Dispatcher that looks up entry point definitions in the compute package. These entrypoints define commands executed by the client to update/train or validate a model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">train</span><span class="o">.</span><span class="n">py</span> <span class="n">model_in</span> <span class="n">model_out</span>
+</pre></div>
+</div>
+<p>where the format of the input and output files (model updates) are dependent on the ML framework used. A <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py">helper class</a>. defines serializaion and de-serialization of model updates.</p>
+<p>For validations it is a requirement that the output is valid json:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">validate</span><span class="o">.</span><span class="n">py</span> <span class="n">model_in</span> <span class="n">validation</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>Typically, the actual model is defined in a small library, and does not depend on FEDn. We provide several <a class="reference external" href="https://github.com/scaleoutsystems/examples">examples</a>. for different ML frameworks.</p>
+</section>
+<section id="default-suggested-client-structure">
+<h2>Default/suggested client structure<a class="headerlink" href="#default-suggested-client-structure" title="Permalink to this headline">¶</a></h2>
+<p>We recommend to use the client structure followed by most example projects <a class="reference external" href="https://github.com/scaleoutsystems/examples">here</a>. .</p>
+</section>
+<section id="training-entrypoint">
+<h2>Training entrypoint<a class="headerlink" href="#training-entrypoint" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/TrainSISO.png"><img alt="Training entrypoint" class="align-center" src="_images/TrainSISO.png" style="width: 100%;" /></a>
+<p>The above figure gives a logical overview of the role of the training entrypoint. It should be a single-input single-putput program, taking as input a model update file and writing a model update file (same file format). Staging and upload of these files are handled by the FEDn client. A helper class in the FEDn SDK handled the ML-framework specific file serialization and deserialization.</p>
+<p>Below is the content of the default mnist-keras example train.py. Note how the helper is used in main to read the model from a filename given on stdin, and to write the model to a file after training.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">tensorflow.keras</span> <span class="kn">as</span> <span class="nn">keras</span>
+<span class="kn">import</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">as</span> <span class="nn">krm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">set_verbosity</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">data.read_data</span> <span class="kn">import</span> <span class="n">read_data</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">settings</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :param model:</span>
+<span class="sd">    :param data:</span>
+<span class="sd">    :param settings:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;-- RUNNING TRAINING --&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c1"># We are caching the partition in the container home dir so that</span>
+    <span class="c1"># the same training subset is used for each iteration for a client.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/tmp/local_dataset/x_train.npz&#39;</span><span class="p">)</span>
+        <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/tmp/local_dataset/y_train.npz&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+                                                <span class="n">nr_examples</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;training_samples&#39;</span><span class="p">],</span>
+                                                <span class="n">trainset</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s1">&#39;/tmp/local_dataset&#39;</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;/tmp/local_dataset/x_train.npz&#39;</span><span class="p">,</span><span class="n">x_train</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;/tmp/local_dataset/y_train.npz&#39;</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">epochs</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;epochs&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;-- TRAINING COMPLETED --&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;settings.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fh</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">YAMLError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">fedn.utils.kerashelper</span> <span class="kn">import</span> <span class="n">KerasHelper</span>
+    <span class="n">helper</span> <span class="o">=</span> <span class="n">KerasHelper</span><span class="p">()</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="kn">from</span> <span class="nn">models.mnist_model</span> <span class="kn">import</span> <span class="n">create_seed_model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">create_seed_model</span><span class="p">()</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="s1">&#39;../data/mnist.npz&#39;</span><span class="p">,</span><span class="n">settings</span><span class="p">)</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_weights</span><span class="p">(),</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="data-access">
+<h2>Data access<a class="headerlink" href="#data-access" title="Permalink to this headline">¶</a></h2>
+<p>There are many possible ways to interact with the local dataset. In principle, the only requirement is that the train and validate endpoints are able to correctly read and use the data. In practice, it is then necessary to make some assumption on the local environemnt when writing train.py and validate.py. This is best explained by looking at the code above. Here we assume that the dataset is present in a file called “mnist.npz” in a folder “data” one level up in the file hierarchy relative to the exection of train.py. Then, independent on the preferred way to run the client (native, Docker, K8s etc) this structure needs to be maintained for this particular compute package. Note however, that there are many ways to accompish this on a local operational level.</p>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="deployment.html"
+       title="previous chapter">← Distributed deployment</a>
+  </li>
+  <li class="next">
+    <a href="releasenotes.html"
+       title="next chapter">Release Notes →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

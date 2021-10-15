@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>Distributed deployment</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Creating a new federated model for use with FEDn" href="tutorial.html" />
+  <link rel="prev" title="Architecture overview" href="architecture.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Distributed deployment</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#prerequisite-for-the-reference-deployment" class="reference internal">Prerequisite for the reference deployment</a></li>
+                
+                  <li class="toctree-l2"><a href="#deploy-supporting-services" class="reference internal">1. Deploy supporting services</a></li>
+                
+                  <li class="toctree-l2"><a href="#deploy-the-reducer" class="reference internal">2. Deploy the reducer</a></li>
+                
+                  <li class="toctree-l2"><a href="#deploy-combiners" class="reference internal">3. Deploy combiners</a></li>
+                
+                  <li class="toctree-l2"><a href="#attach-clients-to-the-fedn-network" class="reference internal">4. Attach clients to the FEDn network</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>Distributed deployment</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="architecture.html"
+       title="previous chapter">← Architecture overview</a>
+  </li>
+  <li class="next">
+    <a href="tutorial.html"
+       title="next chapter">Creating a new federated model for use with FEDn →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="distributed-deployment">
+<h1>Distributed deployment<a class="headerlink" href="#distributed-deployment" title="Permalink to this headline">¶</a></h1>
+<p>The actual deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. You can easily use the provided docker-compose templates to deploy FEDn network across different hosts in a live environment, but note that it might be necessary to modify them slightly depending on your target environment and host configurations.</p>
+<p>This example serves as reference deployment for setting up a fully distributed FEDn network consisting of one host serving the supporting services (Minio, MongoDB), one host serving the reducer, one host running two combiners, and one host running a variable number of clients.</p>
+<p>&gt; Warning, there are additional security considerations when deploying a live FEDn network, outside of core FEDn functionality. Make sure to include these aspects in your deployment plans.</p>
+<section id="prerequisite-for-the-reference-deployment">
+<h2>Prerequisite for the reference deployment<a class="headerlink" href="#prerequisite-for-the-reference-deployment" title="Permalink to this headline">¶</a></h2>
+<section id="hosts">
+<h3>Hosts<a class="headerlink" href="#hosts" title="Permalink to this headline">¶</a></h3>
+<p>This example assumes root access to 4 Ubuntu 20.04 Servers for running the FEDn network. We recommend at least 4 CPU, 8GB RAM flavors for the base services and the reducer, and 4 CPU, 16BG RAM for the combiner host. Client host sizing depends on the number of clients you plan to run. You need to be able to configure security groups/ingress settings for the service node, combiner, and reducer host.</p>
+</section>
+<section id="certificates">
+<h3>Certificates<a class="headerlink" href="#certificates" title="Permalink to this headline">¶</a></h3>
+<p>Certificates are needed for the reducer and combiner services. By default, FEDn will generate unsigned certificates for the reducer and combiner nodes using OpenSSL.</p>
+<p>&gt; Certificates based on IP addresses are not supported due to incompatibilities with gRPC.</p>
+</section>
+</section>
+<section id="deploy-supporting-services">
+<h2>1. Deploy supporting services<a class="headerlink" href="#deploy-supporting-services" title="Permalink to this headline">¶</a></h2>
+<p>First, deploy Minio and Mongo services on one host (make sure to change the default passwords). Confirm that you can access MongoDB via the MongoExpress dashboard before proceeding with the reducer.</p>
+</section>
+<section id="deploy-the-reducer">
+<h2>2. Deploy the reducer<a class="headerlink" href="#deploy-the-reducer" title="Permalink to this headline">¶</a></h2>
+<p>Follow the steps for pseudo-distributed deployment, but now edit the settings-reducer.yaml file to provide the appropriate connection settings for MongoDB and Minio from Step 1. Also, copy ‘config/extra-hosts-reducer.yaml.template’ to ‘config/extra-hosts-reducer.yaml’ and edit it, adding a host:IP mapping for each combiner you plan to deploy. Then you can start the reducer:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up
+</pre></div>
+</div>
+</section>
+<section id="deploy-combiners">
+<h2>3. Deploy combiners<a class="headerlink" href="#deploy-combiners" title="Permalink to this headline">¶</a></h2>
+<p>Edit ‘config/settings-combiner.yaml’ to provide a name for the combiner (used as a unique identifier for the combiner in the network), a hostname (which is used by reducer and clients to connect to combiner RPC), and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings). Also, provide the IP and port for the reducer under the ‘controller’ tag. Then deploy the combiner:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker-compose -f config/combiner.yaml up
+</pre></div>
+</div>
+<p>Optional: Repeat the same steps for the second combiner node. Make sure to provide unique names for the two combiners.</p>
+<p>&gt; Note that it is not currently possible to use the host’s IP address as ‘host’. This is due to gRPC not being able to handle certificates based on IP.</p>
+</section>
+<section id="attach-clients-to-the-fedn-network">
+<h2>4. Attach clients to the FEDn network<a class="headerlink" href="#attach-clients-to-the-fedn-network" title="Permalink to this headline">¶</a></h2>
+<p>Once the FEDn network is deployed, you can attach clients to it in the same way as for the pseudo-distributed deployment. You need to provide clients with DNS information for all combiner nodes in the network. For example, to start 5 unique MNIST clients on a single host, copy  ‘config/extra-hosts-clients.template.yaml’ to ‘test/mnist-keras/extra-hosts.yaml’ and edit it to provide host:IP mappings for the combiners in the network. Then, from ‘test/mnist-keras’:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker-compose -f docker-compose.yaml -f config/extra-hosts-client.yaml up --scale <span class="nv">client</span><span class="o">=</span><span class="m">5</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="architecture.html"
+       title="previous chapter">← Architecture overview</a>
+  </li>
+  <li class="next">
+    <a href="tutorial.html"
+       title="next chapter">Creating a new federated model for use with FEDn →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

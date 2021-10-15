@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>Frequently asked questions</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="prev" title="Release Notes" href="releasenotes.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation!</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Frequently asked questions</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#q-how-do-i-remove-replace-the-compute-package" class="reference internal">Q: How do I remove/replace the compute package?</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package" class="reference internal">Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-how-can-other-aggregation-algorithms-can-be-defined" class="reference internal">Q: How can other aggregation algorithms can be defined?</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc" class="reference internal">Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-how-can-i-configure-the-round-participation-policy" class="reference internal">Q: How can I configure the round participation policy:</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-how-can-i-configure-the-round-validity-policy" class="reference internal">Q: How can I configure the round validity policy:</a></li>
+                
+                  <li class="toctree-l2"><a href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" class="reference internal">Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>Frequently asked questions</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="releasenotes.html"
+       title="previous chapter">← Release Notes</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="frequently-asked-questions">
+<h1>Frequently asked questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
+<section id="q-how-do-i-remove-replace-the-compute-package">
+<h2>Q: How do I remove/replace the compute package?<a class="headerlink" href="#q-how-do-i-remove-replace-the-compute-package" title="Permalink to this headline">¶</a></h2>
+<p>We do not provide an out-of-the box way to clear the compute package for a model that has been intitialized.
+This is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation.
+Once the federated model has been initilized and seeded it should be seeen as immutable. However, during development of a new model
+it will be necessary to reinitialize. Then you can follow this procedure:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Clear the database. Navigate to <a class="reference external" href="http://localhost:8081">http://localhost:8081</a> and delete the entire “fedn-test-network” collection.</p></li>
+<li><p>Restart the reducer, combiner and reattach the clients.</p></li>
+</ol>
+</div></blockquote>
+<p>There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.</p>
+</section>
+<section id="q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package">
+<h2>Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package<a class="headerlink" href="#q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package" title="Permalink to this headline">¶</a></h2>
+<p>Yes, to facilitate interactive development of the compute package you can start a client that uses a local folder ‘client’ in your current working directory by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fedn run client --remote<span class="o">=</span>False -in client.yaml
+</pre></div>
+</div>
+<p>Note that in production federations this options should in most cases be disallowed.</p>
+</section>
+<section id="q-how-can-other-aggregation-algorithms-can-be-defined">
+<h2>Q: How can other aggregation algorithms can be defined?<a class="headerlink" href="#q-how-can-other-aggregation-algorithms-can-be-defined" title="Permalink to this headline">¶</a></h2>
+<p>Currently it is possible for the advanced user to implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:
+<a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/algo/fedavg.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/algo/fedavg.py</a></p>
+<p>In a future release, we plan to extend the aggregation API to make this process more standardized and configurable at runtime.</p>
+</section>
+<section id="q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc">
+<h2>Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?<a class="headerlink" href="#q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc" title="Permalink to this headline">¶</a></h2>
+<p>FEDn has a black-box model for the model update by clients. What is assumed in the framework are entrypoints/binaries “train.py” and “validate.py” that operate in a SISO fashion:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ ./train.py model_update_in model_update_out
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ ./validate.py model_update_in validation.json
+</pre></div>
+</div>
+<p>These are defined in the client, and are part of the compute package. To support a yet unseen framework or model type, the user needs to implement a helper class that handles serialization and deserialization of the input and output, as well as the aggregation that happens in the combiner. See the following files for examples:</p>
+<p><a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/helpers.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/helpers.py</a>
+<a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py</a>
+<a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/pytorchhelper.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/pytorchhelper.py</a></p>
+<p>Naturally, the model needs to be of a type where it makes sense to perform aggregation of model parameters in FedAvg or variants thereof.</p>
+</section>
+<section id="q-how-can-i-configure-the-round-participation-policy">
+<h2>Q: How can I configure the round participation policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-participation-policy" title="Permalink to this headline">¶</a></h2>
+<p>In the main control implementation <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py</a> you can modify or replace the instance variables “self.client_allocation_policy” with your own implementation to modify the client assignment behavior (see also the methods “client_allocation_policy_first_available” and “client_allocation_policy_least_packed”). In a future release, we plan to make this runtime configurable.</p>
+</section>
+<section id="q-how-can-i-configure-the-round-validity-policy">
+<h2>Q: How can I configure the round validity policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-validity-policy" title="Permalink to this headline">¶</a></h2>
+<p>In the main control implementation <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py</a> you can modify or replace the wiwmethod “check_round_validity_policy”. As we expand with more implementations of this policy, we plan to make it runtime configurable.</p>
+</section>
+<section id="q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks">
+<h2>Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?<a class="headerlink" href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" title="Permalink to this headline">¶</a></h2>
+<p>Yes - we have focused on scalability in a tiered aggregation model, and Enterprise security features in early development. But we plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.</p>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="releasenotes.html"
+       title="previous chapter">← Release Notes</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
