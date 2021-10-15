@@ -12,10 +12,23 @@ from fedn.aggregators.aggregator import AggregatorBase
 
 class FedAvgAggregator(AggregatorBase):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. 
+    
+    :param id: A reference to id of :class: `fedn.combiner.Combiner` 
+    :type id: str
+    :param storage: Model repository for :class: `fedn.combiner.Combiner` 
+    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+    :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
+    :type server: class: `fedn.combiner.Combiner` 
+    :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
+    :param control: A handle to the :class: `fedn.clients.combiner.roundcontrol.RoundControl`
+    :type control: class: `fedn.clients.combiner.roundcontrol.RoundControl`
 
     """
 
     def __init__(self, id, storage, server, modelservice, control):
+        """Constructor method
+        """
 
         super().__init__(id,storage, server, modelservice, control)
         
@@ -24,12 +37,12 @@ class FedAvgAggregator(AggregatorBase):
         self.model_updates = queue.Queue()
 
     def on_model_update(self, model_id):
-        """ Callback when a new model update is recieved from a client.
+        """Callback when a new model update is recieved from a client.
             Performs (optional) pre-processing and the puts the update id
             on the aggregation queue. 
         
-        :param model_id: ID of model update (str)
-        :return:
+        :param model_id: ID of model update
+        :type model_id: str
         """
         try:
             self.server.report_status("AGGREGATOR({}): callback received model {}".format(self.name, model_id),
@@ -46,8 +59,8 @@ class FedAvgAggregator(AggregatorBase):
         """ Callback when a new model validation is recieved from a client. 
 
         :param validation: Dict containing validation data sent by client. 
-                           Must be valid JSON.   
-        :return:
+                           Must be valid JSON.
+        :type validation: dict
         """
 
         # Currently, the validations are actually sent as status messages 
@@ -67,15 +80,18 @@ class FedAvgAggregator(AggregatorBase):
 
 
     def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
-        """ Compute a running average of model updates.
+        """Compute a running average of model updates.
 
-        :param nr_expected_models: The number of updates expected in this round.
-        :param nr_required_models: The number of updates needed to a valid round.
-        :param helper: An instance of the ML framework specific helper
-        :param timeout: The maximum time waiting for model updates before returning 
-                        the aggregated model. 
-                    
-        :return model,data: Tuple with the aggregated model and the performance metadata.
+        :param nr_expected_models: The number of updates expected in this round, defaults to None
+        :type nr_expected_models: int, optional
+        :param nr_required_models: The number of updates needed to a valid round, defaults to 1
+        :type nr_required_models: int, optional
+        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.HelperBase`, optional
+        :param timeout: Timeout for model updates, defaults to 180
+        :type timeout: int, optional
+        :return: The global model and metadata
+        :rtype: tuple
         """
 
         

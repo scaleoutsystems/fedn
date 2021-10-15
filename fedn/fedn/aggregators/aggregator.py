@@ -18,7 +18,7 @@ class AggregatorBase(ABC):
         self.control = control
 
     @abstractmethod
-    def on_model_update(self, model_id):s
+    def on_model_update(self, model_id):
         pass
 
     @abstractmethod

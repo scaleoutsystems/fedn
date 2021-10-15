@@ -16,15 +16,7 @@ class RoundControl:
     """ Combiner level round controller.  
    
     The controller recieves round configurations from the global controller  
-        The controller recieves round configurations from the global controller  
-    The controller recieves round configurations from the global controller  
-        The controller recieves round configurations from the global controller  
-    The controller recieves round configurations from the global controller  
     and acts on them by soliciting model updates and model validations
-    from the connected clients.
-        from the connected clients. 
-    from the connected clients.
-        from the connected clients. 
     from the connected clients.
 
     :param id: A reference to id of :class: `fedn.combiner.Combiner` 
