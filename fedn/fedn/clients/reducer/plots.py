@@ -13,6 +13,20 @@ import geoip2.database
 import pandas as pd
 
 
+from bokeh.embed import json_item
+from bokeh.plotting import figure, from_networkx
+from bokeh.resources import CDN
+from bokeh.sampledata.iris import flowers
+
+import networkx
+from bokeh.io import output_notebook, show, save
+from bokeh.models import Range1d, Circle, ColumnDataSource, MultiLine
+
+import pandas as pd
+from bokeh.models import (BoxSelectTool, Circle, EdgesAndLinkedNodes, HoverTool,
+                          MultiLine, NodesAndLinkedEdges, Range1d, TapTool)
+from bokeh.palettes import Spectral4
+
 class Plot:
     """
 
@@ -26,6 +40,7 @@ class Plot:
             self.round_time = self.mdb["control.round_time"]
             self.combiner_round_time = self.mdb["control.combiner_round_time"]
             self.psutil_usage = self.mdb["control.psutil_monitoring"]
+            self.network_clients = self.mdb["network.clients"]
 
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
@@ -440,3 +455,95 @@ class Plot:
         fig.update_layout(title_text='CPU loads and memory usage')
         cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return cpu
+
+    def get_client_df(self):
+        clients = self.network_clients
+        df = pd.DataFrame(list(clients.find()))
+        return df
+
+    def make_netgraph_plot(self, df):
+        G = networkx.from_pandas_edgelist(df, 'source', 'target')
+
+        print(G.edges())
+
+        degrees = dict(networkx.degree(G))
+        print(degrees)
+        density = networkx.density(G)
+        print(density)
+
+        #membership = list(df.role)
+        node_list = list(G.nodes())
+        edge_list = G.edges()
+        print('node_list', edge_list)
+
+        #count_dict = {k: v for k, v in zip(node_list, membership)}
+        #print('count_dict', count_dict)
+
+        print('degree', type(degrees))
+        print('DEGREE', degrees)
+
+        adjusted_node_size = dict([(node, degree + 3) for node, degree in networkx.degree(G)])
+
+        networkx.set_node_attributes(G, name='degree', values=degrees)
+        networkx.set_node_attributes(G, name='density', values=density)
+        # networkx.set_node_attributes(G, name='adjusted_node_size', values=adjusted_node_size)
+        # networkx.set_node_attributes(G, name='count_dict', values=count_dict)
+        #networkx.set_node_attributes(G, name='role', values=count_dict)
+
+        # https://embed.plnkr.co/plunk/haezsh
+        # Choose a title!
+        title = 'FEDn Network'
+
+        # Establish which categories will appear when hovering over each node
+        HOVER_TOOLTIPS = [("Name", "@index"), ("Degree", "@degree"),
+                          #                   ("count_dict", "@count_dict"),
+                          ]
+
+        # Create a plot — set dimensions, toolbar, and title
+        plot = figure(tooltips=None,
+                      tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
+                      x_range=Range1d(-10.1, 10.1), y_range=Range1d(-10.1, 10.1), title=None)
+
+        plot.xgrid.grid_line_color = None
+        plot.ygrid.grid_line_color = None
+        plot.axis.visible = False
+        plot.yaxis.visible = False
+
+        plot.add_tools(HoverTool(tooltips=HOVER_TOOLTIPS), TapTool(), BoxSelectTool())
+        # Create a network graph object with spring layout
+        # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
+        network_graph = from_networkx(G, networkx.spring_layout, scale=10, center=(0, 0))
+
+        # Set node size and color
+        network_graph.node_renderer.glyph = Circle(size=15, fill_color='skyblue')
+
+        # Set edge opacity and width
+        # network_graph.edge_renderer.glyph = MultiLine(line_alpha=0.5, line_width=1)
+
+        # graph_renderer = from_networkx(G, networkx.spring_layout, scale=1, center=(0,0))
+
+        # network_graph.node_renderer.glyph = Circle(size=15, fill_color=Spectral4[0])
+        network_graph.node_renderer.selection_glyph = Circle(size=15, fill_color=Spectral4[2])
+        network_graph.node_renderer.hover_glyph = Circle(size=15, fill_color=Spectral4[1])
+
+        network_graph.edge_renderer.glyph = MultiLine(line_color="#CCCCCC", line_alpha=0.8, line_width=5)
+        network_graph.edge_renderer.selection_glyph = MultiLine(line_color=Spectral4[2], line_width=5)
+        network_graph.edge_renderer.hover_glyph = MultiLine(line_color=Spectral4[1], line_width=5)
+
+        network_graph.selection_policy = NodesAndLinkedEdges()
+        # network_graph.inspection_policy = EdgesAndLinkedNodes()
+
+        # Add network graph to the plot
+        plot.renderers.append(network_graph)
+
+        # #Add Labels
+        # x, y = zip(*network_graph.layout_provider.graph_layout.values())
+        # node_labels = list(G.nodes())
+        # source = ColumnDataSource({'x': x, 'y': y, 'name': [node_labels[i] for i in range(len(x))]})
+        # labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color=None, text_font_size='10px', background_fill_alpha=.7)
+        # plot.renderers.append(labels)
+
+        # show(plot)
+        # save(plot, filename=f"{title}.html")
+
+        return plot

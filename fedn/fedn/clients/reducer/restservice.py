@@ -229,8 +229,17 @@ class ReducerRestService:
                 except Exception as e:
                     pass
                 count = count + 1
-
             return result
+
+        @app.route('/networkgraph')
+        def network_graph():
+            from bokeh.embed import json_item
+            result = netgraph()
+            df_nodes = pd.DataFrame(result['nodes'])
+            df_edges = pd.DataFrame(result['edges'])
+            plot = Plot(self.control.statestore)
+            graph = plot.make_netgraph_plot(df_edges)
+            return json.dumps(json_item(graph, "myplot"))
 
         @app.route('/events')
         def events():
