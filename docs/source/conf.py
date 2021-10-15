@@ -75,7 +75,7 @@ htmlhelp_basename = 'fedndocs'
 html_logo = '_static/fedn_logo.webp'
 
 # Here we assume that the file is at _static/custom.css
-html_css_files = ["_static/custom.css"]
+html_css_files = ["custom.css"]
 
 
 # -- Options for LaTeX output ------------------------------------------------
