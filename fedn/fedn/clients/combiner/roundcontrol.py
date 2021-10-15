@@ -18,7 +18,6 @@ class RoundControl:
         The controller recieves round configurations from the global controller  
         and acts on them by soliciting model updates and model validations
         from the connected clients. 
-
     """
 
     def __init__(self, id, storage, server, modelservice):
@@ -45,7 +44,7 @@ class RoundControl:
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except:
-            self.server.report_status("COMBINER: Failed to push round config.", flush=True)
+            self.server.report_status("ROUNDCONTROL: Failed to push round config.", flush=True)
             raise
         return round_config['_job_id']
         
@@ -63,7 +62,7 @@ class RoundControl:
             while tries < retry:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    self.server.report_status("COMBINER: Model download failed. retrying", flush=True)
+                    self.server.report_status("ROUNDCONTROL: Model download failed. retrying", flush=True)
                     import time
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
@@ -80,7 +79,7 @@ class RoundControl:
         with self.aggregator.model_updates.mutex:
             self.aggregator.model_updates.queue.clear()
 
-        self.server.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
+        self.server.report_status("ROUNDCONTROL: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
 
         meta = {}
@@ -123,12 +122,12 @@ class RoundControl:
                 if model:
                     break
             except Exception as e:
-                self.server.report_status("COMBINER: Could not fetch model from storage backend, retrying.",
+                self.server.report_status("ROUNDCONTROL: Could not fetch model from storage backend, retrying.",
                                    flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    self.server.report_status("COMBINER: Failed to stage model {} from storage backend!".format(model_id), flush=True)
+                    self.server.report_status("ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id), flush=True)
                     return
 
         self.modelservice.set_model(model, model_id)
@@ -211,7 +210,7 @@ class RoundControl:
         # Execute the configured number of rounds
         round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
-            self.server.report_status("COMBINER: Starting training round {}".format(r), flush=True)
+            self.server.report_status("ROUNDCONTROL: Starting training round {}".format(r), flush=True)
             clients = self.__assign_round_clients(self.server.max_clients)
             model, meta = self._training_round(config, clients)
             round_meta['local_round'][str(r)] = meta
@@ -230,7 +229,7 @@ class RoundControl:
             self.server.set_active_model(model_id)
 
             print("------------------------------------------")
-            self.server.report_status("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
+            self.server.report_status("ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
             print("\n")
         return round_meta
 
@@ -254,9 +253,9 @@ class RoundControl:
                         elif round_config['task'] == 'validation':
                             self.execute_validation(round_config)
                         else:
-                            self.server.report_status("COMBINER: Round config contains unkown task type.", flush=True)
+                            self.server.report_status("ROUNDCONTROL: Round config contains unkown task type.", flush=True)
                     else:
-                        self.server.report_status("COMBINER: Failed to meet client allocation requirements for this round config.", flush=True)
+                        self.server.report_status("ROUNDCONTROL: Failed to meet client allocation requirements for this round config.", flush=True)
 
                 except queue.Empty:
                     time.sleep(1)
