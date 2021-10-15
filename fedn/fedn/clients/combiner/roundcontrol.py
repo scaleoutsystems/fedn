@@ -14,11 +14,19 @@ from fedn.utils.helpers import get_helper
  
 class RoundControl:
     """ Combiner level round controller.  
-        
-        The controller recieves round configurations from the global controller  
-        and acts on them by soliciting model updates and model validations
-        from the connected clients. 
+   
+    The controller recieves round configurations from the global controller  
+    and acts on them by soliciting model updates and model validations
+    from the connected clients.
 
+    :param id: A reference to id of :class: `fedn.combiner.Combiner` 
+    :type id: str
+    :param storage: Model repository for :class: `fedn.combiner.Combiner` 
+    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+    :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
+    :type server: class: `fedn.combiner.Combiner` 
+    :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
     """
 
     def __init__(self, id, storage, server, modelservice):
@@ -37,21 +45,29 @@ class RoundControl:
     def push_round_config(self, round_config):
         """ Recieve a round_config (job description) and push on the queue. 
 
-        :param round_config: A dict containing round configurations.  
-        :return:
+        :param round_config: A dict containing round configurations.
+        :type round_config: dict
+        :return: A generated job id (universally unique identifier) for the round configuration 
+        :rtype: str
         """
         try:
             import uuid
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except:
-            self.server.report_status("COMBINER: Failed to push round config.", flush=True)
+            self.server.report_status("ROUNDCONTROL: Failed to push round config.", flush=True)
             raise
         return round_config['_job_id']
         
     def load_model_fault_tolerant(self, model_id, retry=3):
-        """ Load model update object, retrying retry times. 
-        
+        """Load model update object.
+
+        :param model_id: The ID of the model
+        :type model_id: str
+        :param retry: number of times retrying load model update, defaults to 3
+        :type retry: int, optional
+        :return: Updated model
+        :rtype: class: `io.BytesIO`
         """
         # Try reading model update from local disk/combiner memory
         model_str = self.modelservice.models.get(model_id)
@@ -63,7 +79,7 @@ class RoundControl:
             while tries < retry:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    self.server.report_status("COMBINER: Model download failed. retrying", flush=True)
+                    self.server.report_status("ROUNDCONTROL: Model download failed. retrying", flush=True)
                     import time
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
@@ -72,7 +88,13 @@ class RoundControl:
 
     def _training_round(self, config, clients):
         """Send model update requests to clients and aggregate results. 
-        
+
+        :param config: [description]
+        :type config: [type]
+        :param clients: [description]
+        :type clients: [type]
+        :return: [description]
+        :rtype: [type]
         """
 
         # We flush the queue at a beginning of a round (no stragglers allowed)
@@ -80,7 +102,7 @@ class RoundControl:
         with self.aggregator.model_updates.mutex:
             self.aggregator.model_updates.queue.clear()
 
-        self.server.report_status("COMBINER: Initiating training round, participating members: {}".format(clients))
+        self.server.report_status("ROUNDCONTROL: Initiating training round, participating members: {}".format(clients))
         self.server.request_model_update(config['model_id'], clients=clients)
 
         meta = {}
@@ -96,19 +118,32 @@ class RoundControl:
                                               nr_required_models=int(config['clients_required']),
                                               helper=helper, timeout=float(config['round_timeout']))
         except Exception as e:
-            print("TRAINIGN ROUND FAILED AT COMBINER! {}".format(e), flush=True)
+            print("TRAINING ROUND FAILED AT COMBINER! {}".format(e), flush=True)
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
 
     def _validation_round(self, config, clients, model_id):
+        """[summary]
+
+        :param config: [description]
+        :type config: [type]
+        :param clients: [description]
+        :type clients: [type]
+        :param model_id: [description]
+        :type model_id: [type]
+        """
         self.server.request_model_validation(model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
-        """ Download model from persistent storage.
-        
-        :param model_id (str): ID of the model update object to stage.    
-        :return:
+        """Download model from persistent storage.
+
+        :param model_id: ID of the model update object to stage. 
+        :type model_id: str
+        :param timeout_retry: Sleep before retrying download again (sec), defaults to 3
+        :type timeout_retry: int, optional
+        :param retry: Number of retries, defaults to 2
+        :type retry: int, optional
         """
 
         # If the model is already in memory at the server we do not need to do anything.
@@ -123,37 +158,35 @@ class RoundControl:
                 if model:
                     break
             except Exception as e:
-                self.server.report_status("COMBINER: Could not fetch model from storage backend, retrying.",
+                self.server.report_status("ROUNDCONTROL: Could not fetch model from storage backend, retrying.",
                                    flush=True)
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    self.server.report_status("COMBINER: Failed to stage model {} from storage backend!".format(model_id), flush=True)
+                    self.server.report_status("ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id), flush=True)
                     return
 
         self.modelservice.set_model(model, model_id)
-
-    def __assign_round_clients(self, n):
-        """  Obtain a list of clients to talk to in a round. """
-
-        active_trainers = self.server.get_active_trainers()
-        # If the number of requested trainers exceeds the number of available, use all available. 
-        if n > len(active_trainers):
-            n = len(active_trainers)
-
-        # If not, we pick a random subsample of all available clients.
-        import random
-        clients = random.sample(active_trainers, n)
-
-        return clients
-
+        
     def __assign_round_clients(self, n, type="trainers"):
-        """  Obtain a list of clients to talk to in a round. """
+        """ Obtain a list of clients (trainers or validators) to talk to in a round. 
+
+        :param n: Size of a random set taken from active trainers (clients), if n > "active trainers" all is used
+        :type n: int
+        :param type: type of clients, either "trainers" or "validators", defaults to "trainers"
+        :type type: str, optional
+        :return: Set of clients
+        :rtype: list
+        """
 
         if type == "validators":
             clients = self.server.get_active_validators()
         elif type == "trainers":
             clients = self.server.get_active_trainers()
+        else:
+            self.server.report_status("ROUNDCONTROL(ERROR): {} is not a supported type of client".format(type), flush=True)
+            raise
+
 
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(clients):
@@ -166,7 +199,15 @@ class RoundControl:
         return clients
 
     def __check_nr_round_clients(self, config, timeout=0.0):
-        """ Check that the minimal number of required clients to start a round are connected. """
+        """Check that the minimal number of required clients to start a round are connected. 
+
+        :param config: [description]
+        :type config: [type]
+        :param timeout: [description], defaults to 0.0
+        :type timeout: float, optional
+        :return: [description]
+        :rtype: [type]
+        """
 
         import time
         ready = False
@@ -192,7 +233,11 @@ class RoundControl:
         return ready
 
     def execute_validation(self, round_config):
-        """ Coordinate validation rounds as specified in config. """
+        """ Coordinate validation rounds as specified in config. 
+
+        :param round_config: [description]
+        :type round_config: [type]
+        """
         model_id = round_config['model_id']
         self.server.report_status("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
@@ -211,7 +256,7 @@ class RoundControl:
         # Execute the configured number of rounds
         round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
-            self.server.report_status("COMBINER: Starting training round {}".format(r), flush=True)
+            self.server.report_status("ROUNDCONTROL: Starting training round {}".format(r), flush=True)
             clients = self.__assign_round_clients(self.server.max_clients)
             model, meta = self._training_round(config, clients)
             round_meta['local_round'][str(r)] = meta
@@ -230,7 +275,7 @@ class RoundControl:
             self.server.set_active_model(model_id)
 
             print("------------------------------------------")
-            self.server.report_status("COMBINER: TRAINING ROUND COMPLETED.", flush=True)
+            self.server.report_status("ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
             print("\n")
         return round_meta
 
@@ -254,9 +299,9 @@ class RoundControl:
                         elif round_config['task'] == 'validation':
                             self.execute_validation(round_config)
                         else:
-                            self.server.report_status("COMBINER: Round config contains unkown task type.", flush=True)
+                            self.server.report_status("ROUNDCONTROL: Round config contains unkown task type.", flush=True)
                     else:
-                        self.server.report_status("COMBINER: Failed to meet client allocation requirements for this round config.", flush=True)
+                        self.server.report_status("ROUNDCONTROL: Failed to meet client allocation requirements for this round config.", flush=True)
 
                 except queue.Empty:
                     time.sleep(1)

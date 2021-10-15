@@ -10,6 +10,7 @@ class AggregatorBase(ABC):
     @abstractmethod
     def __init__(self, id, storage, server, modelservice, control):        
         """ """
+        self.name = ""
         self.storage = storage
         self.id = id
         self.server = server
@@ -17,7 +18,7 @@ class AggregatorBase(ABC):
         self.control = control
 
     @abstractmethod
-    def on_model_update(self, model_id):s
+    def on_model_update(self, model_id):
         pass
 
     @abstractmethod
