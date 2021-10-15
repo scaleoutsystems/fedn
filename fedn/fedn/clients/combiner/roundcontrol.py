@@ -126,7 +126,7 @@ class RoundControl:
                                               nr_required_models=int(config['clients_required']),
                                               helper=helper, timeout=float(config['round_timeout']))
         except Exception as e:
-            print("TRAINIGN ROUND FAILED AT COMBINER! {}".format(e), flush=True)
+            print("TRAINING ROUND FAILED AT COMBINER! {}".format(e), flush=True)
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
@@ -175,21 +175,7 @@ class RoundControl:
                     return
 
         self.modelservice.set_model(model, model_id)
-
-    def __assign_round_clients(self, n):
-        """  Obtain a list of clients to talk to in a round. """
-
-        active_trainers = self.server.get_active_trainers()
-        # If the number of requested trainers exceeds the number of available, use all available. 
-        if n > len(active_trainers):
-            n = len(active_trainers)
-
-        # If not, we pick a random subsample of all available clients.
-        import random
-        clients = random.sample(active_trainers, n)
-
-        return clients
-
+        
     def __assign_round_clients(self, n, type="trainers"):
         """ Obtain a list of clients (trainers or validators) to talk to in a round. 
 
@@ -205,6 +191,10 @@ class RoundControl:
             clients = self.server.get_active_validators()
         elif type == "trainers":
             clients = self.server.get_active_trainers()
+        else:
+            self.server.report_status("ROUNDCONTROL(ERROR): {} is not a supported type of client".format(type), flush=True)
+            raise
+
 
         # If the number of requested trainers exceeds the number of available, use all available. 
         if n > len(clients):
