@@ -463,24 +463,15 @@ class Plot:
 
     def make_netgraph_plot(self, df):
         G = networkx.from_pandas_edgelist(df, 'source', 'target')
-
-        print(G.edges())
-
         degrees = dict(networkx.degree(G))
-        print(degrees)
         density = networkx.density(G)
-        print(density)
 
-        #membership = list(df.role)
+        # membership = list(df.role)
         node_list = list(G.nodes())
         edge_list = G.edges()
-        print('node_list', edge_list)
 
-        #count_dict = {k: v for k, v in zip(node_list, membership)}
-        #print('count_dict', count_dict)
-
-        print('degree', type(degrees))
-        print('DEGREE', degrees)
+        # count_dict = {k: v for k, v in zip(node_list, membership)}
+        # print('count_dict', count_dict)
 
         adjusted_node_size = dict([(node, degree + 3) for node, degree in networkx.degree(G)])
 
@@ -488,7 +479,7 @@ class Plot:
         networkx.set_node_attributes(G, name='density', values=density)
         # networkx.set_node_attributes(G, name='adjusted_node_size', values=adjusted_node_size)
         # networkx.set_node_attributes(G, name='count_dict', values=count_dict)
-        #networkx.set_node_attributes(G, name='role', values=count_dict)
+        # networkx.set_node_attributes(G, name='role', values=count_dict)
 
         # https://embed.plnkr.co/plunk/haezsh
         # Choose a title!
@@ -545,5 +536,4 @@ class Plot:
 
         # show(plot)
         # save(plot, filename=f"{title}.html")
-
         return plot
