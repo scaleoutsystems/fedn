@@ -20,5 +20,7 @@ FEDn documentation
    architecture
    deployment
    tutorial
+   sdk
    releasenotes
    faq
+

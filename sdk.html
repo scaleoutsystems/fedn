@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-      <title>fedn.clients.client package</title>
+      <title>SDK Documentation</title>
     
           <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
@@ -22,7 +22,9 @@
       <script src="_static/theme.js" defer></script>
     
   <link rel="index" title="Index" href="genindex.html" />
-  <link rel="search" title="Search" href="search.html" /> 
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Release Notes" href="releasenotes.html" />
+  <link rel="prev" title="Creating a new federated model for use with FEDn" href="tutorial.html" /> 
   </head>
 
   <body>
@@ -71,7 +73,7 @@
       <p class="caption">
         <span class="caption-text"><a href="index.html#fedn-documentation">Contents:</a></span>
       </p>
-      <ul class="">
+      <ul class="current">
         
           <li class="toctree-l1 ">
             
@@ -109,11 +111,17 @@
           </li>
 
         
-          <li class="toctree-l1 ">
+          <li class="toctree-l1 current">
             
-              <a href="sdk.html" class="reference internal ">SDK Documentation</a>
+              <a href="#" class="reference internal current">SDK Documentation</a>
             
 
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#sdk-documentation" class="reference internal">SDK Documentation</a></li>
+                
+              </ul>
             
           </li>
 
@@ -148,69 +156,46 @@
   <ul class="breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
     
-    <li>fedn.clients.client package</li>
+    <li>SDK Documentation</li>
   </ul>
   
 
   <ul class="page-nav">
+  <li class="prev">
+    <a href="tutorial.html"
+       title="previous chapter">← Creating a new federated model for use with FEDn</a>
+  </li>
+  <li class="next">
+    <a href="releasenotes.html"
+       title="next chapter">Release Notes →</a>
+  </li>
 </ul>
   
 </div>
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="fedn-clients-client-package">
-<h1>fedn.clients.client package<a class="headerlink" href="#fedn-clients-client-package" title="Permalink to this headline">¶</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</section>
-<section id="module-fedn.clients.client.state">
-<span id="fedn-clients-client-state-module"></span><h2>fedn.clients.client.state module<a class="headerlink" href="#module-fedn.clients.client.state" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="fedn.clients.client.state.ClientState">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.client.state.</span></span><span class="sig-name descname"><span class="pre">ClientState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/client/state.html#ClientState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.client.state.ClientState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
-<p>An enumeration.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fedn.clients.client.state.ClientState.idle">
-<span class="sig-name descname"><span class="pre">idle</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#fedn.clients.client.state.ClientState.idle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fedn.clients.client.state.ClientState.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#fedn.clients.client.state.ClientState.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fedn.clients.client.state.ClientState.validating">
-<span class="sig-name descname"><span class="pre">validating</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#fedn.clients.client.state.ClientState.validating" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="fedn.clients.client.state.ClientStateToString">
-<span class="sig-prename descclassname"><span class="pre">fedn.clients.client.state.</span></span><span class="sig-name descname"><span class="pre">ClientStateToString</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/client/state.html#ClientStateToString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.client.state.ClientStateToString" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>state</strong> – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="module-fedn.clients.client">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.clients.client" title="Permalink to this headline">¶</a></h2>
-</section>
+  <section id="sdk-documentation">
+<h1>SDK Documentation<a class="headerlink" href="#sdk-documentation" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
 </section>
 
 
           </div>
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="tutorial.html"
+       title="previous chapter">← Creating a new federated model for use with FEDn</a>
+  </li>
+  <li class="next">
+    <a href="releasenotes.html"
+       title="next chapter">Release Notes →</a>
+  </li>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
