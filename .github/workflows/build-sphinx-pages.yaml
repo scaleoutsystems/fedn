@@ -26,6 +26,7 @@ jobs:
         rm -v source/fedn.*rst || true
         echo "Generate API documentation"
         sphinx-apidoc -f -o source/ ../fedn/fedn/
+        git status
         
     - name: Run sphinx-build and commit to gh-pages
       uses: sphinx-notes/pages@master
