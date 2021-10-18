@@ -160,9 +160,3 @@ License
 
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
