@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.client</title>
+    
+          <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../_static/theme-vendors.js"></script> -->
+      <script src="../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../genindex.html" />
+  <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../index.html" class="home-link">
+    
+      <img class="logo" src="../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.client</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">threading</span><span class="o">,</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">fedn.common.net.grpc.fedn_pb2</span> <span class="k">as</span> <span class="nn">fedn</span>
+<span class="kn">import</span> <span class="nn">fedn.common.net.grpc.fedn_pb2_grpc</span> <span class="k">as</span> <span class="nn">rpc</span>
+<span class="kn">from</span> <span class="nn">fedn.common.net.connect</span> <span class="kn">import</span> <span class="n">ConnectorClient</span><span class="p">,</span> <span class="n">Status</span>
+
+<span class="kn">import</span> <span class="nn">grpc</span>
+<span class="c1"># TODO Remove from this level. Abstract to unified non implementation specific client.</span>
+<span class="kn">from</span> <span class="nn">fedn.utils.dispatcher</span> <span class="kn">import</span> <span class="n">Dispatcher</span>
+
+<span class="n">CHUNK_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">fedn.clients.client.state</span> <span class="kn">import</span> <span class="n">ClientState</span><span class="p">,</span> <span class="n">ClientStateToString</span>
+
+<span class="kn">from</span> <span class="nn">fedn.utils.helpers</span> <span class="kn">import</span> <span class="n">get_helper</span>
+
+
+<div class="viewcode-block" id="Client"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client">[docs]</a><span class="k">class</span> <span class="nc">Client</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;FEDn Client. Service running on client/datanodes in a federation,</span>
+<span class="sd">       recieving and handling model update and model validation requests.</span>
+<span class="sd">    </span>
+<span class="sd">    Attibutes</span>
+<span class="sd">    ---------</span>
+<span class="sd">    config: dict</span>
+<span class="sd">        A configuration dictionary containing connection information for</span>
+<span class="sd">        the discovery service (controller) and settings governing e.g. </span>
+<span class="sd">        client-combiner assignment behavior.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: dict</span>
+<span class="sd">            A configuration dictionary containing connection information for</span>
+<span class="sd">            the discovery service (controller) and settings governing e.g. </span>
+<span class="sd">            client-combiner assignment behavior.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_state</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connector</span> <span class="o">=</span> <span class="n">ConnectorClient</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;discover_host&#39;</span><span class="p">],</span>
+                                         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;discover_port&#39;</span><span class="p">],</span>
+                                         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;token&#39;</span><span class="p">],</span>
+                                         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;preferred_combiner&#39;</span><span class="p">],</span>
+                                         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;client_id&#39;</span><span class="p">],</span>
+                                         <span class="n">secure</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;secure&#39;</span><span class="p">],</span>
+                                         <span class="n">preshared_cert</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;preshared_cert&#39;</span><span class="p">],</span>
+                                         <span class="n">verify_cert</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;verify_cert&#39;</span><span class="p">])</span>
+                                         
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="n">dirname</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">dirname</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run_path</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">fedn.utils.logger</span> <span class="kn">import</span> <span class="n">Logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="n">to_file</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;logfile&#39;</span><span class="p">],</span> <span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">started_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="c1"># Ask controller for a combiner and connect to that combiner.</span>
+        <span class="n">client_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assign</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">client_config</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;remote_compute_context&#39;</span><span class="p">]:</span>
+            <span class="kn">from</span> <span class="nn">fedn.common.control.package</span> <span class="kn">import</span> <span class="n">PackageRuntime</span>
+            <span class="n">pr</span> <span class="o">=</span> <span class="n">PackageRuntime</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+
+            <span class="n">retval</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">tries</span> <span class="o">=</span> <span class="mi">10</span>
+
+            <span class="k">while</span> <span class="n">tries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">retval</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;discover_host&#39;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;discover_port&#39;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;token&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">retval</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No compute package available... retrying in 60s Trying </span><span class="si">{}</span><span class="s2"> more times.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tries</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">tries</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">retval</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;checksum&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">WARNING: Skipping security validation of local package!, make sure you trust the package source.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">checks_out</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;checksum&#39;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">checks_out</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validation was enforced and invalid, client closing!&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error_state</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">return</span>
+
+            <span class="k">if</span> <span class="n">retval</span><span class="p">:</span>
+                <span class="n">pr</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">dispatcher</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run_path</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running Dispatcher for entrypoint: startup&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">.</span><span class="n">run_cmd</span><span class="p">(</span><span class="s2">&quot;startup&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Deprecate</span>
+            <span class="n">dispatch_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;entry_points&#39;</span><span class="p">:</span>
+                                   <span class="p">{</span><span class="s1">&#39;predict&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 predict.py&#39;</span><span class="p">},</span>
+                                    <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 train.py&#39;</span><span class="p">},</span>
+                                    <span class="s1">&#39;validate&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 validate.py&#39;</span><span class="p">}}}</span>
+            <span class="n">dispatch_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+            <span class="n">from_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;client&#39;</span><span class="p">)</span>
+
+            <span class="kn">from</span> <span class="nn">distutils.dir_util</span> <span class="kn">import</span> <span class="n">copy_tree</span>
+            <span class="n">copy_tree</span><span class="p">(</span><span class="n">from_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="o">=</span> <span class="n">Dispatcher</span><span class="p">(</span><span class="n">dispatch_config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;model_type&#39;</span> <span class="ow">in</span> <span class="n">client_config</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">helper</span> <span class="o">=</span> <span class="n">get_helper</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;model_type&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to retrive helper class settings! </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client_config</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Start sending heartbeats to the combiner. This also initiates queues combiner-side. </span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_send_heartbeat</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;trainer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_listen_to_model_update_request_stream</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;validator&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_listen_to_model_validation_request_stream</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+
+    <span class="k">def</span>  <span class="nf">_assign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Contacts the controller and asks for combiner assignment. &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Asking for assignment!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">status</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">assign</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Make sure to upload the compute package!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">:</span>
+                <span class="n">client_config</span> <span class="o">=</span> <span class="n">response</span>
+                <span class="k">break</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got assigned!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">client_config</span>
+
+    <span class="k">def</span> <span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to assigned combiner. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        client_config : dict</span>
+<span class="sd">            A dictionary with connection information and settings</span>
+<span class="sd">            for the assigned combiner. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># TODO use the client_config[&#39;certificate&#39;] for setting up secure comms&#39;</span>
+        <span class="k">if</span> <span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;certificate&#39;</span><span class="p">]:</span>
+            <span class="kn">import</span> <span class="nn">base64</span>
+            <span class="n">cert</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;certificate&#39;</span><span class="p">])</span>  <span class="c1"># .decode(&#39;utf-8&#39;)</span>
+            <span class="n">credentials</span> <span class="o">=</span> <span class="n">grpc</span><span class="o">.</span><span class="n">ssl_channel_credentials</span><span class="p">(</span><span class="n">root_certificates</span><span class="o">=</span><span class="n">cert</span><span class="p">)</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">grpc</span><span class="o">.</span><span class="n">secure_channel</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">])),</span>
+                                          <span class="n">credentials</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">grpc</span><span class="o">.</span><span class="n">insecure_channel</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">])))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">rpc</span><span class="o">.</span><span class="n">ConnectorStub</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator</span> <span class="o">=</span> <span class="n">rpc</span><span class="o">.</span><span class="n">CombinerStub</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">rpc</span><span class="o">.</span><span class="n">ModelServiceStub</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Client: </span><span class="si">{}</span><span class="s2"> connected </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                        <span class="s2">&quot;SECURED&quot;</span> <span class="k">if</span> <span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;certificate&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;INSECURE&quot;</span><span class="p">,</span>
+                                                        <span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">],</span> <span class="n">client_config</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">]),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Client.get_model"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client.get_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fetch a model from the assigned combiner. </span>
+
+<span class="sd">        Downloads the model update object via a gRPC streaming channel, Dowload. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        id : str</span>
+<span class="sd">            The id of the model update object. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Download</span><span class="p">(</span><span class="n">fedn</span><span class="o">.</span><span class="n">ModelRequest</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)):</span>
+
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelStatus</span><span class="o">.</span><span class="n">IN_PROGRESS</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span>
+
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Client.set_model"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client.set_model">[docs]</a>    <span class="k">def</span> <span class="nf">set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a model update to the assigned combiner. </span>
+
+<span class="sd">        Uploads the model updated object via a gRPC streaming channel, Upload. </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : BytesIO, object</span>
+<span class="sd">            The  model update object. </span>
+<span class="sd">        id : str</span>
+<span class="sd">            The id of the model update object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>       
+
+        <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">BytesIO</span><span class="p">):</span>
+            <span class="n">bt</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">):</span>
+                <span class="n">bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bt</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="n">bt</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">upload_request_generator</span><span class="p">(</span><span class="n">mdl</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">            :param mdl:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">mdl</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">CHUNK_SIZE</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">b</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelRequest</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">ModelStatus</span><span class="o">.</span><span class="n">IN_PROGRESS</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelRequest</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">ModelStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">)</span>
+
+                <span class="k">yield</span> <span class="n">result</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Upload</span><span class="p">(</span><span class="n">upload_request_generator</span><span class="p">(</span><span class="n">bt</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="k">def</span> <span class="nf">_listen_to_model_update_request_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Subscribe to the model update request stream. &quot;&quot;&quot;</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ClientAvailableMessage</span><span class="p">()</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;client&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">)]</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator</span><span class="o">.</span><span class="n">ModelUpdateRequestStream</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">==</span> <span class="n">fedn</span><span class="o">.</span><span class="n">COMBINER</span><span class="p">:</span>
+                        <span class="c1"># Process training request</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Received model update request.&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">AUDIT</span><span class="p">,</span>
+                                         <span class="nb">type</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">StatusType</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUEST</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">request</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="n">grpc</span><span class="o">.</span><span class="n">RpcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">status_code</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">()</span>
+                <span class="n">timeout</span> <span class="o">=</span> <span class="mi">5</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLIENT __listen_to_model_update_request_stream: GRPC ERROR </span><span class="si">{}</span><span class="s2"> retrying in </span><span class="si">{}</span><span class="s2">..&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">status_code</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">timeout</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">time</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_listen_to_model_validation_request_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Subscribe to the model validation request stream. &quot;&quot;&quot;</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ClientAvailableMessage</span><span class="p">()</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator</span><span class="o">.</span><span class="n">ModelValidationRequestStream</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+                    <span class="c1"># Process validation request</span>
+                    <span class="n">model_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">model_id</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Recieved model validation request.&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">AUDIT</span><span class="p">,</span>
+                                     <span class="nb">type</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">StatusType</span><span class="o">.</span><span class="n">MODEL_VALIDATION_REQUEST</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s1">&#39;validate&#39;</span><span class="p">,</span> <span class="n">request</span><span class="p">))</span>
+ 
+            <span class="k">except</span> <span class="n">grpc</span><span class="o">.</span><span class="n">RpcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">status_code</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">()</span>
+                <span class="n">timeout</span> <span class="o">=</span> <span class="mi">5</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLIENT __listen_to_model_validation_request_stream: GRPC ERROR </span><span class="si">{}</span><span class="s2"> retrying in </span><span class="si">{}</span><span class="s2">..&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">status_code</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">timeout</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">time</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Client.process_request"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client.process_request">[docs]</a>    <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process training and validation tasks. &quot;&quot;&quot;</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">task_type</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">task_type</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+
+                <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">training</span>
+                <span class="n">model_id</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_training_request</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+                <span class="n">processing_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">tic</span>
+                <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;processing_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processing_time</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span><span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">model_id</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Notify the combiner that a model update is available</span>
+                    <span class="n">update</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelUpdate</span><span class="p">()</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">model_id</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">model_update_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">correlation_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">correlation_id</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+                    <span class="c1">#TODO: Check responses</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator</span><span class="o">.</span><span class="n">SendModelUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Model update completed.&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">AUDIT</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">StatusType</span><span class="o">.</span><span class="n">MODEL_UPDATE</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">update</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> failed to complete model update.&quot;</span><span class="p">,</span>
+                                        <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                                        <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+            <span class="k">elif</span> <span class="n">task_type</span> <span class="o">==</span> <span class="s1">&#39;validate&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">validating</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_validation_request</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">metrics</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Send validation</span>
+                    <span class="n">validation</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelValidation</span><span class="p">()</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">str</span>
+                    <span class="n">validation</span><span class="o">.</span><span class="n">correlation_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">correlation_id</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator</span><span class="o">.</span><span class="n">SendModelValidation</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Model validation completed.&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">AUDIT</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">StatusType</span><span class="o">.</span><span class="n">MODEL_VALIDATION</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">validation</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> failed to complete model validation.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                                        <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_process_training_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a training (model update) request. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_id : Str</span>
+<span class="sd">            The id of the model to update.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Starting processing of training request for model_id </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">training</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">mdl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
+            <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;fetch_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span>
+
+            <span class="n">inpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">get_tmp_path</span><span class="p">()</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">())</span>
+
+            <span class="n">outpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">get_tmp_path</span><span class="p">()</span>
+            <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="c1"># TODO: Check return status, fail gracefully</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">.</span><span class="n">run_cmd</span><span class="p">(</span><span class="s2">&quot;train </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">outpath</span><span class="p">))</span>
+            <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;exec_training&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span>
+
+            <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">out_model</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+                <span class="n">out_model</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">fr</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+            <span class="c1"># Push model update to combiner server</span>
+            <span class="n">updated_model_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">out_model</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">updated_model_id</span><span class="p">))</span>
+            <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;upload_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR could not process training request due to error: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">updated_model_id</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;failed&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+
+        <span class="k">return</span> <span class="n">updated_model_id</span><span class="p">,</span> <span class="n">meta</span>
+
+    <span class="k">def</span> <span class="nf">_process_validation_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="s2">&quot;Processing validation request for model_id </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">validating</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
+            <span class="n">inpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">get_tmp_path</span><span class="p">()</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">())</span>
+
+            <span class="n">_</span><span class="p">,</span> <span class="n">outpath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">.</span><span class="n">run_cmd</span><span class="p">(</span><span class="s2">&quot;validate </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">outpath</span><span class="p">))</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">validation</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validation failed with exception </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">raise</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ClientState</span><span class="o">.</span><span class="n">idle</span>
+        <span class="k">return</span> <span class="n">validation</span>
+
+    <span class="k">def</span> <span class="nf">_send_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_frequency</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a heartbeat to the combiner. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        update_frequency : float</span>
+<span class="sd">            The interval in seconds between heartbeat messages.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">heartbeat</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Heartbeat</span><span class="p">(</span><span class="n">sender</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">SendHeartbeat</span><span class="p">(</span><span class="n">heartbeat</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">grpc</span><span class="o">.</span><span class="n">RpcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">status_code</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">()</span>
+                <span class="c1"># TODO: Handle / escalate failure to ping the combiner</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLIENT heartbeat: GRPC ERROR </span><span class="si">{}</span><span class="s2"> retrying..&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">status_code</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">time</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">update_frequency</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_send_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send status message. &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">google.protobuf.json_format</span> <span class="kn">import</span> <span class="n">MessageToJson</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">()</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">log_level</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">status</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+
+        <span class="k">if</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">status</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">MessageToJson</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> LOG LEVEL </span><span class="si">{}</span><span class="s2"> MESSAGE </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()),</span> <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">status</span><span class="o">.</span><span class="n">log_level</span><span class="p">,</span>
+                                                   <span class="n">status</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">SendStatus</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Client.run_web"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client.run_web">[docs]</a>    <span class="k">def</span> <span class="nf">run_web</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Starts a local logging UI (Flask app) serving on port 8080. </span>
+<span class="sd">        </span>
+<span class="sd">        Currently not in use as default. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">fedn.common.net.web.client</span> <span class="kn">import</span> <span class="n">page</span><span class="p">,</span> <span class="n">style</span>
+        <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">logs_fancy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">logs</span><span class="p">:</span>
+                <span class="n">logs_fancy</span> <span class="o">+=</span> <span class="s2">&quot;&lt;p&gt;&quot;</span> <span class="o">+</span> <span class="n">log</span> <span class="o">+</span> <span class="s2">&quot;&lt;/p&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+            <span class="k">return</span> <span class="n">page</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">ClientStateToString</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">),</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="n">logs_fancy</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s2">&quot;8080&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span></div>
+
+<div class="viewcode-block" id="Client.run"><a class="viewcode-back" href="../../fedn.html#fedn.client.Client.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main run loop. &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="c1">#threading.Thread(target=self.run_web, daemon=True).start()</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">process_request</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">old_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">old_state</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:CLIENT in </span><span class="si">{}</span><span class="s2"> state&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">),</span> <span class="n">ClientStateToString</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cnt</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:CLIENT active&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_state</span><span class="p">:</span>
+                    <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ok exiting..&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

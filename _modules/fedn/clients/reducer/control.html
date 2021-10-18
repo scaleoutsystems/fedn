@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.clients.reducer.control</title>
+    
+          <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../../index.html" class="home-link">
+    
+      <img class="logo" src="../../../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../../index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.clients.reducer.control</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.clients.reducer.control</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">fedn.clients.reducer.interfaces</span> <span class="kn">import</span> <span class="n">CombinerUnavailableError</span>
+<span class="kn">from</span> <span class="nn">fedn.clients.reducer.network</span> <span class="kn">import</span> <span class="n">Network</span>
+<span class="kn">from</span> <span class="nn">.state</span> <span class="kn">import</span> <span class="n">ReducerState</span>
+
+<span class="kn">import</span> <span class="nn">fedn.utils.helpers</span>
+
+
+<div class="viewcode-block" id="UnsupportedStorageBackend"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.UnsupportedStorageBackend">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedStorageBackend</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="MisconfiguredStorageBackend"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.MisconfiguredStorageBackend">[docs]</a><span class="k">class</span> <span class="nc">MisconfiguredStorageBackend</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ReducerControl"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl">[docs]</a><span class="k">class</span> <span class="nc">ReducerControl</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statestore</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">=</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span> <span class="o">=</span> <span class="n">statestore</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">is_inited</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">Network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statestore</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_storage_backend</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER CONTROL: Failed to retrive storage configuration, exiting.&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MisconfiguredStorageBackend</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER CONTROL: No storage configuration available, exiting.&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">MisconfiguredStorageBackend</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;S3&#39;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">fedn.common.storage.s3.s3repo</span> <span class="kn">import</span> <span class="n">S3ModelRepository</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_repository</span> <span class="o">=</span> <span class="n">S3ModelRepository</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage_config&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER CONTROL: Unsupported storage backend, exiting.&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">UnsupportedStorageBackend</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_allocation_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_allocation_policy_least_packed</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">is_inited</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">=</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">idle</span>
+
+<div class="viewcode-block" id="ReducerControl.get_helper"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_helper">[docs]</a>    <span class="k">def</span> <span class="nf">get_helper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">helper_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_framework</span><span class="p">()</span>
+        <span class="n">helper</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">helpers</span><span class="o">.</span><span class="n">get_helper</span><span class="p">(</span><span class="n">helper_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">helper</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CONTROL: Unsupported helper type </span><span class="si">{}</span><span class="s2">, please configure compute_context.helper !&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">helper_type</span><span class="p">),</span>
+                  <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">helper</span></div>
+
+<div class="viewcode-block" id="ReducerControl.delete_bucket_objects"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.delete_bucket_objects">[docs]</a>    <span class="k">def</span> <span class="nf">delete_bucket_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_repository</span><span class="o">.</span><span class="n">delete_objects</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_state"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__state</span></div>
+
+<div class="viewcode-block" id="ReducerControl.idle"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.idle">[docs]</a>    <span class="k">def</span> <span class="nf">idle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">==</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">idle</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_first_model"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_first_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_first_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_first</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_latest_model"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_latest_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_latest</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_model_info"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_model_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_model_info</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_events"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_events">[docs]</a>    <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_events</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.drop_models"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.drop_models">[docs]</a>    <span class="k">def</span> <span class="nf">drop_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">drop_models</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_compute_context"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_compute_context">[docs]</a>    <span class="k">def</span> <span class="nf">get_compute_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_compute_context</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">definition</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="n">definition</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">context</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No context filename set for compute context definition&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ReducerControl.set_compute_context"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.set_compute_context">[docs]</a>    <span class="k">def</span> <span class="nf">set_compute_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Persist the configuration for the compute package. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_repository</span><span class="o">.</span><span class="n">set_compute_context</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">set_compute_context</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReducerControl.get_compute_package"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.get_compute_package">[docs]</a>    <span class="k">def</span> <span class="nf">get_compute_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_package</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param compute_package:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">compute_package</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">compute_package</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compute_context</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_repository</span><span class="o">.</span><span class="n">get_compute_package</span><span class="p">(</span><span class="n">compute_package</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReducerControl.commit"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Commit a model to the global model trail. The model commited becomes the lastest consensus model. &quot;&quot;&quot;</span>
+
+        <span class="n">helper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_helper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving model to disk...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">outfile_name</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DONE&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploading model to Minio...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_repository</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">outfile_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DONE&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">outfile_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">set_latest</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_out_of_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiners</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">combiners</span><span class="p">:</span>
+            <span class="n">combiners</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">()</span>
+
+        <span class="n">osync</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="n">combiners</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">model_id</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">get_model_id</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">CombinerUnavailableError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_unavailable_combiner</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+                <span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">raise</span>
+            <span class="k">if</span> <span class="n">model_id</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">()):</span>
+                <span class="n">osync</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">osync</span>
+
+<div class="viewcode-block" id="ReducerControl.check_round_participation_policy"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.check_round_participation_policy">[docs]</a>    <span class="k">def</span> <span class="nf">check_round_participation_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_plan</span><span class="p">,</span> <span class="n">combiner_state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Evaluate reducer level policy for combiner round-paarticipation.</span>
+<span class="sd">            This is a decision on ReducerControl level, additional checks</span>
+<span class="sd">            applies on combiner level. Not all reducer control flows might</span>
+<span class="sd">            need or want to use a participation policy.  &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
+            <span class="n">nr_active_clients</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">combiner_state</span><span class="p">[</span><span class="s1">&#39;nr_active_trainers&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;validation&#39;</span><span class="p">:</span>
+            <span class="n">nr_active_clients</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">combiner_state</span><span class="p">[</span><span class="s1">&#39;nr_active_validators&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid task type!&quot;</span><span class="p">,</span><span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;clients_required&#39;</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">nr_active_clients</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ReducerControl.check_round_start_policy"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.check_round_start_policy">[docs]</a>    <span class="k">def</span> <span class="nf">check_round_start_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiners</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if the overall network state meets the policy to start a round. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">combiners</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ReducerControl.check_round_validity_policy"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.check_round_validity_policy">[docs]</a>    <span class="k">def</span> <span class="nf">check_round_validity_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiners</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            At the end of the round, before committing a model to the model ledger,</span>
+<span class="sd">            we check if a round validity policy has been met. This can involve</span>
+<span class="sd">            e.g. asserting that a certain number of combiners have reported in an</span>
+<span class="sd">            updated model, or that criteria on model performance have been met.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">combiners</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">_handle_unavailable_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiner</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This callback is triggered if a combiner is found to be unresponsive. &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Implement strategy to handle the case.</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER CONTROL: Combiner </span><span class="si">{}</span><span class="s2"> unavailable.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">combiner</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_select_round_combiners</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">compute_plan</span><span class="p">):</span>
+        <span class="n">combiners</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">combiner_state</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">CombinerUnavailableError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_unavailable_combiner</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+                <span class="n">combiner_state</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">combiner_state</span><span class="p">:</span>
+                <span class="n">is_participating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_round_participation_policy</span><span class="p">(</span><span class="n">compute_plan</span><span class="p">,</span><span class="n">combiner_state</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_participating</span><span class="p">:</span>
+                    <span class="n">combiners</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">combiner</span><span class="p">,</span><span class="n">compute_plan</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">combiners</span>
+
+<div class="viewcode-block" id="ReducerControl.round"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.round">[docs]</a>    <span class="k">def</span> <span class="nf">round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">round_number</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Execute one global round. &quot;&quot;&quot;</span>
+
+        <span class="n">round_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;round_id&#39;</span><span class="p">:</span> <span class="n">round_number</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER: No combiners connected!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">round_meta</span>
+
+        <span class="c1"># 1. Formulate compute plans for this round and determine which combiners should participate in the round.</span>
+        <span class="n">compute_plan</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;rounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">round_number</span>
+        <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>
+        <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">()</span>
+        <span class="n">compute_plan</span><span class="p">[</span><span class="s1">&#39;helper_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_framework</span><span class="p">()</span>
+
+        <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;compute_plan&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_plan</span>
+
+        <span class="n">combiners</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">():</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">combiner_state</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">CombinerUnavailableError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_unavailable_combiner</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+                <span class="n">combiner_state</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">combiner_state</span><span class="p">:</span>
+                <span class="n">is_participating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_round_participation_policy</span><span class="p">(</span><span class="n">compute_plan</span><span class="p">,</span> <span class="n">combiner_state</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_participating</span><span class="p">:</span>
+                    <span class="n">combiners</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">combiner</span><span class="p">,</span> <span class="n">compute_plan</span><span class="p">))</span>
+
+        <span class="n">round_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_round_start_policy</span><span class="p">(</span><span class="n">combiners</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CONTROL: round start policy met, participating combiners </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">round_start</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">round_start</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CONTROL: Round start policy not met, skipping round!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># 2. Sync up and ask participating combiners to coordinate model updates</span>
+        <span class="c1"># TODO refactor</span>
+        <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+        <span class="kn">from</span> <span class="nn">fedn.common.tracer.mongotracer</span> <span class="kn">import</span> <span class="n">MongoTracer</span>
+        <span class="n">statestore_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span> <span class="o">=</span> <span class="n">MongoTracer</span><span class="p">(</span><span class="n">statestore_config</span><span class="p">[</span><span class="s1">&#39;mongo_config&#39;</span><span class="p">],</span> <span class="n">statestore_config</span><span class="p">[</span><span class="s1">&#39;network_id&#39;</span><span class="p">])</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">combiner</span><span class="p">,</span> <span class="n">compute_plan</span> <span class="ow">in</span> <span class="n">combiners</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sync_combiners</span><span class="p">([</span><span class="n">combiner</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">())</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">compute_plan</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">CombinerUnavailableError</span><span class="p">:</span>
+                <span class="c1"># This is OK, handled by round accept policy</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_unavailable_combiner</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># Unknown error</span>
+                <span class="k">raise</span>
+
+        <span class="c1"># Wait until participating combiners have a model that is out of sync with the current global model.</span>
+        <span class="c1"># TODO: We do not need to wait until all combiners complete before we start reducing.</span>
+        <span class="n">cl</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">combiner</span><span class="p">,</span> <span class="n">plan</span> <span class="ow">in</span> <span class="n">combiners</span><span class="p">:</span>
+            <span class="n">cl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+
+        <span class="n">wait</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out_of_sync</span><span class="p">(</span><span class="n">cl</span><span class="p">))</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">combiners</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">wait</span> <span class="o">+=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">wait</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;round_timeout&#39;</span><span class="p">]:</span>
+                <span class="k">break</span>
+
+        <span class="c1"># TODO refactor</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">round_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">set_combiner_time</span><span class="p">(</span><span class="n">round_number</span><span class="p">,</span> <span class="n">round_time</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span>
+
+        <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;time_combiner_update&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">round_time</span><span class="o">.</span><span class="n">seconds</span>
+
+        <span class="c1"># OBS! Here we are checking against all combiners, not just those that computed in this round.</span>
+        <span class="c1"># This means we let straggling combiners participate in the update</span>
+        <span class="n">updated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_out_of_sync</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMBINERS UPDATED MODELS: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">updated</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Checking round validity policy...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">round_valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_round_validity_policy</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">round_valid</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># TODO: Should we reset combiner state here?</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER CONTROL: Round invalid!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">round_meta</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Round valid.&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting reducing models...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># 3. Reduce combiner models into a global model</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">model</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+            <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;reduce&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CONTROL: Failed to reduce models from combiners: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">updated</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">round_meta</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DONE&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># 6. Commit the global model to the ledger</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Committing global model...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Commit to model ledger</span>
+            <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="kn">import</span> <span class="nn">uuid</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+            <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;time_commit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER: failed to update model in round with config </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">round_meta</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DONE&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># 4. Trigger participating combiner nodes to execute a validation round for the current model</span>
+        <span class="n">validate</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;validate&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="n">combiner_config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">combiner_config</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">()</span>
+            <span class="n">combiner_config</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;validation&#39;</span>
+            <span class="n">combiner_config</span><span class="p">[</span><span class="s1">&#39;helper_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_framework</span><span class="p">()</span>
+
+            <span class="n">validating_combiners</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_round_combiners</span><span class="p">(</span><span class="n">combiner_config</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">combiner</span><span class="p">,</span> <span class="n">combiner_config</span> <span class="ow">in</span> <span class="n">validating_combiners</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sync_combiners</span><span class="p">([</span><span class="n">combiner</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">())</span>
+                    <span class="n">combiner</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">combiner_config</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">CombinerUnavailableError</span><span class="p">:</span>
+                    <span class="c1"># OK if validation fails for a combiner</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_unavailable_combiner</span><span class="p">(</span><span class="n">combiner</span><span class="p">)</span>
+                    <span class="k">pass</span>
+
+        <span class="c1"># 5. Check commit policy based on validation result (optionally)</span>
+        <span class="c1"># TODO: Implement.</span>
+
+        <span class="k">return</span> <span class="n">model_id</span><span class="p">,</span> <span class="n">round_meta</span></div>
+
+<div class="viewcode-block" id="ReducerControl.sync_combiners"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.sync_combiners">[docs]</a>    <span class="k">def</span> <span class="nf">sync_combiners</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiners</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Spread the current consensus model to all active combiner nodes. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_id</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GOT NO MODEL TO SET! Have you seeded the FedML model?&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="n">combiners</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">set_model_id</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReducerControl.instruct"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.instruct">[docs]</a>    <span class="k">def</span> <span class="nf">instruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main entrypoint, executes the compute plan. &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">==</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">instructing</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Already set in INSTRUCTING state&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">=</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">instructing</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_latest_model</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No model in model chain, please seed the alliance!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">=</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">monitoring</span>
+
+        <span class="c1"># TODO: Validate and set the round config object</span>
+        <span class="c1"># self.set_config(config)</span>
+
+        <span class="c1"># TODO: Refactor</span>
+        <span class="kn">from</span> <span class="nn">fedn.common.tracer.mongotracer</span> <span class="kn">import</span> <span class="n">MongoTracer</span>
+        <span class="n">statestore_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statestore</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span> <span class="o">=</span> <span class="n">MongoTracer</span><span class="p">(</span><span class="n">statestore_config</span><span class="p">[</span><span class="s1">&#39;mongo_config&#39;</span><span class="p">],</span> <span class="n">statestore_config</span><span class="p">[</span><span class="s1">&#39;network_id&#39;</span><span class="p">])</span>
+        <span class="n">last_round</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">get_latest_round</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="nb">round</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;rounds&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">last_round</span><span class="p">:</span>
+                <span class="n">current_round</span> <span class="o">=</span> <span class="n">last_round</span> <span class="o">+</span> <span class="nb">round</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_round</span> <span class="o">=</span> <span class="nb">round</span>
+
+            <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="c1"># start round monitor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">start_monitor</span><span class="p">(</span><span class="nb">round</span><span class="p">)</span>
+            <span class="c1"># todo add try except bloc for round meta</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">round_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;round_id&#39;</span><span class="p">:</span> <span class="n">current_round</span><span class="p">}</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">model_id</span><span class="p">,</span> <span class="n">round_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">current_round</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not unpack data from round...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">model_id</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER: Global round completed, new model: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">round_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">set_latest_time</span><span class="p">(</span><span class="n">current_round</span><span class="p">,</span> <span class="n">round_time</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span>
+                <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Success&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;REDUCER: Global round failed!&quot;</span><span class="p">)</span>
+                <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Failed&#39;</span>
+
+            <span class="c1"># stop round monitor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">stop_monitor</span><span class="p">()</span>
+            <span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;time_round&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">set_round_meta_reducer</span><span class="p">(</span><span class="n">round_meta</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__state</span> <span class="o">=</span> <span class="n">ReducerState</span><span class="o">.</span><span class="n">idle</span></div>
+
+<div class="viewcode-block" id="ReducerControl.reduce"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.reduce">[docs]</a>    <span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiners</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Combine current models at Combiner nodes into one global model. &quot;&quot;&quot;</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_fetch_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_load_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_aggregate_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="n">combiners</span><span class="p">:</span>
+
+            <span class="c1"># TODO: Handle inactive RPC error in get_model and raise specific error</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+                <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_fetch_model&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="n">helper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_helper</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">model_str</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">()</span>
+                    <span class="n">model_next</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">load_model_from_BytesIO</span><span class="p">(</span><span class="n">model_str</span><span class="p">)</span>
+                    <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_load_model&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span><span class="p">)</span>
+                    <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">increment_average</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_next</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_aggregate_model&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">load_model_from_BytesIO</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">())</span>
+                    <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;time_aggregate_model&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tic</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">meta</span></div>
+
+<div class="viewcode-block" id="ReducerControl.monitor"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.monitor">[docs]</a>    <span class="k">def</span> <span class="nf">monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param config:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># status = self.network.check_health()</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ReducerControl.client_allocation_policy_first_available"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.client_allocation_policy_first_available">[docs]</a>    <span class="k">def</span> <span class="nf">client_allocation_policy_first_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Allocate client to the first available combiner in the combiner list.</span>
+<span class="sd">            Packs one combiner full before filling up next combiner.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">combiner</span><span class="o">.</span><span class="n">allowing_clients</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">combiner</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ReducerControl.client_allocation_policy_least_packed"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.client_allocation_policy_least_packed">[docs]</a>    <span class="k">def</span> <span class="nf">client_allocation_policy_least_packed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Allocate client to the available combiner with the smallest number of clients.</span>
+<span class="sd">            Spreads clients evenly over all active combiners.</span>
+
+<span class="sd">            TODO: Not thread safe - not garanteed to result in a perfectly even partition.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">min_clients</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">selected_combiner</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">combiner</span><span class="o">.</span><span class="n">allowing_clients</span><span class="p">():</span>
+                    <span class="n">combiner_state</span> <span class="o">=</span> <span class="n">combiner</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
+                    <span class="n">nac</span> <span class="o">=</span> <span class="n">combiner_state</span><span class="p">[</span><span class="s1">&#39;nr_active_clients&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">min_clients</span><span class="p">:</span>
+                        <span class="n">min_clients</span> <span class="o">=</span> <span class="n">nac</span>
+                        <span class="n">selected_combiner</span> <span class="o">=</span> <span class="n">combiner</span>
+                    <span class="k">elif</span> <span class="n">nac</span> <span class="o">&lt;</span> <span class="n">min_clients</span><span class="p">:</span>
+                        <span class="n">min_clients</span> <span class="o">=</span> <span class="n">nac</span>
+                        <span class="n">selected_combiner</span> <span class="o">=</span> <span class="n">combiner</span>
+            <span class="k">except</span> <span class="n">CombinerUnavailableError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combiner was not responding, continuing to next&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">selected_combiner</span></div>
+
+<div class="viewcode-block" id="ReducerControl.find"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">combiner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">get_combiners</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">combiner</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">combiner</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ReducerControl.find_available_combiner"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.find_available_combiner">[docs]</a>    <span class="k">def</span> <span class="nf">find_available_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">combiner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_allocation_policy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">combiner</span></div>
+
+<div class="viewcode-block" id="ReducerControl.state"><a class="viewcode-back" href="../../../../fedn.clients.reducer.html#fedn.clients.reducer.control.ReducerControl.state">[docs]</a>    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__state</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

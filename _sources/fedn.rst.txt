@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   fedn.algo
+   fedn.aggregators
    fedn.clients
    fedn.common
    fedn.utils

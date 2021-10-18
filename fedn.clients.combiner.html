@@ -164,8 +164,183 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="fedn-clients-combiner-modelservice-module">
-<h2>fedn.clients.combiner.modelservice module<a class="headerlink" href="#fedn-clients-combiner-modelservice-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-fedn.clients.combiner.modelservice">
+<span id="fedn-clients-combiner-modelservice-module"></span><h2>fedn.clients.combiner.modelservice module<a class="headerlink" href="#module-fedn.clients.combiner.modelservice" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.combiner.modelservice.</span></span><span class="sig-name descname"><span class="pre">ModelService</span></span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fedn.common.net.grpc.html#fedn.common.net.grpc.fedn_pb2_grpc.ModelServiceServicer" title="fedn.common.net.grpc.fedn_pb2_grpc.ModelServiceServicer"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.common.net.grpc.fedn_pb2_grpc.ModelServiceServicer</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService.Download">
+<span class="sig-name descname"><span class="pre">Download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService.Download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService.Download" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> – </p></li>
+<li><p><strong>context</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService.Upload">
+<span class="sig-name descname"><span class="pre">Upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService.Upload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService.Upload" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_iterator</strong> – </p></li>
+<li><p><strong>context</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService.exist">
+<span class="sig-name descname"><span class="pre">exist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService.exist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService.exist" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_id</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService.get_model">
+<span class="sig-name descname"><span class="pre">get_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService.get_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService.get_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>id</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.modelservice.ModelService.set_model">
+<span class="sig-name descname"><span class="pre">set_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/modelservice.html#ModelService.set_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.modelservice.ModelService.set_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – </p></li>
+<li><p><strong>id</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-fedn.clients.combiner.roundcontrol">
+<span id="fedn-clients-combiner-roundcontrol-module"></span><h2>fedn.clients.combiner.roundcontrol module<a class="headerlink" href="#module-fedn.clients.combiner.roundcontrol" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.combiner.roundcontrol.</span></span><span class="sig-name descname"><span class="pre">RoundControl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelservice</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Combiner level round controller.</p>
+<p>The controller recieves round configurations from the global controller  
+and acts on them by soliciting model updates and model validations
+from the connected clients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A reference to id of :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>storage</strong> (class: <cite>fedn.common.storage.s3.s3repo.S3ModelRepository</cite>) – Model repository for :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>server</strong> (class: <cite>fedn.combiner.Combiner</cite>) – A handle to the Combiner class :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>modelservice</strong> (class: <cite>fedn.clients.combiner.modelservice.ModelService</cite>) – A handle to the model service :class: <cite>fedn.clients.combiner.modelservice.ModelService</cite></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.execute_training">
+<span class="sig-name descname"><span class="pre">execute_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.execute_training"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.execute_training" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates clients to execute training and validation tasks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.execute_validation">
+<span class="sig-name descname"><span class="pre">execute_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">round_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.execute_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.execute_validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinate validation rounds as specified in config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>round_config</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.10)"><em>type</em></a><em>]</em>) – [description]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.load_model_fault_tolerant">
+<span class="sig-name descname"><span class="pre">load_model_fault_tolerant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.load_model_fault_tolerant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.load_model_fault_tolerant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load model update object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The ID of the model</p></li>
+<li><p><strong>retry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – number of times retrying load model update, defaults to 3</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Updated model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>class: <cite>io.BytesIO</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.push_round_config">
+<span class="sig-name descname"><span class="pre">push_round_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">round_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.push_round_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.push_round_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recieve a round_config (job description) and push on the queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>round_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – A dict containing round configurations.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A generated job id (universally unique identifier) for the round configuration</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main control loop. Sequentially execute rounds based on round config.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.combiner.roundcontrol.RoundControl.stage_model">
+<span class="sig-name descname"><span class="pre">stage_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/combiner/roundcontrol.html#RoundControl.stage_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.combiner.roundcontrol.RoundControl.stage_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download model from persistent storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – ID of the model update object to stage.</p></li>
+<li><p><strong>timeout_retry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Sleep before retrying download again (sec), defaults to 3</p></li>
+<li><p><strong>retry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Number of retries, defaults to 2</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-fedn.clients.combiner">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.clients.combiner" title="Permalink to this headline">¶</a></h2>

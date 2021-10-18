@@ -52,14 +52,6 @@ fedn.utils.numpyarrayhelper module
    :undoc-members:
    :show-inheritance:
 
-fedn.utils.numpymodel module
-----------------------------
-
-.. automodule:: fedn.utils.numpymodel
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fedn.utils.process module
 -------------------------
 

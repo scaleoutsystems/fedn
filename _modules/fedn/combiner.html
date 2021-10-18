@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.combiner</title>
+    
+          <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../_static/theme-vendors.js"></script> -->
+      <script src="../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../genindex.html" />
+  <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../index.html" class="home-link">
+    
+      <img class="logo" src="../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.combiner</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.combiner</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">from</span> <span class="nn">fedn.common.net.connect</span> <span class="kn">import</span> <span class="n">ConnectorCombiner</span><span class="p">,</span> <span class="n">Status</span>
+<span class="kn">from</span> <span class="nn">fedn.common.net.grpc.server</span> <span class="kn">import</span> <span class="n">Server</span>
+<span class="kn">import</span> <span class="nn">fedn.common.net.grpc.fedn_pb2</span> <span class="k">as</span> <span class="nn">fedn</span>
+<span class="kn">import</span> <span class="nn">fedn.common.net.grpc.fedn_pb2_grpc</span> <span class="k">as</span> <span class="nn">rpc</span>
+
+<span class="kn">from</span> <span class="nn">fedn.clients.combiner.modelservice</span> <span class="kn">import</span> <span class="n">ModelService</span>
+<span class="kn">from</span> <span class="nn">fedn.common.storage.s3.s3repo</span> <span class="kn">import</span> <span class="n">S3ModelRepository</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+<div class="viewcode-block" id="Role"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Role">[docs]</a><span class="k">class</span> <span class="nc">Role</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">WORKER</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">COMBINER</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">REDUCER</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">OTHER</span> <span class="o">=</span> <span class="mi">4</span></div>
+
+
+<div class="viewcode-block" id="role_to_proto_role"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.role_to_proto_role">[docs]</a><span class="k">def</span> <span class="nf">role_to_proto_role</span><span class="p">(</span><span class="n">role</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :param role:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">COMBINER</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">COMBINER</span>
+    <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">WORKER</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+    <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">REDUCER</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">REDUCER</span>
+    <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">OTHER</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">OTHER</span></div>
+
+
+<span class="c1">####################################################################################################################</span>
+<span class="c1">####################################################################################################################</span>
+
+<div class="viewcode-block" id="Combiner"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner">[docs]</a><span class="k">class</span> <span class="nc">Combiner</span><span class="p">(</span><span class="n">rpc</span><span class="o">.</span><span class="n">CombinerServicer</span><span class="p">,</span> <span class="n">rpc</span><span class="o">.</span><span class="n">ReducerServicer</span><span class="p">,</span> <span class="n">rpc</span><span class="o">.</span><span class="n">ConnectorServicer</span><span class="p">,</span> <span class="n">rpc</span><span class="o">.</span><span class="n">ControlServicer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Communication relayer. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connect_config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clients</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modelservice</span> <span class="o">=</span> <span class="n">ModelService</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;myname&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">Role</span><span class="o">.</span><span class="n">COMBINER</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_clients</span> <span class="o">=</span> <span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;max_clients&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">announce_client</span> <span class="o">=</span> <span class="n">ConnectorCombiner</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;discover_host&#39;</span><span class="p">],</span>
+                                            <span class="n">port</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;discover_port&#39;</span><span class="p">],</span>
+                                            <span class="n">myhost</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;myhost&#39;</span><span class="p">],</span>
+                                            <span class="n">myport</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;myport&#39;</span><span class="p">],</span>
+                                            <span class="n">token</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;token&#39;</span><span class="p">],</span>
+                                            <span class="n">name</span><span class="o">=</span><span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;myname&#39;</span><span class="p">])</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">status</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">announce_client</span><span class="o">.</span><span class="n">announce</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">response</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMBINER: was announced successfully. Waiting for clients and commands!&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="n">cert</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;certificate&#39;</span><span class="p">])</span>  <span class="c1"># .decode(&#39;utf-8&#39;)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">])</span>  <span class="c1"># .decode(&#39;utf-8&#39;)</span>
+
+        <span class="n">grpc_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;myport&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;secure&#39;</span><span class="p">:</span> <span class="n">connect_config</span><span class="p">[</span><span class="s1">&#39;secure&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;certificate&#39;</span><span class="p">:</span> <span class="n">cert</span><span class="p">,</span>
+                       <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">repository</span> <span class="o">=</span> <span class="n">S3ModelRepository</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage&#39;</span><span class="p">][</span><span class="s1">&#39;storage_config&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">Server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelservice</span><span class="p">,</span> <span class="n">grpc_config</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">fedn.common.tracer.mongotracer</span> <span class="kn">import</span> <span class="n">MongoTracer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span> <span class="o">=</span> <span class="n">MongoTracer</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;statestore&#39;</span><span class="p">][</span><span class="s1">&#39;mongo_config&#39;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;statestore&#39;</span><span class="p">][</span><span class="s1">&#39;network_id&#39;</span><span class="p">])</span>
+
+        <span class="kn">from</span> <span class="nn">fedn.clients.combiner.roundcontrol</span> <span class="kn">import</span> <span class="n">RoundControl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="n">RoundControl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">repository</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelservice</span><span class="p">)</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__whoami</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">role_to_proto_role</span><span class="p">(</span><span class="n">role</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">            :param role:</span>
+<span class="sd">            :return:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">COMBINER</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">COMBINER</span>
+            <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">WORKER</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+            <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">REDUCER</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">REDUCER</span>
+            <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">OTHER</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fedn</span><span class="o">.</span><span class="n">OTHER</span>
+
+        <span class="n">client</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">role</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">client</span>
+
+<div class="viewcode-block" id="Combiner.get_active_model"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.get_active_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_active_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span></div>
+
+<div class="viewcode-block" id="Combiner.set_active_model"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.set_active_model">[docs]</a>    <span class="k">def</span> <span class="nf">set_active_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param model_id:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span></div>
+
+<div class="viewcode-block" id="Combiner.report_status"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.report_status">[docs]</a>    <span class="k">def</span> <span class="nf">report_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:COMBINER(</span><span class="si">{}</span><span class="s2">):</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">log_level</span><span class="p">,</span> <span class="n">msg</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="n">flush</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Combiner.request_model_update"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.request_model_update">[docs]</a>    <span class="k">def</span> <span class="nf">request_model_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">,</span> <span class="n">clients</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot; Ask clients to update the current global model.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_id : str</span>
+<span class="sd">            The id of the model to be updated. </span>
+<span class="sd">        clients : list </span>
+<span class="sd">            List of clients to submit a model update request to. </span>
+<span class="sd">            An empty list (default) results in a broadcast to </span>
+<span class="sd">            all connected trainig clients.  </span>
+<span class="sd">          </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">request</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelUpdateRequest</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__whoami</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">correlation_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clients</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_trainers</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">clients</span><span class="p">:</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SendModelUpdateRequest</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMBINER: Sent model update request for model </span><span class="si">{}</span><span class="s2"> to clients </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span><span class="n">clients</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Combiner.request_model_validation"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.request_model_validation">[docs]</a>    <span class="k">def</span> <span class="nf">request_model_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">,</span> <span class="n">clients</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot; Ask clients to validate the current global model. </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_id : str</span>
+<span class="sd">            The id of the model to be updated. </span>
+<span class="sd">        clients : list </span>
+<span class="sd">            List of clients to submit a model update request to. </span>
+<span class="sd">            An empty list (default) results in a broadcast to </span>
+<span class="sd">            all connected trainig clients.  </span>
+<span class="sd">          </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">request</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ModelValidationRequest</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__whoami</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">correlation_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clients</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_validators</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">clients</span><span class="p">:</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SendModelValidationRequest</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMBINER: Sent validation request for model </span><span class="si">{}</span><span class="s2"> to clients </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span><span class="n">clients</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_list_clients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ListClientsRequest</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__whoami</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="n">clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ListActiveClients</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">clients</span><span class="o">.</span><span class="n">client</span>
+
+<div class="viewcode-block" id="Combiner.get_active_trainers"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.get_active_trainers">[docs]</a>    <span class="k">def</span> <span class="nf">get_active_trainers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trainers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_clients</span><span class="p">(</span><span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUESTS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trainers</span></div>
+
+<div class="viewcode-block" id="Combiner.get_active_validators"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.get_active_validators">[docs]</a>    <span class="k">def</span> <span class="nf">get_active_validators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">validators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_clients</span><span class="p">(</span><span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATION_REQUESTS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">validators</span></div>
+
+<div class="viewcode-block" id="Combiner.nr_active_trainers"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.nr_active_trainers">[docs]</a>    <span class="k">def</span> <span class="nf">nr_active_trainers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_active_trainers</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Combiner.nr_active_validators"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.nr_active_validators">[docs]</a>    <span class="k">def</span> <span class="nf">nr_active_validators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_active_validators</span><span class="p">())</span></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+    <span class="k">def</span> <span class="nf">__join_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Add a client to the combiner. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lastseen&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()}</span>
+
+    <span class="k">def</span> <span class="nf">_subscribe_client_to_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__join_client</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">queue_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">queue_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__get_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">queue_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+    <span class="k">def</span> <span class="nf">__get_status_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">STATUS</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_send_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__route_request_to_client</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_broadcast_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Publish a request to all subscribed members. &quot;&quot;&quot;</span>
+        <span class="n">active_clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_active_clients</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">active_clients</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">queue_name</span><span class="p">]</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__route_request_to_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">)</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to route request to client: </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receiver</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="k">def</span> <span class="nf">_send_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracer</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="n">client</span><span class="p">[</span><span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">STATUS</span><span class="p">]</span>
+                <span class="n">status</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+                <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__register_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Register a client if first time connecting. Update heartbeat timestamp. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__join_client</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;lastseen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="c1">#####################################################################################################################</span>
+
+    <span class="c1">## Control Service</span>
+
+<div class="viewcode-block" id="Combiner.Start"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.Start">[docs]</a>    <span class="k">def</span> <span class="nf">Start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Push a round config to the combiner Control. </span>
+
+<span class="sd">        :param control:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlResponse</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> GOT CONTROL **START** from Command </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">command</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">control</span><span class="o">.</span><span class="n">parameter</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">parameter</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">parameter</span><span class="o">.</span><span class="n">value</span><span class="p">})</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">STARTING ROUND AT COMBINER WITH ROUND CONFIG: </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">push_round_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Combiner.Configure"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.Configure">[docs]</a>    <span class="k">def</span> <span class="nf">Configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param control:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlResponse</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">control</span><span class="o">.</span><span class="n">parameter</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Combiner.Stop"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.Stop">[docs]</a>    <span class="k">def</span> <span class="nf">Stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param control:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlResponse</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\n\n\n</span><span class="s2"> GOT CONTROL **STOP** from Command</span><span class="se">\n\n\n\n\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Combiner.Report"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.Report">[docs]</a>    <span class="k">def</span> <span class="nf">Report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Descibe current state of the Combiner. &quot;&quot;&quot;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ControlResponse</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\n\n\n</span><span class="s2"> GOT CONTROL **REPORT** from Command</span><span class="se">\n\n\n\n\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">active_trainers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_trainers</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;nr_active_trainers&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">active_trainers</span><span class="p">))</span>
+        
+        <span class="n">active_validators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_validators</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;nr_active_validators&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">active_validators</span><span class="p">))</span>
+
+        <span class="n">active_trainers_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_trainers</span><span class="p">()</span>
+        <span class="n">active_trainers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">active_trainers_</span><span class="p">:</span>
+            <span class="n">active_trainers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;active_trainers&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">active_trainers</span><span class="p">)</span>
+
+        <span class="n">active_validators_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_validators</span><span class="p">()</span>
+        <span class="n">active_validators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">active_validators_</span><span class="p">:</span>
+            <span class="n">active_validators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;active_validators&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">active_validators</span><span class="p">)</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;nr_active_clients&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">active_trainers</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">active_validators</span><span class="p">))</span>
+        
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;model_id&quot;</span>
+        <span class="n">model_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_model</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">model_id</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;nr_unprocessed_compute_plans&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">round_configs</span><span class="o">.</span><span class="n">qsize</span><span class="p">())</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">add</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+
+    <span class="c1">#####################################################################################################################</span>
+
+<div class="viewcode-block" id="Combiner.AllianceStatusStream"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.AllianceStatusStream">[docs]</a>    <span class="k">def</span> <span class="nf">AllianceStatusStream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A server stream RPC endpoint that emits status messages. &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> connecting to AllianceStatusStream.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">role</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribe_client_to_queue</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">STATUS</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">STATUS</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Combiner.SendStatus"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendStatus">[docs]</a>    <span class="k">def</span> <span class="nf">SendStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param status:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Add the status message to all subscribers of the status channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;Status received.&quot;</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+    <span class="k">def</span> <span class="nf">_list_subscribed_clients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue_name</span><span class="p">):</span>
+        <span class="n">subscribed_clients</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">queue_name</span> <span class="ow">in</span> <span class="n">client</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">subscribed_clients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subscribed_clients</span>
+
+    <span class="k">def</span> <span class="nf">_list_active_clients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="n">active_clients</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_subscribed_clients</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+            <span class="c1"># This can break with different timezones.</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">then</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">[</span><span class="n">client</span><span class="p">][</span><span class="s2">&quot;lastseen&quot;</span><span class="p">]</span>
+            <span class="c1"># TODO: move the heartbeat timeout to config.</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">then</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+                <span class="n">active_clients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">active_clients</span>
+
+    <span class="k">def</span> <span class="nf">_drop_inactive_clients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Clean up clients that has missed heartbeat &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Combiner.ListActiveClients"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.ListActiveClients">[docs]</a>    <span class="k">def</span> <span class="nf">ListActiveClients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ListClientsRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; RPC endpoint that returns a ClientList containing the names of all active clients.</span>
+<span class="sd">            An active client has sent a status message / responded to a heartbeat</span>
+<span class="sd">            request in the last 10 seconds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">clients</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ClientList</span><span class="p">()</span>
+        <span class="n">active_clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_active_clients</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">active_clients</span><span class="p">:</span>
+            <span class="n">clients</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fedn</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="n">fedn</span><span class="o">.</span><span class="n">WORKER</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">clients</span></div>
+
+<div class="viewcode-block" id="Combiner.AcceptingClients"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.AcceptingClients">[docs]</a>    <span class="k">def</span> <span class="nf">AcceptingClients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ConnectionRequest</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ConnectionResponse</span><span class="p">()</span>
+        <span class="n">active_clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_active_clients</span><span class="p">(</span><span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUESTS</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">requested</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_clients</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_clients</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">requested</span><span class="p">:</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ConnectionStatus</span><span class="o">.</span><span class="n">NOT_ACCEPTING</span>
+                <span class="k">return</span> <span class="n">response</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_clients</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">requested</span><span class="p">:</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ConnectionStatus</span><span class="o">.</span><span class="n">ACCEPTING</span>
+                <span class="k">return</span> <span class="n">response</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combiner not properly configured! </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">ConnectionStatus</span><span class="o">.</span><span class="n">TRY_AGAIN_LATER</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Combiner.SendHeartbeat"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendHeartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">SendHeartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heartbeat</span><span class="p">:</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Heartbeat</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; RPC that lets clients send a hearbeat, notifying the server that</span>
+<span class="sd">            the client is available. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register_heartbeat</span><span class="p">(</span><span class="n">heartbeat</span><span class="o">.</span><span class="n">sender</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">heartbeat</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">heartbeat</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;Heartbeat received&quot;</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+    <span class="c1">## Combiner Service</span>
+
+<div class="viewcode-block" id="Combiner.ModelUpdateStream"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.ModelUpdateStream">[docs]</a>    <span class="k">def</span> <span class="nf">ModelUpdateStream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param update:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">sender</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> connecting to ModelUpdateStream.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">role</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribe_client_to_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATES</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATES</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Combiner.ModelUpdateRequestStream"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.ModelUpdateRequestStream">[docs]</a>    <span class="k">def</span> <span class="nf">ModelUpdateRequestStream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A server stream RPC endpoint. Messages from client stream. &quot;&quot;&quot;</span>
+
+        <span class="n">client</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">sender</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">invocation_metadata</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">GOT METADATA: </span><span class="si">{}</span><span class="se">\n\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">metadata</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> connecting to ModelUpdateRequestStream.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__whoami</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribe_client_to_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUESTS</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUESTS</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Combiner.ModelValidationStream"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.ModelValidationStream">[docs]</a>    <span class="k">def</span> <span class="nf">ModelValidationStream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param update:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">sender</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> connecting to ModelValidationStream.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span>
+
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">role</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribe_client_to_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATIONS</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATIONS</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Combiner.ModelValidationRequestStream"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.ModelValidationRequestStream">[docs]</a>    <span class="k">def</span> <span class="nf">ModelValidationRequestStream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A server stream RPC endpoint. Messages from client stream. &quot;&quot;&quot;</span>
+
+        <span class="n">client</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">sender</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> connecting to ModelValidationRequestStream.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">role</span><span class="p">)</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribe_client_to_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATION_REQUESTS</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_queue</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATION_REQUESTS</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Combiner.SendModelUpdateRequest"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendModelUpdateRequest">[docs]</a>    <span class="k">def</span> <span class="nf">SendModelUpdateRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Send a model update request. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_UPDATE_REQUESTS</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;CONTROLLER RECEIVED ModelUpdateRequest from client </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>  <span class="c1"># TODO Fill later</span></div>
+
+<div class="viewcode-block" id="Combiner.SendModelUpdate"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendModelUpdate">[docs]</a>    <span class="k">def</span> <span class="nf">SendModelUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Send a model update response. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">on_model_update</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">model_update_id</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ORCHESTRATOR: Received model update&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;RECEIVED ModelUpdate </span><span class="si">{}</span><span class="s2"> from client  </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>  <span class="c1"># TODO Fill later</span></div>
+
+<div class="viewcode-block" id="Combiner.SendModelValidationRequest"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendModelValidationRequest">[docs]</a>    <span class="k">def</span> <span class="nf">SendModelValidationRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Send a model update request. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Channel</span><span class="o">.</span><span class="n">MODEL_VALIDATION_REQUESTS</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;CONTROLLER RECEIVED ModelValidationRequest from client </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>  <span class="c1"># TODO Fill later</span></div>
+
+<div class="viewcode-block" id="Combiner.SendModelValidation"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.SendModelValidation">[docs]</a>    <span class="k">def</span> <span class="nf">SendModelValidation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Send a model update response. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">on_model_validation</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ORCHESTRATOR received validation &quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">Response</span><span class="p">()</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;RECEIVED ModelValidation </span><span class="si">{}</span><span class="s2"> from client  </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>  <span class="c1"># TODO Fill later</span></div>
+
+    <span class="c1">## Reducer Service</span>
+
+<div class="viewcode-block" id="Combiner.GetGlobalModel"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.GetGlobalModel">[docs]</a>    <span class="k">def</span> <span class="nf">GetGlobalModel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param request:</span>
+<span class="sd">        :param context:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">fedn</span><span class="o">.</span><span class="n">GetGlobalModelResponse</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__whoami</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;reducer&quot;</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role_to_proto_role</span><span class="p">(</span><span class="n">Role</span><span class="o">.</span><span class="n">REDUCER</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_model</span><span class="p">():</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_active_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+<div class="viewcode-block" id="Combiner.run"><a class="viewcode-back" href="../../fedn.html#fedn.combiner.Combiner.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">signal</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMBINER: </span><span class="si">{}</span><span class="s2"> started, ready for requests. &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">signal</span><span class="o">.</span><span class="n">pause</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

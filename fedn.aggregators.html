@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+      <title>fedn.aggregators package</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="index.html" class="home-link">
+    
+      <img class="logo" src="_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+    <li>fedn.aggregators package</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="fedn-aggregators-package">
+<h1>fedn.aggregators package<a class="headerlink" href="#fedn-aggregators-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-fedn.aggregators.aggregator">
+<span id="fedn-aggregators-aggregator-module"></span><h2>fedn.aggregators.aggregator module<a class="headerlink" href="#module-fedn.aggregators.aggregator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.aggregators.aggregator.AggregatorBase">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.aggregators.aggregator.</span></span><span class="sig-name descname"><span class="pre">AggregatorBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelservice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/aggregator.html#AggregatorBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.aggregator.AggregatorBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class defining helpers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.aggregator.AggregatorBase.combine_models">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">combine_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nr_expected_models</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_required_models</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">helper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/aggregator.html#AggregatorBase.combine_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.aggregator.AggregatorBase.combine_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.aggregator.AggregatorBase.on_model_update">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">on_model_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/aggregator.html#AggregatorBase.on_model_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.aggregator.AggregatorBase.on_model_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.aggregator.AggregatorBase.on_model_validation">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">on_model_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">validation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/aggregator.html#AggregatorBase.on_model_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.aggregator.AggregatorBase.on_model_validation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-fedn.aggregators.fedavg">
+<span id="fedn-aggregators-fedavg-module"></span><h2>fedn.aggregators.fedavg module<a class="headerlink" href="#module-fedn.aggregators.fedavg" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.aggregators.fedavg.FedAvgAggregator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.aggregators.fedavg.</span></span><span class="sig-name descname"><span class="pre">FedAvgAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelservice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/fedavg.html#FedAvgAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.fedavg.FedAvgAggregator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fedn.aggregators.aggregator.AggregatorBase" title="fedn.aggregators.aggregator.AggregatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.aggregators.aggregator.AggregatorBase</span></code></a></p>
+<p>Local SGD / Federated Averaging (FedAvg) aggregator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A reference to id of :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>storage</strong> (class: <cite>fedn.common.storage.s3.s3repo.S3ModelRepository</cite>) – Model repository for :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>server</strong> (class: <cite>fedn.combiner.Combiner</cite>) – A handle to the Combiner class :class: <cite>fedn.combiner.Combiner</cite></p></li>
+<li><p><strong>modelservice</strong> (class: <cite>fedn.clients.combiner.modelservice.ModelService</cite>) – A handle to the model service :class: <cite>fedn.clients.combiner.modelservice.ModelService</cite></p></li>
+<li><p><strong>control</strong> (class: <cite>fedn.clients.combiner.roundcontrol.RoundControl</cite>) – A handle to the :class: <cite>fedn.clients.combiner.roundcontrol.RoundControl</cite></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.fedavg.FedAvgAggregator.combine_models">
+<span class="sig-name descname"><span class="pre">combine_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nr_expected_models</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_required_models</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">helper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/fedavg.html#FedAvgAggregator.combine_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.fedavg.FedAvgAggregator.combine_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute a running average of model updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nr_expected_models</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of updates expected in this round, defaults to None</p></li>
+<li><p><strong>nr_required_models</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of updates needed to a valid round, defaults to 1</p></li>
+<li><p><strong>helper</strong> (class: <cite>fedn.utils.helpers.HelperBase</cite>, optional) – An instance of :class: <cite>fedn.utils.helpers.HelperBase</cite>, ML framework specific helper, defaults to None</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Timeout for model updates, defaults to 180</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The global model and metadata</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.fedavg.FedAvgAggregator.on_model_update">
+<span class="sig-name descname"><span class="pre">on_model_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/fedavg.html#FedAvgAggregator.on_model_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.fedavg.FedAvgAggregator.on_model_update" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Callback when a new model update is recieved from a client.</dt><dd><p>Performs (optional) pre-processing and the puts the update id
+on the aggregation queue.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – ID of model update</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.aggregators.fedavg.FedAvgAggregator.on_model_validation">
+<span class="sig-name descname"><span class="pre">on_model_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">validation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/aggregators/fedavg.html#FedAvgAggregator.on_model_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.aggregators.fedavg.FedAvgAggregator.on_model_validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback when a new model validation is recieved from a client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>validation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dict containing validation data sent by client. 
+Must be valid JSON.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-fedn.aggregators">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.aggregators" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
