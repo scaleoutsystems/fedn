@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.common.tracer.mongotracer</title>
+    
+          <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../../index.html" class="home-link">
+    
+      <img class="logo" src="../../../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../../index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.common.tracer.mongotracer</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.common.tracer.mongotracer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">fedn.common.tracer.tracer</span> <span class="k">import</span> <span class="n">Tracer</span>
+<span class="kn">from</span> <span class="nn">fedn.common.storage.db.mongo</span> <span class="k">import</span> <span class="n">connect_to_mongodb</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+
+<div class="viewcode-block" id="MongoTracer"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer">[docs]</a><span class="k">class</span> <span class="nc">MongoTracer</span><span class="p">(</span><span class="n">Tracer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mongo_config</span><span class="p">,</span> <span class="n">network_id</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span> <span class="o">=</span> <span class="n">connect_to_mongodb</span><span class="p">(</span><span class="n">mongo_config</span><span class="p">,</span> <span class="n">network_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.status&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.round_time&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.psutil_monitoring&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_trail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.model_trail&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">latest_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.latest_model&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.combiner_round_time&#39;</span><span class="p">]</span>
+            <span class="c1"># self.combiner_queue_length = self.mdb[&#39;control.combiner_queue_length&#39;]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">round</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control.round&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FAILED TO CONNECT TO MONGO, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span>
+
+<div class="viewcode-block" id="MongoTracer.report"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param msg:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">google.protobuf.json_format</span> <span class="k">import</span> <span class="n">MessageToDict</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">MessageToDict</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">including_default_value_fields</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOG: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_round_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_round_time">[docs]</a>    <span class="k">def</span> <span class="nf">drop_round_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_ps_util_monitor"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_ps_util_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">drop_ps_util_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_model_trail"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_model_trail">[docs]</a>    <span class="k">def</span> <span class="nf">drop_model_trail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_trail</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_trail</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_latest_model"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_latest_model">[docs]</a>    <span class="k">def</span> <span class="nf">drop_latest_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">latest_model</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_status"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_status">[docs]</a>    <span class="k">def</span> <span class="nf">drop_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_combiner_round_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_combiner_round_time">[docs]</a>    <span class="k">def</span> <span class="nf">drop_combiner_round_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.drop_combiner_round"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_combiner_round">[docs]</a>    <span class="k">def</span> <span class="nf">drop_combiner_round</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.set_latest_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_latest_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_latest_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="p">,</span> <span class="n">round_time</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round:</span>
+<span class="sd">        :param round_time:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MongoTracer.set_combiner_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_combiner_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_combiner_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="p">,</span> <span class="n">round_time</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round:</span>
+<span class="sd">        :param round_time:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="c1"># def set_combiner_queue_length(self,timestamp,ql):</span>
+    <span class="c1">#    self.combiner_queue_length({&#39;key&#39;: &#39;combiner_queue_length&#39;}, {&#39;$push&#39;: {&#39;queue_length&#39;: ql}}, True)</span>
+    <span class="c1">#    self.combiner_queue_length.update({&#39;key&#39;: &#39;combiner_queue_length&#39;}, {&#39;$push&#39;: {&#39;timestamp&#39;: timestamp}}, True)</span>
+
+    <span class="c1"># Round statistics</span>
+<div class="viewcode-block" id="MongoTracer.set_round_meta"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_round_meta">[docs]</a>    <span class="k">def</span> <span class="nf">set_round_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">round_meta</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round_meta:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;combiners&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MongoTracer.set_round_meta_reducer"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_round_meta_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">set_round_meta_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">round_meta</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round_meta:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;reducer&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MongoTracer.get_latest_round"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.get_latest_round">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_round</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">}):</span>
+            <span class="n">last_round</span> <span class="o">=</span> <span class="n">post</span><span class="p">[</span><span class="s1">&#39;round&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">last_round</span></div>
+
+<div class="viewcode-block" id="MongoTracer.ps_util_monitor"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.ps_util_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">ps_util_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">running</span>
+        <span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">currentProcess</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+        <span class="c1"># start loop</span>
+        <span class="k">while</span> <span class="n">running</span><span class="p">:</span>
+            <span class="n">cpu_percents</span> <span class="o">=</span> <span class="n">currentProcess</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mem_percents</span> <span class="o">=</span> <span class="n">currentProcess</span><span class="o">.</span><span class="n">memory_percent</span><span class="p">()</span>
+            <span class="n">ps_time</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;cpu&#39;</span><span class="p">:</span> <span class="n">cpu_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mem&#39;</span><span class="p">:</span> <span class="n">mem_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">ps_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MongoTracer.start_monitor"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.start_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">start_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param round:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">t</span>
+        <span class="c1"># create thread and start it</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ps_util_monitor</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="nb">round</span><span class="p">])</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MongoTracer.stop_monitor"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.stop_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">stop_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">running</span>
+        <span class="k">global</span> <span class="n">t</span>
+        <span class="c1"># use `running` to stop loop in thread so thread will end</span>
+        <span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># wait for thread&#39;s end</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

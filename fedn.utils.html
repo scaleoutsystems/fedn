@@ -261,8 +261,107 @@ The serialized model must be a single binary object.</p>
 </dd></dl>
 
 </section>
-<section id="fedn-utils-kerashelper-module">
-<h2>fedn.utils.kerashelper module<a class="headerlink" href="#fedn-utils-kerashelper-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-fedn.utils.kerashelper">
+<span id="fedn-utils-kerashelper-module"></span><h2>fedn.utils.kerashelper module<a class="headerlink" href="#module-fedn.utils.kerashelper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.kerashelper.</span></span><span class="sig-name descname"><span class="pre">KerasHelper</span></span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fedn.utils.helpers.HelperBase" title="fedn.utils.helpers.HelperBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.utils.helpers.HelperBase</span></code></a></p>
+<p>FEDn helper class for keras.Sequential.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.average_weights">
+<span class="sig-name descname"><span class="pre">average_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.average_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.average_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Average weights of Keras Sequential models.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.get_tmp_path">
+<span class="sig-name descname"><span class="pre">get_tmp_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.get_tmp_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.get_tmp_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a temporary output path compatible with save_model, load_model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.get_weights">
+<span class="sig-name descname"><span class="pre">get_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.get_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.get_weights" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>weights</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.increment_average">
+<span class="sig-name descname"><span class="pre">increment_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_next</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.increment_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.increment_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an incremental average.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weights.npz'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.load_model_from_BytesIO">
+<span class="sig-name descname"><span class="pre">load_model_from_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_bytesio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.load_model_from_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.load_model_from_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a model from a BytesIO object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights</strong> – </p></li>
+<li><p><strong>path</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.serialize_model_to_BytesIO">
+<span class="sig-name descname"><span class="pre">serialize_model_to_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.serialize_model_to_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.serialize_model_to_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.kerashelper.KerasHelper.set_weights">
+<span class="sig-name descname"><span class="pre">set_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/kerashelper.html#KerasHelper.set_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.kerashelper.KerasHelper.set_weights" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights</strong> – </p></li>
+<li><p><strong>weights</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-fedn.utils.logger">
 <span id="fedn-utils-logger-module"></span><h2>fedn.utils.logger module<a class="headerlink" href="#module-fedn.utils.logger" title="Permalink to this headline">¶</a></h2>
@@ -273,8 +372,75 @@ The serialized model must be a single binary object.</p>
 </dd></dl>
 
 </section>
-<section id="fedn-utils-numpyarrayhelper-module">
-<h2>fedn.utils.numpyarrayhelper module<a class="headerlink" href="#fedn-utils-numpyarrayhelper-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-fedn.utils.numpyarrayhelper">
+<span id="fedn-utils-numpyarrayhelper-module"></span><h2>fedn.utils.numpyarrayhelper module<a class="headerlink" href="#module-fedn.utils.numpyarrayhelper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.numpyarrayhelper.</span></span><span class="sig-name descname"><span class="pre">NumpyArrayHelper</span></span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fedn.utils.helpers.HelperBase" title="fedn.utils.helpers.HelperBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.utils.helpers.HelperBase</span></code></a></p>
+<p>FEDn helper class for numpy arrays.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.get_tmp_path">
+<span class="sig-name descname"><span class="pre">get_tmp_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.get_tmp_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.get_tmp_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a temporary output path compatible with save_model, load_model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.increment_average">
+<span class="sig-name descname"><span class="pre">increment_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_next</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.increment_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.increment_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an incremental average.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model_from_BytesIO">
+<span class="sig-name descname"><span class="pre">load_model_from_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_bytesio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.load_model_from_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model_from_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a model from a BytesIO object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – </p></li>
+<li><p><strong>path</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.numpyarrayhelper.NumpyArrayHelper.serialize_model_to_BytesIO">
+<span class="sig-name descname"><span class="pre">serialize_model_to_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/numpyarrayhelper.html#NumpyArrayHelper.serialize_model_to_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.numpyarrayhelper.NumpyArrayHelper.serialize_model_to_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="fedn-utils-numpymodel-module">
 <h2>fedn.utils.numpymodel module<a class="headerlink" href="#fedn-utils-numpymodel-module" title="Permalink to this headline">¶</a></h2>
@@ -295,8 +461,78 @@ The serialized model must be a single binary object.</p>
 </dd></dl>
 
 </section>
-<section id="fedn-utils-pytorchhelper-module">
-<h2>fedn.utils.pytorchhelper module<a class="headerlink" href="#fedn-utils-pytorchhelper-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-fedn.utils.pytorchhelper">
+<span id="fedn-utils-pytorchhelper-module"></span><h2>fedn.utils.pytorchhelper module<a class="headerlink" href="#module-fedn.utils.pytorchhelper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.utils.pytorchhelper.</span></span><span class="sig-name descname"><span class="pre">PytorchHelper</span></span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fedn.utils.helpers.HelperBase" title="fedn.utils.helpers.HelperBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.utils.helpers.HelperBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.get_tmp_path">
+<span class="sig-name descname"><span class="pre">get_tmp_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.get_tmp_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.get_tmp_path" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.increment_average">
+<span class="sig-name descname"><span class="pre">increment_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_next</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.increment_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.increment_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an incremental average.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weights.npz'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.load_model_from_BytesIO">
+<span class="sig-name descname"><span class="pre">load_model_from_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_bytesio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.load_model_from_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.load_model_from_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a model from a BytesIO object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights_dict</strong> – </p></li>
+<li><p><strong>path</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.utils.pytorchhelper.PytorchHelper.serialize_model_to_BytesIO">
+<span class="sig-name descname"><span class="pre">serialize_model_to_BytesIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/utils/pytorchhelper.html#PytorchHelper.serialize_model_to_BytesIO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.utils.pytorchhelper.PytorchHelper.serialize_model_to_BytesIO" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-fedn.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.utils" title="Permalink to this headline">¶</a></h2>

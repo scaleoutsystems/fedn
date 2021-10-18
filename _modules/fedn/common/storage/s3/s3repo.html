@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>fedn.common.storage.s3.s3repo</title>
+    
+          <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="../../../../../_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="../../../../../_static/theme-vendors.js"></script> -->
+      <script src="../../../../../_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="../../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="../../../../../index.html" class="home-link">
+    
+      <img class="logo" src="../../../../../_static/fedn_logo.webp" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="../../../../../search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="../../../../../index.html#welcome-to-fedn">Contents:</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../architecture.html" class="reference internal ">Architecture overview</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../deployment.html" class="reference internal ">Distributed deployment</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../tutorial.html" class="reference internal ">Creating a new federated model for use with FEDn</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../releasenotes.html" class="reference internal ">Release Notes</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../sdk.html" class="reference internal ">SDK Documentation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../../../../../faq.html" class="reference internal ">Frequently asked questions</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+    
+      <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+    
+    <li>fedn.common.storage.s3.s3repo</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <h1>Source code for fedn.common.storage.s3.s3repo</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.miniorepo</span> <span class="k">import</span> <span class="n">MINIORepository</span>
+
+
+<div class="viewcode-block" id="S3ModelRepository"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository">[docs]</a><span class="k">class</span> <span class="nc">S3ModelRepository</span><span class="p">(</span><span class="n">MINIORepository</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<div class="viewcode-block" id="S3ModelRepository.get_model"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.get_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param model_id:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> trying to get model with id: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span> <span class="n">model_id</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3ModelRepository.get_model_stream"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.get_model_stream">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param model_id:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Client </span><span class="si">{}</span><span class="s2"> trying to get model with id: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span> <span class="n">model_id</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_artifact_stream</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3ModelRepository.set_model"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.set_model">[docs]</a>    <span class="k">def</span> <span class="nf">set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param model:</span>
+<span class="sd">        :param is_file:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">uuid</span>
+        <span class="n">model_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+        <span class="c1"># TODO: Check that this call succeeds</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_artifact</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="n">is_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write model with ID </span><span class="si">{}</span><span class="s2"> to repository.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3ModelRepository.set_compute_context"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.set_compute_context">[docs]</a>    <span class="k">def</span> <span class="nf">set_compute_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">compute_package</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        :param compute_package:</span>
+<span class="sd">        :param is_file:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_artifact</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">compute_package</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;fedn-context&quot;</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="n">is_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write compute_package to repository.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="S3ModelRepository.get_compute_package"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.get_compute_package">[docs]</a>    <span class="k">def</span> <span class="nf">get_compute_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_package</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param compute_package:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">compute_package</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;fedn-context&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to get compute_package from repository.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="S3ModelRepository.delete_compute_context"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.delete_compute_context">[docs]</a>    <span class="k">def</span> <span class="nf">delete_compute_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_package</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param compute_package:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_artifact</span><span class="p">(</span><span class="n">compute_package</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fedn-context&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to delete compute_package from repository.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div></div>
+</pre></div>
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2021, Scaleout Systems AB.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

@@ -167,7 +167,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="fedn.clients.reducer.statestore.html">fedn.clients.reducer.statestore package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#fedn-clients-reducer-statestore-mongoreducerstatestore-module">fedn.clients.reducer.statestore.mongoreducerstatestore module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#module-fedn.clients.reducer.statestore.mongoreducerstatestore">fedn.clients.reducer.statestore.mongoreducerstatestore module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#module-fedn.clients.reducer.statestore.reducerstatestore">fedn.clients.reducer.statestore.reducerstatestore module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedn.clients.reducer.statestore.html#module-fedn.clients.reducer.statestore">Module contents</a></li>
 </ul>
@@ -222,8 +222,107 @@
 <section id="fedn-clients-reducer-network-module">
 <h2>fedn.clients.reducer.network module<a class="headerlink" href="#fedn-clients-reducer-network-module" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="fedn-clients-reducer-plots-module">
-<h2>fedn.clients.reducer.plots module<a class="headerlink" href="#fedn-clients-reducer-plots-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-fedn.clients.reducer.plots">
+<span id="fedn-clients-reducer-plots-module"></span><h2>fedn.clients.reducer.plots module<a class="headerlink" href="#module-fedn.clients.reducer.plots" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fedn.clients.reducer.plots.</span></span><span class="sig-name descname"><span class="pre">Plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">statestore</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_box_plot">
+<span class="sig-name descname"><span class="pre">create_box_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_box_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_box_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_client_plot">
+<span class="sig-name descname"><span class="pre">create_client_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_client_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_client_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_client_training_distribution">
+<span class="sig-name descname"><span class="pre">create_client_training_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_client_training_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_client_training_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_combiner_plot">
+<span class="sig-name descname"><span class="pre">create_combiner_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_combiner_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_combiner_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_cpu_plot">
+<span class="sig-name descname"><span class="pre">create_cpu_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_cpu_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_cpu_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_round_plot">
+<span class="sig-name descname"><span class="pre">create_round_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_round_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_round_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_table_plot">
+<span class="sig-name descname"><span class="pre">create_table_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_table_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_table_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.create_timeline_plot">
+<span class="sig-name descname"><span class="pre">create_timeline_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.create_timeline_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.create_timeline_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fedn.clients.reducer.plots.Plot.fetch_valid_metrics">
+<span class="sig-name descname"><span class="pre">fetch_valid_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/clients/reducer/plots.html#Plot.fetch_valid_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.clients.reducer.plots.Plot.fetch_valid_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="fedn-clients-reducer-restservice-module">
 <h2>fedn.clients.reducer.restservice module<a class="headerlink" href="#fedn-clients-reducer-restservice-module" title="Permalink to this headline">¶</a></h2>
