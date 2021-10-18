@@ -1,5 +1,5 @@
-Welcome to FEDn's documentation!
-================================
+Welcome to FEDn's documentation
+===============================
 
 FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
 

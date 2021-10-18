@@ -3,24 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-FEDn documentation
-==================
-
-
 .. image:: fedn.webp
    :alt: FEDn logo
    :width: 100%
    :align: center
 
+Welcome to FEDn!
+================
+
+FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
+
+`Scaleout Discord server <https://discord.gg/KMg4VwszAd>`_.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :titlesonly:
 
    readme
    architecture
    deployment
    tutorial
-   sdk
    releasenotes
+   sdk
    faq
 
