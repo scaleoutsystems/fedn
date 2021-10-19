@@ -22,18 +22,25 @@ jobs:
       run: |
         pip install sphinx fedn
         cd docs
-        echo "Remove any existing fedn.*.rst"
+        echo "Remove any existing fedn.*rst"
         rm -v source/fedn.*rst || true
         echo "Generate API documentation"
         sphinx-apidoc -f -o source/ ../fedn/fedn/
         git status
+    
+    - name: Commit and push workflow changes back into repo
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        file_pattern: docs/source/*.rst
+        commit_message: Apply sphinx action changes
+        branch: develop
         
     - name: Run sphinx-build and commit to gh-pages
       uses: sphinx-notes/pages@master
       with:
         documentation_path: docs/source
         
-    - name: Push changes to gh-pages
+    - name: Push sphinx-build to gh-pages
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.SPHINX_GH_TOKEN }}
