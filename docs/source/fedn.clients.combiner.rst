@@ -12,6 +12,14 @@ fedn.clients.combiner.modelservice module
    :undoc-members:
    :show-inheritance:
 
+fedn.clients.combiner.roundcontrol module
+-----------------------------------------
+
+.. automodule:: fedn.clients.combiner.roundcontrol
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
