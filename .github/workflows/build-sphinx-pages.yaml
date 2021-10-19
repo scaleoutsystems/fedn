@@ -34,6 +34,7 @@ jobs:
         file_pattern: docs/source/*.rst
         commit_message: Apply sphinx action changes
         branch: develop
+        push_options: --force
         
     - name: Run sphinx-build and commit to gh-pages
       uses: sphinx-notes/pages@master
