@@ -13,10 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+
     - name: Checkout current repository
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+        token: ${{ secrets.PAT }}
     
     - name: Run sphinx-apidoc
       run: |
