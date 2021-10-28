@@ -193,6 +193,7 @@ class ReducerRestService:
                         result['nodes'].append({
                             "id": "c{}".format(count),
                             "label": "Client",
+                            # "label": a['name'],
                             "x": x,
                             "y": y,
                             "size": 15,
@@ -235,10 +236,11 @@ class ReducerRestService:
         def network_graph():
             from bokeh.embed import json_item
             try:
-                result = netgraph()
-                # df_nodes = pd.DataFrame(result['nodes'])
-                df_edges = pd.DataFrame(result['edges'])
                 plot = Plot(self.control.statestore)
+                result = netgraph()
+                df_nodes = pd.DataFrame(result['nodes'])
+                df_edges = pd.DataFrame(result['edges'])
+                clients_db = plot.get_client_df()
                 graph = plot.make_netgraph_plot(df_edges)
                 return json.dumps(json_item(graph, "myplot"))
             except:
