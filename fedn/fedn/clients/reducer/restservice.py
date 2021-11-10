@@ -136,7 +136,7 @@ class ReducerRestService:
             result = {'nodes': [], 'edges': []}
 
             result['nodes'].append({
-                "id": "r0",
+                "id": "reducer",
                 "label": "Reducer",
                 "x": -1.2,
                 "y": 0,
@@ -193,7 +193,7 @@ class ReducerRestService:
                         result['nodes'].append({
                             "id": "c{}".format(count),
                             "label": "Client",
-                            # "label": a['name'],
+                            #"label": a['name'],
                             "x": x,
                             "y": y,
                             "size": 15,
@@ -216,7 +216,7 @@ class ReducerRestService:
                             {
                                 "id": "e{}".format(count),
                                 "source": node['id'],
-                                "target": 'r0',
+                                "target": 'reducer',
                             }
                         )
                     elif node['type'] == 'client':

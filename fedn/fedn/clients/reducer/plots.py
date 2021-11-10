@@ -461,7 +461,7 @@ class Plot:
         degrees = dict(networkx.degree(G))
         networkx.set_node_attributes(G, name='degree', values=degrees)
 
-        number_to_adjust_by = 15
+        number_to_adjust_by = 20
         adjusted_node_size = dict([(node, degree + number_to_adjust_by) for node, degree in networkx.degree(G)])
         networkx.set_node_attributes(G, name='adjusted_node_size', values=adjusted_node_size)
         # community
@@ -481,6 +481,7 @@ class Plot:
         networkx.set_node_attributes(G, modularity_class, 'modularity_class')
         networkx.set_node_attributes(G, modularity_color, 'modularity_color')
 
+        # graph from mongoDB
         # role = df.role
         # client = df.name
         # status = df.status
@@ -549,5 +550,10 @@ class Plot:
         labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color='white', text_font_size='10px',
                           background_fill_alpha=.7)
         plot.renderers.append(labels)
+
+        plot.xaxis.visible = False
+        plot.yaxis.visible = False
+        plot.xgrid.visible = False
+        plot.ygrid.visible = False
 
         return plot
