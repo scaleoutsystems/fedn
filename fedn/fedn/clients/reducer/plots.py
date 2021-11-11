@@ -457,7 +457,7 @@ class Plot:
 
     def make_netgraph_plot(self, df):
         G = networkx.from_pandas_edgelist(df, 'source', 'target')
-        #G = networkx.from_pandas_edgelist(df, 'name', 'combiner')
+        # G = networkx.from_pandas_edgelist(df, 'name', 'combiner')
         degrees = dict(networkx.degree(G))
         networkx.set_node_attributes(G, name='degree', values=degrees)
 
@@ -502,7 +502,8 @@ class Plot:
         node_highlight_color = 'white'
         edge_highlight_color = 'black'
 
-        # Choose attributes from G network to size and color by — setting manual size (e.g. 10) or color (e.g. 'skyblue') also allowed
+        # Choose attributes from G network to size and color by — setting manual
+        # size (e.g. 10) or color (e.g. 'skyblue') also allowed
         size_by_this_attribute = 'adjusted_node_size'
         color_by_this_attribute = 'modularity_color'
 
@@ -517,7 +518,7 @@ class Plot:
         # Create a plot — set dimensions, toolbar, and title
         plot = figure(tooltips=HOVER_TOOLTIPS,
                       tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
-                      x_range=Range1d(-10.1, 10.1), y_range=Range1d(-10.1, 10.1), title=None)
+                      width=725, height=460, sizing_mode='scale_width')
 
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html

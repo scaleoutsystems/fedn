@@ -2,86 +2,39 @@
 
 {% block content %}
     <div class="card">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
-        <script src="/static/dist/js/sigma.min.js"></script>
-        <script src="/static/dist/js/plugins/sigma.parsers.json.min.js"></script>
+      <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.0.min.js">
+      </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-2.4.0.min.js">
+      </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.0.min.js">
+      </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.0.min.js">
+      </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-2.4.0.min.js">
+      </script> <script type="text/javascript"></script>
 
         <div class="card-header">
             <h5 class="card-title">Network composition</h5>
             <h6 class="card-subtitle text-muted">Distribution of reducers, combiners and clients.</h6>
         </div>
-
-        <div class="row">
-            <div class="col-9">
-                <div class="card-body">
-                    <style>
-                        #graph-container {
-                            width: 600px;
-                            height: 300px;
-                        }
-                    </style>
-                    <div class="col-9" id="graph-container"></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-7">
+                    <div id="myplot"></div>
+                      <script>
+                      fetch('/networkgraph')
+                        .then(function(response) { return response.json(); })
+                        .then(function(item) { return Bokeh.embed.embed_item(item); })
+                      </script>
+                </div>
+                <div class="col-lg-5">
+                    <h5 class="card-title">Download config</h5>
+                    <h6 class="card-subtitle text-muted">To connect additional clients you need a configuration which you
+                        can download here.</h6>
+                    <div class="mb-2 mt-4">
+                        <a href="/config/download">
+                            <button class="btn btn-primary"><i class="far fa-file-download"></i> Download client config
+                            </button>
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="col-2">
-                <h5 class="card-title">Download config</h5>
-                <h6 class="card-subtitle text-muted">To connect additional clients you need a configuration which you
-                    can download here.</h6>
-                <div class="mb-2 mt-4">
-                    <a href="/config/download">
-                        <button class="btn btn-primary"><i class="far fa-file-download"></i> Download client config
-                        </button>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        $(document).ready(function () {
-            function update_netgraph() {
-                $("#graph-container").html('');
-                sigma.parsers.json('/netgraph', {
-                    container: 'graph-container',
-                    settings: {
-                        labelThreshold: 0,
-                        defaultNodeColor: '#1d80ea'
-                    }
-                });
-                return false;
-            }
-
-            update_netgraph();
-            var interval = setInterval(update_netgraph, 5000);
-
-        });
-    </script>
-
-
-    <div class="card">
-
-        <div class="card-header">
-            <h5 class="card-title">Network composition</h5>
-            <h6 class="card-subtitle text-muted">Distribution of reducers, combiners and clients.</h6>
-        </div>
-
-        <div class="row">
-            <head>
-                  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.0.min.js">
-                  </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-2.4.0.min.js">
-                  </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.0.min.js">
-                  </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.0.min.js">
-                  </script> <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-2.4.0.min.js">
-                  </script> <script type="text/javascript"></script>
-            </head>
-        <body>
-          <div id="myplot"></div>
-          <script>
-          fetch('/networkgraph')
-            .then(function(response) { return response.json(); })
-            .then(function(item) { return Bokeh.embed.embed_item(item); })
-          </script>
-        </body>
         </div>
     </div>
 
