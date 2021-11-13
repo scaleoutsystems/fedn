@@ -17,11 +17,17 @@
             <div class="row">
                 <div class="col-lg-7">
                     <div id="myplot"></div>
-                      <script>
-                      fetch('/networkgraph')
-                        .then(function(response) { return response.json(); })
-                        .then(function(item) { return Bokeh.embed.embed_item(item); })
-                      </script>
+                    <script>
+                        async function network_graph() {
+                            $("#myplot").html('');
+                              const response = await fetch('/networkgraph');
+                              item = await response.json();
+                              return Bokeh.embed.embed_item(item);
+                        }
+                        network_graph();
+                        setInterval(network_graph, 5000);
+                    </script>
+
                 </div>
                 <div class="col-lg-5">
                     <h5 class="card-title">Download config</h5>
