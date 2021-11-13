@@ -136,7 +136,7 @@ class ReducerRestService:
             result = {'nodes': [], 'edges': []}
 
             result['nodes'].append({
-                "id": "r0",
+                "id": "reducer",
                 "label": "Reducer",
                 "x": -1.2,
                 "y": 0,
@@ -193,6 +193,7 @@ class ReducerRestService:
                         result['nodes'].append({
                             "id": "c{}".format(count),
                             "label": "Client",
+                            #"label": a['name'],
                             "x": x,
                             "y": y,
                             "size": 15,
@@ -215,7 +216,7 @@ class ReducerRestService:
                             {
                                 "id": "e{}".format(count),
                                 "source": node['id'],
-                                "target": 'r0',
+                                "target": 'reducer',
                             }
                         )
                     elif node['type'] == 'client':
@@ -229,8 +230,21 @@ class ReducerRestService:
                 except Exception as e:
                     pass
                 count = count + 1
-
             return result
+
+        @app.route('/networkgraph')
+        def network_graph():
+            from bokeh.embed import json_item
+            try:
+                plot = Plot(self.control.statestore)
+                result = netgraph()
+                df_nodes = pd.DataFrame(result['nodes'])
+                df_edges = pd.DataFrame(result['edges'])
+                clients_db = plot.get_client_df()
+                graph = plot.make_netgraph_plot(df_edges)
+                return json.dumps(json_item(graph, "myplot"))
+            except:
+                return ''
 
         @app.route('/events')
         def events():
