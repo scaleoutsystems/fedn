@@ -19,10 +19,15 @@
                     <div id="myplot"></div>
                     <script>
                         async function network_graph() {
-                            $("#myplot").html('');
-                              const response = await fetch('/networkgraph');
-                              item = await response.json();
-                              return Bokeh.embed.embed_item(item);
+                            try {
+                                $("#myplot").html('');
+                                  const response = await fetch('/networkgraph');
+                                  item = await response.json();
+                                  return Bokeh.embed.embed_item(item);
+                                }
+                            catch (e) {
+                                  return false;
+                                }
                         }
                         network_graph();
                         setInterval(network_graph, 5000);
