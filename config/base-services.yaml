@@ -36,6 +36,8 @@ services:
   mongo-express:
     image: mongo-express:latest
     restart: always
+    depends_on:
+      - "mongo"
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_PORT=6534
