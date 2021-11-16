@@ -295,7 +295,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ## Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
-        """ Push a round config to the combiner Control. 
+        """ Push a round config to RoundControl. 
 
         :param control:
         :param context:

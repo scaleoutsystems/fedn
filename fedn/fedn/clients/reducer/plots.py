@@ -456,14 +456,16 @@ class Plot:
         return df
 
     def make_netgraph_plot(self, df):
+        """ Create FEDn network visualization. """
+
         G = networkx.from_pandas_edgelist(df, 'source', 'target')
-        # G = networkx.from_pandas_edgelist(df, 'name', 'combiner')
         degrees = dict(networkx.degree(G))
         networkx.set_node_attributes(G, name='degree', values=degrees)
 
         number_to_adjust_by = 20
         adjusted_node_size = dict([(node, degree + number_to_adjust_by) for node, degree in networkx.degree(G)])
         networkx.set_node_attributes(G, name='adjusted_node_size', values=adjusted_node_size)
+        
         # community
         from networkx.algorithms import community
         communities = community.greedy_modularity_communities(G)
@@ -480,23 +482,6 @@ class Plot:
         # Add modularity class and color as attributes from the network above
         networkx.set_node_attributes(G, modularity_class, 'modularity_class')
         networkx.set_node_attributes(G, modularity_color, 'modularity_color')
-
-        # graph from mongoDB
-        # role = df.role
-        # client = df.name
-        # status = df.status
-        # node_list = G.nodes()
-        # edge_list = G.edges()
-        # print('node_list.............', node_list)
-        # print('edge_list.............', edge_list)
-        #
-        # role_dict = {k: v for k, v in zip(client, role)}
-        # print('role_dict', role_dict)
-        # networkx.set_node_attributes(G, name='role', values=role_dict)
-        #
-        # status_dict = {k: v for k, v in zip(client, status)}
-        # print('status_dict', status_dict)
-        # networkx.set_node_attributes(G, name='status', values=status_dict)
 
         # Choose colors for node and edge highlighting
         node_highlight_color = 'white'
@@ -522,7 +507,7 @@ class Plot:
 
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
-        network_graph = from_networkx(G, networkx.spring_layout, scale=10, center=(0, 0))
+        network_graph = from_networkx(G, networkx.spring_layout, scale=10, center=(0, 0), seed=45)
 
         # Set node sizes and colors according to node degree (color as category from attribute)
         network_graph.node_renderer.glyph = Circle(size=size_by_this_attribute, fill_color=color_by_this_attribute)
