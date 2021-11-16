@@ -43,7 +43,7 @@ Make sure you can access the following services before proceeding to the next st
  - Minio: http://localhost:9000
  - Mongo Express: http://localhost:8081
 
-(You can update uername and password for the services in config/base-services.yaml, default values: user=fedn_admin, password=password)
+(You can update username and password for the services in config/base-services.yaml, default values: user=fedn_admin, password=password)
  
 3. Start the Reducer  
 
