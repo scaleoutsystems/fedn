@@ -16,12 +16,30 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-lg-7">
-                    <div id="myplot"></div>
-                      <script>
-                      fetch('/networkgraph')
-                        .then(function(response) { return response.json(); })
-                        .then(function(item) { return Bokeh.embed.embed_item(item); })
-                      </script>
+
+                    <style>
+                            #myplot {
+                                /*width: 600px;*/
+                                height: 450px;
+                            }
+                    </style>
+                    <div id="myplot">
+                        <script>
+                            async function network_graph() {
+                                try {
+                                    $("#myplot").html('');
+                                      const response = await fetch('/networkgraph');
+                                      item = await response.json();
+                                      return Bokeh.embed.embed_item(item);
+                                    }
+                                catch (e) {
+                                      return false;
+                                    }
+                            }
+                            network_graph();
+                            setInterval(network_graph, 5000);
+                        </script>
+                    </div>
                 </div>
                 <div class="col-lg-5">
                     <h5 class="card-title">Download config</h5>

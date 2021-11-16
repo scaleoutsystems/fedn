@@ -552,9 +552,7 @@ class Plot:
                           background_fill_alpha=.7)
         plot.renderers.append(labels)
 
-        plot.xaxis.visible = False
-        plot.yaxis.visible = False
-        plot.xgrid.visible = False
-        plot.ygrid.visible = False
-
+        plot.axis.visible = False
+        plot.grid.visible = False
+        plot.outline_line_color = None
         return plot
