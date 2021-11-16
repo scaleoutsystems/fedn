@@ -55,7 +55,7 @@ class ConnectorClient:
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
         if self.certificate:
-            print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+            print("Securely connecting with certificate", flush=True)
 
     def state(self):
         """
@@ -129,7 +129,7 @@ class ConnectorCombiner:
 
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
-        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+        print("Securely connecting with certificate", flush=True)
 
     def state(self):
         """
