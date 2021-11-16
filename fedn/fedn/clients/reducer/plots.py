@@ -503,7 +503,7 @@ class Plot:
         # Create a plot — set dimensions, toolbar, and title
         plot = figure(tooltips=HOVER_TOOLTIPS,
                       tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
-                      width=725, height=460, sizing_mode='scale_width')
+                      width=725, height=460, sizing_mode='stretch_width')
 
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
