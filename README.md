@@ -42,6 +42,8 @@ docker-compose -f config/base-services.yaml -f config/private-network.yaml up
 Make sure you can access the following services before proceeding to the next steps: 
  - Minio: http://localhost:9000
  - Mongo Express: http://localhost:8081
+
+(You can update username and password for the services in config/base-services.yaml, default values: user=fedn_admin, password=password)
  
 3. Start the Reducer  
 
