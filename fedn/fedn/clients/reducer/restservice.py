@@ -130,84 +130,56 @@ class ReducerRestService:
         @app.route('/netgraph')
         def netgraph():
             """
+            Creates nodes and edges for network graph
 
-            :return:
+            :return: nodes and edges as keys
+            :rtype: dict
             """
             result = {'nodes': [], 'edges': []}
 
             result['nodes'].append({
                 "id": "reducer",
                 "label": "Reducer",
-                "x": -1.2,
-                "y": 0,
-                "size": 25,
+                "role": 'reducer',
+                "status": 'active',
+                "name": 'reducer', #TODO: get real host name
                 "type": 'reducer',
             })
-            x = 0
-            y = 0
-            count = 0
-            meta = {}
-            combiner_info = []
-            for combiner in self.control.network.get_combiners():
-                try:
-                    report = combiner.report()
-                    combiner_info.append(report)
-                except:
-                    pass
-            y = y + 0.5
-            width = 5
+            
+            combiner_info = combiner_status()
+            client_info = client_status()
+
             if len(combiner_info) < 1:
                 return result
-            step = 5 / len(combiner_info)
-            x = -width / 3.0
+       
             for combiner in combiner_info:
                 print("combiner info {}".format(combiner_info), flush=True)
-
                 try:
                     result['nodes'].append({
                         "id": combiner['name'],  # "n{}".format(count),
                         "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
-                        "x": x,
-                        "y": y,
-                        "size": 15,
+                        "role": 'combiner',
+                        "status": 'active', #TODO: Hard-coded, combiner_info does not contain status
                         "name": combiner['name'],
                         "type": 'combiner',
-                        # "color":'blue',
                     })
                 except Exception as err:
                     print(err)
 
-                x = x + step
-                count = count + 1
-            y = y + 0.25
-
-            count = 0
-            width = 5
-            step = 5 / len(combiner_info)
-            x = -width / 2.0
-            # for combiner in self.control.statestore.list_clients():
-            for combiner in combiner_info:
-                for a in range(0, int(combiner['nr_active_clients'])):
-                    # y = y + 0.25
-                    try:
-                        result['nodes'].append({
-                            "id": "c{}".format(count),
-                            "label": "Client",
-                            #"label": a['name'],
-                            "x": x,
-                            "y": y,
-                            "size": 15,
-                            "name": "c{}".format(count),
-                            "combiner": combiner['name'],
-                            "type": 'client',
-                            # "color":'blue',
-                        })
-                    except Exception as err:
-                        print(err)
-                    # print("combiner prefferred name {}".format(client['combiner']), flush=True)
-                    x = x + 0.25
-                    count = count + 1
-
+            for client in client_info['active_clients']:
+                try:
+                    result['nodes'].append({
+                        "id": str(client['_id']),
+                        "label": "Client",
+                        "role": client['role'],
+                        "status": client['status'],
+                        "name": client['name'],
+                        "combiner": client['combiner'],
+                        "type": 'client',
+                    })
+                except Exception as err:
+                    print(err)
+                
             count = 0
             for node in result['nodes']:
                 try:
@@ -240,8 +212,7 @@ class ReducerRestService:
                 result = netgraph()
                 df_nodes = pd.DataFrame(result['nodes'])
                 df_edges = pd.DataFrame(result['edges'])
-                clients_db = plot.get_client_df()
-                graph = plot.make_netgraph_plot(df_edges)
+                graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
             except:
                 return ''

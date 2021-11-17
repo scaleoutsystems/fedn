@@ -455,7 +455,7 @@ class Plot:
         print(df[active_clients])
         return df
 
-    def make_netgraph_plot(self, df):
+    def make_netgraph_plot(self, df, df_nodes):
         """ Create FEDn network visualization. """
 
         G = networkx.from_pandas_edgelist(df, 'source', 'target')
@@ -483,6 +483,17 @@ class Plot:
         networkx.set_node_attributes(G, modularity_class, 'modularity_class')
         networkx.set_node_attributes(G, modularity_color, 'modularity_color')
 
+        node_role = {k:v for k,v in zip(df_nodes.id, df_nodes.role)}
+        networkx.set_node_attributes(G, node_role, 'role')
+        
+        node_status = {k:v for k,v in zip(df_nodes.id, df_nodes.status)}
+        networkx.set_node_attributes(G, node_status, 'status')
+
+        node_name = {k:v for k,v in zip(df_nodes.id, df_nodes.name)}
+        networkx.set_node_attributes(G, node_name, 'name')
+
+
+        
         # Choose colors for node and edge highlighting
         node_highlight_color = 'white'
         edge_highlight_color = 'black'
@@ -494,20 +505,20 @@ class Plot:
 
         # Establish which categories will appear when hovering over each node
         HOVER_TOOLTIPS = [
-            ("Name", "@index"),
-            # ("Role", "@role"),
-            # ("Status", "@status"),
-            ("Degree", "@degree"),
-            ("Modularity Color", "$color[swatch]:modularity_color"),
+            ("Name", "@name"),
+            ("Role", "@role"),
+            ("Status", "@status"),
+            ("Id", "@index"),
         ]
         # Create a plot — set dimensions, toolbar, and title
         plot = figure(tooltips=HOVER_TOOLTIPS,
                       tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
-                      width=725, height=460, sizing_mode='stretch_width')
+                      width=725, height=460, sizing_mode='stretch_width',
+                      x_range=Range1d(-1.5, 1.5), y_range=Range1d(-1.5, 1.5))
 
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
-        network_graph = from_networkx(G, networkx.spring_layout, scale=10, center=(0, 0), seed=45)
+        network_graph = from_networkx(G, networkx.spring_layout, scale=1, center=(0, 0), seed=45)
 
         # Set node sizes and colors according to node degree (color as category from attribute)
         network_graph.node_renderer.glyph = Circle(size=size_by_this_attribute, fill_color=color_by_this_attribute)
@@ -528,13 +539,18 @@ class Plot:
         network_graph.inspection_policy = NodesAndLinkedEdges()
 
         plot.renderers.append(network_graph)
+        
 
-        # Add Labels
+        # Add Labels TODO: change background color when client is 'offline'
         x, y = zip(*network_graph.layout_provider.graph_layout.values())
-        node_labels = list(G.nodes())
+        node_names = list(G.nodes(data='name'))
+        node_labels = []
+        for n in node_names:
+            node_labels.append(n[1])
         source = ColumnDataSource({'x': x, 'y': y, 'name': [node_labels[i] for i in range(len(x))]})
-        labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color='white', text_font_size='10px',
-                          background_fill_alpha=.7)
+        labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color='#4bbf73', text_font_size='15px',
+                          background_fill_alpha=.7, x_offset=-20, y_offset=10)
+
         plot.renderers.append(labels)
 
         plot.axis.visible = False
