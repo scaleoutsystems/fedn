@@ -544,11 +544,30 @@ class Plot:
         # Add Labels TODO: change background color when client is 'offline'
         x, y = zip(*network_graph.layout_provider.graph_layout.values())
         node_names = list(G.nodes(data='name'))
+        node_status = list(G.nodes(data='status'))
+
+        print("x type {}".format(x))
+
+        idx_offline = []
+        idx_online = []
         node_labels = []
-        for n in node_names:
+        for e, n in enumerate(node_names):
+            if node_status[e][1] == 'active':
+                idx_online.append(e)
+            else:
+                idx_offline.append(e)
             node_labels.append(n[1])
-        source = ColumnDataSource({'x': x, 'y': y, 'name': [node_labels[i] for i in range(len(x))]})
-        labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color='#4bbf73', text_font_size='15px',
+
+        print("idx {}".format(idx_offline))
+        source_on = ColumnDataSource({'x': numpy.asarray(x)[idx_online], 'y': numpy.asarray(y)[idx_online], 'name': numpy.asarray(node_labels)[idx_online]})
+        labels = LabelSet(x='x', y='y', text='name', source=source_on, background_fill_color='#4bbf73', text_font_size='15px',
+                          background_fill_alpha=.7, x_offset=-20, y_offset=10)
+
+        plot.renderers.append(labels)
+
+        
+        source_off = ColumnDataSource({'x': numpy.asarray(x)[idx_offline], 'y': numpy.asarray(y)[idx_offline], 'name': numpy.asarray(node_labels)[idx_offline]})
+        labels = LabelSet(x='x', y='y', text='name', source=source_off, background_fill_color='#d9534f', text_font_size='15px',
                           background_fill_alpha=.7, x_offset=-20, y_offset=10)
 
         plot.renderers.append(labels)
