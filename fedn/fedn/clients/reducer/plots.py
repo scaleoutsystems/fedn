@@ -546,8 +546,6 @@ class Plot:
         node_names = list(G.nodes(data='name'))
         node_status = list(G.nodes(data='status'))
 
-        print("x type {}".format(x))
-
         idx_offline = []
         idx_online = []
         node_labels = []
@@ -558,7 +556,6 @@ class Plot:
                 idx_offline.append(e)
             node_labels.append(n[1])
 
-        print("idx {}".format(idx_offline))
         source_on = ColumnDataSource({'x': numpy.asarray(x)[idx_online], 'y': numpy.asarray(y)[idx_online], 'name': numpy.asarray(node_labels)[idx_online]})
         labels = LabelSet(x='x', y='y', text='name', source=source_on, background_fill_color='#4bbf73', text_font_size='15px',
                           background_fill_alpha=.7, x_offset=-20, y_offset=10)
