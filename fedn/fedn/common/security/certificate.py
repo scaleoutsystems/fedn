@@ -62,10 +62,10 @@ class Certificate:
         :param privatekey:
         """
         with open(self.key_path, "wb") as keyfile:
-            keyfile.write(privatekey)
+            keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, privatekey))
 
         with open(self.cert_path, "wb") as certfile:
-            certfile.write(certificate)
+            certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate))
 
     def get_keypair_raw(self):
         """
