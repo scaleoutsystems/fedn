@@ -1,3 +1,4 @@
+from numpy.core.einsumfunc import _flop_count
 import pymongo
 import json
 import numpy
@@ -14,10 +15,10 @@ import pandas as pd
 
 import networkx
 import pandas as pd
-from bokeh.models import (BoxSelectTool, Circle, EdgesAndLinkedNodes, HoverTool, LabelSet,
-                          MultiLine, NodesAndLinkedEdges, Range1d, TapTool, ColumnDataSource)
+from bokeh.models import (Circle, Label, LabelSet,
+                          MultiLine, NodesAndLinkedEdges, Range1d, ColumnDataSource)
 from bokeh.plotting import figure, from_networkx
-from bokeh.palettes import Blues8, Reds8, Purples8, Oranges8, Viridis8, Spectral8
+from bokeh.palettes import Spectral8
 
 class Plot:
     """
@@ -454,11 +455,70 @@ class Plot:
         active_clients = df['status']=="active"
         print(df[active_clients])
         return df
+    
+    def make_single_node_plot(self):
+        """
+        Plot single node graph with reducer
+
+        :return: Bokeh plot with the graph
+        :rtype: bokeh.plotting.figure.Figure
+        """
+        HOVER_TOOLTIPS = [
+            ("Name", "@name"),
+            ("Role", "@role"),
+            ("Status", "@status"),
+            ("Id", "@index"),
+            ]
+        
+        G = networkx.Graph()
+        G.add_node("reducer", adjusted_node_size=20, role='reducer',
+                    status='active', 
+                    name='reducer',
+                    color_by_this_attribute=Spectral8[0])
+        network_graph = from_networkx(G, networkx.spring_layout)
+        network_graph.node_renderer.glyph = Circle(size=20, fill_color = Spectral8[0])
+        network_graph.node_renderer.hover_glyph = Circle(size=20, fill_color='white',
+                                                         line_width=2)
+        network_graph.node_renderer.selection_glyph = Circle(size=20,
+                                                             fill_color='white', line_width=2)
+        plot = figure(tooltips=HOVER_TOOLTIPS, tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
+                    width=725, height=460, sizing_mode='stretch_width',
+                    x_range=Range1d(-1.5, 1.5), y_range=Range1d(-1.5, 1.5))
+        
+        plot.renderers.append(network_graph)
+
+        plot.axis.visible = False
+        plot.grid.visible = False
+        plot.outline_line_color = None
+
+        label = Label(x=0, y=0, text='reducer',
+                     background_fill_color='#4bbf73', text_font_size='15px',
+                     background_fill_alpha=.7, x_offset=-20, y_offset=10)
+        
+        plot.add_layout(label)
+        return plot
+        
+
+        
 
     def make_netgraph_plot(self, df, df_nodes):
-        """ Create FEDn network visualization. """
+        """
+        Create FEDn network visualization.
 
-        G = networkx.from_pandas_edgelist(df, 'source', 'target')
+        :param df: pandas dataframe with defined edges
+        :type df: pandas.Dataframe
+        :param df_nodes:pandas dataframe with defined nodes
+        :type df_nodes: pandas.Dataframe
+        :return: Bokeh plot with the graph
+        :rtype: bokeh.plotting.figure.Figure
+        """
+
+        if df.empty:
+            #no combiners and thus no clients, plot only reducer
+            plot = self.make_single_node_plot()
+            return plot
+           
+        G = networkx.from_pandas_edgelist(df, 'source', 'target', create_using=networkx.Graph())
         degrees = dict(networkx.degree(G))
         networkx.set_node_attributes(G, name='degree', values=degrees)
 
@@ -492,7 +552,6 @@ class Plot:
         node_name = {k:v for k,v in zip(df_nodes.id, df_nodes.name)}
         networkx.set_node_attributes(G, node_name, 'name')
 
-
         
         # Choose colors for node and edge highlighting
         node_highlight_color = 'white'
@@ -518,6 +577,7 @@ class Plot:
 
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
+        # if one like lock reducer add args: pos={'reducer':(0,1)}, fixed=['reducer']
         network_graph = from_networkx(G, networkx.spring_layout, scale=1, center=(0, 0), seed=45)
 
         # Set node sizes and colors according to node degree (color as category from attribute)
@@ -527,7 +587,7 @@ class Plot:
                                                          line_width=2)
         network_graph.node_renderer.selection_glyph = Circle(size=size_by_this_attribute,
                                                              fill_color=node_highlight_color, line_width=2)
-
+        
         # Set edge opacity and width
         network_graph.edge_renderer.glyph = MultiLine(line_alpha=0.5, line_width=1)
         # Set edge highlight colors
@@ -540,15 +600,30 @@ class Plot:
 
         plot.renderers.append(network_graph)
         
-
-        # Add Labels TODO: change background color when client is 'offline'
+        #Node labels, red if status is offline, green is active
         x, y = zip(*network_graph.layout_provider.graph_layout.values())
         node_names = list(G.nodes(data='name'))
+        node_status = list(G.nodes(data='status'))
+
+        idx_offline = []
+        idx_online = []
         node_labels = []
-        for n in node_names:
+        for e, n in enumerate(node_names):
+            if node_status[e][1] == 'active':
+                idx_online.append(e)
+            else:
+                idx_offline.append(e)
             node_labels.append(n[1])
-        source = ColumnDataSource({'x': x, 'y': y, 'name': [node_labels[i] for i in range(len(x))]})
-        labels = LabelSet(x='x', y='y', text='name', source=source, background_fill_color='#4bbf73', text_font_size='15px',
+
+        source_on = ColumnDataSource({'x': numpy.asarray(x)[idx_online], 'y': numpy.asarray(y)[idx_online], 'name': numpy.asarray(node_labels)[idx_online]})
+        labels = LabelSet(x='x', y='y', text='name', source=source_on, background_fill_color='#4bbf73', text_font_size='15px',
+                          background_fill_alpha=.7, x_offset=-20, y_offset=10)
+
+        plot.renderers.append(labels)
+
+        
+        source_off = ColumnDataSource({'x': numpy.asarray(x)[idx_offline], 'y': numpy.asarray(y)[idx_offline], 'name': numpy.asarray(node_labels)[idx_offline]})
+        labels = LabelSet(x='x', y='y', text='name', source=source_off, background_fill_color='#d9534f', text_font_size='15px',
                           background_fill_alpha=.7, x_offset=-20, y_offset=10)
 
         plot.renderers.append(labels)
