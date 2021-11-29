@@ -148,6 +148,8 @@
                 
                   <li class="toctree-l2"><a href="#q-how-can-i-configure-the-round-validity-policy" class="reference internal">Q: How can I configure the round validity policy:</a></li>
                 
+                  <li class="toctree-l2"><a href="#q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests" class="reference internal">Q: Can I start a client listening only to training requests or only on validation requests?:</a></li>
+                
                   <li class="toctree-l2"><a href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" class="reference internal">Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?</a></li>
                 
               </ul>
@@ -192,8 +194,9 @@ Once the federated model has been initilized and seeded it should be seeen as im
 it will be necessary to reinitialize. Then you can follow this procedure:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p>Clear the database. Navigate to <a class="reference external" href="http://localhost:8081">http://localhost:8081</a> and delete the entire “fedn-test-network” collection.</p></li>
-<li><p>Restart the reducer, combiner and reattach the clients.</p></li>
+<li><p>Kill the reducer, all combiners and all clients.</p></li>
+<li><p>Clear the database: Navigate to <a class="reference external" href="http://localhost:8081">http://localhost:8081</a> and delete the entire “fedn-test-network” collection.</p></li>
+<li><p>Start the reducer, combiner and reattach the clients.</p></li>
 </ol>
 </div></blockquote>
 <p>There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.</p>
@@ -208,8 +211,9 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 </section>
 <section id="q-how-can-other-aggregation-algorithms-can-be-defined">
 <h2>Q: How can other aggregation algorithms can be defined?<a class="headerlink" href="#q-how-can-other-aggregation-algorithms-can-be-defined" title="Permalink to this headline">¶</a></h2>
-<p>Currently it is possible for the advanced user to implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:
-<a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/algo/fedavg.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/algo/fedavg.py</a></p>
+<p>Yes. An advanced user can implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:
+<a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/aggregator/fedavg.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/aggregator/fedavg.py</a></p>
+<p>There is an abstract base class, ‘AggregatorBase’ in ‘aggregator.py’, for your reference.</p>
 <p>In a future release, we plan to extend the aggregation API to make this process more standardized and configurable at runtime.</p>
 </section>
 <section id="q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc">
@@ -236,9 +240,16 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 <h2>Q: How can I configure the round validity policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-validity-policy" title="Permalink to this headline">¶</a></h2>
 <p>In the main control implementation <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py</a> you can modify or replace the wiwmethod “check_round_validity_policy”. As we expand with more implementations of this policy, we plan to make it runtime configurable.</p>
 </section>
+<section id="q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests">
+<h2>Q: Can I start a client listening only to training requests or only on validation requests?:<a class="headerlink" href="#q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests" title="Permalink to this headline">¶</a></h2>
+<p>Yes! From FEDn 0.3.0 there is an option to toggle which message streams a client subscibes to. For example, to start a pure validation client:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fedn run client --trainer<span class="o">=</span>False -in client.yaml
+</pre></div>
+</div>
+</section>
 <section id="q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks">
 <h2>Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?<a class="headerlink" href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" title="Permalink to this headline">¶</a></h2>
-<p>Yes - we have focused on scalability in a tiered aggregation model, and Enterprise security features in early development. But we plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.</p>
+<p>Yes. We plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.</p>
 </section>
 </section>
 
@@ -253,7 +264,7 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.1 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>
