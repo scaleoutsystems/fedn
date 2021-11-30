@@ -16,18 +16,18 @@ help:
 
 # html alias
 html:
-        @echo "Remove any existing fedn.*.rst"
-        @rm -v $(SOURCEDIR)/fedn.*rst || true
+	@echo "Remove any existing fedn.*.rst"
+	@rm -v $(SOURCEDIR)/fedn.*rst || true
 
-        @echo "Generate API documentation"
-        @sphinx-apidoc -f -o ./source ../fedn/fedn
+	@echo "Generate API documentation"
+	@sphinx-apidoc -f -o ./source ../fedn/fedn
 
-        @echo "Generate HTML documentation"
-        @$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)"
+	@echo "Generate HTML documentation"
+	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)"
 
-        @echo
-        @echo "Build finished."
-        @echo
+	@echo
+	@echo "Build finished."
+	@echo
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
