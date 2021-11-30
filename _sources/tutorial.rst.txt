@@ -1,4 +1,4 @@
-Creating a new federated model for use with FEDn 
+Tutorial: Compute Package
 ================================================
 
 This tutorial walks you through the key step done by the *model initiator* when setting up a federated project. 
@@ -10,7 +10,7 @@ The compute package
 
 .. image:: img/ComputePackageOverview.png
    :alt: Compute package overview
-   :width: 70%
+   :width: 100%
    :align: center
 
 The *compute package* is a tar.gz bundle of the code to be executed by each data-provider/client. 
@@ -47,7 +47,7 @@ Where the training entry point has the following logical overview:
 
 .. image:: img/TrainSISO.png
    :alt: Training entrypoint
-   :width: 70%
+   :width: 100%
    :align: center
 
 The training entry point should be a single-input single-output program, taking as input a model update file 

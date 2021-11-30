@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-      <title>Creating a new federated model for use with FEDn</title>
+      <title>Tutorial: Compute Package</title>
     
           <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
@@ -104,7 +104,7 @@
         
           <li class="toctree-l1 current">
             
-              <a href="#" class="reference internal current">Creating a new federated model for use with FEDn</a>
+              <a href="#" class="reference internal current">Tutorial: Compute Package</a>
             
 
             
@@ -162,7 +162,7 @@
   <ul class="breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
     
-    <li>Creating a new federated model for use with FEDn</li>
+    <li>Tutorial: Compute Package</li>
   </ul>
   
 
@@ -181,14 +181,14 @@
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="creating-a-new-federated-model-for-use-with-fedn">
-<h1>Creating a new federated model for use with FEDn<a class="headerlink" href="#creating-a-new-federated-model-for-use-with-fedn" title="Permalink to this headline">¶</a></h1>
+  <section id="tutorial-compute-package">
+<h1>Tutorial: Compute Package<a class="headerlink" href="#tutorial-compute-package" title="Permalink to this headline">¶</a></h1>
 <p>This tutorial walks you through the key step done by the <em>model initiator</em> when setting up a federated project.
 The code for this guideline has been taken from the mnist-keras example provided <a class="reference external" href="https://github.com/scaleoutsystems/examples">here</a>.
 However, some modification to the code has been made for educational purposes.</p>
 <section id="the-compute-package">
 <h2>The compute package<a class="headerlink" href="#the-compute-package" title="Permalink to this headline">¶</a></h2>
-<a class="reference internal image-reference" href="_images/ComputePackageOverview.png"><img alt="Compute package overview" class="align-center" src="_images/ComputePackageOverview.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/ComputePackageOverview.png"><img alt="Compute package overview" class="align-center" src="_images/ComputePackageOverview.png" style="width: 100%;" /></a>
 <p>The <em>compute package</em> is a tar.gz bundle of the code to be executed by each data-provider/client.
 This package is uploaded to the Reducer upon initialization of the FEDN Network (along with the initial model).
 When a client connects to the network, it downloads and unpacks the package locally and are then ready to
@@ -212,7 +212,7 @@ each data-provider/client. The entry points, mentioned above, are defined in the
 </pre></div>
 </div>
 <p>Where the training entry point has the following logical overview:</p>
-<a class="reference internal image-reference" href="_images/TrainSISO.png"><img alt="Training entrypoint" class="align-center" src="_images/TrainSISO.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/TrainSISO.png"><img alt="Training entrypoint" class="align-center" src="_images/TrainSISO.png" style="width: 100%;" /></a>
 <p>The training entry point should be a single-input single-output program, taking as input a model update file
 and writing a model update file (same file format). Staging and upload of these files are handled by the FEDn client. A helper class in the FEDn SDK handled the ML-framework
 specific file serialization and deserialization. The validation entry point acts very similar except we perform validation on the
