@@ -73,7 +73,7 @@ class MongoReducerStateStore(ReducerStateStore):
                             print("Setting filepath to {}".format(control['context']), flush=True)
                             # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
                             # TODO fix with unboxing of value before storing and where consuming.
-                            self.control.config.update({'key': 'package'},
+                            self.control.config.update_one({'key': 'package'},
                                                        {'$set': {'filename': control['context']}}, True)
                         if "helper" in control:
                             # self.set_framework(control['helper'])
@@ -131,7 +131,7 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         old_state = self.state.find_one({'state': 'current_state'})
         if old_state != state:
-            return self.state.update({'state': 'current_state'}, {'state': ReducerStateToString(state)}, True)
+            return self.state.update_one({'state': 'current_state'}, {'$set': {'state': ReducerStateToString(state)}}, True)
         else:
             print("Not updating state, already in {}".format(ReducerStateToString(state)))
 
@@ -141,8 +141,8 @@ class MongoReducerStateStore(ReducerStateStore):
         :param model_id:
         """
         from datetime import datetime
-        x = self.model.update({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
-        self.model.update({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
+        x = self.model.update_one({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
+        self.model.update_one({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
                           True)
 
     def get_first(self):
@@ -180,7 +180,7 @@ class MongoReducerStateStore(ReducerStateStore):
         :param config:
         """
         from datetime import datetime
-        x = self.control.config.update({'key': 'round_config'}, {'$set': config}, True)
+        x = self.control.config.update_one({'key': 'round_config'}, {'$set': config}, True)
 
     def get_round_config(self):
         """
@@ -202,8 +202,8 @@ class MongoReducerStateStore(ReducerStateStore):
         :param filename:
         """
         from datetime import datetime
-        x = self.control.config.update({'key': 'package'}, {'$set': {'filename': filename}}, True)
-        self.control.config.update({'key': 'package_trail'},
+        x = self.control.config.update_one({'key': 'package'}, {'$set': {'filename': filename}}, True)
+        self.control.config.update_one({'key': 'package_trail'},
                                    {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
     def get_compute_context(self):
@@ -225,7 +225,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param helper:
         """
-        self.control.config.update({'key': 'package'},
+        self.control.config.update_one({'key': 'package'},
                                    {'$set': {'helper': helper}}, True)
 
     def get_framework(self):
@@ -282,13 +282,13 @@ class MongoReducerStateStore(ReducerStateStore):
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         config['status'] = 'enabled'
-        ret = self.storage.update({'storage_type': config['storage_type']}, config, True)
+        ret = self.storage.update_one({'storage_type': config['storage_type']}, {'$set': config}, True)
 
     def set_reducer(self, reducer_data):
         """ """
         from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
-        ret = self.reducer.update({'name': reducer_data['name']}, reducer_data, True)
+        ret = self.reducer.update_one({'name': reducer_data['name']}, {'$set': reducer_data}, True)
 
     def get_reducer(self):
         """ """
@@ -329,7 +329,7 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
-        ret = self.combiners.update({'name': combiner_data['name']}, combiner_data, True)
+        ret = self.combiners.update_one({'name': combiner_data['name']}, {'$set': combiner_data}, True)
 
     def delete_combiner(self, combiner):
         """ """
@@ -345,7 +345,7 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         from datetime import datetime
         client_data['updated_at'] = str(datetime.now())
-        ret = self.clients.update({'name': client_data['name']}, client_data, True)
+        ret = self.clients.update_one({'name': client_data['name']}, {'$set': client_data}, True)
 
     def get_client(self, name):
         """ """
