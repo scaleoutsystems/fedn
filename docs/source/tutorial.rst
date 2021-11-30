@@ -277,7 +277,7 @@ We recommend you to test your code before running the client. For example, you c
     python train.py ../initial_model/initial_model.npz
 
 
-Once, everything works as expected you can start the Reducer, upload the tar.gz compute package and the initial weights, followed by starting one to many combiners. 
+Once everything works as expected you can start the Reducer, upload the tar.gz compute package and the initial weights, followed by starting one to many combiners. 
 And finally connect a client to the network. Instructions for how to connect clients can be found in the `examples <https://github.com/scaleoutsystems/examples>`_.
 
 
