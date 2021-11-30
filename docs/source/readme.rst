@@ -85,7 +85,7 @@ https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 Fully distributed deployment
 ============================
 
-The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
+The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: `Distributed deployment <https://scaleoutsystems.github.io/fedn/deployment.html>`_. 
 
 Using FEDn in Scaleout Studio 
 =============================
