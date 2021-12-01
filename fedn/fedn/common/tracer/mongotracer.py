@@ -95,8 +95,8 @@ class MongoTracer(Tracer):
         :param round:
         :param round_time:
         """
-        self.round_time.update({'key': 'round_time'}, {'$push': {'round': round}}, True)
-        self.round_time.update({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
+        self.round_time.update_one({'key': 'round_time'}, {'$push': {'round': round}}, True)
+        self.round_time.update_one({'key': 'round_time'}, {'$push': {'round_time': round_time}}, True)
 
     def set_combiner_time(self, round, round_time):
         """
@@ -104,8 +104,8 @@ class MongoTracer(Tracer):
         :param round:
         :param round_time:
         """
-        self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round': round}}, True)
-        self.combiner_round_time.update({'key': 'combiner_round_time'}, {'$push': {'round_time': round_time}}, True)
+        self.combiner_round_time.update_one({'key': 'combiner_round_time'}, {'$push': {'round': round}}, True)
+        self.combiner_round_time.update_one({'key': 'combiner_round_time'}, {'$push': {'round_time': round_time}}, True)
 
     # def set_combiner_queue_length(self,timestamp,ql):
     #    self.combiner_queue_length({'key': 'combiner_queue_length'}, {'$push': {'queue_length': ql}}, True)
@@ -117,14 +117,14 @@ class MongoTracer(Tracer):
 
         :param round_meta:
         """
-        self.round.update({'key': str(round_meta['round_id'])}, {'$push': {'combiners': round_meta}}, True)
+        self.round.update_one({'key': str(round_meta['round_id'])}, {'$push': {'combiners': round_meta}}, True)
 
     def set_round_meta_reducer(self, round_meta):
         """
 
         :param round_meta:
         """
-        self.round.update({'key': str(round_meta['round_id'])}, {'$push': {'reducer': round_meta}}, True)
+        self.round.update_one({'key': str(round_meta['round_id'])}, {'$push': {'reducer': round_meta}}, True)
 
     def get_latest_round(self):
         """
@@ -149,10 +149,10 @@ class MongoTracer(Tracer):
             mem_percents = currentProcess.memory_percent()
             ps_time = str(datetime.now())
 
-            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'cpu': cpu_percents}}, True)
-            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'mem': mem_percents}}, True)
-            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
-            self.psutil_monitoring.update({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
+            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {'$push': {'cpu': cpu_percents}}, True)
+            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {'$push': {'mem': mem_percents}}, True)
+            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {'$push': {'time': ps_time}}, True)
+            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {'$push': {'round': round}}, True)
 
     def start_monitor(self, round=None):
         """
