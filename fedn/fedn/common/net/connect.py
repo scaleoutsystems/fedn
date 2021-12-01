@@ -86,8 +86,12 @@ class ConnectorClient:
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
-                print("Reducer was not ready. Try again later.")
-                return Status.TryAgain, None
+                if 'msg' in retval.json():
+                    reason = retval.json()['msg']
+                else:
+                    reason = "Reducer was not ready. Try again later."
+
+                return Status.TryAgain, reason
 
             return Status.Assigned, retval.json()
 
