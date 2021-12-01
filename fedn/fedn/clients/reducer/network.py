@@ -60,17 +60,14 @@ class Network:
         self.statestore.set_combiner(combiner.to_dict())
 
     def add_client(self, client):
-        """
+        """ Add a new client to the network. 
 
         :param client:
         :return:
         """
-        if not self.control.idle():
-            print("Reducer is not idle, cannot add additional client.")
-            return
 
         if self.find_client(client['name']):
-            return
+            return 
 
         print("adding client {}".format(client['name']), flush=True)
         self.statestore.set_client(client)
