@@ -21,7 +21,7 @@ setup(
         "grpcio~=1.34.0",
         "numpy~=1.19.5",
         "protobuf",
-        "pymongo>=4.0",
+        "pymongo",
         "Flask",
         "Flask-WTF",
         "pyopenssl",
