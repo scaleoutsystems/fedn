@@ -451,7 +451,12 @@ class ReducerRestService:
             """Handle client assignment requests. """
 
             if self.control.state() == ReducerState.setup:
-                return jsonify({'status': 'retry'})
+                return jsonify({'status': 'retry', 
+                                'msg': "Controller is not configured. Make sure to upload the compute package."})
+
+            if not self.control.idle():
+                return jsonify({'status': 'retry',
+                                'msg': "Conroller is not in idle state, try again later. "})
 
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
@@ -462,11 +467,8 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner is None:
-                return jsonify({'status': 'retry'})
-            ## Check that a framework has been selected prior to assigning clients.
-            framework = self.control.statestore.get_framework()
-            if not framework:
-                return jsonify({'status': 'retry'})
+                return jsonify({'status': 'retry',
+                                'msg': "Failed to assign to a combiner, try again later."})
 
             client = {
                 'name': name,
@@ -475,25 +477,23 @@ class ReducerRestService:
                 'ip': request.remote_addr,
                 'status': 'available'
             }
+
+            # Add client to database 
             self.control.network.add_client(client)
 
-            if combiner:
-                import base64
-                cert_b64 = base64.b64encode(combiner.certificate)
-                response = {
-                    'status': 'assigned',
-                    'host': combiner.address,
-                    'ip': combiner.ip,
-                    'port': combiner.port,
-                    'certificate': str(cert_b64).split('\'')[1],
-                    'model_type': self.control.statestore.get_framework()
-                }
+            # Return connection information to client
+            import base64
+            cert_b64 = base64.b64encode(combiner.certificate)
+            response = {
+                'status': 'assigned',
+                'host': combiner.address,
+                'ip': combiner.ip,
+                'port': combiner.port,
+                'certificate': str(cert_b64).split('\'')[1],
+                'model_type': self.control.statestore.get_framework()
+            }
 
-                return jsonify(response)
-            elif combiner is None:
-                return jsonify({'status': 'retry'})
-
-            return jsonify({'status': 'retry'})
+            return jsonify(response)
 
         @app.route('/infer')
         def infer():
