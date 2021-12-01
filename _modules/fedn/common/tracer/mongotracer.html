@@ -200,7 +200,7 @@
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOG: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.drop_round_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_round_time">[docs]</a>    <span class="k">def</span> <span class="nf">drop_round_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
