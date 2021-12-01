@@ -37,7 +37,7 @@ class MongoTracer(Tracer):
 
         print("LOG: \n {} \n".format(data), flush=True)
 
-        if self.status:
+        if self.status!=None:
             self.status.insert_one(data)
 
     def drop_round_time(self):
