@@ -7,21 +7,24 @@ import tempfile
 import threading, queue
 import time
 
+import grpc
+
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.net.connect import ConnectorClient, Status
+from fedn.common.control.package import PackageRuntime
 
-import grpc
+from fedn.utils.logger import Logger
+from fedn.utils.helpers import get_helper
+
 # TODO Remove from this level. Abstract to unified non implementation specific client.
 from fedn.utils.dispatcher import Dispatcher
+
+from fedn.clients.client.state import ClientState, ClientStateToString
 
 CHUNK_SIZE = 1024 * 1024
 
 from datetime import datetime
-
-from fedn.clients.client.state import ClientState, ClientStateToString
-
-from fedn.utils.helpers import get_helper
 
 
 class Client:
@@ -61,24 +64,54 @@ class Client:
                                          verify_cert=config['verify_cert'])
                                          
         self.name = config['name']
-        import time
         dirname = time.strftime("%Y%m%d-%H%M%S")
         self.run_path = os.path.join(os.getcwd(), dirname)
         os.mkdir(self.run_path)
 
-        from fedn.utils.logger import Logger
         self.logger = Logger(to_file=config['logfile'], file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
 
         self.inbox = queue.Queue()
 
+        client_config=self._attach()
+        self._initialize_dispatcher(config)
+
+        if 'model_type' in client_config.keys():
+            self.helper = get_helper(client_config['model_type'])
+
+        if not self.helper:
+            print("Failed to retrive helper class settings! {}".format(client_config), flush=True)
+
+        self._subscribe_to_combiner(config)
+
+        #if not self._attached: 
+        #    self._attach()
+
+        self.state = ClientState.idle
+
+    def _detach(self):
+        self._attached = False
+
+    def _attach(self):
+        """ """
         # Ask controller for a combiner and connect to that combiner.
         client_config = self._assign()
         self._connect(client_config)
+        return client_config
 
+    def _subscribe_to_combiner(self,config):
+        # Start sending heartbeats to the combiner. This also initiates queues combiner-side. 
+        threading.Thread(target=self._send_heartbeat, daemon=True).start()
+        if config['trainer'] == True:
+            threading.Thread(target=self._listen_to_model_update_request_stream, daemon=True).start()
+        if config['validator'] == True:
+            threading.Thread(target=self._listen_to_model_validation_request_stream, daemon=True).start()
+        self._attached = True
+
+    def _initialize_dispatcher(self, config):
+        """ """
         if config['remote_compute_context']:
-            from fedn.common.control.package import PackageRuntime
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
             retval = None
@@ -126,21 +159,6 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-        if 'model_type' in client_config.keys():
-            self.helper = get_helper(client_config['model_type'])
-
-        if not self.helper:
-            print("Failed to retrive helper class settings! {}".format(client_config), flush=True)
-
-        # Start sending heartbeats to the combiner. This also initiates queues combiner-side. 
-        threading.Thread(target=self._send_heartbeat, daemon=True).start()
-    
-        if config['trainer'] == True:
-            threading.Thread(target=self._listen_to_model_update_request_stream, daemon=True).start()
-        if config['validator'] == True:
-            threading.Thread(target=self._listen_to_model_validation_request_stream, daemon=True).start()
-
-        self.state = ClientState.idle
 
     def  _assign(self):
         """Contacts the controller and asks for combiner assignment. """
@@ -271,6 +289,8 @@ class Client:
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
         metadata = [('client', r.sender.name)]
+        _disconnect = False
+
         import time
         while True:
             try:
@@ -287,8 +307,13 @@ class Client:
                 timeout = 5
                 print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
                     status_code.name, timeout), flush=True)
-                import time
                 time.sleep(timeout)
+                _disconect = True
+                break
+            #    retry += 1 
+                
+            if _disconnect: 
+                return 
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream. """
@@ -377,8 +402,6 @@ class Client:
 
                 self.state = ClientState.idle
                 self.inbox.task_done()
-
-
 
     def _process_training_request(self, model_id):
         """Process a training (model update) request. 
