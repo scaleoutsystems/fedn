@@ -24,8 +24,8 @@ in the compute package. These entrypoints define commands executed by the client
 
 Designing the compute package
 ------------------------------
-We recommend to use the client structure followed by most example projects `here <https://github.com/scaleoutsystems/examples>`_.
-In the examples we have roughly the following client structure:
+We recommend to use the project structure followed by most example projects `here <https://github.com/scaleoutsystems/examples>`_.
+In the examples we have roughly the following structure:
 
 .. image:: img/tree_package.png
    :alt: Project structure
@@ -55,8 +55,7 @@ and writing a model update file (same file format). Staging and upload of these 
 specific file serialization and deserialization. The validation entry point acts very similar except we perform validation on the 
 *model_in* and outputs a json containing a validation scores (see more below). 
 
-Upon training (model update) requests from the combiner, *train.py* will be called where the combiner send the latest (current) global
-model and the client will send back an updated model after training: 
+Upon training (model update) requests from the combiner, the client will download the latest (current) global model and *train.py* will be executed with this model update as input. After training / updating completes, the local client will capture the output file and send back the updated model to the combiner. For the local execution this means that the program (in this case train.py) will be executed as:  
 
 .. code-block:: python
 
@@ -131,17 +130,17 @@ A typical *train.py* example can look like this:
         
 
 
-where the format of the input and output files (model updates) are dependent on the ML framework used. A `helper class <https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py>`_. 
-defines serializaion and de-serialization of model updates.
+The format of the input and output files (model updates) are dependent on the ML framework used. A `helper class <https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py>`_. 
+defines serializaion and de-serialization of the model updates.
 Observe that the functions `create_seed_model <https://github.com/scaleoutsystems/examples/blob/b5876dc42e91b694488351b5dbff0cef3329b7dc/mnist-keras/client/models/mnist_model.py#L13>`_ 
 and `read_data <https://github.com/scaleoutsystems/examples/blob/b5876dc42e91b694488351b5dbff0cef3329b7dc/mnist-keras/client/data/read_data.py#L4>`_ are implemented by the user, where the first function 
 constructs (compiles) and returns an untrained (seed) model. We then take this model and set the weights to be equal to the current global model recieved
 from the commbiner. In the example above we use the Keras helper class to de-serialize those weights and the keras funcion *model.set_weights()* to set the seed model to be equal to the current model. 
 We then call the *train* function to first read the training data
-(obs. the location of the data can differ depending on if you run the client in a native or containerzed environment, in the latter case it's recommend to mount the data to the container, 
+(obs. the location of the data can differ depending on if you run the client in a native or containerized environment, in the latter case it's recommend to mount the data to the container, 
 the location should then be relative to the mount path) and then start the training.
-In this example, trainings equals fitting the keras model, thus we call *model.fit()* fucntion. 
-The *settings.ymal* is only for conveniance and is not required but contains the hyper-parameter settings for the training as key/value pairs.    
+In this example, training equals fitting the keras model, thus we call *model.fit()* fucntion. 
+The *settings.yaml* is for conveniance and is not required but contains the hyper-parameter settings for the local training as key/value pairs.    
 
 For validations it is a requirement that the output is valid json: 
 
@@ -149,8 +148,7 @@ For validations it is a requirement that the output is valid json:
 
    python validate.py model_in validation.json
  
-
-Typically, the actual model is defined in a small library, and does not depend on FEDn. An example (based on the keras case) of the *validate.py* is povided below:
+The Dahboard in the FEDn UI will plot any scalar metric in this json file, but you can include any type in the file assuming that it is valid json. These values can then be obtained (by an athorized user) from the MongoDB database (via Mongo Express, or any query interface or API). Typically, the actual model is defined in a small library, and does not depend on FEDn. An example (based on the keras case) of the *validate.py* is povided below:
 
 .. code-block:: python
 
@@ -231,10 +229,10 @@ Typically, the actual model is defined in a small library, and does not depend o
         with open(sys.argv[2],"w") as fh:
             fh.write(json.dumps(report))
 
-As demonstrated in the code above, the structure is very similar to *train.py* except we perform validation of a current model provided by the combiner instead of training. Again, the *read_data* function is defined by the user. Once, we have optained a validation
+As demonstrated in the code above, the structure is very similar to *train.py*. The main difference is that we perform validation of a current model provided by the combiner instead of training. Again, the *read_data* function is defined by the user. Once, we have optained a validation
 *report* as a dictionary we can dump as json (required). Observe that the key/values are arbitrary.
 
-For the initialization of the Reducer, both the compute package and some initial model (weights) are required as individual files. To obtain the initial weights file we can use the fedn helpers to save the seed model to an output file (*init_model.py*):
+For the initialization of the Reducer, both the compute package and an initial model (weights) are required as individual files. To obtain the initial weights file we can use the fedn helpers to save the seed model to an output file (*init_model.py*):
 
 .. code-block:: python
 
@@ -251,7 +249,7 @@ For the initialization of the Reducer, both the compute package and some initial
         helper = KerasHelper()
         helper.save_model(weights, outfile_name)
 
-Which will be saved into the *initial_model* folder for conveniance. 
+Which will be saved into the *initial_model* folder for convenience. Of course this file can also be a pretrained seed model.
 For the compute package we need to compress the *client* folder as .tar.gz file. E.g. using:
 
 .. code-block:: bash
@@ -277,7 +275,7 @@ We recommend you to test your code before running the client. For example, you c
     python train.py ../initial_model/initial_model.npz
 
 
-Once everything works as expected you can start the Reducer, upload the tar.gz compute package and the initial weights, followed by starting one to many combiners. 
-And finally connect a client to the network. Instructions for how to connect clients can be found in the `examples <https://github.com/scaleoutsystems/examples>`_.
+Once everything works as expected you can start the Reducer, upload the tar.gz compute package and the initial weights, followed by starting one or many combiners. 
+Finally connect a client to the network. Instructions for how to connect clients can be found in the `examples <https://github.com/scaleoutsystems/examples>`_.
 
 
