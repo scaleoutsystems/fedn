@@ -249,8 +249,12 @@
 
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="s1">&#39;msg&#39;</span> <span class="ow">in</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">():</span>
+                    <span class="n">reason</span> <span class="o">=</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;msg&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span>
+
+                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="n">reason</span>
 
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">,</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
