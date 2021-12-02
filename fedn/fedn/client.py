@@ -75,6 +75,9 @@ class Client:
         self.inbox = queue.Queue()
 
         client_config=self._attach()
+        if client_config:
+            self._attached = True
+
         self._initialize_dispatcher(config)
 
         self._initialize_helper(client_config)
@@ -99,7 +102,6 @@ class Client:
         
         if 'model_type' in client_config.keys():
             self.helper = get_helper(client_config['model_type'])
-
 
     def _subscribe_to_combiner(self,config):
         # Start sending heartbeats to the combiner. This also initiates queues combiner-side. 
@@ -501,7 +503,7 @@ class Client:
                 status_code = e.code()
                 # TODO: Handle / escalate failure to ping the combiner
                 print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name), flush=True)
-            import time
+                
             time.sleep(update_frequency)
 
     def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
@@ -573,6 +575,8 @@ class Client:
                 if cnt > 5:
                     print("{}:CLIENT active".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
+                if not self._attached:
+                    print("Detatched from the gRPC connection.") 
                 if self.error_state:
                     return
         except KeyboardInterrupt:
