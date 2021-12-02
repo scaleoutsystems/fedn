@@ -108,12 +108,12 @@ If you use FEDn in your research, please cite:
 ```
 
 ## Organizational collaborators, contributors and supporters 
-<p float="left" align="middle">
- <img src="docs/source/img/logos/Scaleout.png" width="32%">
- <img src="docs/source/img/logos/UU.png" width="32%"> 
- <img src="docs/source/img/logos/ai-sweden-logo.png" width="32%">
- <img src="docs/source/img/logos/zenseact-logo.png" width="32%">
- <img src="docs/source/img/logos/Scania.png" width="32%"> 
+<p align="middle">
+ <img src="docs/source/img/logos/Scaleout.png" width="19%">
+ <img src="docs/source/img/logos/UU.png" width="19%"> 
+ <img src="docs/source/img/logos/ai-sweden-logo.png" width="19%">
+ <img src="docs/source/img/logos/zenseact-logo.png" width="19%">
+ <img src="docs/source/img/logos/Scania.png" width="19%"> 
 </p>
 
 ## License
