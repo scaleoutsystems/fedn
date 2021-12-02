@@ -77,16 +77,11 @@ class Client:
         client_config=self._attach()
         self._initialize_dispatcher(config)
 
-        if 'model_type' in client_config.keys():
-            self.helper = get_helper(client_config['model_type'])
-
+        self._initialize_helper(client_config)
         if not self.helper:
             print("Failed to retrive helper class settings! {}".format(client_config), flush=True)
 
         self._subscribe_to_combiner(config)
-
-        #if not self._attached: 
-        #    self._attach()
 
         self.state = ClientState.idle
 
@@ -99,6 +94,12 @@ class Client:
         client_config = self._assign()
         self._connect(client_config)
         return client_config
+
+    def _initialize_helper(self,client_config):
+        
+        if 'model_type' in client_config.keys():
+            self.helper = get_helper(client_config['model_type'])
+
 
     def _subscribe_to_combiner(self,config):
         # Start sending heartbeats to the combiner. This also initiates queues combiner-side. 
