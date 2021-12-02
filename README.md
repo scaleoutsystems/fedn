@@ -108,7 +108,7 @@ If you use FEDn in your research, please cite:
 ```
 
 ## Organizational collaborators, contributors and supporters 
-<img src="docs/source/img/logos/Scaleout.png" width="200"> <img src="docs/source/img/logos/UU.png" width="200"> <img src="docs/source/img/logos/Scania.png" width="200"> <img src="docs/source/img/logos/zenseact-logo.png" width="200"> <img src="docs/source/img/logos/ai-sweden-logo.png" width="200">
+<img src="docs/source/img/logos/Scaleout.png" width="300"> <img src="docs/source/img/logos/UU.png" width="200"> <img src="docs/source/img/logos/ai-sweden-logo.png" width="200"> <img src="docs/source/img/logos/zenseact-logo.png" width="200">  <img src="docs/source/img/logos/Scania.png" width="200"> 
 
 ## License
 FEDn is licensed under Apache-2.0 (see LICENSE file for full information).
