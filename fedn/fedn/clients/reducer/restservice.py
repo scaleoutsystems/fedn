@@ -539,8 +539,8 @@ class ReducerRestService:
                 for client in combiner_info:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
-                    active_trainers_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_trainers_str).replace('name:', ' ')
-                    active_validators_str = re.sub('[^a-zA-Z0-9:\n\.]', '', active_validators_str).replace('name:', ' ')
+                    active_trainers_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                    active_validators_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
                     all_active_trainers.extend(' '.join(active_trainers_str.split(" ")).split())
                     all_active_validators.extend(' '.join(active_validators_str.split(" ")).split())
 
