@@ -9,6 +9,13 @@ from google.protobuf.json_format import MessageToDict
 
 
 class Monitor:
+    """ A client that listens to the status steam. Can be used to customize 
+        and scale logging. 
+
+        Currently not in use.  
+
+    """
+
     def __init__(self, config):
 
         if config['secure']:
@@ -43,7 +50,9 @@ class Monitor:
                 self.collection.insert_one(data)
 
     def run(self):
+        """
 
+        """
         print("starting")
         while True:
             print(".")

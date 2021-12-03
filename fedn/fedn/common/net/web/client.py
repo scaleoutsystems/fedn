@@ -1,4 +1,4 @@
-style="""
+style = """
 <style>
     /* Space out content a bit */
 body {
@@ -78,8 +78,7 @@ body {
 }</style>
 """
 
-
-page="""
+page = """
 
 <!doctype html>
 <html lang="en">

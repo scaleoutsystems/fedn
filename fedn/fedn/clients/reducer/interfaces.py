@@ -3,10 +3,16 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 import grpc
 import json
 
+
 class CombinerUnavailableError(Exception):
     pass
 
+
 class Channel:
+    """
+
+    """
+
     def __init__(self, address, port, certificate):
         self.address = address
         self.port = port
@@ -19,11 +25,19 @@ class Channel:
             self.channel = grpc.insecure_channel('{}:{}'.format(self.address, str(self.port)))
 
     def get_channel(self):
+        """
+
+        :return:
+        """
         import copy
         return copy.copy(self.channel)
 
 
 class CombinerInterface:
+    """
+
+    """
+
     def __init__(self, parent, name, address, port, certificate=None, key=None, ip=None, config=None):
         self.parent = parent
         self.name = name
@@ -41,14 +55,22 @@ class CombinerInterface:
             self.config = config
 
     @classmethod
-    def from_statestore(statestore,name):
+    def from_statestore(statestore, name):
         """ """
-    
+
     @classmethod
     def from_json(combiner_config):
+        """
+
+        :return:
+        """
         return CombinerInterface(**combiner_config)
 
     def to_dict(self):
+        """
+
+        :return:
+        """
         import base64
         cert_b64 = base64.b64encode(self.certificate)
         key_b64 = base64.b64encode(self.key)
@@ -63,7 +85,7 @@ class CombinerInterface:
             'ip': self.ip
         }
 
-        try: 
+        try:
             data['report'] = self.report()
         except CombinerUnavailableError:
             data['report'] = None
@@ -71,9 +93,18 @@ class CombinerInterface:
         return data
 
     def to_json(self):
+        """
+
+        :return:
+        """
         return json.dumps(self.to_dict())
 
-    def report(self,config=None):
+    def report(self, config=None):
+        """
+
+        :param config:
+        :return:
+        """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
@@ -89,14 +120,18 @@ class CombinerInterface:
             else:
                 raise
 
-    def configure(self,config=None):
+    def configure(self, config=None):
+        """
+
+        :param config:
+        """
         if not config:
             config = self.config
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
 
         request = fedn.ControlRequest()
-        for key,value in config.items():  
+        for key, value in config.items():
             p = request.parameter.add()
             p.key = key
             p.value = str(value)
@@ -110,6 +145,11 @@ class CombinerInterface:
                 raise
 
     def start(self, config):
+        """
+
+        :param config:
+        :return:
+        """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
@@ -131,6 +171,10 @@ class CombinerInterface:
         return response
 
     def set_model_id(self, model_id):
+        """
+
+        :param model_id:
+        """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
@@ -147,6 +191,10 @@ class CombinerInterface:
                 raise
 
     def get_model_id(self):
+        """
+
+        :return:
+        """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         reducer = rpc.ReducerStub(channel)
         request = fedn.GetGlobalModelRequest()
@@ -166,7 +214,7 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         modelservice = rpc.ModelServiceStub(channel)
 
-        if not id: 
+        if not id:
             id = self.get_model_id()
 
         from io import BytesIO
@@ -183,6 +231,10 @@ class CombinerInterface:
                 return None
 
     def allowing_clients(self):
+        """
+
+        :return:
+        """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
@@ -203,14 +255,28 @@ class CombinerInterface:
 
         return False
 
+
 class ReducerInferenceInterface:
+    """
+
+    """
+
     def __init__(self):
         self.model_wrapper = None
 
     def set(self, model):
+        """
+
+        :param model:
+        """
         self.model_wrapper = model
 
     def infer(self, params):
+        """
+
+        :param params:
+        :return:
+        """
         results = None
         if self.model_wrapper:
             results = self.model_wrapper.infer(params)

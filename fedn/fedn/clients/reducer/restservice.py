@@ -7,6 +7,7 @@ from flask import Flask, jsonify, render_template, request
 from flask import redirect, url_for, flash
 
 from threading import Lock
+import re
 
 import json
 import plotly
@@ -23,11 +24,20 @@ ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
 
 
 def allowed_file(filename):
+    """
+
+    :param filename:
+    :return:
+    """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 class ReducerRestService:
+    """
+
+    """
+
     def __init__(self, config, control, certificate_manager, certificate=None):
 
         print("config object!: \n\n\n\n{}".format(config))
@@ -50,12 +60,20 @@ class ReducerRestService:
         self.current_compute_context = None  # self.control.get_compute_context()
 
     def to_dict(self):
+        """
+
+        :return:
+        """
         data = {
             'name': self.name
         }
         return data
 
     def check_configured(self):
+        """
+
+        :return:
+        """
         if not self.control.get_compute_context():
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=False,
@@ -72,6 +90,10 @@ class ReducerRestService:
         return None
 
     def run(self):
+        """
+
+        :return:
+        """
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         csrf = CSRFProtect()
@@ -82,6 +104,10 @@ class ReducerRestService:
 
         @app.route('/')
         def index():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -95,85 +121,65 @@ class ReducerRestService:
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
         def status():
+            """
+
+            :return:
+            """
             return {'state': ReducerStateToString(self.control.state())}
 
         @app.route('/netgraph')
         def netgraph():
+            """
+            Creates nodes and edges for network graph
 
+            :return: nodes and edges as keys
+            :rtype: dict
+            """
             result = {'nodes': [], 'edges': []}
 
             result['nodes'].append({
-                "id": "r0",
+                "id": "reducer",
                 "label": "Reducer",
-                "x": -1.2,
-                "y": 0,
-                "size": 25,
+                "role": 'reducer',
+                "status": 'active',
+                "name": 'reducer', #TODO: get real host name
                 "type": 'reducer',
             })
-            x = 0
-            y = 0
-            count = 0
-            meta = {}
-            combiner_info = []
-            for combiner in self.control.network.get_combiners():
-                try:
-                    report = combiner.report()
-                    combiner_info.append(report)
-                except:
-                    pass
-            y = y + 0.5
-            width = 5
+            
+            combiner_info = combiner_status()
+            client_info = client_status()
+
             if len(combiner_info) < 1:
                 return result
-            step = 5 / len(combiner_info)
-            x = -width / 3.0
+       
             for combiner in combiner_info:
                 print("combiner info {}".format(combiner_info), flush=True)
-
                 try:
                     result['nodes'].append({
                         "id": combiner['name'],  # "n{}".format(count),
                         "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
-                        "x": x,
-                        "y": y,
-                        "size": 15,
+                        "role": 'combiner',
+                        "status": 'active', #TODO: Hard-coded, combiner_info does not contain status
                         "name": combiner['name'],
                         "type": 'combiner',
-                        # "color":'blue',
                     })
                 except Exception as err:
                     print(err)
 
-                x = x + step
-                count = count + 1
-            y = y + 0.25
-
-            count = 0
-            width = 5
-            step = 5 / len(combiner_info)
-            x = -width / 2.0
-            # for combiner in self.control.statestore.list_clients():
-            for combiner in combiner_info:
-                for a in range(0, int(combiner['nr_active_clients'])):
-                    # y = y + 0.25
-                    try:
-                        result['nodes'].append({
-                            "id": "c{}".format(count),
-                            "label": "Client",
-                            "x": x,
-                            "y": y,
-                            "size": 15,
-                            "name": "c{}".format(count),
-                            "combiner": combiner['name'],
-                            "type": 'client',
-                            # "color":'blue',
-                        })
-                    except Exception as err:
-                        print(err)
-                    # print("combiner prefferred name {}".format(client['combiner']), flush=True)
-                    x = x + 0.25
-                    count = count + 1
-
+            for client in client_info['active_clients']:
+                try:
+                    result['nodes'].append({
+                        "id": str(client['_id']),
+                        "label": "Client",
+                        "role": client['role'],
+                        "status": client['status'],
+                        "name": client['name'],
+                        "combiner": client['combiner'],
+                        "type": 'client',
+                    })
+                except Exception as err:
+                    print(err)
+                
             count = 0
             for node in result['nodes']:
                 try:
@@ -182,7 +188,7 @@ class ReducerRestService:
                             {
                                 "id": "e{}".format(count),
                                 "source": node['id'],
-                                "target": 'r0',
+                                "target": 'reducer',
                             }
                         )
                     elif node['type'] == 'client':
@@ -196,11 +202,27 @@ class ReducerRestService:
                 except Exception as e:
                     pass
                 count = count + 1
-
             return result
+
+        @app.route('/networkgraph')
+        def network_graph():
+            from bokeh.embed import json_item
+            try:
+                plot = Plot(self.control.statestore)
+                result = netgraph()
+                df_nodes = pd.DataFrame(result['nodes'])
+                df_edges = pd.DataFrame(result['edges'])
+                graph = plot.make_netgraph_plot(df_edges, df_nodes)
+                return json.dumps(json_item(graph, "myplot"))
+            except:
+                return ''
 
         @app.route('/events')
         def events():
+            """
+
+            :return:
+            """
             import json
             from bson import json_util
 
@@ -258,6 +280,10 @@ class ReducerRestService:
 
         @app.route('/eula', methods=['GET', 'POST'])
         def eula():
+            """
+
+            :return:
+            """
             for r in request.headers:
                 print("header contains: {}".format(r), flush=True)
 
@@ -265,7 +291,10 @@ class ReducerRestService:
 
         @app.route('/models', methods=['GET', 'POST'])
         def models():
+            """
 
+            :return:
+            """
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -293,6 +322,10 @@ class ReducerRestService:
 
         @app.route('/delete_model_trail', methods=['GET', 'POST'])
         def delete_model_trail():
+            """
+
+            :return:
+            """
             if request.method == 'POST':
                 from fedn.common.tracer.mongotracer import MongoTracer
                 statestore_config = self.control.statestore.get_config()
@@ -310,6 +343,10 @@ class ReducerRestService:
 
         @app.route('/drop_control', methods=['GET', 'POST'])
         def drop_control():
+            """
+
+            :return:
+            """
             if request.method == 'POST':
                 self.control.statestore.drop_control()
                 return redirect(url_for('control'))
@@ -318,6 +355,8 @@ class ReducerRestService:
         # http://localhost:8090/control?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/control', methods=['GET', 'POST'])
         def control():
+            """ Main page for round control. Configure, start and stop global training rounds. """
+
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -363,7 +402,8 @@ class ReducerRestService:
 
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
-                                            message="Not enough clients available to start rounds.",
+                                            message="Not enough clients available to start rounds! "
+                                                    "check combiner client capacity",
                                             message_type='warning'))
 
                 validate = request.form.get('validate', False)
@@ -411,7 +451,12 @@ class ReducerRestService:
             """Handle client assignment requests. """
 
             if self.control.state() == ReducerState.setup:
-                return jsonify({'status': 'retry'})
+                return jsonify({'status': 'retry', 
+                                'msg': "Controller is not configured. Make sure to upload the compute package."})
+
+            if not self.control.idle():
+                return jsonify({'status': 'retry',
+                                'msg': "Conroller is not in idle state, try again later. "})
 
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
@@ -422,11 +467,8 @@ class ReducerRestService:
                 combiner = self.control.find_available_combiner()
 
             if combiner is None:
-                return jsonify({'status': 'retry'})
-            ## Check that a framework has been selected prior to assigning clients.
-            framework = self.control.statestore.get_framework()
-            if not framework:
-                return jsonify({'status': 'retry'})
+                return jsonify({'status': 'retry',
+                                'msg': "Failed to assign to a combiner, try again later."})
 
             client = {
                 'name': name,
@@ -435,28 +477,30 @@ class ReducerRestService:
                 'ip': request.remote_addr,
                 'status': 'available'
             }
+
+            # Add client to database 
             self.control.network.add_client(client)
 
-            if combiner:
-                import base64
-                cert_b64 = base64.b64encode(combiner.certificate)
-                response = {
-                    'status': 'assigned',
-                    'host': combiner.address,
-                    'ip': combiner.ip,
-                    'port': combiner.port,
-                    'certificate': str(cert_b64).split('\'')[1],
-                    'model_type': self.control.statestore.get_framework()
-                }
+            # Return connection information to client
+            import base64
+            cert_b64 = base64.b64encode(combiner.certificate)
+            response = {
+                'status': 'assigned',
+                'host': combiner.address,
+                'ip': combiner.ip,
+                'port': combiner.port,
+                'certificate': str(cert_b64).split('\'')[1],
+                'model_type': self.control.statestore.get_framework()
+            }
 
-                return jsonify(response)
-            elif combiner is None:
-                return jsonify({'status': 'retry'})
-
-            return jsonify({'status': 'retry'})
+            return jsonify(response)
 
         @app.route('/infer')
         def infer():
+            """
+
+            :return:
+            """
             if self.control.state() == ReducerState.setup:
                 return "Error, not configured"
             result = ""
@@ -467,7 +511,11 @@ class ReducerRestService:
 
             return result
 
-        def combiner_stats():
+        def combiner_status():
+            """ Get current status reports from all combiners registered in the network. 
+
+            :return:
+            """
             combiner_info = []
             for combiner in self.control.network.get_combiners():
                 try:
@@ -475,83 +523,67 @@ class ReducerRestService:
                     combiner_info.append(report)
                 except:
                     pass
-                return combiner_info
-            return False
+            return combiner_info
 
-        def create_map():
-            cities_dict = {
-                'city': [],
-                'lat': [],
-                'lon': [],
-                'country': [],
-                'name': [],
-                'role': [],
-                'size': []
-            }
+        def client_status():
+            """
+            Get current status of clients (available) from DB compared with client status from all combiners,
+            update client status to DB and add their roles.
+            """
+            client_info = self.control.network.get_client_info()
+            combiner_info = combiner_status()
+            try:
+                all_active_trainers = []
+                all_active_validators = []
 
-            from fedn import get_data
-            dbpath = get_data('geolite2/GeoLite2-City.mmdb')
+                for client in combiner_info:
+                    active_trainers_str = client['active_trainers']
+                    active_validators_str = client['active_validators']
+                    active_trainers_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                    active_validators_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
+                    all_active_trainers.extend(' '.join(active_trainers_str.split(" ")).split())
+                    all_active_validators.extend(' '.join(active_validators_str.split(" ")).split())
 
-            with geoip2.database.Reader(dbpath) as reader:
-                for combiner in self.control.statestore.list_combiners():
-                    try:
-                        response = reader.city(combiner['ip'])
-                        cities_dict['city'].append(response.city.name)
+                active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers]
+                active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators]
+                all_clients = [cl for cl in client_info]
 
-                        r = 1.0  # Rougly 100km
-                        w = r * math.sqrt(numpy.random.random())
-                        t = 2.0 * math.pi * numpy.random.random()
-                        x = w * math.cos(t)
-                        y = w * math.sin(t)
-                        lat = str(float(response.location.latitude) + x)
-                        lon = str(float(response.location.longitude) + y)
-                        cities_dict['lat'].append(lat)
-                        cities_dict['lon'].append(lon)
+                for client in all_clients:
+                    status = 'offline'
+                    role = 'None'
+                    self.control.network.update_client_data(client, status, role)
 
-                        cities_dict['country'].append(response.country.iso_code)
+                all_active_clients = active_validators_list + active_trainers_list
+                for client in all_active_clients:
+                    status = 'active'
+                    if client in active_trainers_list and client in active_validators_list:
+                        role = 'trainer-validator'
+                    elif client in active_trainers_list:
+                        role = 'trainer'
+                    elif client in active_validators_list:
+                        role = 'validator'
+                    else:
+                        role = 'unknown'
+                    self.control.network.update_client_data(client, status, role)
 
-                        cities_dict['name'].append(combiner['name'])
-                        cities_dict['role'].append('Combiner')
-                        cities_dict['size'].append(10)
+                return {'active_clients': all_clients,
+                        'active_trainers': active_trainers_list,
+                        'active_validators': active_validators_list
+                        }
+            except:
+                 pass
 
-                    except geoip2.errors.AddressNotFoundError as err:
-                        print(err)
-
-            with geoip2.database.Reader(dbpath) as reader:
-                for client in self.control.statestore.list_clients():
-                    try:
-                        response = reader.city(client['ip'])
-                        cities_dict['city'].append(response.city.name)
-                        cities_dict['lat'].append(response.location.latitude)
-                        cities_dict['lon'].append(response.location.longitude)
-                        cities_dict['country'].append(response.country.iso_code)
-
-                        cities_dict['name'].append(client['name'])
-                        cities_dict['role'].append('Client')
-                        # TODO: Optionally relate to data size
-                        cities_dict['size'].append(6)
-
-                    except geoip2.errors.AddressNotFoundError as err:
-                        print(err)
-
-            config = self.control.statestore.get_config()
-
-            cities_df = pd.DataFrame(cities_dict)
-            if cities_df.empty:
-                return False
-            fig = px.scatter_geo(cities_df, lon="lon", lat="lat", projection="natural earth",
-                                 color="role", size="size", hover_name="city",
-                                 hover_data={"city": False, "lon": False, "lat": False, 'size': False,
-                                             'name': True, 'role': True})
-
-            fig.update_geos(fitbounds="locations", showcountries=True)
-            fig.update_layout(title="FEDn network: {}".format(config['network_id']))
-
-            fig = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            return fig
+            return {'active_clients': [],
+                    'active_trainers': [],
+                    'active_validators': []
+                    }
 
         @app.route('/metric_type', methods=['GET', 'POST'])
         def change_features():
+            """
+
+            :return:
+            """
             feature = request.args['selected']
             plot = Plot(self.control.statestore)
             graphJSON = plot.create_box_plot(feature)
@@ -559,6 +591,10 @@ class ReducerRestService:
 
         @app.route('/dashboard')
         def dashboard():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -586,6 +622,10 @@ class ReducerRestService:
 
         @app.route('/network')
         def network():
+            """
+
+            :return:
+            """
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -593,19 +633,25 @@ class ReducerRestService:
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
             combiners_plot = plot.create_combiner_plot()
-            map_plot = create_map()
-            combiner_info = combiner_stats()
-            return render_template('network.html', map_plot=map_plot, network_plot=True,
+            combiner_info = combiner_status()
+            active_clients = client_status()
+            return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
                                    combiners_plot=combiners_plot,
                                    combiner_info=combiner_info,
+                                   active_clients=active_clients['active_clients'],
+                                   active_trainers=active_clients['active_trainers'],
+                                   active_validators=active_clients['active_validators'],
                                    configured=True
                                    )
 
         @app.route('/config/download', methods=['GET'])
         def config_download():
+            """
 
+            :return:
+            """
             chk_string = ""
             name = self.control.get_compute_context()
             if name is None or name == '':
@@ -631,10 +677,10 @@ controller:
     discover_port: {discover_port}
     token: {token}
     {chk_string}""".format(network_id=network_id,
-                             discover_host=discover_host,
-                             discover_port=discover_port,
-                             token=token,
-                             chk_string=chk_string)
+                           discover_host=discover_host,
+                           discover_port=discover_port,
+                           token=token,
+                           chk_string=chk_string)
 
             from io import BytesIO
             from flask import send_file
@@ -646,10 +692,13 @@ controller:
                              attachment_filename='client.yaml',
                              mimetype='application/x-yaml')
 
-
         @app.route('/context', methods=['GET', 'POST'])
         @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
+            """
+
+            :return:
+            """
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
             reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
@@ -712,8 +761,11 @@ controller:
 
         @app.route('/checksum', methods=['GET', 'POST'])
         def checksum():
+            """
 
-            #sum = ''
+            :return:
+            """
+            # sum = ''
             name = request.args.get('name', None)
             if name == '' or name is None:
                 name = self.control.get_compute_context()

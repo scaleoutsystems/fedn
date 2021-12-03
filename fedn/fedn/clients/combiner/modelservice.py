@@ -6,6 +6,9 @@ CHUNK_SIZE = 1024 * 1024
 
 
 class ModelService(rpc.ModelServiceServicer):
+    """
+
+    """
 
     def __init__(self):
         self.models = TempModelStorage()
@@ -13,15 +16,25 @@ class ModelService(rpc.ModelServiceServicer):
         # self.models_metadata = {}
 
     def exist(self, model_id):
+        """
+
+        :param model_id:
+        :return:
+        """
         return self.models.exist(model_id)
 
     def get_model(self, id):
+        """
+
+        :param id:
+        :return:
+        """
         from io import BytesIO
         data = BytesIO()
         data.seek(0, 0)
         import time
         import random
- 
+
         parts = self.Download(fedn.ModelRequest(id=id), self)
         for part in parts:
             if part.status == fedn.ModelStatus.IN_PROGRESS:
@@ -33,6 +46,11 @@ class ModelService(rpc.ModelServiceServicer):
                 return None
 
     def set_model(self, model, id):
+        """
+
+        :param model:
+        :param id:
+        """
         from io import BytesIO
 
         if not isinstance(model, BytesIO):
@@ -48,6 +66,10 @@ class ModelService(rpc.ModelServiceServicer):
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
+            """
+
+            :param mdl:
+            """
             while True:
                 b = mdl.read(CHUNK_SIZE)
                 if b:
@@ -57,11 +79,18 @@ class ModelService(rpc.ModelServiceServicer):
                 yield result
                 if not b:
                     break
+
         # TODO: Check result
         result = self.Upload(upload_request_generator(bt), self)
 
     ## Model Service
     def Upload(self, request_iterator, context):
+        """
+
+        :param request_iterator:
+        :param context:
+        :return:
+        """
         # print("STARTING UPLOAD!", flush=True)
         result = None
         for request in request_iterator:
@@ -79,7 +108,12 @@ class ModelService(rpc.ModelServiceServicer):
                 return result
 
     def Download(self, request, context):
+        """
 
+        :param request:
+        :param context:
+        :return:
+        """
         try:
             if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
                 print("Error file is not ready", flush=True)

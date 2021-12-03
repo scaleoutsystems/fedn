@@ -19,8 +19,12 @@ from fedn.common.security.certificate import Certificate
 
 
 class ConnectorClient:
+    """
 
-    def __init__(self, host, port, token, name,combiner=None, id=None, secure=True, preshared_cert=True, verify_cert=False):
+    """
+
+    def __init__(self, host, port, token, name, combiner=None, id=None, secure=True, preshared_cert=True,
+                 verify_cert=False):
 
         if not verify_cert:
             import urllib3
@@ -46,24 +50,32 @@ class ConnectorClient:
                                            cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
-            
+
         self.prefix = prefix
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
         if self.certificate:
-            print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+            print("Securely connecting with certificate", flush=True)
 
     def state(self):
+        """
+
+        :return:
+        """
         return self.state
 
     def assign(self):
+        """
 
+        :return:
+        """
         try:
             cert = str(self.certificate) if self.verify_cert else False
             retval = None
             if self.preferred_combiner:
-                retval = r.get("{}?name={}&combiner={}".format(self.connect_string + '/assign', self.name, self.preferred_combiner), verify=cert,
-                           headers={'Authorization': 'Token {}'.format(self.token)})
+                retval = r.get("{}?name={}&combiner={}".format(self.connect_string + '/assign', self.name,
+                                                               self.preferred_combiner), verify=cert,
+                               headers={'Authorization': 'Token {}'.format(self.token)})
             else:
                 retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=cert,
                                headers={'Authorization': 'Token {}'.format(self.token)})
@@ -74,8 +86,12 @@ class ConnectorClient:
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
-                print("Reducer was not ready. Try again later.")
-                return Status.TryAgain, None
+                if 'msg' in retval.json():
+                    reason = retval.json()['msg']
+                else:
+                    reason = "Reducer was not ready. Try again later."
+
+                return Status.TryAgain, reason
 
             return Status.Assigned, retval.json()
 
@@ -83,6 +99,9 @@ class ConnectorClient:
 
 
 class ConnectorCombiner:
+    """
+
+    """
 
     def __init__(self, host, port, myhost, myport, token, name, secure=True, preshared_cert=True, verify_cert=False):
 
@@ -114,13 +133,20 @@ class ConnectorCombiner:
 
         self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
-        print("Securely connecting with certificate {}".format(self.certificate), flush=True)
+        print("Securely connecting with certificate", flush=True)
 
     def state(self):
+        """
+
+        :return:
+        """
         return self.state
 
     def announce(self):
+        """
 
+        :return:
+        """
         try:
             cert = str(self.certificate) if self.verify_cert else False
             retval = r.get("{}?name={}&address={}&port={}".format(self.connect_string + '/add',

@@ -7,21 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    {% if fffrefresh %}
+    {% if refresh %}
         <meta http-equiv="refresh" content="5">
     {% endif %}
 
     <title>FEDn Reducer</title>
 
     <link rel="canonical" href="https://appstack.bootlab.io/pages-blank.html"/>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
-
     <link href="{{ url_for('static', filename='dist/css/light.css') }}" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <!-- js files for datatables -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.2/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.2/js/dataTables.bootstrap5.min.js"></script>
 </head>
 
 <body data-theme="light" data-layout="fluid" data-sidebar-position="left" data-sidebar-behavior="sticky">
@@ -178,7 +181,7 @@
                                 </script>
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title">Configure run</h5
+                                        <h5 class="card-title">Configure run</h5>
                                         <p>Configure your run with a round configuration. After the run is started the
                                             number of rounds will execute on clients with the configuration set
                                             here.</p>
@@ -193,7 +196,7 @@
                                                     Model </label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ seed_model_id }} readonly
-                                                           class="form-control-plaintext" id="helper"
+                                                           class="form-control-plaintext" id="initial_model"
                                                            name="seed_model_id" value={{ seed_model_id }}>
                                                 </div>
                                             </div>
@@ -202,7 +205,7 @@
                                                     Global Model</label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ latest_model_id }} readonly
-                                                           class="form-control-plaintext" id="helper"
+                                                           class="form-control-plaintext" id="model"
                                                            name="latest_model" value={{ latest_model_id }}>
                                                 </div>
                                             </div>
@@ -211,7 +214,7 @@
                                                     Package </label>
                                                 <div class="col-sm-9">
                                                     <input type="text" placeholder={{ compute_package }} readonly
-                                                           class="form-control-plaintext" id="helper"
+                                                           class="form-control-plaintext" id="package"
                                                            name="compute_package" value={{ compute_package }}>
                                                 </div>
                                             </div>
@@ -293,7 +296,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="mb-3 row" >
+                                            <div class="mb-3 row">
                                                 <label class="col-form-label col-sm-3 text-sm-right" for="timeout">Round
                                                     timeout:
                                                 </label>

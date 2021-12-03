@@ -1,0 +1,50 @@
+name: Sphinx to GitHub Pages
+
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the main branch
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+
+    - name: Checkout current repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+        token: ${{ secrets.PAT }}
+    
+    - name: Run sphinx-apidoc
+      run: |
+        pip install sphinx fedn
+        cd docs
+        echo "Remove any existing fedn.*rst"
+        rm -v source/fedn.*rst || true
+        echo "Generate API documentation"
+        sphinx-apidoc -f -o source/ ../fedn/fedn/
+        git status
+    
+    - name: Commit and push workflow changes back into repo
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        file_pattern: docs/source/*.rst
+        commit_message: Apply sphinx action changes
+        branch: develop
+        push_options: --force
+        
+    - name: Run sphinx-build and commit to gh-pages
+      uses: sphinx-notes/pages@master
+      with:
+        documentation_path: docs/source
+        
+    - name: Push sphinx-build to gh-pages
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.SPHINX_GH_TOKEN }}
+        branch: gh-pages

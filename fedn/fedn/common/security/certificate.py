@@ -4,6 +4,9 @@ from OpenSSL import crypto
 
 
 class Certificate:
+    """
+
+    """
     CERT_NAME = "cert.pem"
     KEY_NAME = "key.pem"
     BITS = 2048
@@ -25,6 +28,9 @@ class Certificate:
             self.name = str(uuid.uuid4())
 
     def gen_keypair(self, ):
+        """
+
+        """
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 2048)
         cert = crypto.X509()
@@ -35,7 +41,7 @@ class Certificate:
         cert.get_subject().CN = self.name  # gethostname()
 
         import random
-        cert.set_serial_number(int(random.randint(1000,100000)))
+        cert.set_serial_number(int(random.randint(1000, 100000)))
 
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(31 * 24 * 60 * 60)
@@ -50,13 +56,22 @@ class Certificate:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
     def set_keypair_raw(self, certificate, privatekey):
+        """
+
+        :param certificate:
+        :param privatekey:
+        """
         with open(self.key_path, "wb") as keyfile:
-            keyfile.write(privatekey)
+            keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, privatekey))
 
         with open(self.cert_path, "wb") as certfile:
-            certfile.write(certificate)
+            certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate))
 
     def get_keypair_raw(self):
+        """
+
+        :return:
+        """
         with open(self.key_path, 'rb') as keyfile:
             key_buf = keyfile.read()
         with open(self.cert_path, 'rb') as certfile:
@@ -65,12 +80,20 @@ class Certificate:
         return copy.deepcopy(cert_buf), copy.deepcopy(key_buf)
 
     def get_key(self):
+        """
+
+        :return:
+        """
         with open(self.key_path, 'rb') as keyfile:
             key_buf = keyfile.read()
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, key_buf)
         return key
 
     def get_cert(self):
+        """
+
+        :return:
+        """
         with open(self.cert_path, 'rb') as certfile:
             cert_buf = certfile.read()
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_buf)

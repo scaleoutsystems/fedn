@@ -7,254 +7,252 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
-
-
-
 DESCRIPTOR = _descriptor.FileDescriptor(
-  name='fedn/common/net/grpc/fedn.proto',
-  package='grpc',
-  syntax='proto3',
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1f\x66\x65\x64n/common/net/grpc/fedn.proto\x12\x04grpc\":\n\x08Response\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08response\x18\x02 \x01(\t\"\x8c\x02\n\x06Status\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x0e\n\x06status\x18\x02 \x01(\t\x12(\n\tlog_level\x18\x03 \x01(\x0e\x32\x15.grpc.Status.LogLevel\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x1e\n\x04type\x18\x07 \x01(\x0e\x32\x10.grpc.StatusType\x12\r\n\x05\x65xtra\x18\x08 \x01(\t\"B\n\x08LogLevel\x12\x08\n\x04INFO\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0b\n\x07WARNING\x10\x02\x12\t\n\x05\x45RROR\x10\x03\x12\t\n\x05\x41UDIT\x10\x04\"\x9d\x01\n\x12ModelUpdateRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\"\xaf\x01\n\x0bModelUpdate\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x17\n\x0fmodel_update_id\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x0c\n\x04meta\x18\x07 \x01(\t\"\xa1\x01\n\x16ModelValidationRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\"\xa8\x01\n\x0fModelValidation\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x0c\n\x04meta\x18\x07 \x01(\t\"\x89\x01\n\x0cModelRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\n\n\x02id\x18\x04 \x01(\t\x12!\n\x06status\x18\x05 \x01(\x0e\x32\x11.grpc.ModelStatus\"]\n\rModelResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\n\n\x02id\x18\x02 \x01(\t\x12!\n\x06status\x18\x03 \x01(\x0e\x32\x11.grpc.ModelStatus\x12\x0f\n\x07message\x18\x04 \x01(\t\"U\n\x15GetGlobalModelRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\"h\n\x16GetGlobalModelResponse\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\")\n\tHeartbeat\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\"W\n\x16\x43lientAvailableMessage\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\t\"R\n\x12ListClientsRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x07\x63hannel\x18\x02 \x01(\x0e\x32\r.grpc.Channel\"*\n\nClientList\x12\x1c\n\x06\x63lient\x18\x01 \x03(\x0b\x32\x0c.grpc.Client\"0\n\x06\x43lient\x12\x18\n\x04role\x18\x01 \x01(\x0e\x32\n.grpc.Role\x12\x0c\n\x04name\x18\x02 \x01(\t\"m\n\x0fReassignRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x0e\n\x06server\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\r\"c\n\x10ReconnectRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x11\n\treconnect\x18\x03 \x01(\r\"\'\n\tParameter\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"T\n\x0e\x43ontrolRequest\x12\x1e\n\x07\x63ommand\x18\x01 \x01(\x0e\x32\r.grpc.Command\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"F\n\x0f\x43ontrolResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"R\n\x0eReportResponse\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"\x13\n\x11\x43onnectionRequest\"<\n\x12\x43onnectionResponse\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.grpc.ConnectionStatus*u\n\nStatusType\x12\x07\n\x03LOG\x10\x00\x12\x18\n\x14MODEL_UPDATE_REQUEST\x10\x01\x12\x10\n\x0cMODEL_UPDATE\x10\x02\x12\x1c\n\x18MODEL_VALIDATION_REQUEST\x10\x03\x12\x14\n\x10MODEL_VALIDATION\x10\x04*\x86\x01\n\x07\x43hannel\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x19\n\x15MODEL_UPDATE_REQUESTS\x10\x01\x12\x11\n\rMODEL_UPDATES\x10\x02\x12\x1d\n\x19MODEL_VALIDATION_REQUESTS\x10\x03\x12\x15\n\x11MODEL_VALIDATIONS\x10\x04\x12\n\n\x06STATUS\x10\x05*F\n\x0bModelStatus\x12\x06\n\x02OK\x10\x00\x12\x0f\n\x0bIN_PROGRESS\x10\x01\x12\x12\n\x0eIN_PROGRESS_OK\x10\x02\x12\n\n\x06\x46\x41ILED\x10\x03*8\n\x04Role\x12\n\n\x06WORKER\x10\x00\x12\x0c\n\x08\x43OMBINER\x10\x01\x12\x0b\n\x07REDUCER\x10\x02\x12\t\n\x05OTHER\x10\x03*J\n\x07\x43ommand\x12\x08\n\x04IDLE\x10\x00\x12\t\n\x05START\x10\x01\x12\t\n\x05PAUSE\x10\x02\x12\x08\n\x04STOP\x10\x03\x12\t\n\x05RESET\x10\x04\x12\n\n\x06REPORT\x10\x05*I\n\x10\x43onnectionStatus\x12\x11\n\rNOT_ACCEPTING\x10\x00\x12\r\n\tACCEPTING\x10\x01\x12\x13\n\x0fTRY_AGAIN_LATER\x10\x02\x32z\n\x0cModelService\x12\x33\n\x06Upload\x12\x12.grpc.ModelRequest\x1a\x13.grpc.ModelResponse(\x01\x12\x35\n\x08\x44ownload\x12\x12.grpc.ModelRequest\x1a\x13.grpc.ModelResponse0\x01\x32\xe3\x01\n\x07\x43ontrol\x12\x34\n\x05Start\x12\x14.grpc.ControlRequest\x1a\x15.grpc.ControlResponse\x12\x33\n\x04Stop\x12\x14.grpc.ControlRequest\x1a\x15.grpc.ControlResponse\x12\x37\n\tConfigure\x12\x14.grpc.ControlRequest\x1a\x14.grpc.ReportResponse\x12\x34\n\x06Report\x12\x14.grpc.ControlRequest\x1a\x14.grpc.ReportResponse2V\n\x07Reducer\x12K\n\x0eGetGlobalModel\x12\x1b.grpc.GetGlobalModelRequest\x1a\x1c.grpc.GetGlobalModelResponse2\xab\x03\n\tConnector\x12\x44\n\x14\x41llianceStatusStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x0c.grpc.Status0\x01\x12*\n\nSendStatus\x12\x0c.grpc.Status\x1a\x0e.grpc.Response\x12?\n\x11ListActiveClients\x12\x18.grpc.ListClientsRequest\x1a\x10.grpc.ClientList\x12\x45\n\x10\x41\x63\x63\x65ptingClients\x12\x17.grpc.ConnectionRequest\x1a\x18.grpc.ConnectionResponse\x12\x30\n\rSendHeartbeat\x12\x0f.grpc.Heartbeat\x1a\x0e.grpc.Response\x12\x37\n\x0eReassignClient\x12\x15.grpc.ReassignRequest\x1a\x0e.grpc.Response\x12\x39\n\x0fReconnectClient\x12\x16.grpc.ReconnectRequest\x1a\x0e.grpc.Response2\xda\x04\n\x08\x43ombiner\x12T\n\x18ModelUpdateRequestStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x18.grpc.ModelUpdateRequest0\x01\x12\x46\n\x11ModelUpdateStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x11.grpc.ModelUpdate0\x01\x12\\\n\x1cModelValidationRequestStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x1c.grpc.ModelValidationRequest0\x01\x12N\n\x15ModelValidationStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x15.grpc.ModelValidation0\x01\x12\x42\n\x16SendModelUpdateRequest\x12\x18.grpc.ModelUpdateRequest\x1a\x0e.grpc.Response\x12\x34\n\x0fSendModelUpdate\x12\x11.grpc.ModelUpdate\x1a\x0e.grpc.Response\x12J\n\x1aSendModelValidationRequest\x12\x1c.grpc.ModelValidationRequest\x1a\x0e.grpc.Response\x12<\n\x13SendModelValidation\x12\x15.grpc.ModelValidation\x1a\x0e.grpc.Responseb\x06proto3'
+    name='fedn/common/net/grpc/fedn.proto',
+    package='grpc',
+    syntax='proto3',
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+    serialized_pb=b'\n\x1f\x66\x65\x64n/common/net/grpc/fedn.proto\x12\x04grpc\":\n\x08Response\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08response\x18\x02 \x01(\t\"\x8c\x02\n\x06Status\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x0e\n\x06status\x18\x02 \x01(\t\x12(\n\tlog_level\x18\x03 \x01(\x0e\x32\x15.grpc.Status.LogLevel\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x1e\n\x04type\x18\x07 \x01(\x0e\x32\x10.grpc.StatusType\x12\r\n\x05\x65xtra\x18\x08 \x01(\t\"B\n\x08LogLevel\x12\x08\n\x04INFO\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0b\n\x07WARNING\x10\x02\x12\t\n\x05\x45RROR\x10\x03\x12\t\n\x05\x41UDIT\x10\x04\"\x9d\x01\n\x12ModelUpdateRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\"\xaf\x01\n\x0bModelUpdate\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x17\n\x0fmodel_update_id\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x0c\n\x04meta\x18\x07 \x01(\t\"\xa1\x01\n\x16ModelValidationRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\"\xa8\x01\n\x0fModelValidation\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\t\x12\x16\n\x0e\x63orrelation_id\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12\x0c\n\x04meta\x18\x07 \x01(\t\"\x89\x01\n\x0cModelRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\n\n\x02id\x18\x04 \x01(\t\x12!\n\x06status\x18\x05 \x01(\x0e\x32\x11.grpc.ModelStatus\"]\n\rModelResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\n\n\x02id\x18\x02 \x01(\t\x12!\n\x06status\x18\x03 \x01(\x0e\x32\x11.grpc.ModelStatus\x12\x0f\n\x07message\x18\x04 \x01(\t\"U\n\x15GetGlobalModelRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\"h\n\x16GetGlobalModelResponse\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x10\n\x08model_id\x18\x03 \x01(\t\")\n\tHeartbeat\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\"W\n\x16\x43lientAvailableMessage\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\t\"R\n\x12ListClientsRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x07\x63hannel\x18\x02 \x01(\x0e\x32\r.grpc.Channel\"*\n\nClientList\x12\x1c\n\x06\x63lient\x18\x01 \x03(\x0b\x32\x0c.grpc.Client\"0\n\x06\x43lient\x12\x18\n\x04role\x18\x01 \x01(\x0e\x32\n.grpc.Role\x12\x0c\n\x04name\x18\x02 \x01(\t\"m\n\x0fReassignRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x0e\n\x06server\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\r\"c\n\x10ReconnectRequest\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\x1e\n\x08receiver\x18\x02 \x01(\x0b\x32\x0c.grpc.Client\x12\x11\n\treconnect\x18\x03 \x01(\r\"\'\n\tParameter\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"T\n\x0e\x43ontrolRequest\x12\x1e\n\x07\x63ommand\x18\x01 \x01(\x0e\x32\r.grpc.Command\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"F\n\x0f\x43ontrolResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"R\n\x0eReportResponse\x12\x1c\n\x06sender\x18\x01 \x01(\x0b\x32\x0c.grpc.Client\x12\"\n\tparameter\x18\x02 \x03(\x0b\x32\x0f.grpc.Parameter\"\x13\n\x11\x43onnectionRequest\"<\n\x12\x43onnectionResponse\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.grpc.ConnectionStatus*u\n\nStatusType\x12\x07\n\x03LOG\x10\x00\x12\x18\n\x14MODEL_UPDATE_REQUEST\x10\x01\x12\x10\n\x0cMODEL_UPDATE\x10\x02\x12\x1c\n\x18MODEL_VALIDATION_REQUEST\x10\x03\x12\x14\n\x10MODEL_VALIDATION\x10\x04*\x86\x01\n\x07\x43hannel\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x19\n\x15MODEL_UPDATE_REQUESTS\x10\x01\x12\x11\n\rMODEL_UPDATES\x10\x02\x12\x1d\n\x19MODEL_VALIDATION_REQUESTS\x10\x03\x12\x15\n\x11MODEL_VALIDATIONS\x10\x04\x12\n\n\x06STATUS\x10\x05*F\n\x0bModelStatus\x12\x06\n\x02OK\x10\x00\x12\x0f\n\x0bIN_PROGRESS\x10\x01\x12\x12\n\x0eIN_PROGRESS_OK\x10\x02\x12\n\n\x06\x46\x41ILED\x10\x03*8\n\x04Role\x12\n\n\x06WORKER\x10\x00\x12\x0c\n\x08\x43OMBINER\x10\x01\x12\x0b\n\x07REDUCER\x10\x02\x12\t\n\x05OTHER\x10\x03*J\n\x07\x43ommand\x12\x08\n\x04IDLE\x10\x00\x12\t\n\x05START\x10\x01\x12\t\n\x05PAUSE\x10\x02\x12\x08\n\x04STOP\x10\x03\x12\t\n\x05RESET\x10\x04\x12\n\n\x06REPORT\x10\x05*I\n\x10\x43onnectionStatus\x12\x11\n\rNOT_ACCEPTING\x10\x00\x12\r\n\tACCEPTING\x10\x01\x12\x13\n\x0fTRY_AGAIN_LATER\x10\x02\x32z\n\x0cModelService\x12\x33\n\x06Upload\x12\x12.grpc.ModelRequest\x1a\x13.grpc.ModelResponse(\x01\x12\x35\n\x08\x44ownload\x12\x12.grpc.ModelRequest\x1a\x13.grpc.ModelResponse0\x01\x32\xe3\x01\n\x07\x43ontrol\x12\x34\n\x05Start\x12\x14.grpc.ControlRequest\x1a\x15.grpc.ControlResponse\x12\x33\n\x04Stop\x12\x14.grpc.ControlRequest\x1a\x15.grpc.ControlResponse\x12\x37\n\tConfigure\x12\x14.grpc.ControlRequest\x1a\x14.grpc.ReportResponse\x12\x34\n\x06Report\x12\x14.grpc.ControlRequest\x1a\x14.grpc.ReportResponse2V\n\x07Reducer\x12K\n\x0eGetGlobalModel\x12\x1b.grpc.GetGlobalModelRequest\x1a\x1c.grpc.GetGlobalModelResponse2\xab\x03\n\tConnector\x12\x44\n\x14\x41llianceStatusStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x0c.grpc.Status0\x01\x12*\n\nSendStatus\x12\x0c.grpc.Status\x1a\x0e.grpc.Response\x12?\n\x11ListActiveClients\x12\x18.grpc.ListClientsRequest\x1a\x10.grpc.ClientList\x12\x45\n\x10\x41\x63\x63\x65ptingClients\x12\x17.grpc.ConnectionRequest\x1a\x18.grpc.ConnectionResponse\x12\x30\n\rSendHeartbeat\x12\x0f.grpc.Heartbeat\x1a\x0e.grpc.Response\x12\x37\n\x0eReassignClient\x12\x15.grpc.ReassignRequest\x1a\x0e.grpc.Response\x12\x39\n\x0fReconnectClient\x12\x16.grpc.ReconnectRequest\x1a\x0e.grpc.Response2\xda\x04\n\x08\x43ombiner\x12T\n\x18ModelUpdateRequestStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x18.grpc.ModelUpdateRequest0\x01\x12\x46\n\x11ModelUpdateStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x11.grpc.ModelUpdate0\x01\x12\\\n\x1cModelValidationRequestStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x1c.grpc.ModelValidationRequest0\x01\x12N\n\x15ModelValidationStream\x12\x1c.grpc.ClientAvailableMessage\x1a\x15.grpc.ModelValidation0\x01\x12\x42\n\x16SendModelUpdateRequest\x12\x18.grpc.ModelUpdateRequest\x1a\x0e.grpc.Response\x12\x34\n\x0fSendModelUpdate\x12\x11.grpc.ModelUpdate\x1a\x0e.grpc.Response\x12J\n\x1aSendModelValidationRequest\x12\x1c.grpc.ModelValidationRequest\x1a\x0e.grpc.Response\x12<\n\x13SendModelValidation\x12\x15.grpc.ModelValidation\x1a\x0e.grpc.Responseb\x06proto3'
 )
 
 _STATUSTYPE = _descriptor.EnumDescriptor(
-  name='StatusType',
-  full_name='grpc.StatusType',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='LOG', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_UPDATE_REQUEST', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_UPDATE', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_VALIDATION_REQUEST', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_VALIDATION', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2361,
-  serialized_end=2478,
+    name='StatusType',
+    full_name='grpc.StatusType',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='LOG', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_UPDATE_REQUEST', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_UPDATE', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_VALIDATION_REQUEST', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_VALIDATION', index=4, number=4,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2361,
+    serialized_end=2478,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSTYPE)
 
 StatusType = enum_type_wrapper.EnumTypeWrapper(_STATUSTYPE)
 _CHANNEL = _descriptor.EnumDescriptor(
-  name='Channel',
-  full_name='grpc.Channel',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='DEFAULT', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_UPDATE_REQUESTS', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_UPDATES', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_VALIDATION_REQUESTS', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MODEL_VALIDATIONS', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='STATUS', index=5, number=5,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2481,
-  serialized_end=2615,
+    name='Channel',
+    full_name='grpc.Channel',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='DEFAULT', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_UPDATE_REQUESTS', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_UPDATES', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_VALIDATION_REQUESTS', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='MODEL_VALIDATIONS', index=4, number=4,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='STATUS', index=5, number=5,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2481,
+    serialized_end=2615,
 )
 _sym_db.RegisterEnumDescriptor(_CHANNEL)
 
 Channel = enum_type_wrapper.EnumTypeWrapper(_CHANNEL)
 _MODELSTATUS = _descriptor.EnumDescriptor(
-  name='ModelStatus',
-  full_name='grpc.ModelStatus',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='OK', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='IN_PROGRESS', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='IN_PROGRESS_OK', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='FAILED', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2617,
-  serialized_end=2687,
+    name='ModelStatus',
+    full_name='grpc.ModelStatus',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='OK', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='IN_PROGRESS', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='IN_PROGRESS_OK', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='FAILED', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2617,
+    serialized_end=2687,
 )
 _sym_db.RegisterEnumDescriptor(_MODELSTATUS)
 
 ModelStatus = enum_type_wrapper.EnumTypeWrapper(_MODELSTATUS)
 _ROLE = _descriptor.EnumDescriptor(
-  name='Role',
-  full_name='grpc.Role',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='WORKER', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='COMBINER', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='REDUCER', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='OTHER', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2689,
-  serialized_end=2745,
+    name='Role',
+    full_name='grpc.Role',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='WORKER', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='COMBINER', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='REDUCER', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='OTHER', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2689,
+    serialized_end=2745,
 )
 _sym_db.RegisterEnumDescriptor(_ROLE)
 
 Role = enum_type_wrapper.EnumTypeWrapper(_ROLE)
 _COMMAND = _descriptor.EnumDescriptor(
-  name='Command',
-  full_name='grpc.Command',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='IDLE', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='START', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PAUSE', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='STOP', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='RESET', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='REPORT', index=5, number=5,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2747,
-  serialized_end=2821,
+    name='Command',
+    full_name='grpc.Command',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='IDLE', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='START', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='PAUSE', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='STOP', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='RESET', index=4, number=4,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='REPORT', index=5, number=5,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2747,
+    serialized_end=2821,
 )
 _sym_db.RegisterEnumDescriptor(_COMMAND)
 
 Command = enum_type_wrapper.EnumTypeWrapper(_COMMAND)
 _CONNECTIONSTATUS = _descriptor.EnumDescriptor(
-  name='ConnectionStatus',
-  full_name='grpc.ConnectionStatus',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='NOT_ACCEPTING', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ACCEPTING', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='TRY_AGAIN_LATER', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2823,
-  serialized_end=2896,
+    name='ConnectionStatus',
+    full_name='grpc.ConnectionStatus',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='NOT_ACCEPTING', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='ACCEPTING', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='TRY_AGAIN_LATER', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=2823,
+    serialized_end=2896,
 )
 _sym_db.RegisterEnumDescriptor(_CONNECTIONSTATUS)
 
@@ -288,1146 +286,1122 @@ NOT_ACCEPTING = 0
 ACCEPTING = 1
 TRY_AGAIN_LATER = 2
 
-
 _STATUS_LOGLEVEL = _descriptor.EnumDescriptor(
-  name='LogLevel',
-  full_name='grpc.Status.LogLevel',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='INFO', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='DEBUG', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='WARNING', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ERROR', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='AUDIT', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=304,
-  serialized_end=370,
+    name='LogLevel',
+    full_name='grpc.Status.LogLevel',
+    filename=None,
+    file=DESCRIPTOR,
+    create_key=_descriptor._internal_create_key,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name='INFO', index=0, number=0,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='DEBUG', index=1, number=1,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='WARNING', index=2, number=2,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='ERROR', index=3, number=3,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+        _descriptor.EnumValueDescriptor(
+            name='AUDIT', index=4, number=4,
+            serialized_options=None,
+            type=None,
+            create_key=_descriptor._internal_create_key),
+    ],
+    containing_type=None,
+    serialized_options=None,
+    serialized_start=304,
+    serialized_end=370,
 )
 _sym_db.RegisterEnumDescriptor(_STATUS_LOGLEVEL)
 
-
 _RESPONSE = _descriptor.Descriptor(
-  name='Response',
-  full_name='grpc.Response',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.Response.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='response', full_name='grpc.Response.response', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=41,
-  serialized_end=99,
+    name='Response',
+    full_name='grpc.Response',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.Response.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='response', full_name='grpc.Response.response', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=41,
+    serialized_end=99,
 )
-
 
 _STATUS = _descriptor.Descriptor(
-  name='Status',
-  full_name='grpc.Status',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.Status.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='grpc.Status.status', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='log_level', full_name='grpc.Status.log_level', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.Status.data', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='correlation_id', full_name='grpc.Status.correlation_id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.Status.timestamp', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='type', full_name='grpc.Status.type', index=6,
-      number=7, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='extra', full_name='grpc.Status.extra', index=7,
-      number=8, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _STATUS_LOGLEVEL,
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=102,
-  serialized_end=370,
+    name='Status',
+    full_name='grpc.Status',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.Status.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='status', full_name='grpc.Status.status', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='log_level', full_name='grpc.Status.log_level', index=2,
+            number=3, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.Status.data', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='correlation_id', full_name='grpc.Status.correlation_id', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.Status.timestamp', index=5,
+            number=6, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='type', full_name='grpc.Status.type', index=6,
+            number=7, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='extra', full_name='grpc.Status.extra', index=7,
+            number=8, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+        _STATUS_LOGLEVEL,
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=102,
+    serialized_end=370,
 )
-
 
 _MODELUPDATEREQUEST = _descriptor.Descriptor(
-  name='ModelUpdateRequest',
-  full_name='grpc.ModelUpdateRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ModelUpdateRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ModelUpdateRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_id', full_name='grpc.ModelUpdateRequest.model_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ModelUpdateRequest.data', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='correlation_id', full_name='grpc.ModelUpdateRequest.correlation_id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.ModelUpdateRequest.timestamp', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=373,
-  serialized_end=530,
+    name='ModelUpdateRequest',
+    full_name='grpc.ModelUpdateRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ModelUpdateRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ModelUpdateRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_id', full_name='grpc.ModelUpdateRequest.model_id', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ModelUpdateRequest.data', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='correlation_id', full_name='grpc.ModelUpdateRequest.correlation_id', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.ModelUpdateRequest.timestamp', index=5,
+            number=6, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=373,
+    serialized_end=530,
 )
-
 
 _MODELUPDATE = _descriptor.Descriptor(
-  name='ModelUpdate',
-  full_name='grpc.ModelUpdate',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ModelUpdate.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ModelUpdate.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_id', full_name='grpc.ModelUpdate.model_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_update_id', full_name='grpc.ModelUpdate.model_update_id', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='correlation_id', full_name='grpc.ModelUpdate.correlation_id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.ModelUpdate.timestamp', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='meta', full_name='grpc.ModelUpdate.meta', index=6,
-      number=7, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=533,
-  serialized_end=708,
+    name='ModelUpdate',
+    full_name='grpc.ModelUpdate',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ModelUpdate.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ModelUpdate.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_id', full_name='grpc.ModelUpdate.model_id', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_update_id', full_name='grpc.ModelUpdate.model_update_id', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='correlation_id', full_name='grpc.ModelUpdate.correlation_id', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.ModelUpdate.timestamp', index=5,
+            number=6, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='meta', full_name='grpc.ModelUpdate.meta', index=6,
+            number=7, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=533,
+    serialized_end=708,
 )
-
 
 _MODELVALIDATIONREQUEST = _descriptor.Descriptor(
-  name='ModelValidationRequest',
-  full_name='grpc.ModelValidationRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ModelValidationRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ModelValidationRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_id', full_name='grpc.ModelValidationRequest.model_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ModelValidationRequest.data', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='correlation_id', full_name='grpc.ModelValidationRequest.correlation_id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.ModelValidationRequest.timestamp', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=711,
-  serialized_end=872,
+    name='ModelValidationRequest',
+    full_name='grpc.ModelValidationRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ModelValidationRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ModelValidationRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_id', full_name='grpc.ModelValidationRequest.model_id', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ModelValidationRequest.data', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='correlation_id', full_name='grpc.ModelValidationRequest.correlation_id', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.ModelValidationRequest.timestamp', index=5,
+            number=6, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=711,
+    serialized_end=872,
 )
-
 
 _MODELVALIDATION = _descriptor.Descriptor(
-  name='ModelValidation',
-  full_name='grpc.ModelValidation',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ModelValidation.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ModelValidation.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_id', full_name='grpc.ModelValidation.model_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ModelValidation.data', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='correlation_id', full_name='grpc.ModelValidation.correlation_id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.ModelValidation.timestamp', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='meta', full_name='grpc.ModelValidation.meta', index=6,
-      number=7, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=875,
-  serialized_end=1043,
+    name='ModelValidation',
+    full_name='grpc.ModelValidation',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ModelValidation.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ModelValidation.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_id', full_name='grpc.ModelValidation.model_id', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ModelValidation.data', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='correlation_id', full_name='grpc.ModelValidation.correlation_id', index=4,
+            number=5, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.ModelValidation.timestamp', index=5,
+            number=6, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='meta', full_name='grpc.ModelValidation.meta', index=6,
+            number=7, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=875,
+    serialized_end=1043,
 )
-
 
 _MODELREQUEST = _descriptor.Descriptor(
-  name='ModelRequest',
-  full_name='grpc.ModelRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ModelRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ModelRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ModelRequest.data', index=2,
-      number=3, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='grpc.ModelRequest.id', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='grpc.ModelRequest.status', index=4,
-      number=5, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1046,
-  serialized_end=1183,
+    name='ModelRequest',
+    full_name='grpc.ModelRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ModelRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ModelRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ModelRequest.data', index=2,
+            number=3, type=12, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"",
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='id', full_name='grpc.ModelRequest.id', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='status', full_name='grpc.ModelRequest.status', index=4,
+            number=5, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1046,
+    serialized_end=1183,
 )
-
 
 _MODELRESPONSE = _descriptor.Descriptor(
-  name='ModelResponse',
-  full_name='grpc.ModelResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ModelResponse.data', index=0,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='grpc.ModelResponse.id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='grpc.ModelResponse.status', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='message', full_name='grpc.ModelResponse.message', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1185,
-  serialized_end=1278,
+    name='ModelResponse',
+    full_name='grpc.ModelResponse',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ModelResponse.data', index=0,
+            number=1, type=12, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"",
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='id', full_name='grpc.ModelResponse.id', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='status', full_name='grpc.ModelResponse.status', index=2,
+            number=3, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='message', full_name='grpc.ModelResponse.message', index=3,
+            number=4, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1185,
+    serialized_end=1278,
 )
-
 
 _GETGLOBALMODELREQUEST = _descriptor.Descriptor(
-  name='GetGlobalModelRequest',
-  full_name='grpc.GetGlobalModelRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.GetGlobalModelRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.GetGlobalModelRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1280,
-  serialized_end=1365,
+    name='GetGlobalModelRequest',
+    full_name='grpc.GetGlobalModelRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.GetGlobalModelRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.GetGlobalModelRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1280,
+    serialized_end=1365,
 )
-
 
 _GETGLOBALMODELRESPONSE = _descriptor.Descriptor(
-  name='GetGlobalModelResponse',
-  full_name='grpc.GetGlobalModelResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.GetGlobalModelResponse.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.GetGlobalModelResponse.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='model_id', full_name='grpc.GetGlobalModelResponse.model_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1367,
-  serialized_end=1471,
+    name='GetGlobalModelResponse',
+    full_name='grpc.GetGlobalModelResponse',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.GetGlobalModelResponse.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.GetGlobalModelResponse.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='model_id', full_name='grpc.GetGlobalModelResponse.model_id', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1367,
+    serialized_end=1471,
 )
-
 
 _HEARTBEAT = _descriptor.Descriptor(
-  name='Heartbeat',
-  full_name='grpc.Heartbeat',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.Heartbeat.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1473,
-  serialized_end=1514,
+    name='Heartbeat',
+    full_name='grpc.Heartbeat',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.Heartbeat.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1473,
+    serialized_end=1514,
 )
-
 
 _CLIENTAVAILABLEMESSAGE = _descriptor.Descriptor(
-  name='ClientAvailableMessage',
-  full_name='grpc.ClientAvailableMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ClientAvailableMessage.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='grpc.ClientAvailableMessage.data', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='grpc.ClientAvailableMessage.timestamp', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1516,
-  serialized_end=1603,
+    name='ClientAvailableMessage',
+    full_name='grpc.ClientAvailableMessage',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ClientAvailableMessage.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='data', full_name='grpc.ClientAvailableMessage.data', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='timestamp', full_name='grpc.ClientAvailableMessage.timestamp', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1516,
+    serialized_end=1603,
 )
-
 
 _LISTCLIENTSREQUEST = _descriptor.Descriptor(
-  name='ListClientsRequest',
-  full_name='grpc.ListClientsRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ListClientsRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='channel', full_name='grpc.ListClientsRequest.channel', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1605,
-  serialized_end=1687,
+    name='ListClientsRequest',
+    full_name='grpc.ListClientsRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ListClientsRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='channel', full_name='grpc.ListClientsRequest.channel', index=1,
+            number=2, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1605,
+    serialized_end=1687,
 )
-
 
 _CLIENTLIST = _descriptor.Descriptor(
-  name='ClientList',
-  full_name='grpc.ClientList',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='client', full_name='grpc.ClientList.client', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1689,
-  serialized_end=1731,
+    name='ClientList',
+    full_name='grpc.ClientList',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='client', full_name='grpc.ClientList.client', index=0,
+            number=1, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1689,
+    serialized_end=1731,
 )
-
 
 _CLIENT = _descriptor.Descriptor(
-  name='Client',
-  full_name='grpc.Client',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='role', full_name='grpc.Client.role', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='name', full_name='grpc.Client.name', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1733,
-  serialized_end=1781,
+    name='Client',
+    full_name='grpc.Client',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='role', full_name='grpc.Client.role', index=0,
+            number=1, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='name', full_name='grpc.Client.name', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1733,
+    serialized_end=1781,
 )
-
 
 _REASSIGNREQUEST = _descriptor.Descriptor(
-  name='ReassignRequest',
-  full_name='grpc.ReassignRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ReassignRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ReassignRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='server', full_name='grpc.ReassignRequest.server', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='port', full_name='grpc.ReassignRequest.port', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1783,
-  serialized_end=1892,
+    name='ReassignRequest',
+    full_name='grpc.ReassignRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ReassignRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ReassignRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='server', full_name='grpc.ReassignRequest.server', index=2,
+            number=3, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='port', full_name='grpc.ReassignRequest.port', index=3,
+            number=4, type=13, cpp_type=3, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1783,
+    serialized_end=1892,
 )
-
 
 _RECONNECTREQUEST = _descriptor.Descriptor(
-  name='ReconnectRequest',
-  full_name='grpc.ReconnectRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ReconnectRequest.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='receiver', full_name='grpc.ReconnectRequest.receiver', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='reconnect', full_name='grpc.ReconnectRequest.reconnect', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1894,
-  serialized_end=1993,
+    name='ReconnectRequest',
+    full_name='grpc.ReconnectRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ReconnectRequest.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='receiver', full_name='grpc.ReconnectRequest.receiver', index=1,
+            number=2, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='reconnect', full_name='grpc.ReconnectRequest.reconnect', index=2,
+            number=3, type=13, cpp_type=3, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1894,
+    serialized_end=1993,
 )
-
 
 _PARAMETER = _descriptor.Descriptor(
-  name='Parameter',
-  full_name='grpc.Parameter',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='grpc.Parameter.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='grpc.Parameter.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1995,
-  serialized_end=2034,
+    name='Parameter',
+    full_name='grpc.Parameter',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='key', full_name='grpc.Parameter.key', index=0,
+            number=1, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='value', full_name='grpc.Parameter.value', index=1,
+            number=2, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=1995,
+    serialized_end=2034,
 )
-
 
 _CONTROLREQUEST = _descriptor.Descriptor(
-  name='ControlRequest',
-  full_name='grpc.ControlRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='command', full_name='grpc.ControlRequest.command', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='parameter', full_name='grpc.ControlRequest.parameter', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2036,
-  serialized_end=2120,
+    name='ControlRequest',
+    full_name='grpc.ControlRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='command', full_name='grpc.ControlRequest.command', index=0,
+            number=1, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='parameter', full_name='grpc.ControlRequest.parameter', index=1,
+            number=2, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=2036,
+    serialized_end=2120,
 )
-
 
 _CONTROLRESPONSE = _descriptor.Descriptor(
-  name='ControlResponse',
-  full_name='grpc.ControlResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='message', full_name='grpc.ControlResponse.message', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='parameter', full_name='grpc.ControlResponse.parameter', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2122,
-  serialized_end=2192,
+    name='ControlResponse',
+    full_name='grpc.ControlResponse',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='message', full_name='grpc.ControlResponse.message', index=0,
+            number=1, type=9, cpp_type=9, label=1,
+            has_default_value=False, default_value=b"".decode('utf-8'),
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='parameter', full_name='grpc.ControlResponse.parameter', index=1,
+            number=2, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=2122,
+    serialized_end=2192,
 )
-
 
 _REPORTRESPONSE = _descriptor.Descriptor(
-  name='ReportResponse',
-  full_name='grpc.ReportResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='sender', full_name='grpc.ReportResponse.sender', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='parameter', full_name='grpc.ReportResponse.parameter', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2194,
-  serialized_end=2276,
+    name='ReportResponse',
+    full_name='grpc.ReportResponse',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='sender', full_name='grpc.ReportResponse.sender', index=0,
+            number=1, type=11, cpp_type=10, label=1,
+            has_default_value=False, default_value=None,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+        _descriptor.FieldDescriptor(
+            name='parameter', full_name='grpc.ReportResponse.parameter', index=1,
+            number=2, type=11, cpp_type=10, label=3,
+            has_default_value=False, default_value=[],
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=2194,
+    serialized_end=2276,
 )
-
 
 _CONNECTIONREQUEST = _descriptor.Descriptor(
-  name='ConnectionRequest',
-  full_name='grpc.ConnectionRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2278,
-  serialized_end=2297,
+    name='ConnectionRequest',
+    full_name='grpc.ConnectionRequest',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=2278,
+    serialized_end=2297,
 )
 
-
 _CONNECTIONRESPONSE = _descriptor.Descriptor(
-  name='ConnectionResponse',
-  full_name='grpc.ConnectionResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='status', full_name='grpc.ConnectionResponse.status', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2299,
-  serialized_end=2359,
+    name='ConnectionResponse',
+    full_name='grpc.ConnectionResponse',
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name='status', full_name='grpc.ConnectionResponse.status', index=0,
+            number=1, type=14, cpp_type=8, label=1,
+            has_default_value=False, default_value=0,
+            message_type=None, enum_type=None, containing_type=None,
+            is_extension=False, extension_scope=None,
+            serialized_options=None, file=DESCRIPTOR, create_key=_descriptor._internal_create_key),
+    ],
+    extensions=[
+    ],
+    nested_types=[],
+    enum_types=[
+    ],
+    serialized_options=None,
+    is_extendable=False,
+    syntax='proto3',
+    extension_ranges=[],
+    oneofs=[
+    ],
+    serialized_start=2299,
+    serialized_end=2359,
 )
 
 _RESPONSE.fields_by_name['sender'].message_type = _CLIENT
@@ -1499,463 +1473,457 @@ DESCRIPTOR.enum_types_by_name['ConnectionStatus'] = _CONNECTIONSTATUS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Message,), {
-  'DESCRIPTOR' : _RESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Response)
-  })
+    'DESCRIPTOR': _RESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.Response)
+})
 _sym_db.RegisterMessage(Response)
 
 Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), {
-  'DESCRIPTOR' : _STATUS,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Status)
-  })
+    'DESCRIPTOR': _STATUS,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.Status)
+})
 _sym_db.RegisterMessage(Status)
 
 ModelUpdateRequest = _reflection.GeneratedProtocolMessageType('ModelUpdateRequest', (_message.Message,), {
-  'DESCRIPTOR' : _MODELUPDATEREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelUpdateRequest)
-  })
+    'DESCRIPTOR': _MODELUPDATEREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelUpdateRequest)
+})
 _sym_db.RegisterMessage(ModelUpdateRequest)
 
 ModelUpdate = _reflection.GeneratedProtocolMessageType('ModelUpdate', (_message.Message,), {
-  'DESCRIPTOR' : _MODELUPDATE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelUpdate)
-  })
+    'DESCRIPTOR': _MODELUPDATE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelUpdate)
+})
 _sym_db.RegisterMessage(ModelUpdate)
 
 ModelValidationRequest = _reflection.GeneratedProtocolMessageType('ModelValidationRequest', (_message.Message,), {
-  'DESCRIPTOR' : _MODELVALIDATIONREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelValidationRequest)
-  })
+    'DESCRIPTOR': _MODELVALIDATIONREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelValidationRequest)
+})
 _sym_db.RegisterMessage(ModelValidationRequest)
 
 ModelValidation = _reflection.GeneratedProtocolMessageType('ModelValidation', (_message.Message,), {
-  'DESCRIPTOR' : _MODELVALIDATION,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelValidation)
-  })
+    'DESCRIPTOR': _MODELVALIDATION,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelValidation)
+})
 _sym_db.RegisterMessage(ModelValidation)
 
 ModelRequest = _reflection.GeneratedProtocolMessageType('ModelRequest', (_message.Message,), {
-  'DESCRIPTOR' : _MODELREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelRequest)
-  })
+    'DESCRIPTOR': _MODELREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelRequest)
+})
 _sym_db.RegisterMessage(ModelRequest)
 
 ModelResponse = _reflection.GeneratedProtocolMessageType('ModelResponse', (_message.Message,), {
-  'DESCRIPTOR' : _MODELRESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ModelResponse)
-  })
+    'DESCRIPTOR': _MODELRESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ModelResponse)
+})
 _sym_db.RegisterMessage(ModelResponse)
 
 GetGlobalModelRequest = _reflection.GeneratedProtocolMessageType('GetGlobalModelRequest', (_message.Message,), {
-  'DESCRIPTOR' : _GETGLOBALMODELREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.GetGlobalModelRequest)
-  })
+    'DESCRIPTOR': _GETGLOBALMODELREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.GetGlobalModelRequest)
+})
 _sym_db.RegisterMessage(GetGlobalModelRequest)
 
 GetGlobalModelResponse = _reflection.GeneratedProtocolMessageType('GetGlobalModelResponse', (_message.Message,), {
-  'DESCRIPTOR' : _GETGLOBALMODELRESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.GetGlobalModelResponse)
-  })
+    'DESCRIPTOR': _GETGLOBALMODELRESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.GetGlobalModelResponse)
+})
 _sym_db.RegisterMessage(GetGlobalModelResponse)
 
 Heartbeat = _reflection.GeneratedProtocolMessageType('Heartbeat', (_message.Message,), {
-  'DESCRIPTOR' : _HEARTBEAT,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Heartbeat)
-  })
+    'DESCRIPTOR': _HEARTBEAT,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.Heartbeat)
+})
 _sym_db.RegisterMessage(Heartbeat)
 
 ClientAvailableMessage = _reflection.GeneratedProtocolMessageType('ClientAvailableMessage', (_message.Message,), {
-  'DESCRIPTOR' : _CLIENTAVAILABLEMESSAGE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ClientAvailableMessage)
-  })
+    'DESCRIPTOR': _CLIENTAVAILABLEMESSAGE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ClientAvailableMessage)
+})
 _sym_db.RegisterMessage(ClientAvailableMessage)
 
 ListClientsRequest = _reflection.GeneratedProtocolMessageType('ListClientsRequest', (_message.Message,), {
-  'DESCRIPTOR' : _LISTCLIENTSREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ListClientsRequest)
-  })
+    'DESCRIPTOR': _LISTCLIENTSREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ListClientsRequest)
+})
 _sym_db.RegisterMessage(ListClientsRequest)
 
 ClientList = _reflection.GeneratedProtocolMessageType('ClientList', (_message.Message,), {
-  'DESCRIPTOR' : _CLIENTLIST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ClientList)
-  })
+    'DESCRIPTOR': _CLIENTLIST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ClientList)
+})
 _sym_db.RegisterMessage(ClientList)
 
 Client = _reflection.GeneratedProtocolMessageType('Client', (_message.Message,), {
-  'DESCRIPTOR' : _CLIENT,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Client)
-  })
+    'DESCRIPTOR': _CLIENT,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.Client)
+})
 _sym_db.RegisterMessage(Client)
 
 ReassignRequest = _reflection.GeneratedProtocolMessageType('ReassignRequest', (_message.Message,), {
-  'DESCRIPTOR' : _REASSIGNREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ReassignRequest)
-  })
+    'DESCRIPTOR': _REASSIGNREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ReassignRequest)
+})
 _sym_db.RegisterMessage(ReassignRequest)
 
 ReconnectRequest = _reflection.GeneratedProtocolMessageType('ReconnectRequest', (_message.Message,), {
-  'DESCRIPTOR' : _RECONNECTREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ReconnectRequest)
-  })
+    'DESCRIPTOR': _RECONNECTREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ReconnectRequest)
+})
 _sym_db.RegisterMessage(ReconnectRequest)
 
 Parameter = _reflection.GeneratedProtocolMessageType('Parameter', (_message.Message,), {
-  'DESCRIPTOR' : _PARAMETER,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Parameter)
-  })
+    'DESCRIPTOR': _PARAMETER,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.Parameter)
+})
 _sym_db.RegisterMessage(Parameter)
 
 ControlRequest = _reflection.GeneratedProtocolMessageType('ControlRequest', (_message.Message,), {
-  'DESCRIPTOR' : _CONTROLREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ControlRequest)
-  })
+    'DESCRIPTOR': _CONTROLREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ControlRequest)
+})
 _sym_db.RegisterMessage(ControlRequest)
 
 ControlResponse = _reflection.GeneratedProtocolMessageType('ControlResponse', (_message.Message,), {
-  'DESCRIPTOR' : _CONTROLRESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ControlResponse)
-  })
+    'DESCRIPTOR': _CONTROLRESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ControlResponse)
+})
 _sym_db.RegisterMessage(ControlResponse)
 
 ReportResponse = _reflection.GeneratedProtocolMessageType('ReportResponse', (_message.Message,), {
-  'DESCRIPTOR' : _REPORTRESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ReportResponse)
-  })
+    'DESCRIPTOR': _REPORTRESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ReportResponse)
+})
 _sym_db.RegisterMessage(ReportResponse)
 
 ConnectionRequest = _reflection.GeneratedProtocolMessageType('ConnectionRequest', (_message.Message,), {
-  'DESCRIPTOR' : _CONNECTIONREQUEST,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ConnectionRequest)
-  })
+    'DESCRIPTOR': _CONNECTIONREQUEST,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ConnectionRequest)
+})
 _sym_db.RegisterMessage(ConnectionRequest)
 
 ConnectionResponse = _reflection.GeneratedProtocolMessageType('ConnectionResponse', (_message.Message,), {
-  'DESCRIPTOR' : _CONNECTIONRESPONSE,
-  '__module__' : 'fedn.common.net.grpc.fedn_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.ConnectionResponse)
-  })
+    'DESCRIPTOR': _CONNECTIONRESPONSE,
+    '__module__': 'fedn.common.net.grpc.fedn_pb2'
+    # @@protoc_insertion_point(class_scope:grpc.ConnectionResponse)
+})
 _sym_db.RegisterMessage(ConnectionResponse)
 
-
-
 _MODELSERVICE = _descriptor.ServiceDescriptor(
-  name='ModelService',
-  full_name='grpc.ModelService',
-  file=DESCRIPTOR,
-  index=0,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=2898,
-  serialized_end=3020,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='Upload',
-    full_name='grpc.ModelService.Upload',
+    name='ModelService',
+    full_name='grpc.ModelService',
+    file=DESCRIPTOR,
     index=0,
-    containing_service=None,
-    input_type=_MODELREQUEST,
-    output_type=_MODELRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='Download',
-    full_name='grpc.ModelService.Download',
-    index=1,
-    containing_service=None,
-    input_type=_MODELREQUEST,
-    output_type=_MODELRESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=2898,
+    serialized_end=3020,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name='Upload',
+            full_name='grpc.ModelService.Upload',
+            index=0,
+            containing_service=None,
+            input_type=_MODELREQUEST,
+            output_type=_MODELRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='Download',
+            full_name='grpc.ModelService.Download',
+            index=1,
+            containing_service=None,
+            input_type=_MODELREQUEST,
+            output_type=_MODELRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ])
 _sym_db.RegisterServiceDescriptor(_MODELSERVICE)
 
 DESCRIPTOR.services_by_name['ModelService'] = _MODELSERVICE
 
-
 _CONTROL = _descriptor.ServiceDescriptor(
-  name='Control',
-  full_name='grpc.Control',
-  file=DESCRIPTOR,
-  index=1,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=3023,
-  serialized_end=3250,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='Start',
-    full_name='grpc.Control.Start',
-    index=0,
-    containing_service=None,
-    input_type=_CONTROLREQUEST,
-    output_type=_CONTROLRESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='Stop',
-    full_name='grpc.Control.Stop',
+    name='Control',
+    full_name='grpc.Control',
+    file=DESCRIPTOR,
     index=1,
-    containing_service=None,
-    input_type=_CONTROLREQUEST,
-    output_type=_CONTROLRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='Configure',
-    full_name='grpc.Control.Configure',
-    index=2,
-    containing_service=None,
-    input_type=_CONTROLREQUEST,
-    output_type=_REPORTRESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='Report',
-    full_name='grpc.Control.Report',
-    index=3,
-    containing_service=None,
-    input_type=_CONTROLREQUEST,
-    output_type=_REPORTRESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=3023,
+    serialized_end=3250,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name='Start',
+            full_name='grpc.Control.Start',
+            index=0,
+            containing_service=None,
+            input_type=_CONTROLREQUEST,
+            output_type=_CONTROLRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='Stop',
+            full_name='grpc.Control.Stop',
+            index=1,
+            containing_service=None,
+            input_type=_CONTROLREQUEST,
+            output_type=_CONTROLRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='Configure',
+            full_name='grpc.Control.Configure',
+            index=2,
+            containing_service=None,
+            input_type=_CONTROLREQUEST,
+            output_type=_REPORTRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='Report',
+            full_name='grpc.Control.Report',
+            index=3,
+            containing_service=None,
+            input_type=_CONTROLREQUEST,
+            output_type=_REPORTRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ])
 _sym_db.RegisterServiceDescriptor(_CONTROL)
 
 DESCRIPTOR.services_by_name['Control'] = _CONTROL
 
-
 _REDUCER = _descriptor.ServiceDescriptor(
-  name='Reducer',
-  full_name='grpc.Reducer',
-  file=DESCRIPTOR,
-  index=2,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=3252,
-  serialized_end=3338,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='GetGlobalModel',
-    full_name='grpc.Reducer.GetGlobalModel',
-    index=0,
-    containing_service=None,
-    input_type=_GETGLOBALMODELREQUEST,
-    output_type=_GETGLOBALMODELRESPONSE,
+    name='Reducer',
+    full_name='grpc.Reducer',
+    file=DESCRIPTOR,
+    index=2,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=3252,
+    serialized_end=3338,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name='GetGlobalModel',
+            full_name='grpc.Reducer.GetGlobalModel',
+            index=0,
+            containing_service=None,
+            input_type=_GETGLOBALMODELREQUEST,
+            output_type=_GETGLOBALMODELRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ])
 _sym_db.RegisterServiceDescriptor(_REDUCER)
 
 DESCRIPTOR.services_by_name['Reducer'] = _REDUCER
 
-
 _CONNECTOR = _descriptor.ServiceDescriptor(
-  name='Connector',
-  full_name='grpc.Connector',
-  file=DESCRIPTOR,
-  index=3,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=3341,
-  serialized_end=3768,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='AllianceStatusStream',
-    full_name='grpc.Connector.AllianceStatusStream',
-    index=0,
-    containing_service=None,
-    input_type=_CLIENTAVAILABLEMESSAGE,
-    output_type=_STATUS,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendStatus',
-    full_name='grpc.Connector.SendStatus',
-    index=1,
-    containing_service=None,
-    input_type=_STATUS,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ListActiveClients',
-    full_name='grpc.Connector.ListActiveClients',
-    index=2,
-    containing_service=None,
-    input_type=_LISTCLIENTSREQUEST,
-    output_type=_CLIENTLIST,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='AcceptingClients',
-    full_name='grpc.Connector.AcceptingClients',
+    name='Connector',
+    full_name='grpc.Connector',
+    file=DESCRIPTOR,
     index=3,
-    containing_service=None,
-    input_type=_CONNECTIONREQUEST,
-    output_type=_CONNECTIONRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendHeartbeat',
-    full_name='grpc.Connector.SendHeartbeat',
-    index=4,
-    containing_service=None,
-    input_type=_HEARTBEAT,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ReassignClient',
-    full_name='grpc.Connector.ReassignClient',
-    index=5,
-    containing_service=None,
-    input_type=_REASSIGNREQUEST,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ReconnectClient',
-    full_name='grpc.Connector.ReconnectClient',
-    index=6,
-    containing_service=None,
-    input_type=_RECONNECTREQUEST,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=3341,
+    serialized_end=3768,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name='AllianceStatusStream',
+            full_name='grpc.Connector.AllianceStatusStream',
+            index=0,
+            containing_service=None,
+            input_type=_CLIENTAVAILABLEMESSAGE,
+            output_type=_STATUS,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendStatus',
+            full_name='grpc.Connector.SendStatus',
+            index=1,
+            containing_service=None,
+            input_type=_STATUS,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ListActiveClients',
+            full_name='grpc.Connector.ListActiveClients',
+            index=2,
+            containing_service=None,
+            input_type=_LISTCLIENTSREQUEST,
+            output_type=_CLIENTLIST,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='AcceptingClients',
+            full_name='grpc.Connector.AcceptingClients',
+            index=3,
+            containing_service=None,
+            input_type=_CONNECTIONREQUEST,
+            output_type=_CONNECTIONRESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendHeartbeat',
+            full_name='grpc.Connector.SendHeartbeat',
+            index=4,
+            containing_service=None,
+            input_type=_HEARTBEAT,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ReassignClient',
+            full_name='grpc.Connector.ReassignClient',
+            index=5,
+            containing_service=None,
+            input_type=_REASSIGNREQUEST,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ReconnectClient',
+            full_name='grpc.Connector.ReconnectClient',
+            index=6,
+            containing_service=None,
+            input_type=_RECONNECTREQUEST,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ])
 _sym_db.RegisterServiceDescriptor(_CONNECTOR)
 
 DESCRIPTOR.services_by_name['Connector'] = _CONNECTOR
 
-
 _COMBINER = _descriptor.ServiceDescriptor(
-  name='Combiner',
-  full_name='grpc.Combiner',
-  file=DESCRIPTOR,
-  index=4,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=3771,
-  serialized_end=4373,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='ModelUpdateRequestStream',
-    full_name='grpc.Combiner.ModelUpdateRequestStream',
-    index=0,
-    containing_service=None,
-    input_type=_CLIENTAVAILABLEMESSAGE,
-    output_type=_MODELUPDATEREQUEST,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ModelUpdateStream',
-    full_name='grpc.Combiner.ModelUpdateStream',
-    index=1,
-    containing_service=None,
-    input_type=_CLIENTAVAILABLEMESSAGE,
-    output_type=_MODELUPDATE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ModelValidationRequestStream',
-    full_name='grpc.Combiner.ModelValidationRequestStream',
-    index=2,
-    containing_service=None,
-    input_type=_CLIENTAVAILABLEMESSAGE,
-    output_type=_MODELVALIDATIONREQUEST,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='ModelValidationStream',
-    full_name='grpc.Combiner.ModelValidationStream',
-    index=3,
-    containing_service=None,
-    input_type=_CLIENTAVAILABLEMESSAGE,
-    output_type=_MODELVALIDATION,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendModelUpdateRequest',
-    full_name='grpc.Combiner.SendModelUpdateRequest',
+    name='Combiner',
+    full_name='grpc.Combiner',
+    file=DESCRIPTOR,
     index=4,
-    containing_service=None,
-    input_type=_MODELUPDATEREQUEST,
-    output_type=_RESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendModelUpdate',
-    full_name='grpc.Combiner.SendModelUpdate',
-    index=5,
-    containing_service=None,
-    input_type=_MODELUPDATE,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendModelValidationRequest',
-    full_name='grpc.Combiner.SendModelValidationRequest',
-    index=6,
-    containing_service=None,
-    input_type=_MODELVALIDATIONREQUEST,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='SendModelValidation',
-    full_name='grpc.Combiner.SendModelValidation',
-    index=7,
-    containing_service=None,
-    input_type=_MODELVALIDATION,
-    output_type=_RESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=3771,
+    serialized_end=4373,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name='ModelUpdateRequestStream',
+            full_name='grpc.Combiner.ModelUpdateRequestStream',
+            index=0,
+            containing_service=None,
+            input_type=_CLIENTAVAILABLEMESSAGE,
+            output_type=_MODELUPDATEREQUEST,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ModelUpdateStream',
+            full_name='grpc.Combiner.ModelUpdateStream',
+            index=1,
+            containing_service=None,
+            input_type=_CLIENTAVAILABLEMESSAGE,
+            output_type=_MODELUPDATE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ModelValidationRequestStream',
+            full_name='grpc.Combiner.ModelValidationRequestStream',
+            index=2,
+            containing_service=None,
+            input_type=_CLIENTAVAILABLEMESSAGE,
+            output_type=_MODELVALIDATIONREQUEST,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='ModelValidationStream',
+            full_name='grpc.Combiner.ModelValidationStream',
+            index=3,
+            containing_service=None,
+            input_type=_CLIENTAVAILABLEMESSAGE,
+            output_type=_MODELVALIDATION,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendModelUpdateRequest',
+            full_name='grpc.Combiner.SendModelUpdateRequest',
+            index=4,
+            containing_service=None,
+            input_type=_MODELUPDATEREQUEST,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendModelUpdate',
+            full_name='grpc.Combiner.SendModelUpdate',
+            index=5,
+            containing_service=None,
+            input_type=_MODELUPDATE,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendModelValidationRequest',
+            full_name='grpc.Combiner.SendModelValidationRequest',
+            index=6,
+            containing_service=None,
+            input_type=_MODELVALIDATIONREQUEST,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.MethodDescriptor(
+            name='SendModelValidation',
+            full_name='grpc.Combiner.SendModelValidation',
+            index=7,
+            containing_service=None,
+            input_type=_MODELVALIDATION,
+            output_type=_RESPONSE,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ])
 _sym_db.RegisterServiceDescriptor(_COMBINER)
 
 DESCRIPTOR.services_by_name['Combiner'] = _COMBINER

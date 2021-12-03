@@ -2,14 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='fedn',
-    version='0.2.5',
+    version='0.3.0-dev',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     author='Morgan Ekmefjord',
     author_email='morgan@scaleout.se',
     url='https://www.scaleoutsystems.com',
-    include_package_data=True,
     py_modules=['fedn'],
     python_requires='>=3.6,<4',
     install_requires=[
@@ -33,6 +32,8 @@ setup(
         "geoip2",
         "plotly",
         "pandas",
+        "bokeh",
+        "networkx"
     ],
     license="Copyright Scaleout Systems AB. See license for details",
     zip_safe=False,

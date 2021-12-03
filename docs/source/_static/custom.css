@@ -1,0 +1,32 @@
+html {
+  scroll-behavior: smooth;
+}
+
+a {
+  color: #0298fb;
+}
+
+.vp-sidebar .toctree-l1 a:link, .vp-sidebar .toctree-l2 a:link {
+   color: #000;
+}
+
+.vp-sidebar .toctree-l1 a:active, .vp-sidebar .toctree-l2 a:active {
+   font-weight: 500;
+}
+
+
+.vp-sidebar .toctree-l1 a:hover, .vp-sidebar .toctree-l2 ,a:hover {
+   color: #0298fb;
+}
+
+.vp-sidebar .toctree-l1.current a {
+    border-left: .5rem solid #02bbff;
+}
+
+.vp-sidebar .toctree-l1 a.current {
+    border-left-color: #0076ff;
+}
+
+.highlight pre {
+  color: #48b685;
+}
