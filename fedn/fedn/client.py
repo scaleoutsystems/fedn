@@ -75,9 +75,7 @@ class Client:
         self.inbox = queue.Queue()
 
         client_config=self._attach()
-        if client_config:
-            self._attached = True
-
+     
         self._initialize_dispatcher(config)
 
         self._initialize_helper(client_config)
@@ -90,12 +88,16 @@ class Client:
 
     def _detach(self):
         self._attached = False
+        self._disconnect()
 
     def _attach(self):
         """ """
         # Ask controller for a combiner and connect to that combiner.
         client_config = self._assign()
+        print(client_config,flush=True)
         self._connect(client_config)
+        if client_config: 
+            self._attached=True
         return client_config
 
     def _initialize_helper(self,client_config):
@@ -203,6 +205,8 @@ class Client:
         else:
             channel = grpc.insecure_channel("{}:{}".format(client_config['host'], str(client_config['port'])))
 
+        self.channel = channel
+
         self.connection = rpc.ConnectorStub(channel)
         self.orchestrator = rpc.CombinerStub(channel)
         self.models = rpc.ModelServiceStub(channel)
@@ -210,6 +214,10 @@ class Client:
         print("Client: {} connected {} to {}:{}".format(self.name,
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
+
+    def _disconnect(self):
+        self.channel.close()
+
 
     def get_model(self, id):
         """Fetch a model from the assigned combiner. 
@@ -304,19 +312,18 @@ class Client:
                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
 
                         self.inbox.put(('train', request))
+                    
+                    if not self._attached: 
+                        return 
 
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
-                _disconect = True
-                break
-            #    retry += 1 
                 
-            if _disconnect: 
-                return 
+
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream. """
@@ -332,14 +339,18 @@ class Client:
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
                                      type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
                     self.inbox.put(('validate', request))
- 
+
+                    if not self._attached: 
+                        return 
+
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 import time
                 time.sleep(timeout)
+            
 
     def process_request(self):
         """Process training and validation tasks. """
@@ -485,6 +496,14 @@ class Client:
         self.state = ClientState.idle
         return validation
 
+    def _handle_combiner_failure(self):
+        """ Register failed combiner connection. 
+
+        """
+        self._failed_combiner += 1 
+        if self._failed_combiner > 3: 
+            self._detach()
+
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner. 
         
@@ -499,10 +518,12 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER))
             try:
                 self.connection.SendHeartbeat(heartbeat)
+                self._failed_combiner = 0
             except grpc.RpcError as e:
                 status_code = e.code()
                 # TODO: Handle / escalate failure to ping the combiner
                 print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(status_code.name), flush=True)
+                self._handle_combiner_failure()
                 
             time.sleep(update_frequency)
 
@@ -576,7 +597,9 @@ class Client:
                     print("{}:CLIENT active".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
                 if not self._attached:
-                    print("Detatched from the gRPC connection.") 
+                    print("Detatched from combiner.") 
+                    self._attach()
+                    #exit(-1)
                 if self.error_state:
                     return
         except KeyboardInterrupt:
