@@ -390,17 +390,14 @@ class ReducerRestService:
 
                 # checking if there are enough clients connected to start!
                 clients_available = 0
-                try:
-                    for combiner in self.control.network.get_combiners():
-                        print(combiner,flush=True)
-                        if combiner.allowing_clients():
-                            combiner_state = combiner.report()
-                            nac = combiner_state['nr_active_clients']
+                for combiner in self.control.network.get_combiners():
+                    try: 
+                        combiner_state = combiner.report()
+                        nac = combiner_state['nr_active_clients']
+                        clients_available = clients_available + int(nac)
+                    except Exception as e:
+                        pass
 
-                            clients_available = clients_available + int(nac)
-                except Exception as e:
-                    print ("ERRORROOROR: ", e, flush=True)
-                    pass
 
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
