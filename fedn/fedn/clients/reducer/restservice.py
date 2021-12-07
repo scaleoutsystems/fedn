@@ -398,7 +398,6 @@ class ReducerRestService:
                     except Exception as e:
                         pass
 
-
                 if clients_available < clients_required:
                     return redirect(url_for('index', state=state,
                                             message="Not enough clients available to start rounds! "
