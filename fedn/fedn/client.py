@@ -271,7 +271,6 @@ class Client:
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
         metadata = [('client', r.sender.name)]
-        import time
         while True:
             try:
                 for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
@@ -287,8 +286,9 @@ class Client:
                 timeout = 5
                 print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
                     status_code.name, timeout), flush=True)
-                import time
                 time.sleep(timeout)
+            except:
+                raise
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream. """
@@ -315,7 +315,6 @@ class Client:
 
     def process_request(self):
         """Process training and validation tasks. """
-
         while True:
             (task_type, request) = self.inbox.get()
             if task_type == 'train':
@@ -377,8 +376,6 @@ class Client:
 
                 self.state = ClientState.idle
                 self.inbox.task_done()
-
-
 
     def _process_training_request(self, model_id):
         """Process a training (model update) request. 
