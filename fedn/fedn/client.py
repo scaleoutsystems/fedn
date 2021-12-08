@@ -302,7 +302,6 @@ class Client:
         metadata = [('client', r.sender.name)]
         _disconnect = False
 
-        import time
         while True:
             try:
                 for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
@@ -319,11 +318,11 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                #print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
-                #    status_code.name, timeout), flush=True)
+                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
+                    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
-                
-
+            except:
+                raise
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream. """
@@ -346,15 +345,13 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 timeout = 5
-                #print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                #    status_code.name, timeout), flush=True)
-                import time
+                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
+                    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             
 
     def process_request(self):
         """Process training and validation tasks. """
-
         while True:
             (task_type, request) = self.inbox.get()
             if task_type == 'train':

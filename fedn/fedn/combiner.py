@@ -52,6 +52,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     """ Communication relayer. """
 
     def __init__(self, connect_config):
+
+        # Holds client queues 
         self.clients = {}
 
         self.modelservice = ModelService()
@@ -505,8 +507,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        while True:
-            yield q.get()
+        while context.is_active():
+            try:
+                yield q.get(timeout=1.0)
+            except queue.Empty:
+                pass 
 
     def ModelUpdateRequestStream(self, response, context):
         """ A server stream RPC endpoint. Messages from client stream. """
@@ -528,8 +533,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        while True:
-            yield q.get()
+        while context.is_active():
+            try:
+                yield q.get(timeout=1.0)
+            except queue.Empty:
+                pass 
+           
 
     def ModelValidationStream(self, update, context):
         """
@@ -549,8 +558,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        while True:
-            yield q.get()
+        while context.is_active():
+            try:
+                yield q.get(timeout=1.0)
+            except queue.Empty:
+                pass 
 
     def ModelValidationRequestStream(self, response, context):
         """ A server stream RPC endpoint. Messages from client stream. """
@@ -568,8 +580,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        while True:
-            yield q.get()
+        while context.is_active():
+            try:
+                yield q.get(timeout=1.0)
+            except queue.Empty:
+                pass 
 
     def SendModelUpdateRequest(self, request, context):
         """ Send a model update request. """
