@@ -50,9 +50,11 @@ def run_cmd(ctx):
               help='Set to a filename to (re)init client from file state.')
 @click.option('-l', '--logfile', required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")),
               help='Set logfile for client log to file.')
+@click.option('--heartbeat-interval',required=False, default=2)
+@click.option('--reconnect-after-missed-heartbeat',required=False, default=30)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
-               verify_cert, preferred_combiner, validator, trainer, init, logfile):
+               verify_cert, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
     """
 
     :param ctx:
@@ -69,12 +71,15 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     :param preferred_combiner:
     :param init:
     :param logfile:
+    :param hearbeat_interval
+    :param reconnect_after_missed_heartbeat
     :return:
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile}
+              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile,'heartbeat_interval': heartbeat_interval,
+              'reconnect_after_missed_heartbeat': 30}
 
     if config['init']:
         with open(config['init'], 'r') as file:

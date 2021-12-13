@@ -123,7 +123,7 @@ class Client:
         """
 
         # Start sending heartbeats to the combiner. 
-        threading.Thread(target=self._send_heartbeat, daemon=True).start()
+        threading.Thread(target=self._send_heartbeat, kwargs={'update_frequency': config['heartbeat_interval']}, daemon=True).start()
 
         # Start listening for combiner training and validation messages 
         if config['trainer'] == True:
@@ -338,7 +338,7 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 #TODO: make configurable
-                timeout = 1
+                timeout = 5
                 print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
                     status_code.name, timeout), flush=True)
                 time.sleep(timeout) 
@@ -366,7 +366,7 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 # TODO: make configurable
-                timeout = 1
+                timeout = 5
                 print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
                     status_code.name, timeout), flush=True)
                 time.sleep(timeout)
@@ -533,7 +533,7 @@ class Client:
 
         """
         self._missed_heartbeat += 1 
-        if self._missed_heartbeat > 3: 
+        if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']: 
             self._detach()
 
     def _send_heartbeat(self, update_frequency=2.0):
