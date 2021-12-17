@@ -52,7 +52,7 @@ Copy the settings config file for the reducer, 'config/settings-reducer.yaml.tem
 Make sure that you can access the Reducer UI at https://localhost:8090. 
 
 ````bash 
-docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
+docker-compose -f config/settings-reducer.yaml -f config/private-network.yaml up 
 ````
 
 4. Start a combiner  
@@ -60,7 +60,7 @@ docker-compose -f config/reducer.yaml -f config/private-network.yaml up
 Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
-docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
+docker-compose -f config/settings-combiner.yaml -f config/private-network.yaml up 
 ````
 
 ### Train a federated model
