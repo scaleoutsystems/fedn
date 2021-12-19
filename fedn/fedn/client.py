@@ -394,7 +394,6 @@ class Client:
                     model_id, meta = self._process_training_request(request.model_id)
                     processing_time = time.time()-tic
                     meta['processing_time'] = processing_time
-                    print(meta,flush=True)
 
                     if model_id != None:
                         # Notify the combiner that a model update is available
