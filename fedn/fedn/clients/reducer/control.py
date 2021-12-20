@@ -2,12 +2,14 @@ import copy
 import os
 import tempfile
 import time
+from datetime import datetime
 
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
-from .state import ReducerState
-
+from fedn.common.tracer.mongotracer import MongoTracer
 import fedn.utils.helpers
+
+from .state import ReducerState
 
 
 class UnsupportedStorageBackend(Exception):
@@ -179,13 +181,13 @@ class ReducerControl:
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 model_id = None
-                raise
+                
             if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
         return osync
 
     def check_round_participation_policy(self, compute_plan, combiner_state):
-        """ Evaluate reducer level policy for combiner round-paarticipation.
+        """ Evaluate reducer level policy for combiner round-participation.
             This is a decision on ReducerControl level, additional checks
             applies on combiner level. Not all reducer control flows might
             need or want to use a participation policy.  """
@@ -271,21 +273,21 @@ class ReducerControl:
                 self._handle_unavailable_combiner(combiner)
                 combiner_state = None
 
-            if combiner_state:
+            if combiner_state != None:
                 is_participating = self.check_round_participation_policy(compute_plan, combiner_state)
                 if is_participating:
                     combiners.append((combiner, compute_plan))
 
         round_start = self.check_round_start_policy(combiners)
-        print("CONTROL: round start policy met, participating combiners {}".format(round_start), flush=True)
+
+        print("CONTROL: round start policy met, participating combiners {}".format(combiners), flush=True)
         if not round_start:
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
             return None
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
-        from datetime import datetime
-        from fedn.common.tracer.mongotracer import MongoTracer
+        
         statestore_config = self.statestore.get_config()
 
         self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
