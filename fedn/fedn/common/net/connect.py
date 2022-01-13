@@ -83,6 +83,10 @@ class ConnectorClient:
             print('***** {}'.format(e), flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
+        
+        if retval.status_code == 401:
+            print('Authorization failed', flush=True)
+            return Status.Unassigned, {}
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
