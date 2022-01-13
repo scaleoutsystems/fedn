@@ -20,7 +20,7 @@ More details about the architecture and implementation:
 
 The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture.  
 
-Clone the repository (make sure to use git-lfs!) and follow these steps:
+Clone the repository and follow these steps:
 
 ### Pseudo-distributed deployment
 We provide docker-compose templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development on a single host machine. 
