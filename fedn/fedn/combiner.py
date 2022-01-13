@@ -81,6 +81,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 config = response
                 print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
+            if status == Status.Unassigned:
+                if response == 401:
+                    print("COMBINER: Unauthorized connection to reducer, make sure the correct token is set")
+                    time.sleep(5)
+                    continue
 
         cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
         key = base64.b64decode(config['key'])  # .decode('utf-8')

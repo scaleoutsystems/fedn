@@ -162,7 +162,10 @@ class ConnectorCombiner:
         except Exception as e:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
-
+        
+        if retval.status_code == 401:
+            return Status.Unassigned, 401
+        
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
                 print("Reducer was not ready. Try again later.")

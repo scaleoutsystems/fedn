@@ -264,6 +264,7 @@ class ReducerRestService:
         def add():
 
             """ Add a combiner to the network. """
+            authorize(request, self.token)
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
