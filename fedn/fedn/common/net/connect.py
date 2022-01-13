@@ -85,8 +85,8 @@ class ConnectorClient:
             return Status.Unassigned, {}
         
         if retval.status_code == 401:
-            print('Authorization failed', flush=True)
-            return Status.Unassigned, {}
+            reason = "Unauthorized connection to reducer, make sure the correct token is set"
+            return Status.TryAgain, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
@@ -164,12 +164,13 @@ class ConnectorCombiner:
             return Status.Unassigned, {}
         
         if retval.status_code == 401:
-            return Status.Unassigned, 401
+            reason = "Unauthorized connection to reducer, make sure the correct token is set"
+            return Status.TryAgain, reason
         
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
-                print("Reducer was not ready. Try again later.")
-                return Status.TryAgain, None
+                reason = "Reducer was not ready. Try again later."
+                return Status.TryAgain, reason
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None
