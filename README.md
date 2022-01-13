@@ -49,23 +49,31 @@ Make sure you can access the following services before proceeding to the next st
 
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
-Make sure that you can access the Reducer UI at https://localhost:8090. 
-
 ````bash 
 docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
 ````
 
+Make sure that you can access the Reducer UI at https://localhost:8090. 
+
 4. Start a combiner  
 
-Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
+Copy the settings config file for the combiner, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
 docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
 ````
 
-### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with an initial base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
+You should now see the combiner listed in the 'Network' view in the UI.  
 
+### Train a federated model
+
+Training a federated model on the FEDn network involves: 
+
+ 1. Configuring the network with a compute package (containing the code that will be distributed to clients)
+ 2. Setting an initial model (untrained or pre-trained)
+ 3. Attaching clients to the network 
+
+Follow the instruction here to set up your deployed network to train a model for digits classification using the MNIST dataset: 
 https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
 ## Fully distributed deployment
