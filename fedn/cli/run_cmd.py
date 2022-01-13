@@ -115,7 +115,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090')
-@click.option('-t', '--token', required=False, default="reducer_token")
+@click.option('-t', '--token', required=False, default=None)
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
@@ -140,7 +140,16 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
-
+    
+    try:
+        token_settings = fedn_config["token"]
+        if token:
+            print("Token found in settings file: {}, but --token was given. Overriding settings file.".format(init), flush=True)
+        else:
+            config["token"] = token_settings
+    except KeyError:
+        pass
+        
     try:
         network_id = fedn_config['network_id']
     except KeyError:
