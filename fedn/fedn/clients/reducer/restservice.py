@@ -73,12 +73,7 @@ class ReducerRestService:
             self.name = config['name']
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
-
-        if not config['token']:
-            import uuid
-            self.token = str(uuid.uuid4())
-        else:
-            self.token = config['token']
+        self.token = config['token']
 
         self.control = control
         self.certificate = certificate

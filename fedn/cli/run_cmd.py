@@ -19,6 +19,30 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise (e)
 
+def set_token(init_config, token):
+    """ Sets the token used for authentication when connecting to reducer services 
+
+    :param init_config: Contains settings from file
+    :type init_config: dict
+    :param token: Token from CLI flag, None if omitted
+    :type token: string
+    :return: The token for the reducer
+    :rtype: string
+    """
+    try:
+        token_from_file = init_config["token"]
+        if token:
+            print("Token found in settings file provided by --init flag, but --token was given. Overriding settings file.", flush=True)
+            return token
+        else:
+            return token_from_file
+    except KeyError:
+        #no token set in settings file
+        if token:
+            return token
+        else:
+            #no token was set by flag, generate one
+            return str(uuid.uuid4())
 
 @main.group('run')
 @click.pass_context
@@ -141,14 +165,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print(e, flush=True)
         exit(-1)
     
-    try:
-        token_settings = fedn_config["token"]
-        if token:
-            print("Token found in settings file: {}, but --token was given. Overriding settings file.".format(init), flush=True)
-        else:
-            config["token"] = token_settings
-    except KeyError:
-        pass
+    config["token"] = set_token(fedn_config, token)
         
     try:
         network_id = fedn_config['network_id']
