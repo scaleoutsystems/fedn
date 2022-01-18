@@ -246,6 +246,10 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;***** </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="c1"># self.state = State.Disconnected</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
+        
+        <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unauthorized connection to reducer, make sure the correct token is set&quot;</span>
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="n">reason</span>
 
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
@@ -321,11 +325,15 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># self.state = State.Disconnected</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
-
+        
+        <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unauthorized connection to reducer, make sure the correct token is set&quot;</span>
+            <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="n">reason</span>
+        
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span>
+                <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">TryAgain</span><span class="p">,</span> <span class="n">reason</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Assigned</span><span class="p">,</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="kc">None</span></div></div>
