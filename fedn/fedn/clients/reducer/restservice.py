@@ -40,7 +40,7 @@ def authorize(r, token):
         request_token = r.headers.get('Authorization')
         request_token = request_token.split()[1] # str: 'Token {}'.format(token)
         if request_token == token:
-            print("Authorization accepted via token", flush=True)
+            return
         else:
             print("Authorization failed, invalid token", flush=True)
             abort(401)
