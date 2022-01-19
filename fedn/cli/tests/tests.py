@@ -1,6 +1,6 @@
 import pytest
 from uuid import UUID
-from .run_cmd import set_token
+from ..run_cmd import set_token
 
 INIT_FILE_REDUCER = {
     "network_id": "fedn-test-network",
