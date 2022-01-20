@@ -1,5 +1,6 @@
 import os
 import queue
+import sys
 import threading
 import uuid
 from datetime import datetime, timedelta
@@ -82,6 +83,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 config = response
                 print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
+            if status == Status.UnAuthorized:
+                print(response, flush=True)
+                sys.exit("Exiting: Unauthorized")
+
 
         cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
         key = base64.b64decode(config['key'])  # .decode('utf-8')

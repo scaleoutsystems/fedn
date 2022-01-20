@@ -1,4 +1,5 @@
 import enum
+from http.client import UNAUTHORIZED
 
 import requests as r
 
@@ -13,6 +14,7 @@ class Status(enum.Enum):
     Unassigned = 0
     Assigned = 1
     TryAgain = 2
+    UnAuthorized = 3
 
 
 from fedn.common.security.certificate import Certificate
@@ -86,7 +88,7 @@ class ConnectorClient:
         
         if retval.status_code == 401:
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
-            return Status.TryAgain, reason
+            return Status.UnAuthorized, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
@@ -165,7 +167,7 @@ class ConnectorCombiner:
         
         if retval.status_code == 401:
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
-            return Status.TryAgain, reason
+            return Status.UnAuthorized, reason
         
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
