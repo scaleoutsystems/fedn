@@ -3,8 +3,9 @@ from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, abort
 from flask import redirect, url_for, flash
+from functools import wraps
 
 from threading import Lock
 import re
@@ -21,6 +22,31 @@ from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
+
+
+def authorize(r, token):
+    """Authorize client token
+
+    :param r: Request
+    :type r: [type]
+    :param token: Token to verify against
+    :type token: string
+    """
+    
+    if not 'Authorization' in r.headers:
+        print("Authorization failed, missing in the header of the request", flush=True)
+        abort(401) #Unauthorized response
+    try:
+        request_token = r.headers.get('Authorization')
+        request_token = request_token.split()[1] # str: 'Token {}'.format(token)
+        if request_token == token:
+            return
+        else:
+            print("Authorization failed, invalid token", flush=True)
+            abort(401)
+    except Exception as e:
+        print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
+        abort(401)        
 
 
 def allowed_file(filename):
@@ -47,12 +73,7 @@ class ReducerRestService:
             self.name = config['name']
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
-
-        if not config['token']:
-            import uuid
-            self.token = str(uuid.uuid4())
-        else:
-            self.token = config['token']
+        self.token = config['token']
 
         self.control = control
         self.certificate = certificate
@@ -238,6 +259,7 @@ class ReducerRestService:
         def add():
 
             """ Add a combiner to the network. """
+            authorize(request, self.token)
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
@@ -448,6 +470,7 @@ class ReducerRestService:
         def assign():
             """Handle client assignment requests. """
 
+            authorize(request, self.token)
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry', 
                                 'msg': "Controller is not configured. Make sure to upload the compute package."})

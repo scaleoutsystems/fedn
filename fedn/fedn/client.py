@@ -199,6 +199,9 @@ class Client:
             if status == Status.Assigned:
                 client_config = response
                 break
+            if status == Status.UnAuthorized:
+                print(response, flush=True)
+                sys.exit("Exiting: Unauthorized")
             time.sleep(5)
             print(".", end=' ', flush=True)
         
