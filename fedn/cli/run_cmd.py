@@ -44,6 +44,15 @@ def set_token(init_config, token):
             #no token was set by flag, generate one
             return str(uuid.uuid4())
 
+def check_helper_config_file(config):
+    control = config['control']
+    try:
+        helper = control["helper"]
+    except KeyError:
+        print("--remote was set to False, but no helper was found in --init settings file.", flush=True)
+        exit(-1)
+    return helper
+
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
@@ -140,11 +149,12 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090')
 @click.option('-t', '--token', required=False, default=None)
+@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
-def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
+def reducer_cmd(ctx, discoverhost, discoverport, token, remote, name, init):
     """
 
     :param ctx:
@@ -154,7 +164,8 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     :param name:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 
+              'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
     try:
@@ -164,6 +175,9 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
+    
+    if not remote:
+        helper = check_helper_config_file(fedn_config)
     
     config["token"] = set_token(fedn_config, token)
         

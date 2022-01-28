@@ -12,7 +12,8 @@ class TestInit(unittest.TestCase):
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None
+            'token': None,
+            'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.name, 'TEST_HOST')
@@ -24,7 +25,8 @@ class TestInit(unittest.TestCase):
             'discover_host': None,
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None
+            'token': None,
+            'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.name, 'TEST_NAME')
@@ -35,7 +37,8 @@ class TestInit(unittest.TestCase):
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None
+            'token': None,
+            'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.network_id, 'TEST_NAME-network')
@@ -43,14 +46,15 @@ class TestInit(unittest.TestCase):
 class TestChecks(unittest.TestCase):
     @patch('fedn.clients.reducer.control.ReducerControl')
     def setUp(self, mock_control):
-        self.config = {
+        CONFIG = {
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None
+            'token': None,
+            'remote_compute_context': True
         }
 
-        self.restservice = ReducerRestService(self.config, mock_control, None)
+        self.restservice = ReducerRestService(CONFIG, mock_control, None)
 
     def test_check_compute_package(self):
 
@@ -65,6 +69,10 @@ class TestChecks(unittest.TestCase):
         self.restservice.control.get_compute_context.return_value = ''
         retval = self.restservice.check_compute_context()
         self.assertFalse(retval)
+
+        self.restservice.remote_compute_context = False 
+        retval = self.restservice.check_compute_context()
+        self.assertTrue(retval)
 
     def test_check_initial_model(self):
 

@@ -55,6 +55,8 @@ class ReducerRestService:
             self.token = str(uuid.uuid4())
         else:
             self.token = config['token']
+        
+        self.remote_compute_context = config["remote_compute_context"]
 
         self.control = control
         self.certificate = certificate
@@ -72,11 +74,15 @@ class ReducerRestService:
         return data
 
     def check_compute_context(self):
-        """Check if the compute context/package has been configured
+        """Check if the compute context/package has been configured,
+        if remote compute context is set to False, True will be returned
 
         :return: True if configured
         :rtype: bool
         """
+        if not self.remote_compute_context:
+            return True
+
         if not self.control.get_compute_context():
             return False
         else:
@@ -414,19 +420,14 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            try:
-                self.current_compute_context = self.control.get_compute_context()
-            except:
-                self.current_compute_context = None
 
-            if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
-                                       message='No compute context is set. Please set one here <a href="/context">/context</a>')
-
-            if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
-                                       message='Warning. Reducer is not base-configured. please do so with config file.')
-
+            if self.remote_compute_context:
+                try:
+                    self.current_compute_context = self.control.get_compute_context()
+                except:
+                    self.current_compute_context = None
+            else:
+                self.current_compute_context = "None:Local"
             if self.control.state() == ReducerState.monitoring:
                 return redirect(
                     url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
