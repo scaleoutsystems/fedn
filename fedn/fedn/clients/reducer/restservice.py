@@ -57,6 +57,10 @@ class ReducerRestService:
             self.token = config['token']
         
         self.remote_compute_context = config["remote_compute_context"]
+        if self.remote_compute_context:
+            self.package = 'remote'
+        else:
+            self.package = 'local'
 
         self.control = control
         self.certificate = certificate
@@ -108,19 +112,23 @@ class ReducerRestService:
         :rtype: json
         """
         if self.control.state() == ReducerState.setup:
-            return jsonify({'status': 'retry', 
-                        'msg': "Controller is not configured."})
+            return jsonify({'status': 'retry',
+                            'package': self.package,
+                            'msg': "Controller is not configured."})
 
         if not self.check_compute_context():
-            return jsonify({'status': 'retry', 
+            return jsonify({'status': 'retry',
+                            'package': self.package,
                             'msg': "Compute package is not configured. Please upload the compute package."})
         
         if not self.check_initial_model():
-            return jsonify({'status': 'retry', 
+            return jsonify({'status': 'retry',
+                            'package': self.package,
                             'msg': "Initial model is not configured. Please upload the model."})
 
         if not self.control.idle():
             return jsonify({'status': 'retry',
+                            'package': self.package,
                             'msg': "Conroller is not in idle state, try again later. "})
         return None
 
@@ -502,7 +510,8 @@ class ReducerRestService:
             response = self.check_configured_response()
 
             if response:
-                return response 
+                return response
+
 
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
@@ -514,6 +523,7 @@ class ReducerRestService:
 
             if combiner is None:
                 return jsonify({'status': 'retry',
+                                'package': self.package,
                                 'msg': "Failed to assign to a combiner, try again later."})
 
             client = {
@@ -533,6 +543,7 @@ class ReducerRestService:
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,
                 'certificate': str(cert_b64).split('\'')[1],
