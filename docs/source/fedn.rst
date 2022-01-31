@@ -10,7 +10,6 @@ Subpackages
    fedn.aggregators
    fedn.clients
    fedn.common
-   fedn.tests
    fedn.utils
 
 Submodules
