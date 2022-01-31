@@ -71,7 +71,7 @@ def run_cmd(ctx):
 @click.option('-t', '--token', required=False)
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
-@click.option('-l', '--local-package', required=False, default=False, help='Enable local compute package')
+@click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
@@ -148,9 +148,9 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
-@click.option('-p', '--discoverport', required=False, default='8090')
+@click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
 @click.option('-t', '--token', required=False, default=None)
-@click.option('-l', '--local-package', required=False, default=False, help='Enable local compute package')
+@click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
