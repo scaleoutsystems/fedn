@@ -71,7 +71,7 @@ def run_cmd(ctx):
 @click.option('-t', '--token', required=False)
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
-@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
+@click.option('-l', '--local-package', required=False, default=False, help='Enable local compute package')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
@@ -86,7 +86,7 @@ def run_cmd(ctx):
 @click.option('--heartbeat-interval',required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat',required=False, default=30)
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, dry_run, secure, preshared_cert,
                verify_cert, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
     """
 
@@ -108,6 +108,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     :param reconnect_after_missed_heartbeat
     :return:
     """
+    remote = False if local_package else True
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert, 'preferred_combiner': preferred_combiner,
@@ -149,12 +150,12 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090')
 @click.option('-t', '--token', required=False, default=None)
-@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
+@click.option('-l', '--local-package', required=False, default=False, help='Enable local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
-def reducer_cmd(ctx, discoverhost, discoverport, token, remote, name, init):
+def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, init):
     """
 
     :param ctx:
@@ -164,6 +165,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, remote, name, init):
     :param name:
     :param init:
     """
+    remote = False if local_package else True
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 
               'remote_compute_context': remote, 'init': init}
 
