@@ -396,9 +396,14 @@
 
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">})</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">})</span>
+        <span class="c1">#if local compute package used, then &#39;package&#39; is None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="c1">#get framework from round_config instead</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">})</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FRAMEWORK:&#39;</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">retcheck</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;helper&#39;</span><span class="p">]</span>
+            <span class="n">retcheck</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;helper&#39;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>  <span class="c1"># ugly check for empty string</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="n">retcheck</span>
