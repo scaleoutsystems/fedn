@@ -6,6 +6,7 @@ import uuid
 import tempfile
 import threading, queue
 import time
+from aiohttp import client
 
 import grpc
 
@@ -59,6 +60,7 @@ class Client:
                                          config['discover_port'],
                                          config['token'],
                                          config['name'],
+                                         config['remote_compute_context'],
                                          config['preferred_combiner'],
                                          config['client_id'],
                                          secure=config['secure'],
@@ -199,6 +201,12 @@ class Client:
             if status == Status.Assigned:
                 client_config = response
                 break
+            if status == Status.UnAuthorized:
+                print(response, flush=True)
+                sys.exit("Exiting: Unauthorized")
+            if status == Status.UnMatchedConfig:
+                print(response, flush=True)
+                sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
             print(".", end=' ', flush=True)
         
@@ -235,6 +243,8 @@ class Client:
         print("Client: {} connected {} to {}:{}".format(self.name,
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
+        
+        print("Client: Using {} compute package.".format(client_config["package"]))
 
     def _disconnect(self):
         self.channel.close()

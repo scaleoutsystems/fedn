@@ -14,7 +14,7 @@ services:
       context: ${PWD}
       dockerfile: ${PWD}/components/base/Dockerfile
     working_dir: /app/client
-    command: sh -c "pip install -e /app/fedn/ && mkdir -p /app/client/certs && fedn run reducer -n reducer  --init=./config/settings-reducer.yaml"
+    command: sh -c "pip install -e /app/fedn/ && mkdir -p /app/client/certs && fedn run reducer -n reducer --init=./config/settings-reducer.yaml"
     volumes:
       - ${PWD}/config:/app/client/config
       - ${PWD}/fedn:/app/fedn
