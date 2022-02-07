@@ -20,7 +20,7 @@ More details about the architecture and implementation:
 
 The easiest way to start with FEDn is to use the provided docker-compose templates to launch a pseudo-distributed environment consisting of one Reducer, one Combiner, and a few Clients. Together with the supporting storage and database services this makes up a minimal system for developing a federated model and learning the FEDn architecture.  
 
-Clone the repository (make sure to use git-lfs!) and follow these steps:
+Clone the repository and follow these steps:
 
 ### Pseudo-distributed deployment
 We provide docker-compose templates for a minimal standalone, pseudo-distributed Docker deployment, useful for local testing and development on a single host machine. 
@@ -49,46 +49,43 @@ Make sure you can access the following services before proceeding to the next st
 
 Copy the settings config file for the reducer, 'config/settings-reducer.yaml.template' to 'config/settings-reducer.yaml'. You do not need to make any changes to this file to run the sandbox. To start the reducer service:
 
-Make sure that you can access the Reducer UI at https://localhost:8090. 
-
 ````bash 
 docker-compose -f config/reducer.yaml -f config/private-network.yaml up 
 ````
 
+Make sure that you can access the Reducer UI at https://localhost:8090. 
+
 4. Start a combiner  
 
-Copy the settings config file for the reducer, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
+Copy the settings config file for the combiner, 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml'. You do not need to make any changes to this file to run the sandbox. To start the combiner service and attach it to the reducer:
 
 ````bash 
 docker-compose -f config/combiner.yaml -f config/private-network.yaml up 
 ````
 
-### Train a federated model
-Training a federated model on the FEDn network involves uploading a compute package (containing the code that will be distributed to clients), seeding the federated model with an initial base model (untrained or pre-trained), and then attaching clients to the network. Follow the instruction here to set up the deployed network to train a model for digits classification using the MNIST dataset: 
+You should now see the combiner listed in the 'Network' view in the UI.  
 
+### Train a federated model
+
+Training a federated model on the FEDn network involves: 
+
+ 1. Configuring the network with a compute package (containing the code that will be distributed to clients)
+ 2. Setting an initial model (untrained or pre-trained)
+ 3. Attaching clients to the network 
+
+Follow the instruction here to set up your deployed network to train a model for digits classification using the MNIST dataset: 
 https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
 ## Fully distributed deployment
 The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
 
-## Using FEDn in Scaleout Studio 
-Scaleout Studio is a cloud-native SaaS for MLOps for Decentralized AI applications. Studio lets you deploy, manage and monitor FEDn networks as apps deployed to Kubernetes, all from a graphical interface. In addtion to FEDn, Studio provides developer tools (e.g. Jupyter Labs and VSCode), storage managmement (Kubernetes volumes, minio, MongoDB etc), and model serving for the federated model (Tensorflow Serving, TorchServe, MLflow or custom serving). End-to-end example here: https://www.youtube.com/watch?v=-a_nIzkSumI
-
-- Sign up for private-beta access at https://scaleoutsystems.com/.   
-- [Deploy STACKn on your own infrastructure](https://github.com/scaleoutsystems/stackn) 
-
-
 ## Where to go from here
-- Explore additional projects/clients: https://github.com/scaleoutsystems/examples 
-- Understand the architecture: https://scaleoutsystems.github.io/fedn/#/architecture 
-- Understand the compute package: https://github.com/scaleoutsystems/fedn/blob/master/docs/tutorial.md
-- Deploy a fully distributed network: https://github.com/scaleoutsystems/fedn/blob/master/docs/deployment.md
+- [Explore additional examples](https://github.com/scaleoutsystems/examples)
+- [Understand the architecture](https://scaleoutsystems.github.io/fedn/#/architecture) 
+- [Understand the compute package](https://scaleoutsystems.github.io/fedn/tutorial.html)
  
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
-
-## Commercial support
-Scaleout offers flexible support agreements, reach out at (https://www.scaleoutsystems.com/contact) to inquire about Enterprise support.
 
 ## Making contributions
 All pull requests will be considered and are much appreciated. Reach out to one of the maintainers if you are interested in making contributions, and we will help you find a good first issue to get you started. 
