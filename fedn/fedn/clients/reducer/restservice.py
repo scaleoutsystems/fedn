@@ -52,11 +52,7 @@ class ReducerRestService:
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
 
-        if not config['token']:
-            import uuid
-            self.token = str(uuid.uuid4())
-        else:
-            self.token = config['token']
+        self.token = config['token']
         
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
@@ -170,10 +166,54 @@ class ReducerRestService:
                 secret_key,
                 algorithm='HS256'
             )
-            self.token = token
             print('\n\n\nSECURE MODE ENABLED, USE TOKEN TO ACCESS REDUCER: **** {} ****\n\n\n'.format(token))
+            return token
         except Exception as e:
             return e
+
+    def decode_auth_token(self, auth_token, secret):
+        """Decodes the auth token
+        :param auth_token:
+        :return: string
+        """
+        try:
+            payload = jwt.decode(
+                auth_token, 
+                secret,
+                algorithms=['HS256']
+            )
+            return payload["status"]
+        except jwt.ExpiredSignatureError as e:
+            print(e)
+            return 'Token has expired.'
+        except jwt.InvalidTokenError as e:
+            print(e)
+            return 'Invalid token.'
+
+    def authorize(self, r, secret):
+        """Authorize client token
+
+        :param r: Request
+        :type r: [type]
+        :param token: Token to verify against
+        :type token: string
+        """
+        
+        if not 'Authorization' in r.headers:
+            print("Authorization failed, missing in the header of the request", flush=True)
+            abort(401) #Unauthorized response
+        try:
+            request_token = r.headers.get('Authorization')
+            request_token = request_token.split()[1] # str: 'Token {}'.format(token)
+            status = self.decode_auth_token(request_token, secret)
+            if status == 'Success':
+                return
+            else:
+                print("Authorization failed. {}".format(status), flush=True)
+                abort(401)
+        except Exception as e:
+            print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
+            abort(401)
 
     def run(self):
         """
@@ -189,50 +229,6 @@ class ReducerRestService:
         if self.token:
             self.encode_auth_token(app.config.get('SECRET_KEY'))
         csrf.init_app(app)
-
-        def authorize(r):
-            """Authorize client token
-
-            :param r: Request
-            :type r: [type]
-            :param token: Token to verify against
-            :type token: string
-            """
-            
-            if not 'Authorization' in r.headers:
-                print("Authorization failed, missing in the header of the request", flush=True)
-                abort(401) #Unauthorized response
-            try:
-                request_token = r.headers.get('Authorization')
-                request_token = request_token.split()[1] # str: 'Token {}'.format(token)
-                status = decode_auth_token(request_token)
-                if status == 'Success':
-                    return
-                else:
-                    print("Authorization failed. {}".format(status), flush=True)
-                    abort(401)
-            except Exception as e:
-                print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
-                abort(401)
-        
-        def decode_auth_token(auth_token):
-            """Decodes the auth token
-            :param auth_token:
-            :return: string
-            """
-            try:
-                payload = jwt.decode(
-                    auth_token, 
-                    app.config.get('SECRET_KEY'),
-                    algorithms=['HS256']
-                )
-                return payload["status"]
-            except jwt.ExpiredSignatureError as e:
-                print(e)
-                return 'Token has expired.'
-            except jwt.InvalidTokenError as e:
-                print(e)
-                return 'Invalid token.'
 
         @app.route('/')
         def index():
@@ -370,7 +366,7 @@ class ReducerRestService:
         def add():
             """ Add a combiner to the network. """
             if self.token:
-                authorize(request)
+                self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
@@ -576,7 +572,7 @@ class ReducerRestService:
         def assign():
             """Handle client assignment requests. """
             if self.token:
-                authorize(request)
+                self.authorize(request, app.config.get('SECRET_KEY'))
 
             response = self.check_configured_response()
 

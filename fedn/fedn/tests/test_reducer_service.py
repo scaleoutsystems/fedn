@@ -12,7 +12,7 @@ class TestInit(unittest.TestCase):
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None,
+            'token': False,
             'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
@@ -25,7 +25,7 @@ class TestInit(unittest.TestCase):
             'discover_host': None,
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None,
+            'token': False,
             'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
@@ -37,7 +37,7 @@ class TestInit(unittest.TestCase):
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None,
+            'token': False,
             'remote_compute_context': True
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
@@ -50,7 +50,7 @@ class TestChecks(unittest.TestCase):
             'discover_host': 'TEST_HOST',
             'name': 'TEST_NAME',
             'discover_port': 1111,
-            'token': None,
+            'token': False,
             'remote_compute_context': True
         }
 
@@ -87,6 +87,35 @@ class TestChecks(unittest.TestCase):
         self.restservice.control.get_latest_model.return_value = ''
         retval = self.restservice.check_initial_model()
         self.assertFalse(retval)
+
+
+class TestToken(unittest.TestCase):
+
+    @patch('fedn.clients.reducer.control.ReducerControl')
+    def setUp(self, mock_control):
+        CONFIG = {
+            'discover_host': 'TEST_HOST',
+            'name': 'TEST_NAME',
+            'discover_port': 1111,
+            'token': True,
+            'remote_compute_context': True
+        }
+
+        self.restservice = ReducerRestService(CONFIG, mock_control, None)
+    
+    def test_encode_decode_auth_token(self):
+        SECRET_KEY = 'test_secret'
+        token = self.restservice.encode_auth_token(SECRET_KEY)
+        payload_success = self.restservice.decode_auth_token(token, SECRET_KEY)
+        payload_invalid = self.restservice.decode_auth_token('wrong_token', SECRET_KEY)
+        payload_error = self.restservice.decode_auth_token(token, 'wrong_key')
+
+        self.assertEqual(payload_success, "Success")
+        self.assertEqual(payload_invalid, "Invalid token.")
+        self.assertEqual(payload_error, "Invalid token.")
+
+        
+
 
 
 if __name__ == '__main__':

@@ -1,10 +1,9 @@
-from telnetlib import COM_PORT_OPTION
 import unittest
 from unittest.mock import MagicMock, patch
 import yaml
 from click.testing import CliRunner
 from uuid import UUID
-from ..run_cmd import set_token, reducer_cmd, check_helper_config_file
+from run_cmd import check_helper_config_file
 
 class TestReducerCLI(unittest.TestCase):
 
@@ -39,22 +38,6 @@ class TestReducerCLI(unittest.TestCase):
                 }
             }
         }
-
-    def test_set_token(self):
-        TOKEN_FLAG = "some-test-token"
-        TOKEN_INIT = "fedn_token"
-        
-        assert set_token(self.INIT_FILE_REDUCER, TOKEN_FLAG) == TOKEN_FLAG
-        assert set_token(self.INIT_FILE_REDUCER, None) == TOKEN_INIT
-        assert set_token(self.INIT_FILE_REDUCER, "") == TOKEN_INIT
-        
-        COPY_INIT_FILE =  self.INIT_FILE_REDUCER
-        del COPY_INIT_FILE["token"]
-        assert set_token(COPY_INIT_FILE, TOKEN_FLAG) == TOKEN_FLAG
-        
-        TOKEN_UUID = set_token(COPY_INIT_FILE, None)
-        uuid_obj = UUID(TOKEN_UUID, version=4)
-        assert str(uuid_obj) == TOKEN_UUID
     
     @unittest.skip
     def test_get_statestore_config_from_file(self):
