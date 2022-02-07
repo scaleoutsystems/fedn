@@ -49,7 +49,7 @@ def check_helper_config_file(config):
     try:
         helper = control["helper"]
     except KeyError:
-        print("--remote was set to False, but no helper was found in --init settings file.", flush=True)
+        print("--local-package was used, but no helper was found in --init settings file.", flush=True)
         exit(-1)
     return helper
 
