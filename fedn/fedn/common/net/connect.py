@@ -15,6 +15,7 @@ class Status(enum.Enum):
     Assigned = 1
     TryAgain = 2
     UnAuthorized = 3
+    UnMatchedConfig = 4 
 
 
 from fedn.common.security.certificate import Certificate
@@ -25,7 +26,7 @@ class ConnectorClient:
 
     """
 
-    def __init__(self, host, port, token, name, combiner=None, id=None, secure=True, preshared_cert=True,
+    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=True, preshared_cert=True,
                  verify_cert=False):
 
         if not verify_cert:
@@ -42,6 +43,7 @@ class ConnectorClient:
         #        self.state = State.Disconnected
         self.secure = secure
         self.certificate = None
+        self.package = 'remote' if remote_package else 'local'
         if not secure:
             prefix = "http://"
         else:
@@ -86,6 +88,12 @@ class ConnectorClient:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
         
+        reducer_package = retval.json()['package']
+        if reducer_package != self.package:
+            reason = "Unmatched config of compute package between client and reducer.\n"+\
+                      "Reducer uses {} package and client uses {}.".format(reducer_package, self.package)
+            return Status.UnMatchedConfig, reason
+
         if retval.status_code == 401:
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
             return Status.UnAuthorized, reason

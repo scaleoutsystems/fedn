@@ -233,9 +233,14 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :return:
         """
-        ret = self.control.config.find({'key': 'package'})
+        ret = self.control.config.find_one({'key': 'package'})
+        #if local compute package used, then 'package' is None
+        if not ret:
+            #get framework from round_config instead
+            ret = self.control.config.find_one({'key': 'round_config'})
+        print('FRAMEWORK:', ret)
         try:
-            retcheck = ret[0]['helper']
+            retcheck = ret['helper']
             if retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
