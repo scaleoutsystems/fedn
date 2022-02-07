@@ -1,3 +1,4 @@
+import uuid
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from flask_wtf.csrf import CSRFProtect
@@ -10,6 +11,8 @@ from functools import wraps
 from threading import Lock
 import re
 
+import jwt
+import datetime
 import json
 import plotly
 import pandas as pd
@@ -22,32 +25,6 @@ from fedn.clients.reducer.plots import Plot
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
-
-
-def authorize(r, token):
-    """Authorize client token
-
-    :param r: Request
-    :type r: [type]
-    :param token: Token to verify against
-    :type token: string
-    """
-    
-    if not 'Authorization' in r.headers:
-        print("Authorization failed, missing in the header of the request", flush=True)
-        abort(401) #Unauthorized response
-    try:
-        request_token = r.headers.get('Authorization')
-        request_token = request_token.split()[1] # str: 'Token {}'.format(token)
-        if request_token == token:
-            return
-        else:
-            print("Authorization failed, invalid token", flush=True)
-            abort(401)
-    except Exception as e:
-        print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
-        abort(401)        
-
 
 def allowed_file(filename):
     """
@@ -109,6 +86,26 @@ class ReducerRestService:
             return render_template('setup_model.html', message="Please set the initial model.")
 
         return None
+    
+    def encode_auth_token(self, secret_key):
+        """Generates the Auth Token
+        :return: string
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=90, seconds=0),
+                'iat': datetime.datetime.utcnow(),
+                'status': 'Success'
+            }
+            token = jwt.encode(
+                payload,
+                secret_key,
+                algorithm='HS256'
+            )
+            self.token = token
+            print('\n\n\nSECURE MODE ENABLED, USE TOKEN TO ACCESS REDUCER: **** {} ****\n\n\n'.format(token))
+        except Exception as e:
+            return e
 
     def run(self):
         """
@@ -121,7 +118,53 @@ class ReducerRestService:
         import os
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
+        if self.token:
+            self.encode_auth_token(app.config.get('SECRET_KEY'))
         csrf.init_app(app)
+
+        def authorize(r):
+            """Authorize client token
+
+            :param r: Request
+            :type r: [type]
+            :param token: Token to verify against
+            :type token: string
+            """
+            
+            if not 'Authorization' in r.headers:
+                print("Authorization failed, missing in the header of the request", flush=True)
+                abort(401) #Unauthorized response
+            try:
+                request_token = r.headers.get('Authorization')
+                request_token = request_token.split()[1] # str: 'Token {}'.format(token)
+                status = decode_auth_token(request_token)
+                if status == 'Success':
+                    return
+                else:
+                    print("Authorization failed. {}".format(status), flush=True)
+                    abort(401)
+            except Exception as e:
+                print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
+                abort(401)
+        
+        def decode_auth_token(auth_token):
+            """Decodes the auth token
+            :param auth_token:
+            :return: string
+            """
+            try:
+                payload = jwt.decode(
+                    auth_token, 
+                    app.config.get('SECRET_KEY'),
+                    algorithms=['HS256']
+                )
+                return payload["status"]
+            except jwt.ExpiredSignatureError as e:
+                print(e)
+                return 'Token has expired.'
+            except jwt.InvalidTokenError as e:
+                print(e)
+                return 'Invalid token.'
 
         @app.route('/')
         def index():
@@ -259,7 +302,8 @@ class ReducerRestService:
         def add():
 
             """ Add a combiner to the network. """
-            authorize(request, self.token)
+            if self.token:
+                authorize(request)
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
@@ -469,8 +513,8 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             """Handle client assignment requests. """
-
-            authorize(request, self.token)
+            if self.token:
+                authorize(request)
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry', 
                                 'msg': "Controller is not configured. Make sure to upload the compute package."})
@@ -691,16 +735,13 @@ class ReducerRestService:
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
-            token = self.token
             ctx = """network_id: {network_id}
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    token: {token}
     {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
-                           token=token,
                            chk_string=chk_string)
 
             from io import BytesIO
@@ -811,3 +852,5 @@ controller:
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
+        
+        return app

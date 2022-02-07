@@ -19,31 +19,6 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise (e)
 
-def set_token(init_config, token):
-    """ Sets the token used for authentication when connecting to reducer services 
-
-    :param init_config: Contains settings from file
-    :type init_config: dict
-    :param token: Token from CLI flag, None if omitted
-    :type token: string
-    :return: The token for the reducer
-    :rtype: string
-    """
-    try:
-        token_from_file = init_config["token"]
-        if token:
-            print("Token found in settings file provided by --init flag, but --token was given. Overriding settings file.", flush=True)
-            return token
-        else:
-            return token_from_file
-    except KeyError:
-        #no token set in settings file
-        if token:
-            return token
-        else:
-            #no token was set by flag, generate one
-            return str(uuid.uuid4())
-
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
@@ -139,7 +114,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090')
-@click.option('-t', '--token', required=False, default=None)
+@click.option('-t', '--token', is_flag=True, help='Use flag to enable token authentication')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
@@ -164,8 +139,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
-    
-    config["token"] = set_token(fedn_config, token)
         
     try:
         network_id = fedn_config['network_id']
