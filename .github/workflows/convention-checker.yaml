@@ -1,0 +1,10 @@
+name: Naming Convention
+
+on: push
+  
+  jobs:
+
+    naming-conventions:
+      runs-on: ubuntu-20.04
+      steps:
+        - run: exit 1
