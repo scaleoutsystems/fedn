@@ -1,0 +1,15 @@
+name: "branch name check"
+
+on: push
+
+env:
+  BRANCH_REGEX: '^(develop|master|((feature|hotfix)\/SK-\d+)|(release\/((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)))$'
+
+jobs:
+  branch-name-check:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: branch name check
+        run: |
+          git rev-parse --abbrev-ref HEAD \
+          | grep -E '^(develop|master|((feature|hotfix)\/SK-\d+)|(release\/((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)))$'
