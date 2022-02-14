@@ -9,6 +9,9 @@ jobs:
   branch-name-check:
     runs-on: ubuntu-20.04
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
       - name: branch name check
         run: |
           git rev-parse --abbrev-ref HEAD \
