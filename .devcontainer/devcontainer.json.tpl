@@ -18,5 +18,6 @@
     9000,
     9001,
     8081
-  ]
+  ],
+  "postCreateCommand": "pip install -e /fedn/fedn",
 }
