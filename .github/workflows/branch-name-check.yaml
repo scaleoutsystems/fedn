@@ -13,4 +13,6 @@ jobs:
         uses: actions/checkout@v2
       
       - name: branch name check
-        run: git rev-parse --abbrev-ref HEAD | grep -E "$BRANCH_REGEX"
+        run: |
+          git rev-parse --abbrev-ref HEAD
+          git rev-parse --abbrev-ref HEAD | grep -E "$BRANCH_REGEX"
