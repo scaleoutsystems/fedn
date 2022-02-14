@@ -1,10 +1,10 @@
-name: Naming Convention
+name: "Convention Checker"
 
 on: push
-  
-  jobs:
 
-    naming-conventions:
-      runs-on: ubuntu-20.04
-      steps:
-        - run: exit 1
+jobs:
+  convention-checker:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: convention checker
+        run: exit 1
