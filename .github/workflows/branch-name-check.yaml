@@ -14,5 +14,5 @@ jobs:
       
       - name: branch name check
         run: |
-          git rev-parse --abbrev-ref HEAD
+          echo git rev-parse --abbrev-ref HEAD  grep -E "$BRANCH_REGEX"
           git rev-parse --abbrev-ref HEAD | grep -E "$BRANCH_REGEX"
