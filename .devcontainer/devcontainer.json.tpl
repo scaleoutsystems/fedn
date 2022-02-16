@@ -20,4 +20,7 @@
     8081
   ],
   "postCreateCommand": "pip install -e /fedn/fedn",
+  "runArgs": [
+    "--net=host"
+  ],
 }
