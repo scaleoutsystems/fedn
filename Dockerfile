@@ -19,9 +19,12 @@ RUN mkdir -p /app \
   && mkdir -p /app/client/package \
   && mkdir -p /app/certs \
   #
-  # Install FEDn
-  && pip install --no-cache-dir -e /app/fedn \
-  && pip install --no-cache-dir -r /app/config/requirements.txt
+  # Install FEDn and requirements
+  && python -m venv /venv \
+  && /venv/bin/pip install --upgrade pip \
+  && /venv/bin/pip install --no-cache-dir -e /app/fedn \
+  && /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt
 
 # Setup working directory
 WORKDIR /app
+ENTRYPOINT [ "/venv/bin/fedn" ]

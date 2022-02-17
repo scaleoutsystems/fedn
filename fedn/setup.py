@@ -19,7 +19,7 @@ setup(
         "python-slugify",
         "grpcio-tools",
         "grpcio~=1.34.0",
-        "numpy~=1.19.5",
+        "numpy~=1.22.2",
         "protobuf",
         "pymongo",
         "Flask",
