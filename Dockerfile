@@ -23,6 +23,5 @@ RUN mkdir -p /app \
   && pip install --no-cache-dir -e /app/fedn \
   && pip install --no-cache-dir -r /app/config/requirements.txt
 
-# Setup working directory and entrypoint
+# Setup working directory
 WORKDIR /app
-ENTRYPOINT [ "fedn" ]

@@ -66,7 +66,7 @@ services:
       - PROJECT=project
     build: .
     working_dir: /app
-    command: run reducer -n reducer --init=config/settings-reducer.yaml
+    command: fedn run reducer -n reducer --init=config/settings-reducer.yaml
     ports:
       - 8090:8090
 
@@ -77,7 +77,7 @@ services:
       - GET_HOSTS_FROM=dns
     build: .
     working_dir: /app
-    command: run combiner -in config/settings-combiner.yaml
+    command: fedn run combiner -in config/settings-combiner.yaml
     ports:
       - 12080:12080
 
@@ -87,4 +87,4 @@ services:
       - GET_HOSTS_FROM=dns
     build: .
     working_dir: /app
-    command: run client -in config/settings-client.yaml
+    command: fedn run client -in config/settings-client.yaml
