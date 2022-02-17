@@ -1,5 +1,5 @@
 # Base image
-ARG BASE_IMG=python:3.8.9
+ARG BASE_IMG=python:3.8.9-slim
 FROM $BASE_IMG
 
 # Non-root user with sudo access
@@ -25,9 +25,13 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && mkdir -p /app/certs \
   && chown -R $USERNAME /app \
   #
-  # Install pip deps
-  && pip install --no-cache-dir -e /app/fedn
+  # Install FEDn
+  && mkdir /venv \
+  && python3 -m venv /venv/fedn \
+  && /venv/fedn/bin/pip install --no-cache-dir -e /app/fedn \
+  && chown -R $USERNAME /venv
 
-# Setup username and working directory
+# Setup username, working directory and entrypoint
 USER $USERNAME
 WORKDIR /app
+ENTRYPOINT [ "/venv/fedn/bin/fedn" ]
