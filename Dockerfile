@@ -7,15 +7,11 @@ ARG USERNAME=default
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Requirements file (use MNIST Keras by default)
-ARG REQUIREMENTS="examples/mnist-keras/requirements.txt"
-
 # Add FEDn and default configs
 COPY fedn /app/fedn
 COPY config/settings-client.yaml.template /app/config/settings-client.yaml
 COPY config/settings-combiner.yaml.template /app/config/settings-combiner.yaml
 COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
-COPY $REQUIREMENTS /app/config/requirements.txt
 
 # Create non-root user
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -30,8 +26,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && chown -R $USERNAME /app \
   #
   # Install pip deps
-  && pip install --no-cache-dir -e /app/fedn \
-  && pip install --no-cache-dir -r /app/config/requirements.txt
+  && pip install --no-cache-dir -e /app/fedn
 
 # Setup username and working directory
 USER $USERNAME
