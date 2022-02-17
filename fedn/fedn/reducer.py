@@ -31,7 +31,6 @@ class Reducer:
             raise MissingReducerConfiguration()
 
         self.name = config['name']
-        self.token = config['token']
 
         try:
             path = config['path']

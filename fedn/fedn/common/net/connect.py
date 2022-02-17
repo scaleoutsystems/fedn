@@ -88,15 +88,15 @@ class ConnectorClient:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
         
+        if retval.status_code == 401:
+            reason = "Unauthorized connection to reducer, make sure the correct token is set"
+            return Status.UnAuthorized, reason
+        
         reducer_package = retval.json()['package']
         if reducer_package != self.package:
             reason = "Unmatched config of compute package between client and reducer.\n"+\
                       "Reducer uses {} package and client uses {}.".format(reducer_package, self.package)
             return Status.UnMatchedConfig, reason
-
-        if retval.status_code == 401:
-            reason = "Unauthorized connection to reducer, make sure the correct token is set"
-            return Status.UnAuthorized, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':

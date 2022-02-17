@@ -24,6 +24,7 @@ setup(
         "pymongo",
         "Flask",
         "Flask-WTF",
+        "pyjwt",
         "pyopenssl",
         "ttictoc",
         "psutil",
