@@ -175,4 +175,5 @@ media/visualisers/
 
 ./tmp/*
 
-
+# Devcontainer
+.devcontainer/devcontainer.json

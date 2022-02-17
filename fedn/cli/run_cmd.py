@@ -19,31 +19,6 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise (e)
 
-def set_token(init_config, token):
-    """ Sets the token used for authentication when connecting to reducer services 
-
-    :param init_config: Contains settings from file
-    :type init_config: dict
-    :param token: Token from CLI flag, None if omitted
-    :type token: string
-    :return: The token for the reducer
-    :rtype: string
-    """
-    try:
-        token_from_file = init_config["token"]
-        if token:
-            print("Token found in settings file provided by --init flag, but --token was given. Overriding settings file.", flush=True)
-            return token
-        else:
-            return token_from_file
-    except KeyError:
-        #no token set in settings file
-        if token:
-            return token
-        else:
-            #no token was set by flag, generate one
-            return str(uuid.uuid4())
-
 def check_helper_config_file(config):
     control = config['control']
     try:
@@ -68,10 +43,10 @@ def run_cmd(ctx):
 @run_cmd.command('client')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
-@click.option('-t', '--token', required=False)
+@click.option('--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
-@click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
+@click.option('--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
@@ -149,7 +124,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
-@click.option('-t', '--token', required=False, default=None)
+@click.option('-t', '--token', is_flag=True, help='Use flag to enable token authentication')
 @click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
@@ -180,8 +155,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, ini
     
     if not remote:
         helper = check_helper_config_file(fedn_config)
-    
-    config["token"] = set_token(fedn_config, token)
         
     try:
         network_id = fedn_config['network_id']
