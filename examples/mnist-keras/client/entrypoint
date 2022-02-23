@@ -1,11 +1,22 @@
-#!./venv/bin/python
+#!./.mnist-keras/bin/python
 import tensorflow as tf
 import numpy as np
 from fedn.utils.kerashelper import KerasHelper
 import fire
 import json
+import docker
+import os
 
 NUM_CLASSES=10
+
+def _get_data_path():
+    # Figure out FEDn client number from container name
+    client = docker.from_env()
+    container = client.containers.get(os.environ['HOSTNAME'])
+    number = container.name[-1]
+    
+    # Return data path
+    return f"/var/data/clients/{number}/mnist.npz"
 
 def _compile_model(img_rows=28, img_cols=28):
     # Set input shape
@@ -25,7 +36,11 @@ def _compile_model(img_rows=28, img_cols=28):
 
 def _load_data(data_path, is_train=True):
     # Load data
-    data = np.load(data_path)
+    if data_path is None:
+        data = np.load(_get_data_path())
+    else:
+        data = np.load(data_path)
+
     if is_train:
         X = data['x_train']
         y = data['y_train']
@@ -46,7 +61,7 @@ def init_seed(out_path='seed.npz'):
 	helper = KerasHelper()
 	helper.save_model(weights, out_path)
 
-def train(in_model_path, out_model_path, data_path, batch_size=32, epochs=1):
+def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1):
     # Load data
     x_train, y_train = _load_data(data_path)
 
@@ -63,7 +78,7 @@ def train(in_model_path, out_model_path, data_path, batch_size=32, epochs=1):
     weights = model.get_weights()
     helper.save_model(weights, out_model_path)
 
-def validate(in_model_path, out_json_path, data_path):
+def validate(in_model_path, out_json_path, data_path=None):
     # Load data
     x_train, y_train = _load_data(data_path)
     x_test, y_test = _load_data(data_path, is_train=False)
@@ -97,4 +112,5 @@ if __name__ == '__main__':
         'init_seed': init_seed,
         'train': train,
         'validate': validate,
+        '_get_data_path': _get_data_path, # for testing
     })

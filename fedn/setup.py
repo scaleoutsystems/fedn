@@ -29,7 +29,7 @@ setup(
         "ttictoc",
         "psutil",
         "click==8.0.1",
-        "jinja2<3.0,>=2.10.1",
+        "jinja2",
         "geoip2",
         "plotly",
         "pandas",

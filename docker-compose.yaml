@@ -88,3 +88,5 @@ services:
     build: .
     working_dir: /app
     command: run client -in config/settings-client.yaml
+    deploy:
+      replicas: 2

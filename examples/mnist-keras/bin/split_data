@@ -1,4 +1,4 @@
-#!./venv/bin/python
+#!./.mnist-keras/bin/python
 import os
 import numpy as np
 from math import floor
@@ -26,7 +26,7 @@ def split(dataset='data/mnist.npz', outdir='data', n_splits=2):
 
     # Make splits
     for i in range(n_splits):
-        subdir=f'{outdir}/clients/{str(i)}'
+        subdir=f'{outdir}/clients/{str(i+1)}'
         if not os.path.exists(subdir):
             os.mkdir(subdir)
         np.savez(f'{subdir}/mnist.npz',
