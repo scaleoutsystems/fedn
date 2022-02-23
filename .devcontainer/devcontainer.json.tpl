@@ -8,7 +8,8 @@
   "extensions": [
     "ms-azuretools.vscode-docker",
     "ms-python.python",
-    "exiasr.hadolint"
+    "exiasr.hadolint",
+    "yzhang.markdown-all-in-one"
   ],
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=default",
