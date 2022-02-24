@@ -4,3 +4,4 @@
 tmp/*
 test/*
 docs/*
+**/venv
