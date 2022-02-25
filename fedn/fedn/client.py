@@ -386,8 +386,6 @@ class Client:
             if not self._attached: 
                 return
 
-            
-
     def process_request(self):
         """Process training and validation tasks. """
         while True:

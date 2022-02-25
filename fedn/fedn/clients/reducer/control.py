@@ -21,11 +21,12 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class ReducerControl:
-    """
+    """ Main conroller for training round. 
 
     """
 
     def __init__(self, statestore):
+
         self.__state = ReducerState.setup
         self.statestore = statestore
         if self.statestore.is_inited():
