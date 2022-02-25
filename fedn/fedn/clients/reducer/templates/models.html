@@ -9,8 +9,6 @@
         <div class="card-body">
             <form id="delete_models_form" method="post" action="/delete_model_trail"
                   enctype="multipart/form-data" style="margin-bottom: 24px;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
                 <div class="mb-3 row">
                     <div class="col-sm-10 ml-sm-auto">
                         <button type="submit" class="btn btn-square btn-danger">Delete models
