@@ -76,8 +76,8 @@ Training a federated model on the FEDn network involves:
 Follow the instruction here to set up your deployed network to train a model for digits classification using the MNIST dataset: 
 https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 
-## Fully distributed deployment
-The deployment, sizing of nodes, and tuning of a FEDn network in production depends heavily on the use case (cross-silo, cross-device, etc), the size of model updates, on the available infrastructure, and on the strategy to provide end-to-end security. We provide instructions for a fully distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
+## Distributed deployment
+We provide instructions for a distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
 
 ## Where to go from here
 - [Explore additional examples](https://github.com/scaleoutsystems/examples)
