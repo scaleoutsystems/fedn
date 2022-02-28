@@ -1,7 +1,6 @@
 import uuid
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from flask_wtf.csrf import CSRFProtect
 from idna import check_initial_combiner
 from tenacity import retry
 from werkzeug.utils import secure_filename
@@ -222,13 +221,11 @@ class ReducerRestService:
         """
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-        csrf = CSRFProtect()
         import os
         SECRET_KEY = os.urandom(32)
         app.config['SECRET_KEY'] = SECRET_KEY
         if self.token:
             self.encode_auth_token(app.config.get('SECRET_KEY'))
-        csrf.init_app(app)
 
         @app.route('/')
         def index():
@@ -814,7 +811,6 @@ controller:
                              mimetype='application/x-yaml')
 
         @app.route('/context', methods=['GET', 'POST'])
-        @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
             """
 
