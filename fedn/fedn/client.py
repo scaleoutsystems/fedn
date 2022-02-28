@@ -54,6 +54,7 @@ class Client:
         self.state = None
         self.error_state = False
         self._attached = False
+        self._missed_heartbeat=0
         self.config  = config
 
         self.connector = ConnectorClient(config['discover_host'],
@@ -349,8 +350,8 @@ class Client:
                 status_code = e.code()
                 #TODO: make configurable
                 timeout = 5
-                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout) 
             except:
                 raise
@@ -377,8 +378,8 @@ class Client:
                 status_code = e.code()
                 # TODO: make configurable
                 timeout = 5
-                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             except:
                 raise 
@@ -634,7 +635,8 @@ class Client:
                     print("{}:CLIENT active".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
                 if not self._attached:
-                    print("Detatched from combiner.", flush=True) 
+                    print("Detatched from combiner.", flush=True)
+                    # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s  
                     self._attach()
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:
