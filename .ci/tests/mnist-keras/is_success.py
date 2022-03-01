@@ -1,4 +1,3 @@
-from tkinter import N
 import pymongo
 from time import sleep
 import sys
