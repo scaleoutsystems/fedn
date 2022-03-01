@@ -10,4 +10,4 @@ jobs:
         uses: actions/checkout@v2
       
       - name: test mnist-keras example
-        run: .ci/tests/mnist-keras.sh
+        run: .ci/tests/mnist-keras/run.sh
