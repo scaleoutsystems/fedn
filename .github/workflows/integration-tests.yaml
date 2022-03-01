@@ -1,9 +1,9 @@
-name: "branch name check"
+name: "integration tests"
 
 on: push
 
 jobs:
-  branch-name-check:
+  integration-tests:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout
