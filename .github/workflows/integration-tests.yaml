@@ -1,0 +1,13 @@
+name: "branch name check"
+
+on: push
+
+jobs:
+  branch-name-check:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
+      - name: test mnist-keras example
+        run: .ci/tests/mnist-keras.sh
