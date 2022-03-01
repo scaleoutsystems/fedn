@@ -1,0 +1,13 @@
+name: "integration tests"
+
+on: push
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
+      - name: test mnist-keras example
+        run: .ci/tests/mnist-keras/run.sh
