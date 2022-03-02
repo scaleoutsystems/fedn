@@ -3,9 +3,7 @@ import uuid
 import yaml
 import time
 from fedn.clients.reducer.restservice import encode_auth_token, decode_auth_token
-import jwt
 from .main import main
-
 
 def get_statestore_config_from_file(init):
     """
