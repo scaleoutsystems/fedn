@@ -2,7 +2,8 @@ import click
 import uuid
 import yaml
 import time
-
+from fedn.clients.reducer.restservice import encode_auth_token, decode_auth_token
+import jwt
 from .main import main
 
 
@@ -124,13 +125,13 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
-@click.option('-t', '--token', is_flag=True, help='Use flag to enable token authentication')
+@click.option('-s', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
 @click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
-def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, init):
+def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name, init):
     """
 
     :param ctx:
@@ -141,7 +142,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, ini
     :param init:
     """
     remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 'name': name, 
               'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
@@ -170,6 +171,25 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, ini
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
 
+
+    if config['secret_key']:
+        # If we already have a valid token in statestore config, use that one. 
+        existing_config = statestore.get_reducer()
+        if existing_config: 
+            try:
+                existing_config = statestore.get_reducer()
+                current_token = existing_config['token']
+                status = decode_auth_token(current_token,config['secret_key'])
+                if status != 'Success':
+                    token = encode_auth_token(config['secret_key'])
+                    config['token'] = token
+            except:
+                raise
+
+        else:
+            token = encode_auth_token(config['secret_key'])
+            config['token'] = token
+
     try:
         statestore.set_reducer(config)
     except:
@@ -187,7 +207,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, local_package, name, ini
 
     # Control config
     control_config = fedn_config['control']
-    print("CONTROL_CONFIG: ", control_config, flush=True)
     try:
         statestore.set_round_config(control_config)
     except:
