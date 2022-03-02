@@ -1,4 +1,4 @@
-![alt text](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
+![FEDn logo](img/logo.png)
 
 FEDn is a modular and model agnostic framework for Hierarchical Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.
 
