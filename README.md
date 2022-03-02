@@ -1,4 +1,4 @@
-![FEDn logo](img/logo.png)
+![FEDn logo](docs/source/img/logos/logo.png)
 
 [![integration tests](https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg)](https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/KMg4VwszAd)
