@@ -13,6 +13,7 @@ COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
 COPY $REQUIREMENTS /app/config/requirements.txt
 
 # Create FEDn app directory
+SHELL ["/bin/bash", "-c"]
 RUN mkdir -p /app \
   && mkdir -p /app/client \
   && mkdir -p /app/certs \
@@ -23,7 +24,9 @@ RUN mkdir -p /app \
   && python -m venv /venv \
   && /venv/bin/pip install --upgrade pip \
   && /venv/bin/pip install --no-cache-dir -e /app/fedn \
-  && [[ -z "$REQUIREMENTS" ]] && /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt
+  && if [[ ! -z "$REQUIREMENTS" ]]; then \
+  /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt; \
+  fi
 
 # Setup working directory
 WORKDIR /app
