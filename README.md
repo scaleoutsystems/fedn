@@ -80,9 +80,20 @@ https://github.com/scaleoutsystems/examples/tree/main/mnist-keras
 We provide instructions for a distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
 
 ## Where to go from here
-- [Explore additional examples](https://github.com/scaleoutsystems/examples)
 - [Understand the architecture](https://scaleoutsystems.github.io/fedn/#/architecture) 
 - [Understand the compute package](https://scaleoutsystems.github.io/fedn/tutorial.html)
+
+## Additional examples 
+We maintain a list of external examples. If you have an example that you want to include, talk to a core developer in [Discord](https://discord.gg/CCRgjpMsVA). 
+
+**Federated learning/FEDn**
+- [NLP and IoT use case from the FEDn paper](https://github.com/scaleoutsystems/examples) maintained by Scaleout and ISCL. 
+- [FedBird - Federated object detection for Baltic Seabirds](https://github.com/aidotse/fedbird) FEDn project maintained by AI Sweden and Zenseact. 
+- [FEDn in AI Sweden EdgeLab](https://github.com/aidotse/EdgeLab/tree/main/tutorials/fedn) Instructions for running fully distributed FEDn in [EdgeLab](https://www.ai.se/en/data-factory/edge-lab) maintained by AI Sweden.
+- [FedLM - Federatad Electra.](https://github.com/Kungbib/fedLM) FEDn NLP project by the Swedish Royal Library. 
+- [Fraud detection with a Keras auto-encoder (ANN encoder)](https://github.com/scaleoutsystems/FEDn-client-fraud_keras)  
+- [VGG16 trained on cifar-10 with a PyTorch client (cross-silo)](https://github.com/scaleoutsystems/FEDn-client-cifar10-pytorch) 
+- [Sentiment analysis with a PyTorch CNN trained on the IMDB dataset (cross-silo)](https://github.com/scaleoutsystems/FEDn-client-imdb-pytorch.git) 
  
 ## Community support 
 Join the [Scaleout Discord Server](https://discord.gg/KMg4VwszAd) to engage with other users and developers. If you have a bug report or a feature request, start a ticket directly here on GitHub. 
