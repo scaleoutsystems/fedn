@@ -3,8 +3,7 @@ ARG BASE_IMG=python:3.8.9-slim
 FROM $BASE_IMG
 
 # Requirements (use MNIST Keras as default)
-ARG REQUIREMENTS=examples/mnist-keras/requirements.txt
-ARG INSTALL_REQ=False
+ARG REQUIREMENTS=""
 
 # Add FEDn and default configs
 COPY fedn /app/fedn
@@ -24,7 +23,7 @@ RUN mkdir -p /app \
   && python -m venv /venv \
   && /venv/bin/pip install --upgrade pip \
   && /venv/bin/pip install --no-cache-dir -e /app/fedn \
-  && [[ "$INSTALL_REQ" == True ]] && /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt
+  && [[ -z "$REQUIREMENTS" ]] && /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt
 
 # Setup working directory
 WORKDIR /app
