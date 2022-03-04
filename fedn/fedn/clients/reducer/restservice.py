@@ -11,6 +11,7 @@ from flask import redirect, url_for, flash, abort
 from threading import Lock
 import re
 
+import os
 import jwt
 import datetime
 import json
@@ -35,6 +36,45 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def encode_auth_token(secret_key):
+    """Generates the Auth Token
+    :return: string
+    """
+    try:
+        payload = {
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=90, seconds=0),
+            'iat': datetime.datetime.utcnow(),
+            'status': 'Success'
+        }
+        token = jwt.encode(
+            payload,
+            secret_key,
+            algorithm='HS256'
+        )
+        print('\n\n\nSECURE MODE ENABLED, USE TOKEN TO ACCESS REDUCER: **** {} ****\n\n\n'.format(token))
+        return token
+    except Exception as e:
+        return e
+
+def decode_auth_token(auth_token, secret):
+    """Decodes the auth token
+    :param auth_token:
+    :return: string
+    """
+    try:
+        payload = jwt.decode(
+            auth_token, 
+            secret,
+            algorithms=['HS256']
+        )
+        return payload["status"]
+    except jwt.ExpiredSignatureError as e:
+        print(e)
+        return 'Token has expired.'
+    except jwt.InvalidTokenError as e:
+        print(e)
+        return 'Invalid token.'
+
 
 class ReducerRestService:
     """
@@ -48,10 +88,20 @@ class ReducerRestService:
             self.name = config['discover_host']
         else:
             self.name = config['name']
+
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
+        
+        if 'token' in config.keys():
+            self.token_auth_enabled = True
+        else:
+            self.token_auth_enabled = False
 
-        self.token = config['token']
+        if 'secret_key' in config.keys(): 
+            self.SECRET_KEY = config['secret_key']
+        else:
+            self.SECRET_KEY = None
+
         
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
@@ -149,45 +199,6 @@ class ReducerRestService:
             return render_template('setup_model.html', message="Please set the initial model.")
 
         return None
-    
-    def encode_auth_token(self, secret_key):
-        """Generates the Auth Token
-        :return: string
-        """
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=90, seconds=0),
-                'iat': datetime.datetime.utcnow(),
-                'status': 'Success'
-            }
-            token = jwt.encode(
-                payload,
-                secret_key,
-                algorithm='HS256'
-            )
-            print('\n\n\nSECURE MODE ENABLED, USE TOKEN TO ACCESS REDUCER: **** {} ****\n\n\n'.format(token))
-            return token
-        except Exception as e:
-            return e
-
-    def decode_auth_token(self, auth_token, secret):
-        """Decodes the auth token
-        :param auth_token:
-        :return: string
-        """
-        try:
-            payload = jwt.decode(
-                auth_token, 
-                secret,
-                algorithms=['HS256']
-            )
-            return payload["status"]
-        except jwt.ExpiredSignatureError as e:
-            print(e)
-            return 'Token has expired.'
-        except jwt.InvalidTokenError as e:
-            print(e)
-            return 'Invalid token.'
 
     def authorize(self, r, secret):
         """Authorize client token
@@ -197,14 +208,15 @@ class ReducerRestService:
         :param token: Token to verify against
         :type token: string
         """
-        
         if not 'Authorization' in r.headers:
             print("Authorization failed, missing in the header of the request", flush=True)
             abort(401) #Unauthorized response
         try:
             request_token = r.headers.get('Authorization')
             request_token = request_token.split()[1] # str: 'Token {}'.format(token)
-            status = self.decode_auth_token(request_token, secret)
+            print(secret,request_token,flush=True)
+
+            status = decode_auth_token(request_token, secret)
             if status == 'Success':
                 return
             else:
@@ -221,11 +233,7 @@ class ReducerRestService:
         """
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-        import os
-        SECRET_KEY = os.urandom(32)
-        app.config['SECRET_KEY'] = SECRET_KEY
-        if self.token:
-            self.encode_auth_token(app.config.get('SECRET_KEY'))
+        app.config['SECRET_KEY'] = self.SECRET_KEY
 
         @app.route('/')
         def index():
@@ -362,7 +370,7 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             """ Add a combiner to the network. """
-            if self.token:
+            if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
@@ -568,7 +576,7 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             """Handle client assignment requests. """
-            if self.token:
+            if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
 
             response = self.check_configured_response()
@@ -788,6 +796,12 @@ class ReducerRestService:
                     sum = ''
                 chk_string = "checksum: {}".format(sum)
 
+            reducer_config = self.control.statestore.get_reducer()
+            if 'token' in reducer_config.keys():
+                token_string = "token: {}".format(reducer_config['token'])
+            else:
+                token_string = ''
+
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
@@ -795,10 +809,12 @@ class ReducerRestService:
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    {chk_string}""".format(network_id=network_id,
+    {chk_string} 
+    {token_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
-                           chk_string=chk_string)
+                           chk_string=chk_string,
+                           token_string=token_string)
 
             from io import BytesIO
             from flask import send_file
