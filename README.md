@@ -1,4 +1,4 @@
-![FEDn logo](docs/source/img/logos/logo.png)
+![FEDn logo](https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png)
 
 [![integration tests](https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg)](https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/KMg4VwszAd)
@@ -34,13 +34,7 @@ FEDn is a modular and model agnostic framework for hierarchical federated machin
 - [Python 3.8](https://www.python.org/downloads)
 
 ### Quick start
-The quickest way to get started with FEDn is by trying out the [MNIST Keras example](examples/mnist-keras). If you just want to start FEDn and get a feeling of the UI and the architecture you can just start it in pseudo-distributed mode with Docker compose.
-
-```sh
-git clone https://github.com/scaleoutsystems/fedn.git
-cd fedn
-docker-compose up -d 
-```
+The quickest way to get started with FEDn is by trying out the [MNIST Keras example](examples/mnist-keras).
 
 ## Distributed deployment
 We provide instructions for a distributed reference deployment here: [Distributed deployment](https://scaleoutsystems.github.io/fedn/#/deployment). 
