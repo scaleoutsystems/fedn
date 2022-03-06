@@ -32,6 +32,14 @@ fedn.combiner module
    :undoc-members:
    :show-inheritance:
 
+fedn.monitor module
+-------------------
+
+.. automodule:: fedn.monitor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fedn.reducer module
 -------------------
 
