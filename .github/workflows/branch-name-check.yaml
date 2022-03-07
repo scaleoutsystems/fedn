@@ -3,7 +3,7 @@ name: "branch name check"
 on: push
 
 env:
-  BRANCH_REGEX: '^(develop|master|((feature|hotfix|bugfix)\/.+)|(release\/((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)))$'
+  BRANCH_REGEX: '^(develop|master|((feature|hotfix|bugfix|docs)\/.+)|(release\/((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)))$'
 
 jobs:
   branch-name-check:
