@@ -803,8 +803,7 @@ class ReducerRestService:
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    {chk_string} 
-    {token_string}""".format(network_id=network_id,
+    {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
                            chk_string=chk_string)
