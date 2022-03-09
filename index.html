@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-      <title>Welcome to FEDn!</title>
+      <title>Welcome to FEDn documentation</title>
     
           <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
@@ -23,7 +23,7 @@
     
   <link rel="index" title="Index" href="genindex.html" />
   <link rel="search" title="Search" href="search.html" />
-  <link rel="next" title="Welcome to FEDn’s documentation" href="readme.html" /> 
+  <link rel="next" title="Architecture overview" href="architecture.html" /> 
   </head>
 
   <body>
@@ -70,15 +70,39 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="#welcome-to-fedn">Contents:</a></span>
+        <span class="caption-text"><a href="#license">Contents:</a></span>
       </p>
-      <ul class="">
+      <ul class="current">
         
-          <li class="toctree-l1 ">
+          <li class="toctree-l1 current">
             
-              <a href="readme.html" class="reference internal ">Welcome to FEDn’s documentation</a>
+              <a href="#" class="reference internal current">Welcome to FEDn documentation</a>
             
 
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#core-features" class="reference internal">Core Features</a></li>
+                
+                  <li class="toctree-l2"><a href="#getting-started" class="reference internal">Getting started</a></li>
+                
+                  <li class="toctree-l2"><a href="#distributed-deployment" class="reference internal">Distributed deployment</a></li>
+                
+                  <li class="toctree-l2"><a href="#where-to-go-from-here" class="reference internal">Where to go from here</a></li>
+                
+                  <li class="toctree-l2"><a href="#making-contributions" class="reference internal">Making contributions</a></li>
+                
+                  <li class="toctree-l2"><a href="#documentation" class="reference internal">Documentation</a></li>
+                
+                  <li class="toctree-l2"><a href="#community-support" class="reference internal">Community support</a></li>
+                
+                  <li class="toctree-l2"><a href="#citation" class="reference internal">Citation</a></li>
+                
+                  <li class="toctree-l2"><a href="#organizational-collaborators-contributors-and-supporters" class="reference internal">Organizational collaborators, contributors and supporters</a></li>
+                
+                  <li class="toctree-l2"><a href="#license" class="reference internal">License</a></li>
+                
+              </ul>
             
           </li>
 
@@ -149,14 +173,14 @@
   <ul class="breadcrumbs">
     <li><a href="#">Docs</a> &raquo;</li>
     
-    <li>Welcome to FEDn!</li>
+    <li>Welcome to FEDn documentation</li>
   </ul>
   
 
   <ul class="page-nav">
   <li class="next">
-    <a href="readme.html"
-       title="next chapter">Welcome to FEDn’s documentation →</a>
+    <a href="architecture.html"
+       title="next chapter">Architecture overview →</a>
   </li>
 </ul>
   
@@ -164,27 +188,127 @@
 <hr>
           <div class="content" role="main" v-pre>
             
-  <a class="reference internal image-reference" href="_images/fedn.webp"><img alt="FEDn logo" class="align-center" src="_images/fedn.webp" style="width: 100%;" /></a>
-<section id="welcome-to-fedn">
-<h1>Welcome to FEDn!<a class="headerlink" href="#welcome-to-fedn" title="Permalink to this headline">¶</a></h1>
-<p>FEDn is an open-source, modular and model agnostic framework for Federated Machine Learning. Scale seamlessly from pseudo-distributed development to real-world production networks in distributed, heterogeneous environments.</p>
-<p><a class="reference external" href="https://discord.gg/KMg4VwszAd">Scaleout Discord server</a>.</p>
+  <section id="welcome-to-fedn-documentation">
+<h1>Welcome to FEDn documentation<a class="headerlink" href="#welcome-to-fedn-documentation" title="Permalink to this headline">¶</a></h1>
+<figure class="align-default">
+<img alt="FEDn logo" src="https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png" />
+</figure>
+<a class="reference external image-reference" href="https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml"><img alt="https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg" src="https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg" /></a>
+<a class="reference external image-reference" href="https://discord.gg/KMg4VwszAd"><img alt="https://badgen.net/badge/icon/discord?icon=discord&amp;label" src="https://badgen.net/badge/icon/discord?icon=discord&amp;label" /></a>
+<p>FEDn is a modular and model agnostic framework for hierarchical
+federated machine learning which scales from pseudo-distributed
+development to real-world production networks in distributed,
+heterogeneous environments.</p>
+<section id="core-features">
+<h2>Core Features<a class="headerlink" href="#core-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>ML-framework agnostic</strong>. Model updates are treated as black-box
+computations. This means that it is possible to support virtually any
+ML model type or framework. Support for Keras and PyTorch is
+available out-of-the-box, and support for many other model types,
+including models from scikit-learn, are in active development.</p></li>
+<li><p><strong>Hierarchical Federated Learning for high scalability</strong>. FEDn allows
+for massive horizontal scaling. This is achieved by a hierarchical
+architecture where multiple combiners divide up the work to
+coordinate client updates and aggregation. Recent benchmarks show
+high performance both for thousands of clients in a cross-device
+setting and for large model updates (1GB) in a cross-silo setting,
+see <a class="reference external" href="https://arxiv.org/abs/2103.00148">https://arxiv.org/abs/2103.00148</a>.</p></li>
+<li><p><strong>Built for real-world production scenarios</strong>. The implementation is
+based on proven design patterns in distributed computing and
+incorporates enterprise security features. A key feature is that
+clients do not have to expose any ingress ports.</p></li>
+<li><p><strong>UI to manage alliances, track training progress and follow client
+validations in real time</strong>. FEDn has a UI that lets you efficiently
+track events, training progress, visualize model validations accross
+the federation, and monitor both client and server performance.</p></li>
+</ul>
+</section>
+<section id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.docker.com/get-docker">Docker</a></p></li>
+<li><p><a class="reference external" href="https://docs.docker.com/compose/install">Docker Compose</a></p></li>
+<li><p><a class="reference external" href="https://www.python.org/downloads">Python 3.8</a></p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h3>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h3>
+<p>The quickest way to get started with FEDn is by trying out the <a class="reference external" href="examples/mnist-keras">MNIST
+Keras example</a>.</p>
+</section>
+</section>
+<section id="distributed-deployment">
+<h2>Distributed deployment<a class="headerlink" href="#distributed-deployment" title="Permalink to this headline">¶</a></h2>
+<p>We provide instructions for a distributed reference deployment here:
+<a class="reference external" href="https://scaleoutsystems.github.io/fedn/#/deployment">Distributed
+deployment</a>.</p>
+</section>
+<section id="where-to-go-from-here">
+<h2>Where to go from here<a class="headerlink" href="#where-to-go-from-here" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="examples">Explore additional examples</a></p></li>
+<li><p><a class="reference external" href="https://scaleoutsystems.github.io/fedn/#/architecture">Understand the
+architecture</a></p></li>
+<li><p><a class="reference external" href="https://scaleoutsystems.github.io/fedn/tutorial.html">Understand the compute
+package</a></p></li>
+</ul>
+</section>
+<section id="making-contributions">
+<h2>Making contributions<a class="headerlink" href="#making-contributions" title="Permalink to this headline">¶</a></h2>
+<p>All pull requests will be considered and are much appreciated. Reach out
+to one of the maintainers if you are interested in making contributions,
+and we will help you find a good first issue to get you started. For
+more details please refer to our <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md">contribution
+guidelines</a>.</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>More details about the architecture and implementation:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://scaleoutsystems.github.io/fedn/">Documentation</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/2103.00148">Paper</a></p></li>
+</ul>
+</section>
+<section id="community-support">
+<h2>Community support<a class="headerlink" href="#community-support" title="Permalink to this headline">¶</a></h2>
+<p>Community support in available in our <a class="reference external" href="https://discord.gg/KMg4VwszAd">Discord
+server</a>.</p>
+</section>
+<section id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
+<p>If you use FEDn in your research, please cite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">ekmefjord2021scalable</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Scalable</span> <span class="n">federated</span> <span class="n">machine</span> <span class="n">learning</span> <span class="k">with</span> <span class="n">FEDn</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Ekmefjord</span><span class="p">,</span> <span class="n">Morgan</span> <span class="ow">and</span> <span class="n">Ait</span><span class="o">-</span><span class="n">Mlouk</span><span class="p">,</span> <span class="n">Addi</span> <span class="ow">and</span> <span class="n">Alawadi</span><span class="p">,</span> <span class="n">Sadi</span> <span class="ow">and</span> <span class="p">{</span>\<span class="n">AA</span><span class="p">}</span><span class="n">kesson</span><span class="p">,</span> <span class="n">Mattias</span> <span class="ow">and</span> <span class="n">Stoyanova</span><span class="p">,</span> <span class="n">Desislava</span> <span class="ow">and</span> <span class="n">Spjuth</span><span class="p">,</span> <span class="n">Ola</span> <span class="ow">and</span> <span class="n">Toor</span><span class="p">,</span> <span class="n">Salman</span> <span class="ow">and</span> <span class="n">Hellander</span><span class="p">,</span> <span class="n">Andreas</span><span class="p">},</span>
+  <span class="n">journal</span><span class="o">=</span><span class="p">{</span><span class="n">arXiv</span> <span class="n">preprint</span> <span class="n">arXiv</span><span class="p">:</span><span class="mf">2103.00148</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2021</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="organizational-collaborators-contributors-and-supporters">
+<h2>Organizational collaborators, contributors and supporters<a class="headerlink" href="#organizational-collaborators-contributors-and-supporters" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scaleout.png"><img alt="FEDn logo" src="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scaleout.png" style="width: 15%;" /></a> <a class="reference internal" href="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/UU.png"><img alt="UU logo" src="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/UU.png" style="width: 15%;" /></a> <a class="reference internal" href="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/ai-sweden-logo.png"><img alt="AI Sweden logo" src="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/ai-sweden-logo.png" style="width: 15%;" /></a> <a class="reference internal" href="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/zenseact-logo.png"><img alt="Zenseact logo" src="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/zenseact-logo.png" style="width: 15%;" /></a> <a class="reference internal" href="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scania.png"><img alt="Scania logo" src="https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scania.png" style="width: 15%;" /></a></p>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>FEDn is licensed under Apache-2.0 (see <a class="reference external" href="LICENSE">LICENSE</a> file for
+full information).</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">Welcome to FEDn’s documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#core-features">Core Features</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#documentation">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#getting-started">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#fully-distributed-deployment">Fully distributed deployment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#using-fedn-in-scaleout-studio">Using FEDn in Scaleout Studio</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#where-to-go-from-here">Where to go from here</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#community-support">Community support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#commercial-support">Commercial support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#making-contributions">Making contributions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#citation">Citation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#organizational-collaborators-contributors-and-supporters">Organizational collaborators, contributors and supporters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="readme.html#license">License</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to FEDn documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment.html">Distributed deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html">Tutorial: Compute Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html">Release Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdk.html">SDK Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html">Frequently asked questions</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deployment.html">Distributed deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial: Compute Package</a></li>
@@ -194,14 +318,15 @@
 </ul>
 </div>
 </section>
+</section>
 
 
           </div>
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
   <li class="next">
-    <a href="readme.html"
-       title="next chapter">Welcome to FEDn’s documentation →</a>
+    <a href="architecture.html"
+       title="next chapter">Architecture overview →</a>
   </li>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
