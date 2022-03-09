@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='fedn',
-    version='0.3.1',
+    version='develop',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    author='Morgan Ekmefjord',
-    author_email='morgan@scaleout.se',
+    author='Scaleout Systems AB',
+    author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.6,<4',
+    python_requires='>=3.8,<3.9',
     install_requires=[
         "PyYAML>=5.4",
         "requests",
@@ -36,7 +36,7 @@ setup(
         "bokeh",
         "networkx"
     ],
-    license="Copyright Scaleout Systems AB. See license for details",
+    license='Apache 2.0',
     zip_safe=False,
     entry_points={
         'console_scripts': ["fedn=cli:main"]
@@ -44,11 +44,7 @@ setup(
     keywords='Federated learning',
     packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
     ],
 )
