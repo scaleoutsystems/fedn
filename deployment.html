@@ -216,16 +216,6 @@ By default, FEDn will generate unsigned certificates for the reducer and each co
 <p>Certificates based on IP addresses are not supported due to incompatibilities with gRPC.</p>
 </div>
 </section>
-<section id="token-authentication-optional">
-<h3>Token authentication (optional)<a class="headerlink" href="#token-authentication-optional" title="Permalink to this headline">¶</a></h3>
-<p>FEDn supports single token authentication between combiners/clients and the reducer. To enable token authentication use <code class="code docutils literal notranslate"><span class="pre">--secret-key=&lt;your-key-phrase&gt;</span></code> flag when starting the reducer.
-The secret key will generate a token (expires after 90 days by default) and display it in the standard output.
-Using this configuration will require combiners and clients to authenticate via either <code class="code docutils literal notranslate"><span class="pre">--token=&lt;generated-token&gt;</span></code> or by specifying the “token: &lt;generated-token&gt;” in the settings YAML file provided to <code class="code docutils literal notranslate"><span class="pre">--init</span></code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The instructions below (1-4) does not use token authentication.</p>
-</div>
-</section>
 <section id="networking-dns">
 <h3>Networking / DNS<a class="headerlink" href="#networking-dns" title="Permalink to this headline">¶</a></h3>
 <p>The reducer/controller as well as each client needs to be able to resolve the hostname given in the combiner configuration file. In this example,
