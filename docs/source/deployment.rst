@@ -34,6 +34,15 @@ By default, FEDn will generate unsigned certificates for the reducer and each co
 .. note:: 
    Certificates based on IP addresses are not supported due to incompatibilities with gRPC. 
 
+Token authentication (optional)
+.......................
+FEDn supports single token authentication between combiners/clients and the reducer. To enable token authentication use :code:`--secret_key=<your-key-phrase>` flag when starting the reducer.
+The secret key will generate a token (expires after 90 days by default) and display it in the standard output.
+Using this configuration will require combiners and clients to authenticate via either :code:`--token=<generated-token>` or by specifying the "token: <generated-token>" in the settings YAML file provided to :code:`--init`.
+
+
+.. note::
+   The instructions below (1-4) does not use token authentication.
 
 Networking / DNS 
 ................
