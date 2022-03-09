@@ -796,12 +796,6 @@ class ReducerRestService:
                     sum = ''
                 chk_string = "checksum: {}".format(sum)
 
-            reducer_config = self.control.statestore.get_reducer()
-            if 'token' in reducer_config.keys():
-                token_string = "token: {}".format(reducer_config['token'])
-            else:
-                token_string = ''
-
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
@@ -809,12 +803,10 @@ class ReducerRestService:
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    {chk_string} 
-    {token_string}""".format(network_id=network_id,
+    {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
-                           chk_string=chk_string,
-                           token_string=token_string)
+                           chk_string=chk_string)
 
             from io import BytesIO
             from flask import send_file
