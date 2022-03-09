@@ -29,7 +29,7 @@ and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:
 You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:
 
 
-Certificates (optional)s
+Certificates (optional)
 .......................
 
 Certificates are needed for the Reducer and each of the Combiners to enable SSL for secure communication. 
@@ -39,7 +39,7 @@ By default, FEDn will generate unsigned certificates for the reducer and each co
    Certificates based on IP addresses are not supported due to incompatibilities with gRPC. 
 
 Token authentication (optional)
-.......................
+...............................
 FEDn supports single token authentication between combiners/clients and the reducer. To enable token authentication use :code:`--secret-key=<your-key-phrase>` flag when starting the reducer.
 The secret key will generate a token (expires after 90 days by default) and display it in the standard output.
 Using this configuration will require combiners and clients to authenticate via either :code:`--token=<generated-token>` or by specifying the "token: <generated-token>" in the settings YAML file provided to :code:`--init`.
@@ -57,7 +57,7 @@ Note that there are many other possible ways to achieve this, depending on your 
 
 
 1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)  
----------------------------------------------------------------
+--------------------------------------------------------------------
 
 First, use 'config/base-services.yaml' to deploy MinIO and Mongo services on one of the hosts. Edit the file to change the default passwords and ports.
 
@@ -74,8 +74,8 @@ First, use 'config/base-services.yaml' to deploy MinIO and Mongo services on one
 
 Copy the file "config/settings-reducer.yaml.template" to "config/settings-reducer.yaml", then 
 
-   a. Edit 'settings-reducer.yaml' to provide the connection settings for MongoDB and Minio from Step 1. 
-   b. Copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it, adding a host:IP mapping for each combiner you plan to deploy. 
+a. Edit 'settings-reducer.yaml' to provide the connection settings for MongoDB and Minio from Step 1. 
+b. Copy 'config/extra-hosts-reducer.yaml.template' to 'config/extra-hosts-reducer.yaml' and edit it, adding a host:IP mapping for each combiner you plan to deploy. 
 
 Then start the reducer: 
 
@@ -110,8 +110,8 @@ and update extra hosts for the reducer.
 
 You can now choose an example, upload a compute package and an initial model, and attach clients. 
 
-- `Examples <../examples>`__
+- `Examples <../../examples>`__
 
 .. note:: 
-   The clients will also need to be able resolve the hostname ('host' argument) for each combiner node in the network. 
-   There is template in 'config/extra-hosts-client.yaml.template' that can be modified for this purpose. 
+   The clients will also need to be able to resolve the hostname ('host' argument) for each combiner node in the network. 
+   There is a template in 'config/extra-hosts-client.yaml.template' that can be modified for this purpose. 

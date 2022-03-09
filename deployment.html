@@ -211,8 +211,8 @@ and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:</p
 </ul>
 <p>You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:</p>
 </section>
-<section id="certificates-optional-s">
-<h3>Certificates (optional)s<a class="headerlink" href="#certificates-optional-s" title="Permalink to this headline">¶</a></h3>
+<section id="certificates-optional">
+<h3>Certificates (optional)<a class="headerlink" href="#certificates-optional" title="Permalink to this headline">¶</a></h3>
 <p>Certificates are needed for the Reducer and each of the Combiners to enable SSL for secure communication.
 By default, FEDn will generate unsigned certificates for the reducer and each combiner using OpenSSL.</p>
 <div class="admonition note">
@@ -253,12 +253,10 @@ Note that you can also configure the reducer to use already existing MongoDB and
 <section id="deploy-the-reducer">
 <h2>2. Deploy the reducer<a class="headerlink" href="#deploy-the-reducer" title="Permalink to this headline">¶</a></h2>
 <p>Copy the file “config/settings-reducer.yaml.template” to “config/settings-reducer.yaml”, then</p>
-<blockquote>
-<div><ol class="loweralpha simple">
+<ol class="loweralpha simple">
 <li><p>Edit ‘settings-reducer.yaml’ to provide the connection settings for MongoDB and Minio from Step 1.</p></li>
 <li><p>Copy ‘config/extra-hosts-reducer.yaml.template’ to ‘config/extra-hosts-reducer.yaml’ and edit it, adding a host:IP mapping for each combiner you plan to deploy.</p></li>
 </ol>
-</div></blockquote>
 <p>Then start the reducer:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo -E docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up
 </pre></div>
@@ -288,12 +286,12 @@ and update extra hosts for the reducer.</p>
 <h2>4. Attach clients to the FEDn network<a class="headerlink" href="#attach-clients-to-the-fedn-network" title="Permalink to this headline">¶</a></h2>
 <p>You can now choose an example, upload a compute package and an initial model, and attach clients.</p>
 <ul class="simple">
-<li><p><a class="reference external" href="../examples">Examples</a></p></li>
+<li><p><a class="reference external" href="../../examples">Examples</a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The clients will also need to be able resolve the hostname (‘host’ argument) for each combiner node in the network.
-There is template in ‘config/extra-hosts-client.yaml.template’ that can be modified for this purpose.</p>
+<p>The clients will also need to be able to resolve the hostname (‘host’ argument) for each combiner node in the network.
+There is a template in ‘config/extra-hosts-client.yaml.template’ that can be modified for this purpose.</p>
 </div>
 </section>
 </section>
