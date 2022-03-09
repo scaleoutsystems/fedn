@@ -75,20 +75,20 @@ All pull requests will be considered and are much appreciated. Reach out
 to one of the maintainers if you are interested in making contributions,
 and we will help you find a good first issue to get you started. For
 more details please refer to our `contribution
-guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__
+guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
 
 Documentation
 =============
+More details about the architecture and implementation:
 
-| More details about the architecture and implementation:
-| - `Documentation <https://scaleoutsystems.github.io/fedn/>`__ -
-  `Paper <https://arxiv.org/abs/2103.00148>`__
+-  `Documentation <https://scaleoutsystems.github.io/fedn/>`__ 
+-  `Paper <https://arxiv.org/abs/2103.00148>`__
 
 Community support
 =================
 
 Community support in available in our `Discord
-server <https://discord.gg/KMg4VwszAd>`__
+server <https://discord.gg/KMg4VwszAd>`__.
 
 Citation
 ========
@@ -115,13 +115,13 @@ License
 FEDn is licensed under Apache-2.0 (see `LICENSE <LICENSE>`__ file for
 full information).
 
-.. |FEDn logo| image:: img/logos/Scaleout.png
+.. |FEDn logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scaleout.png
    :width: 15%
-.. |UU logo| image:: img/logos/UU.png
+.. |UU logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/UU.png
    :width: 15%
-.. |AI Sweden logo| image:: img/logos/ai-sweden-logo.png
+.. |AI Sweden logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/ai-sweden-logo.png
    :width: 15%
-.. |Zenseact logo| image:: img/logos/zenseact-logo.png
+.. |Zenseact logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/zenseact-logo.png
    :width: 15%
-.. |Scania logo| image:: img/logos/Scania.png
+.. |Scania logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scania.png
    :width: 15%
