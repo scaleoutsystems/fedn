@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-      <title>Distributed deployment</title>
+      <title>Deployment</title>
     
           <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
@@ -95,15 +95,15 @@
         
           <li class="toctree-l1 current">
             
-              <a href="#" class="reference internal current">Distributed deployment</a>
+              <a href="#" class="reference internal current">Deployment</a>
             
 
             
               <ul>
                 
-                  <li class="toctree-l2"><a href="#prerequisite" class="reference internal">Prerequisite</a></li>
+                  <li class="toctree-l2"><a href="#prerequisites" class="reference internal">Prerequisites</a></li>
                 
-                  <li class="toctree-l2"><a href="#deploy-supporting-services-minio-mongodb-and-mongoexpress" class="reference internal">1. Deploy supporting services (MinIO, MongoDB and MongoExpress)</a></li>
+                  <li class="toctree-l2"><a href="#deploy-base-supporting-services-minio-mongodb-and-mongoexpress" class="reference internal">1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)</a></li>
                 
                   <li class="toctree-l2"><a href="#deploy-the-reducer" class="reference internal">2. Deploy the reducer</a></li>
                 
@@ -164,7 +164,7 @@
   <ul class="breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
     
-    <li>Distributed deployment</li>
+    <li>Deployment</li>
   </ul>
   
 
@@ -183,34 +183,38 @@
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="distributed-deployment">
-<h1>Distributed deployment<a class="headerlink" href="#distributed-deployment" title="Permalink to this headline">¶</a></h1>
-<p>FEDn is designed for flexibility at the deployment of the FEDn network. By deploying multiple combiners (aggregation servers) at separate hosts/locations,
-a user can run highly decentralized networks. However, in the degenerate case of a single active combiner, we obtain a simple central client-server architecture.
-The optimal choice of the network topology including the sizing of nodes in the network depends on many factors including the need for redundancy,
-the targeted number of clients, the size of the models trained, the need for geographical proximity of clients to combiners, and security considerations.
-Since it is easy to scale the network dynamically by attaching additional combiners, we recommend that you start simple and expand the network as needed.</p>
+  <section id="deployment">
+<h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
+<p>By running multiple combiners (aggregation servers) at separate hosts/locations we can deploy highly decentralized networks. You can choose to deploy combiners
+in geographical proximity to optimize for low-latency for client subgroups. In the case of a single combiner, we recover a standard centralized
+client-server architecture. Since it is straight-forward to scale the network dynamically by attaching additional combiners, we recommend that you
+start simple and expand the network as needed.</p>
 <dl class="simple">
-<dt>This example serves as reference deployment for setting up a fully distributed FEDn network consisting of:</dt><dd><ul class="simple">
-<li><p>one host serving the supporting services (MinIOs, MongoDB)</p></li>
-<li><p>one host serving the controller / reducer</p></li>
-<li><p>one host running a combiner</p></li>
+<dt>This example serves as reference deployment for setting up a FEDn network consisting of:</dt><dd><ul class="simple">
+<li><p>One host/VM serving the supporting services (MinIOs, MongoDB)</p></li>
+<li><p>One host/VM serving the controller / reducer</p></li>
+<li><p>One host/VM running a combiner</p></li>
 </ul>
 </dd>
 </dl>
-<p>We will in this example use the provided docker-compose templates to deploy the components across three different hosts / VMs.
-Note that it might be necessary to modify them slightly depending on your target environment and host configurations.</p>
-<section id="prerequisite">
-<h2>Prerequisite<a class="headerlink" href="#prerequisite" title="Permalink to this headline">¶</a></h2>
-<section id="hosts">
-<h3>Hosts<a class="headerlink" href="#hosts" title="Permalink to this headline">¶</a></h3>
-<p>We assume that you have root access to 3 Ubuntu 20.04 Server hosts / VMs. We recommend at least 4 CPU, 8GB RAM flavors for the base services and the reducer, and 4 CPU, 16BG RAM for the combiner host.
-You need to be able to configure security groups / ingress settings for each host.</p>
+<p>We will in this example use the provided docker-compose templates to deploy the components across the three different hosts / VMs.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<section id="hosts-vms">
+<h3>Hosts / VMs<a class="headerlink" href="#hosts-vms" title="Permalink to this headline">¶</a></h3>
+<p>We assume that you have root access to 3 Ubuntu 20.04 Server hosts / VMs. We recommend at least 4 CPUs and 8GB RAM for the base services and the reducer,
+and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.docker.com/get-docker">Docker</a></p></li>
+<li><p><a class="reference external" href="https://docs.docker.com/compose/install">Docker Compose</a></p></li>
+<li><p><a class="reference external" href="https://www.python.org/downloads">Python 3.8</a></p></li>
+</ul>
+<p>You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:</p>
 </section>
-<section id="certificates-optional">
-<h3>Certificates (optional)<a class="headerlink" href="#certificates-optional" title="Permalink to this headline">¶</a></h3>
-<p>Certificates are needed for the reducer and each of the combiners for secure communication.
-By default, FEDn will generate unsigned certificates for the reducer and each combiner nodes using OpenSSL.</p>
+<section id="certificates-optional-s">
+<h3>Certificates (optional)s<a class="headerlink" href="#certificates-optional-s" title="Permalink to this headline">¶</a></h3>
+<p>Certificates are needed for the Reducer and each of the Combiners to enable SSL for secure communication.
+By default, FEDn will generate unsigned certificates for the reducer and each combiner using OpenSSL.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Certificates based on IP addresses are not supported due to incompatibilities with gRPC.</p>
@@ -226,32 +230,37 @@ Using this configuration will require combiners and clients to authenticate via 
 <p>The instructions below (1-4) does not use token authentication.</p>
 </div>
 </section>
-<section id="networking-dns">
-<h3>Networking / DNS<a class="headerlink" href="#networking-dns" title="Permalink to this headline">¶</a></h3>
-<p>The reducer/controller as well as each client needs to be able to resolve the hostname given in the combiner configuration file. In this example,
-we show how this can be achieved if no external DNS lookup is available by setting “extra host” in the Docker containers for the Reducer and client.</p>
+<section id="networking">
+<h3>Networking<a class="headerlink" href="#networking" title="Permalink to this headline">¶</a></h3>
+<p>You will also need to be able to configure security groups / ingress settings for each host.
+The Reducer as well as each client needs to be able to resolve the hostname for each combiner (matching the certificate). In this example,
+we show how this can be achieved if no DNS resolution is available, by setting “extra host” in the Docker containers for the Reducer and client.
+Note that there are many other possible ways to achieve this, depending on your setup.</p>
 </section>
 </section>
-<section id="deploy-supporting-services-minio-mongodb-and-mongoexpress">
-<h2>1. Deploy supporting services (MinIO, MongoDB and MongoExpress)<a class="headerlink" href="#deploy-supporting-services-minio-mongodb-and-mongoexpress" title="Permalink to this headline">¶</a></h2>
-<p>First, deploy Minio and Mongo services on one host. Edit ‘config/base-services.yaml’, to change the default passwords.</p>
+<section id="deploy-base-supporting-services-minio-mongodb-and-mongoexpress">
+<h2>1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)<a class="headerlink" href="#deploy-base-supporting-services-minio-mongodb-and-mongoexpress" title="Permalink to this headline">¶</a></h2>
+<p>First, use ‘config/base-services.yaml’ to deploy MinIO and Mongo services on one of the hosts. Edit the file to change the default passwords and ports.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo -E docker-compose -f config/base-services.yaml up
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Remember to open ports on the host so that the reducer can reach the API endpoints (the exported port in the ‘ports’ properety for each of the services).
-Note that you can also configure the reducer to use already existing MongoDB and MinIO backends so this step is optional.</p>
+<p>Remember to open ports on the host so that the API endpoints (the exported port in the ‘ports’ property for each of the services) can be reacheds.
+Note that you can also configure the reducer to use already existing MongoDB and MinIO services, in that case you can skip this step.</p>
 </div>
 </section>
 <section id="deploy-the-reducer">
 <h2>2. Deploy the reducer<a class="headerlink" href="#deploy-the-reducer" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Follow the steps for pseudo-distributed deployment, but now:</dt><dd><ol class="loweralpha simple">
-<li><p>Edit ‘settings-reducer.yaml’ to provide the appropriate connection settings for MongoDB and Minio from Step 1.</p></li>
+<p>Copy the file “config/settings-reducer.yaml.template” to “config/settings-reducer.yaml”, then</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>Edit ‘settings-reducer.yaml’ to provide the connection settings for MongoDB and Minio from Step 1.</p></li>
 <li><p>Copy ‘config/extra-hosts-reducer.yaml.template’ to ‘config/extra-hosts-reducer.yaml’ and edit it, adding a host:IP mapping for each combiner you plan to deploy.</p></li>
 </ol>
-</dd>
-</dl>
-<p>Then you can start the reducer:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up
+</div></blockquote>
+<p>Then start the reducer:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo -E docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up
 </pre></div>
 </div>
 <div class="admonition note">
@@ -261,19 +270,31 @@ Note that you can also configure the reducer to use already existing MongoDB and
 </section>
 <section id="deploy-combiners">
 <h2>3. Deploy combiners<a class="headerlink" href="#deploy-combiners" title="Permalink to this headline">¶</a></h2>
-<p>Edit ‘config/settings-combiner.yaml’ to provide a name for the combiner (used as a unique identifier for the combiner in the network),
-a hostname (which is used by reducer and clients to connect to combiner RPC), and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings). Also, provide the IP and port for the reducer under the ‘controller’ tag. Then deploy the combiner:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker-compose -f config/combiner.yaml up
+<p>Copy ‘config/settings.yaml.template’ to ‘config/settings-combiner.yaml’ and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the network),
+a hostname (which is used by reducer and clients to connect to combiner RPC),
+and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings).
+Also, provide the IP and port for the reducer under the ‘controller’ tag. Then deploy the combiner:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo -E docker-compose -f config/combiner.yaml up
 </pre></div>
 </div>
-<p>Optional: Repeat the same steps for the second combiner node. Make sure to provide unique names for the two combiners.</p>
-<p>&gt; Note that it is not currently possible to use the host’s IP address as ‘host’. This is due to gRPC not being able to handle certificates based on IP.</p>
+<p>Optional: Repeat this step for any number of additional combiner nodes. Make sure to provide unique names for the two combiners,
+and update extra hosts for the reducer.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that it is not possible to use the IP address as ‘host’. gRPC does not support certificates based on IP addresses.</p>
+</div>
 </section>
 <section id="attach-clients-to-the-fedn-network">
 <h2>4. Attach clients to the FEDn network<a class="headerlink" href="#attach-clients-to-the-fedn-network" title="Permalink to this headline">¶</a></h2>
-<p>Once the FEDn network is deployed, you can attach clients to it in the same way as for the pseudo-distributed deployment.
-Note that the clients need host:IP resolution for each combiner node in the network. See the reducer deployment for an
-example of how you can handle it using docker-compose.</p>
+<p>You can now choose an example, upload a compute package and an initial model, and attach clients.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="../examples">Examples</a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The clients will also need to be able resolve the hostname (‘host’ argument) for each combiner node in the network.
+There is template in ‘config/extra-hosts-client.yaml.template’ that can be modified for this purpose.</p>
+</div>
 </section>
 </section>
 
