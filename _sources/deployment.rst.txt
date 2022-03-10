@@ -28,7 +28,6 @@ and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:
 
 You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:
 
-
 Certificates (optional)
 .......................
 
@@ -54,7 +53,6 @@ You will also need to be able to configure security groups / ingress settings fo
 The Reducer as well as each client needs to be able to resolve the hostname for each combiner (matching the certificate). In this example, 
 we show how this can be achieved if no DNS resolution is available, by setting "extra host" in the Docker containers for the Reducer and client.   
 Note that there are many other possible ways to achieve this, depending on your setup.  
-
 
 1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)  
 --------------------------------------------------------------------
