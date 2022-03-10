@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fedn',
-    version='develop',
+    version='0.3.2',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
