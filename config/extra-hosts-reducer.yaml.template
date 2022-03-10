@@ -1,7 +1,10 @@
 version: '3.3'
+
+# Map the "host" parameter from combiner-settings.yaml to the combiner host IP
+# Make one entry for each combiner in the network.
 services:
    reducer:
      extra_hosts:
-        combiner1: 130.239.81.105
-        combiner2: 129.16.123.131
+        combiner: 130.239.xx.xxx 
+
 

@@ -1,0 +1,116 @@
+#!./.mnist-keras/bin/python
+import tensorflow as tf
+import numpy as np
+from fedn.utils.kerashelper import KerasHelper
+import fire
+import json
+import docker
+import os
+
+NUM_CLASSES=10
+
+def _get_data_path():
+    # Figure out FEDn client number from container name
+    client = docker.from_env()
+    container = client.containers.get(os.environ['HOSTNAME'])
+    number = container.name[-1]
+    
+    # Return data path
+    return f"/var/data/clients/{number}/mnist.npz"
+
+def _compile_model(img_rows=28, img_cols=28):
+    # Set input shape
+    input_shape = (img_rows, img_cols, 1)
+
+    # Define model
+    model = tf.keras.models.Sequential()
+    model.add(tf.keras.layers.Flatten(input_shape=input_shape))
+    model.add(tf.keras.layers.Dense(64, activation='relu'))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(32, activation='relu'))
+    model.add(tf.keras.layers.Dense(NUM_CLASSES, activation='softmax'))
+    model.compile(loss=tf.keras.losses.categorical_crossentropy,
+    	          optimizer=tf.keras.optimizers.Adam(),
+        	      metrics=['accuracy'])
+    return model
+
+def _load_data(data_path, is_train=True):
+    # Load data
+    if data_path is None:
+        data = np.load(_get_data_path())
+    else:
+        data = np.load(data_path)
+
+    if is_train:
+        X = data['x_train']
+        y = data['y_train']
+    else:
+        X = data['x_test']
+        y = data['y_test']
+
+    # Normalize
+    X = X.astype('float32')
+    X = np.expand_dims(X,-1)
+    X = X / 255
+    y = tf.keras.utils.to_categorical(y, NUM_CLASSES)
+
+    return X, y
+
+def init_seed(out_path='seed.npz'):
+	weights = _compile_model().get_weights()
+	helper = KerasHelper()
+	helper.save_model(weights, out_path)
+
+def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1):
+    # Load data
+    x_train, y_train = _load_data(data_path)
+
+    # Load model
+    model = _compile_model()
+    helper = KerasHelper()
+    weights = helper.load_model(in_model_path)
+    model.set_weights(weights)
+
+    # Train
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs)
+    
+    # Save
+    weights = model.get_weights()
+    helper.save_model(weights, out_model_path)
+
+def validate(in_model_path, out_json_path, data_path=None):
+    # Load data
+    x_train, y_train = _load_data(data_path)
+    x_test, y_test = _load_data(data_path, is_train=False)
+
+    # Load model
+    model = _compile_model()
+    helper = KerasHelper()
+    weights = helper.load_model(in_model_path)
+    model.set_weights(weights)
+
+    # Evaluate
+    model_score = model.evaluate(x_train, y_train)
+    model_score_test = model.evaluate(x_test, y_test)
+    y_pred = model.predict(x_test)
+    y_pred = np.argmax(y_pred, axis=1)
+
+    # JSON schema
+    report = {
+        "training_loss": model_score[0],
+        "training_accuracy": model_score[1],
+        "test_loss": model_score_test[0],
+        "test_accuracy": model_score_test[1],
+    }
+
+    # Save JSON
+    with open(out_json_path,"w") as fh:
+        fh.write(json.dumps(report))
+
+if __name__ == '__main__':
+    fire.Fire({
+        'init_seed': init_seed,
+        'train': train,
+        'validate': validate,
+        '_get_data_path': _get_data_path, # for testing
+    })

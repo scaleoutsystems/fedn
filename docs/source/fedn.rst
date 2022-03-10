@@ -10,6 +10,7 @@ Subpackages
    fedn.aggregators
    fedn.clients
    fedn.common
+   fedn.tests
    fedn.utils
 
 Submodules
@@ -27,14 +28,6 @@ fedn.combiner module
 --------------------
 
 .. automodule:: fedn.combiner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fedn.monitor module
--------------------
-
-.. automodule:: fedn.monitor
    :members:
    :undoc-members:
    :show-inheritance:

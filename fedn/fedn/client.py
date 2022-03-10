@@ -6,6 +6,7 @@ import uuid
 import tempfile
 import threading, queue
 import time
+from aiohttp import client
 
 import grpc
 
@@ -53,12 +54,14 @@ class Client:
         self.state = None
         self.error_state = False
         self._attached = False
+        self._missed_heartbeat=0
         self.config  = config
 
         self.connector = ConnectorClient(config['discover_host'],
                                          config['discover_port'],
                                          config['token'],
                                          config['name'],
+                                         config['remote_compute_context'],
                                          config['preferred_combiner'],
                                          config['client_id'],
                                          secure=config['secure'],
@@ -199,6 +202,12 @@ class Client:
             if status == Status.Assigned:
                 client_config = response
                 break
+            if status == Status.UnAuthorized:
+                print(response, flush=True)
+                sys.exit("Exiting: Unauthorized")
+            if status == Status.UnMatchedConfig:
+                print(response, flush=True)
+                sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
             print(".", end=' ', flush=True)
         
@@ -235,6 +244,8 @@ class Client:
         print("Client: {} connected {} to {}:{}".format(self.name,
                                                         "SECURED" if client_config['certificate'] else "INSECURE",
                                                         client_config['host'], client_config['port']), flush=True)
+        
+        print("Client: Using {} compute package.".format(client_config["package"]))
 
     def _disconnect(self):
         self.channel.close()
@@ -339,8 +350,8 @@ class Client:
                 status_code = e.code()
                 #TODO: make configurable
                 timeout = 5
-                print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout) 
             except:
                 raise
@@ -367,16 +378,14 @@ class Client:
                 status_code = e.code()
                 # TODO: make configurable
                 timeout = 5
-                print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                    status_code.name, timeout), flush=True)
+                #print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
+                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             except:
                 raise 
 
             if not self._attached: 
                 return
-
-            
 
     def process_request(self):
         """Process training and validation tasks. """
@@ -626,7 +635,8 @@ class Client:
                     print("{}:CLIENT active".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
                 if not self._attached:
-                    print("Detatched from combiner.", flush=True) 
+                    print("Detatched from combiner.", flush=True)
+                    # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s  
                     self._attach()
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:

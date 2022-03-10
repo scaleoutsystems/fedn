@@ -2,9 +2,8 @@ import click
 import uuid
 import yaml
 import time
-
+from fedn.clients.reducer.restservice import encode_auth_token, decode_auth_token
 from .main import main
-
 
 def get_statestore_config_from_file(init):
     """
@@ -19,6 +18,14 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise (e)
 
+def check_helper_config_file(config):
+    control = config['control']
+    try:
+        helper = control["helper"]
+    except KeyError:
+        print("--local-package was used, but no helper was found in --init settings file.", flush=True)
+        exit(-1)
+    return helper
 
 @main.group('run')
 @click.pass_context
@@ -35,10 +42,10 @@ def run_cmd(ctx):
 @run_cmd.command('client')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False)
-@click.option('-t', '--token', required=False)
+@click.option('--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
-@click.option('-r', '--remote', required=False, default=True, help='Enable remote configured execution context')
+@click.option('--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=True)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
@@ -53,7 +60,7 @@ def run_cmd(ctx):
 @click.option('--heartbeat-interval',required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat',required=False, default=30)
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, dry_run, secure, preshared_cert,
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, dry_run, secure, preshared_cert,
                verify_cert, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
     """
 
@@ -75,6 +82,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
     :param reconnect_after_missed_heartbeat
     :return:
     """
+    remote = False if local_package else True
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert, 'preferred_combiner': preferred_combiner,
@@ -114,13 +122,14 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, remote, 
 
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
-@click.option('-p', '--discoverport', required=False, default='8090')
-@click.option('-t', '--token', required=False, default="reducer_token")
+@click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
+@click.option('-s', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
+@click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
-def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
+def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name, init):
     """
 
     :param ctx:
@@ -130,7 +139,9 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     :param name:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name, 'init': init}
+    remote = False if local_package else True
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 'name': name, 
+              'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
     try:
@@ -140,7 +151,10 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
-
+    
+    if not remote:
+        helper = check_helper_config_file(fedn_config)
+        
     try:
         network_id = fedn_config['network_id']
     except KeyError:
@@ -154,6 +168,25 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
+
+
+    if config['secret_key']:
+        # If we already have a valid token in statestore config, use that one. 
+        existing_config = statestore.get_reducer()
+        if existing_config: 
+            try:
+                existing_config = statestore.get_reducer()
+                current_token = existing_config['token']
+                status = decode_auth_token(current_token,config['secret_key'])
+                if status != 'Success':
+                    token = encode_auth_token(config['secret_key'])
+                    config['token'] = token
+            except:
+                raise
+
+        else:
+            token = encode_auth_token(config['secret_key'])
+            config['token'] = token
 
     try:
         statestore.set_reducer(config)
@@ -172,7 +205,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, token, name, init):
 
     # Control config
     control_config = fedn_config['control']
-    print("CONTROL_CONFIG: ", control_config, flush=True)
     try:
         statestore.set_round_config(control_config)
     except:

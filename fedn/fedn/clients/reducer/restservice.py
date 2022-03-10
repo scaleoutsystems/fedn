@@ -1,14 +1,19 @@
+import uuid
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from flask_wtf.csrf import CSRFProtect
+from idna import check_initial_combiner
+from tenacity import retry
 from werkzeug.utils import secure_filename
 
 from flask import Flask, jsonify, render_template, request
-from flask import redirect, url_for, flash
+from flask import redirect, url_for, flash, abort
 
 from threading import Lock
 import re
 
+import os
+import jwt
+import datetime
 import json
 import plotly
 import pandas as pd
@@ -22,7 +27,6 @@ from fedn.clients.reducer.plots import Plot
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
 
-
 def allowed_file(filename):
     """
 
@@ -31,6 +35,45 @@ def allowed_file(filename):
     """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def encode_auth_token(secret_key):
+    """Generates the Auth Token
+    :return: string
+    """
+    try:
+        payload = {
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=90, seconds=0),
+            'iat': datetime.datetime.utcnow(),
+            'status': 'Success'
+        }
+        token = jwt.encode(
+            payload,
+            secret_key,
+            algorithm='HS256'
+        )
+        print('\n\n\nSECURE MODE ENABLED, USE TOKEN TO ACCESS REDUCER: **** {} ****\n\n\n'.format(token))
+        return token
+    except Exception as e:
+        return e
+
+def decode_auth_token(auth_token, secret):
+    """Decodes the auth token
+    :param auth_token:
+    :return: string
+    """
+    try:
+        payload = jwt.decode(
+            auth_token, 
+            secret,
+            algorithms=['HS256']
+        )
+        return payload["status"]
+    except jwt.ExpiredSignatureError as e:
+        print(e)
+        return 'Token has expired.'
+    except jwt.InvalidTokenError as e:
+        print(e)
+        return 'Invalid token.'
 
 
 class ReducerRestService:
@@ -45,14 +88,26 @@ class ReducerRestService:
             self.name = config['discover_host']
         else:
             self.name = config['name']
+
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
-
-        if not config['token']:
-            import uuid
-            self.token = str(uuid.uuid4())
+        
+        if 'token' in config.keys():
+            self.token_auth_enabled = True
         else:
-            self.token = config['token']
+            self.token_auth_enabled = False
+
+        if 'secret_key' in config.keys(): 
+            self.SECRET_KEY = config['secret_key']
+        else:
+            self.SECRET_KEY = None
+
+        
+        self.remote_compute_context = config["remote_compute_context"]
+        if self.remote_compute_context:
+            self.package = 'remote'
+        else:
+            self.package = 'local'
 
         self.control = control
         self.certificate = certificate
@@ -69,25 +124,107 @@ class ReducerRestService:
         }
         return data
 
-    def check_configured(self):
+    def check_compute_context(self):
+        """Check if the compute context/package has been configured,
+        if remote compute context is set to False, True will be returned
+
+        :return: True if configured
+        :rtype: bool
+        """
+        if not self.remote_compute_context:
+            return True
+
+        if not self.control.get_compute_context():
+            return False
+        else:
+            return True
+    
+    def check_initial_model(self):
+        """Check if initial model (seed model) has been configured
+
+        :return: True if configured, else False
+        :rtype: bool
         """
 
-        :return:
+        if self.control.get_latest_model():
+            return True
+        else:
+            return False
+    
+    def check_configured_response(self):
+        """Check if everything has been configured for client to connect,
+        return response if not.
+
+        :return: Reponse with message if not configured, else None
+        :rtype: json
         """
-        if not self.control.get_compute_context():
+        if self.control.state() == ReducerState.setup:
+            return jsonify({'status': 'retry',
+                            'package': self.package,
+                            'msg': "Controller is not configured."})
+
+        if not self.check_compute_context():
+            return jsonify({'status': 'retry',
+                            'package': self.package,
+                            'msg': "Compute package is not configured. Please upload the compute package."})
+        
+        if not self.check_initial_model():
+            return jsonify({'status': 'retry',
+                            'package': self.package,
+                            'msg': "Initial model is not configured. Please upload the model."})
+
+        if not self.control.idle():
+            return jsonify({'status': 'retry',
+                            'package': self.package,
+                            'msg': "Conroller is not in idle state, try again later. "})
+        return None
+
+    def check_configured(self):
+        """Check if compute package has been configured and that and that the
+        state of the ReducerControl is not in setup otherwise render setup template. 
+        Check if initial model has been configured, otherwise render setup_model template.
+        :return: Rendered html template or None
+        """
+        if not self.check_compute_context():
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=False,
-                                   message='')
+                                   message='Please set the compute package')
 
         if self.control.state() == ReducerState.setup:
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=True,
                                    message='Warning. Reducer is not base-configured. please do so with config file.')
 
-        if not self.control.get_latest_model():
+        if not self.check_initial_model():
             return render_template('setup_model.html', message="Please set the initial model.")
 
         return None
+
+    def authorize(self, r, secret):
+        """Authorize client token
+
+        :param r: Request
+        :type r: [type]
+        :param token: Token to verify against
+        :type token: string
+        """
+        if not 'Authorization' in r.headers:
+            print("Authorization failed, missing in the header of the request", flush=True)
+            abort(401) #Unauthorized response
+        try:
+            request_token = r.headers.get('Authorization')
+            request_token = request_token.split()[1] # str: 'Token {}'.format(token)
+            print(secret,request_token,flush=True)
+
+            status = decode_auth_token(request_token, secret)
+            if status == 'Success':
+                return
+            else:
+                print("Authorization failed. {}".format(status), flush=True)
+                abort(401)
+        except Exception as e:
+            print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
+            abort(401)
 
     def run(self):
         """
@@ -96,11 +233,7 @@ class ReducerRestService:
         """
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-        csrf = CSRFProtect()
-        import os
-        SECRET_KEY = os.urandom(32)
-        app.config['SECRET_KEY'] = SECRET_KEY
-        csrf.init_app(app)
+        app.config['SECRET_KEY'] = self.SECRET_KEY
 
         @app.route('/')
         def index():
@@ -236,8 +369,9 @@ class ReducerRestService:
 
         @app.route('/add')
         def add():
-
             """ Add a combiner to the network. """
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
@@ -364,19 +498,14 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             logs = None
             refresh = True
-            try:
-                self.current_compute_context = self.control.get_compute_context()
-            except:
-                self.current_compute_context = None
 
-            if self.current_compute_context == None or self.current_compute_context == '':
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=False,
-                                       message='No compute context is set. Please set one here <a href="/context">/context</a>')
-
-            if self.control.state() == ReducerState.setup:
-                return render_template('setup.html', client=client, state=state, logs=logs, refresh=refresh,
-                                       message='Warning. Reducer is not base-configured. please do so with config file.')
-
+            if self.remote_compute_context:
+                try:
+                    self.current_compute_context = self.control.get_compute_context()
+                except:
+                    self.current_compute_context = None
+            else:
+                self.current_compute_context = "None:Local"
             if self.control.state() == ReducerState.monitoring:
                 return redirect(
                     url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
@@ -447,14 +576,14 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             """Handle client assignment requests. """
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
 
-            if self.control.state() == ReducerState.setup:
-                return jsonify({'status': 'retry', 
-                                'msg': "Controller is not configured. Make sure to upload the compute package."})
+            response = self.check_configured_response()
 
-            if not self.control.idle():
-                return jsonify({'status': 'retry',
-                                'msg': "Conroller is not in idle state, try again later. "})
+            if response:
+                return response
+
 
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
@@ -466,6 +595,7 @@ class ReducerRestService:
 
             if combiner is None:
                 return jsonify({'status': 'retry',
+                                'package': self.package,
                                 'msg': "Failed to assign to a combiner, try again later."})
 
             client = {
@@ -485,6 +615,7 @@ class ReducerRestService:
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,
                 'certificate': str(cert_b64).split('\'')[1],
@@ -668,16 +799,13 @@ class ReducerRestService:
             network_id = self.network_id
             discover_host = self.name
             discover_port = self.port
-            token = self.token
             ctx = """network_id: {network_id}
 controller:
     discover_host: {discover_host}
     discover_port: {discover_port}
-    token: {token}
     {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
-                           token=token,
                            chk_string=chk_string)
 
             from io import BytesIO
@@ -691,7 +819,6 @@ controller:
                              mimetype='application/x-yaml')
 
         @app.route('/context', methods=['GET', 'POST'])
-        @csrf.exempt  # TODO fix csrf token to form posting in package.py
         def context():
             """
 
@@ -788,3 +915,5 @@ controller:
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
+        
+        return app

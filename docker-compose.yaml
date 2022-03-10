@@ -1,0 +1,92 @@
+# Compose schema version
+version: '3.3'
+
+# Setup network
+networks:
+  default:
+    name: fedn_default
+
+services:
+  # Base services
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    environment:
+      - GET_HOSTS_FROM=dns
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - MINIO_ROOT_USER=fedn_admin
+      - MINIO_ROOT_PASSWORD=password
+    command: server /data --console-address minio:9001
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://minio:9000/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    ports:
+      - 9000:9000
+      - 9001:9001
+
+  mongo:
+    image: mongo:5.0.2
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=fedn_admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - 6534:6534
+    command: mongod --port 6534
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    depends_on:
+      - "mongo"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=6534
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=fedn_admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_BASICAUTH_USERNAME=fedn_admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+    ports:
+      - 8081:8081
+
+  # Reducer
+  reducer:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - USER=test
+      - PROJECT=project
+    build: .
+    working_dir: /app
+    command: run reducer -n reducer --init=config/settings-reducer.yaml
+    ports:
+      - 8090:8090
+
+  # Combiner
+  combiner:
+    environment:
+      - PYTHONUNBUFFERED=0
+      - GET_HOSTS_FROM=dns
+    build: .
+    working_dir: /app
+    command: run combiner -in config/settings-combiner.yaml
+    ports:
+      - 12080:12080
+
+  # Client
+  client:
+    environment:
+      - GET_HOSTS_FROM=dns
+    build: .
+    working_dir: /app
+    command: run client -in config/settings-client.yaml
+    deploy:
+      replicas: 0

@@ -1,0 +1,149 @@
+#!./.mnist-pytorch/bin/python
+import torch
+from fedn.utils.pytorchhelper import PytorchHelper
+import fire
+import json
+import docker
+import os
+import collections
+import math
+
+NUM_CLASSES=10
+
+def _get_data_path():
+    # Figure out FEDn client number from container name
+    client = docker.from_env()
+    container = client.containers.get(os.environ['HOSTNAME'])
+    number = container.name[-1]
+    
+    # Return data path
+    return f"/var/data/clients/{number}/mnist.pt"
+
+def _compile_model():
+    # Define model
+    class Net(torch.nn.Module):
+        def __init__(self):
+            super(Net, self).__init__()
+            self.fc1 = torch.nn.Linear(784, 64)
+            self.fc2 = torch.nn.Linear(64, 32)
+            self.fc3 = torch.nn.Linear(32, 10)
+
+        def forward(self, x):
+            x = torch.nn.functional.relu(self.fc1(x.reshape(x.size(0), 784)))
+            x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
+            x = torch.nn.functional.relu(self.fc2(x))
+            x = torch.nn.functional.log_softmax(self.fc3(x), dim=1)
+            return x
+
+    # Return model
+    return Net()
+
+def _load_data(data_path, is_train=True):
+    # Load data
+    if data_path is None:
+        data = torch.load(_get_data_path())
+    else:
+        data = torch.load(data_path)
+
+    if is_train:
+        X = data['x_train']
+        y = data['y_train']
+    else:
+        X = data['x_test']
+        y = data['y_test']
+
+    # Normalize
+    X = X / 255
+
+    return X, y
+
+def _save_model(model, out_path):
+    weights = model.state_dict()
+    weights_np = collections.OrderedDict()
+    for w in weights:
+        weights_np[w] = weights[w].cpu().detach().numpy()
+    helper = PytorchHelper()
+    helper.save_model(weights, out_path)
+
+def _load_model(model_path):
+    helper = PytorchHelper()
+    weights_np = helper.load_model(model_path)
+    weights = collections.OrderedDict()
+    for w in weights_np:
+        weights[w] = torch.tensor(weights_np[w])
+    model = _compile_model()
+    model.load_state_dict(weights)
+    model.eval()
+    return model
+
+def init_seed(out_path='seed.npz'):
+    # Init and save
+    model = _compile_model()    
+    _save_model(model, out_path)
+
+def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
+    # Load data
+    x_train, y_train = _load_data(data_path)
+
+    # Load model
+    model = _load_model(in_model_path)
+
+    # Train
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    n_batches = int(math.ceil(len(x_train) / batch_size))
+    criterion = torch.nn.NLLLoss()
+    for e in range(epochs): # epoch loop
+        for b in range(n_batches): # batch loop
+            # Retrieve current batch
+            batch_x = x_train[b * batch_size:(b + 1) * batch_size]
+            batch_y = y_train[b * batch_size:(b + 1) * batch_size]
+            # Train on batch
+            optimizer.zero_grad()
+            outputs = model(batch_x)
+            loss = criterion(outputs, batch_y)
+            loss.backward()
+            optimizer.step()
+            # Log
+            if b % 100 ==  0:
+                print(f"Epoch {e}/{epochs-1} | Batch: {b}/{n_batches-1} | Loss: {loss.item()}")
+
+    # Save
+    _save_model(model, out_model_path)
+
+def validate(in_model_path, out_json_path, data_path=None):
+    # Load data
+    x_train, y_train = _load_data(data_path)
+    x_test, y_test = _load_data(data_path, is_train=False)
+
+    # Load model
+    model = _load_model(in_model_path)
+
+    # Evaluate
+    criterion = torch.nn.NLLLoss()
+    with torch.no_grad():
+        train_out = model(x_train)
+        training_loss = criterion(train_out, y_train)
+        training_accuracy = torch.sum(torch.argmax(train_out, dim=1) == y_train) / len(train_out)
+        test_out = model(x_test)
+        test_loss = criterion(test_out, y_test)
+        test_accuracy = torch.sum(torch.argmax(test_out, dim=1) == y_test) / len(test_out)
+
+    # JSON schema
+    report = {
+        "training_loss": training_loss.item(),
+        "training_accuracy": training_accuracy.item(),
+        "test_loss": test_loss.item(),
+        "test_accuracy": test_accuracy.item(),
+    }
+
+    # Save JSON
+    with open(out_json_path,"w") as fh:
+        fh.write(json.dumps(report))
+
+if __name__ == '__main__':
+    fire.Fire({
+        'init_seed': init_seed,
+        'train': train,
+        'validate': validate,
+        '_get_data_path': _get_data_path, # for testing
+    })

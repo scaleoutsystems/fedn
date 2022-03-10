@@ -1,0 +1,14 @@
+# Compose schema version
+version: '3.3'
+
+# Overriding requirements
+services:
+  client:
+    build:
+      args:
+        REQUIREMENTS: examples/mnist-keras/requirements.txt
+    deploy:
+      replicas: 2
+    volumes:
+      - ${HOST_DATA_DIR:-./examples/mnist-keras/data}:/var/data
+      - /var/run/docker.sock:/var/run/docker.sock
