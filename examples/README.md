@@ -1,11 +1,12 @@
 ## Examples
-The examples here are maintained by Scaleout and are part of the continous integrations tests. 
+The examples here are maintained by Scaleout and are part of the continuous integrations tests. 
 
-## External examples
+### External examples
 Below we maintain a list of examples provided by external users and partners. 
 If you have an example that you want to include, talk to a core developer in [Discord](https://discord.gg/CCRgjpMsVA) 
 and/or send a PR updating this README.  
 
+- [C++ version of the MNIST example](https://github.com/scaleoutsystems/examples) Also executes in Intel SGX TEE via Gramine.
 - [Human activity recognition use case from the FEDn paper](https://github.com/scaleoutsystems/examples) IoT/cross-device. 
 - [Sentiment analysis use case from the FEDn paper](https://github.com/scaleoutsystems/examples) NLP.
 - [FedBird - Federated object detection for Baltic Seabirds](https://github.com/aidotse/fedbird) Project by AI Sweden and Zenseact. 
