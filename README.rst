@@ -50,7 +50,12 @@ Quick start
 -----------
 
 The quickest way to get started with FEDn is by trying out the `MNIST
-Keras example <examples/mnist-keras>`__.
+Keras example <examples/mnist-keras>`__. Alternatively, you can start the
+base services along with composer and reducer as it follows.
+
+.. code-block::
+
+   docker-compose up -d
 
 Distributed deployment
 ======================
