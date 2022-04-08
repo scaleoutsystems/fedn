@@ -51,7 +51,7 @@ Quick start
 
 The quickest way to get started with FEDn is by trying out the `MNIST
 Keras example <examples/mnist-keras>`__. Alternatively, you can start the
-base services along with composer and reducer as it follows.
+base services along with combiner and reducer as it follows.
 
 .. code-block::
 
