@@ -50,7 +50,7 @@ Quick start
 -----------
 
 The quickest way to get started with FEDn is by trying out the `MNIST
-Keras example <examples/mnist-keras>`__. Alternatively, you can start the
+Keras example <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__. Alternatively, you can start the
 base services along with combiner and reducer as it follows.
 
 .. code-block::
@@ -67,7 +67,7 @@ deployment <https://scaleoutsystems.github.io/fedn/#/deployment>`__.
 Where to go from here
 =====================
 
--  `Explore additional examples <examples>`__
+-  `Explore additional examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
 -  `Understand the
    architecture <https://scaleoutsystems.github.io/fedn/#/architecture>`__
 -  `Understand the compute
