@@ -9,7 +9,7 @@ networks:
 services:
   # Base services
   minio:
-    image: minio/minio:latest
+    image: minio/minio:14128-5ee91dc
     hostname: minio
     environment:
       - GET_HOSTS_FROM=dns
