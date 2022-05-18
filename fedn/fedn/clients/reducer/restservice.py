@@ -1,3 +1,4 @@
+from urllib import response
 import uuid
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
@@ -5,7 +6,7 @@ from idna import check_initial_combiner
 from tenacity import retry
 from werkzeug.utils import secure_filename
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, make_response, render_template, request
 from flask import redirect, url_for, flash, abort
 
 from threading import Lock
@@ -208,22 +209,30 @@ class ReducerRestService:
         :param token: Token to verify against
         :type token: string
         """
-        if not 'Authorization' in r.headers:
-            print("Authorization failed, missing in the header of the request", flush=True)
-            abort(401) #Unauthorized response
         try:
-            request_token = r.headers.get('Authorization')
-            request_token = request_token.split()[1] # str: 'Token {}'.format(token)
-            print(secret,request_token,flush=True)
+            # Get token
+            if 'Authorization' in r.headers: # header auth
+                request_token = r.headers.get('Authorization').split()[1]
+            elif 'token' in r.args: # args auth
+                request_token = str(r.args.get('token'))
+            elif 'fedn_token' in r.cookies:
+                request_token = r.cookies.get('fedn_token')
+            else: # no token provided
+                print('Authorization failed. No token provided.', flush=True)
+                abort(401)
 
+            # Log token and secret
+            print(f'Secret: {secret}. Request token: {request_token}.', flush=True)
+
+            # Authenticate
             status = decode_auth_token(request_token, secret)
             if status == 'Success':
-                return
+                return True
             else:
-                print("Authorization failed. {}".format(status), flush=True)
+                print('Authorization failed. Status: "{}"'.format(status), flush=True)
                 abort(401)
         except Exception as e:
-            print("Authorization failed, expection encountered:**** {}".format(e), flush=True)
+            print('Authorization failed. Expection encountered: "{}".'.format(e), flush=True)
             abort(401)
 
     def run(self):
@@ -241,15 +250,29 @@ class ReducerRestService:
 
             :return:
             """
-            not_configured = self.check_configured()
-            if not_configured:
-                return not_configured
-            events = self.control.get_events()
-            message = request.args.get('message', None)
-            message_type = request.args.get('message_type', None)
-            return render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
-                                   events=events,
-                                   logs=None, refresh=True, configured=True, message=message, message_type=message_type)
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+
+            # Render template
+            not_configured_template = self.check_configured()
+            if not_configured_template:
+                template = not_configured_template
+            else:
+                events = self.control.get_events()
+                message = request.args.get('message', None)
+                message_type = request.args.get('message_type', None)
+                template = render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
+                                            events=events,
+                                            logs=None, refresh=True, configured=True, message=message, message_type=message_type)
+
+            # Set token cookie in response if needed
+            response = make_response(template)
+            if 'token' in request.args: # args auth
+                response.set_cookie('fedn_token', str(request.args['token']))
+
+            # Return response
+            return response
 
         # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
@@ -429,6 +452,10 @@ class ReducerRestService:
 
             :return:
             """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+
             if request.method == 'POST':
                 # upload seed file
                 uploaded_seed = request.files['seed']
@@ -490,6 +517,9 @@ class ReducerRestService:
         @app.route('/control', methods=['GET', 'POST'])
         def control():
             """ Main page for round control. Configure, start and stop global training rounds. """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
 
             not_configured = self.check_configured()
             if not_configured:
@@ -724,6 +754,10 @@ class ReducerRestService:
 
             :return:
             """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+            
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -755,6 +789,10 @@ class ReducerRestService:
 
             :return:
             """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+            
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -824,6 +862,10 @@ controller:
 
             :return:
             """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
             reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
