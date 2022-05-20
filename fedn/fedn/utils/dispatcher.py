@@ -1,7 +1,6 @@
 import re
 import logging
 from fedn.utils.process import run_process
-import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +22,16 @@ class Dispatcher:
         try:
             cmdsandargs = cmd_type.split(' ')
 
-            cmd = shlex.split(self.config['entry_points'][cmdsandargs[0]]['command'])
+            cmd = [self.config['entry_points'][cmdsandargs[0]]['command']]
 
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
 
+            # shell (this could be a venv, TODO: parametrize)
+            shell = ['/bin/sh', '-c']
+
             # add the corresponding process defined in project.yaml and append arguments from invoked command
-            args = cmd + args
+            args = shell + [' '.join(cmd + args)]
             # print("trying to run process {} with args {}".format(cmd, args))
             run_process(args=args, cwd=self.project_dir)
 

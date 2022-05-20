@@ -10,7 +10,7 @@ def run_process(args, cwd):
     :param args:
     :param cwd:
     """
-    status = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+    status = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # print(status)
     def check_io():
