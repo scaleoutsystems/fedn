@@ -1,6 +1,7 @@
 import re
 import logging
 from fedn.utils.process import run_process
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class Dispatcher:
         try:
             cmdsandargs = cmd_type.split(' ')
 
-            cmd = self.config['entry_points'][cmdsandargs[0]]['command'].split(' ')
+            cmd = shlex.split(self.config['entry_points'][cmdsandargs[0]]['command'])
 
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
