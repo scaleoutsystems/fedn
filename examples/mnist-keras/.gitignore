@@ -3,3 +3,4 @@ data
 *.tgz
 *.tar.gz
 .mnist-keras
+client.yaml

@@ -7,6 +7,7 @@ This classic example of hand-written text recognition is well suited both as a l
   - [Prerequisites](#prerequisites)
   - [Running the example](#running-the-example)
   - [Clean up](#clean-up)
+  - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
 ## Prerequisites
 - [Docker](https://docs.docker.com/get-docker)
@@ -47,3 +48,24 @@ Finally, you can start the experiment from the "control" tab.
 
 ## Clean up
 You can clean up by running `docker-compose down`.
+
+## Connecting to a distributed deployment
+To start and remotely connect a client with the required dependencies for this example, start by downloading the `client.yaml` file. You can either navigate the reducer UI or run the following command.
+
+```bash
+curl -k https://<reducer-fqdn>:<reducer-port>/config/download > client.yaml
+```
+> **Note** make sure to replace `<reducer-fqdn>` and `<reducer-port>` with appropriate values.
+
+Now you are ready to start the client via Docker by running the following command.
+
+```bash
+docker run -d \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
+  --add-host=reducer:<reducer-fqdn> \
+  --add-host=combiner:<combiner-fqdn> \
+  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml
+```
+> **Note** make sure to replace `<reducer-fqdn>` and `<combiner-fqdn>` with appropriate values.
