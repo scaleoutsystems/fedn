@@ -64,8 +64,8 @@ docker run -d \
   -v $PWD/client.yaml:/app/client.yaml \
   -v $PWD/data:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
-  --add-host=reducer:<reducer-fqdn> \
-  --add-host=combiner:<combiner-fqdn> \
+  --add-host=reducer:<reducer-ip> \
+  --add-host=combiner:<combiner-ip> \
   ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml
 ```
-> **Note** make sure to replace `<reducer-fqdn>` and `<combiner-fqdn>` with appropriate values.
+> **Note** make sure to replace `<reducer-ip>` and `<combiner-ip>` with appropriate values.
