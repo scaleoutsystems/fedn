@@ -14,7 +14,7 @@ This classic example of hand-written text recognition is well suited both as a l
 - [Docker Compose](https://docs.docker.com/compose/install)
 - [Python 3.8](https://www.python.org/downloads)
 
-## Running the example
+## Running the example (pseudo-distributed)
 Start by initializing a virtual enviroment with all of the required dependencies.
 ```
 bin/init_venv.sh
