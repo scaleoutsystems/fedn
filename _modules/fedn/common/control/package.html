@@ -388,6 +388,7 @@
         <span class="n">from_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;client&#39;</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">distutils.dir_util</span> <span class="k">import</span> <span class="n">copy_tree</span>
+
         <span class="c1"># preserve_times=False ensures compatibility with Gramine LibOS</span>
         <span class="n">copy_tree</span><span class="p">(</span><span class="n">from_path</span><span class="p">,</span> <span class="n">run_path</span><span class="p">,</span> <span class="n">preserve_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
