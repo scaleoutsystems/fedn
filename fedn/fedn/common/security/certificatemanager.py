@@ -23,7 +23,8 @@ class CertificateManager:
         if search:
             return search
         else:
-            cert = Certificate(self.directory, name=name, cert_name=name + '-cert.pem', key_name=name + '-key.pem')
+            cert = Certificate(self.directory, name=name,
+                               cert_name=name + '-cert.pem', key_name=name + '-key.pem')
             cert.gen_keypair()
             self.certificates.append(cert)
             return cert
@@ -52,7 +53,8 @@ class CertificateManager:
                 # print("trying with {}".format(key_name))
                 if os.path.isfile(os.path.join(self.directory, key_name)):
 
-                    c = Certificate(self.directory, name=name, cert_name=filename, key_name=key_name)
+                    c = Certificate(self.directory, name=name,
+                                    cert_name=filename, key_name=key_name)
                     self.certificates.append(c)
                 else:
                     c = Certificate(self.directory, name=name, cert_name=filename,

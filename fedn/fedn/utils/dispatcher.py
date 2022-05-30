@@ -1,5 +1,6 @@
-import re
 import logging
+import re
+
 from fedn.utils.process import run_process
 
 logger = logging.getLogger(__name__)

@@ -9,5 +9,7 @@ python -m venv .venv
 .venv/bin/pip install \
     sphinx==4.4.0 \
     sphinx_press_theme==0.8.0 \
-    sphinx-autobuild==2021.3.14
+    sphinx-autobuild==2021.3.14 \
+    autopep8==1.5.7 \
+    isort==5.10.1
 .venv/bin/pip install -e fedn

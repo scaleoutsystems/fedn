@@ -1,9 +1,8 @@
+import os
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.common.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
-
-import os
 
 
 class TempModelStorage(ModelStorage):
@@ -13,7 +12,8 @@ class TempModelStorage(ModelStorage):
 
     def __init__(self):
 
-        self.default_dir = os.environ.get('FEDN_MODEL_DIR', '/tmp/models')  # set default to tmp
+        self.default_dir = os.environ.get(
+            'FEDN_MODEL_DIR', '/tmp/models')  # set default to tmp
         if not os.path.exists(self.default_dir):
             os.makedirs(self.default_dir)
 

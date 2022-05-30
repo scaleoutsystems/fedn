@@ -1,8 +1,8 @@
+import collections
 import os
 import tempfile
+
 import numpy as np
-import collections
-import tempfile
 
 from .helpers import HelperBase
 

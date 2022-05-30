@@ -5,8 +5,9 @@ from fedn.clients.reducer.control import ReducerControl
 from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
+from fedn.clients.reducer.statestore.mongoreducerstatestore import \
+    MongoReducerStateStore
 from fedn.common.security.certificatemanager import CertificateManager
-from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
 
 
 class InvalidReducerConfiguration(Exception):
@@ -42,7 +43,8 @@ class Reducer:
         self.control = ReducerControl(self.statestore)
         self.inference = ReducerInferenceInterface()
         rest_certificate = self.certificate_manager.get_or_create("reducer")
-        self.rest = ReducerRestService(config, self.control, self.certificate_manager, certificate=rest_certificate)
+        self.rest = ReducerRestService(
+            config, self.control, self.certificate_manager, certificate=rest_certificate)
 
     def run(self):
         """

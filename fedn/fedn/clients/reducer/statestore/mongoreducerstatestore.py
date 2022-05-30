@@ -1,5 +1,7 @@
-from fedn.clients.reducer.state import ReducerStateToString, StringToReducerState
+from fedn.clients.reducer.state import (ReducerStateToString,
+                                        StringToReducerState)
 from fedn.common.storage.db.mongo import connect_to_mongodb
+
 from .reducerstatestore import ReducerStateStore
 
 
@@ -22,7 +24,7 @@ class MongoReducerStateStore(ReducerStateStore):
             self.clients = self.network['clients']
             self.storage = self.network['storage']
             self.certificates = self.network['certificates']
-            # Control 
+            # Control
             self.control = self.mdb['control']
             self.control_config = self.control['config']
             self.state = self.control['state']
@@ -70,11 +72,12 @@ class MongoReducerStateStore(ReducerStateStore):
                                     flush=True)
 
                         if "context" in control:
-                            print("Setting filepath to {}".format(control['context']), flush=True)
+                            print("Setting filepath to {}".format(
+                                control['context']), flush=True)
                             # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
                             # TODO fix with unboxing of value before storing and where consuming.
                             self.control.config.update_one({'key': 'package'},
-                                                       {'$set': {'filename': control['context']}}, True)
+                                                           {'$set': {'filename': control['context']}}, True)
                         if "helper" in control:
                             # self.set_framework(control['helper'])
                             pass
@@ -133,7 +136,8 @@ class MongoReducerStateStore(ReducerStateStore):
         if old_state != state:
             return self.state.update_one({'state': 'current_state'}, {'$set': {'state': ReducerStateToString(state)}}, True)
         else:
-            print("Not updating state, already in {}".format(ReducerStateToString(state)))
+            print("Not updating state, already in {}".format(
+                ReducerStateToString(state)))
 
     def set_latest(self, model_id):
         """
@@ -141,14 +145,16 @@ class MongoReducerStateStore(ReducerStateStore):
         :param model_id:
         """
         from datetime import datetime
-        x = self.model.update_one({'key': 'current_model'}, {'$set': {'model': model_id}}, True)
+        x = self.model.update_one({'key': 'current_model'}, {
+                                  '$set': {'model': model_id}}, True)
         self.model.update_one({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
-                          True)
+                              True)
 
     def get_first(self):
         """ Return model_id for the latest model in the model_trail """
         import pymongo
-        ret = self.model.find_one({'key': 'model_trail'}, sort=[("committed_at", pymongo.ASCENDING)])
+        ret = self.model.find_one({'key': 'model_trail'}, sort=[
+                                  ("committed_at", pymongo.ASCENDING)])
         if ret == None:
             return None
 
@@ -180,7 +186,8 @@ class MongoReducerStateStore(ReducerStateStore):
         :param config:
         """
         from datetime import datetime
-        x = self.control.config.update_one({'key': 'round_config'}, {'$set': config}, True)
+        x = self.control.config.update_one(
+            {'key': 'round_config'}, {'$set': config}, True)
 
     def get_round_config(self):
         """
@@ -202,9 +209,10 @@ class MongoReducerStateStore(ReducerStateStore):
         :param filename:
         """
         from datetime import datetime
-        x = self.control.config.update_one({'key': 'package'}, {'$set': {'filename': filename}}, True)
+        x = self.control.config.update_one(
+            {'key': 'package'}, {'$set': {'filename': filename}}, True)
         self.control.config.update_one({'key': 'package_trail'},
-                                   {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+                                       {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
     def get_compute_context(self):
         """
@@ -226,7 +234,7 @@ class MongoReducerStateStore(ReducerStateStore):
         :param helper:
         """
         self.control.config.update_one({'key': 'package'},
-                                   {'$set': {'helper': helper}}, True)
+                                       {'$set': {'helper': helper}}, True)
 
     def get_framework(self):
         """
@@ -234,9 +242,9 @@ class MongoReducerStateStore(ReducerStateStore):
         :return:
         """
         ret = self.control.config.find_one({'key': 'package'})
-        #if local compute package used, then 'package' is None
+        # if local compute package used, then 'package' is None
         if not ret:
-            #get framework from round_config instead
+            # get framework from round_config instead
             ret = self.control.config.find_one({'key': 'round_config'})
         print('FRAMEWORK:', ret)
         try:
@@ -275,25 +283,28 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_storage_backend(self):
         """  """
         try:
-            ret = self.storage.find({'status': 'enabled'}, projection={'_id': False})
+            ret = self.storage.find(
+                {'status': 'enabled'}, projection={'_id': False})
             return ret[0]
         except (KeyError, IndexError):
             return None
 
     def set_storage_backend(self, config):
         """ """
-        from datetime import datetime
         import copy
+        from datetime import datetime
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         config['status'] = 'enabled'
-        ret = self.storage.update_one({'storage_type': config['storage_type']}, {'$set': config}, True)
+        ret = self.storage.update_one(
+            {'storage_type': config['storage_type']}, {'$set': config}, True)
 
     def set_reducer(self, reducer_data):
         """ """
         from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
-        ret = self.reducer.update_one({'name': reducer_data['name']}, {'$set': reducer_data}, True)
+        ret = self.reducer.update_one({'name': reducer_data['name']}, {
+                                      '$set': reducer_data}, True)
 
     def get_reducer(self):
         """ """
@@ -334,14 +345,16 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         from datetime import datetime
         combiner_data['updated_at'] = str(datetime.now())
-        ret = self.combiners.update_one({'name': combiner_data['name']}, {'$set': combiner_data}, True)
+        ret = self.combiners.update_one({'name': combiner_data['name']}, {
+                                        '$set': combiner_data}, True)
 
     def delete_combiner(self, combiner):
         """ """
         try:
             self.combiners.delete_one({'name': combiner})
         except:
-            print("WARNING, failed to delete combiner: {}".format(combiner), flush=True)
+            print("WARNING, failed to delete combiner: {}".format(
+                combiner), flush=True)
 
     def set_client(self, client_data):
         """ 
@@ -350,7 +363,8 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         from datetime import datetime
         client_data['updated_at'] = str(datetime.now())
-        ret = self.clients.update_one({'name': client_data['name']}, {'$set': client_data}, True)
+        ret = self.clients.update_one({'name': client_data['name']}, {
+                                      '$set': client_data}, True)
 
     def get_client(self, name):
         """ """
@@ -373,7 +387,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def drop_control(self):
         """ """
-        # Control 
+        # Control
         self.state.drop()
         self.control_config.drop()
         self.control.drop()
@@ -400,4 +414,4 @@ class MongoReducerStateStore(ReducerStateStore):
                                         "status": status,
                                         "role": role
                                     }
-                                })
+                                 })

@@ -1,7 +1,8 @@
 import unittest
+from unittest.mock import MagicMock, patch
+
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerState
-from unittest.mock import MagicMock, patch
 
 
 class TestInit(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestInit(unittest.TestCase):
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.name, 'TEST_HOST')
         self.assertEqual(restservice.network_id, 'TEST_NAME-network')
-        
+
     @patch('fedn.clients.reducer.control.ReducerControl')
     def test_name(self, mock_control):
         CONFIG = {
@@ -30,7 +31,7 @@ class TestInit(unittest.TestCase):
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.name, 'TEST_NAME')
-    
+
     @patch('fedn.clients.reducer.control.ReducerControl')
     def test_network_id(self, mock_control):
         CONFIG = {
@@ -42,6 +43,7 @@ class TestInit(unittest.TestCase):
         }
         restservice = ReducerRestService(CONFIG, mock_control, None)
         self.assertEqual(restservice.network_id, 'TEST_NAME-network')
+
 
 class TestChecks(unittest.TestCase):
     @patch('fedn.clients.reducer.control.ReducerControl')
@@ -58,7 +60,8 @@ class TestChecks(unittest.TestCase):
 
     def test_check_compute_package(self):
 
-        self.restservice.control.get_compute_context.return_value = {'NOT': 'NONE'}
+        self.restservice.control.get_compute_context.return_value = {
+            'NOT': 'NONE'}
         retval = self.restservice.check_compute_context()
         self.assertTrue(retval)
 
@@ -70,7 +73,7 @@ class TestChecks(unittest.TestCase):
         retval = self.restservice.check_compute_context()
         self.assertFalse(retval)
 
-        self.restservice.remote_compute_context = False 
+        self.restservice.remote_compute_context = False
         retval = self.restservice.check_compute_context()
         self.assertTrue(retval)
 
@@ -102,20 +105,18 @@ class TestToken(unittest.TestCase):
         }
 
         self.restservice = ReducerRestService(CONFIG, mock_control, None)
-    
+
     def test_encode_decode_auth_token(self):
         SECRET_KEY = 'test_secret'
         token = self.restservice.encode_auth_token(SECRET_KEY)
         payload_success = self.restservice.decode_auth_token(token, SECRET_KEY)
-        payload_invalid = self.restservice.decode_auth_token('wrong_token', SECRET_KEY)
+        payload_invalid = self.restservice.decode_auth_token(
+            'wrong_token', SECRET_KEY)
         payload_error = self.restservice.decode_auth_token(token, 'wrong_key')
 
         self.assertEqual(payload_success, "Success")
         self.assertEqual(payload_invalid, "Invalid token.")
         self.assertEqual(payload_error, "Invalid token.")
-
-        
-
 
 
 if __name__ == '__main__':

@@ -15,7 +15,8 @@ class S3ModelRepository(MINIORepository):
         :param model_id:
         :return:
         """
-        print("Client {} trying to get model with id: {}".format(self.client, model_id), flush=True)
+        print("Client {} trying to get model with id: {}".format(
+            self.client, model_id), flush=True)
         return self.get_artifact(model_id)
 
     def get_model_stream(self, model_id):
@@ -24,7 +25,8 @@ class S3ModelRepository(MINIORepository):
         :param model_id:
         :return:
         """
-        print("Client {} trying to get model with id: {}".format(self.client, model_id), flush=True)
+        print("Client {} trying to get model with id: {}".format(
+            self.client, model_id), flush=True)
         return self.get_artifact_stream(model_id)
 
     def set_model(self, model, is_file=True):
@@ -38,7 +40,8 @@ class S3ModelRepository(MINIORepository):
         model_id = uuid.uuid4()
         # TODO: Check that this call succeeds
         try:
-            self.set_artifact(str(model_id), model, bucket=self.bucket, is_file=is_file)
+            self.set_artifact(str(model_id), model,
+                              bucket=self.bucket, is_file=is_file)
         except Exception as e:
             print("Failed to write model with ID {} to repository.".format(model_id))
             raise
@@ -52,7 +55,8 @@ class S3ModelRepository(MINIORepository):
         :param is_file:
         """
         try:
-            self.set_artifact(str(name), compute_package, bucket="fedn-context", is_file=is_file)
+            self.set_artifact(str(name), compute_package,
+                              bucket="fedn-context", is_file=is_file)
         except Exception as e:
             print("Failed to write compute_package to repository.")
             raise

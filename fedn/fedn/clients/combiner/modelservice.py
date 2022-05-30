@@ -1,6 +1,7 @@
 import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -32,8 +33,8 @@ class ModelService(rpc.ModelServiceServicer):
         from io import BytesIO
         data = BytesIO()
         data.seek(0, 0)
-        import time
         import random
+        import time
 
         parts = self.Download(fedn.ModelRequest(id=id), self)
         for part in parts:
@@ -73,9 +74,11 @@ class ModelService(rpc.ModelServiceServicer):
             while True:
                 b = mdl.read(CHUNK_SIZE)
                 if b:
-                    result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
+                    result = fedn.ModelRequest(
+                        data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
                 else:
-                    result = fedn.ModelRequest(id=id, data=None, status=fedn.ModelStatus.OK)
+                    result = fedn.ModelRequest(
+                        id=id, data=None, status=fedn.ModelStatus.OK)
                 yield result
                 if not b:
                     break
@@ -83,7 +86,7 @@ class ModelService(rpc.ModelServiceServicer):
         # TODO: Check result
         result = self.Upload(upload_request_generator(bt), self)
 
-    ## Model Service
+    # Model Service
     def Upload(self, request_iterator, context):
         """
 
@@ -100,7 +103,7 @@ class ModelService(rpc.ModelServiceServicer):
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
-                                            message="Got model successfully.")
+                                        message="Got model successfully.")
                 # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
                 self.models.set_meta(request.id, fedn.ModelStatus.OK)
                 self.models.get_ptr(request.id).flush()
