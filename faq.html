@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
       <title>Frequently asked questions</title>
     
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
 
       
@@ -185,9 +186,9 @@
           <div class="content" role="main" v-pre>
             
   <section id="frequently-asked-questions">
-<h1>Frequently asked questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
+<h1>Frequently asked questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this heading">¶</a></h1>
 <section id="q-how-do-i-remove-replace-the-compute-package">
-<h2>Q: How do I remove/replace the compute package?<a class="headerlink" href="#q-how-do-i-remove-replace-the-compute-package" title="Permalink to this headline">¶</a></h2>
+<h2>Q: How do I remove/replace the compute package?<a class="headerlink" href="#q-how-do-i-remove-replace-the-compute-package" title="Permalink to this heading">¶</a></h2>
 <p>We do not provide an out-of-the box way to clear the compute package for a model that has been intitialized.
 This is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation.
 Once the federated model has been initilized and seeded it should be seeen as immutable. However, during development of a new model
@@ -202,7 +203,7 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 <p>There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.</p>
 </section>
 <section id="q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package">
-<h2>Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package<a class="headerlink" href="#q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package" title="Permalink to this headline">¶</a></h2>
+<h2>Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package<a class="headerlink" href="#q-can-i-skip-fetching-the-remote-package-and-instead-use-a-local-folder-when-developing-the-compute-package" title="Permalink to this heading">¶</a></h2>
 <p>Yes, to facilitate interactive development of the compute package you can start a client that uses a local folder ‘client’ in your current working directory by:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fedn run client --remote<span class="o">=</span>False -in client.yaml
 </pre></div>
@@ -210,14 +211,14 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 <p>Note that in production federations this options should in most cases be disallowed.</p>
 </section>
 <section id="q-how-can-other-aggregation-algorithms-can-be-defined">
-<h2>Q: How can other aggregation algorithms can be defined?<a class="headerlink" href="#q-how-can-other-aggregation-algorithms-can-be-defined" title="Permalink to this headline">¶</a></h2>
+<h2>Q: How can other aggregation algorithms can be defined?<a class="headerlink" href="#q-how-can-other-aggregation-algorithms-can-be-defined" title="Permalink to this heading">¶</a></h2>
 <p>Yes. An advanced user can implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:
 <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/aggregator/fedavg.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/aggregator/fedavg.py</a></p>
 <p>There is an abstract base class, ‘AggregatorBase’ in ‘aggregator.py’, for your reference.</p>
 <p>In a future release, we plan to extend the aggregation API to make this process more standardized and configurable at runtime.</p>
 </section>
 <section id="q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc">
-<h2>Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?<a class="headerlink" href="#q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc" title="Permalink to this headline">¶</a></h2>
+<h2>Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?<a class="headerlink" href="#q-what-is-needed-to-include-other-ml-frameworks-in-fedn-like-sklearn-xgboost-etc" title="Permalink to this heading">¶</a></h2>
 <p>FEDn has a black-box model for the model update by clients. What is assumed in the framework are entrypoints/binaries “train.py” and “validate.py” that operate in a SISO fashion:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ ./train.py model_update_in model_update_out
 </pre></div>
@@ -233,22 +234,22 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 <p>Naturally, the model needs to be of a type where it makes sense to perform aggregation of model parameters in FedAvg or variants thereof.</p>
 </section>
 <section id="q-how-can-i-configure-the-round-participation-policy">
-<h2>Q: How can I configure the round participation policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-participation-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Q: How can I configure the round participation policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-participation-policy" title="Permalink to this heading">¶</a></h2>
 <p>In the main control implementation <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py</a> you can modify or replace the instance variables “self.client_allocation_policy” with your own implementation to modify the client assignment behavior (see also the methods “client_allocation_policy_first_available” and “client_allocation_policy_least_packed”). In a future release, we plan to make this runtime configurable.</p>
 </section>
 <section id="q-how-can-i-configure-the-round-validity-policy">
-<h2>Q: How can I configure the round validity policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-validity-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Q: How can I configure the round validity policy:<a class="headerlink" href="#q-how-can-i-configure-the-round-validity-policy" title="Permalink to this heading">¶</a></h2>
 <p>In the main control implementation <a class="reference external" href="https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py">https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py</a> you can modify or replace the wiwmethod “check_round_validity_policy”. As we expand with more implementations of this policy, we plan to make it runtime configurable.</p>
 </section>
 <section id="q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests">
-<h2>Q: Can I start a client listening only to training requests or only on validation requests?:<a class="headerlink" href="#q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests" title="Permalink to this headline">¶</a></h2>
+<h2>Q: Can I start a client listening only to training requests or only on validation requests?:<a class="headerlink" href="#q-can-i-start-a-client-listening-only-to-training-requests-or-only-on-validation-requests" title="Permalink to this heading">¶</a></h2>
 <p>Yes! From FEDn 0.3.0 there is an option to toggle which message streams a client subscibes to. For example, to start a pure validation client:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fedn run client --trainer<span class="o">=</span>False -in client.yaml
 </pre></div>
 </div>
 </section>
 <section id="q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks">
-<h2>Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?<a class="headerlink" href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" title="Permalink to this headline">¶</a></h2>
+<h2>Q: Do you plan to support additional privacy-preserving mechanisms and frameworks?<a class="headerlink" href="#q-do-you-plan-to-support-additional-privacy-preserving-mechanisms-and-frameworks" title="Permalink to this heading">¶</a></h2>
 <p>Yes. We plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.</p>
 </section>
 </section>
@@ -264,7 +265,7 @@ it will be necessary to reinitialize. Then you can follow this procedure:</p>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

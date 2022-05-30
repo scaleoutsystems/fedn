@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
       <title>Tutorial: Compute Package</title>
     
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
 
       
@@ -182,12 +183,12 @@
           <div class="content" role="main" v-pre>
             
   <section id="tutorial-compute-package">
-<h1>Tutorial: Compute Package<a class="headerlink" href="#tutorial-compute-package" title="Permalink to this headline">¶</a></h1>
+<h1>Tutorial: Compute Package<a class="headerlink" href="#tutorial-compute-package" title="Permalink to this heading">¶</a></h1>
 <p>This tutorial walks you through the key step done by the <em>model initiator</em> when setting up a federated project.
 The code for this guideline has been taken from the mnist-keras example provided <a class="reference external" href="https://github.com/scaleoutsystems/examples">here</a>.
 However, some modification to the code has been made for educational purposes.</p>
 <section id="the-compute-package">
-<h2>The compute package<a class="headerlink" href="#the-compute-package" title="Permalink to this headline">¶</a></h2>
+<h2>The compute package<a class="headerlink" href="#the-compute-package" title="Permalink to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="_images/ComputePackageOverview.png"><img alt="Compute package overview" class="align-center" src="_images/ComputePackageOverview.png" style="width: 100%;" /></a>
 <p>The <em>compute package</em> is a tar.gz bundle of the code to be executed by each data-provider/client.
 This package is uploaded to the Reducer upon initialization of the FEDN Network (along with the initial model).
@@ -198,7 +199,7 @@ recieves a model update request from the combiner, it calls upon a Dispatcher th
 in the compute package. These entrypoints define commands executed by the client to update/train or validate a model.</p>
 </section>
 <section id="designing-the-compute-package">
-<h2>Designing the compute package<a class="headerlink" href="#designing-the-compute-package" title="Permalink to this headline">¶</a></h2>
+<h2>Designing the compute package<a class="headerlink" href="#designing-the-compute-package" title="Permalink to this heading">¶</a></h2>
 <p>We recommend to use the project structure followed by most example projects <a class="reference external" href="https://github.com/scaleoutsystems/examples">here</a>.
 In the examples we have roughly the following structure:</p>
 <a class="reference internal image-reference" href="_images/tree_package.png"><img alt="Project structure" class="align-center" src="_images/tree_package.png" style="width: 207.2px; height: 298.9px;" /></a>
@@ -404,7 +405,7 @@ For the compute package we need to compress the <em>client</em> folder as .tar.g
 </div>
 </section>
 <section id="more-on-data-access">
-<h2>More on Data access<a class="headerlink" href="#more-on-data-access" title="Permalink to this headline">¶</a></h2>
+<h2>More on Data access<a class="headerlink" href="#more-on-data-access" title="Permalink to this heading">¶</a></h2>
 <p>There are many possible ways to interact with the local dataset. In principle, the only requirement is that the train and validate endpoints are able to correctly
 read and use the data. In practice, it is then necessary to make some assumption on the local environemnt when writing train.py and validate.py. This is best explained
 by looking at the code above. Here we assume that the dataset is present in a file called “your_data.file” in a folder “data” one level up in the file hierarchy relative to
@@ -412,7 +413,7 @@ the exection of train.py. Then, independent on the preferred way to run the clie
 compute package. Note however, that there are many ways to accompish this on a local operational level.</p>
 </section>
 <section id="running-the-client">
-<h2>Running the client<a class="headerlink" href="#running-the-client" title="Permalink to this headline">¶</a></h2>
+<h2>Running the client<a class="headerlink" href="#running-the-client" title="Permalink to this heading">¶</a></h2>
 <p>We recommend you to test your code before running the client. For example, you can simply test <em>train.py</em> and <em>validate.py</em> by:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">train</span><span class="o">.</span><span class="n">py</span> <span class="o">../</span><span class="n">initial_model</span><span class="o">/</span><span class="n">initial_model</span><span class="o">.</span><span class="n">npz</span>
 </pre></div>
@@ -437,7 +438,7 @@ Finally connect a client to the network. Instructions for how to connect clients
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

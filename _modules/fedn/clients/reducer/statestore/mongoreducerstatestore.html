@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,6 +13,7 @@
         <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
         <script src="../../../../../_static/jquery.js"></script>
         <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../../_static/doctools.js"></script>
 
       
@@ -161,8 +162,10 @@
           <div class="content" role="main" v-pre>
             
   <h1>Source code for fedn.clients.reducer.statestore.mongoreducerstatestore</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">fedn.clients.reducer.state</span> <span class="k">import</span> <span class="n">ReducerStateToString</span><span class="p">,</span> <span class="n">StringToReducerState</span>
+<span></span><span class="kn">from</span> <span class="nn">fedn.clients.reducer.state</span> <span class="k">import</span> <span class="p">(</span><span class="n">ReducerStateToString</span><span class="p">,</span>
+                                        <span class="n">StringToReducerState</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">fedn.common.storage.db.mongo</span> <span class="k">import</span> <span class="n">connect_to_mongodb</span>
+
 <span class="kn">from</span> <span class="nn">.reducerstatestore</span> <span class="k">import</span> <span class="n">ReducerStateStore</span>
 
 
@@ -185,7 +188,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">clients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">[</span><span class="s1">&#39;clients&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">[</span><span class="s1">&#39;storage&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">certificates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">[</span><span class="s1">&#39;certificates&#39;</span><span class="p">]</span>
-            <span class="c1"># Control </span>
+            <span class="c1"># Control</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdb</span><span class="p">[</span><span class="s1">&#39;control&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">control_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span>
@@ -233,11 +236,12 @@
                                     <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                         <span class="k">if</span> <span class="s2">&quot;context&quot;</span> <span class="ow">in</span> <span class="n">control</span><span class="p">:</span>
-                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting filepath to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting filepath to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">control</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                             <span class="c1"># TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute</span>
                             <span class="c1"># TODO fix with unboxing of value before storing and where consuming.</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">},</span>
-                                                       <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">control</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]}},</span> <span class="kc">True</span><span class="p">)</span>
+                                                           <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">control</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]}},</span> <span class="kc">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="s2">&quot;helper&quot;</span> <span class="ow">in</span> <span class="n">control</span><span class="p">:</span>
                             <span class="c1"># self.set_framework(control[&#39;helper&#39;])</span>
                             <span class="k">pass</span>
@@ -296,7 +300,8 @@
         <span class="k">if</span> <span class="n">old_state</span> <span class="o">!=</span> <span class="n">state</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="s1">&#39;current_state&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">ReducerStateToString</span><span class="p">(</span><span class="n">state</span><span class="p">)}},</span> <span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Not updating state, already in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ReducerStateToString</span><span class="p">(</span><span class="n">state</span><span class="p">)))</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Not updating state, already in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ReducerStateToString</span><span class="p">(</span><span class="n">state</span><span class="p">)))</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_latest"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_latest">[docs]</a>    <span class="k">def</span> <span class="nf">set_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -304,14 +309,16 @@
 <span class="sd">        :param model_id:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;current_model&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;current_model&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                  <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;model_trail&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span> <span class="s1">&#39;committed_at&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())}},</span>
-                          <span class="kc">True</span><span class="p">)</span></div>
+                              <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_first"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_first">[docs]</a>    <span class="k">def</span> <span class="nf">get_first</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return model_id for the latest model in the model_trail &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">pymongo</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;model_trail&#39;</span><span class="p">},</span> <span class="n">sort</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;committed_at&quot;</span><span class="p">,</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">ASCENDING</span><span class="p">)])</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;model_trail&#39;</span><span class="p">},</span> <span class="n">sort</span><span class="o">=</span><span class="p">[</span>
+                                  <span class="p">(</span><span class="s2">&quot;committed_at&quot;</span><span class="p">,</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">ASCENDING</span><span class="p">)])</span>
         <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
@@ -343,7 +350,8 @@
 <span class="sd">        :param config:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_round_config"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_round_config">[docs]</a>    <span class="k">def</span> <span class="nf">get_round_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -365,9 +373,10 @@
 <span class="sd">        :param filename:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package_trail&#39;</span><span class="p">},</span>
-                                   <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;committed_at&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())}},</span> <span class="kc">True</span><span class="p">)</span></div>
+                                       <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;committed_at&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_compute_context"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_compute_context">[docs]</a>    <span class="k">def</span> <span class="nf">get_compute_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -389,7 +398,7 @@
 <span class="sd">        :param helper:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">},</span>
-                                   <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;helper&#39;</span><span class="p">:</span> <span class="n">helper</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+                                       <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;helper&#39;</span><span class="p">:</span> <span class="n">helper</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_framework"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_framework">[docs]</a>    <span class="k">def</span> <span class="nf">get_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -397,9 +406,9 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">})</span>
-        <span class="c1">#if local compute package used, then &#39;package&#39; is None</span>
+        <span class="c1"># if local compute package used, then &#39;package&#39; is None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
-            <span class="c1">#get framework from round_config instead</span>
+            <span class="c1"># get framework from round_config instead</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">})</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FRAMEWORK:&#39;</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -438,25 +447,28 @@
 <div class="viewcode-block" id="MongoReducerStateStore.get_storage_backend"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_storage_backend">[docs]</a>    <span class="k">def</span> <span class="nf">get_storage_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;  &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;enabled&#39;</span><span class="p">},</span> <span class="n">projection</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;enabled&#39;</span><span class="p">},</span> <span class="n">projection</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
             <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_storage_backend"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_storage_backend">[docs]</a>    <span class="k">def</span> <span class="nf">set_storage_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="kn">import</span> <span class="nn">copy</span>
+        <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;enabled&#39;</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;storage_type&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage_type&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s1">&#39;storage_type&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage_type&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_reducer"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">set_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reducer_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reducer</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reducer</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+                                      <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_reducer"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">get_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
@@ -497,14 +509,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+                                        <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.delete_combiner"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.delete_combiner">[docs]</a>    <span class="k">def</span> <span class="nf">delete_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiner</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">delete_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner</span><span class="p">})</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING, failed to delete combiner: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">combiner</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING, failed to delete combiner: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">combiner</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_client"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_client">[docs]</a>    <span class="k">def</span> <span class="nf">set_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; </span>
@@ -513,7 +527,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+                                      <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_client"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_client">[docs]</a>    <span class="k">def</span> <span class="nf">get_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
@@ -536,7 +551,7 @@
 
 <div class="viewcode-block" id="MongoReducerStateStore.drop_control"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.drop_control">[docs]</a>    <span class="k">def</span> <span class="nf">drop_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-        <span class="c1"># Control </span>
+        <span class="c1"># Control</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control_config</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">drop</span><span class="p">()</span>
@@ -563,7 +578,7 @@
                                         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
                                         <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="n">role</span>
                                     <span class="p">}</span>
-                                <span class="p">})</span></div></div>
+                                 <span class="p">})</span></div></div>
 </pre></div>
 
           </div>
@@ -572,7 +587,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

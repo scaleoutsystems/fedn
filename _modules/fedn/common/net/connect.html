@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,6 +13,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
 
       
@@ -161,7 +162,8 @@
           <div class="content" role="main" v-pre>
             
   <h1>Source code for fedn.common.net.connect</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">enum</span>
+<span></span><span class="kn">from</span> <span class="nn">fedn.common.security.certificate</span> <span class="k">import</span> <span class="n">Certificate</span>
+<span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">from</span> <span class="nn">http.client</span> <span class="k">import</span> <span class="n">UNAUTHORIZED</span>
 
 <span class="kn">import</span> <span class="nn">requests</span> <span class="k">as</span> <span class="nn">r</span>
@@ -178,10 +180,7 @@
     <span class="n">Assigned</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">TryAgain</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">UnAuthorized</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">UnMatchedConfig</span> <span class="o">=</span> <span class="mi">4</span> </div>
-
-
-<span class="kn">from</span> <span class="nn">fedn.common.security.certificate</span> <span class="k">import</span> <span class="n">Certificate</span>
+    <span class="n">UnMatchedConfig</span> <span class="o">=</span> <span class="mi">4</span></div>
 
 
 <div class="viewcode-block" id="ConnectorClient"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorClient">[docs]</a><span class="k">class</span> <span class="nc">ConnectorClient</span><span class="p">:</span>
@@ -219,8 +218,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Securely connecting with certificate&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -250,15 +251,16 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;***** </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="c1"># self.state = State.Disconnected</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
-        
+
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
             <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unauthorized connection to reducer, make sure the correct token is set&quot;</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">UnAuthorized</span><span class="p">,</span> <span class="n">reason</span>
-        
+
         <span class="n">reducer_package</span> <span class="o">=</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;package&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">reducer_package</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="p">:</span>
-            <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unmatched config of compute package between client and reducer.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span>\
-                      <span class="s2">&quot;Reducer uses </span><span class="si">{}</span><span class="s2"> package and client uses </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reducer_package</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="p">)</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unmatched config of compute package between client and reducer.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                <span class="s2">&quot;Reducer uses </span><span class="si">{}</span><span class="s2"> package and client uses </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">reducer_package</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">UnMatchedConfig</span><span class="p">,</span> <span class="n">reason</span>
 
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
@@ -308,8 +310,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">verify_cert</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">setting the connection string to </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect_string</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Securely connecting with certificate&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ConnectorCombiner.state"><a class="viewcode-back" href="../../../../fedn.common.net.html#fedn.common.net.connect.ConnectorCombiner.state">[docs]</a>    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -335,11 +339,11 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># self.state = State.Disconnected</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">Unassigned</span><span class="p">,</span> <span class="p">{}</span>
-        
+
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
             <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Unauthorized connection to reducer, make sure the correct token is set&quot;</span>
             <span class="k">return</span> <span class="n">Status</span><span class="o">.</span><span class="n">UnAuthorized</span><span class="p">,</span> <span class="n">reason</span>
-        
+
         <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">retval</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">retval</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;retry&#39;</span><span class="p">:</span>
                 <span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;Reducer was not ready. Try again later.&quot;</span>
@@ -355,7 +359,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

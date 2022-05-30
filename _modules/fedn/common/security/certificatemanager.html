@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,6 +13,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
 
       
@@ -186,7 +187,8 @@
         <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">search</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">cert</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">cert_name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;-cert.pem&#39;</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;-key.pem&#39;</span><span class="p">)</span>
+            <span class="n">cert</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">cert_name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;-cert.pem&#39;</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;-key.pem&#39;</span><span class="p">)</span>
             <span class="n">cert</span><span class="o">.</span><span class="n">gen_keypair</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">certificates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cert</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">cert</span></div>
@@ -215,7 +217,8 @@
                 <span class="c1"># print(&quot;trying with {}&quot;.format(key_name))</span>
                 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">key_name</span><span class="p">)):</span>
 
-                    <span class="n">c</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">cert_name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="n">key_name</span><span class="p">)</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">cert_name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">key_name</span><span class="o">=</span><span class="n">key_name</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">certificates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">Certificate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">cert_name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
@@ -243,7 +246,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

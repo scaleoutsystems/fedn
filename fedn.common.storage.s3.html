@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
       <title>fedn.common.storage.s3 package</title>
     
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
 
       
@@ -160,12 +161,12 @@
           <div class="content" role="main" v-pre>
             
   <section id="fedn-common-storage-s3-package">
-<h1>fedn.common.storage.s3 package<a class="headerlink" href="#fedn-common-storage-s3-package" title="Permalink to this headline">¶</a></h1>
+<h1>fedn.common.storage.s3 package<a class="headerlink" href="#fedn-common-storage-s3-package" title="Permalink to this heading">¶</a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="module-fedn.common.storage.s3.base">
-<span id="fedn-common-storage-s3-base-module"></span><h2>fedn.common.storage.s3.base module<a class="headerlink" href="#module-fedn.common.storage.s3.base" title="Permalink to this headline">¶</a></h2>
+<span id="fedn-common-storage-s3-base-module"></span><h2>fedn.common.storage.s3.base module<a class="headerlink" href="#module-fedn.common.storage.s3.base" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="fedn.common.storage.s3.base.Repository">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedn.common.storage.s3.base.</span></span><span class="sig-name descname"><span class="pre">Repository</span></span><a class="reference internal" href="_modules/fedn/common/storage/s3/base.html#Repository"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.base.Repository" title="Permalink to this definition">¶</a></dt>
@@ -174,7 +175,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.base.Repository.get_artifact">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_artifact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/base.html#Repository.get_artifact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.base.Repository.get_artifact" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>instance_name</strong> – </p>
 </dd>
 </dl>
@@ -184,7 +185,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.base.Repository.set_artifact">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_artifact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/base.html#Repository.set_artifact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.base.Repository.set_artifact" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>instance_name</strong> – </p></li>
 <li><p><strong>instance</strong> – </p></li>
@@ -197,11 +198,11 @@
 
 </section>
 <section id="module-fedn.common.storage.s3.miniorepo">
-<span id="fedn-common-storage-s3-miniorepo-module"></span><h2>fedn.common.storage.s3.miniorepo module<a class="headerlink" href="#module-fedn.common.storage.s3.miniorepo" title="Permalink to this headline">¶</a></h2>
+<span id="fedn-common-storage-s3-miniorepo-module"></span><h2>fedn.common.storage.s3.miniorepo module<a class="headerlink" href="#module-fedn.common.storage.s3.miniorepo" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedn.common.storage.s3.miniorepo.</span></span><span class="sig-name descname"><span class="pre">MINIORepository</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fedn.common.storage.s3.base.Repository" title="fedn.common.storage.s3.base.Repository"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.common.storage.s3.base.Repository</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#fedn.common.storage.s3.base.Repository" title="fedn.common.storage.s3.base.Repository"><code class="xref py py-class docutils literal notranslate"><span class="pre">Repository</span></code></a></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.client">
 <span class="sig-name descname"><span class="pre">client</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.client" title="Permalink to this definition">¶</a></dt>
@@ -211,7 +212,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.create_bucket">
 <span class="sig-name descname"><span class="pre">create_bucket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository.create_bucket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.create_bucket" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>bucket_name</strong> – </p>
 </dd>
 </dl>
@@ -221,7 +222,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.delete_artifact">
 <span class="sig-name descname"><span class="pre">delete_artifact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository.delete_artifact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.delete_artifact" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>instance_name</strong> – </p></li>
 <li><p><strong>bucket</strong> – </p></li>
@@ -239,13 +240,13 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.get_artifact">
 <span class="sig-name descname"><span class="pre">get_artifact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository.get_artifact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.get_artifact" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>instance_name</strong> – </p></li>
 <li><p><strong>bucket</strong> – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -255,10 +256,10 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.get_artifact_stream">
 <span class="sig-name descname"><span class="pre">get_artifact_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository.get_artifact_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.get_artifact_stream" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>instance_name</strong> – </p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -268,7 +269,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.miniorepo.MINIORepository.list_artifacts">
 <span class="sig-name descname"><span class="pre">list_artifacts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/miniorepo.html#MINIORepository.list_artifacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.miniorepo.MINIORepository.list_artifacts" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p>
 </dd>
 </dl>
@@ -284,16 +285,16 @@
 
 </section>
 <section id="module-fedn.common.storage.s3.s3repo">
-<span id="fedn-common-storage-s3-s3repo-module"></span><h2>fedn.common.storage.s3.s3repo module<a class="headerlink" href="#module-fedn.common.storage.s3.s3repo" title="Permalink to this headline">¶</a></h2>
+<span id="fedn-common-storage-s3-s3repo-module"></span><h2>fedn.common.storage.s3.s3repo module<a class="headerlink" href="#module-fedn.common.storage.s3.s3repo" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedn.common.storage.s3.s3repo.</span></span><span class="sig-name descname"><span class="pre">S3ModelRepository</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fedn.common.storage.s3.miniorepo.MINIORepository" title="fedn.common.storage.s3.miniorepo.MINIORepository"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedn.common.storage.s3.miniorepo.MINIORepository</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#fedn.common.storage.s3.miniorepo.MINIORepository" title="fedn.common.storage.s3.miniorepo.MINIORepository"><code class="xref py py-class docutils literal notranslate"><span class="pre">MINIORepository</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.delete_compute_context">
 <span class="sig-name descname"><span class="pre">delete_compute_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compute_package</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.delete_compute_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.delete_compute_context" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>compute_package</strong> – </p>
 </dd>
 </dl>
@@ -303,10 +304,10 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.get_compute_package">
 <span class="sig-name descname"><span class="pre">get_compute_package</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compute_package</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.get_compute_package"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.get_compute_package" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>compute_package</strong> – </p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -316,10 +317,10 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.get_model">
 <span class="sig-name descname"><span class="pre">get_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.get_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.get_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>model_id</strong> – </p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -329,10 +330,10 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.get_model_stream">
 <span class="sig-name descname"><span class="pre">get_model_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.get_model_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.get_model_stream" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>model_id</strong> – </p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -342,7 +343,7 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.set_compute_context">
 <span class="sig-name descname"><span class="pre">set_compute_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.set_compute_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.set_compute_context" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – </p></li>
 <li><p><strong>compute_package</strong> – </p></li>
@@ -356,13 +357,13 @@
 <dt class="sig sig-object py" id="fedn.common.storage.s3.s3repo.S3ModelRepository.set_model">
 <span class="sig-name descname"><span class="pre">set_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fedn/common/storage/s3/s3repo.html#S3ModelRepository.set_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedn.common.storage.s3.s3repo.S3ModelRepository.set_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> – </p></li>
 <li><p><strong>is_file</strong> – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -372,7 +373,7 @@
 
 </section>
 <section id="module-fedn.common.storage.s3">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.common.storage.s3" title="Permalink to this headline">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fedn.common.storage.s3" title="Permalink to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -383,7 +384,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

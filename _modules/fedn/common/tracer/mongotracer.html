@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,6 +13,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
 
       
@@ -161,12 +162,14 @@
           <div class="content" role="main" v-pre>
             
   <h1>Source code for fedn.common.tracer.mongotracer</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">fedn.common.tracer.tracer</span> <span class="k">import</span> <span class="n">Tracer</span>
-<span class="kn">from</span> <span class="nn">fedn.common.storage.db.mongo</span> <span class="k">import</span> <span class="n">connect_to_mongodb</span>
+<span></span><span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">threading</span>
-<span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">psutil</span>
+
+<span class="kn">from</span> <span class="nn">fedn.common.storage.db.mongo</span> <span class="k">import</span> <span class="n">connect_to_mongodb</span>
+<span class="kn">from</span> <span class="nn">fedn.common.tracer.tracer</span> <span class="k">import</span> <span class="n">Tracer</span>
 
 
 <div class="viewcode-block" id="MongoTracer"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer">[docs]</a><span class="k">class</span> <span class="nc">MongoTracer</span><span class="p">(</span><span class="n">Tracer</span><span class="p">):</span>
@@ -200,7 +203,7 @@
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOG: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.drop_round_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.drop_round_time">[docs]</a>    <span class="k">def</span> <span class="nf">drop_round_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -258,8 +261,10 @@
 <span class="sd">        :param round:</span>
 <span class="sd">        :param round_time:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                   <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_time&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                   <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.set_combiner_time"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_combiner_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_combiner_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="p">,</span> <span class="n">round_time</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -267,8 +272,10 @@
 <span class="sd">        :param round:</span>
 <span class="sd">        :param round_time:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                            <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiner_round_time</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;combiner_round_time&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                            <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round_time&#39;</span><span class="p">:</span> <span class="n">round_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
     <span class="c1"># def set_combiner_queue_length(self,timestamp,ql):</span>
     <span class="c1">#    self.combiner_queue_length({&#39;key&#39;: &#39;combiner_queue_length&#39;}, {&#39;$push&#39;: {&#39;queue_length&#39;: ql}}, True)</span>
@@ -280,14 +287,16 @@
 
 <span class="sd">        :param round_meta:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;combiners&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span>
+                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;combiners&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.set_round_meta_reducer"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_round_meta_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">set_round_meta_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">round_meta</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        :param round_meta:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;reducer&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">round_meta</span><span class="p">[</span><span class="s1">&#39;round_id&#39;</span><span class="p">])},</span> <span class="p">{</span>
+                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;reducer&#39;</span><span class="p">:</span> <span class="n">round_meta</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.get_latest_round"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.get_latest_round">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_round</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -312,10 +321,14 @@
             <span class="n">mem_percents</span> <span class="o">=</span> <span class="n">currentProcess</span><span class="o">.</span><span class="n">memory_percent</span><span class="p">()</span>
             <span class="n">ps_time</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;cpu&#39;</span><span class="p">:</span> <span class="n">cpu_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mem&#39;</span><span class="p">:</span> <span class="n">mem_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">ps_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;cpu&#39;</span><span class="p">:</span> <span class="n">cpu_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mem&#39;</span><span class="p">:</span> <span class="n">mem_percents</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">ps_time</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">psutil_monitoring</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;cpu_mem_usage&#39;</span><span class="p">},</span> <span class="p">{</span>
+                                              <span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;round&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoTracer.start_monitor"><a class="viewcode-back" href="../../../../fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.start_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">start_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">round</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -345,7 +358,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
       <title>Deployment</title>
     
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
 
       
@@ -184,7 +185,7 @@
           <div class="content" role="main" v-pre>
             
   <section id="deployment">
-<h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
+<h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this heading">¶</a></h1>
 <p>By running multiple combiners (aggregation servers) at separate hosts/locations we can deploy highly decentralized networks. You can choose to deploy combiners
 in geographical proximity to optimize for low-latency for client subgroups. In the case of a single combiner, we recover a standard centralized
 client-server architecture. Since it is straight-forward to scale the network dynamically by attaching additional combiners, we recommend that you
@@ -199,9 +200,9 @@ start simple and expand the network as needed.</p>
 </dl>
 <p>We will in this example use the provided docker-compose templates to deploy the components across the three different hosts / VMs.</p>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">¶</a></h2>
 <section id="hosts-vms">
-<h3>Hosts / VMs<a class="headerlink" href="#hosts-vms" title="Permalink to this headline">¶</a></h3>
+<h3>Hosts / VMs<a class="headerlink" href="#hosts-vms" title="Permalink to this heading">¶</a></h3>
 <p>We assume that you have root access to 3 Ubuntu 20.04 Server hosts / VMs. We recommend at least 4 CPUs and 8GB RAM for the base services and the reducer,
 and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:</p>
 <ul class="simple">
@@ -212,7 +213,7 @@ and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:</p
 <p>You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:</p>
 </section>
 <section id="certificates-optional">
-<h3>Certificates (optional)<a class="headerlink" href="#certificates-optional" title="Permalink to this headline">¶</a></h3>
+<h3>Certificates (optional)<a class="headerlink" href="#certificates-optional" title="Permalink to this heading">¶</a></h3>
 <p>Certificates are needed for the Reducer and each of the Combiners to enable SSL for secure communication.
 By default, FEDn will generate unsigned certificates for the reducer and each combiner using OpenSSL.</p>
 <div class="admonition note">
@@ -221,7 +222,7 @@ By default, FEDn will generate unsigned certificates for the reducer and each co
 </div>
 </section>
 <section id="token-authentication-optional">
-<h3>Token authentication (optional)<a class="headerlink" href="#token-authentication-optional" title="Permalink to this headline">¶</a></h3>
+<h3>Token authentication (optional)<a class="headerlink" href="#token-authentication-optional" title="Permalink to this heading">¶</a></h3>
 <p>FEDn supports single token authentication between combiners/clients and the reducer. To enable token authentication use <code class="code docutils literal notranslate"><span class="pre">--secret-key=&lt;your-key-phrase&gt;</span></code> flag when starting the reducer.
 The secret key will generate a token (expires after 90 days by default) and display it in the standard output.
 Using this configuration will require combiners and clients to authenticate via either <code class="code docutils literal notranslate"><span class="pre">--token=&lt;generated-token&gt;</span></code> or by specifying the “token: &lt;generated-token&gt;” in the settings YAML file provided to <code class="code docutils literal notranslate"><span class="pre">--init</span></code>.</p>
@@ -231,7 +232,7 @@ Using this configuration will require combiners and clients to authenticate via 
 </div>
 </section>
 <section id="networking">
-<h3>Networking<a class="headerlink" href="#networking" title="Permalink to this headline">¶</a></h3>
+<h3>Networking<a class="headerlink" href="#networking" title="Permalink to this heading">¶</a></h3>
 <p>You will also need to be able to configure security groups / ingress settings for each host.
 The Reducer as well as each client needs to be able to resolve the hostname for each combiner (matching the certificate). In this example,
 we show how this can be achieved if no DNS resolution is available, by setting “extra host” in the Docker containers for the Reducer and client.
@@ -239,7 +240,7 @@ Note that there are many other possible ways to achieve this, depending on your 
 </section>
 </section>
 <section id="deploy-base-supporting-services-minio-mongodb-and-mongoexpress">
-<h2>1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)<a class="headerlink" href="#deploy-base-supporting-services-minio-mongodb-and-mongoexpress" title="Permalink to this headline">¶</a></h2>
+<h2>1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)<a class="headerlink" href="#deploy-base-supporting-services-minio-mongodb-and-mongoexpress" title="Permalink to this heading">¶</a></h2>
 <p>First, use ‘config/base-services.yaml’ to deploy MinIO and Mongo services on one of the hosts. Edit the file to change the default passwords and ports.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo -E docker-compose -f config/base-services.yaml up
 </pre></div>
@@ -251,7 +252,7 @@ Note that you can also configure the reducer to use already existing MongoDB and
 </div>
 </section>
 <section id="deploy-the-reducer">
-<h2>2. Deploy the reducer<a class="headerlink" href="#deploy-the-reducer" title="Permalink to this headline">¶</a></h2>
+<h2>2. Deploy the reducer<a class="headerlink" href="#deploy-the-reducer" title="Permalink to this heading">¶</a></h2>
 <p>Copy the file “config/settings-reducer.yaml.template” to “config/settings-reducer.yaml”, then</p>
 <ol class="loweralpha simple">
 <li><p>Edit ‘settings-reducer.yaml’ to provide the connection settings for MongoDB and Minio from Step 1.</p></li>
@@ -267,7 +268,7 @@ Note that you can also configure the reducer to use already existing MongoDB and
 </div>
 </section>
 <section id="deploy-combiners">
-<h2>3. Deploy combiners<a class="headerlink" href="#deploy-combiners" title="Permalink to this headline">¶</a></h2>
+<h2>3. Deploy combiners<a class="headerlink" href="#deploy-combiners" title="Permalink to this heading">¶</a></h2>
 <p>Copy ‘config/settings.yaml.template’ to ‘config/settings-combiner.yaml’ and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the network),
 a hostname (which is used by reducer and clients to connect to combiner RPC),
 and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings).
@@ -283,7 +284,7 @@ and update extra hosts for the reducer.</p>
 </div>
 </section>
 <section id="attach-clients-to-the-fedn-network">
-<h2>4. Attach clients to the FEDn network<a class="headerlink" href="#attach-clients-to-the-fedn-network" title="Permalink to this headline">¶</a></h2>
+<h2>4. Attach clients to the FEDn network<a class="headerlink" href="#attach-clients-to-the-fedn-network" title="Permalink to this heading">¶</a></h2>
 <p>You can now choose an example, upload a compute package and an initial model, and attach clients.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="../../examples">Examples</a></p></li>
@@ -311,7 +312,7 @@ There is a template in ‘config/extra-hosts-client.yaml.template’ that can be
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>

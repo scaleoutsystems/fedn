@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html  lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,6 +13,7 @@
         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
 
       
@@ -231,11 +232,14 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">package_file</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">requests</span>
             <span class="kn">import</span> <span class="nn">os</span>
+
+            <span class="kn">import</span> <span class="nn">requests</span>
+
             <span class="c1"># data = {&#39;name&#39;: self.package_file, &#39;hash&#39;: str(self.package_hash)}</span>
             <span class="c1"># print(&quot;going to send {}&quot;.format(data),flush=True)</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">package_file</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">package_file</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending the following file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">files</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">f</span><span class="p">}</span>
@@ -245,7 +249,8 @@
                                        <span class="c1"># data=data,</span>
                                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reducer_token</span><span class="p">)})</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;failed to put execution context to reducer. </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;failed to put execution context to reducer. </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">e</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -260,9 +265,9 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package_path</span><span class="p">,</span> <span class="n">package_dir</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;entry_points&#39;</span><span class="p">:</span>
-                                    <span class="p">{</span><span class="s1">&#39;predict&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 predict.py&#39;</span><span class="p">},</span>
-                                     <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 train.py&#39;</span><span class="p">},</span>
-                                     <span class="s1">&#39;validate&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 validate.py&#39;</span><span class="p">}}}</span>
+                                <span class="p">{</span><span class="s1">&#39;predict&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 predict.py&#39;</span><span class="p">},</span>
+                                 <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 train.py&#39;</span><span class="p">},</span>
+                                 <span class="s1">&#39;validate&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;command&#39;</span><span class="p">:</span> <span class="s1">&#39;python3 validate.py&#39;</span><span class="p">}}}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span> <span class="o">=</span> <span class="n">package_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span> <span class="o">=</span> <span class="kc">None</span>
@@ -288,7 +293,8 @@
         <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">token</span><span class="p">)})</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
             <span class="k">if</span> <span class="mi">200</span> <span class="o">&lt;=</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">204</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">cgi</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="n">cgi</span><span class="o">.</span><span class="n">parse_header</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">cgi</span><span class="o">.</span><span class="n">parse_header</span><span class="p">(</span>
+                    <span class="n">r</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
@@ -349,11 +355,14 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;tar.gz&#39;</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tgz&#39;</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;tar.bz2&#39;</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:bz2&#39;</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">),</span> <span class="s1">&#39;r:bz2&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
                 <span class="s2">&quot;Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?&quot;</span><span class="p">)</span>
@@ -365,7 +374,8 @@
 
             <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">extractall</span><span class="p">()</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Successfully extracted compute package content in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Successfully extracted compute package content in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error extracting files!&quot;</span><span class="p">)</span></div>
 
@@ -376,9 +386,10 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">from_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;client&#39;</span><span class="p">)</span>
-        
+
         <span class="kn">from</span> <span class="nn">distutils.dir_util</span> <span class="k">import</span> <span class="n">copy_tree</span>
-        <span class="n">copy_tree</span><span class="p">(</span><span class="n">from_path</span><span class="p">,</span> <span class="n">run_path</span><span class="p">,</span> <span class="n">preserve_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># preserve_times=False ensures compatibility with Gramine LibOS</span>
+        <span class="c1"># preserve_times=False ensures compatibility with Gramine LibOS</span>
+        <span class="n">copy_tree</span><span class="p">(</span><span class="n">from_path</span><span class="p">,</span> <span class="n">run_path</span><span class="p">,</span> <span class="n">preserve_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">cfg</span> <span class="o">=</span> <span class="kc">None</span>
@@ -388,7 +399,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_config</span> <span class="o">=</span> <span class="n">cfg</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error trying to load and unpack dispatcher config - trying default&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Error trying to load and unpack dispatcher config - trying default&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">dispatcher</span> <span class="o">=</span> <span class="n">Dispatcher</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dispatch_config</span><span class="p">,</span> <span class="n">run_path</span><span class="p">)</span>
 
@@ -401,7 +413,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2021, Scaleout Systems AB.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>
