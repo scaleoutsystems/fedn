@@ -1,8 +1,9 @@
-from fedn.common.security.certificate import Certificate
 import enum
 from http.client import UNAUTHORIZED
 
 import requests as r
+
+from fedn.common.security.certificate import Certificate
 
 
 class State(enum.Enum):

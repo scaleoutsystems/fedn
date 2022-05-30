@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 from os.path import basename, dirname, isfile
 
 modules = glob.glob(dirname(__file__) + "/*.py")

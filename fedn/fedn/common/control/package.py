@@ -224,6 +224,7 @@ class PackageRuntime:
         from_path = os.path.join(os.getcwd(), 'client')
 
         from distutils.dir_util import copy_tree
+
         # preserve_times=False ensures compatibility with Gramine LibOS
         copy_tree(from_path, run_path, preserve_times=False)
 
