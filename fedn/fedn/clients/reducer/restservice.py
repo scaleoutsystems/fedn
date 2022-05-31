@@ -3,6 +3,7 @@ import json
 import math
 import os
 import re
+import threading
 import uuid
 from threading import Lock
 from urllib import response
@@ -13,15 +14,14 @@ import numpy
 import pandas as pd
 import plotly
 import plotly.express as px
+from fedn.clients.reducer.interfaces import CombinerInterface
+from fedn.clients.reducer.plots import Plot
+from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, url_for)
 from idna import check_initial_combiner
 from tenacity import retry
 from werkzeug.utils import secure_filename
-
-from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.plots import Plot
-from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -182,7 +182,7 @@ class ReducerRestService:
 
     def check_configured(self):
         """Check if compute package has been configured and that and that the
-        state of the ReducerControl is not in setup otherwise render setup template. 
+        state of the ReducerControl is not in setup otherwise render setup template.
         Check if initial model has been configured, otherwise render setup_model template.
         :return: Rendered html template or None
         """
@@ -677,7 +677,7 @@ class ReducerRestService:
             return result
 
         def combiner_status():
-            """ Get current status reports from all combiners registered in the network. 
+            """ Get current status reports from all combiners registered in the network.
 
             :return:
             """
@@ -968,6 +968,53 @@ controller:
             data = {'checksum': sum}
             from flask import jsonify
             return jsonify(data)
+
+        @app.route('/inference', methods=['POST'])
+        def inference():
+            """
+
+            :return:
+            """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+
+            # Check configured
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
+
+            # Check compute context
+            if self.remote_compute_context:
+                try:
+                    self.current_compute_context = self.control.get_compute_context()
+                except:
+                    self.current_compute_context = None
+            else:
+                self.current_compute_context = "None:Local"
+
+            # Redirect if in monitoring state
+            if self.control.state() == ReducerState.monitoring:
+                return redirect(
+                    url_for('index', state=ReducerStateToString(self.control.state()), refresh=True, message="Reducer is in monitoring state"))
+
+            # POST params
+            timeout = int(request.form.get('timeout', 180))
+            helper_type = request.form.get('helper', 'keras')
+            clients_required = request.form.get('clients_required', 1)
+            clients_requested = request.form.get('clients_requested', 8)
+
+            # Start inference request
+            config = {'round_timeout': timeout, 'model_id': self.control.get_latest_model(),
+                      'rounds': 1, 'clients_required': clients_required,
+                      'clients_requested': clients_requested, 'task': 'inference',
+                      'validate': False, 'helper_type': helper_type}
+            threading.Thread(target=self.control.instruct,
+                             args=(config,)).start()
+
+            # Redirect
+            return redirect(url_for('index', state=ReducerStateToString(self.control.state()), refresh=True, message="Sent execution plan (inference).",
+                                    message_type='SUCCESS'))
 
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
