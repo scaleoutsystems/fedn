@@ -1,9 +1,14 @@
-import click
-import uuid
-import yaml
 import time
-from fedn.clients.reducer.restservice import encode_auth_token, decode_auth_token
+import uuid
+
+import click
+import yaml
+
+from fedn.clients.reducer.restservice import (decode_auth_token,
+                                              encode_auth_token)
+
 from .main import main
+
 
 def get_statestore_config_from_file(init):
     """
@@ -18,6 +23,7 @@ def get_statestore_config_from_file(init):
         except yaml.YAMLError as e:
             raise (e)
 
+
 def check_helper_config_file(config):
     control = config['control']
     try:
@@ -26,6 +32,7 @@ def check_helper_config_file(config):
         print("--local-package was used, but no helper was found in --init settings file.", flush=True)
         exit(-1)
     return helper
+
 
 @main.group('run')
 @click.pass_context
@@ -57,8 +64,8 @@ def run_cmd(ctx):
               help='Set to a filename to (re)init client from file state.')
 @click.option('-l', '--logfile', required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")),
               help='Set logfile for client log to file.')
-@click.option('--heartbeat-interval',required=False, default=2)
-@click.option('--reconnect-after-missed-heartbeat',required=False, default=30)
+@click.option('--heartbeat-interval', required=False, default=2)
+@click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, dry_run, secure, preshared_cert,
                verify_cert, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
@@ -86,7 +93,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify_cert': verify_cert, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile,'heartbeat_interval': heartbeat_interval,
+              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': 30}
 
     if config['init']:
@@ -109,7 +116,8 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
                 config['discover_host'] == '' or \
                 config['discover_host'] is None or \
                 config['discover_port'] == '':
-            print("Missing required configuration: discover_host, discover_port", flush=True)
+            print(
+                "Missing required configuration: discover_host, discover_port", flush=True)
             return
     except Exception as e:
         print("Could not load config appropriately. Check config", flush=True)
@@ -140,7 +148,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
     :param init:
     """
     remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 'name': name, 
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 'name': name,
               'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
@@ -151,10 +159,10 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
-    
+
     if not remote:
         helper = check_helper_config_file(fedn_config)
-        
+
     try:
         network_id = fedn_config['network_id']
     except KeyError:
@@ -163,21 +171,22 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
 
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
-        from fedn.clients.reducer.statestore.mongoreducerstatestore import MongoReducerStateStore
-        statestore = MongoReducerStateStore(network_id, statestore_config['mongo_config'], defaults=config['init'])
+        from fedn.clients.reducer.statestore.mongoreducerstatestore import \
+            MongoReducerStateStore
+        statestore = MongoReducerStateStore(
+            network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
 
-
     if config['secret_key']:
-        # If we already have a valid token in statestore config, use that one. 
+        # If we already have a valid token in statestore config, use that one.
         existing_config = statestore.get_reducer()
-        if existing_config: 
+        if existing_config:
             try:
                 existing_config = statestore.get_reducer()
                 current_token = existing_config['token']
-                status = decode_auth_token(current_token,config['secret_key'])
+                status = decode_auth_token(current_token, config['secret_key'])
                 if status != 'Success':
                     token = encode_auth_token(config['secret_key'])
                     config['token'] = token

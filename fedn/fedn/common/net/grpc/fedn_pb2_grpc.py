@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from fedn.common.net.grpc import fedn_pb2 as fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2
+from fedn.common.net.grpc import \
+    fedn_pb2 as fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2
 
 
 class ModelServiceStub(object):

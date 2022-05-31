@@ -1,5 +1,5 @@
-import subprocess
 import logging
+import subprocess
 
 logger = logging.getLogger()
 
@@ -10,7 +10,8 @@ def run_process(args, cwd):
     :param args:
     :param cwd:
     """
-    status = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    status = subprocess.Popen(
+        args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # print(status)
     def check_io():

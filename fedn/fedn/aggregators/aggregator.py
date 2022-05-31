@@ -1,14 +1,14 @@
 import collections
-from abc import ABC, abstractmethod
 import os
 import tempfile
+from abc import ABC, abstractmethod
 
 
 class AggregatorBase(ABC):
     """ Abstract class defining helpers. """
 
     @abstractmethod
-    def __init__(self, id, storage, server, modelservice, control):        
+    def __init__(self, id, storage, server, modelservice, control):
         """ """
         self.name = ""
         self.storage = storage
@@ -28,13 +28,13 @@ class AggregatorBase(ABC):
     @abstractmethod
     def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
         pass
-   
-  
-#def get_aggregator(aggregator_type):
-#    """ Return an instance of the aggregator class. 
+
+
+# def get_aggregator(aggregator_type):
+#    """ Return an instance of the aggregator class.
 #
 #    :param aggregator_type (str): The aggregator type ('fedavg')
-#    :return: 
+#    :return:
 #    """
 #    if helper_type == 'fedavg':
 #        from fedn.aggregators.fedavg import FedAvgAggregator

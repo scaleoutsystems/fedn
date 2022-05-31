@@ -1,10 +1,11 @@
+import base64
 import copy
 import time
-import base64
+
+from fedn.clients.reducer.interfaces import (CombinerInterface,
+                                             CombinerUnavailableError)
 
 from .state import ReducerState
-from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.interfaces import CombinerUnavailableError
 
 
 class Network:
@@ -67,7 +68,7 @@ class Network:
         """
 
         if self.find_client(client['name']):
-            return 
+            return
 
         print("adding client {}".format(client['name']), flush=True)
         self.statestore.set_client(client)

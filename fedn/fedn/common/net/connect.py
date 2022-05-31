@@ -3,6 +3,8 @@ from http.client import UNAUTHORIZED
 
 import requests as r
 
+from fedn.common.security.certificate import Certificate
+
 
 class State(enum.Enum):
     Disconnected = 0
@@ -15,10 +17,7 @@ class Status(enum.Enum):
     Assigned = 1
     TryAgain = 2
     UnAuthorized = 3
-    UnMatchedConfig = 4 
-
-
-from fedn.common.security.certificate import Certificate
+    UnMatchedConfig = 4
 
 
 class ConnectorClient:
@@ -56,8 +55,10 @@ class ConnectorClient:
             self.verify_cert = False
 
         self.prefix = prefix
-        self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
-        print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
+        self.connect_string = "{}{}:{}".format(
+            self.prefix, self.host, self.port)
+        print("\n\nsetting the connection string to {}\n\n".format(
+            self.connect_string), flush=True)
         if self.certificate:
             print("Securely connecting with certificate", flush=True)
 
@@ -87,15 +88,16 @@ class ConnectorClient:
             print('***** {}'.format(e), flush=True)
             # self.state = State.Disconnected
             return Status.Unassigned, {}
-        
+
         if retval.status_code == 401:
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
             return Status.UnAuthorized, reason
-        
+
         reducer_package = retval.json()['package']
         if reducer_package != self.package:
-            reason = "Unmatched config of compute package between client and reducer.\n"+\
-                      "Reducer uses {} package and client uses {}.".format(reducer_package, self.package)
+            reason = "Unmatched config of compute package between client and reducer.\n" +\
+                "Reducer uses {} package and client uses {}.".format(
+                    reducer_package, self.package)
             return Status.UnMatchedConfig, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
@@ -145,8 +147,10 @@ class ConnectorCombiner:
             self.verify_cert = False
         self.prefix = prefix
 
-        self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
-        print("\n\nsetting the connection string to {}\n\n".format(self.connect_string), flush=True)
+        self.connect_string = "{}{}:{}".format(
+            self.prefix, self.host, self.port)
+        print("\n\nsetting the connection string to {}\n\n".format(
+            self.connect_string), flush=True)
         print("Securely connecting with certificate", flush=True)
 
     def state(self):
@@ -172,11 +176,11 @@ class ConnectorCombiner:
         except Exception as e:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
-        
+
         if retval.status_code == 401:
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
             return Status.UnAuthorized, reason
-        
+
         if retval.status_code >= 200 and retval.status_code < 204:
             if retval.json()['status'] == 'retry':
                 reason = "Reducer was not ready. Try again later."

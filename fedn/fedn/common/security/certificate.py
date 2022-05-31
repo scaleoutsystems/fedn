@@ -18,7 +18,8 @@ class Certificate:
         except OSError:
             print("Directory exists, will store all cert and keys here.")
         else:
-            print("Successfully created the directory to store cert and keys in {}".format(cwd))
+            print(
+                "Successfully created the directory to store cert and keys in {}".format(cwd))
         self.key_path = os.path.join(cwd, key_name)
         self.cert_path = os.path.join(cwd, cert_name)
         import uuid
@@ -62,10 +63,12 @@ class Certificate:
         :param privatekey:
         """
         with open(self.key_path, "wb") as keyfile:
-            keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, privatekey))
+            keyfile.write(crypto.dump_privatekey(
+                crypto.FILETYPE_PEM, privatekey))
 
         with open(self.cert_path, "wb") as certfile:
-            certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate))
+            certfile.write(crypto.dump_certificate(
+                crypto.FILETYPE_PEM, certificate))
 
     def get_keypair_raw(self):
         """

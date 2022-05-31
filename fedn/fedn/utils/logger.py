@@ -22,6 +22,7 @@ class Logger:
         root.addHandler(sh)
 
         if to_file != '':
-            fh = logging.FileHandler(os.path.join(file_path, '{}'.format(to_file)))
+            fh = logging.FileHandler(os.path.join(
+                file_path, '{}'.format(to_file)))
             fh.setFormatter(logging.Formatter(log_format))
             root.addHandler(fh)

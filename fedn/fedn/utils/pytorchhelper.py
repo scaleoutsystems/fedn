@@ -1,9 +1,11 @@
 import os
 import tempfile
 from collections import OrderedDict
-from .helpers import HelperBase
 from functools import reduce
+
 import numpy as np
+
+from .helpers import HelperBase
 
 
 class PytorchHelper(HelperBase):

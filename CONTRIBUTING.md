@@ -28,3 +28,11 @@ Report a bug or propose a feature by [opening a new GitHub Issue](https://github
 - if your branch is a hotfix, name it **hotfix/[GitHub-Issue-ID]**
 
 Open your pull requests against the **develop** branch unless you're resolving a critical bug in production (hotfix). Then your pull request should be against **master** branch.
+
+### Code checks
+We defined GitHub actions that check code quality and formatting against pushed branches and pull requests. We use:
+
+- [autopep8](https://pypi.org/project/autopep8/) to conform to the PEP 8 code style
+- [isort](https://github.com/PyCQA/isort) to organize imports
+
+For more information please refer to the code check action: [.github/workflows/code-checks.yaml](.github/workflows/code-checks.yaml).

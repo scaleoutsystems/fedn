@@ -4,10 +4,10 @@ import tempfile
 import time
 from datetime import datetime
 
+import fedn.utils.helpers
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from fedn.common.tracer.mongotracer import MongoTracer
-import fedn.utils.helpers
 
 from .state import ReducerState
 
@@ -35,10 +35,12 @@ class ReducerControl:
         try:
             config = self.statestore.get_storage_backend()
         except:
-            print("REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
+            print(
+                "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
             raise MisconfiguredStorageBackend()
         if not config:
-            print("REDUCER CONTROL: No storage configuration available, exiting.", flush=True)
+            print(
+                "REDUCER CONTROL: No storage configuration available, exiting.", flush=True)
             raise MisconfiguredStorageBackend()
 
         if config['storage_type'] == 'S3':
@@ -135,7 +137,8 @@ class ReducerControl:
                 context = definition['filename']
                 return context
             except (IndexError, KeyError):
-                print("No context filename set for compute context definition", flush=True)
+                print(
+                    "No context filename set for compute context definition", flush=True)
                 return None
         else:
             return None
@@ -164,7 +167,8 @@ class ReducerControl:
             outfile_name = helper.save_model(model)
             print("DONE", flush=True)
             print("Uploading model to Minio...", flush=True)
-            model_id = self.model_repository.set_model(outfile_name, is_file=True)
+            model_id = self.model_repository.set_model(
+                outfile_name, is_file=True)
             print("DONE", flush=True)
             os.unlink(outfile_name)
 
@@ -182,7 +186,7 @@ class ReducerControl:
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 model_id = None
-                
+
             if model_id and (model_id != self.get_latest_model()):
                 osync.append(combiner)
         return osync
@@ -198,7 +202,7 @@ class ReducerControl:
         elif compute_plan['task'] == 'validation':
             nr_active_clients = int(combiner_state['nr_active_validators'])
         else:
-            print("Invalid task type!",flush=True)
+            print("Invalid task type!", flush=True)
             return False
 
         if int(compute_plan['clients_required']) <= nr_active_clients:
@@ -228,10 +232,10 @@ class ReducerControl:
     def _handle_unavailable_combiner(self, combiner):
         """ This callback is triggered if a combiner is found to be unresponsive. """
         # TODO: Implement strategy to handle the case.
-        print("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name), flush=True)
+        print("REDUCER CONTROL: Combiner {} unavailable.".format(
+            combiner.name), flush=True)
 
-
-    def _select_round_combiners(self,compute_plan):
+    def _select_round_combiners(self, compute_plan):
         combiners = []
         for combiner in self.network.get_combiners():
             try:
@@ -241,9 +245,10 @@ class ReducerControl:
                 combiner_state = None
 
             if combiner_state:
-                is_participating = self.check_round_participation_policy(compute_plan,combiner_state)
+                is_participating = self.check_round_participation_policy(
+                    compute_plan, combiner_state)
                 if is_participating:
-                    combiners.append((combiner,compute_plan))
+                    combiners.append((combiner, compute_plan))
         return combiners
 
     def round(self, config, round_number):
@@ -275,23 +280,26 @@ class ReducerControl:
                 combiner_state = None
 
             if combiner_state != None:
-                is_participating = self.check_round_participation_policy(compute_plan, combiner_state)
+                is_participating = self.check_round_participation_policy(
+                    compute_plan, combiner_state)
                 if is_participating:
                     combiners.append((combiner, compute_plan))
 
         round_start = self.check_round_start_policy(combiners)
 
-        print("CONTROL: round start policy met, participating combiners {}".format(combiners), flush=True)
+        print("CONTROL: round start policy met, participating combiners {}".format(
+            combiners), flush=True)
         if not round_start:
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
             return None
 
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
-        
+
         statestore_config = self.statestore.get_config()
 
-        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+        self.tracer = MongoTracer(
+            statestore_config['mongo_config'], statestore_config['network_id'])
 
         start_time = datetime.now()
 
@@ -346,7 +354,8 @@ class ReducerControl:
             model, data = self.reduce(updated)
             round_meta['reduce'] = data
         except Exception as e:
-            print("CONTROL: Failed to reduce models from combiners: {}".format(updated), flush=True)
+            print("CONTROL: Failed to reduce models from combiners: {}".format(
+                updated), flush=True)
             print(e, flush=True)
             return None, round_meta
         print("DONE", flush=True)
@@ -361,7 +370,8 @@ class ReducerControl:
             self.commit(model_id, model)
             round_meta['time_commit'] = time.time() - tic
         else:
-            print("REDUCER: failed to update model in round with config {}".format(config), flush=True)
+            print("REDUCER: failed to update model in round with config {}".format(
+                config), flush=True)
             return None, round_meta
         print("DONE", flush=True)
 
@@ -373,11 +383,12 @@ class ReducerControl:
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_framework()
 
-            validating_combiners = self._select_round_combiners(combiner_config)
+            validating_combiners = self._select_round_combiners(
+                combiner_config)
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    self.sync_combiners([combiner],self.get_latest_model())
+                    self.sync_combiners([combiner], self.get_latest_model())
                     combiner.start(combiner_config)
                 except CombinerUnavailableError:
                     # OK if validation fails for a combiner
@@ -418,7 +429,8 @@ class ReducerControl:
         # TODO: Refactor
         from fedn.common.tracer.mongotracer import MongoTracer
         statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+        self.tracer = MongoTracer(
+            statestore_config['mongo_config'], statestore_config['network_id'])
         last_round = self.tracer.get_latest_round()
 
         for round in range(1, int(config['rounds'] + 1)):
@@ -443,7 +455,8 @@ class ReducerControl:
             end_time = datetime.now()
 
             if model_id:
-                print("REDUCER: Global round completed, new model: {}".format(model_id), flush=True)
+                print("REDUCER: Global round completed, new model: {}".format(
+                    model_id), flush=True)
                 round_time = end_time - start_time
                 self.tracer.set_latest_time(current_round, round_time.seconds)
                 round_meta['status'] = 'Success'

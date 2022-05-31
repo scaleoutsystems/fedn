@@ -1,32 +1,31 @@
-from urllib import response
+import datetime
+import json
+import math
+import os
+import re
 import uuid
-from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.state import ReducerState, ReducerStateToString
+from threading import Lock
+from urllib import response
+
+import geoip2.database
+import jwt
+import numpy
+import pandas as pd
+import plotly
+import plotly.express as px
+from flask import (Flask, abort, flash, jsonify, make_response, redirect,
+                   render_template, request, url_for)
 from idna import check_initial_combiner
 from tenacity import retry
 from werkzeug.utils import secure_filename
 
-from flask import Flask, jsonify, make_response, render_template, request
-from flask import redirect, url_for, flash, abort
-
-from threading import Lock
-import re
-
-import os
-import jwt
-import datetime
-import json
-import plotly
-import pandas as pd
-import numpy
-import math
-
-import plotly.express as px
-import geoip2.database
+from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
+from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
+
 
 def allowed_file(filename):
     """
@@ -36,6 +35,7 @@ def allowed_file(filename):
     """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def encode_auth_token(secret_key):
     """Generates the Auth Token
@@ -57,6 +57,7 @@ def encode_auth_token(secret_key):
     except Exception as e:
         return e
 
+
 def decode_auth_token(auth_token, secret):
     """Decodes the auth token
     :param auth_token:
@@ -64,7 +65,7 @@ def decode_auth_token(auth_token, secret):
     """
     try:
         payload = jwt.decode(
-            auth_token, 
+            auth_token,
             secret,
             algorithms=['HS256']
         )
@@ -92,18 +93,17 @@ class ReducerRestService:
 
         self.port = config['discover_port']
         self.network_id = config['name'] + '-network'
-        
+
         if 'token' in config.keys():
             self.token_auth_enabled = True
         else:
             self.token_auth_enabled = False
 
-        if 'secret_key' in config.keys(): 
+        if 'secret_key' in config.keys():
             self.SECRET_KEY = config['secret_key']
         else:
             self.SECRET_KEY = None
 
-        
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
             self.package = 'remote'
@@ -139,7 +139,7 @@ class ReducerRestService:
             return False
         else:
             return True
-    
+
     def check_initial_model(self):
         """Check if initial model (seed model) has been configured
 
@@ -151,7 +151,7 @@ class ReducerRestService:
             return True
         else:
             return False
-    
+
     def check_configured_response(self):
         """Check if everything has been configured for client to connect,
         return response if not.
@@ -168,7 +168,7 @@ class ReducerRestService:
             return jsonify({'status': 'retry',
                             'package': self.package,
                             'msg': "Compute package is not configured. Please upload the compute package."})
-        
+
         if not self.check_initial_model():
             return jsonify({'status': 'retry',
                             'package': self.package,
@@ -211,28 +211,31 @@ class ReducerRestService:
         """
         try:
             # Get token
-            if 'Authorization' in r.headers: # header auth
+            if 'Authorization' in r.headers:  # header auth
                 request_token = r.headers.get('Authorization').split()[1]
-            elif 'token' in r.args: # args auth
+            elif 'token' in r.args:  # args auth
                 request_token = str(r.args.get('token'))
             elif 'fedn_token' in r.cookies:
                 request_token = r.cookies.get('fedn_token')
-            else: # no token provided
+            else:  # no token provided
                 print('Authorization failed. No token provided.', flush=True)
                 abort(401)
 
             # Log token and secret
-            print(f'Secret: {secret}. Request token: {request_token}.', flush=True)
+            print(
+                f'Secret: {secret}. Request token: {request_token}.', flush=True)
 
             # Authenticate
             status = decode_auth_token(request_token, secret)
             if status == 'Success':
                 return True
             else:
-                print('Authorization failed. Status: "{}"'.format(status), flush=True)
+                print('Authorization failed. Status: "{}"'.format(
+                    status), flush=True)
                 abort(401)
         except Exception as e:
-            print('Authorization failed. Expection encountered: "{}".'.format(e), flush=True)
+            print('Authorization failed. Expection encountered: "{}".'.format(
+                e), flush=True)
             abort(401)
 
     def run(self):
@@ -263,12 +266,12 @@ class ReducerRestService:
                 message = request.args.get('message', None)
                 message_type = request.args.get('message_type', None)
                 template = render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
-                                            events=events,
-                                            logs=None, refresh=True, configured=True, message=message, message_type=message_type)
+                                           events=events,
+                                           logs=None, refresh=True, configured=True, message=message, message_type=message_type)
 
             # Set token cookie in response if needed
             response = make_response(template)
-            if 'token' in request.args: # args auth
+            if 'token' in request.args:  # args auth
                 response.set_cookie('fedn_token', str(request.args['token']))
 
             # Return response
@@ -298,16 +301,16 @@ class ReducerRestService:
                 "label": "Reducer",
                 "role": 'reducer',
                 "status": 'active',
-                "name": 'reducer', #TODO: get real host name
+                "name": 'reducer',  # TODO: get real host name
                 "type": 'reducer',
             })
-            
+
             combiner_info = combiner_status()
             client_info = client_status()
 
             if len(combiner_info) < 1:
                 return result
-       
+
             for combiner in combiner_info:
                 print("combiner info {}".format(combiner_info), flush=True)
                 try:
@@ -315,7 +318,7 @@ class ReducerRestService:
                         "id": combiner['name'],  # "n{}".format(count),
                         "label": "Combiner ({} clients)".format(combiner['nr_active_clients']),
                         "role": 'combiner',
-                        "status": 'active', #TODO: Hard-coded, combiner_info does not contain status
+                        "status": 'active',  # TODO: Hard-coded, combiner_info does not contain status
                         "name": combiner['name'],
                         "type": 'combiner',
                     })
@@ -335,7 +338,7 @@ class ReducerRestService:
                     })
                 except Exception as err:
                     print(err)
-                
+
             count = 0
             for node in result['nodes']:
                 try:
@@ -380,6 +383,7 @@ class ReducerRestService:
             :return:
             """
             import json
+
             from bson import json_util
 
             json_docs = []
@@ -413,7 +417,8 @@ class ReducerRestService:
             if not combiner:
                 # Create a new combiner
                 import base64
-                certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
+                certificate, key = self.certificate_manager.get_or_create(
+                    address).get_keypair_raw()
                 cert_b64 = base64.b64encode(certificate)
                 key_b64 = base64.b64encode(key)
 
@@ -490,7 +495,8 @@ class ReducerRestService:
             if request.method == 'POST':
                 from fedn.common.tracer.mongotracer import MongoTracer
                 statestore_config = self.control.statestore.get_config()
-                self.tracer = MongoTracer(statestore_config['mongo_config'], statestore_config['network_id'])
+                self.tracer = MongoTracer(
+                    statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
                     self.control.drop_models()
                 except:
@@ -550,7 +556,7 @@ class ReducerRestService:
                 # checking if there are enough clients connected to start!
                 clients_available = 0
                 for combiner in self.control.network.get_combiners():
-                    try: 
+                    try:
                         combiner_state = combiner.report()
                         nac = combiner_state['nr_active_clients']
                         clients_available = clients_available + int(nac)
@@ -577,7 +583,8 @@ class ReducerRestService:
                           'validate': validate, 'helper_type': helper_type}
 
                 import threading
-                threading.Thread(target=self.control.instruct, args=(config,)).start()
+                threading.Thread(target=self.control.instruct,
+                                 args=(config,)).start()
                 # self.control.instruct(config)
                 return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",
                                         message_type='SUCCESS'))
@@ -614,7 +621,6 @@ class ReducerRestService:
             if response:
                 return response
 
-
             name = request.args.get('name', None)
             combiner_preferred = request.args.get('combiner', None)
 
@@ -636,7 +642,7 @@ class ReducerRestService:
                 'status': 'available'
             }
 
-            # Add client to database 
+            # Add client to database
             self.control.network.add_client(client)
 
             # Return connection information to client
@@ -698,19 +704,26 @@ class ReducerRestService:
                 for client in combiner_info:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
-                    active_trainers_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
-                    active_validators_str = re.sub('[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
-                    all_active_trainers.extend(' '.join(active_trainers_str.split(" ")).split())
-                    all_active_validators.extend(' '.join(active_validators_str.split(" ")).split())
+                    active_trainers_str = re.sub(
+                        '[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                    active_validators_str = re.sub(
+                        '[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
+                    all_active_trainers.extend(
+                        ' '.join(active_trainers_str.split(" ")).split())
+                    all_active_validators.extend(
+                        ' '.join(active_validators_str.split(" ")).split())
 
-                active_trainers_list = [client for client in client_info if client['name'] in all_active_trainers]
-                active_validators_list = [cl for cl in client_info if cl['name'] in all_active_validators]
+                active_trainers_list = [
+                    client for client in client_info if client['name'] in all_active_trainers]
+                active_validators_list = [
+                    cl for cl in client_info if cl['name'] in all_active_validators]
                 all_clients = [cl for cl in client_info]
 
                 for client in all_clients:
                     status = 'offline'
                     role = 'None'
-                    self.control.network.update_client_data(client, status, role)
+                    self.control.network.update_client_data(
+                        client, status, role)
 
                 all_active_clients = active_validators_list + active_trainers_list
                 for client in all_active_clients:
@@ -723,14 +736,15 @@ class ReducerRestService:
                         role = 'validator'
                     else:
                         role = 'unknown'
-                    self.control.network.update_client_data(client, status, role)
+                    self.control.network.update_client_data(
+                        client, status, role)
 
                 return {'active_clients': all_clients,
                         'active_trainers': active_trainers_list,
                         'active_validators': active_validators_list
                         }
             except:
-                 pass
+                pass
 
             return {'active_clients': [],
                     'active_trainers': [],
@@ -757,7 +771,7 @@ class ReducerRestService:
             # Token auth
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
-            
+
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -792,7 +806,7 @@ class ReducerRestService:
             # Token auth
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
-            
+
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
@@ -847,6 +861,7 @@ controller:
                            chk_string=chk_string)
 
             from io import BytesIO
+
             from flask import send_file
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))
@@ -868,7 +883,8 @@ controller:
 
             # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
             #    return "Error, Context already assigned!"
-            reset = request.args.get('reset', None)  # if reset is not empty then allow context re-set
+            # if reset is not empty then allow context re-set
+            reset = request.args.get('reset', None)
             if reset:
                 return render_template('context.html')
 
@@ -888,7 +904,8 @@ controller:
 
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file_path = os.path.join(
+                        app.config['UPLOAD_FOLDER'], filename)
                     file.save(file_path)
 
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
@@ -907,7 +924,7 @@ controller:
                     return render_template('context.html')
 
             # There is a potential race condition here, if one client requests a package and at
-            # the same time another one triggers a fetch from Minio and writes to disk. 
+            # the same time another one triggers a fetch from Minio and writes to disk.
             try:
                 mutex = Lock()
                 mutex.acquire()
@@ -957,5 +974,5 @@ controller:
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
-        
+
         return app
