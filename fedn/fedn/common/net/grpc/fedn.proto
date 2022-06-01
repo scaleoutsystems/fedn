@@ -73,6 +73,7 @@ message ModelValidationRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6; 
+  bool is_inference = 7;
 }
 
 message ModelValidation {

@@ -660,22 +660,6 @@ class ReducerRestService:
 
             return jsonify(response)
 
-        @app.route('/infer')
-        def infer():
-            """
-
-            :return:
-            """
-            if self.control.state() == ReducerState.setup:
-                return "Error, not configured"
-            result = ""
-            try:
-                self.control.set_model_id()
-            except fedn.exceptions.ModelError:
-                print("Failed to seed control.")
-
-            return result
-
         def combiner_status():
             """ Get current status reports from all combiners registered in the network.
 
@@ -969,8 +953,8 @@ controller:
             from flask import jsonify
             return jsonify(data)
 
-        @app.route('/inference', methods=['POST'])
-        def inference():
+        @app.route('/infer', methods=['POST'])
+        def infer():
             """
 
             :return:
@@ -1005,10 +989,12 @@ controller:
             clients_requested = request.form.get('clients_requested', 8)
 
             # Start inference request
-            config = {'round_timeout': timeout, 'model_id': self.control.get_latest_model(),
-                      'rounds': 1, 'clients_required': clients_required,
-                      'clients_requested': clients_requested, 'task': 'inference',
-                      'validate': False, 'helper_type': helper_type}
+            config = {'round_timeout': timeout,
+                      'model_id': self.control.get_latest_model(),
+                      'clients_required': clients_required,
+                      'clients_requested': clients_requested,
+                      'task': 'inference',
+                      'helper_type': helper_type}
             threading.Thread(target=self.control.instruct,
                              args=(config,)).start()
 

@@ -441,7 +441,7 @@ class Client:
                 elif task_type == 'validate':
                     self.state = ClientState.validating
                     metrics = self._process_validation_request(
-                        request.model_id)
+                        request.model_id, request.is_inference)
 
                     if metrics != None:
                         # Send validation
@@ -521,9 +521,15 @@ class Client:
 
         return updated_model_id, meta
 
-    def _process_validation_request(self, model_id):
+    def _process_validation_request(self, model_id, is_inference):
+        # Figure out cmd
+        if is_inference:
+            cmd = 'infer'
+        else:
+            cmd = 'validate'
+
         self._send_status(
-            "Processing validation request for model_id {}".format(model_id))
+            f"Processing {cmd} request for model_id {model_id}")
         self.state = ClientState.validating
         try:
             model = self.get_model(str(model_id))
@@ -533,7 +539,7 @@ class Client:
                 fh.write(model.getbuffer())
 
             _, outpath = tempfile.mkstemp()
-            self.dispatcher.run_cmd("validate {} {}".format(inpath, outpath))
+            self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 validation = json.loads(fh.read())
