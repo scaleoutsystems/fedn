@@ -201,6 +201,9 @@ class ReducerControl:
             nr_active_clients = int(combiner_state['nr_active_trainers'])
         elif compute_plan['task'] == 'validation':
             nr_active_clients = int(combiner_state['nr_active_validators'])
+        elif compute_plan['task'] == 'inference':
+            # Using validators for inference
+            nr_active_clients = int(combiner_state['nr_active_validators'])
         else:
             print("Invalid task type!", flush=True)
             return False
