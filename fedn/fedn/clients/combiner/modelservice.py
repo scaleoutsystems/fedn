@@ -102,7 +102,7 @@ class ModelService(rpc.ModelServiceServicer):
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
-                                        message="Got model successfully.")
+                                            message="Got model successfully.")
                 # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
                 self.models.set_meta(request.id, fedn.ModelStatus.OK)
                 self.models.get_ptr(request.id).flush()
