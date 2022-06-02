@@ -10,5 +10,6 @@ services:
     deploy:
       replicas: 2
     volumes:
-      - ${HOST_DATA_DIR:-./examples/mnist-pytorch/data}:/var/data
+      - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
+      - ${HOST_DATA_DIR:-./examples/mnist-keras/data}:/var/data
       - /var/run/docker.sock:/var/run/docker.sock
