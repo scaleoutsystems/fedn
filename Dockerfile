@@ -26,7 +26,10 @@ RUN mkdir -p /app \
   && /venv/bin/pip install --no-cache-dir -e /app/fedn \
   && if [[ ! -z "$REQUIREMENTS" ]]; then \
   /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt; \
-  fi
+  fi \
+  #
+  # Clean up
+  && rm -r /app/config/requirements.txt
 
 # Setup working directory
 WORKDIR /app
