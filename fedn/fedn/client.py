@@ -457,8 +457,15 @@ class Client:
                         validation.correlation_id = request.correlation_id
                         response = self.orchestrator.SendModelValidation(
                             validation)
+
+                        # Set status type
+                        if request.is_inference:
+                            status_type = fedn.StatusType.INFERENCE
+                        else:
+                            status_type = fedn.StatusType.MODEL_VALIDATION
+
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_VALIDATION, request=validation)
+                                          type=status_type, request=validation)
                     else:
                         self._send_status("Client {} failed to complete model validation.".format(self.name),
                                           log_level=fedn.Status.WARNING, request=request)
