@@ -131,10 +131,7 @@ def infer(in_model_path, out_json_path, data_path=None):
 
     # Save JSON
     with open(out_json_path, "w") as fh:
-        fh.write(json.dumps(y_pred.tolist()))
-
-    # Print to stdout TODO:remove
-    print(json.dumps(y_pred[:10].tolist()))
+        fh.write(json.dumps({'predictions': y_pred.tolist()}))
 
 
 if __name__ == '__main__':
