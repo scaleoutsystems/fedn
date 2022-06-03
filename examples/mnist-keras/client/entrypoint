@@ -6,6 +6,7 @@ import docker
 import fire
 import numpy as np
 import tensorflow as tf
+
 from fedn.utils.kerashelper import KerasHelper
 
 NUM_CLASSES = 10
