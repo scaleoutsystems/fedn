@@ -10,9 +10,15 @@ jobs:
         to_test:
           - "mnist-keras keras"
           - "mnist-pytorch pytorch"
+        python_version:
+          - 3.8
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python_version }}
       
       - name: test ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
