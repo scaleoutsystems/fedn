@@ -10,8 +10,7 @@ jobs:
         to_test:
           - "mnist-keras keras"
           - "mnist-pytorch pytorch"
-        python_version:
-          - 3.8
+        python_version: [3.7, 3.8, 3.9, 3.10]
     steps:
       - name: checkout
         uses: actions/checkout@v2
