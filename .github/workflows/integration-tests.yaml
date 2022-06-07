@@ -24,4 +24,5 @@ jobs:
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
 
       - name: print logs
+        if: always()
         run: .ci/tests/examples/print_logs.sh
