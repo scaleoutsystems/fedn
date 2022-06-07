@@ -20,5 +20,5 @@ jobs:
         with:
           python-version: ${{ matrix.python_version }}
       
-      - name: test ${{ matrix.to_test }} (python ${{ matrix.python_version }})
+      - name: test ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
