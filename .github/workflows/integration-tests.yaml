@@ -22,3 +22,6 @@ jobs:
       
       - name: test ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
+
+      - name: print logs
+        run: .ci/tests/examples/print_logs.sh
