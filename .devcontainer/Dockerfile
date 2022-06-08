@@ -1,4 +1,5 @@
-FROM python:3.8.9
+ARG BASE_IMG=python:3.8
+FROM $BASE_IMG
 
 # Non-root user with sudo access
 ARG USERNAME=default
