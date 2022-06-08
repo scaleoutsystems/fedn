@@ -1,4 +1,4 @@
-ARG BASE_IMG=python:3.8
+ARG BASE_IMG
 FROM $BASE_IMG
 
 # Non-root user with sudo access

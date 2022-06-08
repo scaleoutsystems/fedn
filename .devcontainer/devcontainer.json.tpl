@@ -26,7 +26,7 @@
   ],
   "build": {
     "args": {
-      "BASE_IMG": "python:3.8"
+      "BASE_IMG": "python:3.9"
     }
   }
 }
