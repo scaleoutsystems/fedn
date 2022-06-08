@@ -24,4 +24,9 @@
   "runArgs": [
     "--net=host"
   ],
+  "build": {
+    "args": {
+      "BASE_IMG": "python:3.9"
+    }
+  }
 }
