@@ -27,7 +27,7 @@ docker-compose \
     up -d --build
 
 >&2 echo "Wait for reducer to start"
-sleep 10 # TODO: add API call to check when ready
+sleep 30 # TODO: add API call to check when ready
 
 >&2 echo "Upload compute package"
 curl -k -X POST \
@@ -43,7 +43,7 @@ curl -k -X POST \
 printf '\n'
 
 >&2 echo "Wait for clients to connect"
-sleep 10 # TODO: add API call to check when ready
+sleep 30 # TODO: add API call to check when ready
 
 >&2 echo "Start round"
 curl -k -X POST \
