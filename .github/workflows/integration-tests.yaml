@@ -6,6 +6,7 @@ jobs:
   integration-tests:
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         to_test:
           - "mnist-keras keras"
