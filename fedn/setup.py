@@ -10,7 +10,7 @@ setup(
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.8,<3.9',
+    python_requires='>=3.7,<3.10',
     install_requires=[
         "PyYAML>=5.4",
         "requests",
@@ -19,7 +19,7 @@ setup(
         "python-slugify",
         "grpcio-tools",
         "grpcio~=1.34.0",
-        "numpy~=1.22.2",
+        "numpy>=1.21.6,<=1.22.2",
         "protobuf",
         "pymongo",
         "Flask",
@@ -45,6 +45,8 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[
         'Natural Language :: English',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 )
