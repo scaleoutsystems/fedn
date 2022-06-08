@@ -1,9 +1,11 @@
 #!./.mnist-pytorch/bin/python
-import torchvision
-import torch
-from math import floor
-import fire
 import os
+from math import floor
+
+import fire
+import torch
+import torchvision
+
 
 def splitset(dataset, parts):
     n = dataset.shape[0]
@@ -20,8 +22,10 @@ def split(out_dir='data', n_splits=2):
         os.mkdir(f'{out_dir}/clients')
 
     # Load and convert to dict
-    train_data = torchvision.datasets.MNIST(root=f'{out_dir}/train', transform=torchvision.transforms.ToTensor, train=True)
-    test_data = torchvision.datasets.MNIST(root=f'{out_dir}/test', transform=torchvision.transforms.ToTensor, train=False)
+    train_data = torchvision.datasets.MNIST(
+        root=f'{out_dir}/train', transform=torchvision.transforms.ToTensor, train=True)
+    test_data = torchvision.datasets.MNIST(
+        root=f'{out_dir}/test', transform=torchvision.transforms.ToTensor, train=False)
     data = {
         'x_train': splitset(train_data.data, n_splits),
         'y_train': splitset(train_data.targets, n_splits),
@@ -31,7 +35,7 @@ def split(out_dir='data', n_splits=2):
 
     # Make splits
     for i in range(n_splits):
-        subdir=f'{out_dir}/clients/{str(i+1)}'
+        subdir = f'{out_dir}/clients/{str(i+1)}'
         if not os.path.exists(subdir):
             os.mkdir(subdir)
         torch.save({
@@ -40,7 +44,8 @@ def split(out_dir='data', n_splits=2):
             'x_test': data['x_test'][i],
             'y_test': data['y_test'][i],
         },
-        f'{subdir}/mnist.pt')
+            f'{subdir}/mnist.pt')
+
 
 if __name__ == '__main__':
-  fire.Fire(split)
+    fire.Fire(split)

@@ -1,27 +1,25 @@
+import base64
+import io
+import json
 import os
 import queue
 import sys
 import threading
+import time
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
-
-from fedn.common.net.connect import ConnectorCombiner, Status
-from fedn.common.net.grpc.server import Server
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-
-from fedn.clients.combiner.modelservice import ModelService
-from fedn.common.storage.s3.s3repo import S3ModelRepository
+from enum import Enum
 
 import requests
-import json
-import io
-import time
-import base64
 
-from collections import defaultdict
+import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.clients.combiner.modelservice import ModelService
+from fedn.common.net.connect import ConnectorCombiner, Status
+from fedn.common.net.grpc.server import Server
+from fedn.common.storage.s3.s3repo import S3ModelRepository
 
-from enum import Enum
 
 class Role(Enum):
     WORKER = 1
@@ -54,7 +52,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def __init__(self, connect_config):
 
-        # Holds client queues 
+        # Holds client queues
         self.clients = {}
 
         self.modelservice = ModelService()
@@ -81,12 +79,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 continue
             if status == Status.Assigned:
                 config = response
-                print("COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
+                print(
+                    "COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
                 break
             if status == Status.UnAuthorized:
                 print(response, flush=True)
                 sys.exit("Exiting: Unauthorized")
-
 
         cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
         key = base64.b64decode(config['key'])  # .decode('utf-8')
@@ -96,15 +94,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'certificate': cert,
                        'key': key}
 
-        self.repository = S3ModelRepository(config['storage']['storage_config'])
+        self.repository = S3ModelRepository(
+            config['storage']['storage_config'])
         self.server = Server(self, self.modelservice, grpc_config)
 
         from fedn.common.tracer.mongotracer import MongoTracer
-        self.tracer = MongoTracer(config['statestore']['mongo_config'], config['statestore']['network_id'])
+        self.tracer = MongoTracer(
+            config['statestore']['mongo_config'], config['statestore']['network_id'])
 
         from fedn.clients.combiner.roundcontrol import RoundControl
-        self.control = RoundControl(self.id, self.repository, self, self.modelservice)
-        threading.Thread(target=self.control.run, daemon=True).start()        
+        self.control = RoundControl(
+            self.id, self.repository, self, self.modelservice)
+        threading.Thread(target=self.control.run, daemon=True).start()
 
         self.server.start()
 
@@ -144,11 +145,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.model_id = model_id
 
     def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
-        print("{}:COMBINER({}):{} {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.id, log_level, msg), flush=flush)
+        print("{}:COMBINER({}):{} {}".format(datetime.now().strftime(
+            '%Y-%m-%d %H:%M:%S'), self.id, log_level, msg), flush=flush)
 
     def request_model_update(self, model_id, clients=[]):
         """ Ask clients to update the current global model.
-        
+
         Parameters
         ----------
         model_id : str
@@ -157,7 +159,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             List of clients to submit a model update request to. 
             An empty list (default) results in a broadcast to 
             all connected trainig clients.  
-          
+
         """
 
         request = fedn.ModelUpdateRequest()
@@ -173,9 +175,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
             self.SendModelUpdateRequest(request, self)
-        
-        print("COMBINER: Sent model update request for model {} to clients {}".format(model_id,clients), flush=True)
 
+        print("COMBINER: Sent model update request for model {} to clients {}".format(
+            model_id, clients), flush=True)
 
     def request_model_validation(self, model_id, clients=[]):
         """ Ask clients to validate the current global model. 
@@ -188,9 +190,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             List of clients to submit a model update request to. 
             An empty list (default) results in a broadcast to 
             all connected trainig clients.  
-          
+
         """
-        
+
         request = fedn.ModelValidationRequest()
         self.__whoami(request.sender, self)
         request.model_id = model_id
@@ -205,7 +207,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.role = fedn.WORKER
             self.SendModelValidationRequest(request, self)
 
-        print("COMBINER: Sent validation request for model {} to clients {}".format(model_id,clients), flush=True)
+        print("COMBINER: Sent validation request for model {} to clients {}".format(
+            model_id, clients), flush=True)
 
     def _list_clients(self, channel):
         request = fedn.ListClientsRequest()
@@ -279,7 +282,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             q = self.__get_queue(client, queue_name)
             q.put(request)
         except:
-            print("Failed to route request to client: {} {}", request.receiver, queue_name)
+            print("Failed to route request to client: {} {}",
+                  request.receiver, queue_name)
             raise
 
     def _send_status(self, status):
@@ -300,7 +304,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     #####################################################################################################################
 
-    ## Control Service
+    # Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
         """ Push a round config to RoundControl. 
@@ -315,7 +319,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
-        print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(config), flush=True)
+        print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(
+            config), flush=True)
 
         job_id = self.control.push_round_config(config)
         return response
@@ -353,7 +358,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_active_trainers"
         p.value = str(len(active_trainers))
-        
+
         active_validators = self.get_active_validators()
         p = response.parameter.add()
         p.key = "nr_active_validators"
@@ -378,7 +383,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(len(active_trainers)+len(active_validators))
-        
+
         p = response.parameter.add()
         p.key = "model_id"
         model_id = self.get_active_model()
@@ -393,14 +398,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "name"
         p.value = str(self.id)
-        
+
         return response
 
     #####################################################################################################################
 
     def AllianceStatusStream(self, response, context):
         """ A server stream RPC endpoint that emits status messages. """
-        status = fedn.Status(status="Client {} connecting to AllianceStatusStream.".format(response.sender))
+        status = fedn.Status(
+            status="Client {} connecting to AllianceStatusStream.".format(response.sender))
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
@@ -466,7 +472,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return:
         """
         response = fedn.ConnectionResponse()
-        active_clients = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+        active_clients = self._list_active_clients(
+            fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         try:
             requested = int(self.max_clients)
@@ -494,7 +501,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.response = "Heartbeat received"
         return response
 
-    ## Combiner Service
+    # Combiner Service
 
     def ModelUpdateStream(self, update, context):
         """
@@ -503,7 +510,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param context:
         """
         client = update.sender
-        status = fedn.Status(status="Client {} connecting to ModelUpdateStream.".format(client.name))
+        status = fedn.Status(
+            status="Client {} connecting to ModelUpdateStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
@@ -517,7 +525,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
-                pass 
+                pass
 
     def ModelUpdateRequestStream(self, response, context):
         """ A server stream RPC endpoint. Messages from client stream. """
@@ -527,14 +535,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if metadata:
             print("\n\n\nGOT METADATA: {}\n\n\n".format(metadata), flush=True)
 
-        status = fedn.Status(status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
+        status = fedn.Status(
+            status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.timestamp = str(datetime.now())
 
-
         self.__whoami(status.sender, self)
 
-        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
+        self._subscribe_client_to_queue(
+            client, fedn.Channel.MODEL_UPDATE_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         self._send_status(status)
@@ -543,8 +552,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
-                pass 
-           
+                pass
 
     def ModelValidationStream(self, update, context):
         """
@@ -553,7 +561,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param context:
         """
         client = update.sender
-        status = fedn.Status(status="Client {} connecting to ModelValidationStream.".format(client.name))
+        status = fedn.Status(
+            status="Client {} connecting to ModelValidationStream.".format(client.name))
         status.log_level = fedn.Status.INFO
 
         status.sender.name = self.id
@@ -568,20 +577,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
-                pass 
+                pass
 
     def ModelValidationRequestStream(self, response, context):
         """ A server stream RPC endpoint. Messages from client stream. """
 
         client = response.sender
-        status = fedn.Status(status="Client {} connecting to ModelValidationRequestStream.".format(client.name))
+        status = fedn.Status(
+            status="Client {} connecting to ModelValidationRequestStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.sender.name = self.id
         status.sender.role = role_to_proto_role(self.role)
         status.timestamp = str(datetime.now())
 
-
-        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
+        self._subscribe_client_to_queue(
+            client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
         q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
         self._send_status(status)
@@ -590,14 +600,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
-                pass 
+                pass
 
     def SendModelUpdateRequest(self, request, context):
         """ Send a model update request. """
         self._send_request(request, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         response = fedn.Response()
-        response.response = "CONTROLLER RECEIVED ModelUpdateRequest from client {}".format(request.sender.name)
+        response.response = "CONTROLLER RECEIVED ModelUpdateRequest from client {}".format(
+            request.sender.name)
         return response  # TODO Fill later
 
     def SendModelUpdate(self, request, context):
@@ -606,7 +617,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("ORCHESTRATOR: Received model update", flush=True)
 
         response = fedn.Response()
-        response.response = "RECEIVED ModelUpdate {} from client  {}".format(response, response.sender.name)
+        response.response = "RECEIVED ModelUpdate {} from client  {}".format(
+            response, response.sender.name)
         return response  # TODO Fill later
 
     def SendModelValidationRequest(self, request, context):
@@ -614,7 +626,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._send_request(request, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
         response = fedn.Response()
-        response.response = "CONTROLLER RECEIVED ModelValidationRequest from client {}".format(request.sender.name)
+        response.response = "CONTROLLER RECEIVED ModelValidationRequest from client {}".format(
+            request.sender.name)
         return response  # TODO Fill later
 
     def SendModelValidation(self, request, context):
@@ -622,10 +635,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.control.aggregator.on_model_validation(request)
         print("ORCHESTRATOR received validation ", flush=True)
         response = fedn.Response()
-        response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
+        response.response = "RECEIVED ModelValidation {} from client  {}".format(
+            response, response.sender.name)
         return response  # TODO Fill later
 
-    ## Reducer Service
+    # Reducer Service
 
     def GetGlobalModel(self, request, context):
         """
@@ -651,7 +665,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         """
         import signal
-        print("COMBINER: {} started, ready for requests. ".format(self.id), flush=True)
+        print("COMBINER: {} started, ready for requests. ".format(
+            self.id), flush=True)
         try:
             while True:
                 signal.pause()

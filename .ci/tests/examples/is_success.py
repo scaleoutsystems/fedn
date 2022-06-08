@@ -1,6 +1,7 @@
-import pymongo
-from time import sleep
 import sys
+from time import sleep
+
+import pymongo
 
 N_ROUNDS = 3
 RETRIES= 6

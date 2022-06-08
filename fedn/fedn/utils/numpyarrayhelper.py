@@ -1,9 +1,9 @@
-import os
-import tempfile
-import numpy as np
-import pickle
 import collections
+import os
+import pickle
 import tempfile
+
+import numpy as np
 
 from .helpers import HelperBase
 

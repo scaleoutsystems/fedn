@@ -1,7 +1,9 @@
+import json
+
+import grpc
+
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-import grpc
-import json
 
 
 class CombinerUnavailableError(Exception):
@@ -19,10 +21,13 @@ class Channel:
         self.certificate = certificate
         if self.certificate:
             import copy
-            credentials = grpc.ssl_channel_credentials(root_certificates=copy.deepcopy(certificate))
-            self.channel = grpc.secure_channel('{}:{}'.format(self.address, str(self.port)), credentials)
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=copy.deepcopy(certificate))
+            self.channel = grpc.secure_channel('{}:{}'.format(
+                self.address, str(self.port)), credentials)
         else:
-            self.channel = grpc.insecure_channel('{}:{}'.format(self.address, str(self.port)))
+            self.channel = grpc.insecure_channel(
+                '{}:{}'.format(self.address, str(self.port)))
 
     def get_channel(self):
         """
@@ -105,7 +110,8 @@ class CombinerInterface:
         :param config:
         :return:
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
         try:
@@ -127,7 +133,8 @@ class CombinerInterface:
         """
         if not config:
             config = self.config
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         control = rpc.ControlStub(channel)
 
         request = fedn.ControlRequest()
@@ -150,7 +157,8 @@ class CombinerInterface:
         :param config:
         :return:
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
         request.command = fedn.Command.START
@@ -175,7 +183,8 @@ class CombinerInterface:
 
         :param model_id:
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
         p = request.parameter.add()
@@ -195,7 +204,8 @@ class CombinerInterface:
 
         :return:
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         reducer = rpc.ReducerStub(channel)
         request = fedn.GetGlobalModelRequest()
         try:
@@ -211,7 +221,8 @@ class CombinerInterface:
     def get_model(self, id=None):
         """ Retrive the model bundle from a combiner. """
 
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         modelservice = rpc.ModelServiceStub(channel)
 
         if not id:
@@ -235,7 +246,8 @@ class CombinerInterface:
 
         :return:
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
         connector = rpc.ConnectorStub(channel)
         request = fedn.ConnectionRequest()
 

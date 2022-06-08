@@ -1,14 +1,15 @@
+import io
+import json
+import logging
 import os
+import uuid
+from urllib.parse import urlparse
+
 import requests
-from .base import Repository
 from minio import Minio
 from minio.error import InvalidResponseError
 
-import io
-import logging
-from urllib.parse import urlparse
-import uuid
-import json
+from .base import Repository
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +44,13 @@ class MINIORepository(Repository):
             self.secure_mode = False
 
         if not self.secure_mode:
-            print("\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
+            print(
+                "\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
 
         if self.secure_mode:
             from urllib3.poolmanager import PoolManager
-            manager = PoolManager(num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
+            manager = PoolManager(
+                num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
                                 access_key=access_key,
                                 secret_key=secret_key,
@@ -83,7 +86,8 @@ class MINIORepository(Repository):
             self.client.fput_object(bucket, instance_name, instance)
         else:
             try:
-                self.client.put_object(bucket, instance_name, io.BytesIO(instance), len(instance))
+                self.client.put_object(
+                    bucket, instance_name, io.BytesIO(instance), len(instance))
             except Exception as e:
                 raise Exception("Could not load data into bytes {}".format(e))
 
@@ -129,7 +133,8 @@ class MINIORepository(Repository):
                 print(obj.object_name)
                 objects_to_delete.append(obj.object_name)
         except Exception as e:
-            raise Exception("Could not list models in bucket {}".format(self.bucket))
+            raise Exception(
+                "Could not list models in bucket {}".format(self.bucket))
         return objects_to_delete
 
     def delete_artifact(self, instance_name, bucket=[]):

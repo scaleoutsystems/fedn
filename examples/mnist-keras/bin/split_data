@@ -1,8 +1,10 @@
 #!./.mnist-keras/bin/python
 import os
-import numpy as np
 from math import floor
+
 import fire
+import numpy as np
+
 
 def splitset(dataset, parts):
     n = dataset.shape[0]
@@ -26,14 +28,15 @@ def split(dataset='data/mnist.npz', outdir='data', n_splits=2):
 
     # Make splits
     for i in range(n_splits):
-        subdir=f'{outdir}/clients/{str(i+1)}'
+        subdir = f'{outdir}/clients/{str(i+1)}'
         if not os.path.exists(subdir):
             os.mkdir(subdir)
         np.savez(f'{subdir}/mnist.npz',
-            x_train=data['x_train'][i],
-            y_train=data['y_train'][i],
-            x_test=data['x_test'][i],
-            y_test=data['y_test'][i])
+                 x_train=data['x_train'][i],
+                 y_train=data['y_train'][i],
+                 x_test=data['x_test'][i],
+                 y_test=data['y_test'][i])
+
 
 if __name__ == '__main__':
-  fire.Fire(split)
+    fire.Fire(split)

@@ -1,24 +1,24 @@
-from numpy.core.einsumfunc import _flop_count
-import pymongo
 import json
-import numpy
-import plotly.graph_objs as go
-from datetime import datetime, timedelta
-import plotly
-import os
-from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
 import math
+import os
+from datetime import datetime, timedelta
 
-import plotly.express as px
 import geoip2.database
-import pandas as pd
-
 import networkx
+import numpy
 import pandas as pd
-from bokeh.models import (Circle, Label, LabelSet,
-                          MultiLine, NodesAndLinkedEdges, Range1d, ColumnDataSource)
-from bokeh.plotting import figure, from_networkx
+import plotly
+import plotly.express as px
+import plotly.graph_objs as go
+import pymongo
+from bokeh.models import (Circle, ColumnDataSource, Label, LabelSet, MultiLine,
+                          NodesAndLinkedEdges, Range1d)
 from bokeh.palettes import Spectral8
+from bokeh.plotting import figure, from_networkx
+from numpy.core.einsumfunc import _flop_count
+
+from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
+
 
 class Plot:
     """
@@ -28,7 +28,8 @@ class Plot:
     def __init__(self, statestore):
         try:
             statestore_config = statestore.get_config()
-            self.mdb = connect_to_mongodb(statestore_config['mongo_config'], statestore_config['network_id'])
+            self.mdb = connect_to_mongodb(
+                statestore_config['mongo_config'], statestore_config['network_id'])
             self.status = self.mdb['control.status']
             self.round_time = self.mdb["control.round_time"]
             self.combiner_round_time = self.mdb["control.combiner_round_time"]
@@ -66,7 +67,8 @@ class Plot:
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for table mean metrics')
+            fig.update_layout(
+                title_text='No data currently available for table mean metrics')
             table = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return False
 
@@ -84,9 +86,11 @@ class Plot:
             for post in self.status.find({'type': 'MODEL_VALIDATION'}):
                 e = json.loads(post['data'])
                 try:
-                    validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
+                    validations[e['modelId']].append(
+                        float(json.loads(e['data'])[metric]))
                 except KeyError:
-                    validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
+                    validations[e['modelId']] = [
+                        float(json.loads(e['data'])[metric])]
 
             vals = []
             models = []
@@ -202,7 +206,8 @@ class Plot:
         if not training:
             return False
         fig = go.Figure(data=go.Histogram(x=training))
-        fig.update_layout(title_text='Client model training time, mean: {}'.format(numpy.mean(training)))
+        fig.update_layout(
+            title_text='Client model training time, mean: {}'.format(numpy.mean(training)))
         histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return histogram
 
@@ -224,12 +229,14 @@ class Plot:
             processing.append(meta['processing_time'])
 
         from plotly.subplots import make_subplots
-        fig = make_subplots(rows=1, cols=2, specs=[[{"type": "pie"}, {"type": "histogram"}]])
+        fig = make_subplots(rows=1, cols=2, specs=[
+                            [{"type": "pie"}, {"type": "histogram"}]])
 
         fig.update_layout(
             template="simple_white",
             xaxis=dict(title_text="Seconds"),
-            title="Total mean client processing time: {}".format(numpy.mean(processing)),
+            title="Total mean client processing time: {}".format(
+                numpy.mean(processing)),
             showlegend=True
         )
         if not processing:
@@ -266,13 +273,16 @@ class Plot:
             except:
                 pass
 
-        labels = ['Waiting for updates', 'Aggregating model updates', 'Loading model updates']
-        val = [numpy.mean(waiting), numpy.mean(aggregation), numpy.mean(model_load)]
+        labels = ['Waiting for updates',
+                  'Aggregating model updates', 'Loading model updates']
+        val = [numpy.mean(waiting), numpy.mean(
+            aggregation), numpy.mean(model_load)]
         fig = go.Figure()
 
         fig.update_layout(
             template="simple_white",
-            title="Total mean combiner round time: {}".format(numpy.mean(combination)),
+            title="Total mean combiner round time: {}".format(
+                numpy.mean(combination)),
             showlegend=True
         )
         if not combination:
@@ -315,9 +325,11 @@ class Plot:
         for post in self.status.find({'type': 'MODEL_VALIDATION'}):
             e = json.loads(post['data'])
             try:
-                validations[e['modelId']].append(float(json.loads(e['data'])[metric]))
+                validations[e['modelId']].append(
+                    float(json.loads(e['data'])[metric]))
             except KeyError:
-                validations[e['modelId']] = [float(json.loads(e['data'])[metric])]
+                validations[e['modelId']] = [
+                    float(json.loads(e['data'])[metric])]
 
         # Make sure validations are plotted in chronological order
         model_trail = self.mdb.control.model.find_one({'key': 'model_trail'})
@@ -343,7 +355,8 @@ class Plot:
                 box.add_trace(go.Box(y=acc, name=str(j), marker_color="royalblue", showlegend=False,
                                      boxpoints=False))
             else:
-                box.add_trace(go.Scatter(x=[str(j)], y=[y[j]], showlegend=False))
+                box.add_trace(go.Scatter(
+                    x=[str(j)], y=[y[j]], showlegend=False))
 
         rounds = list(range(len(y)))
         box.add_trace(go.Scatter(
@@ -353,7 +366,8 @@ class Plot:
         ))
 
         box.update_xaxes(title_text='Rounds')
-        box.update_yaxes(tickvals=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        box.update_yaxes(
+            tickvals=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         box.update_layout(title_text='Metric distribution over clients: {}'.format(metric),
                           margin=dict(l=20, r=20, t=45, b=20))
         box = json.dumps(box, cls=plotly.utils.PlotlyJSONEncoder)
@@ -368,7 +382,8 @@ class Plot:
         metrics = self.round_time.find_one({'key': 'round_time'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for round time')
+            fig.update_layout(
+                title_text='No data currently available for round time')
             ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return False
 
@@ -408,7 +423,8 @@ class Plot:
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
         if metrics == None:
             fig = go.Figure(data=[])
-            fig.update_layout(title_text='No data currently available for MEM and CPU usage')
+            fig.update_layout(
+                title_text='No data currently available for MEM and CPU usage')
             cpu = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return False
 
@@ -452,10 +468,10 @@ class Plot:
     def get_client_df(self):
         clients = self.network_clients
         df = pd.DataFrame(list(clients.find()))
-        active_clients = df['status']=="active"
+        active_clients = df['status'] == "active"
         print(df[active_clients])
         return df
-    
+
     def make_single_node_plot(self):
         """
         Plot single node graph with reducer
@@ -468,23 +484,24 @@ class Plot:
             ("Role", "@role"),
             ("Status", "@status"),
             ("Id", "@index"),
-            ]
-        
+        ]
+
         G = networkx.Graph()
         G.add_node("reducer", adjusted_node_size=20, role='reducer',
-                    status='active', 
-                    name='reducer',
-                    color_by_this_attribute=Spectral8[0])
+                   status='active',
+                   name='reducer',
+                   color_by_this_attribute=Spectral8[0])
         network_graph = from_networkx(G, networkx.spring_layout)
-        network_graph.node_renderer.glyph = Circle(size=20, fill_color = Spectral8[0])
+        network_graph.node_renderer.glyph = Circle(
+            size=20, fill_color=Spectral8[0])
         network_graph.node_renderer.hover_glyph = Circle(size=20, fill_color='white',
                                                          line_width=2)
         network_graph.node_renderer.selection_glyph = Circle(size=20,
                                                              fill_color='white', line_width=2)
         plot = figure(tooltips=HOVER_TOOLTIPS, tools="pan,wheel_zoom,save,reset", active_scroll='wheel_zoom',
-                    width=725, height=460, sizing_mode='stretch_width',
-                    x_range=Range1d(-1.5, 1.5), y_range=Range1d(-1.5, 1.5))
-        
+                      width=725, height=460, sizing_mode='stretch_width',
+                      x_range=Range1d(-1.5, 1.5), y_range=Range1d(-1.5, 1.5))
+
         plot.renderers.append(network_graph)
 
         plot.axis.visible = False
@@ -492,14 +509,11 @@ class Plot:
         plot.outline_line_color = None
 
         label = Label(x=0, y=0, text='reducer',
-                     background_fill_color='#4bbf73', text_font_size='15px',
-                     background_fill_alpha=.7, x_offset=-20, y_offset=10)
-        
+                      background_fill_color='#4bbf73', text_font_size='15px',
+                      background_fill_alpha=.7, x_offset=-20, y_offset=10)
+
         plot.add_layout(label)
         return plot
-        
-
-        
 
     def make_netgraph_plot(self, df, df_nodes):
         """
@@ -514,18 +528,21 @@ class Plot:
         """
 
         if df.empty:
-            #no combiners and thus no clients, plot only reducer
+            # no combiners and thus no clients, plot only reducer
             plot = self.make_single_node_plot()
             return plot
-           
-        G = networkx.from_pandas_edgelist(df, 'source', 'target', create_using=networkx.Graph())
+
+        G = networkx.from_pandas_edgelist(
+            df, 'source', 'target', create_using=networkx.Graph())
         degrees = dict(networkx.degree(G))
         networkx.set_node_attributes(G, name='degree', values=degrees)
 
         number_to_adjust_by = 20
-        adjusted_node_size = dict([(node, degree + number_to_adjust_by) for node, degree in networkx.degree(G)])
-        networkx.set_node_attributes(G, name='adjusted_node_size', values=adjusted_node_size)
-        
+        adjusted_node_size = dict(
+            [(node, degree + number_to_adjust_by) for node, degree in networkx.degree(G)])
+        networkx.set_node_attributes(
+            G, name='adjusted_node_size', values=adjusted_node_size)
+
         # community
         from networkx.algorithms import community
         communities = community.greedy_modularity_communities(G)
@@ -543,16 +560,15 @@ class Plot:
         networkx.set_node_attributes(G, modularity_class, 'modularity_class')
         networkx.set_node_attributes(G, modularity_color, 'modularity_color')
 
-        node_role = {k:v for k,v in zip(df_nodes.id, df_nodes.role)}
+        node_role = {k: v for k, v in zip(df_nodes.id, df_nodes.role)}
         networkx.set_node_attributes(G, node_role, 'role')
-        
-        node_status = {k:v for k,v in zip(df_nodes.id, df_nodes.status)}
+
+        node_status = {k: v for k, v in zip(df_nodes.id, df_nodes.status)}
         networkx.set_node_attributes(G, node_status, 'status')
 
-        node_name = {k:v for k,v in zip(df_nodes.id, df_nodes.name)}
+        node_name = {k: v for k, v in zip(df_nodes.id, df_nodes.name)}
         networkx.set_node_attributes(G, node_name, 'name')
 
-        
         # Choose colors for node and edge highlighting
         node_highlight_color = 'white'
         edge_highlight_color = 'black'
@@ -578,29 +594,34 @@ class Plot:
         # Create a network graph object
         # https://networkx.github.io/documentation/networkx-1.9/reference/generated/networkx.drawing.layout.spring_layout.html
         # if one like lock reducer add args: pos={'reducer':(0,1)}, fixed=['reducer']
-        network_graph = from_networkx(G, networkx.spring_layout, scale=1, center=(0, 0), seed=45)
+        network_graph = from_networkx(
+            G, networkx.spring_layout, scale=1, center=(0, 0), seed=45)
 
         # Set node sizes and colors according to node degree (color as category from attribute)
-        network_graph.node_renderer.glyph = Circle(size=size_by_this_attribute, fill_color=color_by_this_attribute)
+        network_graph.node_renderer.glyph = Circle(
+            size=size_by_this_attribute, fill_color=color_by_this_attribute)
         # Set node highlight colors
         network_graph.node_renderer.hover_glyph = Circle(size=size_by_this_attribute, fill_color=node_highlight_color,
                                                          line_width=2)
         network_graph.node_renderer.selection_glyph = Circle(size=size_by_this_attribute,
                                                              fill_color=node_highlight_color, line_width=2)
-        
+
         # Set edge opacity and width
-        network_graph.edge_renderer.glyph = MultiLine(line_alpha=0.5, line_width=1)
+        network_graph.edge_renderer.glyph = MultiLine(
+            line_alpha=0.5, line_width=1)
         # Set edge highlight colors
-        network_graph.edge_renderer.selection_glyph = MultiLine(line_color=edge_highlight_color, line_width=2)
-        network_graph.edge_renderer.hover_glyph = MultiLine(line_color=edge_highlight_color, line_width=2)
+        network_graph.edge_renderer.selection_glyph = MultiLine(
+            line_color=edge_highlight_color, line_width=2)
+        network_graph.edge_renderer.hover_glyph = MultiLine(
+            line_color=edge_highlight_color, line_width=2)
 
         # Highlight nodes and edges
         network_graph.selection_policy = NodesAndLinkedEdges()
         network_graph.inspection_policy = NodesAndLinkedEdges()
 
         plot.renderers.append(network_graph)
-        
-        #Node labels, red if status is offline, green is active
+
+        # Node labels, red if status is offline, green is active
         x, y = zip(*network_graph.layout_provider.graph_layout.values())
         node_names = list(G.nodes(data='name'))
         node_status = list(G.nodes(data='status'))
@@ -615,14 +636,15 @@ class Plot:
                 idx_offline.append(e)
             node_labels.append(n[1])
 
-        source_on = ColumnDataSource({'x': numpy.asarray(x)[idx_online], 'y': numpy.asarray(y)[idx_online], 'name': numpy.asarray(node_labels)[idx_online]})
+        source_on = ColumnDataSource({'x': numpy.asarray(x)[idx_online], 'y': numpy.asarray(y)[
+                                     idx_online], 'name': numpy.asarray(node_labels)[idx_online]})
         labels = LabelSet(x='x', y='y', text='name', source=source_on, background_fill_color='#4bbf73', text_font_size='15px',
                           background_fill_alpha=.7, x_offset=-20, y_offset=10)
 
         plot.renderers.append(labels)
 
-        
-        source_off = ColumnDataSource({'x': numpy.asarray(x)[idx_offline], 'y': numpy.asarray(y)[idx_offline], 'name': numpy.asarray(node_labels)[idx_offline]})
+        source_off = ColumnDataSource({'x': numpy.asarray(x)[idx_offline], 'y': numpy.asarray(
+            y)[idx_offline], 'name': numpy.asarray(node_labels)[idx_offline]})
         labels = LabelSet(x='x', y='y', text='name', source=source_off, background_fill_color='#d9534f', text_font_size='15px',
                           background_fill_alpha=.7, x_offset=-20, y_offset=10)
 

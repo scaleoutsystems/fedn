@@ -1,6 +1,7 @@
-from fedn.common.storage.models.modelstorage import ModelStorage
-from collections import defaultdict
 import io
+from collections import defaultdict
+
+from fedn.common.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -12,6 +13,7 @@ class MemoryModelStorage(ModelStorage):
 
     def __init__(self):
         import tempfile
+
         # self.dir = tempfile.TemporaryDirectory()
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}

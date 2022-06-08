@@ -68,11 +68,14 @@ class Package:
 
         """
         if self.package_file:
-            import requests
             import os
+
+            import requests
+
             # data = {'name': self.package_file, 'hash': str(self.package_hash)}
             # print("going to send {}".format(data),flush=True)
-            f = open(os.path.join(os.path.dirname(self.file_path), self.package_file), 'rb')
+            f = open(os.path.join(os.path.dirname(
+                self.file_path), self.package_file), 'rb')
             print("Sending the following file {}".format(f.read()), flush=True)
             f.seek(0, 0)
             files = {'file': f}
@@ -82,7 +85,8 @@ class Package:
                                        # data=data,
                                        headers={'Authorization': 'Token {}'.format(self.reducer_token)})
             except Exception as e:
-                print("failed to put execution context to reducer. {}".format(e), flush=True)
+                print("failed to put execution context to reducer. {}".format(
+                    e), flush=True)
             finally:
                 f.close()
 
@@ -97,9 +101,9 @@ class PackageRuntime:
     def __init__(self, package_path, package_dir):
 
         self.dispatch_config = {'entry_points':
-                                    {'predict': {'command': 'python3 predict.py'},
-                                     'train': {'command': 'python3 train.py'},
-                                     'validate': {'command': 'python3 validate.py'}}}
+                                {'predict': {'command': 'python3 predict.py'},
+                                 'train': {'command': 'python3 train.py'},
+                                 'validate': {'command': 'python3 validate.py'}}}
 
         self.pkg_path = package_path
         self.pkg_name = None
@@ -125,7 +129,8 @@ class PackageRuntime:
         with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
             if 200 <= r.status_code < 204:
                 import cgi
-                params = cgi.parse_header(r.headers.get('Content-Disposition', ''))[-1]
+                params = cgi.parse_header(
+                    r.headers.get('Content-Disposition', ''))[-1]
                 try:
                     self.pkg_name = params['filename']
                 except KeyError:
@@ -186,11 +191,14 @@ class PackageRuntime:
         if self.pkg_name:
             f = None
             if self.pkg_name.endswith('tar.gz'):
-                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
+                f = tarfile.open(os.path.join(
+                    self.pkg_path, self.pkg_name), 'r:gz')
             if self.pkg_name.endswith('.tgz'):
-                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:gz')
+                f = tarfile.open(os.path.join(
+                    self.pkg_path, self.pkg_name), 'r:gz')
             if self.pkg_name.endswith('tar.bz2'):
-                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), 'r:bz2')
+                f = tarfile.open(os.path.join(
+                    self.pkg_path, self.pkg_name), 'r:bz2')
         else:
             print(
                 "Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
@@ -202,7 +210,8 @@ class PackageRuntime:
 
             if f:
                 f.extractall()
-                print("Successfully extracted compute package content in {}".format(self.dir), flush=True)
+                print("Successfully extracted compute package content in {}".format(
+                    self.dir), flush=True)
         except:
             print("Error extracting files!")
 
@@ -213,9 +222,11 @@ class PackageRuntime:
         :return:
         """
         from_path = os.path.join(os.getcwd(), 'client')
-        
+
         from distutils.dir_util import copy_tree
-        copy_tree(from_path, run_path, preserve_times=False) # preserve_times=False ensures compatibility with Gramine LibOS
+
+        # preserve_times=False ensures compatibility with Gramine LibOS
+        copy_tree(from_path, run_path, preserve_times=False)
 
         try:
             cfg = None
@@ -225,7 +236,8 @@ class PackageRuntime:
                 self.dispatch_config = cfg
 
         except Exception as e:
-            print("Error trying to load and unpack dispatcher config - trying default", flush=True)
+            print(
+                "Error trying to load and unpack dispatcher config - trying default", flush=True)
 
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 
