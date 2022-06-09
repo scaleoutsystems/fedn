@@ -9,7 +9,7 @@ jobs:
         to_test:
           - "mnist-keras keras"
           - "mnist-pytorch pytorch"
-        python_version: ["3.7", "3.8", "3.9"]
+        python_version: ["3.8", "3.9"]
         os:
           - ubuntu-20.04
           - macos-11
@@ -22,12 +22,13 @@ jobs:
         with:
           python-version: ${{ matrix.python_version }}
 
-      - uses: docker-practice/actions-setup-docker@master
-        if: ${{ matrix.os == 'macos-11' }}
+      - name: test ${{ matrix.to_test }}
+        run: .ci/tests/examples/configure.sh ${{ matrix.to_test }}
       
       - name: test ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
+        if: ${{ matrix.os != 'macos-11' }} # skip Docker part for Mac
 
       - name: print logs
-        if: always()
+        if: always() && ${{ matrix.os != 'macos-11' }} # skip Docker part for Mac
         run: .ci/tests/examples/print_logs.sh

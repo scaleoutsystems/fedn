@@ -9,17 +9,6 @@ fi
 example="$1"
 helper="$2"
 
->&2 echo "Configuring $example environment"
-pushd "examples/$example"
-bin/init_venv.sh
-
->&2 echo "Download and prepare data"
-bin/get_data
-bin/split_data
-
->&2 echo "Build compute package and seed"
-bin/build.sh
-
 >&2 echo "Start FEDn"
 docker-compose \
     -f ../../docker-compose.yaml \
