@@ -10,6 +10,7 @@ example="$1"
 helper="$2"
 
 >&2 echo "Start FEDn"
+pushd "examples/$example"
 docker-compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \

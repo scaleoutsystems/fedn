@@ -18,3 +18,4 @@ bin/split_data
 
 >&2 echo "Build compute package and seed"
 bin/build.sh
+popd

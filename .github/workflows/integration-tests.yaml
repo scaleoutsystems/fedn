@@ -22,10 +22,10 @@ jobs:
         with:
           python-version: ${{ matrix.python_version }}
 
-      - name: test ${{ matrix.to_test }}
+      - name: configure ${{ matrix.to_test }}
         run: .ci/tests/examples/configure.sh ${{ matrix.to_test }}
       
-      - name: test ${{ matrix.to_test }}
+      - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
         if: ${{ matrix.os != 'macos-11' }} # skip Docker part for MacOS
 
