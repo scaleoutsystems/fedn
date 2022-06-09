@@ -27,8 +27,8 @@ jobs:
       
       - name: test ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
-        if: ${{ matrix.os != 'macos-11' }} # skip Docker part for Mac
+        if: ${{ matrix.os != 'macos-11' }} # skip Docker part for MacOS
 
       - name: print logs
-        if: always() && ${{ matrix.os != 'macos-11' }} # skip Docker part for Mac
+        if: always() && ${{ matrix.os != 'macos-11' }} # skip Docker part for MacOS
         run: .ci/tests/examples/print_logs.sh
