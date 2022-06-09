@@ -4,7 +4,6 @@ on: push
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -12,6 +11,10 @@ jobs:
           - "mnist-keras keras"
           - "mnist-pytorch pytorch"
         python_version: ["3.7", "3.8", "3.9"]
+        os:
+          - ubuntu-20.04
+          - macos-11
+    runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
