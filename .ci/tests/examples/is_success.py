@@ -3,8 +3,8 @@ from time import sleep
 
 import pymongo
 
-N_ROUNDS = 3
-RETRIES= 6
+N_ROUNDS=3
+RETRIES=12
 SLEEP=10
 
 def _eprint(*args, **kwargs):
