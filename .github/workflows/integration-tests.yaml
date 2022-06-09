@@ -30,5 +30,5 @@ jobs:
         if: ${{ matrix.os != 'macos-11' }} # skip Docker part for MacOS
 
       - name: print logs
-        if: ${{ matrix.os != 'macos-11' }} && always() # skip Docker part for MacOS
+        if: failure()
         run: .ci/tests/examples/print_logs.sh
