@@ -45,5 +45,11 @@ printf '\n'
 >&2 echo "Checking rounds success"
 ".$example/bin/python" ../../.ci/tests/examples/is_success.py
 
+>&2 echo "Run inference"
+curl -k -X POST https://localhost:8090/infer
+
+>&2 echo "Checking inference success"
+".$example/bin/python" ../../.ci/tests/examples/inference_test.py
+
 popd
 >&2 echo "Test completed successfully"
