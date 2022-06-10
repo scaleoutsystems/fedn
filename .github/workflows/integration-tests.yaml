@@ -30,7 +30,7 @@ jobs:
         if: ${{ matrix.os != 'macos-11' }} # skip Docker part for MacOS
 
       - name: run ${{ matrix.to_test }} inference
-        run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
+        run: .ci/tests/examples/run_inference.sh
         if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
       - name: print logs
