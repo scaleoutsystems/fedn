@@ -17,9 +17,9 @@ def _wait_n_rounds(collection):
         n = collection.count_documents(query)
         if n == N_CLIENTS:
             return n
-        _eprint(f'Succeded rounds {n}. Sleeping for {SLEEP}.')
+        _eprint(f'Succeded cleints {n}. Sleeping for {SLEEP}.')
         sleep(SLEEP)
-    _eprint(f'Succeded rounds: {n}. Giving up.')
+    _eprint(f'Succeded cleints: {n}. Giving up.')
     return n
 
 if __name__ == '__main__':
