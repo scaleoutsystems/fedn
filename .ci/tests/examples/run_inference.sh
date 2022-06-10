@@ -2,7 +2,7 @@
 set -e
 
 # Parse example name
-if [ "$#" -ge 1 ]; then
+if [ "$#" -lt 1 ]; then
     >&2 echo "Wrong number of arguments (usage: run_infrence.sh <example-name>)"
     exit 1
 fi
