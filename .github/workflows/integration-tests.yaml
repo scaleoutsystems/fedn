@@ -31,7 +31,7 @@ jobs:
 
       - name: run ${{ matrix.to_test }} inference
         run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
-        if: ${{ matrix.to_test == 'mnist-keras keras' }} # example available for Keras
+        if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
       - name: print logs
         if: failure()
