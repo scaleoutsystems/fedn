@@ -66,7 +66,10 @@ services:
       - PROJECT=project
       - FLASK_DEBUG=1
       - FLASK_ENV=development
-    build: .
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
       - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
@@ -81,7 +84,10 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-    build: .
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
       - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
@@ -95,7 +101,10 @@ services:
   client:
     environment:
       - GET_HOSTS_FROM=dns
-    build: .
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
       - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
