@@ -71,8 +71,6 @@ docker run -d \
   -v $PWD/client.yaml:/app/client.yaml \
   -v $PWD/data:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
-  --add-host=reducer:<reducer-ip> \
-  --add-host=combiner:<combiner-ip> \
   ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-keras run client -in client.yaml
 ```
-> **Note** make sure to replace `<reducer-ip>` and `<combiner-ip>` with appropriate values.
+> **Note** If reducer and combiner host names, as specfied in the configuration files, are not resolvable in the client host network you need to use the docker option `--add-hosts` to make them resolvable. Please refer to the Docker documentation for more detail.

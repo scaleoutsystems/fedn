@@ -5,7 +5,7 @@ This classic example of hand-written text recognition is well suited both as a l
 - [MNIST Example (PyTorch version)](#mnist-example-pytorch-version)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
-  - [Running the example](#running-the-example)
+  - [Running the example (pseudo-distributed)](#running-the-example-pseudo-distributed)
   - [Clean up](#clean-up)
   - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
@@ -65,8 +65,6 @@ docker run -d \
   -v $PWD/client.yaml:/app/client.yaml \
   -v $PWD/data:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
-  --add-host=reducer:<reducer-ip> \
-  --add-host=combiner:<combiner-ip> \
   ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml
 ```
-> **Note** make sure to replace `<reducer-ip>` and `<combiner-ip>` with appropriate values.
+> **Note** If reducer and combiner host names, as specfied in the configuration files, are not resolvable in the client host network you need to use the docker option `--add-hosts` to make them resolvable. Please refer to the Docker documentation for more detail.

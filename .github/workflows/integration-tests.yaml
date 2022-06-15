@@ -1,6 +1,14 @@
 name: "integration tests"
 
-on: push
+on: 
+  push:
+    branches:
+        - master
+        - develop
+        - 'release/**'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   integration-tests:
@@ -24,7 +32,9 @@ jobs:
           python-version: ${{ matrix.python_version }}
 
       - name: configure ${{ matrix.to_test }}
-        run: .ci/tests/examples/configure.sh ${{ matrix.to_test }}
+        run: |
+          echo 'BASE_IMG=python:${{ matrix.python_version }}-slim' > .env 
+          .ci/tests/examples/configure.sh ${{ matrix.to_test }}
       
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
