@@ -18,4 +18,7 @@ bin/split_data
 
 >&2 echo "Build compute package and seed"
 bin/build.sh
+
+>&2 echo "Download client.yaml file"
+curl -k https://localhost:8090/config/download > client.yaml
 popd
