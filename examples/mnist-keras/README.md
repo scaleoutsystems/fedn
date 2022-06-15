@@ -5,8 +5,9 @@ This classic example of hand-written text recognition is well suited both as a l
 - [MNIST Example (Keras version)](#mnist-example-keras-version)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
-  - [Running the example](#running-the-example)
+  - [Running the example (pseudo-distributed)](#running-the-example-pseudo-distributed)
   - [Clean up](#clean-up)
+  - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
 ## Prerequisites
 - [Ubuntu 20.04](https://releases.ubuntu.com/20.04) or [macOS 11](https://apps.apple.com/us/app/macos-big-sur)
@@ -14,7 +15,7 @@ This classic example of hand-written text recognition is well suited both as a l
 - [Docker Compose](https://docs.docker.com/compose/install)
 - [Python 3.8 or 3.9](https://www.python.org/downloads)
 
-## Running the example
+## Running the example (pseudo-distributed)
 Clone FEDn and locate into this directory.
 ```sh
 git clone https://github.com/scaleoutsystems/fedn.git
@@ -54,3 +55,22 @@ Finally, you can start the experiment from the "control" tab.
 
 ## Clean up
 You can clean up by running `docker-compose down`.
+
+## Connecting to a distributed deployment
+To start and remotely connect a client with the required dependencies for this example, start by downloading the `client.yaml` file. You can either navigate the reducer UI or run the following command.
+
+```bash
+curl -k https://<reducer-fqdn>:<reducer-port>/config/download > client.yaml
+```
+> **Note** make sure to replace `<reducer-fqdn>` and `<reducer-port>` with appropriate values.
+
+Now you are ready to start the client via Docker by running the following command.
+
+```bash
+docker run -d \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
+  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-keras run client -in client.yaml
+```
+> **Note** If reducer and combiner host names, as specfied in the configuration files, are not resolvable in the client host network you need to use the docker option `--add-hosts` to make them resolvable. Please refer to the Docker documentation for more detail.
