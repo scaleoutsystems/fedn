@@ -328,11 +328,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expected_checksum</span> <span class="o">=</span> <span class="n">expected_checksum</span>
 
-        <span class="kn">from</span> <span class="nn">fedn.utils.checksum</span> <span class="k">import</span> <span class="n">md5</span>
+        <span class="kn">from</span> <span class="nn">fedn.utils.checksum</span> <span class="k">import</span> <span class="n">sha</span>
 
         <span class="c1"># crosscheck checksum and unpack if security checks are ok.</span>
         <span class="c1"># print(&quot;check if checksum {} is equal to checksum expected {}&quot;.format(self.checksum,self.expected_checksum))</span>
-        <span class="n">file_checksum</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">md5</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">)))</span>
+        <span class="n">file_checksum</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sha</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pkg_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pkg_name</span><span class="p">)))</span>
 
         <span class="c1"># catched by client, make configurable by governance network!</span>
         <span class="c1"># if self.expected_checksum is None:</span>
