@@ -164,11 +164,11 @@ class PackageRuntime:
         """
         self.expected_checksum = expected_checksum
 
-        from fedn.utils.checksum import md5
+        from fedn.utils.checksum import sha
 
         # crosscheck checksum and unpack if security checks are ok.
         # print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
-        file_checksum = str(md5(os.path.join(self.pkg_path, self.pkg_name)))
+        file_checksum = str(sha(os.path.join(self.pkg_path, self.pkg_name)))
 
         # catched by client, make configurable by governance network!
         # if self.expected_checksum is None:

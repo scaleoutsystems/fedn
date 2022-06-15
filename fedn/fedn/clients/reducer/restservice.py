@@ -13,15 +13,14 @@ import numpy
 import pandas as pd
 import plotly
 import plotly.express as px
+from fedn.clients.reducer.interfaces import CombinerInterface
+from fedn.clients.reducer.plots import Plot
+from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, url_for)
 from idna import check_initial_combiner
 from tenacity import retry
 from werkzeug.utils import secure_filename
-
-from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.plots import Plot
-from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -840,10 +839,10 @@ class ReducerRestService:
             else:
                 file_path = os.path.join(UPLOAD_FOLDER, name)
                 print("trying to get {}".format(file_path))
-                from fedn.utils.checksum import md5
+                from fedn.utils.checksum import sha
 
                 try:
-                    sum = str(md5(file_path))
+                    sum = str(sha(file_path))
                 except FileNotFoundError as e:
                     sum = ''
                 chk_string = "checksum: {}".format(sum)
@@ -958,10 +957,10 @@ controller:
 
             file_path = os.path.join(UPLOAD_FOLDER, name)
             print("trying to get {}".format(file_path))
-            from fedn.utils.checksum import md5
+            from fedn.utils.checksum import sha
 
             try:
-                sum = str(md5(file_path))
+                sum = str(sha(file_path))
             except FileNotFoundError as e:
                 sum = ''
 
