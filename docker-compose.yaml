@@ -72,7 +72,7 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
-      - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=config/settings-reducer.yaml"
@@ -90,7 +90,7 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
-      - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner -in config/settings-combiner.yaml"
@@ -107,7 +107,7 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
-      - ${HOST_FEDN_DIR:-./fedn}:/app/fedn
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client -in config/settings-client.yaml"

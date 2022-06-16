@@ -12,5 +12,4 @@ services:
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
       - ${HOST_REPO_DIR:-.}/examples/mnist-pytorch/data:/var/data
-      - ${HOST_REPO_DIR:-.}/examples/mnist-pytorch/client.yaml:/app/config/settings-client.yaml
       - /var/run/docker.sock:/var/run/docker.sock

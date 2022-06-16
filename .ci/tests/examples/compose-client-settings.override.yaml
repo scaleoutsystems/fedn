@@ -1,0 +1,8 @@
+# Compose schema version
+version: '3.3'
+
+# Overriding requirements
+services:
+  client:
+    volumes:
+      - ${HOST_REPO_DIR:-.}/examples/mnist-keras/client.yaml:/app/config/settings-client.yaml
