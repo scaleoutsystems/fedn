@@ -38,6 +38,7 @@ bin/split_data
 ```
 > **Note**: run with `--n_splits=N` to split in *N* parts.
 
+
 Now we are ready to start the pseudo-distributed deployment with `docker-compose`.
 ```sh
 docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up -d
