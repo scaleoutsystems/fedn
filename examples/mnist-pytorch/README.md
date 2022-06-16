@@ -32,12 +32,6 @@ bin/split_data
 ```
 > **Note**: run with `--n_splits=N` to split in *N* parts.
 
-Next, you need to download the `client.yaml` file. You can either navigate the network tab in the reducer UI or run the following command.
-
-```bash
-curl -k https://localhost:8090/config/download > client.yaml
-```
-
 Now we are ready to start the pseudo-distributed deployment with `docker-compose`.
 ```
 docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up -d
