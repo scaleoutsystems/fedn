@@ -47,7 +47,7 @@ printf '\n'
 
 >&2 echo "Test client connection with dowloaded settings"
 # Get config
-curl -k https://localhost:8090/config/download > client.yaml
+curl -k https://localhost:8090/config/download > ../../client.yaml
 
 # Redeploy clients with config
 docker-compose \

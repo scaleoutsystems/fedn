@@ -5,4 +5,4 @@ version: '3.3'
 services:
   client:
     volumes:
-      - ${HOST_REPO_DIR:-.}/examples/mnist-keras/client.yaml:/app/config/settings-client.yaml
+      - ${HOST_REPO_DIR:-.}/client.yaml:/app/config/settings-client.yaml

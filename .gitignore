@@ -178,3 +178,6 @@ config/settings-combiner.yaml
 
 # Devcontainer
 .devcontainer/devcontainer.json
+
+# CI
+client.yaml
