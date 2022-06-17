@@ -1,5 +1,6 @@
 import os
 
+from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
 
 
@@ -163,8 +164,6 @@ class PackageRuntime:
         :return:
         """
         self.expected_checksum = expected_checksum
-
-        from fedn.utils.checksum import sha
 
         # crosscheck checksum and unpack if security checks are ok.
         # print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
