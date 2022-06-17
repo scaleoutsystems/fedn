@@ -22,6 +22,7 @@ from werkzeug.utils import secure_filename
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
+from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -840,7 +841,6 @@ class ReducerRestService:
             else:
                 file_path = os.path.join(UPLOAD_FOLDER, name)
                 print("trying to get {}".format(file_path))
-                from fedn.utils.checksum import sha
 
                 try:
                     sum = str(sha(file_path))
