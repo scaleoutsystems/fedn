@@ -1,14 +1,14 @@
 import hashlib
 
 
-def md5(fname):
+def sha(fname):
     """
 
     :param fname:
     :return:
     """
-    hash_md5 = hashlib.md5()
+    hash = hashlib.sha256()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
+            hash.update(chunk)
+    return hash.hexdigest()
