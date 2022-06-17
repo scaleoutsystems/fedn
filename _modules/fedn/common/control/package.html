@@ -164,6 +164,7 @@
   <h1>Source code for fedn.common.control.package</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 
+<span class="kn">from</span> <span class="nn">fedn.utils.checksum</span> <span class="k">import</span> <span class="n">sha</span>
 <span class="kn">from</span> <span class="nn">fedn.utils.dispatcher</span> <span class="k">import</span> <span class="n">Dispatcher</span>
 
 
@@ -327,8 +328,6 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expected_checksum</span> <span class="o">=</span> <span class="n">expected_checksum</span>
-
-        <span class="kn">from</span> <span class="nn">fedn.utils.checksum</span> <span class="k">import</span> <span class="n">sha</span>
 
         <span class="c1"># crosscheck checksum and unpack if security checks are ok.</span>
         <span class="c1"># print(&quot;check if checksum {} is equal to checksum expected {}&quot;.format(self.checksum,self.expected_checksum))</span>
