@@ -57,7 +57,7 @@ docker-compose \
     up -d
 
 >&2 echo "Wait for clients to reconnect"
-".$example/bin/python" ../../.ci/tests/examples/wait_for_clients.py
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py clients
 
 popd
 >&2 echo "Test completed successfully"
