@@ -1,4 +1,5 @@
 import json
+import ssl
 import sys
 from time import sleep
 
@@ -39,8 +40,12 @@ def _test_rounds(n_rounds):
 
 
 def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090'):
-    resp = requests.get(
-        f'https://{reducer_host}:{reducer_port}/netgraph', verify=False)
+    try:
+        resp = requests.get(
+            f'https://{reducer_host}:{reducer_port}/netgraph', verify=False)
+    except Exception as e:
+        _eprint(f'Reques exception econuntered: {e}.')
+        return False
     if resp.status_code == 200:
         gr = json.loads(resp.content)
         n = sum(values.get('type') == node_type and values.get(
