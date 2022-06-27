@@ -12,5 +12,5 @@ python -m venv .venv
     sphinx-autobuild==2021.3.14 \
     autopep8==1.5.7 \
     isort==5.10.1 \
-    pylint==2.14.3
+    flake8==4.0.1
 .venv/bin/pip install -e fedn
