@@ -5,8 +5,6 @@ from fedn.clients.reducer.control import ReducerControl
 from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
-from fedn.clients.reducer.statestore.mongoreducerstatestore import \
-    MongoReducerStateStore
 from fedn.common.security.certificatemanager import CertificateManager
 
 
@@ -32,11 +30,6 @@ class Reducer:
             raise MissingReducerConfiguration()
 
         self.name = config['name']
-
-        try:
-            path = config['path']
-        except KeyError:
-            path = os.getcwd()
 
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 

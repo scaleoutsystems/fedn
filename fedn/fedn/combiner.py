@@ -1,17 +1,11 @@
 import base64
-import io
-import json
-import os
 import queue
 import sys
 import threading
 import time
 import uuid
-from collections import defaultdict
 from datetime import datetime, timedelta
 from enum import Enum
-
-import requests
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -154,11 +148,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         Parameters
         ----------
         model_id : str
-            The id of the model to be updated. 
-        clients : list 
-            List of clients to submit a model update request to. 
-            An empty list (default) results in a broadcast to 
-            all connected trainig clients.  
+            The id of the model to be updated.
+        clients : list
+            List of clients to submit a model update request to.
+            An empty list (default) results in a broadcast to
+            all connected trainig clients.
 
         """
 
@@ -180,16 +174,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             model_id, clients), flush=True)
 
     def request_model_validation(self, model_id, clients=[]):
-        """ Ask clients to validate the current global model. 
+        """ Ask clients to validate the current global model.
 
         Parameters
         ----------
         model_id : str
-            The id of the model to be updated. 
-        clients : list 
-            List of clients to submit a model update request to. 
-            An empty list (default) results in a broadcast to 
-            all connected trainig clients.  
+            The id of the model to be updated.
+        clients : list
+            List of clients to submit a model update request to.
+            An empty list (default) results in a broadcast to
+            all connected trainig clients.
 
         """
 
@@ -251,12 +245,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def __join_client(self, client):
         """ Add a client to the combiner. """
-        if not client.name in self.clients.keys():
+        if client.name not in self.clients.keys():
             self.clients[client.name] = {"lastseen": datetime.now()}
 
     def _subscribe_client_to_queue(self, client, queue_name):
         self.__join_client(client)
-        if not queue_name in self.clients[client.name].keys():
+        if queue_name not in self.clients[client.name].keys():
             self.clients[client.name][queue_name] = queue.Queue()
 
     def __get_queue(self, client, queue_name):
@@ -281,7 +275,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         try:
             q = self.__get_queue(client, queue_name)
             q.put(request)
-        except:
+        except Exception:
             print("Failed to route request to client: {} {}",
                   request.receiver, queue_name)
             raise
@@ -307,7 +301,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     # Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
-        """ Push a round config to RoundControl. 
+        """ Push a round config to RoundControl.
 
         :param control:
         :param context:
@@ -322,7 +316,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(
             config), flush=True)
 
-        job_id = self.control.push_round_config(config)
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
@@ -387,7 +380,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "model_id"
         model_id = self.get_active_model()
-        if model_id == None:
+        if model_id is None:
             model_id = ""
         p.value = str(model_id)
 

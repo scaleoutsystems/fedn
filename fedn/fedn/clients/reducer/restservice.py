@@ -1,27 +1,19 @@
 import datetime
 import json
-import math
 import os
 import re
-import uuid
 from threading import Lock
-from urllib import response
 
-import geoip2.database
 import jwt
-import numpy
 import pandas as pd
-import plotly
-import plotly.express as px
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, url_for)
-from idna import check_initial_combiner
-from tenacity import retry
 from werkzeug.utils import secure_filename
 
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
+from fedn.common.exceptions import ModelError
 from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'
@@ -183,7 +175,7 @@ class ReducerRestService:
 
     def check_configured(self):
         """Check if compute package has been configured and that and that the
-        state of the ReducerControl is not in setup otherwise render setup template. 
+        state of the ReducerControl is not in setup otherwise render setup template.
         Check if initial model has been configured, otherwise render setup_model template.
         :return: Rendered html template or None
         """
@@ -359,7 +351,7 @@ class ReducerRestService:
                                 "target": node['id'],
                             }
                         )
-                except Exception as e:
+                except Exception:
                     pass
                 count = count + 1
             return result
@@ -374,7 +366,7 @@ class ReducerRestService:
                 df_edges = pd.DataFrame(result['edges'])
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
-            except:
+            except Exception:
                 return ''
 
         @app.route('/events')
@@ -417,11 +409,8 @@ class ReducerRestService:
             combiner = self.control.network.get_combiner(name)
             if not combiner:
                 # Create a new combiner
-                import base64
                 certificate, key = self.certificate_manager.get_or_create(
                     address).get_keypair_raw()
-                cert_b64 = base64.b64encode(certificate)
-                key_b64 = base64.b64encode(key)
 
                 # TODO append and redirect to index.
                 import copy
@@ -500,7 +489,7 @@ class ReducerRestService:
                     statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
                     self.control.drop_models()
-                except:
+                except Exception:
                     pass
 
                 # drop objects in minio
@@ -539,7 +528,7 @@ class ReducerRestService:
             if self.remote_compute_context:
                 try:
                     self.current_compute_context = self.control.get_compute_context()
-                except:
+                except Exception:
                     self.current_compute_context = None
             else:
                 self.current_compute_context = "None:Local"
@@ -561,7 +550,7 @@ class ReducerRestService:
                         combiner_state = combiner.report()
                         nac = combiner_state['nr_active_clients']
                         clients_available = clients_available + int(nac)
-                    except Exception as e:
+                    except Exception:
                         pass
 
                 if clients_available < clients_required:
@@ -596,7 +585,7 @@ class ReducerRestService:
                 try:
                     seed_model_id = self.control.get_first_model()[0]
                     latest_model_id = self.control.get_latest_model()
-                except Exception as e:
+                except Exception:
                     pass
 
                 return render_template('index.html', latest_model_id=latest_model_id,
@@ -672,13 +661,13 @@ class ReducerRestService:
             result = ""
             try:
                 self.control.set_model_id()
-            except fedn.exceptions.ModelError:
+            except ModelError:
                 print("Failed to seed control.")
 
             return result
 
         def combiner_status():
-            """ Get current status reports from all combiners registered in the network. 
+            """ Get current status reports from all combiners registered in the network.
 
             :return:
             """
@@ -687,7 +676,7 @@ class ReducerRestService:
                 try:
                     report = combiner.report()
                     combiner_info.append(report)
-                except:
+                except Exception:
                     pass
             return combiner_info
 
@@ -706,9 +695,9 @@ class ReducerRestService:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
                     active_trainers_str = re.sub(
-                        '[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                        '[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')  # noqa: W605
                     active_validators_str = re.sub(
-                        '[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
+                        '[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')  # noqa: W605
                     all_active_trainers.extend(
                         ' '.join(active_trainers_str.split(" ")).split())
                     all_active_validators.extend(
@@ -744,7 +733,7 @@ class ReducerRestService:
                         'active_trainers': active_trainers_list,
                         'active_validators': active_validators_list
                         }
-            except:
+            except Exception:
                 pass
 
             return {'active_clients': [],
@@ -844,7 +833,7 @@ class ReducerRestService:
 
                 try:
                     sum = str(sha(file_path))
-                except FileNotFoundError as e:
+                except FileNotFoundError:
                     sum = ''
                 chk_string = "checksum: {}".format(sum)
 
@@ -920,7 +909,7 @@ controller:
 
             if name == '':
                 name = self.control.get_compute_context()
-                if name == None or name == '':
+                if name is None or name == '':
                     return render_template('context.html')
 
             # There is a potential race condition here, if one client requests a package and at
@@ -929,14 +918,14 @@ controller:
                 mutex = Lock()
                 mutex.acquire()
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-            except:
+            except Exception:
                 try:
                     data = self.control.get_compute_package(name)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
                     with open(file_path, 'wb') as fh:
                         fh.write(data)
                     return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-                except:
+                except Exception:
                     raise
             finally:
                 mutex.release()
@@ -953,7 +942,7 @@ controller:
             name = request.args.get('name', None)
             if name == '' or name is None:
                 name = self.control.get_compute_context()
-                if name == None or name == '':
+                if name is None or name == '':
                     return jsonify({})
 
             file_path = os.path.join(UPLOAD_FOLDER, name)
@@ -962,7 +951,7 @@ controller:
 
             try:
                 sum = str(sha(file_path))
-            except FileNotFoundError as e:
+            except FileNotFoundError:
                 sum = ''
 
             data = {'checksum': sum}

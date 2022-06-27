@@ -10,7 +10,6 @@ import uuid
 from datetime import datetime
 
 import grpc
-from aiohttp import client
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -33,7 +32,7 @@ class Client:
     ---------
     config: dict
         A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g. 
+        the discovery service (controller) and settings governing e.g.
         client-combiner assignment behavior.
 
     """
@@ -44,7 +43,7 @@ class Client:
         ----------
         config: dict
             A configuration dictionary containing connection information for
-            the discovery service (controller) and settings governing e.g. 
+            the discovery service (controller) and settings governing e.g.
             client-combiner assignment behavior.
         """
 
@@ -120,7 +119,7 @@ class Client:
             self.helper = get_helper(client_config['model_type'])
 
     def _subscribe_to_combiner(self, config):
-        """Listen to combiner message stream and start all processing threads. 
+        """Listen to combiner message stream and start all processing threads.
 
         """
 
@@ -129,10 +128,10 @@ class Client:
                          'update_frequency': config['heartbeat_interval']}, daemon=True).start()
 
         # Start listening for combiner training and validation messages
-        if config['trainer'] == True:
+        if config['trainer']:
             threading.Thread(
                 target=self._listen_to_model_update_request_stream, daemon=True).start()
-        if config['validator'] == True:
+        if config['validator']:
             threading.Thread(
                 target=self._listen_to_model_validation_request_stream, daemon=True).start()
         self._attached = True
@@ -159,7 +158,7 @@ class Client:
                 tries -= 1
 
             if retval:
-                if not 'checksum' in config:
+                if 'checksum' not in config:
                     print(
                         "\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",
                         flush=True)
@@ -185,7 +184,6 @@ class Client:
                                {'predict': {'command': 'python3 predict.py'},
                                 'train': {'command': 'python3 train.py'},
                                 'validate': {'command': 'python3 validate.py'}}}
-            dispatch_dir = os.getcwd()
             from_path = os.path.join(os.getcwd(), 'client')
 
             from distutils.dir_util import copy_tree
@@ -218,13 +216,13 @@ class Client:
         return client_config
 
     def _connect(self, client_config):
-        """Connect to assigned combiner. 
+        """Connect to assigned combiner.
 
         Parameters
         ----------
         client_config : dict
             A dictionary with connection information and settings
-            for the assigned combiner. 
+            for the assigned combiner.
 
         """
 
@@ -257,14 +255,14 @@ class Client:
         self.channel.close()
 
     def get_model(self, id):
-        """Fetch a model from the assigned combiner. 
+        """Fetch a model from the assigned combiner.
 
-        Downloads the model update object via a gRPC streaming channel, Dowload. 
+        Downloads the model update object via a gRPC streaming channel, Dowload.
 
         Parameters
         ----------
         id : str
-            The id of the model update object. 
+            The id of the model update object.
 
         """
 
@@ -285,14 +283,14 @@ class Client:
         return data
 
     def set_model(self, model, id):
-        """Send a model update to the assigned combiner. 
+        """Send a model update to the assigned combiner.
 
-        Uploads the model updated object via a gRPC streaming channel, Upload. 
+        Uploads the model updated object via a gRPC streaming channel, Upload.
 
         Parameters
         ----------
         model : BytesIO, object
-            The  model update object. 
+            The  model update object.
         id : str
             The id of the model update object.
         """
@@ -314,7 +312,6 @@ class Client:
 
             :param mdl:
             """
-            i = 1
             while True:
                 b = mdl.read(CHUNK_SIZE)
                 if b:
@@ -339,7 +336,6 @@ class Client:
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
         metadata = [('client', r.sender.name)]
-        _disconnect = False
 
         while True:
             try:
@@ -354,14 +350,13 @@ class Client:
                     if not self._attached:
                         return
 
-            except grpc.RpcError as e:
-                status_code = e.code()
+            except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
                 # print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
                 #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
-            except:
+            except Exception:
                 raise
 
             if not self._attached:
@@ -377,19 +372,17 @@ class Client:
             try:
                 for request in self.orchestrator.ModelValidationRequestStream(r):
                     # Process validation request
-                    model_id = request.model_id
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
                                       type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
                     self.inbox.put(('validate', request))
 
-            except grpc.RpcError as e:
-                status_code = e.code()
+            except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
                 # print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
                 #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
-            except:
+            except Exception:
                 raise
 
             if not self._attached:
@@ -413,7 +406,7 @@ class Client:
                     processing_time = time.time()-tic
                     meta['processing_time'] = processing_time
 
-                    if model_id != None:
+                    if model_id is not None:
                         # Notify the combiner that a model update is available
                         update = fedn.ModelUpdate()
                         update.sender.name = self.name
@@ -426,7 +419,6 @@ class Client:
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
                         # TODO: Check responses
-                        response = self.orchestrator.SendModelUpdate(update)
 
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE, request=update)
@@ -443,7 +435,7 @@ class Client:
                     metrics = self._process_validation_request(
                         request.model_id)
 
-                    if metrics != None:
+                    if metrics is not None:
                         # Send validation
                         validation = fedn.ModelValidation()
                         validation.sender.name = self.name
@@ -455,8 +447,6 @@ class Client:
                         self.str = str(datetime.now())
                         validation.timestamp = self.str
                         validation.correlation_id = request.correlation_id
-                        response = self.orchestrator.SendModelValidation(
-                            validation)
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_VALIDATION, request=validation)
                     else:
@@ -469,7 +459,7 @@ class Client:
                 pass
 
     def _process_training_request(self, model_id):
-        """Process a training (model update) request. 
+        """Process a training (model update) request.
 
         Parameters
         ----------
@@ -551,7 +541,7 @@ class Client:
         return validation
 
     def _handle_combiner_failure(self):
-        """ Register failed combiner connection. 
+        """ Register failed combiner connection.
 
         """
         self._missed_heartbeat += 1
@@ -559,7 +549,7 @@ class Client:
             self._detach()
 
     def _send_heartbeat(self, update_frequency=2.0):
-        """Send a heartbeat to the combiner. 
+        """Send a heartbeat to the combiner.
 
         Parameters
         ----------
@@ -604,12 +594,11 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        response = self.connection.SendStatus(status)
 
     def run_web(self):
-        """Starts a local logging UI (Flask app) serving on port 8080. 
+        """Starts a local logging UI (Flask app) serving on port 8080.
 
-        Currently not in use as default. 
+        Currently not in use as default.
 
         """
         from flask import Flask
@@ -639,7 +628,6 @@ class Client:
 
     def run(self):
         """ Main run loop. """
-        #threading.Thread(target=self.run_web, daemon=True).start()
         try:
             cnt = 0
             old_state = self.state

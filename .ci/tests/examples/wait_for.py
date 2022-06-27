@@ -1,5 +1,4 @@
 import json
-import ssl
 import sys
 from time import sleep
 
@@ -16,15 +15,14 @@ def _eprint(*args, **kwargs):
 
 
 def _retry(try_func, **func_args):
-    n = 0
     for _ in range(RETRIES):
         is_success = try_func(**func_args)
         if is_success:
-            _eprint(f'Sucess.')
+            _eprint('Sucess.')
             return True
         _eprint(f'Sleeping for {SLEEP}.')
         sleep(SLEEP)
-    _eprint(f'Giving up.')
+    _eprint('Giving up.')
     return False
 
 
