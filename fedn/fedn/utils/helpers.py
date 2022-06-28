@@ -1,9 +1,5 @@
 from abc import ABC, abstractmethod
 
-from fedn.utils.kerashelper import KerasHelper
-from fedn.utils.numpyarrayhelper import NumpyArrayHelper
-from fedn.utils.pytorchhelper import PytorchHelper
-
 
 class HelperBase(ABC):
     """ Abstract class defining helpers. """
@@ -54,10 +50,13 @@ def get_helper(helper_type):
     :return:
     """
     if helper_type == 'numpyarray':
-        return NumpyArrayHelper()
+        __import__('NumpyArrayHelper', fromlist=["fedn.utils.numpyarrayhelper"])
+        return NumpyArrayHelper()  # noqa: F821
     elif helper_type == 'keras':
-        return KerasHelper()
+        __import__('KerasHelper', fromlist=["fedn.utils.kerashelper"])
+        return KerasHelper()  # noqa: F821
     elif helper_type == 'pytorch':
-        return PytorchHelper()
+        __import__('PytorchHelper', fromlist=["fedn.utils.pytorchhelper"])
+        return PytorchHelper()  # noqa: F821
     else:
         return None
