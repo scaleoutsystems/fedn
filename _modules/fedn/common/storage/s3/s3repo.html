@@ -206,7 +206,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_artifact</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span>
                               <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="n">is_file</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write model with ID </span><span class="si">{}</span><span class="s2"> to repository.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="p">))</span>
             <span class="k">raise</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span></div>
@@ -221,7 +221,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_artifact</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">compute_package</span><span class="p">,</span>
                               <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;fedn-context&quot;</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="n">is_file</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write compute_package to repository.&quot;</span><span class="p">)</span>
             <span class="k">raise</span></div>
 
@@ -233,7 +233,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_artifact</span><span class="p">(</span><span class="n">compute_package</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s2">&quot;fedn-context&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to get compute_package from repository.&quot;</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">return</span> <span class="n">data</span></div>
@@ -245,7 +245,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">delete_artifact</span><span class="p">(</span><span class="n">compute_package</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fedn-context&#39;</span><span class="p">])</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to delete compute_package from repository.&quot;</span><span class="p">)</span>
             <span class="k">raise</span></div></div>
 </pre></div>

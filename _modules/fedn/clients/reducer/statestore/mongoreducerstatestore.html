@@ -249,12 +249,12 @@
                         <span class="n">round_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">180</span><span class="p">,</span> <span class="s1">&#39;validate&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
                         <span class="k">try</span><span class="p">:</span>
                             <span class="n">round_config</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span>
-                        <span class="k">except</span><span class="p">:</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                             <span class="k">pass</span>
 
                         <span class="k">try</span><span class="p">:</span>
                             <span class="n">round_config</span><span class="p">[</span><span class="s1">&#39;validate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control</span><span class="p">[</span><span class="s1">&#39;validate&#39;</span><span class="p">]</span>
-                        <span class="k">except</span><span class="p">:</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                             <span class="k">pass</span>
 
                     <span class="c1"># Storage settings</span>
@@ -309,8 +309,8 @@
 <span class="sd">        :param model_id:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;current_model&#39;</span><span class="p">},</span> <span class="p">{</span>
-                                  <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;current_model&#39;</span><span class="p">},</span> <span class="p">{</span>
+            <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;model_trail&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span> <span class="s1">&#39;committed_at&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())}},</span>
                               <span class="kc">True</span><span class="p">)</span></div>
 
@@ -319,7 +319,7 @@
         <span class="kn">import</span> <span class="nn">pymongo</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;model_trail&#39;</span><span class="p">},</span> <span class="n">sort</span><span class="o">=</span><span class="p">[</span>
                                   <span class="p">(</span><span class="s2">&quot;committed_at&quot;</span><span class="p">,</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">ASCENDING</span><span class="p">)])</span>
-        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -333,7 +333,7 @@
 <div class="viewcode-block" id="MongoReducerStateStore.get_latest"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_latest">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return model_id for the latest model in the model_trail &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;current_model&#39;</span><span class="p">})</span>
-        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -349,8 +349,7 @@
 
 <span class="sd">        :param config:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_round_config"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_round_config">[docs]</a>    <span class="k">def</span> <span class="nf">get_round_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -361,7 +360,7 @@
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;round_config&#39;</span><span class="p">})</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">retcheck</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>  <span class="c1"># ugly check for empty string</span>
+            <span class="k">if</span> <span class="n">retcheck</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>  <span class="c1"># ugly check for empty string</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="n">retcheck</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
@@ -373,7 +372,7 @@
 <span class="sd">        :param filename:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">}},</span> <span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package_trail&#39;</span><span class="p">},</span>
                                        <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;committed_at&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())}},</span> <span class="kc">True</span><span class="p">)</span></div>
@@ -386,7 +385,7 @@
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;package&#39;</span><span class="p">})</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">retcheck</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>  <span class="c1"># ugly check for empty string</span>
+            <span class="k">if</span> <span class="n">retcheck</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">retcheck</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>  <span class="c1"># ugly check for empty string</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="n">retcheck</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
@@ -460,22 +459,22 @@
         <span class="n">config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;enabled&#39;</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;storage_type&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;storage_type&#39;</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">config</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_reducer"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">set_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reducer_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reducer</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
-                                      <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reducer</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+            <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">reducer_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_reducer"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_reducer">[docs]</a>    <span class="k">def</span> <span class="nf">get_reducer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reducer</span><span class="o">.</span><span class="n">find_one</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">ret</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.list_combiners"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.list_combiners">[docs]</a>    <span class="k">def</span> <span class="nf">list_combiners</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -483,7 +482,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_combiner"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_combiner">[docs]</a>    <span class="k">def</span> <span class="nf">get_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -491,7 +490,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
             <span class="k">return</span> <span class="n">ret</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_combiners"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_combiners">[docs]</a>    <span class="k">def</span> <span class="nf">get_combiners</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -499,36 +498,36 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_combiner"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_combiner">[docs]</a>    <span class="k">def</span> <span class="nf">set_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiner_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">            Set or update combiner record. </span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set or update combiner record.</span>
 <span class="sd">            combiner_data: dictionary, output of combiner.to_dict())</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
-                                        <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+            <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">combiner_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.delete_combiner"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.delete_combiner">[docs]</a>    <span class="k">def</span> <span class="nf">delete_combiner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">combiner</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">combiners</span><span class="o">.</span><span class="n">delete_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">combiner</span><span class="p">})</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING, failed to delete combiner: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">combiner</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.set_client"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_client">[docs]</a>    <span class="k">def</span> <span class="nf">set_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">            Set or update client record. </span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set or update client record.</span>
 <span class="sd">            client_data: dictionarys</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
         <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;updated_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
-                                      <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]},</span> <span class="p">{</span>
+            <span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="n">client_data</span><span class="p">},</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.get_client"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_client">[docs]</a>    <span class="k">def</span> <span class="nf">get_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
@@ -538,7 +537,7 @@
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">ret</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.list_clients"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.list_clients">[docs]</a>    <span class="k">def</span> <span class="nf">list_clients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -546,7 +545,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MongoReducerStateStore.drop_control"><a class="viewcode-back" href="../../../../../fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.drop_control">[docs]</a>    <span class="k">def</span> <span class="nf">drop_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
