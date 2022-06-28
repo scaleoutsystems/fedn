@@ -1,12 +1,12 @@
 import os
 import threading
+import time
+from datetime import datetime
 
 from fedn.clients.reducer.control import ReducerControl
 from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
-from fedn.clients.reducer.statestore.mongoreducerstatestore import \
-    MongoReducerStateStore
 from fedn.common.security.certificatemanager import CertificateManager
 
 
@@ -33,11 +33,6 @@ class Reducer:
 
         self.name = config['name']
 
-        try:
-            path = config['path']
-        except KeyError:
-            path = os.getcwd()
-
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
         self.control = ReducerControl(self.statestore)
@@ -58,8 +53,6 @@ class Reducer:
         """
 
         """
-        import time
-        from datetime import datetime
         try:
             old_state = self.control.state()
 

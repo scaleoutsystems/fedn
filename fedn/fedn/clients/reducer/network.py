@@ -1,11 +1,7 @@
 import base64
-import copy
-import time
 
 from fedn.clients.reducer.interfaces import (CombinerInterface,
                                              CombinerUnavailableError)
-
-from .state import ReducerState
 
 
 class Network:
@@ -61,7 +57,7 @@ class Network:
         self.statestore.set_combiner(combiner.to_dict())
 
     def add_client(self, client):
-        """ Add a new client to the network. 
+        """ Add a new client to the network.
 
         :param client:
         :return:

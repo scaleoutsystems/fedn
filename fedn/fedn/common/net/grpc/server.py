@@ -27,10 +27,6 @@ class Server:
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         if config['secure']:
-            import os
-
-            from fedn.common.security.certificate import Certificate
-
             # self.certificate = Certificate(os.getcwd() + '/certs/', cert_name='combiner-cert.pem', key_name='combiner-key.pem')
             # self.certificate.set_keypair_raw(config['certificate'], config['key'])
 

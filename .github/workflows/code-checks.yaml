@@ -27,4 +27,18 @@ jobs:
           --exclude .mnist-pytorch
           .
 
+      - name: run Python linter
+        run: >
+          .venv/bin/flake8 . 
+          --exclude ".venv,.mnist-keras,.mnist-pytorch,fedn_pb2.py"
+
+      - name: check for floating imports
+        run: >
+          ! grep -E -R 
+          --exclude-dir='.venv' 
+          --exclude-dir='.mnist-pytorch' 
+          --exclude-dir='.mnist-keras' 
+          --exclude-dir='docs' 
+          '^[ \t]+(import|from) ' -I . 
+
       # TODO: add linting/formatting for all file types

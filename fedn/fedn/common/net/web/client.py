@@ -146,4 +146,4 @@ page = """
 
   </body>
 </html>
-"""
+"""  # noqa E501

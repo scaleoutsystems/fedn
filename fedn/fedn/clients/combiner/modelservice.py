@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.storage.models.tempmodelstorage import TempModelStorage
@@ -29,11 +31,9 @@ class ModelService(rpc.ModelServiceServicer):
         :param id:
         :return:
         """
-        from io import BytesIO
+
         data = BytesIO()
         data.seek(0, 0)
-        import random
-        import time
 
         parts = self.Download(fedn.ModelRequest(id=id), self)
         for part in parts:
@@ -51,7 +51,6 @@ class ModelService(rpc.ModelServiceServicer):
         :param model:
         :param id:
         """
-        from io import BytesIO
 
         if not isinstance(model, BytesIO):
             bt = BytesIO()
@@ -83,7 +82,7 @@ class ModelService(rpc.ModelServiceServicer):
                     break
 
         # TODO: Check result
-        result = self.Upload(upload_request_generator(bt), self)
+        # result = self.Upload(upload_request_generator(bt), self)
 
     # Model Service
     def Upload(self, request_iterator, context):
@@ -120,13 +119,12 @@ class ModelService(rpc.ModelServiceServicer):
             if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
                 print("Error file is not ready", flush=True)
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
-        except Exception as e:
+        except Exception:
             print("Error file does not exist", flush=True)
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
             obj = self.models.get(request.id)
-            import sys
             with obj as f:
                 while True:
                     piece = f.read(CHUNK_SIZE)

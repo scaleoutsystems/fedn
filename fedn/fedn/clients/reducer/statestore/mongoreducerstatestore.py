@@ -1,3 +1,9 @@
+import copy
+from datetime import datetime
+
+import pymongo
+import yaml
+
 from fedn.clients.reducer.state import (ReducerStateToString,
                                         StringToReducerState)
 from fedn.common.storage.db.mongo import connect_to_mongodb
@@ -48,7 +54,6 @@ class MongoReducerStateStore(ReducerStateStore):
             self.clients = None
             raise
 
-        import yaml
         if defaults:
             with open(defaults, 'r') as file:
                 try:
@@ -85,12 +90,12 @@ class MongoReducerStateStore(ReducerStateStore):
                         round_config = {'timeout': 180, 'validate': True}
                         try:
                             round_config['timeout'] = control['timeout']
-                        except:
+                        except Exception:
                             pass
 
                         try:
                             round_config['validate'] = control['validate']
-                        except:
+                        except Exception:
                             pass
 
                     # Storage settings
@@ -144,18 +149,18 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param model_id:
         """
-        from datetime import datetime
-        x = self.model.update_one({'key': 'current_model'}, {
-                                  '$set': {'model': model_id}}, True)
+
+        self.model.update_one({'key': 'current_model'}, {
+            '$set': {'model': model_id}}, True)
         self.model.update_one({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
                               True)
 
     def get_first(self):
         """ Return model_id for the latest model in the model_trail """
-        import pymongo
+
         ret = self.model.find_one({'key': 'model_trail'}, sort=[
                                   ("committed_at", pymongo.ASCENDING)])
-        if ret == None:
+        if ret is None:
             return None
 
         try:
@@ -169,7 +174,7 @@ class MongoReducerStateStore(ReducerStateStore):
     def get_latest(self):
         """ Return model_id for the latest model in the model_trail """
         ret = self.model.find_one({'key': 'current_model'})
-        if ret == None:
+        if ret is None:
             return None
 
         try:
@@ -185,8 +190,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param config:
         """
-        from datetime import datetime
-        x = self.control.config.update_one(
+        self.control.config.update_one(
             {'key': 'round_config'}, {'$set': config}, True)
 
     def get_round_config(self):
@@ -197,7 +201,7 @@ class MongoReducerStateStore(ReducerStateStore):
         ret = self.control.config.find({'key': 'round_config'})
         try:
             retcheck = ret[0]
-            if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):
@@ -208,8 +212,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param filename:
         """
-        from datetime import datetime
-        x = self.control.config.update_one(
+        self.control.config.update_one(
             {'key': 'package'}, {'$set': {'filename': filename}}, True)
         self.control.config.update_one({'key': 'package_trail'},
                                        {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
@@ -222,7 +225,7 @@ class MongoReducerStateStore(ReducerStateStore):
         ret = self.control.config.find({'key': 'package'})
         try:
             retcheck = ret[0]
-            if retcheck == None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
+            if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):
@@ -291,27 +294,24 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def set_storage_backend(self, config):
         """ """
-        import copy
-        from datetime import datetime
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         config['status'] = 'enabled'
-        ret = self.storage.update_one(
+        self.storage.update_one(
             {'storage_type': config['storage_type']}, {'$set': config}, True)
 
     def set_reducer(self, reducer_data):
         """ """
-        from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
-        ret = self.reducer.update_one({'name': reducer_data['name']}, {
-                                      '$set': reducer_data}, True)
+        self.reducer.update_one({'name': reducer_data['name']}, {
+            '$set': reducer_data}, True)
 
     def get_reducer(self):
         """ """
         try:
             ret = self.reducer.find_one()
             return ret
-        except:
+        except Exception:
             return None
 
     def list_combiners(self):
@@ -319,7 +319,7 @@ class MongoReducerStateStore(ReducerStateStore):
         try:
             ret = self.combiners.find()
             return list(ret)
-        except:
+        except Exception:
             return None
 
     def get_combiner(self, name):
@@ -327,7 +327,7 @@ class MongoReducerStateStore(ReducerStateStore):
         try:
             ret = self.combiners.find_one({'name': name})
             return ret
-        except:
+        except Exception:
             return None
 
     def get_combiners(self):
@@ -335,36 +335,35 @@ class MongoReducerStateStore(ReducerStateStore):
         try:
             ret = self.combiners.find()
             return list(ret)
-        except:
+        except Exception:
             return None
 
     def set_combiner(self, combiner_data):
-        """ 
-            Set or update combiner record. 
+        """
+            Set or update combiner record.
             combiner_data: dictionary, output of combiner.to_dict())
         """
-        from datetime import datetime
+
         combiner_data['updated_at'] = str(datetime.now())
-        ret = self.combiners.update_one({'name': combiner_data['name']}, {
-                                        '$set': combiner_data}, True)
+        self.combiners.update_one({'name': combiner_data['name']}, {
+            '$set': combiner_data}, True)
 
     def delete_combiner(self, combiner):
         """ """
         try:
             self.combiners.delete_one({'name': combiner})
-        except:
+        except Exception:
             print("WARNING, failed to delete combiner: {}".format(
                 combiner), flush=True)
 
     def set_client(self, client_data):
-        """ 
-            Set or update client record. 
+        """
+            Set or update client record.
             client_data: dictionarys
         """
-        from datetime import datetime
         client_data['updated_at'] = str(datetime.now())
-        ret = self.clients.update_one({'name': client_data['name']}, {
-                                      '$set': client_data}, True)
+        self.clients.update_one({'name': client_data['name']}, {
+            '$set': client_data}, True)
 
     def get_client(self, name):
         """ """
@@ -374,7 +373,7 @@ class MongoReducerStateStore(ReducerStateStore):
                 return None
             else:
                 return ret
-        except:
+        except Exception:
             return None
 
     def list_clients(self):
@@ -382,7 +381,7 @@ class MongoReducerStateStore(ReducerStateStore):
         try:
             ret = self.clients.find()
             return list(ret)
-        except:
+        except Exception:
             return None
 
     def drop_control(self):
