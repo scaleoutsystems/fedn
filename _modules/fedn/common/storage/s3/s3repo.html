@@ -162,7 +162,9 @@
           <div class="content" role="main" v-pre>
             
   <h1>Source code for fedn.common.storage.s3.s3repo</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">.miniorepo</span> <span class="k">import</span> <span class="n">MINIORepository</span>
+<span></span><span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">.miniorepo</span> <span class="k">import</span> <span class="n">MINIORepository</span>
 
 
 <div class="viewcode-block" id="S3ModelRepository"><a class="viewcode-back" href="../../../../../fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository">[docs]</a><span class="k">class</span> <span class="nc">S3ModelRepository</span><span class="p">(</span><span class="n">MINIORepository</span><span class="p">):</span>
@@ -200,7 +202,6 @@
 <span class="sd">        :param is_file:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">uuid</span>
         <span class="n">model_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
         <span class="c1"># TODO: Check that this call succeeds</span>
         <span class="k">try</span><span class="p">:</span>
