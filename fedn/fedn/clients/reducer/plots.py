@@ -1,23 +1,17 @@
 import json
-import math
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
-import geoip2.database
 import networkx
 import numpy
 import pandas as pd
 import plotly
-import plotly.express as px
 import plotly.graph_objs as go
-import pymongo
 from bokeh.models import (Circle, ColumnDataSource, Label, LabelSet, MultiLine,
                           NodesAndLinkedEdges, Range1d)
 from bokeh.palettes import Spectral8
 from bokeh.plotting import figure, from_networkx
-from numpy.core.einsumfunc import _flop_count
 
-from fedn.common.storage.db.mongo import connect_to_mongodb, drop_mongodb
+from fedn.common.storage.db.mongo import connect_to_mongodb
 
 
 class Plot:
@@ -54,7 +48,7 @@ class Plot:
             try:
                 val = float(val)
                 valid_metrics.append(metric)
-            except:
+            except Exception:
                 pass
 
         return valid_metrics
@@ -65,7 +59,7 @@ class Plot:
         :return:
         """
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
-        if metrics == None:
+        if metrics is None:
             fig = go.Figure(data=[])
             fig.update_layout(
                 title_text='No data currently available for table mean metrics')
@@ -270,7 +264,7 @@ class Plot:
                     waiting.append(stats['time_combination'] - ml - ag)
                     model_load.append(ml)
                     aggregation.append(ag)
-            except:
+            except Exception:
                 pass
 
         labels = ['Waiting for updates',
@@ -307,7 +301,7 @@ class Plot:
         :return:
         """
         metrics = self.status.find_one({'type': 'MODEL_VALIDATION'})
-        if metrics == None:
+        if metrics is None:
             fig = go.Figure(data=[])
             fig.update_layout(title_text='No data currently available for metric distribution over  '
                                          'participants')
@@ -338,16 +332,14 @@ class Plot:
         for model_id in model_trail_ids:
             try:
                 validations_sorted.append(validations[model_id])
-            except:
+            except Exception:
                 pass
 
         validations = validations_sorted
 
         box = go.Figure()
 
-        x = []
         y = []
-        box_trace = []
         for j, acc in enumerate(validations):
             # x.append(j)
             y.append(numpy.mean([float(i) for i in acc]))
@@ -380,11 +372,10 @@ class Plot:
         """
         trace_data = []
         metrics = self.round_time.find_one({'key': 'round_time'})
-        if metrics == None:
+        if metrics is None:
             fig = go.Figure(data=[])
             fig.update_layout(
                 title_text='No data currently available for round time')
-            ml = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
             return False
 
         for post in self.round_time.find({'key': 'round_time'}):
@@ -421,7 +412,7 @@ class Plot:
         :return:
         """
         metrics = self.psutil_usage.find_one({'key': 'cpu_mem_usage'})
-        if metrics == None:
+        if metrics is None:
             fig = go.Figure(data=[])
             fig.update_layout(
                 title_text='No data currently available for MEM and CPU usage')
@@ -550,9 +541,9 @@ class Plot:
         modularity_class = {}
         modularity_color = {}
         # Loop through each community in the network
-        for community_number, community in enumerate(communities):
+        for community_number, community_names in enumerate(communities):
             # For each member of the community, add their community number and a distinct color
-            for name in community:
+            for name in community_names:
                 modularity_class[name] = community_number
                 modularity_color[name] = Spectral8[community_number]
 

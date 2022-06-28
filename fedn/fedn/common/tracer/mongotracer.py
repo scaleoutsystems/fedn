@@ -1,5 +1,4 @@
 import threading
-import time
 from datetime import datetime
 
 import psutil
@@ -39,7 +38,7 @@ class MongoTracer(Tracer):
 
         print("LOG: \n {} \n".format(data), flush=True)
 
-        if self.status != None:
+        if self.status is not None:
             self.status.insert_one(data)
 
     def drop_round_time(self):

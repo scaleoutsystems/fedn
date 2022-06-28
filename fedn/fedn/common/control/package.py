@@ -81,10 +81,10 @@ class Package:
             f.seek(0, 0)
             files = {'file': f}
             try:
-                retval = requests.post('https://{}:{}/context'.format(self.reducer_host, self.reducer_port),
-                                       verify=False, files=files,
-                                       # data=data,
-                                       headers={'Authorization': 'Token {}'.format(self.reducer_token)})
+                requests.post('https://{}:{}/context'.format(self.reducer_host, self.reducer_port),
+                              verify=False, files=files,
+                              # data=data,
+                              headers={'Authorization': 'Token {}'.format(self.reducer_token)})
             except Exception as e:
                 print("failed to put execution context to reducer. {}".format(
                     e), flush=True)
@@ -152,7 +152,7 @@ class PackageRuntime:
                 data = r.json()
                 try:
                     self.checksum = data['checksum']
-                except Exception as e:
+                except Exception:
                     print("Could not extract checksum!")
 
         return True
@@ -203,7 +203,7 @@ class PackageRuntime:
                 "Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
 
         import os
-        cwd = os.getcwd()
+        os.getcwd()
         try:
             os.chdir(self.dir)
 
@@ -211,7 +211,7 @@ class PackageRuntime:
                 f.extractall()
                 print("Successfully extracted compute package content in {}".format(
                     self.dir), flush=True)
-        except:
+        except Exception:
             print("Error extracting files!")
 
     def dispatcher(self, run_path):
@@ -234,7 +234,7 @@ class PackageRuntime:
                 cfg = yaml.safe_load(config_file.read())
                 self.dispatch_config = cfg
 
-        except Exception as e:
+        except Exception:
             print(
                 "Error trying to load and unpack dispatcher config - trying default", flush=True)
 

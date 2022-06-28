@@ -1,5 +1,4 @@
 import enum
-from http.client import UNAUTHORIZED
 
 import requests as r
 
@@ -173,7 +172,7 @@ class ConnectorCombiner:
                                                                   self.myport),
                            verify=cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})
-        except Exception as e:
+        except Exception:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
 

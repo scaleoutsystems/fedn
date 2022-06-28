@@ -42,7 +42,7 @@ class S3ModelRepository(MINIORepository):
         try:
             self.set_artifact(str(model_id), model,
                               bucket=self.bucket, is_file=is_file)
-        except Exception as e:
+        except Exception:
             print("Failed to write model with ID {} to repository.".format(model_id))
             raise
         return str(model_id)
@@ -57,7 +57,7 @@ class S3ModelRepository(MINIORepository):
         try:
             self.set_artifact(str(name), compute_package,
                               bucket="fedn-context", is_file=is_file)
-        except Exception as e:
+        except Exception:
             print("Failed to write compute_package to repository.")
             raise
 
@@ -69,7 +69,7 @@ class S3ModelRepository(MINIORepository):
         """
         try:
             data = self.get_artifact(compute_package, bucket="fedn-context")
-        except Exception as e:
+        except Exception:
             print("Failed to get compute_package from repository.")
             raise
         return data
@@ -81,6 +81,6 @@ class S3ModelRepository(MINIORepository):
         """
         try:
             self.delete_artifact(compute_package, bucket=['fedn-context'])
-        except Exception as e:
+        except Exception:
             print("Failed to delete compute_package from repository.")
             raise

@@ -12,7 +12,6 @@ class MemoryModelStorage(ModelStorage):
     """
 
     def __init__(self):
-        import tempfile
 
         # self.dir = tempfile.TemporaryDirectory()
         self.models = defaultdict(io.BytesIO)

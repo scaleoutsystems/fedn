@@ -1,8 +1,7 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from fedn.clients.reducer.restservice import ReducerRestService
-from fedn.clients.reducer.state import ReducerState
 
 
 class TestInit(unittest.TestCase):

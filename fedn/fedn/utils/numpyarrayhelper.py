@@ -1,6 +1,4 @@
-import collections
 import os
-import pickle
 import tempfile
 
 import numpy as np

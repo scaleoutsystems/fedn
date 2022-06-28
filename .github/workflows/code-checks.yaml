@@ -30,6 +30,6 @@ jobs:
       - name: run Python linter
         run: >
           .venv/bin/flake8 . 
-          --exclude ".venv,.mnist-keras,.mnist-pytorch"
+          --exclude ".venv,.mnist-keras,.mnist-pytorch,fedn_pb2.py"
 
       # TODO: add linting/formatting for all file types

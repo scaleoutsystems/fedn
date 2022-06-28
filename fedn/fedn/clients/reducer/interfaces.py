@@ -144,7 +144,7 @@ class CombinerInterface:
             p.value = str(value)
 
         try:
-            response = control.Configure(request)
+            control.Configure(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
                 raise CombinerUnavailableError
@@ -192,7 +192,7 @@ class CombinerInterface:
         p.value = str(model_id)
 
         try:
-            response = control.Configure(request)
+            control.Configure(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
                 raise CombinerUnavailableError

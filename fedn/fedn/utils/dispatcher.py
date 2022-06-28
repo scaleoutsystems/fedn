@@ -1,5 +1,4 @@
 import logging
-import re
 
 from fedn.utils.process import run_process
 

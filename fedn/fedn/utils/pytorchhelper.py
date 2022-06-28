@@ -1,7 +1,6 @@
 import os
 import tempfile
 from collections import OrderedDict
-from functools import reduce
 
 import numpy as np
 

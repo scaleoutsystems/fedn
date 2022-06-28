@@ -1,6 +1,5 @@
 import copy
 import os
-import tempfile
 import time
 from datetime import datetime
 
@@ -21,7 +20,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class ReducerControl:
-    """ Main conroller for training round. 
+    """ Main conroller for training round.
 
     """
 
@@ -34,7 +33,7 @@ class ReducerControl:
 
         try:
             config = self.statestore.get_storage_backend()
-        except:
+        except Exception:
             print(
                 "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
             raise MisconfiguredStorageBackend()
@@ -279,7 +278,7 @@ class ReducerControl:
                 self._handle_unavailable_combiner(combiner)
                 combiner_state = None
 
-            if combiner_state != None:
+            if combiner_state is not None:
                 is_participating = self.check_round_participation_policy(
                     compute_plan, combiner_state)
                 if is_participating:
@@ -306,12 +305,11 @@ class ReducerControl:
         for combiner, compute_plan in combiners:
             try:
                 self.sync_combiners([combiner], self.get_latest_model())
-                response = combiner.start(compute_plan)
             except CombinerUnavailableError:
                 # This is OK, handled by round accept policy
                 self._handle_unavailable_combiner(combiner)
                 pass
-            except:
+            except Exception:
                 # Unknown error
                 raise
 
@@ -342,7 +340,7 @@ class ReducerControl:
 
         print("Checking round validity policy...", flush=True)
         round_valid = self.check_round_validity_policy(updated)
-        if round_valid == False:
+        if not round_valid:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!", flush=True)
             return None, round_meta
@@ -406,9 +404,6 @@ class ReducerControl:
             print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
             return
 
-        for combiner in combiners:
-            response = combiner.set_model_id(model_id)
-
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
 
@@ -440,7 +435,6 @@ class ReducerControl:
             else:
                 current_round = round
 
-            from datetime import datetime
             start_time = datetime.now()
             # start round monitor
             self.tracer.start_monitor(round)
@@ -488,7 +482,7 @@ class ReducerControl:
                 tic = time.time()
                 data = combiner.get_model()
                 meta['time_fetch_model'] += (time.time() - tic)
-            except:
+            except Exception:
                 pass
 
             helper = self.get_helper()
@@ -502,7 +496,7 @@ class ReducerControl:
                     tic = time.time()
                     model = helper.increment_average(model, model_next, i)
                     meta['time_aggregate_model'] += (time.time() - tic)
-                except:
+                except Exception:
                     tic = time.time()
                     model = helper.load_model_from_BytesIO(data.getbuffer())
                     meta['time_aggregate_model'] += (time.time() - tic)
@@ -550,7 +544,7 @@ class ReducerControl:
                     elif nac < min_clients:
                         min_clients = nac
                         selected_combiner = combiner
-            except CombinerUnavailableError as err:
+            except CombinerUnavailableError:
                 print("Combiner was not responding, continuing to next")
 
         return selected_combiner

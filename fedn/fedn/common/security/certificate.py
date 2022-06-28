@@ -37,7 +37,7 @@ class Certificate:
         cert = crypto.X509()
         cert.get_subject().C = "SE"
         cert.get_subject().ST = "Stockholm"
-        cert.get_subject().O = "Development Key"
+        cert.get_subject().O = "Development Key"  # noqa: E741
         cert.get_subject().OU = "Development Key"
         cert.get_subject().CN = self.name  # gethostname()
 

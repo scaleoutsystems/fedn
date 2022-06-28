@@ -1,4 +1,3 @@
-import collections
 import os
 import tempfile
 
@@ -14,8 +13,8 @@ class KerasHelper(HelperBase):
         """ Average weights of Keras Sequential models. """
 
         avg_w = []
-        for l in range(len(weights[0])):
-            lay_l = np.array([w[l] for w in weights])
+        for i in range(len(weights[0])):
+            lay_l = np.array([w[i] for w in weights])
             weight_l_avg = np.mean(lay_l, 0)
             avg_w.append(weight_l_avg)
 
@@ -34,7 +33,7 @@ class KerasHelper(HelperBase):
         :param weights_:
         :param weights:
         """
-        weights_ = weights
+        weights_ = weights  # noqa F841
 
     def get_weights(self, weights):
         """
