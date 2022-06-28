@@ -171,10 +171,12 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
@@ -191,13 +193,15 @@
 </li>
       <li><a href="fedn.aggregators.html#fedn.aggregators.aggregator.AggregatorBase">AggregatorBase (class in fedn.aggregators.aggregator)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.net.html#fedn.common.net.connect.ConnectorCombiner.announce">announce() (fedn.common.net.connect.ConnectorCombiner method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.net.html#fedn.common.net.connect.ConnectorClient.assign">assign() (fedn.common.net.connect.ConnectorClient method)</a>
 </li>
       <li><a href="fedn.common.net.html#fedn.common.net.connect.Status.Assigned">Assigned (fedn.common.net.connect.Status attribute)</a>
+</li>
+      <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.average_weights">average_weights() (fedn.utils.kerashelper.KerasHelper method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -463,8 +467,6 @@
         <li><a href="fedn.common.net.web.html#module-fedn.common.net.web.client">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fedn.common.security
 
@@ -479,6 +481,8 @@
         <li><a href="fedn.common.security.html#module-fedn.common.security.certificate">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fedn.common.security.certificatemanager
 
@@ -606,6 +610,20 @@
 </li>
       </ul></li>
       <li>
+    fedn.utils.helpers
+
+      <ul>
+        <li><a href="fedn.utils.html#module-fedn.utils.helpers">module</a>
+</li>
+      </ul></li>
+      <li>
+    fedn.utils.kerashelper
+
+      <ul>
+        <li><a href="fedn.utils.html#module-fedn.utils.kerashelper">module</a>
+</li>
+      </ul></li>
+      <li>
     fedn.utils.logger
 
       <ul>
@@ -613,10 +631,24 @@
 </li>
       </ul></li>
       <li>
+    fedn.utils.numpyarrayhelper
+
+      <ul>
+        <li><a href="fedn.utils.html#module-fedn.utils.numpyarrayhelper">module</a>
+</li>
+      </ul></li>
+      <li>
     fedn.utils.process
 
       <ul>
         <li><a href="fedn.utils.html#module-fedn.utils.process">module</a>
+</li>
+      </ul></li>
+      <li>
+    fedn.utils.pytorchhelper
+
+      <ul>
+        <li><a href="fedn.utils.html#module-fedn.utils.pytorchhelper">module</a>
 </li>
       </ul></li>
       <li><a href="fedn.common.security.html#fedn.common.security.certificatemanager.CertificateManager.find">find() (fedn.common.security.certificatemanager.CertificateManager method)</a>
@@ -661,12 +693,14 @@
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_first">get_first() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_framework">get_framework() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
+</li>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.get_helper">get_helper() (in module fedn.utils.helpers)</a>
 </li>
       <li><a href="fedn.common.security.html#fedn.common.security.certificate.Certificate.get_key">get_key() (fedn.common.security.certificate.Certificate method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.security.html#fedn.common.security.certificate.Certificate.get_keypair_raw">get_keypair_raw() (fedn.common.security.certificate.Certificate method)</a>
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_latest">get_latest() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
@@ -699,6 +733,26 @@
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.get_storage_backend">get_storage_backend() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
 </li>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.get_tmp_path">get_tmp_path() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.get_tmp_path">(fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.get_tmp_path">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.get_tmp_path">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
+      <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.get_weights">get_weights() (fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase">HelperBase (class in fedn.utils.helpers)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -711,10 +765,20 @@
         <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.state.ReducerState.idle">(fedn.clients.reducer.state.ReducerState attribute)</a>
 </li>
       </ul></li>
-      <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.config.ReducerConfig.initial_model">initial_model (fedn.clients.reducer.config.ReducerConfig attribute)</a>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.increment_average">increment_average() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.increment_average">(fedn.utils.kerashelper.KerasHelper method)</a>
 </li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.increment_average">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.increment_average">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.config.ReducerConfig.initial_model">initial_model (fedn.clients.reducer.config.ReducerConfig attribute)</a>
+</li>
       <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.state.ReducerState.instructing">instructing (fedn.clients.reducer.state.ReducerState attribute)</a>
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.is_inited">is_inited() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
@@ -729,6 +793,10 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper">KerasHelper (class in fedn.utils.kerashelper)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.security.html#fedn.common.security.certificate.Certificate.KEY_NAME">KEY_NAME (fedn.common.security.certificate.Certificate attribute)</a>
 </li>
   </ul></td>
@@ -741,12 +809,32 @@
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.list_clients">list_clients() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.list_combiners">list_combiners() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
 </li>
       <li><a href="fedn.common.security.html#fedn.common.security.certificatemanager.CertificateManager.load_all">load_all() (fedn.common.security.certificatemanager.CertificateManager method)</a>
 </li>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.load_model">load_model() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.load_model">(fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.load_model">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.load_model_from_BytesIO">load_model_from_BytesIO() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.load_model_from_BytesIO">(fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.load_model_from_BytesIO">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.load_model_from_BytesIO">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
       <li><a href="fedn.utils.html#fedn.utils.logger.Logger">Logger (class in fedn.utils.logger)</a>
 </li>
   </ul></td>
@@ -853,9 +941,17 @@
 </li>
         <li><a href="fedn.utils.html#module-fedn.utils.dispatcher">fedn.utils.dispatcher</a>
 </li>
+        <li><a href="fedn.utils.html#module-fedn.utils.helpers">fedn.utils.helpers</a>
+</li>
+        <li><a href="fedn.utils.html#module-fedn.utils.kerashelper">fedn.utils.kerashelper</a>
+</li>
         <li><a href="fedn.utils.html#module-fedn.utils.logger">fedn.utils.logger</a>
 </li>
+        <li><a href="fedn.utils.html#module-fedn.utils.numpyarrayhelper">fedn.utils.numpyarrayhelper</a>
+</li>
         <li><a href="fedn.utils.html#module-fedn.utils.process">fedn.utils.process</a>
+</li>
+        <li><a href="fedn.utils.html#module-fedn.utils.pytorchhelper">fedn.utils.pytorchhelper</a>
 </li>
       </ul></li>
   </ul></td>
@@ -865,6 +961,14 @@
       <li><a href="fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer">MongoTracer (class in fedn.common.tracer.mongotracer)</a>
 </li>
       <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.state.ReducerState.monitoring">monitoring (fedn.clients.reducer.state.ReducerState attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper">NumpyArrayHelper (class in fedn.utils.numpyarrayhelper)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -893,6 +997,8 @@
       <li><a href="fedn.common.control.html#fedn.common.control.package.PackageRuntime">PackageRuntime (class in fedn.common.control.package)</a>
 </li>
       <li><a href="fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.ps_util_monitor">ps_util_monitor() (fedn.common.tracer.mongotracer.MongoTracer method)</a>
+</li>
+      <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper">PytorchHelper (class in fedn.utils.pytorchhelper)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -930,6 +1036,26 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository">S3ModelRepository (class in fedn.common.storage.s3.s3repo)</a>
 </li>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.save_model">save_model() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.save_model">(fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.save_model">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.save_model">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
+      <li><a href="fedn.utils.html#fedn.utils.helpers.HelperBase.serialize_model_to_BytesIO">serialize_model_to_BytesIO() (fedn.utils.helpers.HelperBase method)</a>
+
+      <ul>
+        <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.serialize_model_to_BytesIO">(fedn.utils.kerashelper.KerasHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.numpyarrayhelper.NumpyArrayHelper.serialize_model_to_BytesIO">(fedn.utils.numpyarrayhelper.NumpyArrayHelper method)</a>
+</li>
+        <li><a href="fedn.utils.html#fedn.utils.pytorchhelper.PytorchHelper.serialize_model_to_BytesIO">(fedn.utils.pytorchhelper.PytorchHelper method)</a>
+</li>
+      </ul></li>
       <li><a href="fedn.common.storage.s3.html#fedn.common.storage.s3.base.Repository.set_artifact">set_artifact() (fedn.common.storage.s3.base.Repository method)</a>
 
       <ul>
@@ -960,6 +1086,8 @@
       </ul></li>
       <li><a href="fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_latest_time">set_latest_time() (fedn.common.tracer.mongotracer.MongoTracer method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.common.storage.models.html#fedn.common.storage.models.memorymodelstorage.MemoryModelStorage.set_meta">set_meta() (fedn.common.storage.models.memorymodelstorage.MemoryModelStorage method)</a>
 
       <ul>
@@ -968,8 +1096,6 @@
       </ul></li>
       <li><a href="fedn.common.storage.s3.html#fedn.common.storage.s3.s3repo.S3ModelRepository.set_model">set_model() (fedn.common.storage.s3.s3repo.S3ModelRepository method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_reducer">set_reducer() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_round_config">set_round_config() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
@@ -979,6 +1105,8 @@
       <li><a href="fedn.common.tracer.html#fedn.common.tracer.mongotracer.MongoTracer.set_round_meta_reducer">set_round_meta_reducer() (fedn.common.tracer.mongotracer.MongoTracer method)</a>
 </li>
       <li><a href="fedn.clients.reducer.statestore.html#fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore.set_storage_backend">set_storage_backend() (fedn.clients.reducer.statestore.mongoreducerstatestore.MongoReducerStateStore method)</a>
+</li>
+      <li><a href="fedn.utils.html#fedn.utils.kerashelper.KerasHelper.set_weights">set_weights() (fedn.utils.kerashelper.KerasHelper method)</a>
 </li>
       <li><a href="fedn.clients.reducer.html#fedn.clients.reducer.state.ReducerState.setup">setup (fedn.clients.reducer.state.ReducerState attribute)</a>
 </li>
