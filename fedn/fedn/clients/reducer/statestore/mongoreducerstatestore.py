@@ -1,3 +1,9 @@
+import copy
+from datetime import datetime
+
+import pymongo
+import yaml
+
 from fedn.clients.reducer.state import (ReducerStateToString,
                                         StringToReducerState)
 from fedn.common.storage.db.mongo import connect_to_mongodb
@@ -48,7 +54,6 @@ class MongoReducerStateStore(ReducerStateStore):
             self.clients = None
             raise
 
-        import yaml
         if defaults:
             with open(defaults, 'r') as file:
                 try:
@@ -144,7 +149,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param model_id:
         """
-        from datetime import datetime
+
         self.model.update_one({'key': 'current_model'}, {
             '$set': {'model': model_id}}, True)
         self.model.update_one({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
@@ -152,7 +157,7 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def get_first(self):
         """ Return model_id for the latest model in the model_trail """
-        import pymongo
+
         ret = self.model.find_one({'key': 'model_trail'}, sort=[
                                   ("committed_at", pymongo.ASCENDING)])
         if ret is None:
@@ -207,7 +212,6 @@ class MongoReducerStateStore(ReducerStateStore):
 
         :param filename:
         """
-        from datetime import datetime
         self.control.config.update_one(
             {'key': 'package'}, {'$set': {'filename': filename}}, True)
         self.control.config.update_one({'key': 'package_trail'},
@@ -290,8 +294,6 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def set_storage_backend(self, config):
         """ """
-        import copy
-        from datetime import datetime
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         config['status'] = 'enabled'
@@ -300,7 +302,6 @@ class MongoReducerStateStore(ReducerStateStore):
 
     def set_reducer(self, reducer_data):
         """ """
-        from datetime import datetime
         reducer_data['updated_at'] = str(datetime.now())
         self.reducer.update_one({'name': reducer_data['name']}, {
             '$set': reducer_data}, True)
@@ -342,7 +343,7 @@ class MongoReducerStateStore(ReducerStateStore):
             Set or update combiner record.
             combiner_data: dictionary, output of combiner.to_dict())
         """
-        from datetime import datetime
+
         combiner_data['updated_at'] = str(datetime.now())
         self.combiners.update_one({'name': combiner_data['name']}, {
             '$set': combiner_data}, True)
@@ -360,7 +361,6 @@ class MongoReducerStateStore(ReducerStateStore):
             Set or update client record.
             client_data: dictionarys
         """
-        from datetime import datetime
         client_data['updated_at'] = str(datetime.now())
         self.clients.update_one({'name': client_data['name']}, {
             '$set': client_data}, True)

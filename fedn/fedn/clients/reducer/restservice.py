@@ -1,19 +1,27 @@
+import base64
+import copy
 import datetime
 import json
 import os
 import re
+import threading
+from io import BytesIO
 from threading import Lock
 
 import jwt
 import pandas as pd
+from bokeh.embed import json_item
+from bson import json_util
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
-                   render_template, request, url_for)
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
 from werkzeug.utils import secure_filename
 
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from fedn.common.exceptions import ModelError
+from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'
@@ -358,7 +366,7 @@ class ReducerRestService:
 
         @app.route('/networkgraph')
         def network_graph():
-            from bokeh.embed import json_item
+
             try:
                 plot = Plot(self.control.statestore)
                 result = netgraph()
@@ -375,9 +383,6 @@ class ReducerRestService:
 
             :return:
             """
-            import json
-
-            from bson import json_util
 
             json_docs = []
             for doc in self.control.get_events():
@@ -413,7 +418,7 @@ class ReducerRestService:
                     address).get_keypair_raw()
 
                 # TODO append and redirect to index.
-                import copy
+
                 combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
@@ -455,7 +460,7 @@ class ReducerRestService:
                 # upload seed file
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
-                    from io import BytesIO
+
                     a = BytesIO()
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
@@ -483,7 +488,7 @@ class ReducerRestService:
             :return:
             """
             if request.method == 'POST':
-                from fedn.common.tracer.mongotracer import MongoTracer
+
                 statestore_config = self.control.statestore.get_config()
                 self.tracer = MongoTracer(
                     statestore_config['mongo_config'], statestore_config['network_id'])
@@ -572,7 +577,6 @@ class ReducerRestService:
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
-                import threading
                 threading.Thread(target=self.control.instruct,
                                  args=(config,)).start()
                 # self.control.instruct(config)
@@ -636,7 +640,7 @@ class ReducerRestService:
             self.control.network.add_client(client)
 
             # Return connection information to client
-            import base64
+
             cert_b64 = base64.b64encode(combiner.certificate)
             response = {
                 'status': 'assigned',
@@ -849,9 +853,6 @@ controller:
                            discover_port=discover_port,
                            chk_string=chk_string)
 
-            from io import BytesIO
-
-            from flask import send_file
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))
             obj.seek(0)
@@ -904,7 +905,6 @@ controller:
                     self.control.statestore.set_framework(helper_type)
                     return redirect(url_for('control'))
 
-            from flask import send_from_directory
             name = request.args.get('name', '')
 
             if name == '':
@@ -947,7 +947,6 @@ controller:
 
             file_path = os.path.join(UPLOAD_FOLDER, name)
             print("trying to get {}".format(file_path))
-            from fedn.utils.checksum import sha
 
             try:
                 sum = str(sha(file_path))
@@ -955,7 +954,7 @@ controller:
                 sum = ''
 
             data = {'checksum': sum}
-            from flask import jsonify
+
             return jsonify(data)
 
         if self.certificate:

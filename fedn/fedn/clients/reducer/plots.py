@@ -10,6 +10,8 @@ from bokeh.models import (Circle, ColumnDataSource, Label, LabelSet, MultiLine,
                           NodesAndLinkedEdges, Range1d)
 from bokeh.palettes import Spectral8
 from bokeh.plotting import figure, from_networkx
+from networkx.algorithms import community
+from plotly.subplots import make_subplots
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
 
@@ -222,7 +224,6 @@ class Plot:
             training.append(meta['exec_training'])
             processing.append(meta['processing_time'])
 
-        from plotly.subplots import make_subplots
         fig = make_subplots(rows=1, cols=2, specs=[
                             [{"type": "pie"}, {"type": "histogram"}]])
 
@@ -426,7 +427,6 @@ class Plot:
             round = post['round']
 
         # Create figure with secondary y-axis
-        from plotly.subplots import make_subplots
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Scatter(
             x=ps_time,
@@ -535,7 +535,7 @@ class Plot:
             G, name='adjusted_node_size', values=adjusted_node_size)
 
         # community
-        from networkx.algorithms import community
+
         communities = community.greedy_modularity_communities(G)
         # Create empty dictionaries
         modularity_class = {}

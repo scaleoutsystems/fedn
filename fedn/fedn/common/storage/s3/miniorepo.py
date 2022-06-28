@@ -3,6 +3,7 @@ import logging
 
 from minio import Minio
 from minio.error import InvalidResponseError
+from urllib3.poolmanager import PoolManager
 
 from .base import Repository
 
@@ -43,7 +44,6 @@ class MINIORepository(Repository):
                 "\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
 
         if self.secure_mode:
-            from urllib3.poolmanager import PoolManager
             manager = PoolManager(
                 num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),

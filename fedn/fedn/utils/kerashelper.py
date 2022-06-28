@@ -1,5 +1,6 @@
 import os
 import tempfile
+from io import BytesIO
 
 import numpy as np
 
@@ -97,7 +98,6 @@ class KerasHelper(HelperBase):
         """
         outfile_name = self.save_model(model)
 
-        from io import BytesIO
         a = BytesIO()
         a.seek(0, 0)
         with open(outfile_name, 'rb') as f:

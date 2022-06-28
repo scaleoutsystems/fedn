@@ -1,3 +1,5 @@
+import uuid
+
 from .miniorepo import MINIORepository
 
 
@@ -36,7 +38,6 @@ class S3ModelRepository(MINIORepository):
         :param is_file:
         :return:
         """
-        import uuid
         model_id = uuid.uuid4()
         # TODO: Check that this call succeeds
         try:

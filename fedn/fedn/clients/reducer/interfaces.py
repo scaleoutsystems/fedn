@@ -1,4 +1,7 @@
+import base64
+import copy
 import json
+from io import BytesIO
 
 import grpc
 
@@ -20,7 +23,7 @@ class Channel:
         self.port = port
         self.certificate = certificate
         if self.certificate:
-            import copy
+
             credentials = grpc.ssl_channel_credentials(
                 root_certificates=copy.deepcopy(certificate))
             self.channel = grpc.secure_channel('{}:{}'.format(
@@ -34,7 +37,6 @@ class Channel:
 
         :return:
         """
-        import copy
         return copy.copy(self.channel)
 
 
@@ -76,7 +78,7 @@ class CombinerInterface:
 
         :return:
         """
-        import base64
+
         cert_b64 = base64.b64encode(self.certificate)
         key_b64 = base64.b64encode(self.key)
 
@@ -228,7 +230,6 @@ class CombinerInterface:
         if not id:
             id = self.get_model_id()
 
-        from io import BytesIO
         data = BytesIO()
         data.seek(0, 0)
 

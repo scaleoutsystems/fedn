@@ -1,5 +1,7 @@
 import os
 import threading
+import time
+from datetime import datetime
 
 from fedn.clients.reducer.control import ReducerControl
 from fedn.clients.reducer.interfaces import ReducerInferenceInterface
@@ -51,8 +53,6 @@ class Reducer:
         """
 
         """
-        import time
-        from datetime import datetime
         try:
             old_state = self.control.state()
 

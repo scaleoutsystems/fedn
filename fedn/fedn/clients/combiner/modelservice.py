@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.storage.models.tempmodelstorage import TempModelStorage
@@ -29,7 +31,7 @@ class ModelService(rpc.ModelServiceServicer):
         :param id:
         :return:
         """
-        from io import BytesIO
+
         data = BytesIO()
         data.seek(0, 0)
 
@@ -49,7 +51,6 @@ class ModelService(rpc.ModelServiceServicer):
         :param model:
         :param id:
         """
-        from io import BytesIO
 
         if not isinstance(model, BytesIO):
             bt = BytesIO()

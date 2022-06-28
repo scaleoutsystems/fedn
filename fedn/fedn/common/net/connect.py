@@ -1,6 +1,8 @@
 import enum
+import os
 
 import requests as r
+import urllib3
 
 from fedn.common.security.certificate import Certificate
 
@@ -28,7 +30,6 @@ class ConnectorClient:
                  verify_cert=False):
 
         if not verify_cert:
-            import urllib3
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         self.host = host
@@ -47,7 +48,6 @@ class ConnectorClient:
         else:
             prefix = "https://"
         if secure and preshared_cert:
-            import os
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem").cert_path
         else:
@@ -121,7 +121,6 @@ class ConnectorCombiner:
     def __init__(self, host, port, myhost, myport, token, name, secure=True, preshared_cert=True, verify_cert=False):
 
         if not verify_cert:
-            import urllib3
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         self.host = host
@@ -138,7 +137,6 @@ class ConnectorCombiner:
         else:
             prefix = "https://"
         if secure and preshared_cert:
-            import os
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem",
                                            ).cert_path

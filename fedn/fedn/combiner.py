@@ -1,5 +1,6 @@
 import base64
 import queue
+import signal
 import sys
 import threading
 import time
@@ -10,9 +11,11 @@ from enum import Enum
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.clients.combiner.modelservice import ModelService
+from fedn.clients.combiner.roundcontrol import RoundControl
 from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
+from fedn.common.tracer.mongotracer import MongoTracer
 
 
 class Role(Enum):
@@ -92,11 +95,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             config['storage']['storage_config'])
         self.server = Server(self, self.modelservice, grpc_config)
 
-        from fedn.common.tracer.mongotracer import MongoTracer
         self.tracer = MongoTracer(
             config['statestore']['mongo_config'], config['statestore']['network_id'])
 
-        from fedn.clients.combiner.roundcontrol import RoundControl
         self.control = RoundControl(
             self.id, self.repository, self, self.modelservice)
         threading.Thread(target=self.control.run, daemon=True).start()
@@ -657,7 +658,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
 
         """
-        import signal
+
         print("COMBINER: {} started, ready for requests. ".format(
             self.id), flush=True)
         try:

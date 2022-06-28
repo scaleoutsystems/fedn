@@ -1,4 +1,7 @@
+import copy
 import os
+import random
+import uuid
 
 from OpenSSL import crypto
 
@@ -22,7 +25,6 @@ class Certificate:
                 "Successfully created the directory to store cert and keys in {}".format(cwd))
         self.key_path = os.path.join(cwd, key_name)
         self.cert_path = os.path.join(cwd, cert_name)
-        import uuid
         if name:
             self.name = name
         else:
@@ -41,7 +43,6 @@ class Certificate:
         cert.get_subject().OU = "Development Key"
         cert.get_subject().CN = self.name  # gethostname()
 
-        import random
         cert.set_serial_number(int(random.randint(1000, 100000)))
 
         cert.gmtime_adj_notBefore(0)
@@ -79,7 +80,6 @@ class Certificate:
             key_buf = keyfile.read()
         with open(self.cert_path, 'rb') as certfile:
             cert_buf = certfile.read()
-        import copy
         return copy.deepcopy(cert_buf), copy.deepcopy(key_buf)
 
     def get_key(self):

@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import os
@@ -8,15 +9,19 @@ import threading
 import time
 import uuid
 from datetime import datetime
+from distutils.dir_util import copy_tree
+from io import BytesIO
 
 import grpc
+from flask import Flask
+from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.clients.client.state import ClientState, ClientStateToString
 from fedn.common.control.package import PackageRuntime
 from fedn.common.net.connect import ConnectorClient, Status
-# TODO Remove from this level. Abstract to unified non implementation specific client.
+from fedn.common.net.web.client import page, style
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
 from fedn.utils.logger import Logger
@@ -186,7 +191,6 @@ class Client:
                                 'validate': {'command': 'python3 validate.py'}}}
             from_path = os.path.join(os.getcwd(), 'client')
 
-            from distutils.dir_util import copy_tree
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
@@ -228,7 +232,6 @@ class Client:
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         if client_config['certificate']:
-            import base64
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')
             credentials = grpc.ssl_channel_credentials(root_certificates=cert)
@@ -265,8 +268,6 @@ class Client:
             The id of the model update object.
 
         """
-
-        from io import BytesIO
         data = BytesIO()
 
         for part in self.models.Download(fedn.ModelRequest(id=id)):
@@ -294,9 +295,6 @@ class Client:
         id : str
             The id of the model update object.
         """
-
-        from io import BytesIO
-
         if not isinstance(model, BytesIO):
             bt = BytesIO()
 
@@ -576,9 +574,6 @@ class Client:
 
     def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
         """Send status message. """
-
-        from google.protobuf.json_format import MessageToJson
-
         status = fedn.Status()
         status.timestamp = str(datetime.now())
         status.sender.name = self.name
@@ -601,10 +596,7 @@ class Client:
         Currently not in use as default.
 
         """
-        from flask import Flask
         app = Flask(__name__)
-
-        from fedn.common.net.web.client import page, style
 
         @app.route('/')
         def index():
@@ -618,8 +610,6 @@ class Client:
 
             return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
 
-        import os
-        import sys
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
         app.run(host="0.0.0.0", port="8080")

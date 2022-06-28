@@ -1,9 +1,10 @@
-
 import queue
+import random
 import sys
 import time
 import uuid
 
+from fedn.aggregators.fedavg import FedAvgAggregator
 from fedn.utils.helpers import get_helper
 
 
@@ -11,8 +12,8 @@ class RoundControl:
     """ Combiner level round controller.
 
     The controller recieves round configurations from the global controller
-    and acts on them by soliciting model updates and model validations
-    from the connected clients.
+    and acts on them by soliciting model updates and model validations from
+    the connected clients.
 
     :param id: A reference to id of :class: `fedn.combiner.Combiner`
     :type id: str
@@ -34,7 +35,7 @@ class RoundControl:
         self.config = {}
 
         # TODO, make runtime configurable
-        from fedn.aggregators.fedavg import FedAvgAggregator
+
         self.aggregator = FedAvgAggregator(
             self.id, self.storage, self.server, self.modelservice, self)
 
@@ -47,7 +48,7 @@ class RoundControl:
         :rtype: str
         """
         try:
-            import uuid
+
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
@@ -78,7 +79,7 @@ class RoundControl:
                 if not model_str or sys.getsizeof(model_str) == 80:
                     self.server.report_status(
                         "ROUNDCONTROL: Model download failed. retrying", flush=True)
-                    import time
+
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
 
@@ -194,7 +195,7 @@ class RoundControl:
             n = len(clients)
 
         # If not, we pick a random subsample of all available clients.
-        import random
+
         clients = random.sample(clients, n)
 
         return clients
@@ -210,7 +211,6 @@ class RoundControl:
         :rtype: [type]
         """
 
-        import time
         ready = False
         t = 0.0
         while not ready:
