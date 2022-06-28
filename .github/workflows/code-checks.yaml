@@ -39,6 +39,6 @@ jobs:
           --exclude-dir='.mnist-pytorch' 
           --exclude-dir='.mnist-keras' 
           --exclude-dir='docs' 
-          '^[ \t]+(import|from)' -I . 
+          '^[ \t]+(import|from) ' -I . 
 
       # TODO: add linting/formatting for all file types
