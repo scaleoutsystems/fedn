@@ -7,6 +7,12 @@
 .. image:: https://badgen.net/badge/icon/discord?icon=discord&label
    :target: https://discord.gg/KMg4VwszAd
 
+.. image:: https://badgen.net/badge/icon/discord?icon=discord&label
+   :target: https://discord.gg/KMg4VwszAd
+
+.. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=plastic
+   :target: https://fedn.readthedocs.io/en/latest
+
 FEDn is a modular and model agnostic framework for hierarchical
 federated machine learning which scales from pseudo-distributed
 development to real-world production networks in distributed,
