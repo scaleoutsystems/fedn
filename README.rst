@@ -10,7 +10,7 @@
 .. image:: https://badgen.net/badge/icon/discord?icon=discord&label
    :target: https://discord.gg/KMg4VwszAd
 
-.. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=plastic
+.. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io/en/latest
 
 FEDn is a modular and model agnostic framework for hierarchical
