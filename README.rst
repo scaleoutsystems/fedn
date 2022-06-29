@@ -35,7 +35,7 @@ Core Features
 -  **Security**. A key feature is that
    clients do not have to expose any ingress ports.
  
--  ** Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is    logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
+-  **Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is    logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
 
 - **UI.** A Flask UI lets user visualize the FEDn network and model validations in real time, as well as see other core metrics like client training times and combiner load.  
 
