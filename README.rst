@@ -7,9 +7,6 @@
 .. image:: https://badgen.net/badge/icon/discord?icon=discord&label
    :target: https://discord.gg/KMg4VwszAd
 
-.. image:: https://badgen.net/badge/icon/discord?icon=discord&label
-   :target: https://discord.gg/KMg4VwszAd
-
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io/en/latest
 
