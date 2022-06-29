@@ -92,7 +92,7 @@ Documentation
 =============
 More details about the architecture and implementation:
 
--  `Documentation <https://scaleoutsystems.github.io/fedn/>`__ 
+-  `Documentation <https://fedn.readthedocs.io/en/latest>`__ 
 -  `Paper <https://arxiv.org/abs/2103.00148>`__
 
 Community support
