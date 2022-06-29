@@ -50,7 +50,7 @@ html_static_path = []
 htmlhelp_basename = 'fedndocs'
 
 # If defined shows an image instead of project name on page top-left (link to index page)
-html_logo = 'img/logos/fedn_logo.webp'
+# html_logo = '' # FEDn logo looks ugly on rtd theme
 
 # Here we assume that the file is at _static/custom.css
 html_css_files = []
