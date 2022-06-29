@@ -19,5 +19,4 @@ Welcome to FEDn documentation
    deployment
    tutorial
    releasenotes
-   sdk
    faq
