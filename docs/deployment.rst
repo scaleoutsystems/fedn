@@ -57,11 +57,11 @@ Note that there are many other possible ways to achieve this, depending on your 
 1. Deploy base/supporting services (MinIO, MongoDB and MongoExpress)  
 --------------------------------------------------------------------
 
-First, use 'config/base-services.yaml' to deploy MinIO and Mongo services on one of the hosts. Edit the file to change the default passwords and ports.
+First, we deploy MinIO and Mongo services on one of the hosts. Edit the `docker-compose.yaml` file to change the default passwords and ports.
 
 .. code-block:: bash
 
-   sudo -E docker-compose -f config/base-services.yaml up 
+   sudo docker-compose up -d minio mongo mongo-express
 
 .. note::
    Remember to open ports on the host so that the API endpoints (the exported port in the 'ports' property for each of the services) can be reacheds. 
@@ -79,8 +79,11 @@ Then start the reducer:
 
 .. code-block:: bash
 
-   sudo -E docker-compose -f config/reducer.yaml -f config/extra-hosts-reducer.yaml up 
-
+   sudo docker-compose \
+      -f docker-compose.yaml \
+      -f config/reducer-settings.override.yaml \
+      -f config/extra-hosts-reducer.yaml \
+      up -d reducer
 
 .. note::
    Step b is a way to add the host:IP mapping to /etc/hosts in the Docker container in docker-compose. This step can be skipped if you handle this resolution in some other way. 
@@ -95,7 +98,10 @@ Also, provide the IP and port for the reducer under the 'controller' tag. Then d
 
 .. code-block:: bash
 
-   sudo -E docker-compose -f config/combiner.yaml up 
+   sudo docker-compose \
+      -f docker-compose.yaml \
+      -f config/combiner-settings.override.yaml \
+      up -d combiner
 
 Optional: Repeat this step for any number of additional combiner nodes. Make sure to provide unique names for the two combiners,
 and update extra hosts for the reducer. 
@@ -108,7 +114,7 @@ and update extra hosts for the reducer.
 
 You can now choose an example, upload a compute package and an initial model, and attach clients. 
 
-- `Examples <../../examples>`__
+- `Examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
 
 .. note:: 
    The clients will also need to be able to resolve the hostname ('host' argument) for each combiner node in the network. 
