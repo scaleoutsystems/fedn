@@ -1,4 +1,3 @@
-
 version: '3.3'
 
 # Map the "host" parameter from combiner-settings.yaml to the combiner host IP
