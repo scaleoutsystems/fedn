@@ -1,5 +1,6 @@
 import io
 from collections import defaultdict
+from io import BytesIO
 
 from fedn.common.storage.models.modelstorage import ModelStorage
 
@@ -12,7 +13,6 @@ class MemoryModelStorage(ModelStorage):
     """
 
     def __init__(self):
-        import tempfile
 
         # self.dir = tempfile.TemporaryDirectory()
         self.models = defaultdict(io.BytesIO)
@@ -34,7 +34,6 @@ class MemoryModelStorage(ModelStorage):
         :param model_id:
         :return:
         """
-        from io import BytesIO
         obj = self.models[model_id]
         obj.seek(0, 0)
         # Have to copy object to not mix up the file pointers when sending... fix in better way.

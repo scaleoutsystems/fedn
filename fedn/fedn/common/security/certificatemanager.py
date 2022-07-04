@@ -1,3 +1,5 @@
+import os
+
 from .certificate import Certificate
 
 
@@ -44,7 +46,6 @@ class CertificateManager:
         """
 
         """
-        import os
         for filename in sorted(os.listdir(self.directory)):
             if filename.endswith('cert.pem'):
                 name = filename.split('-')[0]

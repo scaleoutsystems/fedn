@@ -3,4 +3,6 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
 }

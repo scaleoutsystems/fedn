@@ -1,8 +1,8 @@
 import threading
-import time
 from datetime import datetime
 
 import psutil
+from google.protobuf.json_format import MessageToDict
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.common.tracer.tracer import Tracer
@@ -34,12 +34,11 @@ class MongoTracer(Tracer):
 
         :param msg:
         """
-        from google.protobuf.json_format import MessageToDict
         data = MessageToDict(msg, including_default_value_fields=True)
 
         print("LOG: \n {} \n".format(data), flush=True)
 
-        if self.status != None:
+        if self.status is not None:
             self.status.insert_one(data)
 
     def drop_round_time(self):

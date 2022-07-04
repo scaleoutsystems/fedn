@@ -4,8 +4,13 @@ import uuid
 import click
 import yaml
 
+from fedn.client import Client
 from fedn.clients.reducer.restservice import (decode_auth_token,
                                               encode_auth_token)
+from fedn.clients.reducer.statestore.mongoreducerstatestore import \
+    MongoReducerStateStore
+from fedn.combiner import Combiner
+from fedn.reducer import Reducer
 
 from .main import main
 
@@ -100,7 +105,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
         with open(config['init'], 'r') as file:
             try:
                 settings = dict(yaml.safe_load(file))
-            except Exception as e:
+            except Exception:
                 print('Failed to read config from settings file, exiting.', flush=True)
                 return
                 # raise(e)
@@ -119,11 +124,10 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
             print(
                 "Missing required configuration: discover_host, discover_port", flush=True)
             return
-    except Exception as e:
+    except Exception:
         print("Could not load config appropriately. Check config", flush=True)
         return
 
-    from fedn.client import Client
     client = Client(config)
     client.run()
 
@@ -160,8 +164,8 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
         print(e, flush=True)
         exit(-1)
 
-    if not remote:
-        helper = check_helper_config_file(fedn_config)
+    # if not remote:
+    #     helper = check_helper_config_file(fedn_config)
 
     try:
         network_id = fedn_config['network_id']
@@ -171,8 +175,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
 
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
-        from fedn.clients.reducer.statestore.mongoreducerstatestore import \
-            MongoReducerStateStore
+
         statestore = MongoReducerStateStore(
             network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
@@ -190,7 +193,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
                 if status != 'Success':
                     token = encode_auth_token(config['secret_key'])
                     config['token'] = token
-            except:
+            except Exception:
                 raise
 
         else:
@@ -199,7 +202,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
 
     try:
         statestore.set_reducer(config)
-    except:
+    except Exception:
         print("Failed to set reducer config in statestore, exiting.", flush=True)
         exit(-1)
 
@@ -208,7 +211,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
     except KeyError:
         print("storage configuration missing in statestore_config.", flush=True)
         exit(-1)
-    except:
+    except Exception:
         print("Failed to set storage config in statestore, exiting.", flush=True)
         exit(-1)
 
@@ -216,11 +219,10 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
     control_config = fedn_config['control']
     try:
         statestore.set_round_config(control_config)
-    except:
+    except Exception:
         print("Failed to set control config, exiting.", flush=True)
         exit(-1)
 
-    from fedn.reducer import Reducer
     reducer = Reducer(statestore)
     reducer.run()
 
@@ -274,6 +276,5 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             config['myport'] = combiner_config['port']
             config['max_clients'] = combiner_config['max_clients']
 
-    from fedn.combiner import Combiner
     combiner = Combiner(config)
     combiner.run()

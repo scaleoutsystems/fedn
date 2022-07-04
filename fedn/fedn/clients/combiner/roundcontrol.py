@@ -1,29 +1,26 @@
-import json
-import os
 import queue
+import random
 import sys
-import tempfile
 import time
 import uuid
-from threading import Lock, Thread
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
+from fedn.aggregators.fedavg import FedAvgAggregator
 from fedn.utils.helpers import get_helper
 
 
 class RoundControl:
-    """ Combiner level round controller.  
+    """ Combiner level round controller.
 
-    The controller recieves round configurations from the global controller  
-    and acts on them by soliciting model updates and model validations
-    from the connected clients.
+    The controller recieves round configurations from the global controller
+    and acts on them by soliciting model updates and model validations from
+    the connected clients.
 
-    :param id: A reference to id of :class: `fedn.combiner.Combiner` 
+    :param id: A reference to id of :class: `fedn.combiner.Combiner`
     :type id: str
-    :param storage: Model repository for :class: `fedn.combiner.Combiner` 
+    :param storage: Model repository for :class: `fedn.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
     :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
-    :type server: class: `fedn.combiner.Combiner` 
+    :type server: class: `fedn.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
     """
@@ -38,23 +35,23 @@ class RoundControl:
         self.config = {}
 
         # TODO, make runtime configurable
-        from fedn.aggregators.fedavg import FedAvgAggregator
+
         self.aggregator = FedAvgAggregator(
             self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
-        """ Recieve a round_config (job description) and push on the queue. 
+        """ Recieve a round_config (job description) and push on the queue.
 
         :param round_config: A dict containing round configurations.
         :type round_config: dict
-        :return: A generated job id (universally unique identifier) for the round configuration 
+        :return: A generated job id (universally unique identifier) for the round configuration
         :rtype: str
         """
         try:
-            import uuid
+
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
-        except:
+        except Exception:
             self.server.report_status(
                 "ROUNDCONTROL: Failed to push round config.", flush=True)
             raise
@@ -73,7 +70,7 @@ class RoundControl:
         # Try reading model update from local disk/combiner memory
         model_str = self.modelservice.models.get(model_id)
         # And if we cannot access that, try downloading from the server
-        if model_str == None:
+        if model_str is None:
             model_str = self.modelservice.get_model(model_id)
             # TODO: use retrying library
             tries = 0
@@ -82,14 +79,14 @@ class RoundControl:
                 if not model_str or sys.getsizeof(model_str) == 80:
                     self.server.report_status(
                         "ROUNDCONTROL: Model download failed. retrying", flush=True)
-                    import time
+
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
 
         return model_str
 
     def _training_round(self, config, clients):
-        """Send model update requests to clients and aggregate results. 
+        """Send model update requests to clients and aggregate results.
 
         :param config: [description]
         :type config: [type]
@@ -142,7 +139,7 @@ class RoundControl:
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download model from persistent storage.
 
-        :param model_id: ID of the model update object to stage. 
+        :param model_id: ID of the model update object to stage.
         :type model_id: str
         :param timeout_retry: Sleep before retrying download again (sec), defaults to 3
         :type timeout_retry: int, optional
@@ -161,7 +158,7 @@ class RoundControl:
                 model = self.storage.get_model_stream(model_id)
                 if model:
                     break
-            except Exception as e:
+            except Exception:
                 self.server.report_status("ROUNDCONTROL: Could not fetch model from storage backend, retrying.",
                                           flush=True)
                 time.sleep(timeout_retry)
@@ -174,7 +171,7 @@ class RoundControl:
         self.modelservice.set_model(model, model_id)
 
     def __assign_round_clients(self, n, type="trainers"):
-        """ Obtain a list of clients (trainers or validators) to talk to in a round. 
+        """ Obtain a list of clients (trainers or validators) to talk to in a round.
 
         :param n: Size of a random set taken from active trainers (clients), if n > "active trainers" all is used
         :type n: int
@@ -198,13 +195,13 @@ class RoundControl:
             n = len(clients)
 
         # If not, we pick a random subsample of all available clients.
-        import random
+
         clients = random.sample(clients, n)
 
         return clients
 
     def __check_nr_round_clients(self, config, timeout=0.0):
-        """Check that the minimal number of required clients to start a round are connected. 
+        """Check that the minimal number of required clients to start a round are connected.
 
         :param config: [description]
         :type config: [type]
@@ -214,7 +211,6 @@ class RoundControl:
         :rtype: [type]
         """
 
-        import time
         ready = False
         t = 0.0
         while not ready:
@@ -238,7 +234,7 @@ class RoundControl:
         return ready
 
     def execute_validation(self, round_config):
-        """ Coordinate validation rounds as specified in config. 
+        """ Coordinate validation rounds as specified in config.
 
         :param round_config: [description]
         :type round_config: [type]
@@ -290,7 +286,7 @@ class RoundControl:
         return round_meta
 
     def run(self):
-        """ Main control loop. Sequentially execute rounds based on round config. 
+        """ Main control loop. Sequentially execute rounds based on round config.
 
         """
         try:

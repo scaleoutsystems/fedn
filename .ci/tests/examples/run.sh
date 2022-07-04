@@ -17,7 +17,7 @@ docker-compose \
     up -d --build
 
 >&2 echo "Wait for reducer to start"
-sleep 30 # TODO: add API call to check when ready
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py reducer
 
 >&2 echo "Upload compute package"
 curl -k -X POST \
@@ -33,7 +33,7 @@ curl -k -X POST \
 printf '\n'
 
 >&2 echo "Wait for clients to connect"
-sleep 30 # TODO: add API call to check when ready
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py clients
 
 >&2 echo "Start round"
 curl -k -X POST \
@@ -43,7 +43,21 @@ curl -k -X POST \
 printf '\n'
 
 >&2 echo "Checking rounds success"
-".$example/bin/python" ../../.ci/tests/examples/is_success.py
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py rounds
+
+>&2 echo "Test client connection with dowloaded settings"
+# Get config
+curl -k https://localhost:8090/config/download > ../../client.yaml
+
+# Redeploy clients with config
+docker-compose \
+    -f ../../docker-compose.yaml \
+    -f docker-compose.override.yaml \
+    -f ../../.ci/tests/examples/compose-client-settings.override.yaml \
+    up -d
+
+>&2 echo "Wait for clients to reconnect"
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py clients
 
 popd
 >&2 echo "Test completed successfully"

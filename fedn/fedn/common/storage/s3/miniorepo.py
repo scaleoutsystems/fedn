@@ -1,13 +1,9 @@
 import io
-import json
 import logging
-import os
-import uuid
-from urllib.parse import urlparse
 
-import requests
 from minio import Minio
 from minio.error import InvalidResponseError
+from urllib3.poolmanager import PoolManager
 
 from .base import Repository
 
@@ -48,7 +44,6 @@ class MINIORepository(Repository):
                 "\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
 
         if self.secure_mode:
-            from urllib3.poolmanager import PoolManager
             manager = PoolManager(
                 num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
@@ -74,15 +69,15 @@ class MINIORepository(Repository):
         found = self.client.bucket_exists(bucket_name)
         if not found:
             try:
-                response = self.client.make_bucket(bucket_name)
-            except InvalidResponseError as err:
+                self.client.make_bucket(bucket_name)
+            except InvalidResponseError:
                 raise
 
     def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
         """ Instance must be a byte-like object. """
         if bucket == '':
             bucket = self.bucket
-        if is_file == True:
+        if is_file:
             self.client.fput_object(bucket, instance_name, instance)
         else:
             try:
@@ -132,7 +127,7 @@ class MINIORepository(Repository):
             for obj in objs:
                 print(obj.object_name)
                 objects_to_delete.append(obj.object_name)
-        except Exception as e:
+        except Exception:
             raise Exception(
                 "Could not list models in bucket {}".format(self.bucket))
         return objects_to_delete
@@ -164,5 +159,5 @@ class MINIORepository(Repository):
             )
             for del_err in errors:
                 print("Deletion Error: {}".format(del_err))
-        except:
+        except Exception:
             print('Could not delete objects: {}'.format(objects_to_delete))

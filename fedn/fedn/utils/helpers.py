@@ -1,6 +1,3 @@
-import collections
-import os
-import tempfile
 from abc import ABC, abstractmethod
 
 
@@ -12,8 +9,8 @@ class HelperBase(ABC):
 
     @abstractmethod
     def increment_average(self, model, model_next, n):
-        """ Compute one increment of incremental averaging. 
-            n: the iteration index 1...N  in the sequence. 
+        """ Compute one increment of incremental averaging.
+            n: the iteration index 1...N  in the sequence.
         """
         pass
 
@@ -47,19 +44,19 @@ class HelperBase(ABC):
 
 
 def get_helper(helper_type):
-    """ Return an instance of the helper class. 
+    """ Return an instance of the helper class.
 
     :param helper_type (str): The helper type ('keras','pytorch')
     :return:
     """
     if helper_type == 'numpyarray':
-        from fedn.utils.numpyarrayhelper import NumpyArrayHelper
-        return NumpyArrayHelper()
+        __import__('NumpyArrayHelper', fromlist=["fedn.utils.numpyarrayhelper"])
+        return NumpyArrayHelper()  # noqa: F821
     elif helper_type == 'keras':
-        from fedn.utils.kerashelper import KerasHelper
-        return KerasHelper()
+        __import__('KerasHelper', fromlist=["fedn.utils.kerashelper"])
+        return KerasHelper()  # noqa: F821
     elif helper_type == 'pytorch':
-        from fedn.utils.pytorchhelper import PytorchHelper
-        return PytorchHelper()
+        __import__('PytorchHelper', fromlist=["fedn.utils.pytorchhelper"])
+        return PytorchHelper()  # noqa: F821
     else:
         return None

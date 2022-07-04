@@ -1,8 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
-from uuid import UUID
 
-import yaml
 from click.testing import CliRunner
 from run_cmd import check_helper_config_file
 
@@ -68,7 +65,7 @@ class TestReducerCLI(unittest.TestCase):
         del COPY_INIT_FILE["control"]["helper"]
 
         with self.assertRaises(SystemExit):
-            helper = check_helper_config_file(COPY_INIT_FILE)
+            check_helper_config_file(COPY_INIT_FILE)
 
 
 if __name__ == '__main__':

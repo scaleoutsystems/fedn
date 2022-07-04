@@ -1,25 +1,20 @@
 import json
-import os
 import queue
-import sys
-import tempfile
 import time
-import uuid
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.aggregators.aggregator import AggregatorBase
-from fedn.utils.helpers import get_helper
 
 
 class FedAvgAggregator(AggregatorBase):
-    """ Local SGD / Federated Averaging (FedAvg) aggregator. 
+    """ Local SGD / Federated Averaging (FedAvg) aggregator.
 
-    :param id: A reference to id of :class: `fedn.combiner.Combiner` 
+    :param id: A reference to id of :class: `fedn.combiner.Combiner`
     :type id: str
-    :param storage: Model repository for :class: `fedn.combiner.Combiner` 
+    :param storage: Model repository for :class: `fedn.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
     :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
-    :type server: class: `fedn.combiner.Combiner` 
+    :type server: class: `fedn.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
     :param control: A handle to the :class: `fedn.clients.combiner.roundcontrol.RoundControl`
@@ -40,7 +35,7 @@ class FedAvgAggregator(AggregatorBase):
     def on_model_update(self, model_id):
         """Callback when a new model update is recieved from a client.
             Performs (optional) pre-processing and the puts the update id
-            on the aggregation queue. 
+            on the aggregation queue.
 
         :param model_id: ID of model update
         :type model_id: str
@@ -57,9 +52,9 @@ class FedAvgAggregator(AggregatorBase):
             pass
 
     def on_model_validation(self, validation):
-        """ Callback when a new model validation is recieved from a client. 
+        """ Callback when a new model validation is recieved from a client.
 
-        :param validation: Dict containing validation data sent by client. 
+        :param validation: Dict containing validation data sent by client.
                            Must be valid JSON.
         :type validation: dict
         """

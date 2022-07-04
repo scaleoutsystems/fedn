@@ -1,4 +1,9 @@
+import os
+from datetime import datetime
+
 import click
+
+from fedn.common.control.package import Package, PackageRuntime
 
 from .main import main
 
@@ -37,20 +42,17 @@ def package_cmd(ctx, reducer, port, token, name, upload, validate, cwd):
     :param cwd:
     """
     if not cwd:
-        import os
         cwd = os.getcwd()
 
     print("CONTROL: Bundling {} dir for distribution. Please wait for operation to complete..".format(cwd))
 
     if not name:
-        from datetime import datetime
         name = str(os.path.basename(cwd)) + '-' + \
             datetime.today().strftime('%Y-%m-%d-%H%M%S')
 
     config = {'host': reducer, 'port': port, 'token': token, 'name': name,
               'cwd': cwd}
 
-    from fedn.common.control.package import Package
     package = Package(config)
 
     print("CONTROL: Bundling package..")
@@ -85,14 +87,12 @@ def unpack_cmd(ctx, reducer, port, token, name, download, validate, cwd):
     :param validate:
     :param cwd:
     """
-    import os
     if not cwd:
         cwd = os.getcwd()
 
-    config = {'host': reducer, 'port': port, 'token': token, 'name': name,
-              'cwd': cwd}
+    # config = {'host': reducer, 'port': port, 'token': token, 'name': name,
+    #           'cwd': cwd}
 
-    from fedn.common.control.package import PackageRuntime
     package = PackageRuntime(cwd, os.path.join(cwd, 'client'))
     package.download(reducer, port, token)
     package.unpack()

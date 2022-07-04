@@ -8,8 +8,6 @@ class Logger:
     """
 
     def __init__(self, log_level=logging.DEBUG, to_file='', file_path=os.getcwd()):
-        import sys
-
         root = logging.getLogger()
         root.setLevel(log_level)
 

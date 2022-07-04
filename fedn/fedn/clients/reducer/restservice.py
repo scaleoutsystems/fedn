@@ -1,28 +1,28 @@
+import base64
+import copy
 import datetime
 import json
-import math
 import os
 import re
 import threading
-import uuid
+from io import BytesIO
 from threading import Lock
-from urllib import response
 
-import geoip2.database
 import jwt
-import numpy
 import pandas as pd
-import plotly
-import plotly.express as px
+from bokeh.embed import json_item
+from bson import json_util
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
-                   render_template, request, url_for)
-from idna import check_initial_combiner
-from tenacity import retry
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
 from werkzeug.utils import secure_filename
 
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
+from fedn.common.exceptions import ModelError
+from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -359,14 +359,14 @@ class ReducerRestService:
                                 "target": node['id'],
                             }
                         )
-                except Exception as e:
+                except Exception:
                     pass
                 count = count + 1
             return result
 
         @app.route('/networkgraph')
         def network_graph():
-            from bokeh.embed import json_item
+
             try:
                 plot = Plot(self.control.statestore)
                 result = netgraph()
@@ -374,7 +374,7 @@ class ReducerRestService:
                 df_edges = pd.DataFrame(result['edges'])
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
-            except:
+            except Exception:
                 return ''
 
         @app.route('/events')
@@ -383,9 +383,6 @@ class ReducerRestService:
 
             :return:
             """
-            import json
-
-            from bson import json_util
 
             json_docs = []
             for doc in self.control.get_events():
@@ -417,14 +414,11 @@ class ReducerRestService:
             combiner = self.control.network.get_combiner(name)
             if not combiner:
                 # Create a new combiner
-                import base64
                 certificate, key = self.certificate_manager.get_or_create(
                     address).get_keypair_raw()
-                cert_b64 = base64.b64encode(certificate)
-                key_b64 = base64.b64encode(key)
 
                 # TODO append and redirect to index.
-                import copy
+
                 combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
@@ -466,7 +460,7 @@ class ReducerRestService:
                 # upload seed file
                 uploaded_seed = request.files['seed']
                 if uploaded_seed:
-                    from io import BytesIO
+
                     a = BytesIO()
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
@@ -494,13 +488,13 @@ class ReducerRestService:
             :return:
             """
             if request.method == 'POST':
-                from fedn.common.tracer.mongotracer import MongoTracer
+
                 statestore_config = self.control.statestore.get_config()
                 self.tracer = MongoTracer(
                     statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
                     self.control.drop_models()
-                except:
+                except Exception:
                     pass
 
                 # drop objects in minio
@@ -539,7 +533,7 @@ class ReducerRestService:
             if self.remote_compute_context:
                 try:
                     self.current_compute_context = self.control.get_compute_context()
-                except:
+                except Exception:
                     self.current_compute_context = None
             else:
                 self.current_compute_context = "None:Local"
@@ -561,7 +555,7 @@ class ReducerRestService:
                         combiner_state = combiner.report()
                         nac = combiner_state['nr_active_clients']
                         clients_available = clients_available + int(nac)
-                    except Exception as e:
+                    except Exception:
                         pass
 
                 if clients_available < clients_required:
@@ -583,7 +577,6 @@ class ReducerRestService:
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
-                import threading
                 threading.Thread(target=self.control.instruct,
                                  args=(config,)).start()
                 # self.control.instruct(config)
@@ -596,7 +589,7 @@ class ReducerRestService:
                 try:
                     seed_model_id = self.control.get_first_model()[0]
                     latest_model_id = self.control.get_latest_model()
-                except Exception as e:
+                except Exception:
                     pass
 
                 return render_template('index.html', latest_model_id=latest_model_id,
@@ -647,7 +640,7 @@ class ReducerRestService:
             self.control.network.add_client(client)
 
             # Return connection information to client
-            import base64
+
             cert_b64 = base64.b64encode(combiner.certificate)
             response = {
                 'status': 'assigned',
@@ -661,6 +654,22 @@ class ReducerRestService:
 
             return jsonify(response)
 
+        @app.route('/infer')
+        def infer():
+            """
+
+            :return:
+            """
+            if self.control.state() == ReducerState.setup:
+                return "Error, not configured"
+            result = ""
+            try:
+                self.control.set_model_id()
+            except ModelError:
+                print("Failed to seed control.")
+
+            return result
+
         def combiner_status():
             """ Get current status reports from all combiners registered in the network.
 
@@ -671,7 +680,7 @@ class ReducerRestService:
                 try:
                     report = combiner.report()
                     combiner_info.append(report)
-                except:
+                except Exception:
                     pass
             return combiner_info
 
@@ -690,9 +699,9 @@ class ReducerRestService:
                     active_trainers_str = client['active_trainers']
                     active_validators_str = client['active_validators']
                     active_trainers_str = re.sub(
-                        '[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')
+                        '[^a-zA-Z0-9-:\n\.]', '', active_trainers_str).replace('name:', ' ')  # noqa: W605
                     active_validators_str = re.sub(
-                        '[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')
+                        '[^a-zA-Z0-9-:\n\.]', '', active_validators_str).replace('name:', ' ')  # noqa: W605
                     all_active_trainers.extend(
                         ' '.join(active_trainers_str.split(" ")).split())
                     all_active_validators.extend(
@@ -728,7 +737,7 @@ class ReducerRestService:
                         'active_trainers': active_trainers_list,
                         'active_validators': active_validators_list
                         }
-            except:
+            except Exception:
                 pass
 
             return {'active_clients': [],
@@ -825,11 +834,10 @@ class ReducerRestService:
             else:
                 file_path = os.path.join(UPLOAD_FOLDER, name)
                 print("trying to get {}".format(file_path))
-                from fedn.utils.checksum import md5
 
                 try:
-                    sum = str(md5(file_path))
-                except FileNotFoundError as e:
+                    sum = str(sha(file_path))
+                except FileNotFoundError:
                     sum = ''
                 chk_string = "checksum: {}".format(sum)
 
@@ -845,9 +853,6 @@ controller:
                            discover_port=discover_port,
                            chk_string=chk_string)
 
-            from io import BytesIO
-
-            from flask import send_file
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))
             obj.seek(0)
@@ -900,12 +905,11 @@ controller:
                     self.control.statestore.set_framework(helper_type)
                     return redirect(url_for('control'))
 
-            from flask import send_from_directory
             name = request.args.get('name', '')
 
             if name == '':
                 name = self.control.get_compute_context()
-                if name == None or name == '':
+                if name is None or name == '':
                     return render_template('context.html')
 
             # There is a potential race condition here, if one client requests a package and at
@@ -914,14 +918,14 @@ controller:
                 mutex = Lock()
                 mutex.acquire()
                 return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-            except:
+            except Exception:
                 try:
                     data = self.control.get_compute_package(name)
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], name)
                     with open(file_path, 'wb') as fh:
                         fh.write(data)
                     return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-                except:
+                except Exception:
                     raise
             finally:
                 mutex.release()
@@ -938,20 +942,19 @@ controller:
             name = request.args.get('name', None)
             if name == '' or name is None:
                 name = self.control.get_compute_context()
-                if name == None or name == '':
+                if name is None or name == '':
                     return jsonify({})
 
             file_path = os.path.join(UPLOAD_FOLDER, name)
             print("trying to get {}".format(file_path))
-            from fedn.utils.checksum import md5
 
             try:
-                sum = str(md5(file_path))
-            except FileNotFoundError as e:
+                sum = str(sha(file_path))
+            except FileNotFoundError:
                 sum = ''
 
             data = {'checksum': sum}
-            from flask import jsonify
+
             return jsonify(data)
 
         @app.route('/infer', methods=['POST'])

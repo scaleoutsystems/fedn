@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.common.storage.models.modelstorage import ModelStorage
@@ -48,7 +49,6 @@ class TempModelStorage(ModelStorage):
             print("No such model have been made available yet!", flush=True)
             return None
 
-        from io import BytesIO
         obj = BytesIO()
         with open(os.path.join(self.default_dir, str(model_id)), 'rb') as f:
             obj.write(f.read())
