@@ -63,7 +63,7 @@ def clients(n_clients=2):
 
 
 def reducer():
-    _retry(_test_nodes, n_nodes=1, node_type='reducer')
+    assert(_retry(_test_nodes, n_nodes=1, node_type='reducer'))
 
 
 if __name__ == '__main__':
