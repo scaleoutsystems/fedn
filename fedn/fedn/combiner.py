@@ -1,5 +1,6 @@
 import base64
 import queue
+import re
 import signal
 import sys
 import threading
@@ -16,6 +17,8 @@ from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+
+VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
 class Role(Enum):
@@ -53,6 +56,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients = {}
 
         self.modelservice = ModelService()
+
+        # Validate combiner name
+        match = re.search(VALID_NAME_REGEX, connect_config['myname'])
+        if not match:
+            raise ValueError('Unallowed character in combiner name. Allowed characters: a-z, A-Z, 0-9, _, -.')
 
         self.id = connect_config['myname']
         self.role = Role.COMBINER
