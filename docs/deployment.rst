@@ -11,7 +11,7 @@ This example serves as reference deployment for setting up a FEDn network consis
    -  One host/VM serving the controller / reducer 
    -  One host/VM running a combiner 
 
-We will in this example use the provided docker-compose templates to deploy the components across the three different hosts / VMs. 
+We will in this example use the provided docker-compose template to deploy the components across the three different hosts / VMs. 
 
 Prerequisites 
 -------------
@@ -26,7 +26,6 @@ and 4 CPUs and 16BG RAM for the combiner host. Each host needs the following:
 - `Docker Compose <https://docs.docker.com/compose/install>`_
 - `Python 3.8 <https://www.python.org/downloads>`_
 
-You can use the follwing bash script to install docker and docker-compose for Ubuntu 20.04 LTS:
 
 Certificates (optional)
 .......................
@@ -86,13 +85,13 @@ Then start the reducer:
       up -d reducer
 
 .. note::
-   Step b is a way to add the host:IP mapping to /etc/hosts in the Docker container in docker-compose. This step can be skipped if you handle this resolution in some other way. 
+   the use of 'extra-hosts-reducer.yaml' is a way to add the host:IP mapping to /etc/hosts in the Docker container in docker-compose. It can be skipped if you handle DNS resolution in some other way. 
 
 3. Deploy combiners
 -------------------
 
-Copy 'config/settings.yaml.template' to 'config/settings-combiner.yaml' and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the network), 
-a hostname (which is used by reducer and clients to connect to combiner RPC), 
+Copy 'config/settings.yaml.template' to 'config/settings-combiner.yaml' and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the FEDn network), 
+a hostname (which is used by reducer and clients to connect to the combiner RPC server), 
 and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings). 
 Also, provide the IP and port for the reducer under the 'controller' tag. Then deploy the combiner: 
 
@@ -103,7 +102,7 @@ Also, provide the IP and port for the reducer under the 'controller' tag. Then d
       -f config/combiner-settings.override.yaml \
       up -d combiner
 
-Optional: Repeat this step for any number of additional combiner nodes. Make sure to provide unique names for the two combiners,
+Optional: Repeat this step for any number of additional combiner nodes. Make sure to provide unique names for each combiners in the FEDn network,
 and update extra hosts for the reducer. 
 
 .. warning:: 
@@ -117,5 +116,5 @@ You can now choose an example, upload a compute package and an initial model, an
 - `Examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
 
 .. note:: 
-   The clients will also need to be able to resolve the hostname ('host' argument) for each combiner node in the network. 
+   The clients will also need to be able to resolve each combiner node usign the 'host' argument in the combiner settings file. 
    There is a template in 'config/extra-hosts-client.yaml.template' that can be modified for this purpose. 
