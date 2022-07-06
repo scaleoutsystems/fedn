@@ -4,7 +4,6 @@ import time
 from datetime import datetime
 
 from fedn.clients.reducer.control import ReducerControl
-from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
@@ -49,7 +48,7 @@ class Reducer:
 
     def run(self):
         """
-
+        Start REST service and control loop.
         """
         threading.Thread(target=self.control_loop, daemon=True).start()
 
@@ -57,7 +56,7 @@ class Reducer:
 
     def control_loop(self):
         """
-
+        Manage and report the state of the Reducer. 
         """
         try:
             old_state = self.control.state()

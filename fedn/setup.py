@@ -18,7 +18,7 @@ setup(
         "minio",
         "python-slugify",
         "grpcio-tools",
-        "grpcio",
+        "grpcio~=1.47.0",
         "numpy>=1.21.6,<=1.22.2",
         "protobuf",
         "pymongo",
