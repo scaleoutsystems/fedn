@@ -135,13 +135,14 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @run_cmd.command('reducer')
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
-@click.option('-s', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
-@click.option('-l', '--local-package', is_flag=True, help='Enable local compute package')
+@click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
+@click.option('-s', '--secure', required=False, default=False, help='Enable SSL encryption on REST service.')
+@click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer from file state.')
 @click.pass_context
-def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name, init):
+def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_package, name, init):
     """
 
     :param ctx:
@@ -152,8 +153,8 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
     :param init:
     """
     remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 'name': name,
-              'remote_compute_context': remote, 'init': init}
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 
+              'secure': secure, 'name': name, 'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
     try:

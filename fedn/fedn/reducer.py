@@ -32,12 +32,19 @@ class Reducer:
             raise MissingReducerConfiguration()
 
         self.name = config['name']
+        self.secure = config['secure'] 
 
+        # The certificate manager generates (self-signed) certs for combiner nodes  
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
+
+        if self.secure: 
+            rest_certificate = self.certificate_manager.get_or_create("reducer")
+        else: 
+            rest_certificate = None
 
         self.control = ReducerControl(self.statestore)
         self.inference = ReducerInferenceInterface()
-        rest_certificate = self.certificate_manager.get_or_create("reducer")
+
         self.rest = ReducerRestService(
             config, self.control, self.certificate_manager, certificate=rest_certificate)
 

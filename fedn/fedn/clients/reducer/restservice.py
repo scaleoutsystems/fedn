@@ -962,5 +962,7 @@ controller:
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
-
+        else: 
+            app.run(host="0.0.0.0", port=self.port)
+            
         return app
