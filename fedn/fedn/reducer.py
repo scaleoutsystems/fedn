@@ -43,7 +43,6 @@ class Reducer:
             rest_certificate = None
 
         self.control = ReducerControl(self.statestore)
-        self.inference = ReducerInferenceInterface()
 
         self.rest = ReducerRestService(
             config, self.control, self.certificate_manager, certificate=rest_certificate)

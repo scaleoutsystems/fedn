@@ -268,30 +268,3 @@ class CombinerInterface:
 
         return False
 
-
-class ReducerInferenceInterface:
-    """
-
-    """
-
-    def __init__(self):
-        self.model_wrapper = None
-
-    def set(self, model):
-        """
-
-        :param model:
-        """
-        self.model_wrapper = model
-
-    def infer(self, params):
-        """
-
-        :param params:
-        :return:
-        """
-        results = None
-        if self.model_wrapper:
-            results = self.model_wrapper.infer(params)
-
-        return results
