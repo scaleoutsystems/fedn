@@ -62,6 +62,10 @@ def clients(n_clients=2):
     assert(_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
 
 
+def combiners(n_combiners=1):
+    assert(_retry(_test_nodes, n_nodes=n_combiners, node_type='combiner'))
+
+
 def reducer():
     assert(_retry(_test_nodes, n_nodes=1, node_type='reducer'))
 

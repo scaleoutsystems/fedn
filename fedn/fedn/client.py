@@ -347,7 +347,8 @@ class Client:
 
                     if not self._attached:
                         return
-
+            except grpc.RpcError as e:
+                _ = e.code()
             except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
@@ -370,6 +371,7 @@ class Client:
             try:
                 for request in self.orchestrator.ModelValidationRequestStream(r):
                     # Process validation request
+                    _ = request.model_id
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
                                       type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
                     self.inbox.put(('validate', request))
@@ -417,7 +419,7 @@ class Client:
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
                         # TODO: Check responses
-
+                        _ = self.orchestrator.SendModelUpdate(update)
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE, request=update)
 
@@ -445,6 +447,8 @@ class Client:
                         self.str = str(datetime.now())
                         validation.timestamp = self.str
                         validation.correlation_id = request.correlation_id
+                        _ = self.orchestrator.SendModelValidation(
+                            validation)
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_VALIDATION, request=validation)
                     else:
@@ -589,6 +593,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
+        _ = self.connection.SendStatus(status)
 
     def run_web(self):
         """Starts a local logging UI (Flask app) serving on port 8080.
