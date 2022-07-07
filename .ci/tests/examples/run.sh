@@ -19,6 +19,9 @@ docker-compose \
 >&2 echo "Wait for reducer to start"
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py reducer
 
+>&2 echo "Wait for combiners to connect"
+".$example/bin/python" ../../.ci/tests/examples/wait_for.py combiners
+
 >&2 echo "Upload compute package"
 curl -k -X POST \
     -F file=@package.tgz \

@@ -325,6 +325,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(
             config), flush=True)
 
+        self.control.push_round_config(config)
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
