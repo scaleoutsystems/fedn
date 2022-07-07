@@ -4,4 +4,9 @@
 tmp/*
 test/*
 docs/*
-**/venv
+**/.venv
+**/.mnist-keras
+**/.mnist-pytorch
+**/*.npz
+**/data
+**/*.tgz

@@ -164,8 +164,8 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, local_package, name
         print(e, flush=True)
         exit(-1)
 
-    # if not remote:
-    #     helper = check_helper_config_file(fedn_config)
+    if not remote:
+        _ = check_helper_config_file(fedn_config)
 
     try:
         network_id = fedn_config['network_id']
