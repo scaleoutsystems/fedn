@@ -50,13 +50,14 @@ def get_helper(helper_type):
     :return:
     """
     if helper_type == 'numpyarray':
-        __import__('NumpyArrayHelper', fromlist=["fedn.utils.numpyarrayhelper"])
-        return NumpyArrayHelper()  # noqa: F821
+        # TODO: refactor cyclical import to avoid this ugly line
+        """ noqa """; from fedn.utils.numpyarrayhelper import NumpyArrayHelper  # autopep8: off # noqa: E702
+        return NumpyArrayHelper()
     elif helper_type == 'keras':
-        __import__('KerasHelper', fromlist=["fedn.utils.kerashelper"])
-        return KerasHelper()  # noqa: F821
+        """ noqa """; from fedn.utils.kerashelper import KerasHelper  # autopep8: off # noqa: E702
+        return KerasHelper()
     elif helper_type == 'pytorch':
-        __import__('PytorchHelper', fromlist=["fedn.utils.pytorchhelper"])
-        return PytorchHelper()  # noqa: F821
+        """ noqa """; from fedn.utils.pytorchhelper import PytorchHelper  # autopep8: off # noqa: E702
+        return PytorchHelper()
     else:
         return None

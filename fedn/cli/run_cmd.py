@@ -153,7 +153,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_packa
     :param init:
     """
     remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key, 
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'secret_key': secret_key,
               'secure': secure, 'name': name, 'remote_compute_context': remote, 'init': init}
 
     # Read settings from config file
@@ -164,6 +164,9 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_packa
         print('Failed to read config from settings file, exiting.', flush=True)
         print(e, flush=True)
         exit(-1)
+
+    if not remote:
+        _ = check_helper_config_file(fedn_config)
 
     try:
         network_id = fedn_config['network_id']

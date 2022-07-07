@@ -434,6 +434,8 @@ class ReducerRestService:
                 # Create a new combiner
                 certificate, key = self.certificate_manager.get_or_create(
                     address).get_keypair_raw()
+                _ = base64.b64encode(certificate)
+                _ = base64.b64encode(key)
 
                 # TODO append and redirect to index.
 
