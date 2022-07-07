@@ -105,6 +105,9 @@ class ReducerRestService:
         else:
             self.SECRET_KEY = None
 
+        if 'secure' in config.keys():
+            self.secure = config['secure']
+
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
             self.package = 'remote'
@@ -245,8 +248,23 @@ class ReducerRestService:
         :return:
         """
         app = Flask(__name__)
+        if self.secure:
+            #Among other things, force https
+            from flask_talisman import Talisman
+            Talisman(app,content_security_policy=None)
+
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         app.config['SECRET_KEY'] = self.SECRET_KEY
+
+        #@app.before_request
+        #def before_request_callback():
+        #    """ If configured with SSL, forward http to https. """
+        #    #if not request.is_secure:
+        #    if self.secure:
+        #        url = request.url.replace("http://", "https://", 1)
+        #        code = 301
+        #        print(url,flush=True)
+        #        return redirect(url, code=code)
 
         @app.route('/')
         def index():
@@ -958,11 +976,11 @@ controller:
             return jsonify(data)
 
         if self.certificate:
-            print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
+            print("Starting server with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                       str(self.certificate.key_path)), flush=True)
             app.run(host="0.0.0.0", port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
         else: 
             app.run(host="0.0.0.0", port=self.port)
-            
+
         return app

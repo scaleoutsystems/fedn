@@ -59,7 +59,7 @@ def run_cmd(ctx):
 @click.option('-i', '--client_id', required=False)
 @click.option('--local-package', is_flag=True, help='Enable local compute package')
 @click.option('-u', '--dry-run', required=False, default=False)
-@click.option('-s', '--secure', required=False, default=True)
+@click.option('-s', '--secure', required=False, default=False)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
 @click.option('-v', '--verify-cert', required=False, default=False)
 @click.option('-c', '--preferred-combiner', required=False, default=False)
@@ -136,7 +136,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @click.option('-d', '--discoverhost', required=False)
 @click.option('-p', '--discoverport', required=False, default='8090', show_default=True)
 @click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
-@click.option('-s', '--secure', required=False, default=False, help='Enable SSL encryption on REST service.')
+@click.option('-s', '--secure', required=False, default=False, help='Enable SSL')
 @click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8])
 @click.option('-i', '--init', required=True, default=None,
@@ -165,9 +165,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_packa
         print(e, flush=True)
         exit(-1)
 
-    # if not remote:
-    #     helper = check_helper_config_file(fedn_config)
-
     try:
         network_id = fedn_config['network_id']
     except KeyError:
@@ -176,7 +173,6 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_packa
 
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
-
         statestore = MongoReducerStateStore(
             network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:

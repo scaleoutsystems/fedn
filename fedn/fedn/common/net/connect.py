@@ -23,10 +23,10 @@ class Status(enum.Enum):
 
 class ConnectorClient:
     """
-
+    Configure connector helper for connecting client to reducer REST service.  
     """
 
-    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=True, preshared_cert=True,
+    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=False, preshared_cert=True,
                  verify_cert=False):
 
         if not verify_cert:
@@ -39,27 +39,22 @@ class ConnectorClient:
         self.preferred_combiner = combiner
         self.id = id
         self.verify_cert = verify_cert
-        #        self.state = State.Disconnected
         self.secure = secure
         self.certificate = None
         self.package = 'remote' if remote_package else 'local'
-        if not secure:
-            prefix = "http://"
-        else:
-            prefix = "https://"
+      
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
 
-        self.prefix = prefix
+        self.prefix = "http://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
+
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
-        if self.certificate:
-            print("Securely connecting with certificate", flush=True)
 
     def state(self):
         """
@@ -115,10 +110,10 @@ class ConnectorClient:
 
 class ConnectorCombiner:
     """
-
+    Configure connector helper for connecting combiner to reducer REST service.  
     """
 
-    def __init__(self, host, port, myhost, myport, token, name, secure=True, preshared_cert=True, verify_cert=False):
+    def __init__(self, host, port, myhost, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
 
         if not verify_cert:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -130,25 +125,21 @@ class ConnectorCombiner:
         self.token = token
         self.name = name
         self.verify_cert = verify_cert
-        # self.state = State.Disconnected
         self.secure = secure
-        if not secure:
-            prefix = "http://"
-        else:
-            prefix = "https://"
+
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem",
                                            ).cert_path
         else:
             self.verify_cert = False
-        self.prefix = prefix
 
+        self.prefix = "http://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
+
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
-        print("Securely connecting with certificate", flush=True)
 
     def state(self):
         """

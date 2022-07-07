@@ -23,6 +23,7 @@ setup(
         "protobuf",
         "pymongo",
         "Flask",
+        "flask-talisman",
         "Flask-WTF",
         "pyjwt",
         "pyopenssl",
