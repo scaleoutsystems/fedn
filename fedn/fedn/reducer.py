@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 import time
 from datetime import datetime
@@ -8,6 +9,8 @@ from fedn.clients.reducer.interfaces import ReducerInferenceInterface
 from fedn.clients.reducer.restservice import ReducerRestService
 from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
+
+VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
 class InvalidReducerConfiguration(Exception):
@@ -31,6 +34,10 @@ class Reducer:
             print("REDUCER: Failed to retrive Reducer config, exiting.")
             raise MissingReducerConfiguration()
 
+        # Validate reducer name
+        match = re.search(VALID_NAME_REGEX, config['name'])
+        if not match:
+            raise ValueError('Unallowed character in reducer name. Allowed characters: a-z, A-Z, 0-9, _, -.')
         self.name = config['name']
 
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
