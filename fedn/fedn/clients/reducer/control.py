@@ -307,6 +307,7 @@ class ReducerControl:
         for combiner, compute_plan in combiners:
             try:
                 self.sync_combiners([combiner], self.get_latest_model())
+                _ = combiner.start(compute_plan)
             except CombinerUnavailableError:
                 # This is OK, handled by round accept policy
                 self._handle_unavailable_combiner(combiner)
@@ -405,6 +406,8 @@ class ReducerControl:
         if not model_id:
             print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
             return
+        for combiner in combiners:
+            _ = combiner.set_model_id(model_id)
 
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
