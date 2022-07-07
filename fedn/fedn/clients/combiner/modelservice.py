@@ -82,7 +82,7 @@ class ModelService(rpc.ModelServiceServicer):
                     break
 
         # TODO: Check result
-        # result = self.Upload(upload_request_generator(bt), self)
+        _ = self.Upload(upload_request_generator(bt), self)
 
     # Model Service
     def Upload(self, request_iterator, context):
