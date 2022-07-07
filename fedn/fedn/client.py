@@ -3,6 +3,7 @@ import io
 import json
 import os
 import queue
+import re
 import sys
 import tempfile
 import threading
@@ -27,6 +28,7 @@ from fedn.utils.helpers import get_helper
 from fedn.utils.logger import Logger
 
 CHUNK_SIZE = 1024 * 1024
+VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
 class Client:
@@ -68,6 +70,10 @@ class Client:
                                          secure=config['secure'],
                                          preshared_cert=config['preshared_cert'],
                                          verify_cert=config['verify_cert'])
+        # Validate client name
+        match = re.search(VALID_NAME_REGEX, config['name'])
+        if not match:
+            raise ValueError('Unallowed character in client name. Allowed characters: a-z, A-Z, 0-9, _, -.')
 
         self.name = config['name']
         dirname = time.strftime("%Y%m%d-%H%M%S")
