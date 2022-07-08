@@ -13,7 +13,7 @@ COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
 COPY $REQUIREMENTS /app/config/requirements.txt
 
 # Install developer tools (needed for psutil)
-RUN apt update && apt install -y python3-dev gcc
+RUN apt-get update && apt-get install -y python3-dev gcc
 
 # Create FEDn app directory
 SHELL ["/bin/bash", "-c"]
