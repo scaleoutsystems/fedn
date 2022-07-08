@@ -1,0 +1,9 @@
+# Compose schema version
+version: '3.3'
+
+# Overriding settings
+services:
+  combiner:
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/config/settings-combiner.yaml:/app/config/settings-combiner.yaml
