@@ -38,14 +38,14 @@ class Reducer:
         if not match:
             raise ValueError('Unallowed character in reducer name. Allowed characters: a-z, A-Z, 0-9, _, -.')
         self.name = config['name']
-        self.secure = config['secure'] 
+        self.secure = config['secure']
 
-        # The certificate manager generates (self-signed) certs for combiner nodes  
+        # The certificate manager generates (self-signed) certs for combiner nodes
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        if self.secure: 
+        if self.secure:
             rest_certificate = self.certificate_manager.get_or_create("reducer")
-        else: 
+        else:
             rest_certificate = None
 
         self.control = ReducerControl(self.statestore)
@@ -63,7 +63,7 @@ class Reducer:
 
     def control_loop(self):
         """
-        Manage and report the state of the Reducer. 
+        Manage and report the state of the Reducer.
         """
         try:
             old_state = self.control.state()

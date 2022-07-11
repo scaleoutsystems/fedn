@@ -267,4 +267,3 @@ class CombinerInterface:
             return False
 
         return False
-

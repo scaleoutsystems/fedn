@@ -23,7 +23,7 @@ class Status(enum.Enum):
 
 class ConnectorClient:
     """
-    Configure connector helper for connecting client to reducer REST service.  
+    Configure connector helper for connecting client to reducer REST service.
     """
 
     def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=False, preshared_cert=True,
@@ -42,7 +42,7 @@ class ConnectorClient:
         self.secure = secure
         self.certificate = None
         self.package = 'remote' if remote_package else 'local'
-      
+
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem").cert_path
@@ -110,7 +110,7 @@ class ConnectorClient:
 
 class ConnectorCombiner:
     """
-    Configure connector helper for connecting combiner to reducer REST service.  
+    Configure connector helper for connecting combiner to reducer REST service.
     """
 
     def __init__(self, host, port, myhost, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
