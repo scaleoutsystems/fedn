@@ -111,8 +111,9 @@ class PackageRuntime:
         self.checksum = None
         self.expected_checksum = None
 
-    def download(self, host, port, token, name=None):
+    def download(self, host, port, token, secure=False, name=None):
         """
+        Download compute package from controller 
 
         :param host:
         :param port:
@@ -120,7 +121,12 @@ class PackageRuntime:
         :param name:
         :return:
         """
-        path = "https://{}:{}/context".format(host, port)
+        if secure:
+            scheme = "https"
+        else:
+            scheme = "http"
+
+        path = f"{scheme}://{host}:{port}/context"
         if name:
             path = path + "?name={}".format(name)
 
@@ -139,7 +145,7 @@ class PackageRuntime:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
 
-        path = "https://{}:{}/checksum".format(host, port)
+        path = f"{scheme}://{host}:{port}/checksum"
 
         if name:
             path = path + "?name={}".format(name)
