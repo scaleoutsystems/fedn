@@ -26,13 +26,13 @@ docker-compose \
 curl -k -X POST \
     -F file=@package.tgz \
     -F helper="$helper" \
-    https://localhost:8090/context
+    http://localhost:8090/context
 printf '\n'
 
 >&2 echo "Upload seed"
 curl -k -X POST \
     -F seed=@seed.npz \
-    https://localhost:8090/models
+    http://localhost:8090/models
 printf '\n'
 
 >&2 echo "Wait for clients to connect"
@@ -42,7 +42,7 @@ printf '\n'
 curl -k -X POST \
     -F rounds=3 \
     -F validate=True \
-    https://localhost:8090/control
+    http://localhost:8090/control
 printf '\n'
 
 >&2 echo "Checking rounds success"
@@ -50,7 +50,7 @@ printf '\n'
 
 >&2 echo "Test client connection with dowloaded settings"
 # Get config
-curl -k https://localhost:8090/config/download > ../../client.yaml
+curl -k http://localhost:8090/config/download > ../../client.yaml
 
 # Redeploy clients with config
 docker-compose \

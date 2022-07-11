@@ -160,7 +160,11 @@ class Client:
 
             while tries > 0:
                 retval = pr.download(
-                    config['discover_host'], config['discover_port'], config['token'])
+                    host=config['discover_host'],
+                    port=config['discover_port'],
+                    token=config['token'],
+                    secure=config['secure']
+                )
                 if retval:
                     break
                 time.sleep(60)

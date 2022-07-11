@@ -40,7 +40,7 @@ def _test_rounds(n_rounds):
 def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090'):
     try:
         resp = requests.get(
-            f'https://{reducer_host}:{reducer_port}/netgraph', verify=False)
+            f'http://{reducer_host}:{reducer_port}/netgraph', verify=False)
     except Exception as e:
         _eprint(f'Reques exception econuntered: {e}.')
         return False
