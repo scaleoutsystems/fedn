@@ -248,23 +248,24 @@ class ReducerRestService:
         :return:
         """
         app = Flask(__name__)
-        if self.secure:
+        #if self.secure:
             #Among other things, force https
-            from flask_talisman import Talisman
-            Talisman(app,content_security_policy=None)
+        #    from flask_talisman import Talisman
+        #   Talisman(app,content_security_policy=None)
 
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         app.config['SECRET_KEY'] = self.SECRET_KEY
 
-        #@app.before_request
-        #def before_request_callback():
-        #    """ If configured with SSL, forward http to https. """
-        #    #if not request.is_secure:
-        #    if self.secure:
-        #        url = request.url.replace("http://", "https://", 1)
-        #        code = 301
-        #        print(url,flush=True)
-        #        return redirect(url, code=code)
+        @app.before_request
+        def before_request_callback():
+            """ If configured with SSL, forward http to https. """
+            #if not request.is_secure:
+            print(request,flush=True)
+            if self.secure and not request.is_secure:
+                url = request.url.replace("http://", "https://", 1)
+                code = 301
+                print(url,flush=True)
+                return redirect(url, code=code)
 
         @app.route('/')
         def index():
@@ -673,22 +674,6 @@ class ReducerRestService:
             }
 
             return jsonify(response)
-
-        @app.route('/infer')
-        def infer():
-            """
-
-            :return:
-            """
-            if self.control.state() == ReducerState.setup:
-                return "Error, not configured"
-            result = ""
-            try:
-                self.control.set_model_id()
-            except ModelError:
-                print("Failed to seed control.")
-
-            return result
 
         def combiner_status():
             """ Get current status reports from all combiners registered in the network.
