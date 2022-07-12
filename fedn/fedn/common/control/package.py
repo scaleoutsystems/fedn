@@ -113,7 +113,7 @@ class PackageRuntime:
 
     def download(self, host, port, token, secure=False, name=None):
         """
-        Download compute package from controller 
+        Download compute package from controller
 
         :param host:
         :param port:
