@@ -75,7 +75,7 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer --secure=True -n reducer --init=config/settings-reducer.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=config/settings-reducer.yaml"
     ports:
       - 8090:8090
 
@@ -93,7 +93,7 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --secure=True -in config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner -in config/settings-combiner.yaml"
     ports:
       - 12080:12080
 
@@ -110,6 +110,6 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --secure=True -in config/settings-client.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client -in config/settings-client.yaml"
     deploy:
       replicas: 0
