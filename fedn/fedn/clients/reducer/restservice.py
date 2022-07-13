@@ -15,7 +15,7 @@ from bson import json_util
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, send_file, send_from_directory,
                    url_for)
-from flask_talisman import Talisman
+
 from werkzeug.utils import secure_filename
 
 from fedn.clients.reducer.interfaces import CombinerInterface
@@ -249,22 +249,9 @@ class ReducerRestService:
         :return:
         """
         app = Flask(__name__)
-        if self.secure:
-            # Among other things, force https
-            Talisman(app, content_security_policy=None)
 
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         app.config['SECRET_KEY'] = self.SECRET_KEY
-
-        # @app.before_request
-        # def before_request_callback():
-        #    """ If configured with SSL, forward http to https. """
-        #    #if not request.is_secure:
-        #    if self.secure:
-        #        url = request.url.replace("http://", "https://", 1)
-        #        code = 301
-        #        print(url,flush=True)
-        #        return redirect(url, code=code)
 
         @app.route('/')
         def index():
