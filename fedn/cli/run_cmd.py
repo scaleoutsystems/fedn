@@ -234,7 +234,7 @@ def reducer_cmd(ctx, discoverhost, discoverport, secret_key, secure, local_packa
 @click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8])
 @click.option('-h', '--hostname', required=False, default="combiner")
 @click.option('-i', '--port', required=False, default=12080)
-@click.option('-s', '--secure', required=False, default=True)
+@click.option('-s', '--secure', required=False, default=False)
 @click.option('-c', '--max_clients', required=False, default=30)
 @click.option('-in', '--init', required=False, default=None,
               help='Set to a filename to (re)init combiner from file state.')
@@ -263,6 +263,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             except yaml.YAMLError as e:
                 print('Failed to read config from settings file, exiting.', flush=True)
                 raise (e)
+
         # Read/overide settings from config file
         if 'controller' in settings:
             controller_config = settings['controller']
