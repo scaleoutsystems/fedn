@@ -73,7 +73,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                                             myhost=connect_config['myhost'],
                                             myport=connect_config['myport'],
                                             token=connect_config['token'],
-                                            name=connect_config['myname'])
+                                            name=connect_config['myname'],
+                                            secure=connect_config['secure'])
 
         response = None
         while True:

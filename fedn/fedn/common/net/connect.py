@@ -43,13 +43,17 @@ class ConnectorClient:
         self.certificate = None
         self.package = 'remote' if remote_package else 'local'
 
+        if not secure:
+            self.prefix = "http://"
+        else:
+            self.prefix = "https://"
+
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem").cert_path
         else:
             self.verify_cert = False
 
-        self.prefix = "http://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
 
@@ -127,6 +131,11 @@ class ConnectorCombiner:
         self.verify_cert = verify_cert
         self.secure = secure
 
+        if not secure:
+            self.prefix = "http://"
+        else:
+            self.prefix = "https://"
+        
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem",
@@ -134,7 +143,6 @@ class ConnectorCombiner:
         else:
             self.verify_cert = False
 
-        self.prefix = "http://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
 
