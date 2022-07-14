@@ -23,7 +23,7 @@ class Status(enum.Enum):
 
 class ConnectorClient:
     """
-    Configure connector helper for connecting client to reducer REST service.
+    Connector for assigning client to a combiner in the FEDn network.
     """
 
     def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=False, preshared_cert=True,
@@ -63,14 +63,17 @@ class ConnectorClient:
     def state(self):
         """
 
-        :return:
+        :return: Connector State
         """
         return self.state
 
     def assign(self):
         """
+        Connect client to FEDn network via discovery service, ask for combiner assignment.
 
-        :return:
+        :return: Tuple with assingment status, combiner connection information
+        if sucessful, else None.
+        :rtype: Status, json
         """
         try:
             cert = str(self.certificate) if self.verify_cert else False
@@ -114,7 +117,7 @@ class ConnectorClient:
 
 class ConnectorCombiner:
     """
-    Configure connector helper for connecting combiner to reducer REST service.
+    Connector for annnouncing combiner to the FEDn network.
     """
 
     def __init__(self, host, port, myhost, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
@@ -152,14 +155,17 @@ class ConnectorCombiner:
     def state(self):
         """
 
-        :return:
+        :return: Combiner State
         """
         return self.state
 
     def announce(self):
         """
+        Announce combiner to FEDn network via discovery service.
 
-        :return:
+        :return: Tuple with announcement Status, FEDn network configuration
+        if sucessful, else None.
+        :rtype: Staus, json
         """
         try:
             cert = str(self.certificate) if self.verify_cert else False
