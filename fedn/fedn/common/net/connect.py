@@ -135,7 +135,7 @@ class ConnectorCombiner:
             self.prefix = "http://"
         else:
             self.prefix = "https://"
-        
+
         if secure and preshared_cert:
             self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
                                            cert_name="client-cert.pem",

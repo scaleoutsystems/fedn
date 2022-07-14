@@ -20,7 +20,6 @@ from werkzeug.utils import secure_filename
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from fedn.common.exceptions import ModelError
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
 
