@@ -27,14 +27,10 @@ class Server:
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         if config['secure']:
-            # self.certificate = Certificate(os.getcwd() + '/certs/', cert_name='combiner-cert.pem', key_name='combiner-key.pem')
-            # self.certificate.set_keypair_raw(config['certificate'], config['key'])
-
             server_credentials = grpc.ssl_server_credentials(
                 ((config['key'], config['certificate'],),))
             self.server.add_secure_port(
                 '[::]:' + str(config['port']), server_credentials)
-
         else:
             self.server.add_insecure_port('[::]:' + str(config['port']))
 

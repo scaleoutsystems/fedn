@@ -5,6 +5,7 @@ from .certificate import Certificate
 
 class CertificateManager:
     """
+    Utility to handle certificates for both Reducer and Combiner services. 
 
     """
 
@@ -17,9 +18,11 @@ class CertificateManager:
 
     def get_or_create(self, name):
         """
+        Look for an existing certificate, if not found, generate a self-signed certificate based on name.
 
-        :param name:
-        :return:
+        :param name: The name used when issuing the certificate.
+        :return: A certificate
+        :rtype: str
         """
         search = self.find(name)
         if search:
@@ -33,9 +36,11 @@ class CertificateManager:
 
     def add(self, certificate):
         """
+        Add certificate to certificate list.
 
         :param certificate:
-        :return:
+        :return: Success status (True, False)
+        :rtype: Boolean
         """
         if not self.find(certificate.name):
             self.certificates.append(certificate)
@@ -44,29 +49,28 @@ class CertificateManager:
 
     def load_all(self):
         """
+        Load all certificates and add to certificates list.
 
         """
         for filename in sorted(os.listdir(self.directory)):
             if filename.endswith('cert.pem'):
                 name = filename.split('-')[0]
-                # print("got a file here! Read it {}".format(filename))
                 key_name = name + '-key.pem'
-                # print("trying with {}".format(key_name))
-                if os.path.isfile(os.path.join(self.directory, key_name)):
 
-                    c = Certificate(self.directory, name=name,
-                                    cert_name=filename, key_name=key_name)
-                    self.certificates.append(c)
-                else:
-                    c = Certificate(self.directory, name=name, cert_name=filename,
-                                    key_name=key_name)  # , cert_only=True)
-                    self.certificates.append(c)
+                # if os.path.isfile(os.path.join(self.directory, key_name)):
+                c = Certificate(self.directory, name=name,
+                                cert_name=filename, key_name=key_name)
+                self.certificates.append(c)
+                # else:
+                #    c = Certificate(self.directory, name=name,
+                #                    cert_name=filename, key_name=key_name)
+                #    self.certificates.append(c)
 
     def find(self, name):
         """
 
-        :param name:
-        :return:
+        :param name: Name of certificate
+        :return: certificate if successful, else None
         """
         for cert in self.certificates:
             if cert.name == name:
