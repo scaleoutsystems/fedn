@@ -18,7 +18,7 @@ heterogeneous environments. For more details see https://arxiv.org/abs/2103.0014
 Core Features
 =============
 
--  **Built for real-world production scenarios.** FEDn is highly scalable and resilient via a tiered 
+-  **Scalable and resilient.** FEDn is highly scalable and resilient via a tiered 
    architecture where multiple aggregation servers (combiners) form a network to divide up the work to coordinate clients and aggregate models. 
    Recent benchmarks show high performance both for thousands of clients in a cross-device
    setting and for large model updates (1GB) in a cross-silo setting. 
