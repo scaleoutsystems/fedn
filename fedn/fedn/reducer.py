@@ -21,12 +21,19 @@ class MissingReducerConfiguration(Exception):
 
 
 class Reducer:
-    """
+    """ A class used to instantiate the Reducer service.
 
+    Start Reducer services.
     """
 
     def __init__(self, statestore):
-        """ """
+        """
+        Parameters
+        ----------
+        statestore: dict
+            The backend statestore object.
+        """
+
         self.statestore = statestore
         config = self.statestore.get_reducer()
         if not config:
@@ -38,13 +45,13 @@ class Reducer:
         if not match:
             raise ValueError('Unallowed character in reducer name. Allowed characters: a-z, A-Z, 0-9, _, -.')
         self.name = config['name']
-        self.secure = config['secure']
 
-        # The certificate manager generates (self-signed) certs for combiner nodes
+        # The certificate manager is a utility that generates (self-signed) certificates.
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        if self.secure:
-            rest_certificate = self.certificate_manager.get_or_create("reducer")
+        self.use_ssl = config['use_ssl']
+        if self.use_ssl:
+            rest_certificate = self.certificate_manager.get_or_create(self.name)
         else:
             rest_certificate = None
 
@@ -54,17 +61,15 @@ class Reducer:
             config, self.control, self.certificate_manager, certificate=rest_certificate)
 
     def run(self):
-        """
-        Start REST service and control loop.
-        """
+        """Start REST service and control loop."""
+
         threading.Thread(target=self.control_loop, daemon=True).start()
 
         self.rest.run()
 
     def control_loop(self):
-        """
-        Manage and report the state of the Reducer.
-        """
+        """Manage and report the state of the Reducer."""
+
         try:
             old_state = self.control.state()
 

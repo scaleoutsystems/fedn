@@ -8,6 +8,7 @@ from OpenSSL import crypto
 
 class Certificate:
     """
+    Utility to generate unsigned certificates.
 
     """
     CERT_NAME = "cert.pem"
@@ -23,8 +24,10 @@ class Certificate:
         else:
             print(
                 "Successfully created the directory to store cert and keys in {}".format(cwd))
+
         self.key_path = os.path.join(cwd, key_name)
         self.cert_path = os.path.join(cwd, cert_name)
+
         if name:
             self.name = name
         else:
@@ -32,6 +35,7 @@ class Certificate:
 
     def gen_keypair(self, ):
         """
+        Generate keypair.
 
         """
         key = crypto.PKey()
@@ -41,7 +45,7 @@ class Certificate:
         cert.get_subject().ST = "Stockholm"
         cert.get_subject().O = "Development Key"  # noqa: E741
         cert.get_subject().OU = "Development Key"
-        cert.get_subject().CN = self.name  # gethostname()
+        cert.get_subject().CN = self.name
 
         cert.set_serial_number(int(random.randint(1000, 100000)))
 
