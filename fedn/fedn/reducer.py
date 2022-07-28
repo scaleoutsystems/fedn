@@ -40,6 +40,7 @@ class Reducer:
             print("REDUCER: Failed to retrive Reducer config, exiting.")
             raise MissingReducerConfiguration()
 
+        print(config, flush=True)
         # Validate reducer name
         match = re.search(VALID_NAME_REGEX, config['name'])
         if not match:

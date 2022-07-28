@@ -86,12 +86,14 @@ class ReducerRestService:
     def __init__(self, config, control, certificate_manager, certificate=None):
 
         print("config object!: \n\n\n\n{}".format(config))
-        if config['discover_host']:
-            self.name = config['discover_host']
+        if config['host']:
+            self.host = config['host']
         else:
-            self.name = config['name']
+            self.host = None
 
-        self.port = config['discover_port']
+        self.name = config['name']
+
+        self.port = config['port']
         self.network_id = config['name'] + '-network'
 
         if 'token' in config.keys():
@@ -104,8 +106,8 @@ class ReducerRestService:
         else:
             self.SECRET_KEY = None
 
-        if 'secure' in config.keys():
-            self.secure = config['secure']
+        if 'use_ssl' in config.keys():
+            self.use_ssl = config['use_ssl']
 
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
@@ -835,8 +837,8 @@ class ReducerRestService:
             discover_port = self.port
             ctx = """network_id: {network_id}
 controller:
-    discover_host: {discover_host}
-    discover_port: {discover_port}
+    host: {discover_host}
+    port: {discover_port}
     {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
@@ -860,8 +862,6 @@ controller:
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
 
-            # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
-            #    return "Error, Context already assigned!"
             # if reset is not empty then allow context re-set
             reset = request.args.get('reset', None)
             if reset:
@@ -946,12 +946,17 @@ controller:
 
             return jsonify(data)
 
+        if not self.host:
+            bind = "0.0.0.0"
+        else:
+            bind = self.host
+
         if self.certificate:
             print("Starting server with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                     str(self.certificate.key_path)), flush=True)
-            app.run(host="0.0.0.0", port=self.port,
+            app.run(host=bind, port=self.port,
                     ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
         else:
-            app.run(host="0.0.0.0", port=self.port)
+            app.run(host=bind, port=self.port)
 
         return app
