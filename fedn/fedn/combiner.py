@@ -48,7 +48,7 @@ def role_to_proto_role(role):
 ####################################################################################################################
 
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
-    """ Communication relayer. """
+    """ Combiner gRPC server. """
 
     def __init__(self, connect_config):
 

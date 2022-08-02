@@ -118,7 +118,7 @@ class ReducerRestService:
         self.control = control
         self.certificate = certificate
         self.certificate_manager = certificate_manager
-        self.current_compute_context = None  # self.control.get_compute_context()
+        self.current_compute_context = None
 
     def to_dict(self):
         """
@@ -283,7 +283,6 @@ class ReducerRestService:
             # Return response
             return response
 
-        # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
         def status():
             """
@@ -423,8 +422,6 @@ class ReducerRestService:
                     address).get_keypair_raw()
                 _ = base64.b64encode(certificate)
                 _ = base64.b64encode(key)
-
-                # TODO append and redirect to index.
 
                 combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
