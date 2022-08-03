@@ -5,6 +5,4 @@ version: '3.3'
 services:
    reducer:
      extra_hosts:
-        combiner: 130.239.xx.xxx 
-
-
+        combiner: xxx.xxx.xxx.xxx # combiner IP address

@@ -1,9 +1,0 @@
-version: '3.3'
-
-# Map the "name" parameter from combiner-settings.yaml to the host IP
-# Make one entry for each combiner in the network.
-services:
-   client:
-     extra_hosts:
-        combiner: 130.239.xx.xxx
-
