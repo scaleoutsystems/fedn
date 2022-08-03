@@ -5,7 +5,7 @@ from .certificate import Certificate
 
 class CertificateManager:
     """
-    Utility to handle certificates for both Reducer and Combiner services. 
+    Utility to handle certificates for both Reducer and Combiner services.
 
     """
 
@@ -57,14 +57,9 @@ class CertificateManager:
                 name = filename.split('-')[0]
                 key_name = name + '-key.pem'
 
-                # if os.path.isfile(os.path.join(self.directory, key_name)):
                 c = Certificate(self.directory, name=name,
                                 cert_name=filename, key_name=key_name)
                 self.certificates.append(c)
-                # else:
-                #    c = Certificate(self.directory, name=name,
-                #                    cert_name=filename, key_name=key_name)
-                #    self.certificates.append(c)
 
     def find(self, name):
         """
