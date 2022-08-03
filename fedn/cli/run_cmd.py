@@ -229,16 +229,16 @@ def reducer_cmd(ctx, host, port, secret_key, use_ssl, local_package, name, init)
 
 
 @run_cmd.command('combiner')
-@click.option('-d', '--discoverhost', required=False)
-@click.option('-p', '--discoverport', required=False)
-@click.option('-t', '--token', required=False)
-@click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8])
-@click.option('-h', '--host', required=False, default="combiner")
-@click.option('-i', '--port', required=False, default=12080)
-@click.option('-s', '--secure', required=False, default=False)
-@click.option('-c', '--max_clients', required=False, default=30)
+@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services (reducer).')
+@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
+@click.option('-t', '--token', required=False, help='Specify token for connecting to the reducer.')
+@click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8], help='Set name for combiner.')
+@click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
+@click.option('-i', '--port', required=False, default=12080, help='Set port.')
+@click.option('-s', '--secure', required=False, default=False, help='Enable SSL/TLS encrypted gRPC channels.')
+@click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
-              help='Set to a filename to (re)init combiner from file state.')
+              help='Path to configuration file to (re)init combiner.')
 @click.pass_context
 def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure, max_clients, init):
     """
