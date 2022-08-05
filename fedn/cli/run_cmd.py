@@ -3,7 +3,6 @@ import uuid
 
 import click
 import yaml
-
 from fedn.client import Client
 from fedn.clients.reducer.restservice import (decode_auth_token,
                                               encode_auth_token)
@@ -275,6 +274,10 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             combiner_config = settings['combiner']
             config['myname'] = combiner_config['name']
             config['myhost'] = combiner_config['host']
+            if 'fqdn' in combiner_config.keys():
+                config['fqdn'] = combiner_config['fqdn']
+            else:
+                config['fqdn'] = ''
             config['myport'] = combiner_config['port']
             config['max_clients'] = combiner_config['max_clients']
 

@@ -3,7 +3,6 @@ import os
 
 import requests as r
 import urllib3
-
 from fedn.common.security.certificate import Certificate
 
 
@@ -120,12 +119,13 @@ class ConnectorCombiner:
     Connector for annnouncing combiner to the FEDn network.
     """
 
-    def __init__(self, host, port, myhost, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
+    def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
 
         if not verify_cert:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         self.host = host
+        self.fqdn = fqdn
         self.port = port
         self.myhost = myhost
         self.myport = myport
@@ -169,9 +169,10 @@ class ConnectorCombiner:
         """
         try:
             cert = str(self.certificate) if self.verify_cert else False
-            retval = r.get("{}?name={}&address={}&port={}".format(self.connect_string + '/add',
+            retval = r.get("{}?name={}&address={}&fqdn={}&port={}".format(self.connect_string + '/add',
                                                                   self.name,
                                                                   self.myhost,
+                                                                  self.fqdn,
                                                                   self.myport),
                            verify=cert,
                            headers={'Authorization': 'Token {}'.format(self.token)})

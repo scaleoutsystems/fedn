@@ -12,16 +12,15 @@ import jwt
 import pandas as pd
 from bokeh.embed import json_item
 from bson import json_util
-from flask import (Flask, abort, flash, jsonify, make_response, redirect,
-                   render_template, request, send_file, send_from_directory,
-                   url_for)
-from werkzeug.utils import secure_filename
-
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
+from flask import (Flask, abort, flash, jsonify, make_response, redirect,
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
+from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -407,6 +406,7 @@ class ReducerRestService:
             # TODO check for get variables
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
+            fqdn = str(request.args.get('fqdn', None))
             port = request.args.get('port', None)
             # token = request.args.get('token')
             # TODO do validation
@@ -423,7 +423,7 @@ class ReducerRestService:
                 _ = base64.b64encode(certificate)
                 _ = base64.b64encode(key)
 
-                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
+                combiner = CombinerInterface(self, name, address, fqdn, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
 
@@ -649,6 +649,7 @@ class ReducerRestService:
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'fqdn': combiner.fqdn,
                 'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,

@@ -3,10 +3,9 @@ import copy
 import json
 from io import BytesIO
 
-import grpc
-
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import grpc
 
 
 class CombinerUnavailableError(Exception):
@@ -45,10 +44,11 @@ class CombinerInterface:
 
     """
 
-    def __init__(self, parent, name, address, port, certificate=None, key=None, ip=None, config=None):
+    def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
         self.parent = parent
         self.name = name
         self.address = address
+        self.fqdn = fqdn
         self.port = port
         self.certificate = certificate
         self.key = key
@@ -86,6 +86,7 @@ class CombinerInterface:
             'parent': self.parent.to_dict(),
             'name': self.name,
             'address': self.address,
+            'fqdn': self.fqdn,
             'port': self.port,
             'certificate': str(cert_b64).split('\'')[1],
             'key': str(key_b64).split('\'')[1],

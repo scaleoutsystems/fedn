@@ -241,15 +241,19 @@ class Client:
         """
 
         # TODO use the client_config['certificate'] for setting up secure comms'
+        if client_config['fqdn']:
+            host = client_config['fqdn']
+        else:
+            host = client_config['host']
         if client_config['certificate']:
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')
             credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(client_config['host'], str(client_config['port'])),
-                                          credentials)
+            channel = grpc.secure_channel("{}:{}".format(host, str(client_config['port'])), credentials)
         else:
             channel = grpc.insecure_channel("{}:{}".format(
-                client_config['host'], str(client_config['port'])))
+                host,
+                str(client_config['port'])))
 
         self.channel = channel
 
