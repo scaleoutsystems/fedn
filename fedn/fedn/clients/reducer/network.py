@@ -35,7 +35,7 @@ class Network:
         combiners = []
         for c in data:
             combiners.append(
-                CombinerInterface(c['parent'], c['name'], c['address'], c['port'], base64.b64decode(c['certificate']),
+                CombinerInterface(c['parent'], c['name'], c['address'], c['fqdn'], c['port'], base64.b64decode(c['certificate']),
                                   base64.b64decode(c['key']), c['ip']))
 
         return combiners

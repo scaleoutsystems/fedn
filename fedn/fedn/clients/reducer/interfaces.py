@@ -113,6 +113,8 @@ class CombinerInterface:
         :param config:
         :return:
         """
+        print(f"Trying to create Report channel to gRPC server at: address {self.address} port {self.port}", flush=True)
+        print(f"Certificate: {self.certificate}", flush=True)
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
         control = rpc.ControlStub(channel)

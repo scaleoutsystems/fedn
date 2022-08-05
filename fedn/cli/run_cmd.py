@@ -277,7 +277,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
             if 'fqdn' in combiner_config.keys():
                 config['fqdn'] = combiner_config['fqdn']
             else:
-                config['fqdn'] = ''
+                config['fqdn'] = None
             config['myport'] = combiner_config['port']
             config['max_clients'] = combiner_config['max_clients']
 

@@ -169,13 +169,14 @@ class ConnectorCombiner:
         """
         try:
             cert = str(self.certificate) if self.verify_cert else False
-            retval = r.get("{}?name={}&address={}&fqdn={}&port={}".format(self.connect_string + '/add',
-                                                                  self.name,
-                                                                  self.myhost,
-                                                                  self.fqdn,
-                                                                  self.myport),
-                           verify=cert,
-                           headers={'Authorization': 'Token {}'.format(self.token)})
+            retval = r.get("{}?name={}&address={}&fqdn={}&port={}".format(
+                self.connect_string + '/add',
+                self.name,
+                self.myhost,
+                self.fqdn,
+                self.myport),
+                verify=cert,
+                headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception:
             # self.state = State.Disconnected
             return Status.Unassigned, {}
