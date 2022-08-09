@@ -241,10 +241,11 @@ class Client:
         """
 
         # TODO use the client_config['certificate'] for setting up secure comms'
-        if client_config['fqdn']:
+        host = client_config['host']
+        if client_config['fqdn'] != "None":
             host = client_config['fqdn']
-        else:
-            host = client_config['host']
+        print(f"CLIENT: Connecting to combiner host: {host}", flush=True)
+
         if client_config['certificate']:
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')

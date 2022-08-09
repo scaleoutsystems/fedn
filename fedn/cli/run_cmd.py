@@ -3,6 +3,7 @@ import uuid
 
 import click
 import yaml
+
 from fedn.client import Client
 from fedn.clients.reducer.restservice import (decode_auth_token,
                                               encode_auth_token)
