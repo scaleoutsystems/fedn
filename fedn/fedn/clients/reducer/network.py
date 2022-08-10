@@ -30,13 +30,19 @@ class Network:
 
         :return:
         """
-        # TODO: Read in combiners from statestore
         data = self.statestore.get_combiners()
         combiners = []
         for c in data:
+            if c['certificate']:
+                cert = base64.b64decode(c['certificate'])
+                key = base64.b64decode(c['key'])
+            else:
+                cert = None
+                key = None
+
             combiners.append(
-                CombinerInterface(c['parent'], c['name'], c['address'], c['port'], base64.b64decode(c['certificate']),
-                                  base64.b64decode(c['key']), c['ip']))
+                CombinerInterface(c['parent'], c['name'], c['address'], c['port'],
+                                  certificate=cert, key=key, ip=c['ip']))
 
         return combiners
 

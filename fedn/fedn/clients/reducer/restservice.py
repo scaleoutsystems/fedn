@@ -404,37 +404,41 @@ class ReducerRestService:
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
-            # TODO check for get variables
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
             port = request.args.get('port', None)
-            # token = request.args.get('token')
-            # TODO do validation
+            secure_grpc = request.args.get('secure', None)
 
-            if port is None or address is None or name is None:
+            if port is None or address is None or name is None or secure_grpc is None:
                 return "Please specify correct parameters."
 
             # Try to retrieve combiner from db
             combiner = self.control.network.get_combiner(name)
             if not combiner:
-                # Create a new combiner
-                certificate, key = self.certificate_manager.get_or_create(
-                    address).get_keypair_raw()
-                _ = base64.b64encode(certificate)
-                _ = base64.b64encode(key)
+                if secure_grpc == 'True':
+                    certificate, key = self.certificate_manager.get_or_create(
+                        address).get_keypair_raw()
+                    _ = base64.b64encode(certificate)
+                    _ = base64.b64encode(key)
+                else:
+                    certificate = None
+                    key = None
 
-                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
+                combiner = CombinerInterface(self, name, address, port, certificate, key,
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
+            else:
+                certificate = combiner['certificate']
+                key = combiner['key']
 
             combiner = self.control.network.get_combiner(name)
 
             ret = {
                 'status': 'added',
-                'certificate': combiner['certificate'],
-                'key': combiner['key'],
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
+                'certificate': combiner['certificate'],
+                'key': combiner['key']
             }
 
             return jsonify(ret)
@@ -644,15 +648,18 @@ class ReducerRestService:
             self.control.network.add_client(client)
 
             # Return connection information to client
+            if combiner.certificate:
+                cert = str(combiner.certificate).split('\'')[1]
+            else:
+                cert = None
 
-            cert_b64 = base64.b64encode(combiner.certificate)
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
                 'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,
-                'certificate': str(cert_b64).split('\'')[1],
+                'certificate': cert,
                 'model_type': self.control.statestore.get_framework()
             }
 

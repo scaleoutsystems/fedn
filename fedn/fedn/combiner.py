@@ -92,8 +92,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print(response, flush=True)
                 sys.exit("Exiting: Unauthorized")
 
-        cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
-        key = base64.b64decode(config['key'])  # .decode('utf-8')
+        cert = config['certificate']
+        key = config['key']
+
+        if config['certificate']:
+            cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
+            key = base64.b64decode(config['key'])  # .decode('utf-8')
 
         grpc_config = {'port': connect_config['myport'],
                        'secure': connect_config['secure'],

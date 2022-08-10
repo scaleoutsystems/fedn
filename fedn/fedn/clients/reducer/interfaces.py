@@ -22,8 +22,8 @@ class Channel:
         self.address = address
         self.port = port
         self.certificate = certificate
-        if self.certificate:
 
+        if self.certificate:
             credentials = grpc.ssl_channel_credentials(
                 root_certificates=copy.deepcopy(certificate))
             self.channel = grpc.secure_channel('{}:{}'.format(
@@ -79,18 +79,21 @@ class CombinerInterface:
         :return:
         """
 
-        cert_b64 = base64.b64encode(self.certificate)
-        key_b64 = base64.b64encode(self.key)
-
         data = {
             'parent': self.parent.to_dict(),
             'name': self.name,
             'address': self.address,
             'port': self.port,
-            'certificate': str(cert_b64).split('\'')[1],
-            'key': str(key_b64).split('\'')[1],
-            'ip': self.ip
+            'ip': self.ip,
+            'certificate': None,
+            'key': None
         }
+
+        if self.certificate:
+            cert_b64 = base64.b64encode(self.certificate)
+            key_b64 = base64.b64encode(self.key)
+            data['certificate'] = str(cert_b64).split('\'')[1]
+            data['key'] = str(key_b64).split('\'')[1]
 
         try:
             data['report'] = self.report()

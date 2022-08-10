@@ -240,7 +240,7 @@ def reducer_cmd(ctx, host, port, secret_key, use_ssl, local_package, name, init)
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, secure, max_clients, init):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secure, max_clients, init):
     """
 
     :param ctx:
@@ -254,7 +254,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, hostname, port, s
     :param max_clients:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': hostname,
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': host,
               'myport': port, 'myname': name, 'secure': secure, 'max_clients': max_clients, 'init': init}
 
     if config['init']:
