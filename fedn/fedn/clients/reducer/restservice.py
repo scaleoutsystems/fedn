@@ -424,7 +424,7 @@ class ReducerRestService:
                     certificate = None
                     key = None
 
-                combiner = CombinerInterface(self, name, address, port, certificate, key,
+                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
             else:
