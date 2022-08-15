@@ -83,7 +83,7 @@ class ReducerRestService:
 
     """
 
-    def __init__(self, config, control, certificate_manager, certificate=None):
+    def __init__(self, config, control, certificate_manager):
 
         print("config object!: \n\n\n\n{}".format(config))
         if config['host']:
@@ -116,7 +116,6 @@ class ReducerRestService:
             self.package = 'local'
 
         self.control = control
-        self.certificate = certificate
         self.certificate_manager = certificate_manager
         self.current_compute_context = None
 
@@ -427,9 +426,6 @@ class ReducerRestService:
                 combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
                                              request.remote_addr)
                 self.control.network.add_combiner(combiner)
-            else:
-                certificate = combiner['certificate']
-                key = combiner['key']
 
             combiner = self.control.network.get_combiner(name)
 
@@ -649,7 +645,8 @@ class ReducerRestService:
 
             # Return connection information to client
             if combiner.certificate:
-                cert = str(combiner.certificate).split('\'')[1]
+                cert_b64 = base64.b64encode(combiner.certificate)
+                cert = str(cert_b64).split('\'')[1]
             else:
                 cert = None
 
@@ -774,7 +771,6 @@ class ReducerRestService:
                 box_plot = None
                 print(e, flush=True)
             table_plot = plot.create_table_plot()
-            # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('dashboard.html', show_plot=True,
@@ -955,12 +951,6 @@ controller:
         else:
             bind = self.host
 
-        if self.certificate:
-            print("Starting server with certs {} and key {}".format(str(self.certificate.cert_path),
-                                                                    str(self.certificate.key_path)), flush=True)
-            app.run(host=bind, port=self.port,
-                    ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
-        else:
-            app.run(host=bind, port=self.port)
+        app.run(host=bind, port=self.port)
 
         return app

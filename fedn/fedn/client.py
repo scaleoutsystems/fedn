@@ -66,10 +66,8 @@ class Client:
                                          config['name'],
                                          config['remote_compute_context'],
                                          config['preferred_combiner'],
-                                         config['client_id'],
-                                         secure=config['secure'],
-                                         preshared_cert=config['preshared_cert'],
-                                         verify_cert=config['verify_cert'])
+                                         config['client_id'])
+
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])
         if not match:
@@ -240,7 +238,6 @@ class Client:
 
         """
 
-        # TODO use the client_config['certificate'] for setting up secure comms'
         if client_config['certificate']:
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')
