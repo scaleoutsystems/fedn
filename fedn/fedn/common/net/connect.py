@@ -1,10 +1,6 @@
 import enum
-import os
 
 import requests as r
-import urllib3
-
-from fedn.common.security.certificate import Certificate
 
 
 class State(enum.Enum):
