@@ -4,9 +4,8 @@ from datetime import datetime
 import pymongo
 import yaml
 
-from fedn.clients.reducer.state import (ReducerStateToString,
-                                        StringToReducerState)
 from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.network.state import ReducerStateToString, StringToReducerState
 
 from .reducerstatestore import ReducerStateStore
 

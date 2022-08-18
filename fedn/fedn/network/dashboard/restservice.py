@@ -17,10 +17,10 @@ from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    url_for)
 from werkzeug.utils import secure_filename
 
-from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.plots import Plot
-from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.combiner.interfaces import CombinerInterface
+from fedn.network.dashboard.plots import Plot
+from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'

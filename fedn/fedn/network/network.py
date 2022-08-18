@@ -1,7 +1,7 @@
 import base64
 
-from fedn.clients.reducer.interfaces import (CombinerInterface,
-                                             CombinerUnavailableError)
+from fedn.network.combiner.interfaces import (CombinerInterface,
+                                              CombinerUnavailableError)
 
 
 class Network:

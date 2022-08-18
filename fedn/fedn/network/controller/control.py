@@ -5,12 +5,11 @@ import uuid
 from datetime import datetime
 
 import fedn.utils.helpers
-from fedn.clients.reducer.interfaces import CombinerUnavailableError
-from fedn.clients.reducer.network import Network
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
-
-from .state import ReducerState
+from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.network import Network
+from fedn.network.state import ReducerState
 
 
 class UnsupportedStorageBackend(Exception):

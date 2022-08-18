@@ -4,13 +4,13 @@ import uuid
 import click
 import yaml
 
-from fedn.client import Client
-from fedn.clients.reducer.restservice import (decode_auth_token,
-                                              encode_auth_token)
-from fedn.clients.reducer.statestore.mongoreducerstatestore import \
+from fedn.network.clients.client import Client
+from fedn.network.combiner.server import Combiner
+from fedn.network.dashboard.restservice import (decode_auth_token,
+                                                encode_auth_token)
+from fedn.network.reducer import Reducer
+from fedn.network.statestore.mongoreducerstatestore import \
     MongoReducerStateStore
-from fedn.combiner import Combiner
-from fedn.reducer import Reducer
 
 from .main import main
 

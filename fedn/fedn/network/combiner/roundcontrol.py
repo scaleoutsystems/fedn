@@ -4,7 +4,7 @@ import sys
 import time
 import uuid
 
-from fedn.aggregators.fedavg import FedAvgAggregator
+from fedn.network.combiner.aggregators.fedavg import FedAvgAggregator
 from fedn.utils.helpers import get_helper
 
 

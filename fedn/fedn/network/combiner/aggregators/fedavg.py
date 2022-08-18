@@ -3,7 +3,7 @@ import queue
 import time
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.aggregators.aggregator import AggregatorBase
+from fedn.network.combiner.aggregators.aggregator import AggregatorBase
 
 
 class FedAvgAggregator(AggregatorBase):

@@ -19,10 +19,10 @@ from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.clients.client.state import ClientState, ClientStateToString
 from fedn.common.control.package import PackageRuntime
 from fedn.common.net.connect import ConnectorClient, Status
 from fedn.common.net.web.client import page, style
+from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
 from fedn.utils.logger import Logger

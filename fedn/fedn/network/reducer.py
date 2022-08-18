@@ -4,10 +4,10 @@ import threading
 import time
 from datetime import datetime
 
-from fedn.clients.reducer.control import ReducerControl
-from fedn.clients.reducer.restservice import ReducerRestService
-from fedn.clients.reducer.state import ReducerStateToString
 from fedn.common.security.certificatemanager import CertificateManager
+from fedn.network.controller.control import ReducerControl
+from fedn.network.dashboard.restservice import ReducerRestService
+from fedn.network.state import ReducerStateToString
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 

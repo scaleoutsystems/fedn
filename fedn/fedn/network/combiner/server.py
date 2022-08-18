@@ -11,12 +11,12 @@ from enum import Enum
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.clients.combiner.modelservice import ModelService
-from fedn.clients.combiner.roundcontrol import RoundControl
 from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.combiner.modelservice import ModelService
+from fedn.network.combiner.roundcontrol import RoundControl
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
