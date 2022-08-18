@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 from fedn.common.security.certificatemanager import CertificateManager
-from fedn.network.controller.control import ReducerControl
+from fedn.network.controller.control import Control
 from fedn.network.dashboard.restservice import ReducerRestService
 from fedn.network.state import ReducerStateToString
 
@@ -50,7 +50,7 @@ class Reducer:
         # The certificate manager is a utility that generates (self-signed) certificates.
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        self.control = ReducerControl(self.statestore)
+        self.control = Control(self.statestore)
 
         self.rest = ReducerRestService(
             config, self.control, self.certificate_manager)

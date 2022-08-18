@@ -8,6 +8,7 @@ import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.controller.controlbase import ControlBase
 from fedn.network.network import Network
 from fedn.network.state import ReducerState
 
@@ -20,236 +21,15 @@ class MisconfiguredStorageBackend(Exception):
     pass
 
 
-class ReducerControl:
+class Control(ControlBase):
     """ Main conroller for training round.
 
     """
 
     def __init__(self, statestore):
 
-        self.__state = ReducerState.setup
-        self.statestore = statestore
-        if self.statestore.is_inited():
-            self.network = Network(self, statestore)
-
-        try:
-            config = self.statestore.get_storage_backend()
-        except Exception:
-            print(
-                "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
-            raise MisconfiguredStorageBackend()
-        if not config:
-            print(
-                "REDUCER CONTROL: No storage configuration available, exiting.", flush=True)
-            raise MisconfiguredStorageBackend()
-
-        if config['storage_type'] == 'S3':
-
-            self.model_repository = S3ModelRepository(config['storage_config'])
-        else:
-            print("REDUCER CONTROL: Unsupported storage backend, exiting.", flush=True)
-            raise UnsupportedStorageBackend()
-
-        self.client_allocation_policy = self.client_allocation_policy_least_packed
-
-        if self.statestore.is_inited():
-            self.__state = ReducerState.idle
-
-    def get_helper(self):
-        """
-
-        :return:
-        """
-        helper_type = self.statestore.get_framework()
-        helper = fedn.utils.helpers.get_helper(helper_type)
-        if not helper:
-            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(helper_type),
-                  flush=True)
-            return None
-        return helper
-
-    def delete_bucket_objects(self):
-        """
-
-        :return:
-        """
-        return self.model_repository.delete_objects()
-
-    def get_state(self):
-        """
-
-        :return:
-        """
-        return self.__state
-
-    def idle(self):
-        """
-
-        :return:
-        """
-        if self.__state == ReducerState.idle:
-            return True
-        else:
-            return False
-
-    def get_first_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_first()
-
-    def get_latest_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_latest()
-
-    def get_model_info(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_model_info()
-
-    def get_events(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_events()
-
-    def drop_models(self):
-        """
-
-        """
-        self.statestore.drop_models()
-
-    def get_compute_context(self):
-        """
-
-        :return:
-        """
-        definition = self.statestore.get_compute_context()
-        if definition:
-            try:
-                context = definition['filename']
-                return context
-            except (IndexError, KeyError):
-                print(
-                    "No context filename set for compute context definition", flush=True)
-                return None
-        else:
-            return None
-
-    def set_compute_context(self, filename, path):
-        """ Persist the configuration for the compute package. """
-        self.model_repository.set_compute_context(filename, path)
-        self.statestore.set_compute_context(filename)
-
-    def get_compute_package(self, compute_package=''):
-        """
-
-        :param compute_package:
-        :return:
-        """
-        if compute_package == '':
-            compute_package = self.get_compute_context()
-        return self.model_repository.get_compute_package(compute_package)
-
-    def commit(self, model_id, model=None):
-        """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
-
-        helper = self.get_helper()
-        if model is not None:
-            print("Saving model to disk...", flush=True)
-            outfile_name = helper.save_model(model)
-            print("DONE", flush=True)
-            print("Uploading model to Minio...", flush=True)
-            model_id = self.model_repository.set_model(
-                outfile_name, is_file=True)
-            print("DONE", flush=True)
-            os.unlink(outfile_name)
-
-        self.statestore.set_latest(model_id)
-
-    def _out_of_sync(self, combiners=None):
-
-        if not combiners:
-            combiners = self.network.get_combiners()
-
-        osync = []
-        for combiner in combiners:
-            try:
-                model_id = combiner.get_model_id()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                model_id = None
-
-            if model_id and (model_id != self.get_latest_model()):
-                osync.append(combiner)
-        return osync
-
-    def check_round_participation_policy(self, compute_plan, combiner_state):
-        """ Evaluate reducer level policy for combiner round-participation.
-            This is a decision on ReducerControl level, additional checks
-            applies on combiner level. Not all reducer control flows might
-            need or want to use a participation policy.  """
-
-        if compute_plan['task'] == 'training':
-            nr_active_clients = int(combiner_state['nr_active_trainers'])
-        elif compute_plan['task'] == 'validation':
-            nr_active_clients = int(combiner_state['nr_active_validators'])
-        else:
-            print("Invalid task type!", flush=True)
-            return False
-
-        if int(compute_plan['clients_required']) <= nr_active_clients:
-            return True
-        else:
-            return False
-
-    def check_round_start_policy(self, combiners):
-        """ Check if the overall network state meets the policy to start a round. """
-        if len(combiners) > 0:
-            return True
-        else:
-            return False
-
-    def check_round_validity_policy(self, combiners):
-        """
-            At the end of the round, before committing a model to the model ledger,
-            we check if a round validity policy has been met. This can involve
-            e.g. asserting that a certain number of combiners have reported in an
-            updated model, or that criteria on model performance have been met.
-        """
-        if combiners == []:
-            return False
-        else:
-            return True
-
-    def _handle_unavailable_combiner(self, combiner):
-        """ This callback is triggered if a combiner is found to be unresponsive. """
-        # TODO: Implement strategy to handle the case.
-        print("REDUCER CONTROL: Combiner {} unavailable.".format(
-            combiner.name), flush=True)
-
-    def _select_round_combiners(self, compute_plan):
-        combiners = []
-        for combiner in self.network.get_combiners():
-            try:
-                combiner_state = combiner.report()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                combiner_state = None
-
-            if combiner_state:
-                is_participating = self.check_round_participation_policy(
-                    compute_plan, combiner_state)
-                if is_participating:
-                    combiners.append((combiner, compute_plan))
-        return combiners
+        super().__init__(statestore)
+        self.name = "DefaultControl"
 
     def round(self, config, round_number):
         """ Execute one global round. """
@@ -411,16 +191,16 @@ class ReducerControl:
     def instruct(self, config):
         """ Main entrypoint, executes the compute plan. """
 
-        if self.__state == ReducerState.instructing:
+        if self._state == ReducerState.instructing:
             print("Already set in INSTRUCTING state", flush=True)
             return
 
-        self.__state = ReducerState.instructing
+        self._state = ReducerState.instructing
 
         if not self.get_latest_model():
             print("No model in model chain, please seed the alliance!")
 
-        self.__state = ReducerState.monitoring
+        self._state = ReducerState.monitoring
 
         # TODO: Validate and set the round config object
         # self.set_config(config)
@@ -467,7 +247,7 @@ class ReducerControl:
             round_meta['time_round'] = time.time() - tic
             self.tracer.set_round_meta_reducer(round_meta)
 
-        self.__state = ReducerState.idle
+        self._state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
@@ -507,74 +287,3 @@ class ReducerControl:
                 i = i + 1
 
         return model, meta
-
-    def monitor(self, config=None):
-        """
-
-        :param config:
-        """
-        # status = self.network.check_health()
-        pass
-
-    def client_allocation_policy_first_available(self):
-        """
-            Allocate client to the first available combiner in the combiner list.
-            Packs one combiner full before filling up next combiner.
-        """
-        for combiner in self.network.get_combiners():
-            if combiner.allowing_clients():
-                return combiner
-        return None
-
-    def client_allocation_policy_least_packed(self):
-        """
-            Allocate client to the available combiner with the smallest number of clients.
-            Spreads clients evenly over all active combiners.
-
-            TODO: Not thread safe - not garanteed to result in a perfectly even partition.
-
-        """
-        min_clients = None
-        selected_combiner = None
-
-        for combiner in self.network.get_combiners():
-            try:
-                if combiner.allowing_clients():
-                    combiner_state = combiner.report()
-                    nac = combiner_state['nr_active_clients']
-                    if not min_clients:
-                        min_clients = nac
-                        selected_combiner = combiner
-                    elif nac < min_clients:
-                        min_clients = nac
-                        selected_combiner = combiner
-            except CombinerUnavailableError:
-                print("Combiner was not responding, continuing to next")
-
-        return selected_combiner
-
-    def find(self, name):
-        """
-
-        :param name:
-        :return:
-        """
-        for combiner in self.network.get_combiners():
-            if name == combiner.name:
-                return combiner
-        return None
-
-    def find_available_combiner(self):
-        """
-
-        :return:
-        """
-        combiner = self.client_allocation_policy()
-        return combiner
-
-    def state(self):
-        """
-
-        :return:
-        """
-        return self.__state
