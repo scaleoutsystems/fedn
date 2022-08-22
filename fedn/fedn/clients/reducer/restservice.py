@@ -12,16 +12,15 @@ import jwt
 import pandas as pd
 from bokeh.embed import json_item
 from bson import json_util
-from flask import (Flask, abort, flash, jsonify, make_response, redirect,
-                   render_template, request, send_file, send_from_directory,
-                   url_for)
-from werkzeug.utils import secure_filename
-
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
+from flask import (Flask, abort, flash, jsonify, make_response, redirect,
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
+from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
@@ -399,6 +398,7 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             """ Add a combiner to the network. """
+            print("Adding combiner to network:", flush=True)
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
@@ -406,6 +406,7 @@ class ReducerRestService:
 
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
+            fqdn = str(request.args.get('fqdn', None))
             port = request.args.get('port', None)
             secure_grpc = request.args.get('secure', None)
 
@@ -420,12 +421,21 @@ class ReducerRestService:
                         address).get_keypair_raw()
                     _ = base64.b64encode(certificate)
                     _ = base64.b64encode(key)
+                    certificate = copy.deepcopy(certificate)
+                    key = copy.deepcopy(key)
                 else:
                     certificate = None
                     key = None
 
-                combiner = CombinerInterface(self, name, address, port, certificate, key,
-                                             request.remote_addr)
+                combiner = CombinerInterface(
+                    self,
+                    name=name,
+                    address=address,
+                    fqdn=fqdn,
+                    port=port,
+                    certificate=certificate,
+                    key=key,
+                    ip=request.remote_addr)
                 self.control.network.add_combiner(combiner)
             else:
                 certificate = combiner['certificate']
@@ -656,6 +666,7 @@ class ReducerRestService:
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'fqdn': combiner.fqdn,
                 'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,
