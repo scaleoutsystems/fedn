@@ -1,9 +1,6 @@
 import enum
-import os
 
 import requests as r
-import urllib3
-from fedn.common.security.certificate import Certificate
 
 
 class State(enum.Enum):
@@ -25,11 +22,7 @@ class ConnectorClient:
     Connector for assigning client to a combiner in the FEDn network.
     """
 
-    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None, secure=False, preshared_cert=True,
-                 verify_cert=False):
-
-        if not verify_cert:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None):
 
         self.host = host
         self.port = port
@@ -37,28 +30,14 @@ class ConnectorClient:
         self.name = name
         self.preferred_combiner = combiner
         self.id = id
-        self.verify_cert = verify_cert
-        self.secure = secure
-        self.certificate = None
         self.package = 'remote' if remote_package else 'local'
 
-        if not secure:
-            self.prefix = "http://"
-        else:
-            self.prefix = "https://"
-
+        self.prefix = "http://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
 
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
-
-        # Use combiner server certificate
-        if secure and preshared_cert:
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
-                                           cert_name="client-cert.pem").cert_path
-        else:
-            self.verify_cert = False
 
     def state(self):
         """
@@ -69,25 +48,23 @@ class ConnectorClient:
 
     def assign(self):
         """
-        Connect client to FEDn network via discovery service, ask for combiner assignment.
+        Connect client to FEDn network discovery service, ask for combiner assignment.
 
         :return: Tuple with assingment status, combiner connection information
         if sucessful, else None.
         :rtype: Status, json
         """
         try:
-            cert = str(self.certificate) if self.verify_cert else False
             retval = None
             if self.preferred_combiner:
                 retval = r.get("{}?name={}&combiner={}".format(self.connect_string + '/assign', self.name,
-                                                               self.preferred_combiner), verify=cert,
+                                                               self.preferred_combiner),
                                headers={'Authorization': 'Token {}'.format(self.token)})
             else:
-                retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name), verify=cert,
+                retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name),
                                headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             print('***** {}'.format(e), flush=True)
-            # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code == 401:
@@ -120,10 +97,7 @@ class ConnectorCombiner:
     Connector for annnouncing combiner to the FEDn network.
     """
 
-    def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False, preshared_cert=True, verify_cert=False):
-
-        if not verify_cert:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False):
 
         self.host = host
         self.fqdn = fqdn
@@ -132,25 +106,14 @@ class ConnectorCombiner:
         self.myport = myport
         self.token = token
         self.name = name
-        self.verify_cert = verify_cert
         self.secure = secure
 
-        # if not secure:
         self.prefix = "http://"
-        # else:
-        #    self.prefix = "https://"
         self.connect_string = "{}{}:{}".format(
             self.prefix, self.host, self.port)
 
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
-
-        if secure and preshared_cert:
-            self.certificate = Certificate(os.getcwd() + "/certs/", name="client", key_name="client-key.pem",
-                                           cert_name="client-cert.pem",
-                                           ).cert_path
-        else:
-            self.verify_cert = False
 
     def state(self):
         """
@@ -168,7 +131,6 @@ class ConnectorCombiner:
         :rtype: Staus, json
         """
         try:
-            cert = str(self.certificate) if self.verify_cert else False
             retval = r.get("{}?name={}&address={}&fqdn={}&port={}&secure={}".format(
                 self.connect_string + '/add',
                 self.name,
@@ -176,10 +138,8 @@ class ConnectorCombiner:
                 self.fqdn,
                 self.myport,
                 self.secure),
-                verify=cert,
                 headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception:
-            # self.state = State.Disconnected
             return Status.Unassigned, {}
 
         if retval.status_code == 401:

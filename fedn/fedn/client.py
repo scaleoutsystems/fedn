@@ -66,10 +66,8 @@ class Client:
                                          config['name'],
                                          config['remote_compute_context'],
                                          config['preferred_combiner'],
-                                         config['client_id'],
-                                         secure=config['secure'],
-                                         preshared_cert=config['preshared_cert'],
-                                         verify_cert=config['verify_cert'])
+                                         config['client_id'])
+
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])
         if not match:

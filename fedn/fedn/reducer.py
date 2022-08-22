@@ -50,16 +50,10 @@ class Reducer:
         # The certificate manager is a utility that generates (self-signed) certificates.
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        self.use_ssl = config['use_ssl']
-        if self.use_ssl:
-            rest_certificate = self.certificate_manager.get_or_create(self.name)
-        else:
-            rest_certificate = None
-
         self.control = ReducerControl(self.statestore)
 
         self.rest = ReducerRestService(
-            config, self.control, self.certificate_manager, certificate=rest_certificate)
+            config, self.control, self.certificate_manager)
 
     def run(self):
         """Start REST service and control loop."""
