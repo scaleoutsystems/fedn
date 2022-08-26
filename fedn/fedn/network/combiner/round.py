@@ -4,11 +4,11 @@ import sys
 import time
 import uuid
 
-from fedn.network.combiner.aggregators.fedavg import FedAvgAggregator
+from fedn.network.combiner.aggregators.aggregator import Aggregator
 from fedn.utils.helpers import get_helper
 
 
-class RoundControl:
+class CombinerRound:
     """ Combiner level round controller.
 
     The controller recieves round configurations from the global controller
@@ -35,8 +35,7 @@ class RoundControl:
         self.config = {}
 
         # TODO, make runtime configurable
-
-        self.aggregator = FedAvgAggregator(
+        self.aggregator = Aggregator(
             self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):

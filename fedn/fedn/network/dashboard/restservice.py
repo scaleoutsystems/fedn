@@ -521,7 +521,7 @@ class ReducerRestService:
         # http://localhost:8090/control?rounds=4&model_id=879fa112-c861-4cb1-a25d-775153e5b548
         @app.route('/control', methods=['GET', 'POST'])
         def control():
-            """ Main page for round control. Configure, start and stop global training rounds. """
+            """ Main page for round control. Configure, start and stop training sessions. """
             # Token auth
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
@@ -529,9 +529,8 @@ class ReducerRestService:
             not_configured = self.check_configured()
             if not_configured:
                 return not_configured
-            client = self.name
+
             state = ReducerStateToString(self.control.state())
-            logs = None
             refresh = True
 
             if self.remote_compute_context:
@@ -546,7 +545,8 @@ class ReducerRestService:
                     url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
 
             if request.method == 'POST':
-                timeout = float(request.form.get('timeout', 180))
+                # Get session configuration
+                round_timeout = float(request.form.get('timeout', 180))
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
                 clients_required = request.form.get('clients_required', 1)
@@ -576,14 +576,14 @@ class ReducerRestService:
 
                 latest_model_id = self.control.get_latest_model()
 
-                config = {'round_timeout': timeout, 'model_id': latest_model_id,
+                config = {'round_timeout': round_timeout, 'model_id': latest_model_id,
                           'rounds': rounds, 'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
-                threading.Thread(target=self.control.instruct,
+                threading.Thread(target=self.control.session,
                                  args=(config,)).start()
-                # self.control.instruct(config)
+
                 return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",
                                         message_type='SUCCESS'))
 
@@ -600,13 +600,6 @@ class ReducerRestService:
                                        compute_package=self.current_compute_context,
                                        seed_model_id=seed_model_id,
                                        helper=self.control.statestore.get_framework(), validate=True, configured=True)
-
-            client = self.name
-            state = ReducerStateToString(self.control.state())
-            logs = None
-            refresh = False
-            return render_template('index.html', client=client, state=state, logs=logs, refresh=refresh,
-                                   configured=True)
 
         @app.route('/assign')
         def assign():

@@ -4,12 +4,12 @@ import time
 import uuid
 from datetime import datetime
 
-import fedn.utils.helpers
-from fedn.common.storage.s3.s3repo import S3ModelRepository
+#import fedn.utils.helpers
+#from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.controller.controlbase import ControlBase
-from fedn.network.network import Network
+#from fedn.network.network import Network
 from fedn.network.state import ReducerState
 
 
@@ -22,7 +22,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class Control(ControlBase):
-    """ Main conroller for training round.
+    """ Conroller, implementing the overall global training strategy.
 
     """
 
@@ -31,8 +31,73 @@ class Control(ControlBase):
         super().__init__(statestore)
         self.name = "DefaultControl"
 
-    def round(self, config, round_number):
-        """ Execute one global round. """
+    def session(self, config):
+        """ Main entrypoint for a training session.
+
+            A training session is comprised of one or more rounds.
+        """
+
+        if self._state == ReducerState.instructing:
+            print("Already set in INSTRUCTING state. A session is in progress.", flush=True)
+            return
+
+        self._state = ReducerState.instructing
+
+        if not self.get_latest_model():
+            print("No model in model chain, please seed the alliance!")
+
+        if "session_id" not in config.keys():
+            session_id = uuid.uuid4()
+            config['session_id'] = session_id
+
+        self._state = ReducerState.monitoring
+
+        # TODO: Refactor
+        # Initialize a tracer for this session
+        statestore_config = self.statestore.get_config()
+        self.tracer = MongoTracer(
+            statestore_config['mongo_config'], statestore_config['network_id'])
+        last_round = self.tracer.get_latest_round()
+
+        for round in range(1, int(config['rounds'] + 1)):
+            tic = time.time()
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
+            start_time = datetime.now()
+
+            self.tracer.start_monitor(round)
+            model_id = None
+            round_meta = {'round_id': current_round}
+            try:
+                model_id, round_meta = self.round(config, current_round)
+            except TypeError:
+                print("Could not unpack data from round...", flush=True)
+
+            end_time = datetime.now()
+
+            if model_id:
+                print("CONTROL: Round completed, new model: {}".format(
+                    model_id), flush=True)
+                round_time = end_time - start_time
+                self.tracer.set_latest_time(current_round, round_time.seconds)
+                round_meta['status'] = 'Success'
+            else:
+                print("CONTROL: Round failed!")
+                round_meta['status'] = 'Failed'
+
+            # stop round monitor
+            self.tracer.stop_monitor()
+            round_meta['time_round'] = time.time() - tic
+            self.tracer.set_round_meta_reducer(round_meta)
+
+        # TODO: Report completion of session
+        self._state = ReducerState.idle
+
+    def round(self, session_config, round_number):
+        """ Defines execution of one global round. """
 
         round_meta = {'round_id': round_number}
 
@@ -40,15 +105,16 @@ class Control(ControlBase):
             print("REDUCER: No combiners connected!")
             return None, round_meta
 
-        # 1. Formulate compute plans for this round and determine which combiners should participate in the round.
-        compute_plan = copy.deepcopy(config)
-        compute_plan['rounds'] = 1
-        compute_plan['round_id'] = round_number
-        compute_plan['task'] = 'training'
-        compute_plan['model_id'] = self.get_latest_model()
-        compute_plan['helper_type'] = self.statestore.get_framework()
+        # 1. Round config for combiners for this global round,
+        # and determine which combiners should participate in the round.
+        combiner_round_config = copy.deepcopy(session_config)
+        combiner_round_config['rounds'] = 1
+        combiner_round_config['round_id'] = round_number
+        combiner_round_config['task'] = 'training'
+        combiner_round_config['model_id'] = self.get_latest_model()
+        combiner_round_config['helper_type'] = self.statestore.get_framework()
 
-        round_meta['compute_plan'] = compute_plan
+        round_meta['combiner_round_config'] = combiner_round_config
 
         combiners = []
         for combiner in self.network.get_combiners():
@@ -60,16 +126,17 @@ class Control(ControlBase):
                 combiner_state = None
 
             if combiner_state is not None:
-                is_participating = self.check_round_participation_policy(
-                    compute_plan, combiner_state)
+                is_participating = self.evaluate_round_participation_policy(
+                    combiner_round_config, combiner_state)
                 if is_participating:
-                    combiners.append((combiner, compute_plan))
+                    combiners.append((combiner, combiner_round_config))
 
-        round_start = self.check_round_start_policy(combiners)
+        round_start = self.evaluate_round_start_policy(combiners)
 
-        print("CONTROL: round start policy met, participating combiners {}".format(
-            combiners), flush=True)
-        if not round_start:
+        if round_start:
+            print("CONTROL: round start policy met, participating combiners {}".format(
+                combiners), flush=True)
+        else:
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
             return None
 
@@ -83,10 +150,10 @@ class Control(ControlBase):
 
         start_time = datetime.now()
 
-        for combiner, compute_plan in combiners:
+        for combiner, combiner_round_config in combiners:
             try:
-                self.sync_combiners([combiner], self.get_latest_model())
-                _ = combiner.start(compute_plan)
+                self.set_combiner_model([combiner], self.get_latest_model())
+                _ = combiner.start(combiner_round_config)
             except CombinerUnavailableError:
                 # This is OK, handled by round accept policy
                 self._handle_unavailable_combiner(combiner)
@@ -102,10 +169,10 @@ class Control(ControlBase):
             cl.append(combiner)
 
         wait = 0.0
-        while len(self._out_of_sync(cl)) < len(combiners):
+        while len(self._check_combiners_out_of_sync(cl)) < len(combiners):
             time.sleep(1.0)
             wait += 1.0
-            if wait >= config['round_timeout']:
+            if wait >= session_config['round_timeout']:
                 break
 
         # TODO refactor
@@ -117,7 +184,7 @@ class Control(ControlBase):
 
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
-        updated = self._out_of_sync()
+        updated = self._check_combiners_out_of_sync()
         print("COMBINERS UPDATED MODELS: {}".format(updated), flush=True)
 
         print("Checking round validity policy...", flush=True)
@@ -168,10 +235,9 @@ class Control(ControlBase):
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    self.sync_combiners([combiner], self.get_latest_model())
+                    self.set_combiner_model([combiner], self.get_latest_model())
                     combiner.start(combiner_config)
                 except CombinerUnavailableError:
-                    # OK if validation fails for a combiner
                     self._handle_unavailable_combiner(combiner)
                     pass
 
@@ -179,75 +245,6 @@ class Control(ControlBase):
         # TODO: Implement.
 
         return model_id, round_meta
-
-    def sync_combiners(self, combiners, model_id):
-        """ Spread the current consensus model to all active combiner nodes. """
-        if not model_id:
-            print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
-            return
-        for combiner in combiners:
-            _ = combiner.set_model_id(model_id)
-
-    def instruct(self, config):
-        """ Main entrypoint, executes the compute plan. """
-
-        if self._state == ReducerState.instructing:
-            print("Already set in INSTRUCTING state", flush=True)
-            return
-
-        self._state = ReducerState.instructing
-
-        if not self.get_latest_model():
-            print("No model in model chain, please seed the alliance!")
-
-        self._state = ReducerState.monitoring
-
-        # TODO: Validate and set the round config object
-        # self.set_config(config)
-
-        # TODO: Refactor
-
-        statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
-        last_round = self.tracer.get_latest_round()
-
-        for round in range(1, int(config['rounds'] + 1)):
-            tic = time.time()
-            if last_round:
-                current_round = last_round + round
-            else:
-                current_round = round
-
-            start_time = datetime.now()
-            # start round monitor
-            self.tracer.start_monitor(round)
-            # todo add try except bloc for round meta
-            model_id = None
-            round_meta = {'round_id': current_round}
-            try:
-                model_id, round_meta = self.round(config, current_round)
-            except TypeError:
-                print("Could not unpack data from round...", flush=True)
-
-            end_time = datetime.now()
-
-            if model_id:
-                print("REDUCER: Global round completed, new model: {}".format(
-                    model_id), flush=True)
-                round_time = end_time - start_time
-                self.tracer.set_latest_time(current_round, round_time.seconds)
-                round_meta['status'] = 'Success'
-            else:
-                print("REDUCER: Global round failed!")
-                round_meta['status'] = 'Failed'
-
-            # stop round monitor
-            self.tracer.stop_monitor()
-            round_meta['time_round'] = time.time() - tic
-            self.tracer.set_round_meta_reducer(round_meta)
-
-        self._state = ReducerState.idle
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
