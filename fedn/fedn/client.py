@@ -60,13 +60,14 @@ class Client:
         self._missed_heartbeat = 0
         self.config = config
 
-        self.connector = ConnectorClient(config['discover_host'],
-                                         config['discover_port'],
-                                         config['token'],
-                                         config['name'],
-                                         config['remote_compute_context'],
-                                         config['preferred_combiner'],
-                                         config['client_id'])
+        self.connector = ConnectorClient(host=config['discover_host'],
+                                         port=config['discover_port'],
+                                         token=config['token'],
+                                         name=config['name'],
+                                         remote_package=config['remote_compute_context'],
+                                         verify=config['verify'],
+                                         combiner=config['preferred_combiner'],
+                                         id=config['client_id'])
 
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])

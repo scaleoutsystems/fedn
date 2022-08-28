@@ -61,7 +61,7 @@ def run_cmd(ctx):
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=False)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
-@click.option('-v', '--verify-cert', required=False, default=False)
+@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST service')
 @click.option('-c', '--preferred-combiner', required=False, default=False)
 @click.option('-va', '--validator', required=False, default=True)
 @click.option('-tr', '--trainer', required=False, default=True)
@@ -73,7 +73,7 @@ def run_cmd(ctx):
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, dry_run, secure, preshared_cert,
-               verify_cert, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
+               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
     """
 
     :param ctx:
@@ -97,7 +97,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     remote = False if local_package else True
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify_cert': verify_cert, 'preferred_combiner': preferred_combiner,
+              'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': 30}
 
@@ -235,11 +235,12 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
 @click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
 @click.option('-i', '--port', required=False, default=12080, help='Set port.')
 @click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
+@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST service')
 @click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secure, max_clients, init):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secure, verify, max_clients, init):
     """
 
     :param ctx:
@@ -254,7 +255,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secur
     :param init:
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': host,
-              'myport': port, 'myname': name, 'secure': secure, 'max_clients': max_clients, 'init': init}
+              'myport': port, 'myname': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients, 'init': init}
 
     if config['init']:
         with open(config['init'], 'r') as file:
