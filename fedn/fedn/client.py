@@ -255,7 +255,7 @@ class Client:
                 client_config['certificate'])  # .decode('utf-8')
             credentials = grpc.ssl_channel_credentials(root_certificates=cert)
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif os.environ["FEDN_GRPC_ROOT_CERT_PATH"]:
+        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             secure = True
             print("CLIENT: using root certificate from environment variable for GRPC channel")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
