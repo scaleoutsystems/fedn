@@ -12,15 +12,16 @@ import jwt
 import pandas as pd
 from bokeh.embed import json_item
 from bson import json_util
+from flask import (Flask, abort, flash, jsonify, make_response, redirect,
+                   render_template, request, send_file, send_from_directory,
+                   url_for)
+from werkzeug.utils import secure_filename
+
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
-from flask import (Flask, abort, flash, jsonify, make_response, redirect,
-                   render_template, request, send_file, send_from_directory,
-                   url_for)
-from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = '/app/client/package/'
 ALLOWED_EXTENSIONS = {'gz', 'bz2', 'tar', 'zip', 'tgz'}
