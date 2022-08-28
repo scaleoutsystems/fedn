@@ -3,7 +3,6 @@ import uuid
 
 import click
 import yaml
-
 from fedn.client import Client
 from fedn.clients.reducer.restservice import (decode_auth_token,
                                               encode_auth_token)
@@ -118,12 +117,12 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 
     try:
         if config['discover_host'] is None or \
-                config['discover_host'] == '' or \
-                config['discover_host'] is None or \
-                config['discover_port'] == '':
+                config['discover_host'] == '':
             print(
-                "Missing required configuration: discover_host, discover_port", flush=True)
+                "Missing required configuration: discover_host", flush=True)
             return
+        if 'discover_port' not in config.keys():
+            config['discover_port'] = None
     except Exception:
         print("Could not load config appropriately. Check config", flush=True)
         return

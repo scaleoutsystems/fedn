@@ -6,7 +6,6 @@ from distutils.dir_util import copy_tree
 
 import requests
 import yaml
-
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
 
@@ -121,12 +120,12 @@ class PackageRuntime:
         :param name:
         :return:
         """
-        if secure:
-            scheme = "https"
+        # for https we assume a an ingress handles permanent redirect (308)
+        scheme = "http"
+        if port:
+            path = f"{scheme}://{host}:{port}/context"
         else:
-            scheme = "http"
-
-        path = f"{scheme}://{host}:{port}/context"
+            path = f"{scheme}://{host}/context"
         if name:
             path = path + "?name={}".format(name)
 
@@ -144,8 +143,10 @@ class PackageRuntime:
                 with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
-
-        path = f"{scheme}://{host}:{port}/checksum"
+        if port:
+            path = f"{scheme}://{host}:{port}/checksum"
+        else:
+            path = f"{scheme}://{host}/checksum"
 
         if name:
             path = path + "?name={}".format(name)
