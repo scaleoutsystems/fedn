@@ -50,6 +50,7 @@ class Reducer:
         # The certificate manager is a utility that generates (self-signed) certificates.
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
+        # TODO: Make runtime configurable
         self.control = Control(self.statestore)
 
         self.rest = ReducerRestService(
@@ -61,6 +62,14 @@ class Reducer:
         threading.Thread(target=self.control_loop, daemon=True).start()
 
         self.rest.run()
+
+    def monitor(self, config=None):
+        """
+
+        :param config:
+        """
+        # status = self.network.check_health()
+        pass
 
     def control_loop(self):
         """Manage and report the state of the Reducer."""
@@ -82,6 +91,6 @@ class Reducer:
                     t1 = datetime.now()
                     old_state = self.control.state()
 
-                self.control.monitor()
+                self.monitor()
         except (KeyboardInterrupt, SystemExit):
             print("Exiting..", flush=True)

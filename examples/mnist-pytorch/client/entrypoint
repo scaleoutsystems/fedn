@@ -159,5 +159,5 @@ if __name__ == '__main__':
         'init_seed': init_seed,
         'train': train,
         'validate': validate,
-        '_get_data_path': _get_data_path,  # for testing
+        # '_get_data_path': _get_data_path,  # for testing
     })
