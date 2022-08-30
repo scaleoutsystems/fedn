@@ -48,7 +48,7 @@ class Control(ControlBase):
 
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
-            config['session_id'] = session_id
+            config['session_id'] = str(session_id)
 
         self._state = ReducerState.monitoring
 
@@ -188,7 +188,7 @@ class Control(ControlBase):
         print("COMBINERS UPDATED MODELS: {}".format(updated), flush=True)
 
         print("Checking round validity policy...", flush=True)
-        round_valid = self.check_round_validity_policy(updated)
+        round_valid = self.evaluate_round_validity_policy(updated)
         if not round_valid:
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!", flush=True)
@@ -223,14 +223,14 @@ class Control(ControlBase):
         print("DONE", flush=True)
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
-        validate = config['validate']
+        validate = session_config['validate']
         if validate:
-            combiner_config = copy.deepcopy(config)
+            combiner_config = copy.deepcopy(session_config)
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_framework()
 
-            validating_combiners = self._select_round_combiners(
+            validating_combiners = self._select_participating_combiners(
                 combiner_config)
 
             for combiner, combiner_config in validating_combiners:

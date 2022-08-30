@@ -15,10 +15,9 @@ NUM_CLASSES = 10
 
 def _get_data_path():
     # Figure out FEDn client number from container name
-    #client = docker.from_env()
-    #container = client.containers.get(os.environ['HOSTNAME'])
-    #number = container.name[-1]
-    number = random.randint(0, 1)
+    client = docker.from_env()
+    container = client.containers.get(os.environ['HOSTNAME'])
+    number = container.name[-1]
     # Return data path
     return f"/var/data/clients/{number}/mnist.npz"
 

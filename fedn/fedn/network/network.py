@@ -15,7 +15,7 @@ class Network:
         self.id = statestore.network_id
 
         if not load_balancer:
-            self.load_balancer = LeastPacked()
+            self.load_balancer = LeastPacked(self)
         else:
             self.load_balancer = load_balancer
 
@@ -62,7 +62,7 @@ class Network:
             print("Reducer is not idle, cannot add additional combiner.")
             return
 
-        if self.find(combiner.name):
+        if self.get_combiner(combiner.name):
             return
 
         print("adding combiner {}".format(combiner.name), flush=True)
@@ -100,7 +100,7 @@ class Network:
         :return:
         """
 
-        if self.find_client(client['name']):
+        if self.get_client(client['name']):
             return
 
         print("adding client {}".format(client['name']), flush=True)

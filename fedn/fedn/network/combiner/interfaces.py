@@ -80,7 +80,7 @@ class CombinerInterface:
         """
 
         data = {
-            'parent': self.parent.to_dict(),
+            #    'parent': self.parent.to_dict(),
             'name': self.name,
             'address': self.address,
             'port': self.port,
@@ -108,6 +108,22 @@ class CombinerInterface:
         :return:
         """
         return json.dumps(self.to_dict())
+
+    def get_certificate(self):
+        """ Get combiner certificate.
+
+        : return:
+        """
+        data = self.to_dict()
+        return data['certificate']
+
+    def get_key(self):
+        """ Get combiner key.
+
+        : return:
+        """
+        data = self.to_dict()
+        return data['key']
 
     def report(self, config=None):
         """

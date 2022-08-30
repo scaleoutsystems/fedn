@@ -433,8 +433,8 @@ class ReducerRestService:
                 'status': 'added',
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
-                'certificate': combiner['certificate'],
-                'key': combiner['key']
+                'certificate': combiner.get_certificate(),
+                'key': combiner.get_key()
             }
 
             return jsonify(ret)
@@ -616,9 +616,9 @@ class ReducerRestService:
             combiner_preferred = request.args.get('combiner', None)
 
             if combiner_preferred:
-                combiner = self.control.find(combiner_preferred)
+                combiner = self.control.network.get(combiner_preferred)
             else:
-                combiner = self.control.find_available_combiner()
+                combiner = self.control.network.find_available_combiner()
 
             if combiner is None:
                 return jsonify({'status': 'retry',
