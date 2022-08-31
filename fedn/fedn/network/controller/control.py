@@ -214,7 +214,7 @@ class Control(ControlBase):
             round_meta['time_commit'] = time.time() - tic
         else:
             print("REDUCER: failed to update model in round with config {}".format(
-                config), flush=True)
+                session_config), flush=True)
             return None, round_meta
         print("DONE", flush=True)
 
