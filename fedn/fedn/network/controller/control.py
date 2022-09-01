@@ -98,11 +98,11 @@ class Control(ControlBase):
         round_meta = {'round_id': round_number}
 
         if len(self.network.get_combiners()) < 1:
-            print("REDUCER: No combiners connected!")
+            print("REDUCER: No combiners connected!", flush=True)
             return None, round_meta
 
-        # 1. Round config for combiners for this global round,
-        # and determine which combiners should participate in the round.
+        # 1. Assemble round config for combiners for this global round,
+        # and get combiners to participate in the round.
         combiner_round_config = copy.deepcopy(session_config)
         combiner_round_config['rounds'] = 1
         combiner_round_config['round_id'] = round_number
@@ -112,21 +112,7 @@ class Control(ControlBase):
 
         round_meta['combiner_round_config'] = combiner_round_config
 
-        combiners = []
-        for combiner in self.network.get_combiners():
-
-            try:
-                combiner_state = combiner.report()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                combiner_state = None
-
-            if combiner_state is not None:
-                is_participating = self.evaluate_round_participation_policy(
-                    combiner_round_config, combiner_state)
-                if is_participating:
-                    combiners.append((combiner, combiner_round_config))
-
+        combiners = self.get_participating_combiners(combiner_round_config)
         round_start = self.evaluate_round_start_policy(combiners)
 
         if round_start:
@@ -139,14 +125,11 @@ class Control(ControlBase):
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
 
-        statestore_config = self.statestore.get_config()
-
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
-
         start_time = datetime.now()
 
+        # Is this really necessary ?? Will combiner not pull
         for combiner, combiner_round_config in combiners:
+            # combiner.submit(combiner_round_config)
             try:
                 self.set_combiner_model([combiner], self.get_latest_model())
                 _ = combiner.start(combiner_round_config)
