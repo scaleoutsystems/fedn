@@ -106,9 +106,6 @@ class ReducerRestService:
         else:
             self.SECRET_KEY = None
 
-        if 'use_ssl' in config.keys():
-            self.use_ssl = config['use_ssl']
-
         self.remote_compute_context = config["remote_compute_context"]
         if self.remote_compute_context:
             self.package = 'remote'
