@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 from fedn.common.security.certificatemanager import CertificateManager
-from fedn.network.controller.control import Control
+from fedn.network.controller.asynccontrol import Control
 from fedn.network.dashboard.restservice import ReducerRestService
 from fedn.network.state import ReducerStateToString
 
