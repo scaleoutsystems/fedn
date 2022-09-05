@@ -111,8 +111,9 @@ class PackageRuntime:
         self.checksum = None
         self.expected_checksum = None
 
-    def download(self, host, port, token, name=None):
+    def download(self, host, port, token, secure=False, name=None):
         """
+        Download compute package from controller
 
         :param host:
         :param port:
@@ -120,7 +121,12 @@ class PackageRuntime:
         :param name:
         :return:
         """
-        path = "https://{}:{}/context".format(host, port)
+        # for https we assume a an ingress handles permanent redirect (308)
+        scheme = "http"
+        if port:
+            path = f"{scheme}://{host}:{port}/context"
+        else:
+            path = f"{scheme}://{host}/context"
         if name:
             path = path + "?name={}".format(name)
 
@@ -138,8 +144,10 @@ class PackageRuntime:
                 with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
-
-        path = "https://{}:{}/checksum".format(host, port)
+        if port:
+            path = f"{scheme}://{host}:{port}/checksum"
+        else:
+            path = f"{scheme}://{host}/checksum"
 
         if name:
             path = path + "?name={}".format(name)

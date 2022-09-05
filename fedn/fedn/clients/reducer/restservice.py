@@ -20,7 +20,6 @@ from werkzeug.utils import secure_filename
 from fedn.clients.reducer.interfaces import CombinerInterface
 from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from fedn.common.exceptions import ModelError
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
 
@@ -84,15 +83,17 @@ class ReducerRestService:
 
     """
 
-    def __init__(self, config, control, certificate_manager, certificate=None):
+    def __init__(self, config, control, certificate_manager):
 
         print("config object!: \n\n\n\n{}".format(config))
-        if config['discover_host']:
-            self.name = config['discover_host']
+        if config['host']:
+            self.host = config['host']
         else:
-            self.name = config['name']
+            self.host = None
 
-        self.port = config['discover_port']
+        self.name = config['name']
+
+        self.port = config['port']
         self.network_id = config['name'] + '-network'
 
         if 'token' in config.keys():
@@ -112,9 +113,8 @@ class ReducerRestService:
             self.package = 'local'
 
         self.control = control
-        self.certificate = certificate
         self.certificate_manager = certificate_manager
-        self.current_compute_context = None  # self.control.get_compute_context()
+        self.current_compute_context = None
 
     def to_dict(self):
         """
@@ -245,6 +245,7 @@ class ReducerRestService:
         :return:
         """
         app = Flask(__name__)
+
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         app.config['SECRET_KEY'] = self.SECRET_KEY
 
@@ -278,7 +279,6 @@ class ReducerRestService:
             # Return response
             return response
 
-        # http://localhost:8090/add?name=combiner&address=combiner&port=12080&token=e9a3cb4c5eaff546eec33ff68a7fbe232b68a192
         @app.route('/status')
         def status():
             """
@@ -395,44 +395,54 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             """ Add a combiner to the network. """
+            print("Adding combiner to network:", flush=True)
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
-            # TODO check for get variables
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
+            fqdn = str(request.args.get('fqdn', None))
             port = request.args.get('port', None)
-            # token = request.args.get('token')
-            # TODO do validation
+            secure_grpc = request.args.get('secure', None)
 
-            if port is None or address is None or name is None:
+            if port is None or address is None or name is None or secure_grpc is None:
                 return "Please specify correct parameters."
 
             # Try to retrieve combiner from db
             combiner = self.control.network.get_combiner(name)
             if not combiner:
-                # Create a new combiner
-                certificate, key = self.certificate_manager.get_or_create(
-                    address).get_keypair_raw()
-                _ = base64.b64encode(certificate)
-                _ = base64.b64encode(key)
+                if secure_grpc == 'True':
+                    certificate, key = self.certificate_manager.get_or_create(
+                        address).get_keypair_raw()
+                    _ = base64.b64encode(certificate)
+                    _ = base64.b64encode(key)
+                    certificate = copy.deepcopy(certificate)
+                    key = copy.deepcopy(key)
+                else:
+                    certificate = None
+                    key = None
 
-                # TODO append and redirect to index.
-
-                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
-                                             request.remote_addr)
+                combiner = CombinerInterface(
+                    self,
+                    name=name,
+                    address=address,
+                    fqdn=fqdn,
+                    port=port,
+                    certificate=certificate,
+                    key=key,
+                    ip=request.remote_addr)
                 self.control.network.add_combiner(combiner)
 
             combiner = self.control.network.get_combiner(name)
 
             ret = {
                 'status': 'added',
-                'certificate': combiner['certificate'],
-                'key': combiner['key'],
                 'storage': self.control.statestore.get_storage_backend(),
                 'statestore': self.control.statestore.get_config(),
+                'certificate': combiner['certificate'],
+                'key': combiner['key']
             }
 
             return jsonify(ret)
@@ -642,35 +652,24 @@ class ReducerRestService:
             self.control.network.add_client(client)
 
             # Return connection information to client
+            if combiner.certificate:
+                cert_b64 = base64.b64encode(combiner.certificate)
+                cert = str(cert_b64).split('\'')[1]
+            else:
+                cert = None
 
-            cert_b64 = base64.b64encode(combiner.certificate)
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'fqdn': combiner.fqdn,
                 'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,
-                'certificate': str(cert_b64).split('\'')[1],
+                'certificate': cert,
                 'model_type': self.control.statestore.get_framework()
             }
 
             return jsonify(response)
-
-        @app.route('/infer')
-        def infer():
-            """
-
-            :return:
-            """
-            if self.control.state() == ReducerState.setup:
-                return "Error, not configured"
-            result = ""
-            try:
-                self.control.set_model_id()
-            except ModelError:
-                print("Failed to seed control.")
-
-            return result
 
         def combiner_status():
             """ Get current status reports from all combiners registered in the network.
@@ -781,7 +780,6 @@ class ReducerRestService:
                 box_plot = None
                 print(e, flush=True)
             table_plot = plot.create_table_plot()
-            # timeline_plot = plot.create_timeline_plot()
             timeline_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('dashboard.html', show_plot=True,
@@ -848,8 +846,8 @@ class ReducerRestService:
             discover_port = self.port
             ctx = """network_id: {network_id}
 controller:
-    discover_host: {discover_host}
-    discover_port: {discover_port}
+    host: {discover_host}
+    port: {discover_port}
     {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
@@ -873,8 +871,6 @@ controller:
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
 
-            # if self.control.state() != ReducerState.setup or self.control.state() != ReducerState.idle:
-            #    return "Error, Context already assigned!"
             # if reset is not empty then allow context re-set
             reset = request.args.get('reset', None)
             if reset:
@@ -959,10 +955,11 @@ controller:
 
             return jsonify(data)
 
-        if self.certificate:
-            print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
-                                                                      str(self.certificate.key_path)), flush=True)
-            app.run(host="0.0.0.0", port=self.port,
-                    ssl_context=(str(self.certificate.cert_path), str(self.certificate.key_path)))
+        if not self.host:
+            bind = "0.0.0.0"
+        else:
+            bind = self.host
+
+        app.run(host=bind, port=self.port)
 
         return app

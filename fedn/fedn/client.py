@@ -60,16 +60,15 @@ class Client:
         self._missed_heartbeat = 0
         self.config = config
 
-        self.connector = ConnectorClient(config['discover_host'],
-                                         config['discover_port'],
-                                         config['token'],
-                                         config['name'],
-                                         config['remote_compute_context'],
-                                         config['preferred_combiner'],
-                                         config['client_id'],
-                                         secure=config['secure'],
-                                         preshared_cert=config['preshared_cert'],
-                                         verify_cert=config['verify_cert'])
+        self.connector = ConnectorClient(host=config['discover_host'],
+                                         port=config['discover_port'],
+                                         token=config['token'],
+                                         name=config['name'],
+                                         remote_package=config['remote_compute_context'],
+                                         verify=config['verify'],
+                                         combiner=config['preferred_combiner'],
+                                         id=config['client_id'])
+
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])
         if not match:
@@ -160,7 +159,11 @@ class Client:
 
             while tries > 0:
                 retval = pr.download(
-                    config['discover_host'], config['discover_port'], config['token'])
+                    host=config['discover_host'],
+                    port=config['discover_port'],
+                    token=config['token'],
+                    secure=config['secure']
+                )
                 if retval:
                     break
                 time.sleep(60)
@@ -237,15 +240,33 @@ class Client:
         """
 
         # TODO use the client_config['certificate'] for setting up secure comms'
+        host = client_config['host']
+        port = client_config['port']
+        secure = False
+        if client_config['fqdn'] != "None":
+            host = client_config['fqdn']
+            # assuming https if fqdn is used
+            port = 443
+        print(f"CLIENT: Connecting to combiner host: {host}", flush=True)
+
         if client_config['certificate']:
+            print("CLIENT: using certificate from Reducer for GRPC channel")
+            secure = True
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')
             credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(client_config['host'], str(client_config['port'])),
-                                          credentials)
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+            secure = True
+            print("CLIENT: using root certificate from environment variable for GRPC channel")
+            with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
+                credentials = grpc.ssl_channel_credentials(f.read())
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
+            print("CLIENT: using insecure GRPC channel")
             channel = grpc.insecure_channel("{}:{}".format(
-                client_config['host'], str(client_config['port'])))
+                host,
+                str(port)))
 
         self.channel = channel
 
@@ -254,8 +275,10 @@ class Client:
         self.models = rpc.ModelServiceStub(channel)
 
         print("Client: {} connected {} to {}:{}".format(self.name,
-                                                        "SECURED" if client_config['certificate'] else "INSECURE",
-                                                        client_config['host'], client_config['port']), flush=True)
+                                                        "SECURED" if secure else "INSECURE",
+                                                        host,
+                                                        port),
+              flush=True)
 
         print("Client: Using {} compute package.".format(
             client_config["package"]))
@@ -609,7 +632,7 @@ class Client:
         """
         app = Flask(__name__)
 
-        @app.route('/')
+        @ app.route('/')
         def index():
             """
 

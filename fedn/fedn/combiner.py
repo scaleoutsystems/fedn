@@ -48,7 +48,7 @@ def role_to_proto_role(role):
 ####################################################################################################################
 
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
-    """ Communication relayer. """
+    """ Combiner gRPC server. """
 
     def __init__(self, connect_config):
 
@@ -71,9 +71,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
+                                            fqdn=connect_config['fqdn'],
                                             myport=connect_config['myport'],
                                             token=connect_config['token'],
-                                            name=connect_config['myname'])
+                                            name=connect_config['myname'],
+                                            secure=connect_config['secure'],
+                                            verify=connect_config['verify'])
 
         response = None
         while True:
@@ -91,8 +94,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print(response, flush=True)
                 sys.exit("Exiting: Unauthorized")
 
-        cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
-        key = base64.b64decode(config['key'])  # .decode('utf-8')
+        cert = config['certificate']
+        key = config['key']
+
+        if config['certificate']:
+            cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
+            key = base64.b64decode(config['key'])  # .decode('utf-8')
 
         grpc_config = {'port': connect_config['myport'],
                        'secure': connect_config['secure'],
