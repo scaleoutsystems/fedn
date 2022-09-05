@@ -398,6 +398,7 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             """ Add a combiner to the network. """
+            print("Adding combiner to network:", flush=True)
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
@@ -405,6 +406,7 @@ class ReducerRestService:
 
             name = request.args.get('name', None)
             address = str(request.args.get('address', None))
+            fqdn = str(request.args.get('fqdn', None))
             port = request.args.get('port', None)
             secure_grpc = request.args.get('secure', None)
 
@@ -419,12 +421,21 @@ class ReducerRestService:
                         address).get_keypair_raw()
                     _ = base64.b64encode(certificate)
                     _ = base64.b64encode(key)
+
                 else:
                     certificate = None
                     key = None
 
-                combiner = CombinerInterface(self, name, address, port, copy.deepcopy(certificate), copy.deepcopy(key),
-                                             request.remote_addr)
+                combiner = CombinerInterface(
+                    self,
+                    name=name,
+                    address=address,
+                    fqdn=fqdn,
+                    port=port,
+                    certificate=copy.deepcopy(certificate),
+                    key=copy.deepcopy(key),
+                    ip=request.remote_addr)
+
                 self.control.network.add_combiner(combiner)
 
             combiner = self.control.network.get_combiner(name)
@@ -646,6 +657,7 @@ class ReducerRestService:
             response = {
                 'status': 'assigned',
                 'host': combiner.address,
+                'fqdn': combiner.fqdn,
                 'package': self.package,
                 'ip': combiner.ip,
                 'port': combiner.port,

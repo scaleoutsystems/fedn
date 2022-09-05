@@ -71,10 +71,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
+                                            fqdn=connect_config['fqdn'],
                                             myport=connect_config['myport'],
                                             token=connect_config['token'],
                                             name=connect_config['myname'],
-                                            secure=connect_config['secure'])
+                                            secure=connect_config['secure'],
+                                            verify=connect_config['verify'])
 
         response = None
         while True:

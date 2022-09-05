@@ -22,19 +22,25 @@ class ConnectorClient:
     Connector for assigning client to a combiner in the FEDn network.
     """
 
-    def __init__(self, host, port, token, name, remote_package, combiner=None, id=None):
+    def __init__(self, host, port, token, name, remote_package, verify=False, combiner=None, id=None):
 
         self.host = host
         self.port = port
         self.token = token
         self.name = name
+        self.verify = verify
         self.preferred_combiner = combiner
         self.id = id
         self.package = 'remote' if remote_package else 'local'
 
+        # for https we assume a an ingress handles permanent redirect (308)
         self.prefix = "http://"
-        self.connect_string = "{}{}:{}".format(
-            self.prefix, self.host, self.port)
+        if self.port:
+            self.connect_string = "{}{}:{}".format(
+                self.prefix, self.host, self.port)
+        else:
+            self.connect_string = "{}{}".format(
+                self.prefix, self.host)
 
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
@@ -59,9 +65,13 @@ class ConnectorClient:
             if self.preferred_combiner:
                 retval = r.get("{}?name={}&combiner={}".format(self.connect_string + '/assign', self.name,
                                                                self.preferred_combiner),
+                               verify=self.verify,
+                               allow_redirects=True,
                                headers={'Authorization': 'Token {}'.format(self.token)})
             else:
                 retval = r.get("{}?name={}".format(self.connect_string + '/assign', self.name),
+                               verify=self.verify,
+                               allow_redirects=True,
                                headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
             print('***** {}'.format(e), flush=True)
@@ -97,19 +107,26 @@ class ConnectorCombiner:
     Connector for annnouncing combiner to the FEDn network.
     """
 
-    def __init__(self, host, port, myhost, myport, token, name, secure=False):
+    def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False, verify=False):
 
         self.host = host
+        self.fqdn = fqdn
         self.port = port
         self.myhost = myhost
         self.myport = myport
         self.token = token
         self.name = name
         self.secure = secure
+        self.verify = verify
 
+        # for https we assume a an ingress handles permanent redirect (308)
         self.prefix = "http://"
-        self.connect_string = "{}{}:{}".format(
-            self.prefix, self.host, self.port)
+        if port:
+            self.connect_string = "{}{}:{}".format(
+                self.prefix, self.host, self.port)
+        else:
+            self.connect_string = "{}{}".format(
+                self.prefix, self.host)
 
         print("\n\nsetting the connection string to {}\n\n".format(
             self.connect_string), flush=True)
@@ -130,12 +147,15 @@ class ConnectorCombiner:
         :rtype: Staus, json
         """
         try:
-            retval = r.get("{}?name={}&address={}&port={}&secure={}".format(self.connect_string + '/add',
-                                                                            self.name,
-                                                                            self.myhost,
-                                                                            self.myport,
-                                                                            self.secure),
-                           headers={'Authorization': 'Token {}'.format(self.token)})
+            retval = r.get("{}?name={}&address={}&fqdn={}&port={}&secure={}".format(
+                self.connect_string + '/add',
+                self.name,
+                self.myhost,
+                self.fqdn,
+                self.myport,
+                self.secure),
+                verify=self.verify,
+                headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception:
             return Status.Unassigned, {}
 

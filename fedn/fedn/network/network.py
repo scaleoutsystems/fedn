@@ -47,7 +47,7 @@ class Network:
                 key = None
 
             combiners.append(
-                CombinerInterface(c['parent'], c['name'], c['address'], c['port'],
+                CombinerInterface(c['parent'], c['name'], c['address'], c['fqdn'], c['port'],
                                   certificate=cert, key=key, ip=c['ip']))
 
         return combiners

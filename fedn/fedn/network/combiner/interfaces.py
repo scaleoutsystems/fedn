@@ -45,10 +45,11 @@ class CombinerInterface:
 
     """
 
-    def __init__(self, parent, name, address, port, certificate=None, key=None, ip=None, config=None):
+    def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
         self.parent = parent
         self.name = name
         self.address = address
+        self.fqdn = fqdn
         self.port = port
         self.certificate = certificate
         self.key = key
@@ -80,9 +81,10 @@ class CombinerInterface:
         """
 
         data = {
-            #    'parent': self.parent.to_dict(),
+            'parent': self.parent,
             'name': self.name,
             'address': self.address,
+            'fqdn': self.fqdn,
             'port': self.port,
             'ip': self.ip,
             'certificate': None,
@@ -131,6 +133,8 @@ class CombinerInterface:
         :param config:
         :return:
         """
+        print(f"Trying to create Report channel to gRPC server at: address {self.address} port {self.port}", flush=True)
+        print(f"Certificate: {self.certificate}", flush=True)
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
         control = rpc.ControlStub(channel)

@@ -27,17 +27,20 @@ class Server:
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         if config['secure']:
+            print("Creating secure gRPCS server using certificate: {config['certificate']}", flush=True)
             server_credentials = grpc.ssl_server_credentials(
                 ((config['key'], config['certificate'],),))
             self.server.add_secure_port(
                 '[::]:' + str(config['port']), server_credentials)
         else:
+            print("Creating insecure gRPC server", flush=True)
             self.server.add_insecure_port('[::]:' + str(config['port']))
 
     def start(self):
         """
 
         """
+        print("Server started", flush=True)
         self.server.start()
 
     def stop(self):

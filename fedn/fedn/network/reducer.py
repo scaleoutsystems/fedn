@@ -50,7 +50,6 @@ class Reducer:
         # The certificate manager is a utility that generates (self-signed) certificates.
         self.certificate_manager = CertificateManager(os.getcwd() + "/certs/")
 
-        # TODO: Make runtime configurable
         self.control = Control(self.statestore)
 
         self.rest = ReducerRestService(
@@ -86,7 +85,7 @@ class Reducer:
                         "Reducer in state {} for {} seconds. Entering {} state".format(ReducerStateToString(old_state),
                                                                                        delta.seconds,
                                                                                        ReducerStateToString(
-                                                                                           self.control.state())),
+                                                                                       self.control.state())),
                         flush=True)
                     t1 = datetime.now()
                     old_state = self.control.state()
