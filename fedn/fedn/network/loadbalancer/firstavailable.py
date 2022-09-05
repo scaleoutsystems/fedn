@@ -1,4 +1,3 @@
-from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.loadbalancer.loadbalancerbase import LoadBalancerBase
 
 
