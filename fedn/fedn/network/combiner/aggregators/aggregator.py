@@ -34,7 +34,7 @@ class Aggregator(AggregatorBase):
 
     def on_model_update(self, model_id):
         """Callback when a new model update is recieved from a client.
-            Performs (optional) pre-processing and the puts the update id
+            Performs (optional) pre-processing and then puts the update id
             on the aggregation queue.
 
         :param model_id: ID of model update
@@ -74,17 +74,15 @@ class Aggregator(AggregatorBase):
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, validation.model_id),
                                   log_level=fedn.Status.INFO)
 
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
+    def combine_models(self, helper=None, time_window=180, max_nr_models=100):
         """Compute a running average of model updates.
 
-        :param nr_expected_models: The number of updates expected in this round, defaults to None
-        :type nr_expected_models: int, optional
-        :param nr_required_models: The number of updates needed to a valid round, defaults to 1
-        :type nr_required_models: int, optional
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`, optional
-        :param timeout: Timeout for model updates, defaults to 180
-        :type timeout: int, optional
+        :param time_window: The time window for model aggregation, defaults to 180
+        :type time_window: int, optional
+        :param max_nr_models: The maximum number of updates aggregated, defaults to 100
+        :type max_nr_models: int, optional
         :return: The global model and metadata
         :rtype: tuple
         """
@@ -96,18 +94,20 @@ class Aggregator(AggregatorBase):
         self.server.report_status(
             "AGGREGATOR({}): Aggregating model updates...".format(self.name))
 
+        model = None
         round_time = 0.0
         polling_interval = 1.0
         nr_processed_models = 0
-        while nr_processed_models < nr_expected_models:
+        while nr_processed_models < max_nr_models:
             try:
+                # Get next model_id from queue
                 model_id = self.model_updates.get(block=False)
                 self.server.report_status(
                     "AGGREGATOR({}): Received model update with id {}".format(self.name, model_id))
 
-                # Load the model update from disk
+                # Load the model update
                 tic = time.time()
-                model_str = self.control.load_model_fault_tolerant(model_id)
+                model_str = self.control.load_model(model_id)
                 if model_str:
                     try:
                         model_next = helper.load_model_from_BytesIO(
@@ -119,7 +119,8 @@ class Aggregator(AggregatorBase):
                     raise
                 data['time_model_load'] += time.time() - tic
 
-                # Aggregate / reduce
+                # Aggregate / reduce (incremental average)
+                # TODO: extend with metadata from client
                 tic = time.time()
                 if nr_processed_models == 0:
                     model = model_next
@@ -131,30 +132,27 @@ class Aggregator(AggregatorBase):
                 nr_processed_models += 1
                 self.model_updates.task_done()
             except queue.Empty:
-                self.server.report_status("AGGREGATOR({}): waiting for model updates: {} of {} completed.".format(self.name,
-                                                                                                                  nr_processed_models,
-                                                                                                                  nr_expected_models))
+                self.server.report_status("AGGREGATOR({}): combining model updates: {} completed.".format(self.name,
+                                                                                                          nr_processed_models,
+                                                                                                          max_nr_models))
                 time.sleep(polling_interval)
                 round_time += polling_interval
             except Exception as e:
                 self.server.report_status(
                     "AGGERGATOR({}): Error encoutered while reading model update, skipping this update. {}".format(self.name, e))
-                nr_expected_models -= 1
-                if nr_expected_models <= 0:
+                max_nr_models -= 1
+                if max_nr_models <= 0:
                     return None, data
                 self.model_updates.task_done()
 
-            if round_time >= timeout:
-                self.server.report_status("AGGREGATOR({}): training round timed out.".format(
+            if round_time >= time_window:
+                self.server.report_status("AGGREGATOR({}): aggregation round completed time window.".format(
                     self.name), log_level=fedn.Status.WARNING)
                 # TODO: Generalize policy for what to do in case of timeout.
-                if nr_processed_models >= nr_required_models:
-                    break
-                else:
-                    return None, data
+                break
 
-        data['nr_successful_updates'] = nr_processed_models
+        data['nr_processed_models'] = nr_processed_models
 
-        self.server.report_status("AGGREGATOR({}): Training round completed, aggregated {} models.".format(self.name, nr_processed_models),
+        self.server.report_status("AGGREGATOR({}): Round completed, aggregated {} models.".format(self.name, nr_processed_models),
                                   log_level=fedn.Status.INFO)
         return model, data

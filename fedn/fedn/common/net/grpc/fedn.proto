@@ -54,6 +54,7 @@ message ModelUpdateRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6;
+  string meta = 7;
 }
 
 message ModelUpdate {
@@ -73,6 +74,7 @@ message ModelValidationRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6; 
+  string meta = 7;
 }
 
 message ModelValidation {

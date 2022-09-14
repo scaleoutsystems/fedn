@@ -47,7 +47,6 @@ class CombinerRound:
         :rtype: str
         """
         try:
-
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
@@ -56,7 +55,7 @@ class CombinerRound:
             raise
         return round_config['_job_id']
 
-    def load_model_fault_tolerant(self, model_id, retry=3):
+    def load_model(self, model_id, retry=3):
         """Load model update object.
 
         :param model_id: The ID of the model
@@ -95,30 +94,28 @@ class CombinerRound:
         :rtype: [type]
         """
 
-        # We flush the queue at a beginning of a round (no stragglers allowed)
-        # TODO: Support other ways to handle stragglers.
-        with self.aggregator.model_updates.mutex:
-            self.aggregator.model_updates.queue.clear()
-
         self.server.report_status(
-            "ROUNDCONTROL: Initiating training round, participating members: {}".format(clients))
+            "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
+
+        # Request model update from all active clients.
         self.server.request_model_update(config['model_id'], clients=clients)
 
         meta = {}
         meta['nr_expected_updates'] = len(clients)
         meta['nr_required_updates'] = int(config['clients_required'])
         meta['timeout'] = float(config['round_timeout'])
+
         tic = time.time()
         model = None
         data = None
         try:
             helper = get_helper(config['helper_type'])
-            model, data = self.aggregator.combine_models(nr_expected_models=len(clients),
-                                                         nr_required_models=int(
-                                                             config['clients_required']),
-                                                         helper=helper, timeout=float(config['round_timeout']))
+            model, data = self.aggregator.combine_models(helper=helper,
+                                                         max_nr_models=len(clients)+10,
+                                                         time_window=float(config['round_timeout']))
         except Exception as e:
             print("TRAINING ROUND FAILED AT COMBINER! {}".format(e), flush=True)
+
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
         return model, meta
@@ -169,7 +166,7 @@ class CombinerRound:
 
         self.modelservice.set_model(model, model_id)
 
-    def __assign_round_clients(self, n, type="trainers"):
+    def _assign_round_clients(self, n, type="trainers"):
         """ Obtain a list of clients (trainers or validators) to talk to in a round.
 
         :param n: Size of a random set taken from active trainers (clients), if n > "active trainers" all is used
@@ -194,13 +191,12 @@ class CombinerRound:
             n = len(clients)
 
         # If not, we pick a random subsample of all available clients.
-
         clients = random.sample(clients, n)
 
         return clients
 
-    def __check_nr_round_clients(self, config, timeout=0.0):
-        """Check that the minimal number of required clients to start a round are connected.
+    def _check_nr_round_clients(self, config, timeout=0.0):
+        """Check that the minimal number of required clients to start a round are available.
 
         :param config: [description]
         :type config: [type]
@@ -232,7 +228,7 @@ class CombinerRound:
 
         return ready
 
-    def execute_validation(self, round_config):
+    def execute_validation_round(self, round_config):
         """ Coordinate validation rounds as specified in config.
 
         :param round_config: [description]
@@ -242,25 +238,27 @@ class CombinerRound:
         self.server.report_status(
             "COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        validators = self.__assign_round_clients(
+        validators = self._assign_round_clients(
             self.server.max_clients, type="validators")
         self._validation_round(round_config, validators, model_id)
 
-    def execute_training(self, config):
+    def execute_training_round(self, config):
         """ Coordinates clients to execute training and validation tasks. """
 
         round_meta = {}
         round_meta['config'] = config
         round_meta['round_id'] = config['round_id']
 
+        # Make sure the model to update is available locally
+        # on this combiner, and if not download it from storage.
         self.stage_model(config['model_id'])
 
-        # Execute the configured number of rounds
+        # Execute the configured number of local rounds
         round_meta['local_round'] = {}
         for r in range(1, int(config['rounds']) + 1):
             self.server.report_status(
                 "ROUNDCONTROL: Starting training round {}".format(r), flush=True)
-            clients = self.__assign_round_clients(self.server.max_clients)
+            clients = self._assign_round_clients(self.server.max_clients)
             model, meta = self._training_round(config, clients)
             round_meta['local_round'][str(r)] = meta
             if model is None:
@@ -293,17 +291,19 @@ class CombinerRound:
                 try:
                     round_config = self.round_configs.get(block=False)
 
-                    ready = self.__check_nr_round_clients(round_config)
+                    # Check that the minimum allowed number of clients are connected
+                    ready = self._check_nr_round_clients(round_config)
+
                     if ready:
                         if round_config['task'] == 'training':
                             tic = time.time()
-                            round_meta = self.execute_training(round_config)
+                            round_meta = self.execute_training_round(round_config)
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_meta(round_meta)
                         elif round_config['task'] == 'validation':
-                            self.execute_validation(round_config)
+                            self.execute_validation_round(round_config)
                         else:
                             self.server.report_status(
                                 "ROUNDCONTROL: Round config contains unkown task type.", flush=True)

@@ -184,7 +184,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in clients:
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
-            self.SendModelUpdateRequest(request, self)
+            response = self.SendModelUpdateRequest(request, self)
+            # TODO: Check response
 
         print("COMBINER: Sent model update request for model {} to clients {}".format(
             model_id, clients), flush=True)

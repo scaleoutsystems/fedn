@@ -806,6 +806,7 @@ class ReducerRestService:
             combiners_plot = plot.create_combiner_plot()
             combiner_info = combiner_status()
             active_clients = client_status()
+            #print(combiner_info, flush=True)
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
