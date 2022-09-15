@@ -32,26 +32,27 @@ class Aggregator(AggregatorBase):
         self.validations = {}
         self.model_updates = queue.Queue()
 
-    def on_model_update(self, model_id):
+    def on_model_update(self, model_update):
         """Callback when a new model update is recieved from a client.
             Performs (optional) pre-processing and then puts the update id
             on the aggregation queue.
 
-        :param model_id: ID of model update
+        :param model_update: A ModelUpdate message.
         :type model_id: str
         """
+        print(model_update, flush=True)
         try:
-            self.server.report_status("AGGREGATOR({}): callback received model {}".format(self.name, model_id),
+            self.server.report_status("AGGREGATOR({}): callback received model {}".format(self.name, model_update.model_update_id),
                                       log_level=fedn.Status.INFO)
 
             # Push the model update to the processing queue
-            self.model_updates.put(model_id)
+            self.model_updates.put(model_update)
         except Exception as e:
             self.server.report_status("AGGREGATOR({}): Failed to receive candidate model! {}".format(self.name, e),
                                       log_level=fedn.Status.WARNING)
             pass
 
-    def on_model_validation(self, validation):
+    def on_model_validation(self, model_validation):
         """ Callback when a new model validation is recieved from a client.
 
         :param validation: Dict containing validation data sent by client.
@@ -64,14 +65,14 @@ class Aggregator(AggregatorBase):
         # combiner memory. This will need to be refactored later so that this
         # callback is responsible for reporting the validation to the db.
 
-        model_id = validation.model_id
-        data = json.loads(validation.data)
+        model_id = model_validation.model_id
+        data = json.loads(model_validation.data)
         try:
             self.validations[model_id].append(data)
         except KeyError:
             self.validations[model_id] = [data]
 
-        self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, validation.model_id),
+        self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100):
@@ -100,8 +101,10 @@ class Aggregator(AggregatorBase):
         nr_processed_models = 0
         while nr_processed_models < max_nr_models:
             try:
-                # Get next model_id from queue
-                model_id = self.model_updates.get(block=False)
+                # Get next model_update from queue
+                model_update = self.model_updates.get(block=False)
+                model_id = model_update.model_update_id
+
                 self.server.report_status(
                     "AGGREGATOR({}): Received model update with id {}".format(self.name, model_id))
 
@@ -120,7 +123,7 @@ class Aggregator(AggregatorBase):
                 data['time_model_load'] += time.time() - tic
 
                 # Aggregate / reduce (incremental average)
-                # TODO: extend with metadata from client
+                # Need to know round id of model update, present round id, number of data points in the update, etc.
                 tic = time.time()
                 if nr_processed_models == 0:
                     model = model_next

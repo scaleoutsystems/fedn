@@ -81,7 +81,7 @@ class CombinerInterface:
         """
 
         data = {
-            'parent': self.parent,
+            'parent': self.parent.to_dict(),
             'name': self.name,
             'address': self.address,
             'fqdn': self.fqdn,
@@ -116,16 +116,26 @@ class CombinerInterface:
 
         : return:
         """
-        data = self.to_dict()
-        return data['certificate']
+        if self.certificate:
+            cert_b64 = base64.b64encode(self.certificate)
+        #data = self.to_dict()
+            return str(cert_b64).split('\'')[1]
+        else:
+            return None
+        # return data['certificate']
 
     def get_key(self):
         """ Get combiner key.
 
         : return:
         """
-        data = self.to_dict()
-        return data['key']
+        #data = self.to_dict()
+        if self.key:
+            key_b64 = base64.b64encode(self.key)
+            return str(key_b64).split('\'')[1]
+        else:
+            return None
+        # return data['key']
 
     def report(self, config=None):
         """

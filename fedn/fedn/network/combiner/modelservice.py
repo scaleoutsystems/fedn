@@ -14,8 +14,6 @@ class ModelService(rpc.ModelServiceServicer):
 
     def __init__(self):
         self.models = TempModelStorage()
-        # self.models = defaultdict(io.BytesIO)
-        # self.models_metadata = {}
 
     def exist(self, model_id):
         """

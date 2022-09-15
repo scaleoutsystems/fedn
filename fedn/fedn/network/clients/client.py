@@ -434,6 +434,7 @@ class Client:
                         request.model_id)
                     processing_time = time.time()-tic
                     meta['processing_time'] = processing_time
+                    meta['config'] = request.data
 
                     if model_id is not None:
                         # Notify the combiner that a model update is available
@@ -529,8 +530,14 @@ class Client:
             self.set_model(out_model, str(updated_model_id))
             meta['upload_model'] = time.time() - tic
 
+            # Read the metadata file
+            with open(outpath+'-metadata', 'r') as fh:
+                training_metadata = json.loads(fh.read())
+            meta['training_metadata'] = training_metadata
+
             os.unlink(inpath)
             os.unlink(outpath)
+            os.unlink(outpath+'-metadata')
 
         except Exception as e:
             print("ERROR could not process training request due to error: {}".format(

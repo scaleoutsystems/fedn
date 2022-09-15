@@ -86,19 +86,19 @@ class CombinerRound:
     def _training_round(self, config, clients):
         """Send model update requests to clients and aggregate results.
 
-        :param config: [description]
-        :type config: [type]
+        :param config: The round config object (passed to the client).
+        :type config: dict
         :param clients: [description]
-        :type clients: [type]
-        :return: [description]
-        :rtype: [type]
+        :type clients: list
+        :return: an aggregated model and associated metadata
+        :rtype: model, dict
         """
 
         self.server.report_status(
             "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
 
         # Request model update from all active clients.
-        self.server.request_model_update(config['model_id'], clients=clients)
+        self.server.request_model_update(config, clients=clients)
 
         meta = {}
         meta['nr_expected_updates'] = len(clients)

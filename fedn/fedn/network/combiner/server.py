@@ -1,4 +1,5 @@
 import base64
+import json
 import queue
 import re
 import signal
@@ -8,6 +9,8 @@ import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
+
+from google.protobuf.json_format import MessageToDict
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -158,7 +161,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("{}:COMBINER({}):{} {}".format(datetime.now().strftime(
             '%Y-%m-%d %H:%M:%S'), self.id, log_level, msg), flush=flush)
 
-    def request_model_update(self, model_id, clients=[]):
+    def request_model_update(self, config, clients=[]):
         """ Ask clients to update the current global model.
 
         Parameters
@@ -174,9 +177,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         request = fedn.ModelUpdateRequest()
         self.__whoami(request.sender, self)
-        request.model_id = model_id
+        request.model_id = config['model_id']
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
+        request.data = json.dumps(config)
 
         if len(clients) == 0:
             clients = self.get_active_trainers()
@@ -188,7 +192,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             # TODO: Check response
 
         print("COMBINER: Sent model update request for model {} to clients {}".format(
-            model_id, clients), flush=True)
+            request.model_id, clients), flush=True)
 
     def request_model_validation(self, model_id, clients=[]):
         """ Ask clients to validate the current global model.
@@ -618,14 +622,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._send_request(request, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
         response = fedn.Response()
-        response.response = "CONTROLLER RECEIVED ModelUpdateRequest from client {}".format(
+        response.response = "RECEIVED ModelUpdateRequest from client {}".format(
             request.sender.name)
         return response  # TODO Fill later
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response. """
-        self.control.aggregator.on_model_update(request.model_update_id)
-        print("ORCHESTRATOR: Received model update", flush=True)
+        self.control.aggregator.on_model_update(request)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelUpdate {} from client  {}".format(
@@ -637,7 +640,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._send_request(request, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
         response = fedn.Response()
-        response.response = "CONTROLLER RECEIVED ModelValidationRequest from client {}".format(
+        response.response = "RECEIVED ModelValidationRequest from client {}".format(
             request.sender.name)
         return response  # TODO Fill later
 

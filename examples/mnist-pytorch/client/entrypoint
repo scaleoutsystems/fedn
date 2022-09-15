@@ -117,7 +117,19 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
                 print(
                     f"Epoch {e}/{epochs-1} | Batch: {b}/{n_batches-1} | Loss: {loss.item()}")
 
-    # Save
+    # Metadata needed for aggregation server side
+    metadata = {
+        'num_examples': len(x_train),
+        'batch_size': batch_size,
+        'epochs': epochs,
+        'lr': lr
+    }
+
+    # Save JSON
+    with open(out_model_path+'-metadata', "w") as fh:
+        fh.write(json.dumps(metadata))
+
+    # Save model update
     _save_model(model, out_model_path)
 
 
