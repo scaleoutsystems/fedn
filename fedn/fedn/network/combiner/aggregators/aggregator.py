@@ -40,7 +40,6 @@ class Aggregator(AggregatorBase):
         :param model_update: A ModelUpdate message.
         :type model_id: str
         """
-        print(model_update, flush=True)
         try:
             self.server.report_status("AGGREGATOR({}): callback received model {}".format(self.name, model_update.model_update_id),
                                       log_level=fedn.Status.INFO)
@@ -110,16 +109,7 @@ class Aggregator(AggregatorBase):
 
                 # Load the model update
                 tic = time.time()
-                model_str = self.control.load_model(model_id)
-                if model_str:
-                    try:
-                        model_next = helper.load_model_from_BytesIO(
-                            model_str.getbuffer())
-                    except IOError:
-                        self.server.report_status(
-                            "AGGREGATOR({}): Failed to load model!".format(self.name))
-                else:
-                    raise
+                model_next = self.server.load_model_update(model_id, helper)
                 data['time_model_load'] += time.time() - tic
 
                 # Aggregate / reduce (incremental average)

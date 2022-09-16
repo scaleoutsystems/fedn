@@ -55,7 +55,18 @@ class CombinerRound:
             raise
         return round_config['_job_id']
 
-    def load_model(self, model_id, retry=3):
+    def load_model(self, model_id, helper):
+        model_str = self.control.load_model_str(model_id)
+        if model_str:
+            try:
+                model = helper.load_model_from_BytesIO(model_str.getbuffer())
+                return model
+            except IOError:
+                self.report_status("Failed to load model!")
+        else:
+            raise
+
+    def load_model_str(self, model_id, retry=3):
         """Load model update object.
 
         :param model_id: The ID of the model
