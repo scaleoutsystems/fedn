@@ -40,6 +40,7 @@ class Aggregator(AggregatorBase):
         :param model_update: A ModelUpdate message.
         :type model_id: str
         """
+        print(model_update, flush=True)
         try:
             self.server.report_status("AGGREGATOR({}): callback received model {}".format(self.name, model_update.model_update_id),
                                       log_level=fedn.Status.INFO)
@@ -100,7 +101,7 @@ class Aggregator(AggregatorBase):
         nr_processed_models = 0
         while nr_processed_models < max_nr_models:
             try:
-                # Get next model_update from queue
+                # Get next model_id from queue
                 model_update = self.model_updates.get(block=False)
                 model_id = model_update.model_update_id
 
@@ -109,10 +110,20 @@ class Aggregator(AggregatorBase):
 
                 # Load the model update
                 tic = time.time()
-                model_next = self.server.load_model_update(model_id, helper)
+                model_str = self.control.load_model_str(model_id)
+                if model_str:
+                    try:
+                        model_next = helper.load_model_from_BytesIO(
+                            model_str.getbuffer())
+                    except IOError:
+                        self.server.report_status(
+                            "AGGREGATOR({}): Failed to load model!".format(self.name))
+                else:
+                    raise
                 data['time_model_load'] += time.time() - tic
 
                 # Aggregate / reduce (incremental average)
+                # TODO: extend with metadata from client
                 # Need to know round id of model update, present round id, number of data points in the update, etc.
                 tic = time.time()
                 if nr_processed_models == 0:
