@@ -27,9 +27,8 @@ We assume that you have root access to 3 Ubuntu 20.04 Server hosts / VMs. We rec
 Certificates (optional)
 .......................
 
-Certificates are needed for the Reducer and each of the Combiners to enable SSL for secure communication. 
-By default, FEDn will generate unsigned certificates for the reducer and each combiner using OpenSSL, but you can 
-also provide your own certificates. 
+You can provide certificates for each of the Combiners to enable secure gRPC connections. 
+FEDn can also generate unsigned certificates for using OpenSSL. The default deployment uses insecure channels, assuming that a production deployment will use a reverse proxy.  
 
 .. note:: 
    Certificates based on IP addresses are not supported due to incompatibilities with gRPC. 
@@ -85,7 +84,7 @@ Then start the reducer:
 3. Deploy combiners
 -------------------
 
-Copy 'config/settings.yaml.template' to 'config/settings-combiner.yaml' and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the FEDn network), a hostname (which is used by reducer and clients to connect to the combiner RPC server), 
+Copy 'config/settings-combiner.yaml.template' to 'config/settings-combiner.yaml' and edit it to provide a name for the combiner (used as a unique identifier for the combiner in the FEDn network), a hostname (which is used by reducer and clients to connect to the combiner RPC server), 
 and the port (default is 12080, make sure to allow access to this port in your security group/firewall settings). 
 Also, provide the IP and port for the reducer under the 'controller' tag. Then deploy the combiner: 
 
