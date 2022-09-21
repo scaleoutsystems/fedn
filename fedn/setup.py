@@ -10,7 +10,7 @@ setup(
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.7,<=3.10',
+    python_requires='>=3.7,<3.11',
     install_requires=[
         "PyYAML>=5.4",
         "requests",
