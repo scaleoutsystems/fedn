@@ -120,13 +120,13 @@ License
 FEDn is licensed under Apache-2.0 (see `LICENSE <LICENSE>`__ file for
 full information).
 
-.. |FEDn logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scaleout.png
+.. |FEDn logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/Scaleout.png
    :width: 15%
-.. |UU logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/UU.png
+.. |UU logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/UU.png
    :width: 15%
-.. |AI Sweden logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/ai-sweden-logo.png
+.. |AI Sweden logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/ai-sweden-logo.png
    :width: 15%
-.. |Zenseact logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/zenseact-logo.png
+.. |Zenseact logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/zenseact-logo.png
    :width: 15%
-.. |Scania logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/source/img/logos/Scania.png
+.. |Scania logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/Scania.png
    :width: 15%
