@@ -2,10 +2,9 @@ import json
 import sys
 from time import sleep
 
+import fire
 import pymongo
 import requests
-
-import fire
 
 RETRIES = 18
 SLEEP = 10
@@ -56,19 +55,19 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090
 
 
 def rounds(n_rounds=3):
-    assert(_retry(_test_rounds, n_rounds=n_rounds))
+    assert (_retry(_test_rounds, n_rounds=n_rounds))
 
 
 def clients(n_clients=2):
-    assert(_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
+    assert (_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
 
 
 def combiners(n_combiners=1):
-    assert(_retry(_test_nodes, n_nodes=n_combiners, node_type='combiner'))
+    assert (_retry(_test_nodes, n_nodes=n_combiners, node_type='combiner'))
 
 
 def reducer():
-    assert(_retry(_test_nodes, n_nodes=1, node_type='reducer'))
+    assert (_retry(_test_nodes, n_nodes=1, node_type='reducer'))
 
 
 if __name__ == '__main__':
