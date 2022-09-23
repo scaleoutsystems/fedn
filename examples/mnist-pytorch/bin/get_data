@@ -1,8 +1,6 @@
 #!./.mnist-pytorch/bin/python
 import os
 
-import numpy as np
-
 import fire
 import torchvision
 

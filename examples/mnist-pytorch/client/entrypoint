@@ -7,6 +7,7 @@ import os
 import docker
 import fire
 import torch
+
 from fedn.utils.pytorchhelper import PytorchHelper
 
 NUM_CLASSES = 10
