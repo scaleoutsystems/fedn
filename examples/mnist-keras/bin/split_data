@@ -2,8 +2,9 @@
 import os
 from math import floor
 
-import fire
 import numpy as np
+
+import fire
 
 
 def splitset(dataset, parts):

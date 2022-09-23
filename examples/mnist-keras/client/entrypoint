@@ -2,11 +2,11 @@
 import json
 import os
 
-import docker
-import fire
 import numpy as np
 import tensorflow as tf
 
+import docker
+import fire
 from fedn.utils.kerashelper import KerasHelper
 
 NUM_CLASSES = 10
