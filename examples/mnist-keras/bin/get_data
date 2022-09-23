@@ -1,10 +1,9 @@
 #!./.mnist-keras/bin/python
 import os
 
+import fire
 import numpy as np
 import tensorflow as tf
-
-import fire
 
 
 def get_data(out_dir='data'):

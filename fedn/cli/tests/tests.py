@@ -1,7 +1,6 @@
 import unittest
 
 from click.testing import CliRunner
-
 from run_cmd import check_helper_config_file
 
 

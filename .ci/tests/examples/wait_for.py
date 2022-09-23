@@ -2,10 +2,9 @@ import json
 import sys
 from time import sleep
 
+import fire
 import pymongo
 import requests
-
-import fire
 
 RETRIES = 18
 SLEEP = 10
