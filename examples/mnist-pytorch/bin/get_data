@@ -2,7 +2,6 @@
 import os
 
 import fire
-import numpy as np
 import torchvision
 
 

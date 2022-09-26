@@ -13,6 +13,7 @@ migrations/
 __pycache__/
 *.py[cod]
 *$py.class
+*.crt
 
 # C extensions
 *.so
