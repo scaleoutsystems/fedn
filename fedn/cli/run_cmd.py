@@ -58,7 +58,7 @@ def run_cmd(ctx):
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
 @click.option('--local-package', is_flag=True, help='Enable local compute package')
-@click.option('--force-ssl', is_flag=True, help='Enable local compute package')
+@click.option('--force-ssl', is_flag=True, help='Force SSL/TLS for REST service')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=False)
 @click.option('-pc', '--preshared-cert', required=False, default=False)
