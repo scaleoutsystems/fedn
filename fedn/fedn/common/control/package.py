@@ -111,7 +111,7 @@ class PackageRuntime:
         self.checksum = None
         self.expected_checksum = None
 
-    def download(self, host, port, token, secure=False, name=None):
+    def download(self, host, port, token, force_ssl=False, secure=False, name=None):
         """
         Download compute package from controller
 
@@ -122,7 +122,10 @@ class PackageRuntime:
         :return:
         """
         # for https we assume a an ingress handles permanent redirect (308)
-        scheme = "http"
+        if force_ssl:
+            scheme = "https"
+        else:
+            scheme = "http"
         if port:
             path = f"{scheme}://{host}:{port}/context"
         else:

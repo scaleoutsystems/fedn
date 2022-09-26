@@ -22,7 +22,7 @@ class ConnectorClient:
     Connector for assigning client to a combiner in the FEDn network.
     """
 
-    def __init__(self, host, port, token, name, remote_package, verify=False, combiner=None, id=None):
+    def __init__(self, host, port, token, name, remote_package, force_ssl=False, verify=False, combiner=None, id=None):
 
         self.host = host
         self.port = port
@@ -34,7 +34,10 @@ class ConnectorClient:
         self.package = 'remote' if remote_package else 'local'
 
         # for https we assume a an ingress handles permanent redirect (308)
-        self.prefix = "http://"
+        if force_ssl:
+            self.prefix = "https://"
+        else:
+            self.prefix = "http://"
         if self.port:
             self.connect_string = "{}{}:{}".format(
                 self.prefix, self.host, self.port)
