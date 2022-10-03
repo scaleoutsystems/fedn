@@ -410,8 +410,6 @@ class Client:
             except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
-                # print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             except Exception:
                 raise
