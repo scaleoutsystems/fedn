@@ -17,9 +17,10 @@ jobs:
         to_test:
           - "mnist-keras keras"
           - "mnist-pytorch pytorch"
-        python_version: ["3.8", "3.9"]
+        python_version: ["3.8", "3.9","3.10"]
         os:
           - ubuntu-20.04
+          - ubuntu-22.04
           - macos-11
     runs-on: ${{ matrix.os }}
     steps:

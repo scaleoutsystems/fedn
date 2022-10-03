@@ -29,7 +29,7 @@ class Aggregator(AggregatorBase):
         super().__init__(id, storage, server, modelservice, control)
 
         self.name = "FedAvg"
-        self.validations = {}
+        #self.validations = {}
         self.model_updates = queue.Queue()
 
     def on_model_update(self, model_update):
@@ -54,6 +54,8 @@ class Aggregator(AggregatorBase):
 
     def on_model_validation(self, model_validation):
         """ Callback when a new model validation is recieved from a client.
+            Performs (optional) pre-processing and writes the validation 
+            to the database. 
 
         :param validation: Dict containing validation data sent by client.
                            Must be valid JSON.
@@ -65,12 +67,14 @@ class Aggregator(AggregatorBase):
         # combiner memory. This will need to be refactored later so that this
         # callback is responsible for reporting the validation to the db.
 
-        model_id = model_validation.model_id
-        data = json.loads(model_validation.data)
-        try:
-            self.validations[model_id].append(data)
-        except KeyError:
-            self.validations[model_id] = [data]
+        #model_id = validation.model_id
+        #data = json.loads(validation.data)
+        # try:
+        #    self.validations[model_id].append(data)
+        # except KeyError:
+        #    self.validations[model_id] = [data]
+
+        # self.report_validation(validation)
 
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)

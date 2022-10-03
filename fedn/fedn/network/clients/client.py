@@ -65,6 +65,7 @@ class Client:
                                          token=config['token'],
                                          name=config['name'],
                                          remote_package=config['remote_compute_context'],
+                                         force_ssl=config['force_ssl'],
                                          verify=config['verify'],
                                          combiner=config['preferred_combiner'],
                                          id=config['client_id'])
@@ -162,6 +163,7 @@ class Client:
                     host=config['discover_host'],
                     port=config['discover_port'],
                     token=config['token'],
+                    force_ssl=config['force_ssl'],
                     secure=config['secure']
                 )
                 if retval:
@@ -408,8 +410,6 @@ class Client:
             except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
-                # print("CLIENT __listen_to_model_validation_request_stream: GRPC ERROR {} retrying in {}..".format(
-                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             except Exception:
                 raise

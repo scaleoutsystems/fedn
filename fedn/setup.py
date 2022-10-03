@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='fedn',
-    version='0.3.2',
+    version='0.3.3',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -10,7 +10,7 @@ setup(
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.7,<3.10',
+    python_requires='>=3.7,<3.11',
     install_requires=[
         "PyYAML>=5.4",
         "requests",
