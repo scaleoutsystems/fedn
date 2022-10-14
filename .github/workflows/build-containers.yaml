@@ -28,7 +28,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/scaleoutsystems/fedn/fedn
+            docker.pkg.github.com/${{ github.repository }}/fedn
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -41,7 +41,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/scaleoutsystems/fedn/fedn
+            docker.pkg.github.com/${{ github.repository }}/fedn
           tags: |
             type=ref,event=branch,suffix=-mnist-keras
             type=ref,event=pr,suffix=-mnist-keras
@@ -54,7 +54,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/scaleoutsystems/fedn/fedn
+            docker.pkg.github.com/${{ github.repository }}/fedn
           tags: |
             type=ref,event=branch,suffix=-mnist-pytorch
             type=ref,event=pr,suffix=-mnist-pytorch
