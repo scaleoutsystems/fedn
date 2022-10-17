@@ -23,15 +23,45 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup variables
-        id: wf-vars
-        env:
-          BASE_BRANCH: ${{ github.base_ref }}
-        run: |
-          IMAGE_TAG=${GITHUB_REF##*/}
-          echo "BASE_BRANCH=${BASE_BRANCH}"
-          echo "IMAGE_TAG=${IMAGE_TAG}"
-          echo ::set-output name=IMAGE_TAG::$IMAGE_TAG
+      - name: Docker meta fedn
+        id: meta1
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            docker.pkg.github.com/${{ github.repository }}/fedn
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+      
+      - name: Docker meta mnist-keras
+        id: meta2
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            docker.pkg.github.com/${{ github.repository }}/fedn
+          tags: |
+            type=ref,event=branch,suffix=-mnist-keras
+            type=ref,event=pr,suffix=-mnist-keras
+            type=semver,pattern={{version}},suffix=-mnist-keras
+            type=semver,pattern={{major}}.{{minor}},suffix=-mnist-keras
+            type=sha,suffix=-mnist-keras
+      
+      - name: Docker meta mnist-pytorch
+        id: meta3
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            docker.pkg.github.com/${{ github.repository }}/fedn
+          tags: |
+            type=ref,event=branch,suffix=-mnist-pytorch
+            type=ref,event=pr,suffix=-mnist-pytorch
+            type=semver,pattern={{version}},suffix=-mnist-pytorch
+            type=semver,pattern={{major}}.{{minor}},suffix=-mnist-pytorch
+            type=sha,suffix=-mnist-pytorch
+
 
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v1
@@ -44,14 +74,16 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: "${{ github.event_name != 'pull_request' }}"
-          tags: docker.pkg.github.com/${{ github.repository }}/fedn:${{ steps.wf-vars.outputs.IMAGE_TAG }}
+          tags: ${{ steps.meta1.outputs.tags }}
+          labels: ${{ steps.meta1.outputs.labels }}
           file: Dockerfile
 
       - name: Build and push (mnist-keras)
         uses: docker/build-push-action@v2
         with:
           push: "${{ github.event_name != 'pull_request' }}"
-          tags: docker.pkg.github.com/${{ github.repository }}/fedn:${{ steps.wf-vars.outputs.IMAGE_TAG }}-mnist-keras
+          tags: ${{ steps.meta2.outputs.tags }}
+          labels: ${{ steps.meta2.outputs.labels }}
           file: Dockerfile
           build-args: |
             REQUIREMENTS=examples/mnist-keras/requirements.txt
@@ -60,7 +92,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: "${{ github.event_name != 'pull_request' }}"
-          tags: docker.pkg.github.com/${{ github.repository }}/fedn:${{ steps.wf-vars.outputs.IMAGE_TAG }}-mnist-pytorch
+          tags: ${{ steps.meta3.outputs.tags }}
+          labels: ${{ steps.meta3.outputs.labels }}
           file: Dockerfile
           build-args: |
             REQUIREMENTS=examples/mnist-pytorch/requirements.txt

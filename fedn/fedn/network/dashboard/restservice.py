@@ -855,7 +855,7 @@ controller:
             obj.seek(0)
             return send_file(obj,
                              as_attachment=True,
-                             attachment_filename='client.yaml',
+                             download_name='client.yaml',
                              mimetype='application/x-yaml')
 
         @app.route('/context', methods=['GET', 'POST'])
