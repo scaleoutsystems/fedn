@@ -14,11 +14,20 @@ class CombinerUnavailableError(Exception):
 
 
 class Channel:
-    """
+    """ Wrapper for a gRPC channel. """
 
-    """
+    def __init__(self, address, port, certificate=None):
+        """ Create a channel.
 
-    def __init__(self, address, port, certificate):
+        If a valid certificate is given, a secure channel is created, else insecure.
+
+        :parameter address: The address for the gRPC server.
+        :type address: str
+        :parameter port: The port for connecting to the gRPC server.
+        :type port: int
+        :parameter certificate: The certificate for connecting to the gRPC server (optional)
+        :type certificate: str
+        """
         self.address = address
         self.port = port
         self.certificate = certificate
@@ -33,9 +42,9 @@ class Channel:
                 '{}:{}'.format(self.address, str(self.port)))
 
     def get_channel(self):
-        """
+        """ Get a channel.
 
-        :return:
+        :return: An instance of a gRPC channel
         """
         return copy.copy(self.channel)
 
@@ -70,14 +79,14 @@ class CombinerInterface:
     def from_json(combiner_config):
         """
 
-        :return:
+        : return:
         """
         return CombinerInterface(**combiner_config)
 
     def to_dict(self):
         """
 
-        :return:
+        : return:
         """
 
         data = {
@@ -107,7 +116,7 @@ class CombinerInterface:
     def to_json(self):
         """
 
-        :return:
+        : return:
         """
         return json.dumps(self.to_dict())
 
@@ -118,7 +127,7 @@ class CombinerInterface:
         """
         if self.certificate:
             cert_b64 = base64.b64encode(self.certificate)
-        #data = self.to_dict()
+        # data = self.to_dict()
             return str(cert_b64).split('\'')[1]
         else:
             return None
@@ -129,7 +138,7 @@ class CombinerInterface:
 
         : return:
         """
-        #data = self.to_dict()
+        # data = self.to_dict()
         if self.key:
             key_b64 = base64.b64encode(self.key)
             return str(key_b64).split('\'')[1]
@@ -140,8 +149,8 @@ class CombinerInterface:
     def report(self, config=None):
         """
 
-        :param config:
-        :return:
+        : param config:
+        : return:
         """
         print(f"Trying to create Report channel to gRPC server at: address {self.address} port {self.port}", flush=True)
         print(f"Certificate: {self.certificate}", flush=True)
@@ -164,7 +173,7 @@ class CombinerInterface:
     def configure(self, config=None):
         """
 
-        :param config:
+        : param config:
         """
         if not config:
             config = self.config
@@ -189,8 +198,8 @@ class CombinerInterface:
     def start(self, config):
         """
 
-        :param config:
-        :return:
+        : param config:
+        : return:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -216,7 +225,7 @@ class CombinerInterface:
     def set_model_id(self, model_id):
         """
 
-        :param model_id:
+        : param model_id:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -237,7 +246,7 @@ class CombinerInterface:
     def get_model_id(self):
         """
 
-        :return:
+        : return:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -278,7 +287,7 @@ class CombinerInterface:
     def allowing_clients(self):
         """
 
-        :return:
+        : return:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
