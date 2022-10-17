@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 import fedn.common.net.grpc.fedn_pb2 as fedn
 
 
+class ModelUpdateError(Exception):
+    pass
+
+
 class AggregatorBase(ABC):
     """ Abstract class defining helpers. """
 
@@ -56,7 +60,14 @@ class AggregatorBase(ABC):
                                   log_level=fedn.Status.INFO)
 
     def load_model_update(self, helper, model_id):
-        #tic = time.time()
+        """Read model update from file.
+
+        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.HelperBase`
+        :param model_id: The ID of the model update, UUID in str format  
+        :type model_id: str
+        """
+
         model_str = self.control.load_model_str(model_id)
         if model_str:
             try:
@@ -65,6 +76,6 @@ class AggregatorBase(ABC):
                 self.server.report_status(
                     "AGGREGATOR({}): Failed to load model!".format(self.name))
         else:
-            raise
+            raise ModelUpdateError("Failed to load model.")
 
         return model
