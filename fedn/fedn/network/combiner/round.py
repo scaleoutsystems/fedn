@@ -305,9 +305,11 @@ class RoundController:
             print("\n")
         return round_meta
 
-    def run(self):
+    def run(self, polling_interval=1.0):
         """ Main control loop. Sequentially execute rounds based on round config.
 
+        :param polling_interval: The polling interval in seconds for checking if a new job/config is available.
+        :type polling_interval: float
         """
         try:
             while True:
@@ -334,8 +336,9 @@ class RoundController:
                         self.server.report_status(
                             "ROUNDCONTROL: Failed to meet client allocation requirements for this round config.", flush=True)
 
+                    self.round_configs.task_done()
                 except queue.Empty:
-                    time.sleep(1)
+                    time.sleep(polling_interval)
 
         except (KeyboardInterrupt, SystemExit):
             pass

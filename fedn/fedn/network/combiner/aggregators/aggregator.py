@@ -67,20 +67,19 @@ class Aggregator(AggregatorBase):
             try:
                 # Get next model from queue
                 model_next, update_data, model_id = self.next_model_update(helper)
+
                 print(model_id, update_data, flush=True)
 
                 total_examples += update_data['num_examples']
 
-                # Need to know round id of model update, present round id, number of data points in the update, etc.
-                tic = time.time()
                 if nr_aggregated_models == 0:
                     model = model_next
                 else:
                     model = helper.increment_average(
                         model, model_next, nr_aggregated_models + 1)
-                data['time_model_aggregation'] += time.time() - tic
-                self.model_updates.task_done()
+
                 nr_aggregated_models += 1
+                self.model_updates.task_done()
             except Exception as e:
                 self.server.report_status(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
