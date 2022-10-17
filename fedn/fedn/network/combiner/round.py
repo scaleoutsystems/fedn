@@ -4,7 +4,7 @@ import sys
 import time
 import uuid
 
-from fedn.network.combiner.aggregators.aggregator import Aggregator
+from fedn.network.combiner.aggregators.fedavg import FedAvg
 from fedn.utils.helpers import get_helper
 
 
@@ -38,7 +38,7 @@ class RoundController:
         self.config = {}
 
         # TODO, make runtime configurable
-        self.aggregator = Aggregator(
+        self.aggregator = FedAvg(
             self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
