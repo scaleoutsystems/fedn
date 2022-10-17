@@ -125,7 +125,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
         'lr': lr
     }
 
-    # Save JSON
+    # Save JSON metadata file
     with open(out_model_path+'-metadata', "w") as fh:
         fh.write(json.dumps(metadata))
 

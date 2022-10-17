@@ -8,12 +8,11 @@ from fedn.network.combiner.aggregators.aggregator import Aggregator
 from fedn.utils.helpers import get_helper
 
 
-class CombinerRound:
-    """ Combiner level round controller.
+class RoundController:
+    """ Round controller.
 
-    The controller recieves round configurations from the global controller
-    and acts on them by soliciting model updates and model validations from
-    the connected clients.
+    The round controller recieves round configurations from the global controller
+    and coordinates model updates and aggregation, and model validations.
 
     :param id: A reference to id of :class: `fedn.combiner.Combiner`
     :type id: str
@@ -41,9 +40,9 @@ class CombinerRound:
     def push_round_config(self, round_config):
         """ Recieve a round_config (job description) and push on the queue.
 
-        :param round_config: A dict containing round configurations.
+        :param round_config: A dict containing the round configuration (from global controller).
         :type round_config: dict
-        :return: A generated job id (universally unique identifier) for the round configuration
+        :return: A job id (universally unique identifier) for the round.
         :rtype: str
         """
         try:
@@ -108,7 +107,7 @@ class CombinerRound:
         self.server.report_status(
             "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
 
-        # Request model update from all active clients.
+        # Request a model update from all active clients.
         self.server.request_model_update(config, clients=clients)
 
         meta = {}
@@ -144,7 +143,7 @@ class CombinerRound:
         self.server.request_model_validation(model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
-        """Download model from persistent storage.
+        """Download model from persistent storage and set in modelservice.
 
         :param model_id: ID of the model update object to stage.
         :type model_id: str
@@ -158,7 +157,7 @@ class CombinerRound:
         if self.modelservice.models.exist(model_id):
             return
 
-        # If it is not there, download it from storage and stage it in memory at the server.
+        # If it is not there, download it from storage and stage it in memory at the combiner.
         tries = 0
         while True:
             try:
@@ -178,7 +177,7 @@ class CombinerRound:
         self.modelservice.set_model(model, model_id)
 
     def _assign_round_clients(self, n, type="trainers"):
-        """ Obtain a list of clients (trainers or validators) to talk to in a round.
+        """ Obtain a list of clients (trainers or validators) to ask for updates in this round.
 
         :param n: Size of a random set taken from active trainers (clients), if n > "active trainers" all is used
         :type n: int
@@ -207,7 +206,7 @@ class CombinerRound:
         return clients
 
     def _check_nr_round_clients(self, config, timeout=0.0):
-        """Check that the minimal number of required clients to start a round are available.
+        """Check that the minimal number of clients required to start a round are available.
 
         :param config: [description]
         :type config: [type]
@@ -256,6 +255,9 @@ class CombinerRound:
     def execute_training_round(self, config):
         """ Coordinates clients to execute training and validation tasks. """
 
+        self.server.report_status(
+            "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']), flush=True)
+
         round_meta = {}
         round_meta['config'] = config
         round_meta['round_id'] = config['round_id']
@@ -264,17 +266,13 @@ class CombinerRound:
         # on this combiner, and if not download it from storage.
         self.stage_model(config['model_id'])
 
-        # Execute the configured number of local rounds
-        round_meta['local_round'] = {}
-        for r in range(1, int(config['rounds']) + 1):
+        clients = self._assign_round_clients(self.server.max_clients)
+        model, meta = self._training_round(config, clients)
+        round_meta['data'] = meta
+
+        if model is None:
             self.server.report_status(
-                "ROUNDCONTROL: Starting training round {}".format(r), flush=True)
-            clients = self._assign_round_clients(self.server.max_clients)
-            model, meta = self._training_round(config, clients)
-            round_meta['local_round'][str(r)] = meta
-            if model is None:
-                self.server.report_status(
-                    "\t Failed to update global model in round {0}!".format(r))
+                "\t Failed to update global model in round {0}!".format(config['round_id']))
 
         if model is not None:
             helper = get_helper(config['helper_type'])

@@ -19,7 +19,7 @@ from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.modelservice import ModelService
-from fedn.network.combiner.round import CombinerRound
+from fedn.network.combiner.round import RoundController
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
@@ -116,7 +116,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.tracer = MongoTracer(
             config['statestore']['mongo_config'], config['statestore']['network_id'])
 
-        self.control = CombinerRound(
+        self.control = RoundController(
             self.id, self.repository, self, self.modelservice)
         threading.Thread(target=self.control.run, daemon=True).start()
 
