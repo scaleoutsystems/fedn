@@ -8,6 +8,10 @@ from fedn.network.combiner.aggregators.aggregator import Aggregator
 from fedn.utils.helpers import get_helper
 
 
+class ModelUpdateError(Exception):
+    pass
+
+
 class RoundController:
     """ Round controller.
 
@@ -54,18 +58,28 @@ class RoundController:
             raise
         return round_config['_job_id']
 
-    def load_model(self, model_id, helper):
-        model_str = self.control.load_model_str(model_id)
+    def load_model_update(self, helper, model_id):
+        """Read model update from file.
+
+        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.HelperBase`
+        :param model_id: The ID of the model update, UUID in str format  
+        :type model_id: str
+        """
+
+        model_str = self._load_model_str(model_id)
         if model_str:
             try:
                 model = helper.load_model_from_BytesIO(model_str.getbuffer())
-                return model
             except IOError:
-                self.report_status("Failed to load model!")
+                self.server.report_status(
+                    "AGGREGATOR({}): Failed to load model!".format(self.name))
         else:
-            raise
+            raise ModelUpdateError("Failed to load model.")
 
-    def load_model_str(self, model_id, retry=3):
+        return model
+
+    def _load_model_str(self, model_id, retry=3):
         """Load model update object.
 
         :param model_id: The ID of the model

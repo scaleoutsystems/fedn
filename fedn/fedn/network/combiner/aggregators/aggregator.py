@@ -54,6 +54,7 @@ class Aggregator(AggregatorBase):
         round_time = 0.0
         polling_interval = 1.0
         nr_aggregated_models = 0
+        total_examples = 0
 
         # Wait until round times out, or the maximal number of models are recieved
         while round_time < time_window:
@@ -64,17 +65,12 @@ class Aggregator(AggregatorBase):
 
         while not self.model_updates.empty():
             try:
-                # Get next model_id from queue
-                model_update = self.model_updates.get(block=False)
-                model_id = model_update.model_update_id
+                # Get next model from queue
+                model_next, update_data, model_id = self.next_model_update(helper)
+                print(model_id, update_data, flush=True)
 
-                self.server.report_status(
-                    "AGGREGATOR({}): Processing model update {}".format(self.name, model_id))
+                total_examples += update_data['num_examples']
 
-                # Load the model update
-                model_next = self.load_model_update(helper, model_id)
-
-                # TODO: extend with metadata from client
                 # Need to know round id of model update, present round id, number of data points in the update, etc.
                 tic = time.time()
                 if nr_aggregated_models == 0:
@@ -83,9 +79,8 @@ class Aggregator(AggregatorBase):
                     model = helper.increment_average(
                         model, model_next, nr_aggregated_models + 1)
                 data['time_model_aggregation'] += time.time() - tic
-
-                nr_aggregated_models += 1
                 self.model_updates.task_done()
+                nr_aggregated_models += 1
             except Exception as e:
                 self.server.report_status(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))

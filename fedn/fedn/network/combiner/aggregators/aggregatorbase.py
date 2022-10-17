@@ -1,11 +1,10 @@
+import json
 import queue
 from abc import ABC, abstractmethod
 
+from this import s
+
 import fedn.common.net.grpc.fedn_pb2 as fedn
-
-
-class ModelUpdateError(Exception):
-    pass
 
 
 class AggregatorBase(ABC):
@@ -59,23 +58,14 @@ class AggregatorBase(ABC):
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
 
-    def load_model_update(self, helper, model_id):
-        """Read model update from file.
+    def next_model_update(self, helper):
+        """ """
+        model_update = self.model_updates.get(block=False)
+        model_id = model_update.model_update_id
+        model_next = self.control.load_model_update(helper, model_id)
+        # Get relevant metadata
+        data = json.loads(model_update.meta)['training_metadata']
+        config = json.loads(json.loads(model_update.meta)['config'])
+        data['round_id'] = config['round_id']
 
-        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
-        :type helper: class: `fedn.utils.helpers.HelperBase`
-        :param model_id: The ID of the model update, UUID in str format  
-        :type model_id: str
-        """
-
-        model_str = self.control.load_model_str(model_id)
-        if model_str:
-            try:
-                model = helper.load_model_from_BytesIO(model_str.getbuffer())
-            except IOError:
-                self.server.report_status(
-                    "AGGREGATOR({}): Failed to load model!".format(self.name))
-        else:
-            raise ModelUpdateError("Failed to load model.")
-
-        return model
+        return model_next, data, model_id
