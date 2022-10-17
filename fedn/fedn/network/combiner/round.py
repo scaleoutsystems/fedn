@@ -59,15 +59,18 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Read model update from file.
+        """Load model update in native format.
+
+        First the model is loaded in BytesIO, then the helper is used to
+        parse it into its native model format (Keras, PyTorch, etc).
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`
-        :param model_id: The ID of the model update, UUID in str format  
+        :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """
 
-        model_str = self._load_model_str(model_id)
+        model_str = self.load_model_update_str(model_id)
         if model_str:
             try:
                 model = helper.load_model_from_BytesIO(model_str.getbuffer())
@@ -79,8 +82,8 @@ class RoundController:
 
         return model
 
-    def _load_model_str(self, model_id, retry=3):
-        """Load model update object.
+    def load_model_update_str(self, model_id, retry=3):
+        """Load model update object and return it as BytesIO.
 
         :param model_id: The ID of the model
         :type model_id: str
@@ -107,38 +110,59 @@ class RoundController:
 
         return model_str
 
+    def waitforit(self, config, max_models=100, polling_interval=0.1):
+        """ Defines the policy for how long we should wait before starting to aggregate models. 
+
+        The policy is as follows:
+            1. We wait a maximum of time_window time until the round times out.
+            2. We terminate if a preset number of model updates (max_models) are recieved.
+            3. We terminate if there are no outstanding model update requests (not yet implemented).
+        """
+
+        time_window = float(config['round_timeout'])
+
+        tt = 0.0
+        while tt < time_window:
+            if self.aggregator.model_updates.qsize() > max_models:
+                break
+
+            time.sleep(polling_interval)
+            tt += polling_interval
+
     def _training_round(self, config, clients):
         """Send model update requests to clients and aggregate results.
 
-        :param config: The round config object (passed to the client).
-        :type config: dict
-        :param clients: [description]
-        :type clients: list
-        :return: an aggregated model and associated metadata
-        :rtype: model, dict
+        : param config: The round config object(passed to the client).
+        : type config: dict
+        : param clients: [description]
+        : type clients: list
+        : return: an aggregated model and associated metadata
+        : rtype: model, dict
         """
 
         self.server.report_status(
             "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
-
-        # Request a model update from all active clients.
-        self.server.request_model_update(config, clients=clients)
 
         meta = {}
         meta['nr_expected_updates'] = len(clients)
         meta['nr_required_updates'] = int(config['clients_required'])
         meta['timeout'] = float(config['round_timeout'])
 
+        # Request a model update from all active clients.
+        self.server.request_model_update(config, clients=clients)
+
+        # Wait until a criteria has been met, then trigger aggregation for this round.
+        self.waitforit(config)
+
         tic = time.time()
         model = None
         data = None
+
         try:
             helper = get_helper(config['helper_type'])
-            model, data = self.aggregator.combine_models(helper=helper,
-                                                         max_nr_models=len(clients)+10,
-                                                         time_window=float(config['round_timeout']))
+            model, data = self.aggregator.combine_models(helper)
         except Exception as e:
-            print("TRAINING ROUND FAILED AT COMBINER! {}".format(e), flush=True)
+            print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
 
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
@@ -147,24 +171,24 @@ class RoundController:
     def _validation_round(self, config, clients, model_id):
         """[summary]
 
-        :param config: [description]
-        :type config: [type]
-        :param clients: [description]
-        :type clients: [type]
-        :param model_id: [description]
-        :type model_id: [type]
+        : param config: [description]
+        : type config: [type]
+        : param clients: [description]
+        : type clients: [type]
+        : param model_id: [description]
+        : type model_id: [type]
         """
         self.server.request_model_validation(model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download model from persistent storage and set in modelservice.
 
-        :param model_id: ID of the model update object to stage.
-        :type model_id: str
-        :param timeout_retry: Sleep before retrying download again (sec), defaults to 3
-        :type timeout_retry: int, optional
-        :param retry: Number of retries, defaults to 2
-        :type retry: int, optional
+        : param model_id: ID of the model update object to stage.
+        : type model_id: str
+        : param timeout_retry: Sleep before retrying download again(sec), defaults to 3
+        : type timeout_retry: int, optional
+        : param retry: Number of retries, defaults to 2
+        : type retry: int, optional
         """
 
         # If the model is already in memory at the server we do not need to do anything.
@@ -191,14 +215,14 @@ class RoundController:
         self.modelservice.set_model(model, model_id)
 
     def _assign_round_clients(self, n, type="trainers"):
-        """ Obtain a list of clients (trainers or validators) to ask for updates in this round.
+        """ Obtain a list of clients(trainers or validators) to ask for updates in this round.
 
-        :param n: Size of a random set taken from active trainers (clients), if n > "active trainers" all is used
-        :type n: int
-        :param type: type of clients, either "trainers" or "validators", defaults to "trainers"
-        :type type: str, optional
-        :return: Set of clients
-        :rtype: list
+        : param n: Size of a random set taken from active trainers(clients), if n > "active trainers" all is used
+        : type n: int
+        : param type: type of clients, either "trainers" or "validators", defaults to "trainers"
+        : type type: str, optional
+        : return: Set of clients
+        : rtype: list
         """
 
         if type == "validators":
@@ -222,12 +246,12 @@ class RoundController:
     def _check_nr_round_clients(self, config, timeout=0.0):
         """Check that the minimal number of clients required to start a round are available.
 
-        :param config: [description]
-        :type config: [type]
-        :param timeout: [description], defaults to 0.0
-        :type timeout: float, optional
-        :return: [description]
-        :rtype: [type]
+        : param config: [description]
+        : type config: [type]
+        : param timeout: [description], defaults to 0.0
+        : type timeout: float, optional
+        : return: [description]
+        : rtype: [type]
         """
 
         ready = False
@@ -255,8 +279,8 @@ class RoundController:
     def execute_validation_round(self, round_config):
         """ Coordinate validation rounds as specified in config.
 
-        :param round_config: [description]
-        :type round_config: [type]
+        : param round_config: [description]
+        : type round_config: [type]
         """
         model_id = round_config['model_id']
         self.server.report_status(
@@ -308,8 +332,8 @@ class RoundController:
     def run(self, polling_interval=1.0):
         """ Main control loop. Sequentially execute rounds based on round config.
 
-        :param polling_interval: The polling interval in seconds for checking if a new job/config is available.
-        :type polling_interval: float
+        : param polling_interval: The polling interval in seconds for checking if a new job/config is available.
+        : type polling_interval: float
         """
         try:
             while True:

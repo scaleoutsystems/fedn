@@ -329,7 +329,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return:
         """
         response = fedn.ControlResponse()
-        print("\n\n GOT CONTROL **START** from Command {}\n\n".format(control.command), flush=True)
+        print("\nRECIEVED CONTROL **START** from Controller {}\n".format(control.command), flush=True)
 
         config = {}
         for parameter in control.parameter:
@@ -360,14 +360,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return:
         """
         response = fedn.ControlResponse()
-        print("\n\n\n\n\n GOT CONTROL **STOP** from Command\n\n\n\n\n", flush=True)
+        print("\n RECIEVED CONTROL **STOP** from Controller\n", flush=True)
         return response
 
     def Report(self, control: fedn.ControlRequest, context):
         """ Descibe current state of the Combiner. """
 
         response = fedn.ControlResponse()
-        print("\n\n\n\n\n GOT CONTROL **REPORT** from Command\n\n\n\n\n", flush=True)
+        print("\n RECIEVED CONTROL **REPORT** from Controller\n", flush=True)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()
@@ -548,7 +548,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client = response.sender
         metadata = context.invocation_metadata()
         if metadata:
-            print("\n\n\nGOT METADATA: {}\n\n\n".format(metadata), flush=True)
+            metadata = dict(metadata)
+            print("\nClient connected: {}\n".format(metadata['client']), flush=True)
 
         status = fedn.Status(
             status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))

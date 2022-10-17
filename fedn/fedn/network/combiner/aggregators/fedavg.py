@@ -1,4 +1,3 @@
-import json
 import queue
 import time
 
@@ -47,28 +46,20 @@ class FedAvg(Aggregator):
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
 
-        self.server.report_status(
-            "AGGREGATOR({}): Aggregating model updates...".format(self.name))
-
         model = None
-        round_time = 0.0
-        polling_interval = 1.0
         nr_aggregated_models = 0
         total_examples = 0
 
-        # Wait until round times out, or the maximal number of models are recieved
-        while round_time < time_window:
-            if self.model_updates.qsize() > max_nr_models:
-                break
-            time.sleep(polling_interval)
-            round_time += polling_interval
+        self.server.report_status(
+            "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
                 model_next, update_data, model_id = self.next_model_update(helper)
 
-                print(model_id, update_data, flush=True)
+                self.server.report_status(
+                    "AGGREGATOR({}): Processing model update {}, update_data: {}  ".format(self.name, model_id, update_data))
 
                 total_examples += update_data['num_examples']
 
