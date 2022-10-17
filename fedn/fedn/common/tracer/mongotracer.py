@@ -35,7 +35,7 @@ class MongoTracer(Tracer):
         """
         data = MessageToDict(msg, including_default_value_fields=True)
 
-        print("LOG: \n {} \n".format(data), flush=True)
+        #print("LOG: \n {} \n".format(data), flush=True)
 
         if self.status is not None:
             self.status.insert_one(data)
