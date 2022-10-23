@@ -162,7 +162,7 @@ class RoundController:
             helper = get_helper(config['helper_type'])
             model, data = self.aggregator.combine_models(helper)
         except Exception as e:
-            print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
+            print("AGGREGATIO FAILED AT COMBINER! {}".format(e), flush=True)
 
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
