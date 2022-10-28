@@ -264,6 +264,12 @@ class Client:
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        elif self.config['secure']:
+            secure = True
+            print("CLIENT: using CA certificate for GRPC channel")
+
+            credentials = grpc.ssl_channel_credentials()
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
             channel = grpc.insecure_channel("{}:{}".format(
