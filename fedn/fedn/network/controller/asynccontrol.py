@@ -55,6 +55,7 @@ class Control(ControlBase):
             statestore_config['mongo_config'], statestore_config['network_id'])
         last_round = self.tracer.get_latest_round()
 
+        # Do global rounds
         for round in range(1, int(config['rounds'] + 1)):
             tic = time.time()
             if last_round:
@@ -93,7 +94,7 @@ class Control(ControlBase):
         self._state = ReducerState.idle
 
     def round(self, session_config, round_number):
-        """ Defines execution of one global round. """
+        """Execute one global round. """
 
         round_meta = {'round_id': round_number}
 
