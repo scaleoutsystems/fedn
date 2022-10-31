@@ -39,6 +39,30 @@ def check_helper_config_file(config):
     return helper
 
 
+def parse_client_config(config):
+    """Parse client config from file.
+
+    Override configs from the CLI with settings in config file.
+
+    :param config: Client config dict.
+    """
+    with open(config['init'], 'r') as file:
+        try:
+            settings = dict(yaml.safe_load(file))
+        except Exception:
+            print('Failed to read config from settings file, exiting.', flush=True)
+            return
+
+    # Read/overide settings from config file
+    if 'controller' in settings:
+        reducer_config = settings['controller']
+        for key, val in reducer_config.items():
+            config[key] = val
+
+    if 'name' in settings:
+        config['name'] = settings['name']
+
+
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
@@ -102,21 +126,10 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
 
-    if config['init']:
-        with open(config['init'], 'r') as file:
-            try:
-                settings = dict(yaml.safe_load(file))
-            except Exception:
-                print('Failed to read config from settings file, exiting.', flush=True)
-                return
-                # raise(e)
+    if init:
+        parse_client_config(config)
 
-        # Read/overide settings from config file
-        if 'controller' in settings:
-            reducer_config = settings['controller']
-            for key, val in reducer_config.items():
-                config[key] = val
-
+    # TODO: Refactor into validate_client_config
     try:
         if config['discover_host'] is None or \
                 config['discover_host'] == '':
