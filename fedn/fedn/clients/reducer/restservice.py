@@ -846,8 +846,8 @@ class ReducerRestService:
             discover_port = self.port
             ctx = """network_id: {network_id}
 controller:
-    host: {discover_host}
-    port: {discover_port}
+    discover_host: {discover_host}
+    discover_port: {discover_port}
     {chk_string}""".format(network_id=network_id,
                            discover_host=discover_host,
                            discover_port=discover_port,
