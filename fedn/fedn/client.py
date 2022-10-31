@@ -4,6 +4,7 @@ import json
 import os
 import queue
 import re
+import ssl
 import sys
 import tempfile
 import threading
@@ -267,8 +268,9 @@ class Client:
         elif self.config['secure']:
             secure = True
             print("CLIENT: using CA certificate for GRPC channel")
+            cert = ssl.get_server_certificate((host, port))
 
-            credentials = grpc.ssl_channel_credentials()
+            credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
