@@ -4,12 +4,12 @@ import json
 import os
 import queue
 import re
+import ssl
 import sys
 import tempfile
 import threading
 import time
 import uuid
-import ssl
 from datetime import datetime
 from distutils.dir_util import copy_tree
 from io import BytesIO
