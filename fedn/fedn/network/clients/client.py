@@ -4,6 +4,7 @@ import json
 import os
 import queue
 import re
+import ssl
 import sys
 import tempfile
 import threading
@@ -263,6 +264,13 @@ class Client:
             print("CLIENT: using root certificate from environment variable for GRPC channel")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        elif self.config['secure']:
+            secure = True
+            print("CLIENT: using CA certificate for GRPC channel")
+            cert = ssl.get_server_certificate((host, port))
+
+            credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
