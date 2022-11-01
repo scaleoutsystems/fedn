@@ -48,8 +48,6 @@ class Control(ControlBase):
 
         self._state = ReducerState.monitoring
 
-        # TODO: Refactor
-        # Initialize a tracer for this session
         statestore_config = self.statestore.get_config()
         self.tracer = MongoTracer(
             statestore_config['mongo_config'], statestore_config['network_id'])
@@ -94,7 +92,10 @@ class Control(ControlBase):
         self._state = ReducerState.idle
 
     def round(self, session_config, round_number):
-        """Execute one global round. """
+        """Execute one global round. 
+
+
+        """
 
         round_meta = {'round_id': round_number}
 
