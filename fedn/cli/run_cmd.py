@@ -10,6 +10,7 @@ from fedn.clients.reducer.restservice import (decode_auth_token,
 from fedn.clients.reducer.statestore.mongoreducerstatestore import \
     MongoReducerStateStore
 from fedn.combiner import Combiner
+from fedn.common.exceptions import InvalidClientConfig
 from fedn.reducer import Reducer
 
 from .main import main
@@ -44,7 +45,7 @@ def parse_client_config(config):
 
     Override configs from the CLI with settings in config file.
 
-    :param config: Client config dict.
+    :param config: Client config (dict).
     """
     with open(config['init'], 'r') as file:
         try:
@@ -53,14 +54,24 @@ def parse_client_config(config):
             print('Failed to read config from settings file, exiting.', flush=True)
             return
 
-    # Read/overide settings from config file
-    if 'controller' in settings:
-        reducer_config = settings['controller']
-        for key, val in reducer_config.items():
-            config[key] = val
+    for key, val in settings.items():
+        config[key] = val
 
-    if 'name' in settings:
-        config['name'] = settings['name']
+
+def validate_client_config(config):
+    """Validate client configuration.
+
+    :param config: Client config (dict).
+    """
+
+    try:
+        if config['discover_host'] is None or \
+                config['discover_host'] == '':
+            raise InvalidClientConfig("Missing required configuration: discover_host")
+        if 'discover_port' not in config.keys():
+            config['discover_port'] = None
+    except Exception:
+        raise InvalidClientConfig("Could not load config appropriately. Check config")
 
 
 @main.group('run')
@@ -129,18 +140,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     if init:
         parse_client_config(config)
 
-    # TODO: Refactor into validate_client_config
-    try:
-        if config['discover_host'] is None or \
-                config['discover_host'] == '':
-            print(
-                "Missing required configuration: discover_host", flush=True)
-            return
-        if 'discover_port' not in config.keys():
-            config['discover_port'] = None
-    except Exception:
-        print("Could not load config appropriately. Check config", flush=True)
-        return
+    validate_client_config(config)
 
     client = Client(config)
     client.run()
