@@ -8,7 +8,7 @@
    :target: https://discord.gg/KMg4VwszAd
 
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
-   :target: https://fedn.readthedocs.io/en/latest
+   :target: https://fedn.readthedocs.io
 
 FEDn is a modular and model agnostic framework for hierarchical
 federated machine learning which scales from pseudo-distributed
@@ -86,7 +86,7 @@ Documentation
 =============
 More details about the architecture and implementation:
 
--  `Documentation <https://fedn.readthedocs.io/en/latest>`__ 
+-  `Documentation <https://fedn.readthedocs.io>`__
 -  `Paper <https://arxiv.org/abs/2103.00148>`__
 
 Community support
