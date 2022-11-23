@@ -208,42 +208,33 @@ class Plot:
         return histogram
 
     def create_client_histogram_plot(self):
-    """
+        """
 
         :return:
         """
-    processing = []
-    upload = []
-     download = []
-      training = []
-       for p in self.status.find({'type': 'MODEL_UPDATE'}):
+        processing = []
+        training = []
+        for p in self.status.find({'type': 'MODEL_UPDATE'}):
             e = json.loads(p['data'])
             meta = json.loads(e['meta'])
-            upload.append(meta['upload_model'])
-            download.append(meta['fetch_model'])
             training.append(meta['exec_training'])
-            processing.append(meta['processing_time'])
 
-        fig = make_subplots(rows=1, cols=2, specs=[
-                            [{"type": "pie"}, {"type": "histogram"}]])
+        fig = go.Figure()
 
         fig.update_layout(
             template="simple_white",
             xaxis=dict(title_text="Seconds"),
-            title="Total mean client processing time: {}".format(
-                numpy.mean(processing)),
+            # title="Total mean client processing time: {}".format(
+            #    numpy.mean(processing)),
             showlegend=True
         )
         if not processing:
             return False
-        data = [numpy.mean(training), numpy.mean(upload), numpy.mean(download)]
-        labels = ["Training", "Model upload", "Model download"]
-        fig.add_trace(go.Pie(labels=labels, values=data), row=1, col=1)
 
         fig.add_trace(go.Histogram(x=training), row=1, col=2)
 
-        client_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return client_plot
+        histogram_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return histogram_plot
 
     def create_client_plot(self):
         """
@@ -262,13 +253,12 @@ class Plot:
             training.append(meta['exec_training'])
             processing.append(meta['processing_time'])
 
-        fig = make_subplots(rows=1, cols=2, specs=[
-                            [{"type": "pie"}, {"type": "histogram"}]])
-
+        # fig = make_subplots(rows=1, cols=2, specs=[
+        #                    [{"type": "pie"}, {"type": "histogram"}]])
+        fig = go.Figure()
         fig.update_layout(
             template="simple_white",
-            xaxis=dict(title_text="Seconds"),
-            title="Total mean client processing time: {}".format(
+            title="Mean client processing time: {}".format(
                 numpy.mean(processing)),
             showlegend=True
         )
@@ -276,7 +266,7 @@ class Plot:
             return False
         data = [numpy.mean(training), numpy.mean(upload), numpy.mean(download)]
         labels = ["Training", "Model upload", "Model download"]
-        fig.add_trace(go.Pie(labels=labels, values=data), row=1, col=1)
+        fig.add_trace(go.Pie(labels=labels, values=data))
 
         client_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return client_plot
@@ -312,7 +302,7 @@ class Plot:
 
         fig.update_layout(
             template="simple_white",
-            title="Total mean combiner round time: {}".format(
+            title="Mean combiner round time: {}".format(
                 numpy.mean(combination)),
             showlegend=True
         )
