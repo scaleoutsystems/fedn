@@ -787,10 +787,13 @@ class ReducerRestService:
             timeline_plot = None
             table_plot = None
             clients_plot = plot.create_client_plot()
+            client_histogram_plot = plot.create_client_histogram_plot()
+
             return render_template('dashboard.html', show_plot=True,
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
+                                   client_histogram_plot=client_histogram_plot,
                                    combiners_plot=combiners_plot,
                                    configured=True
                                    )
