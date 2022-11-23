@@ -484,10 +484,20 @@ class ReducerRestService:
                 not_configured = self.check_configured()
                 if not_configured:
                     return not_configured
+
+                plot = Plot(self.control.statestore)
+                try:
+                    valid_metrics = plot.fetch_valid_metrics()
+                    box_plot = plot.create_box_plot(valid_metrics[0])
+                except Exception as e:
+                    valid_metrics = None
+                    box_plot = None
+                    print(e, flush=True)
+
                 h_latest_model_id = self.control.get_latest_model()
 
                 model_info = self.control.get_model_info()
-                return render_template('models.html', h_latest_model_id=h_latest_model_id, seed=True,
+                return render_template('models.html', box_plot=box_plot, h_latest_model_id=h_latest_model_id, seed=True,
                                        model_info=model_info, configured=True)
 
             seed = True
@@ -771,19 +781,10 @@ class ReducerRestService:
             if not_configured:
                 return not_configured
 
-            plot = Plot(self.control.statestore)
-            try:
-                valid_metrics = plot.fetch_valid_metrics()
-                box_plot = plot.create_box_plot(valid_metrics[0])
-            except Exception as e:
-                valid_metrics = None
-                box_plot = None
-                print(e, flush=True)
             timeline_plot = None
             table_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('dashboard.html', show_plot=True,
-                                   box_plot=box_plot,
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
