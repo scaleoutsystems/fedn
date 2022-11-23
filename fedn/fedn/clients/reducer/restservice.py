@@ -781,6 +781,9 @@ class ReducerRestService:
             if not_configured:
                 return not_configured
 
+            plot = Plot(self.control.statestore)
+            combiners_plot = plot.create_combiner_plot()
+
             timeline_plot = None
             table_plot = None
             clients_plot = plot.create_client_plot()
@@ -788,7 +791,7 @@ class ReducerRestService:
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
-                                   metrics=valid_metrics,
+                                   combiners_plot=combiners_plot,
                                    configured=True
                                    )
 
@@ -808,13 +811,11 @@ class ReducerRestService:
             plot = Plot(self.control.statestore)
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
-            combiners_plot = plot.create_combiner_plot()
             combiner_info = combiner_status()
             active_clients = client_status()
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
-                                   combiners_plot=combiners_plot,
                                    combiner_info=combiner_info,
                                    active_clients=active_clients['active_clients'],
                                    active_trainers=active_clients['active_trainers'],
