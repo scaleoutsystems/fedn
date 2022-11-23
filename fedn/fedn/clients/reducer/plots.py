@@ -207,6 +207,35 @@ class Plot:
         histogram = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return histogram
 
+    def create_client_histogram_plot(self):
+        """
+
+        :return:
+        """
+        training = []
+        for p in self.status.find({'type': 'MODEL_UPDATE'}):
+            e = json.loads(p['data'])
+            meta = json.loads(e['meta'])
+            training.append(meta['exec_training'])
+
+        fig = go.Figure()
+
+        fig.update_layout(
+            template="simple_white",
+            xaxis=dict(title_text="Time (s)"),
+            yaxis=dict(title_text='Number of updates'),
+            title="Mean client training time: {}".format(
+                numpy.mean(training)),
+            # showlegend=True
+        )
+        if not training:
+            return False
+
+        fig.add_trace(go.Histogram(x=training))
+
+        histogram_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return histogram_plot
+
     def create_client_plot(self):
         """
 
@@ -224,23 +253,18 @@ class Plot:
             training.append(meta['exec_training'])
             processing.append(meta['processing_time'])
 
-        fig = make_subplots(rows=1, cols=2, specs=[
-                            [{"type": "pie"}, {"type": "histogram"}]])
-
+        fig = go.Figure()
         fig.update_layout(
             template="simple_white",
-            xaxis=dict(title_text="Seconds"),
-            title="Total mean client processing time: {}".format(
+            title="Mean client processing time: {}".format(
                 numpy.mean(processing)),
             showlegend=True
         )
         if not processing:
             return False
         data = [numpy.mean(training), numpy.mean(upload), numpy.mean(download)]
-        labels = ["Training", "Model upload", "Model download"]
-        fig.add_trace(go.Pie(labels=labels, values=data), row=1, col=1)
-
-        fig.add_trace(go.Histogram(x=training), row=1, col=2)
+        labels = ["Training execution", "Model upload (to combiner)", "Model download (from combiner)"]
+        fig.add_trace(go.Pie(labels=labels, values=data))
 
         client_plot = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return client_plot
@@ -268,15 +292,15 @@ class Plot:
             except Exception:
                 pass
 
-        labels = ['Waiting for updates',
-                  'Aggregating model updates', 'Loading model updates']
+        labels = ['Waiting for client updates',
+                  'Aggregation', 'Loading model updates from disk']
         val = [numpy.mean(waiting), numpy.mean(
             aggregation), numpy.mean(model_load)]
         fig = go.Figure()
 
         fig.update_layout(
             template="simple_white",
-            title="Total mean combiner round time: {}".format(
+            title="Mean combiner round time: {}".format(
                 numpy.mean(combination)),
             showlegend=True
         )
