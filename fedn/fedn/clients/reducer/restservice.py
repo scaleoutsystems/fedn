@@ -779,8 +779,8 @@ class ReducerRestService:
                 valid_metrics = None
                 box_plot = None
                 print(e, flush=True)
-            table_plot = plot.create_table_plot()
             timeline_plot = None
+            table_plot = None
             clients_plot = plot.create_client_plot()
             return render_template('dashboard.html', show_plot=True,
                                    box_plot=box_plot,
