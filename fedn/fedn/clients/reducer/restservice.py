@@ -850,13 +850,12 @@ class ReducerRestService:
             discover_host = self.name
             discover_port = self.port
             ctx = """network_id: {network_id}
-controller:
-    host: {discover_host}
-    port: {discover_port}
-    {chk_string}""".format(network_id=network_id,
-                           discover_host=discover_host,
-                           discover_port=discover_port,
-                           chk_string=chk_string)
+discover_host: {discover_host}
+discover_port: {discover_port}
+{chk_string}""".format(network_id=network_id,
+                       discover_host=discover_host,
+                       discover_port=discover_port,
+                       chk_string=chk_string)
 
             obj = BytesIO()
             obj.write(ctx.encode('UTF-8'))

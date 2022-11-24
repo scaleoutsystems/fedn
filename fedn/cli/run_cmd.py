@@ -10,6 +10,7 @@ from fedn.clients.reducer.restservice import (decode_auth_token,
 from fedn.clients.reducer.statestore.mongoreducerstatestore import \
     MongoReducerStateStore
 from fedn.combiner import Combiner
+from fedn.common.exceptions import InvalidClientConfig
 from fedn.reducer import Reducer
 
 from .main import main
@@ -37,6 +38,40 @@ def check_helper_config_file(config):
         print("--local-package was used, but no helper was found in --init settings file.", flush=True)
         exit(-1)
     return helper
+
+
+def parse_client_config(config):
+    """Parse client config from file.
+
+    Override configs from the CLI with settings in config file.
+
+    :param config: Client config (dict).
+    """
+    with open(config['init'], 'r') as file:
+        try:
+            settings = dict(yaml.safe_load(file))
+        except Exception:
+            print('Failed to read config from settings file, exiting.', flush=True)
+            return
+
+    for key, val in settings.items():
+        config[key] = val
+
+
+def validate_client_config(config):
+    """Validate client configuration.
+
+    :param config: Client config (dict).
+    """
+
+    try:
+        if config['discover_host'] is None or \
+                config['discover_host'] == '':
+            raise InvalidClientConfig("Missing required configuration: discover_host")
+        if 'discover_port' not in config.keys():
+            config['discover_port'] = None
+    except Exception:
+        raise InvalidClientConfig("Could not load config appropriately. Check config")
 
 
 @main.group('run')
@@ -102,32 +137,10 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
 
-    if config['init']:
-        with open(config['init'], 'r') as file:
-            try:
-                settings = dict(yaml.safe_load(file))
-            except Exception:
-                print('Failed to read config from settings file, exiting.', flush=True)
-                return
-                # raise(e)
+    if init:
+        parse_client_config(config)
 
-        # Read/overide settings from config file
-        if 'controller' in settings:
-            reducer_config = settings['controller']
-            for key, val in reducer_config.items():
-                config[key] = val
-
-    try:
-        if config['discover_host'] is None or \
-                config['discover_host'] == '':
-            print(
-                "Missing required configuration: discover_host", flush=True)
-            return
-        if 'discover_port' not in config.keys():
-            config['discover_port'] = None
-    except Exception:
-        print("Could not load config appropriately. Check config", flush=True)
-        return
+    validate_client_config(config)
 
     client = Client(config)
     client.run()
