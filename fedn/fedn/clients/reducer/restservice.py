@@ -328,15 +328,16 @@ class ReducerRestService:
 
             for client in client_info['active_clients']:
                 try:
-                    result['nodes'].append({
-                        "id": str(client['_id']),
-                        "label": "Client",
-                        "role": client['role'],
-                        "status": client['status'],
-                        "name": client['name'],
-                        "combiner": client['combiner'],
-                        "type": 'client',
-                    })
+                    if client['status'] != 'offline':
+                        result['nodes'].append({
+                            "id": str(client['_id']),
+                            "label": "Client",
+                            "role": client['role'],
+                            "status": client['status'],
+                            "name": client['name'],
+                            "combiner": client['combiner'],
+                            "type": 'client',
+                        })
                 except Exception as err:
                     print(err)
 
@@ -375,7 +376,8 @@ class ReducerRestService:
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
             except Exception:
-                return ''
+                raise
+                # return ''
 
         @app.route('/events')
         def events():

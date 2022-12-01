@@ -32,7 +32,7 @@ setup(
         "jinja2",
         "plotly",
         "pandas",
-        "bokeh",
+        "bokeh<3.0.0",
         "networkx"
     ],
     license='Apache 2.0',
