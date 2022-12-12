@@ -56,10 +56,16 @@ To attach clients to the network, start by downloading the client configuration 
 curl -k http://localhost:8090/config/download > client.yaml
 ```
 
-Now we are ready to start and connect clients: 
+Now we are ready to start and connect clients. Activate the virtual environment:
 ```
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up client
+source .mnist-pytorch/bin/activate
 ```
+Then start the client: 
+
+```
+fedn run client -in client.yaml --name client-1 
+```
+
 > **Note**: run with `--scale client=N` to start *N* clients.
 
 ### Run federated training 
