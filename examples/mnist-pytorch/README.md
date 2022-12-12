@@ -46,7 +46,8 @@ Now we are ready to deploy FEDn with `docker-compose`.
 docker-compose -f ../../docker-compose.yaml up minio mongo mongo-express reducer combiner -d
 ```
 
-Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model from the previous step. Make sure to choose the "PyTorch" helper.
+### Initialize the federated model 
+Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model that you created in the previous step. Make sure to choose the "PyTorch" helper.
 
 ### Attach clients 
 To attach clients to the network, start by downloading the client configuration file, `client.yaml`. You can either navigate to http://localhost:8090/network and download it via the UI, or run the following command.
