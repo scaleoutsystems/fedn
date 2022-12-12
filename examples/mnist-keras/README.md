@@ -20,6 +20,8 @@ git clone https://github.com/scaleoutsystems/fedn.git
 cd fedn/examples/mnist-keras
 ```
 
+### Preparing the environment, the local data, the compute package and seed model
+
 Start by initializing a virtual enviroment with all of the required dependencies.
 ```sh
 bin/init_venv.sh
