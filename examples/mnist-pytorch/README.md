@@ -1,5 +1,6 @@
 # MNIST (PyTorch version)
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. The example automates the partitioning of data into N clients and lets you quickly deploy a variable number of clients. We here assume working experience with containers, Docker and docker-compose.   
+This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. The example automates the partitioning of data and deployment of a variable number of clients on a single host. We here assume working experience with containers, Docker and docker-compose. 
+   
 
 ## Table of Contents
 - [MNIST Example (PyTorch version)](#mnist-example-pytorch-version)
