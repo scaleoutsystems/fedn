@@ -36,20 +36,31 @@ bin/split_data
 ```
 > **Note**: run with `--n_splits=N` to split in *N* parts.
 
-
-Now we are ready to start the pseudo-distributed deployment with `docker-compose`.
-```sh
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up -d
+Create the compute package and a seed model that you will be asked to upload in the next step.
 ```
-> **Note**: run with `--scale client=N` to start *N* clients.
-
-Now navigate to https://localhost:8090 to see the reducer UI. You will be asked to upload a compute package and a seed model that you can generate by running the following script.
-```sh
 bin/build.sh
 ```
 > The files location will be `package/package.tgz` and `seed.npz`.
 
-Finally, you can start the experiment from the "control" tab.
+### Deploy FEDn 
+Now we are ready to deploy FEDn with `docker-compose`.
+```
+docker-compose -f ../../docker-compose.yaml up minio mongo mongo-express reducer combiner -d
+```
+
+### Initialize the federated model 
+Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model that you created in the previous step. Make sure to choose the "PyTorch" helper.
+
+### Attach clients 
+To attach clients to the network, use the docker-compose.override.yaml template to start 2 clients: 
+
+```
+docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up client 
+```
+> **Note**: run with `--scale client=N` to start *N* clients.
+
+### Run federated training 
+Finally, you can start the experiment from the "control" tab of the UI. 
 
 ## Clean up
 You can clean up by running `docker-compose down`.
