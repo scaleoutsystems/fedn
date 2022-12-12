@@ -1,5 +1,5 @@
 # MNIST Quickstart (TensorFlow/Keras version)
-This classic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. 
+This classic example of hand-written text recognition is well suited both as a lightweight test when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. The example automates the partitioning of data into N clients and lets you quickly deploy a variable number of clients. We here assume working experience with containers, Docker and docker-compose. 
 
 ## Table of Contents
 - [MNIST Example (Keras version)](#mnist-example-keras-version)
@@ -7,12 +7,11 @@ This classic example of hand-written text recognition is well suited both as a l
   - [Prerequisites](#prerequisites)
   - [Running the example (pseudo-distributed)](#running-the-example-pseudo-distributed)
   - [Clean up](#clean-up)
-  - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
 ## Prerequisites
+- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
 - [Docker](https://docs.docker.com/get-docker)
 - [Docker Compose](https://docs.docker.com/compose/install)
-- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
 
 ## Running the example (pseudo-distributed)
 Clone FEDn and locate into this directory.
@@ -54,22 +53,3 @@ Finally, you can start the experiment from the "control" tab.
 
 ## Clean up
 You can clean up by running `docker-compose down`.
-
-## Connecting to a distributed deployment
-To start and remotely connect a client with the required dependencies for this example, start by downloading the `client.yaml` file. You can either navigate the reducer UI or run the following command.
-
-```bash
-curl -k https://<reducer-fqdn>:<reducer-port>/config/download > client.yaml
-```
-> **Note** make sure to replace `<reducer-fqdn>` and `<reducer-port>` with appropriate values.
-
-Now you are ready to start the client via Docker by running the following command.
-
-```bash
-docker run \
-  -v $PWD/client.yaml:/app/client.yaml \
-  -v $PWD/data:/var/data \
-  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
-  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-keras run client -in client.yaml
-```
-> **Note** If reducer and combiner host names, as specfied in the configuration files, are not resolvable in the client host network you need to use the docker option `--add-hosts` to make them resolvable. Please refer to the Docker documentation for more detail.
