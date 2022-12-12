@@ -1,5 +1,5 @@
-# MNIST Example (Keras version)
-This classic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and developing on FEDn in psedo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. 
+# MNIST Quickstart (TensorFlow/Keras version)
+This classic example of hand-written text recognition is well suited both as a lightweight test when learning FEDn and when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. 
 
 ## Table of Contents
 - [MNIST Example (Keras version)](#mnist-example-keras-version)
@@ -10,10 +10,9 @@ This classic example of hand-written text recognition is well suited both as a l
   - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
 ## Prerequisites
-- [Ubuntu 20.04](https://releases.ubuntu.com/20.04) or [macOS 11](https://apps.apple.com/us/app/macos-big-sur)
 - [Docker](https://docs.docker.com/get-docker)
 - [Docker Compose](https://docs.docker.com/compose/install)
-- [Python 3.8 or 3.9](https://www.python.org/downloads)
+- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
 
 ## Running the example (pseudo-distributed)
 Clone FEDn and locate into this directory.
@@ -67,7 +66,7 @@ curl -k https://<reducer-fqdn>:<reducer-port>/config/download > client.yaml
 Now you are ready to start the client via Docker by running the following command.
 
 ```bash
-docker run -d \
+docker run \
   -v $PWD/client.yaml:/app/client.yaml \
   -v $PWD/data:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.npz \
