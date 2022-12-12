@@ -70,31 +70,36 @@ source .mnist-keras/bin/activate
 ```
 
 Now create the compute package and a seed model (generates a file package.tar.gz and seed.npz)
+
 ```
 bin/build.sh
 ```
 
 Uploade these files in the FEDn UI. 
 
-The next step is to attach clients. For this we download data and make data partitions: 
+The next step is to configure and attach clients. For this we download data and make data partitions: 
 
-Then, to get the data you can run the following script.
+Download the data.
+
 ```sh
 bin/get_data
 ```
 
 The next command splits the data in 2 parts for the clients.
+
 ```sh
 bin/split_data
 ```
 > **Note**: run with `--n_splits=N` to split in *N* parts.
 
 Create a file called "client.yaml" with the following content: 
+
 ```yaml 
 network_id: reducer-network
 discover_host: localhost 
 discover_port: 8090
 ```
+
 This file is used to provide connection information to clients.
 
 Now start a client
