@@ -49,13 +49,58 @@ Prerequisites
 Quick start
 -----------
 
-The quickest way to get started with FEDn is by trying out the `MNIST
-Keras example <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__. Alternatively, you can start the
-base services along with combiner and reducer as it follows.
+Clone this repository, locate into it and start a complete pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
-   docker-compose up -d
+   docker-compose up 
+
+Navigate to http://localhost:8090. You will see a UI asking you to upload a compute package. In brief, the compute package is a tarball of the project that defines the entrypoints that are used be clients to read local data, update a model and validate a model.
+
+Locate into examples/mnist-keras. The folder "client" defiens a fedn project for the canonical MNIST example. We will now build the compute package and generate a seed model - the first version of the federated model. 
+
+Start by initializing a virtual enviroment with all of the required dependencies for this project.
+```sh
+bin/init_venv.sh
+```
+
+Activate the virtual environment 
+```bash
+source .mnist-keras/bin/activate 
+```
+
+Now create the compute package and a seed model (generates a file package.tar.gz and seed.npz)
+```
+bin/build.sh
+```
+
+Uploade these files in the FEDn UI. 
+
+The next step is to attach clients. For this we download data and make data partitions: 
+
+Then, to get the data you can run the following script.
+```sh
+bin/get_data
+```
+
+The next command splits the data in 2 parts for the clients.
+```sh
+bin/split_data
+```
+> **Note**: run with `--n_splits=N` to split in *N* parts.
+
+Create a file called "client.yaml" with the following content: 
+```yaml 
+network_id: reducer-network
+discover_host: localhost 
+discover_port: 8090
+```
+This file is used to provide connection information to clients.
+
+Now start a client
+```bash
+fedn run client -in client.yaml --name my_client 
+```
 
 Distributed deployment
 ======================
