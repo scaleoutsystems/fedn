@@ -49,7 +49,7 @@ docker-compose -f ../../docker-compose.yaml up minio mongo mongo-express reducer
 ```
 
 ### Initialize the federated model 
-Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model that you created in the previous step. Make sure to choose the "PyTorch" helper.
+Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model that you created in the previous step.
 
 ### Attach clients 
 To attach clients to the network, use the docker-compose.override.yaml template to start 2 clients: 
