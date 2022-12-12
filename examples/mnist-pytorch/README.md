@@ -10,10 +10,10 @@ This classic example of hand-written text recognition is well suited both as a l
   - [Connecting to a distributed deployment](#connecting-to-a-distributed-deployment)
 
 ## Prerequisites
-- [Ubuntu 20.04](https://releases.ubuntu.com/20.04) or [macOS 11](https://apps.apple.com/us/app/macos-big-sur)
+- [Ubuntu 20.04, 21.04 or 22.04](https://releases.ubuntu.com/20.04) or [macOS 11](https://apps.apple.com/us/app/macos-big-sur)
 - [Docker](https://docs.docker.com/get-docker)
 - [Docker Compose](https://docs.docker.com/compose/install)
-- [Python 3.8 or 3.9](https://www.python.org/downloads)
+- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
 
 ## Running the example (pseudo-distributed)
 Start by initializing a virtual enviroment with all of the required dependencies.
