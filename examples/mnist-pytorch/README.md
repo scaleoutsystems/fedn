@@ -56,7 +56,7 @@ docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up c
 > **Note**: run with `--scale client=N` to start *N* clients.
 
 ### Run federated training 
-Finally, you can start the experiment from the "control" tab of the UI, or 
+Finally, you can start the experiment from the "control" tab of the UI. 
 
 ## Clean up
 You can clean up by running `docker-compose down`.
