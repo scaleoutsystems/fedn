@@ -49,7 +49,7 @@ Prerequisites
 Quick start
 -----------
 
-Clone this repository, locate into it and start a complete pseudo-distributed FEDn network using docker-compose:
+Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
