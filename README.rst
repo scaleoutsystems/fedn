@@ -42,9 +42,9 @@ Getting started
 Prerequisites
 -------------
 
+-  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
--  `Python 3.8 <https://www.python.org/downloads>`__
 
 Quick start
 -----------
@@ -55,57 +55,60 @@ Clone this repository, locate into it and start a complete pseudo-distributed FE
 
    docker-compose up 
 
-Navigate to http://localhost:8090. You will see a UI asking you to upload a compute package. In brief, the compute package is a tarball of the project that defines the entrypoints that are used be clients to read local data, update a model and validate a model.
+Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. In brief, the compute package is a tarball of a project that defines the entrypoints that are used by clients to read local data, update a model and validate a model.
 
-Locate into examples/mnist-keras. The folder "client" defiens a fedn project for the canonical MNIST example. We will now build the compute package and generate a seed model - the first version of the federated model. 
+Locate into examples/mnist-pytorch. 
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
-```sh
-bin/init_venv.sh
-```
+.. code-block::
+   bin/init_venv.sh
+
 
 Activate the virtual environment 
-```bash
-source .mnist-keras/bin/activate 
-```
+.. code-block::
 
-Now create the compute package and a seed model (generates a file package.tar.gz and seed.npz)
+   source .mnist-keras/bin/activate 
 
-```
-bin/build.sh
-```
 
-Uploade these files in the FEDn UI. 
+Now create the compute package and a seed model:
+
+.. code-block::
+
+   bin/build.sh
+
+Uploade the generated files 'package.tar.gz' and 'seed.npz' in the FEDn UI. 
 
 The next step is to configure and attach clients. For this we download data and make data partitions: 
 
-Download the data.
+Download the data:
 
-```sh
-bin/get_data
-```
+.. code-block::
 
-The next command splits the data in 2 parts for the clients.
+   bin/get_data
 
-```sh
-bin/split_data
-```
-> **Note**: run with `--n_splits=N` to split in *N* parts.
 
-Create a file called "client.yaml" with the following content: 
+Split the data in 2 parts for the clients:
 
-```yaml 
-network_id: reducer-network
-discover_host: localhost 
-discover_port: 8090
-```
+.. code-block::
 
-This file is used to provide connection information to clients.
+   bin/split_data
 
-Now start a client
-```bash
-fedn run client -in client.yaml --name my_client 
-```
+
+Navigate to http://localhost:8090/network and download the client config file. Place it in the example working directory.  
+
+Now start a client using Docker
+.. code-block::
+
+   docker run \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data/clients/1:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+  --network=fedn_default \
+  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml --name myclient 
+
+You are now ready to test training the model from http://localhost:8090/control.
+
+To automate creation of several clients, refer to our examples that uses docker-compose to deploy clients: 
 
 Distributed deployment
 ======================
