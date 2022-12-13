@@ -55,20 +55,14 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 
    docker-compose up 
 
-Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. In brief, the compute package is a tarball of a project that defines the entrypoints that are used by clients to read local data, update a model and validate a model.
+Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model. 
 
 Locate into examples/mnist-pytorch. 
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
 .. code-block::
+
    bin/init_venv.sh
-
-
-Activate the virtual environment 
-.. code-block::
-
-   source .mnist-keras/bin/activate 
-
 
 Now create the compute package and a seed model:
 
@@ -93,10 +87,12 @@ Split the data in 2 parts for the clients:
 
    bin/split_data
 
+Data partitions will be generated in the folder 'data/clients'.  
 
-Navigate to http://localhost:8090/network and download the client config file. Place it in the example working directory.  
+Now navigate to http://localhost:8090/network and download the client config file. Place it in the example working directory.  
 
-Now start a client using Docker
+To connect a client that uses the data partition 'data/clients/1/mnist.pt': 
+
 .. code-block::
 
    docker run \
@@ -104,11 +100,11 @@ Now start a client using Docker
   -v $PWD/data/clients/1:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
   --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml --name myclient 
+  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml --name client1 
 
-You are now ready to test training the model from http://localhost:8090/control.
+You are now ready to start training the model at http://localhost:8090/control.
 
-To automate creation of several clients, refer to our examples that uses docker-compose to deploy clients: 
+To scale up the experiment, refer to the README at examples/mnist-pytorch (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
 
 Distributed deployment
 ======================
