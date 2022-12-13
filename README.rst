@@ -106,21 +106,13 @@ You are now ready to start training the model at http://localhost:8090/control.
 
 To scale up the experiment, refer to the README at examples/mnist-pytorch (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
 
-Distributed deployment
-======================
+Documentation
+=============
+You will find more details about the architecture, compute package and how to deploy FEDn fully distributed in the documentation:
 
-We provide instructions for a distributed reference deployment here:
-`Distributed
-deployment <https://scaleoutsystems.github.io/fedn/deployment.html>`__.
+-  `Documentation <https://fedn.readthedocs.io>`__
+-  `Paper <https://arxiv.org/abs/2103.00148>`__
 
-Where to go from here
-=====================
-
--  `Explore additional examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
--  `Understand the
-   architecture <https://scaleoutsystems.github.io/fedn/architecture.html>`__
--  `Understand the compute
-   package <https://scaleoutsystems.github.io/fedn/tutorial.html>`__
 
 Making contributions
 ====================
