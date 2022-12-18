@@ -105,7 +105,7 @@ To connect a client that uses the data partition 'data/clients/1/mnist.pt':
 
 You are now ready to start training the model at http://localhost:8090/control.
 
-To scale up the experiment, refer to the README at examples/mnist-pytorch (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
+To scale up the experiment, refer to the README at 'examples/mnist-pytorch' (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
 
 Documentation
 =============
