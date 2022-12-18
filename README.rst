@@ -57,7 +57,7 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 
 Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
 
-Locate into 'examples/mnist-pytorch', then:  
+Locate into 'examples/mnist-pytorch'.  
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
 
