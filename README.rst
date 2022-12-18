@@ -55,11 +55,12 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 
    docker-compose up 
 
-Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model. 
+Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
 
-Locate into examples/mnist-pytorch. 
+Locate into 'examples/mnist-pytorch', then:  
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
+
 .. code-block::
 
    bin/init_venv.sh
