@@ -376,8 +376,7 @@ class ReducerRestService:
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
             except Exception:
-                raise
-                # return ''
+                return ''
 
         @app.route('/events')
         def events():
