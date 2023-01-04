@@ -124,13 +124,6 @@ and we will help you find a good first issue to get you started. For
 more details please refer to our `contribution
 guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
 
-Documentation
-=============
-More details about the architecture and implementation:
-
--  `Documentation <https://fedn.readthedocs.io>`__
--  `Paper <https://arxiv.org/abs/2103.00148>`__
-
 Community support
 =================
 
