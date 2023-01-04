@@ -376,7 +376,8 @@ class ReducerRestService:
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
             except Exception:
-                return ''
+                raise
+                # return ''
 
         @app.route('/events')
         def events():
@@ -498,7 +499,7 @@ class ReducerRestService:
                 h_latest_model_id = self.control.get_latest_model()
 
                 model_info = self.control.get_model_info()
-                return render_template('models.html', box_plot=box_plot, h_latest_model_id=h_latest_model_id, seed=True,
+                return render_template('models.html', box_plot=box_plot, metrics=valid_metrics, h_latest_model_id=h_latest_model_id, seed=True,
                                        model_info=model_info, configured=True)
 
             seed = True
