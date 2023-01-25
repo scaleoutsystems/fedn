@@ -14,6 +14,7 @@ NUM_CLASSES = 10
 
 
 def _get_data_path():
+    """ For test automation using docker-compose. """
     # Figure out FEDn client number from container name
     client = docker.from_env()
     container = client.containers.get(os.environ['HOSTNAME'])
