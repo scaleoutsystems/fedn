@@ -331,15 +331,16 @@ class ReducerRestService:
 
             for client in client_info['active_clients']:
                 try:
-                    result['nodes'].append({
-                        "id": str(client['_id']),
-                        "label": "Client",
-                        "role": client['role'],
-                        "status": client['status'],
-                        "name": client['name'],
-                        "combiner": client['combiner'],
-                        "type": 'client',
-                    })
+                    if client['status'] != 'offline':
+                        result['nodes'].append({
+                            "id": str(client['_id']),
+                            "label": "Client",
+                            "role": client['role'],
+                            "status": client['status'],
+                            "name": client['name'],
+                            "combiner": client['combiner'],
+                            "type": 'client',
+                        })
                 except Exception as err:
                     print(err)
 
@@ -378,7 +379,8 @@ class ReducerRestService:
                 graph = plot.make_netgraph_plot(df_edges, df_nodes)
                 return json.dumps(json_item(graph, "myplot"))
             except Exception:
-                return ''
+                raise
+                # return ''
 
         @app.route('/events')
         def events():
@@ -487,10 +489,20 @@ class ReducerRestService:
                 not_configured = self.check_configured()
                 if not_configured:
                     return not_configured
+
+                plot = Plot(self.control.statestore)
+                try:
+                    valid_metrics = plot.fetch_valid_metrics()
+                    box_plot = plot.create_box_plot(valid_metrics[0])
+                except Exception as e:
+                    valid_metrics = None
+                    box_plot = None
+                    print(e, flush=True)
+
                 h_latest_model_id = self.control.get_latest_model()
 
                 model_info = self.control.get_model_info()
-                return render_template('models.html', h_latest_model_id=h_latest_model_id, seed=True,
+                return render_template('models.html', box_plot=box_plot, metrics=valid_metrics, h_latest_model_id=h_latest_model_id, seed=True,
                                        model_info=model_info, configured=True)
 
             seed = True
@@ -768,22 +780,19 @@ class ReducerRestService:
                 return not_configured
 
             plot = Plot(self.control.statestore)
-            try:
-                valid_metrics = plot.fetch_valid_metrics()
-                box_plot = plot.create_box_plot(valid_metrics[0])
-            except Exception as e:
-                valid_metrics = None
-                box_plot = None
-                print(e, flush=True)
-            table_plot = plot.create_table_plot()
+            combiners_plot = plot.create_combiner_plot()
+
             timeline_plot = None
+            table_plot = None
             clients_plot = plot.create_client_plot()
+            client_histogram_plot = plot.create_client_histogram_plot()
+
             return render_template('dashboard.html', show_plot=True,
-                                   box_plot=box_plot,
                                    table_plot=table_plot,
                                    timeline_plot=timeline_plot,
                                    clients_plot=clients_plot,
-                                   metrics=valid_metrics,
+                                   client_histogram_plot=client_histogram_plot,
+                                   combiners_plot=combiners_plot,
                                    configured=True
                                    )
 
@@ -803,14 +812,12 @@ class ReducerRestService:
             plot = Plot(self.control.statestore)
             round_time_plot = plot.create_round_plot()
             mem_cpu_plot = plot.create_cpu_plot()
-            combiners_plot = plot.create_combiner_plot()
             combiner_info = combiner_status()
             active_clients = client_status()
             #print(combiner_info, flush=True)
             return render_template('network.html', network_plot=True,
                                    round_time_plot=round_time_plot,
                                    mem_cpu_plot=mem_cpu_plot,
-                                   combiners_plot=combiners_plot,
                                    combiner_info=combiner_info,
                                    active_clients=active_clients['active_clients'],
                                    active_trainers=active_clients['active_trainers'],

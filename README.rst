@@ -8,7 +8,7 @@
    :target: https://discord.gg/KMg4VwszAd
 
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
-   :target: https://fedn.readthedocs.io/en/latest
+   :target: https://fedn.readthedocs.io
 
 FEDn is a modular and model agnostic framework for hierarchical
 federated machine learning which scales from pseudo-distributed
@@ -32,9 +32,9 @@ Core Features
 -  **Security**. A key feature is that
    clients do not have to expose any ingress ports.
  
--  **Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is    logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
+-  **Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
 
-- **UI.** A Flask UI lets user visualize the FEDn network and model validations in real time, as well as see other core metrics like client training times and combiner load.  
+- **UI.** A Flask UI lets users see client model validations in real time, as well as track client training time distributions and key performance metrics for clients and combiners.  
 
 Getting started
 ===============
@@ -42,36 +42,78 @@ Getting started
 Prerequisites
 -------------
 
+-  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
--  `Python 3.8 <https://www.python.org/downloads>`__
 
 Quick start
 -----------
 
-The quickest way to get started with FEDn is by trying out the `MNIST
-Keras example <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__. Alternatively, you can start the
-base services along with combiner and reducer as it follows.
+Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
-   docker-compose up -d
+   docker-compose up 
 
-Distributed deployment
-======================
+Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
 
-We provide instructions for a distributed reference deployment here:
-`Distributed
-deployment <https://scaleoutsystems.github.io/fedn/deployment.html>`__.
+Locate into 'examples/mnist-pytorch'.  
 
-Where to go from here
-=====================
+Start by initializing a virtual enviroment with all of the required dependencies for this project.
 
--  `Explore additional examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
--  `Understand the
-   architecture <https://scaleoutsystems.github.io/fedn/architecture.html>`__
--  `Understand the compute
-   package <https://scaleoutsystems.github.io/fedn/tutorial.html>`__
+.. code-block::
+
+   bin/init_venv.sh
+
+Now create the compute package and a seed model:
+
+.. code-block::
+
+   bin/build.sh
+
+Uploade the generated files 'package.tar.gz' and 'seed.npz' in the FEDn UI. 
+
+The next step is to configure and attach clients. For this we download data and make data partitions: 
+
+Download the data:
+
+.. code-block::
+
+   bin/get_data
+
+
+Split the data in 2 parts for the clients:
+
+.. code-block::
+
+   bin/split_data
+
+Data partitions will be generated in the folder 'data/clients'.  
+
+Now navigate to http://localhost:8090/network and download the client config file. Place it in the example working directory.  
+
+To connect a client that uses the data partition 'data/clients/1/mnist.pt': 
+
+.. code-block::
+
+   docker run \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data/clients/1:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+  --network=fedn_default \
+  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml --name client1 
+
+You are now ready to start training the model at http://localhost:8090/control.
+
+To scale up the experiment, refer to the README at 'examples/mnist-pytorch' (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
+
+Documentation
+=============
+You will find more details about the architecture, compute package and how to deploy FEDn fully distributed in the documentation:
+
+-  `Documentation <https://fedn.readthedocs.io>`__
+-  `Paper <https://arxiv.org/abs/2103.00148>`__
+
 
 Making contributions
 ====================
@@ -81,13 +123,6 @@ to one of the maintainers if you are interested in making contributions,
 and we will help you find a good first issue to get you started. For
 more details please refer to our `contribution
 guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
-
-Documentation
-=============
-More details about the architecture and implementation:
-
--  `Documentation <https://fedn.readthedocs.io/en/latest>`__ 
--  `Paper <https://arxiv.org/abs/2103.00148>`__
 
 Community support
 =================
