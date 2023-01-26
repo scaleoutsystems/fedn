@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class ReducerStateStore(ABC):
+class StateStoreBase(ABC):
     """
 
     """

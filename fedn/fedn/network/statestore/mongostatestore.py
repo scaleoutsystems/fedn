@@ -7,10 +7,10 @@ import yaml
 from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
-from .reducerstatestore import ReducerStateStore
+from .statestorebase import StateStoreBase
 
 
-class MongoReducerStateStore(ReducerStateStore):
+class MongoStateStore(StateStoreBase):
     """
 
     """

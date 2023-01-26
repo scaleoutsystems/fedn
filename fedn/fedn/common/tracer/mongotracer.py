@@ -15,12 +15,6 @@ class MongoTracer(Tracer):
         try:
             self.mdb = connect_to_mongodb(mongo_config, network_id)
             self.status = self.mdb['control.status']
-            self.round_time = self.mdb['control.round_time']
-            self.psutil_monitoring = self.mdb['control.psutil_monitoring']
-            self.model_trail = self.mdb['control.model_trail']
-            self.latest_model = self.mdb['control.latest_model']
-            self.combiner_round_time = self.mdb['control.combiner_round_time']
-            self.round = self.mdb['control.round']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -33,38 +27,8 @@ class MongoTracer(Tracer):
         """
         data = MessageToDict(msg, including_default_value_fields=True)
 
-        #print("LOG: \n {} \n".format(data), flush=True)
-
         if self.status is not None:
             self.status.insert_one(data)
-
-    def drop_round_time(self):
-        """
-
-        """
-        if self.round_time:
-            self.round_time.drop()
-
-    def drop_ps_util_monitor(self):
-        """
-
-        """
-        if self.psutil_monitoring:
-            self.psutil_monitoring.drop()
-
-    def drop_model_trail(self):
-        """
-
-        """
-        if self.model_trail:
-            self.model_trail.drop()
-
-    def drop_latest_model(self):
-        """
-
-        """
-        if self.latest_model:
-            self.latest_model.drop()
 
     def drop_status(self):
         """
@@ -72,42 +36,6 @@ class MongoTracer(Tracer):
         """
         if self.status:
             self.status.drop()
-
-    def drop_combiner_round_time(self):
-        """
-
-        """
-        if self.combiner_round_time:
-            self.combiner_round_time.drop()
-
-    def drop_combiner_round(self):
-        """
-
-        """
-        if self.round:
-            self.round.drop()
-
-    def set_latest_time(self, round, round_time):
-        """
-
-        :param round:
-        :param round_time:
-        """
-        self.round_time.update_one({'key': 'round_time'}, {
-                                   '$push': {'round': round}}, True)
-        self.round_time.update_one({'key': 'round_time'}, {
-                                   '$push': {'round_time': round_time}}, True)
-
-    def set_combiner_time(self, round, round_time):
-        """
-
-        :param round:
-        :param round_time:
-        """
-        self.combiner_round_time.update_one({'key': 'combiner_round_time'}, {
-                                            '$push': {'round': round}}, True)
-        self.combiner_round_time.update_one({'key': 'combiner_round_time'}, {
-                                            '$push': {'round_time': round_time}}, True)
 
     # Round statistics
 
