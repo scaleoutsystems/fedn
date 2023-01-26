@@ -18,7 +18,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class Control(ControlBase):
-    """ Conroller, implementing the overall global training strategy.
+    """ Controller, implements the overall global training strategy.
 
     """
 
@@ -28,7 +28,7 @@ class Control(ControlBase):
         self.name = "DefaultControl"
 
     def session(self, config):
-        """ Main entrypoint for a training session.
+        """ Entrypoint for a training session.
 
             A training session is comprised of one or more rounds.
         """
@@ -40,7 +40,7 @@ class Control(ControlBase):
         self._state = ReducerState.instructing
 
         if not self.get_latest_model():
-            print("No model in model chain, please seed the alliance!")
+            print("No model in model chain, please provide a seed model!")
 
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
@@ -144,7 +144,7 @@ class Control(ControlBase):
         # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         cl = []
-        for combiner, plan in combiners:
+        for combiner, _ in combiners:
             cl.append(combiner)
 
         wait = 0.0
@@ -186,12 +186,11 @@ class Control(ControlBase):
             return None, round_meta
         print("DONE", flush=True)
 
-        # 6. Commit the global model to the ledger
+        # 6. Commit the global model to the model chain
         print("Committing global model...", flush=True)
         if model is not None:
-            # Commit to model ledger
+            # Commit to model chain
             tic = time.time()
-
             model_id = uuid.uuid4()
             self.commit(model_id, model)
             round_meta['time_commit'] = time.time() - tic

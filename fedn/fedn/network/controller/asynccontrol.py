@@ -28,10 +28,7 @@ class Control(ControlBase):
         self.name = "DefaultControl"
 
     def session(self, config):
-        """ Main entrypoint for a training session.
-
-            A training session is comprised of one or more rounds.
-        """
+        """ Entrypoint for a training session. """
 
         if self._state == ReducerState.instructing:
             print("Already set in INSTRUCTING state. A session is in progress.", flush=True)
@@ -40,7 +37,7 @@ class Control(ControlBase):
         self._state = ReducerState.instructing
 
         if not self.get_latest_model():
-            print("No model in model chain, please seed the alliance!")
+            print("No model in model chain, please provide a seed model!")
 
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
@@ -48,54 +45,52 @@ class Control(ControlBase):
 
         self._state = ReducerState.monitoring
 
-        statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
+        #statestore_config = self.statestore.get_config()
+        # self.tracer = MongoTracer(
+        #    statestore_config['mongo_config'], statestore_config['network_id'])
         last_round = self.tracer.get_latest_round()
 
-        # Do global rounds
+        # Do rounds
         for round in range(1, int(config['rounds'] + 1)):
-            tic = time.time()
+            #tic = time.time()
             if last_round:
                 current_round = last_round + round
             else:
                 current_round = round
 
-            start_time = datetime.now()
+            #start_time = datetime.now()
 
-            self.tracer.start_monitor(round)
+            # self.tracer.start_monitor(round)
             model_id = None
             round_meta = {'round_id': current_round}
+
             try:
                 model_id, round_meta = self.round(config, current_round)
             except TypeError:
                 print("Could not unpack data from round...", flush=True)
 
-            end_time = datetime.now()
+            #end_time = datetime.now()
 
             if model_id:
                 print("CONTROL: Round completed, new model: {}".format(
                     model_id), flush=True)
-                round_time = end_time - start_time
-                self.tracer.set_latest_time(current_round, round_time.seconds)
+              #  round_time = end_time - start_time
+                #self.tracer.set_latest_time(current_round, round_time.seconds)
                 round_meta['status'] = 'Success'
             else:
                 print("CONTROL: Round failed!")
                 round_meta['status'] = 'Failed'
 
             # stop round monitor
-            self.tracer.stop_monitor()
-            round_meta['time_round'] = time.time() - tic
-            self.tracer.set_round_meta_reducer(round_meta)
+         #   self.tracer.stop_monitor()
+         #   round_meta['time_round'] = time.time() - tic
+         #   self.tracer.set_round_meta_reducer(round_meta)
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
 
     def round(self, session_config, round_number):
-        """Execute one global round. 
-
-
-        """
+        """Execute one round. """
 
         round_meta = {'round_id': round_number}
 
@@ -125,8 +120,7 @@ class Control(ControlBase):
             return None
 
         # 2. Ask participating combiners to coordinate model updates
-        # TODO refactor
-        start_time = datetime.now()
+        #start_time = datetime.now()
 
         cl = []
         for combiner, combiner_round_config in combiners:
@@ -142,15 +136,15 @@ class Control(ControlBase):
             if wait >= session_config['round_timeout']:
                 break
 
-        end_time = datetime.now()
-        round_time = end_time - start_time
-        self.tracer.set_combiner_time(round_number, round_time.seconds)
-        round_meta['time_combiner_update'] = round_time.seconds
+        #end_time = datetime.now()
+        #round_time = end_time - start_time
+        #self.tracer.set_combiner_time(round_number, round_time.seconds)
+        #round_meta['time_combiner_update'] = round_time.seconds
 
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._check_combiners_out_of_sync()
-        print("COMBINERS WITH UPDATED MODELS: {}".format(updated), flush=True)
+        #print("COMBINERS WITH UPDATED MODELS: {}".format(updated), flush=True)
 
         print("Checking round validity policy...", flush=True)
         round_valid = self.evaluate_round_validity_policy(updated)
