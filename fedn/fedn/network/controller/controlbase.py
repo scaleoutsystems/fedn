@@ -161,6 +161,13 @@ class ControlBase(ABC):
             compute_package = self.get_compute_context()
         return self.model_repository.get_compute_package(compute_package)
 
+    def request_model_updates(self, combiners, combiner_round_config):
+        cl = []
+        for combiner, combiner_round_config in combiners:
+            _ = combiner.start(combiner_round_config)
+            cl.append(combiner)
+        return cl
+
     def commit(self, model_id, model=None):
         """ Commit a model to the global model trail. The model commited becomes the lastest consensus model. """
 
