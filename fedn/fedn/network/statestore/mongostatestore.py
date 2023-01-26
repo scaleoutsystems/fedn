@@ -29,6 +29,7 @@ class MongoStateStore(StateStoreBase):
             self.clients = self.network['clients']
             self.storage = self.network['storage']
             self.certificates = self.network['certificates']
+
             # Control
             self.control = self.mdb['control']
             self.control_config = self.control['config']
@@ -36,11 +37,8 @@ class MongoStateStore(StateStoreBase):
             self.model = self.control['model']
             self.round = self.control["round"]
 
-            # Logging and dashboards
+            # Logging
             self.status = self.control["status"]
-            self.round_time = self.control["round_time"]
-            self.psutil_monitoring = self.control["psutil_monitoring"]
-            self.combiner_round_time = self.control['combiner_round_time']
 
             self.__inited = True
         except Exception as e:

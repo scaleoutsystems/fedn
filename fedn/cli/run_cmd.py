@@ -10,8 +10,7 @@ from fedn.network.combiner.server import Combiner
 from fedn.network.dashboard.restservice import (decode_auth_token,
                                                 encode_auth_token)
 from fedn.network.reducer import Reducer
-from fedn.network.statestore.mongoreducerstatestore import \
-    MongoReducerStateStore
+from fedn.network.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 
@@ -189,7 +188,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
     # Obtain state from database, in case already initialized (service restart)
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
-        statestore = MongoReducerStateStore(
+        statestore = MongoStateStore(
             network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)

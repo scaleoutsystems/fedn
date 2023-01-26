@@ -123,11 +123,9 @@ class ControlBase(ABC):
         """
         return self.statestore.get_events()
 
-    def drop_models(self):
-        """
-
-        """
-        self.statestore.drop_models()
+    def get_latest_round_id(self):
+        last_round = self.statestore.get_latest_round_id()
+        return last_round
 
     def get_compute_context(self):
         """

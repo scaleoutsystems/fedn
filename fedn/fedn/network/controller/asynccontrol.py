@@ -45,7 +45,7 @@ class Control(ControlBase):
 
         self._state = ReducerState.monitoring
 
-        last_round = self.tracer.get_latest_round()
+        last_round = self.get_latest_round()
 
         # Do rounds
         for round in range(1, int(config['rounds'] + 1)):
