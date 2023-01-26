@@ -70,6 +70,8 @@ class Control(ControlBase):
                 print("CONTROL: Round failed!")
                 round_meta['status'] = 'Failed'
 
+            self.tracer.set_round_meta_reducer(round_meta)
+
         # TODO: Report completion of session
         self._state = ReducerState.idle
 

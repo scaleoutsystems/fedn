@@ -1,7 +1,5 @@
-import threading
 from datetime import datetime
 
-import psutil
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
@@ -137,47 +135,3 @@ class MongoTracer(Tracer):
         for post in self.round_time.find({'key': 'round_time'}):
             last_round = post['round'][-1]
             return last_round
-
-    def ps_util_monitor(self, round=None):
-        """
-
-        :param round:
-        """
-        global running
-        running = True
-        currentProcess = psutil.Process()
-        # start loop
-        while running:
-            cpu_percents = currentProcess.cpu_percent(interval=1)
-            mem_percents = currentProcess.memory_percent()
-            ps_time = str(datetime.now())
-
-            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {
-                                              '$push': {'cpu': cpu_percents}}, True)
-            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {
-                                              '$push': {'mem': mem_percents}}, True)
-            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {
-                                              '$push': {'time': ps_time}}, True)
-            self.psutil_monitoring.update_one({'key': 'cpu_mem_usage'}, {
-                                              '$push': {'round': round}}, True)
-
-    def start_monitor(self, round=None):
-        """
-
-        :param round:
-        """
-        global t
-        # create thread and start it
-        t = threading.Thread(target=self.ps_util_monitor, args=[round])
-        t.start()
-
-    def stop_monitor(self):
-        """
-
-        """
-        global running
-        global t
-        # use `running` to stop loop in thread so thread will end
-        running = False
-        # wait for thread's end
-        t.join()
