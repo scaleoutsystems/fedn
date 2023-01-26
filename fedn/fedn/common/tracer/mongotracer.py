@@ -15,6 +15,7 @@ class MongoTracer(Tracer):
         try:
             self.mdb = connect_to_mongodb(mongo_config, network_id)
             self.status = self.mdb['control.status']
+            self.round = self.mdb['control.round']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None

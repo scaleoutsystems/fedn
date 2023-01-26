@@ -182,6 +182,11 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
+    def get_latest_round(self):
+        """ Get the id of the most recent round. """
+
+        return self.round.find_one(sort=[("_id", pymongo.DESCENDING)])
+
     def set_round_config(self, config):
         """
 
@@ -380,24 +385,6 @@ class MongoStateStore(StateStoreBase):
             return list(ret)
         except Exception:
             return None
-
-    def drop_control(self):
-        """ """
-        # Control
-        self.state.drop()
-        self.control_config.drop()
-        self.control.drop()
-
-        self.drop_models()
-
-    def drop_models(self):
-        """ """
-        self.model.drop()
-        self.combiner_round_time.drop()
-        self.status.drop()
-        self.psutil_monitoring.drop()
-        self.round_time.drop()
-        self.round.drop()
 
     def update_client_status(self, client_data, status, role):
         """

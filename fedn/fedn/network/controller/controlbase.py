@@ -124,7 +124,7 @@ class ControlBase(ABC):
         return self.statestore.get_events()
 
     def get_latest_round_id(self):
-        last_round = self.statestore.get_latest_round_id()
+        last_round = self.statestore.get_latest_round()['key']
         return last_round
 
     def get_compute_context(self):
