@@ -123,7 +123,7 @@ class RoundController:
 
         tt = 0.0
         while tt < time_window:
-            if self.aggregator.model_updates.qsize() > max_models:
+            if self.aggregator.model_updates.qsize() >= max_models:
                 break
 
             time.sleep(polling_interval)
@@ -152,7 +152,7 @@ class RoundController:
         self.server.request_model_update(config, clients=clients)
 
         # Wait until a criteria has been met, then trigger aggregation for this round.
-        self.waitforit(config)
+        self.waitforit(config, max_models=len(clients))
 
         tic = time.time()
         model = None
