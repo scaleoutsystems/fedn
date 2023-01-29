@@ -229,12 +229,12 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
         exit(-1)
 
     # Configure controller
-    control_config = fedn_config['control']
-    try:
-        statestore.set_round_config(control_config)
-    except Exception:
-        print("Failed to set control config, exiting.", flush=True)
-        exit(-1)
+    #control_config = fedn_config['control']
+    # try:
+    #    statestore.set_round_config(control_config)
+    # except Exception:
+    #    print("Failed to set control config, exiting.", flush=True)
+    #    exit(-1)
 
     reducer = Reducer(statestore)
     reducer.run()

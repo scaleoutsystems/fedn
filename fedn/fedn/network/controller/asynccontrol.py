@@ -1,9 +1,7 @@
 import copy
 import time
 import uuid
-from datetime import datetime
 
-from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
@@ -120,7 +118,6 @@ class Control(ControlBase):
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._check_combiners_out_of_sync()
-        #print("COMBINERS WITH UPDATED MODELS: {}".format(updated), flush=True)
 
         print("Checking round validity policy...", flush=True)
         round_valid = self.evaluate_round_validity_policy(updated)

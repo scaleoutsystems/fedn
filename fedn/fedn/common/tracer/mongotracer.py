@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
