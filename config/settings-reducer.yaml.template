@@ -1,4 +1,4 @@
-network_id: fedn-test-network
+network_id: fedn-network
 token: fedn_token
 
 control:
