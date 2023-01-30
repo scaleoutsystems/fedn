@@ -58,16 +58,7 @@ class Reducer:
         """Start REST service and control loop."""
 
         threading.Thread(target=self.control_loop, daemon=True).start()
-
         self.rest.run()
-
-    def monitor(self, config=None):
-        """
-
-        :param config:
-        """
-        # status = self.network.check_health()
-        pass
 
     def control_loop(self):
         """Manage and report the state of the Reducer."""
@@ -89,6 +80,5 @@ class Reducer:
                     t1 = datetime.now()
                     old_state = self.control.state()
 
-                self.monitor()
         except (KeyboardInterrupt, SystemExit):
             print("Exiting..", flush=True)
