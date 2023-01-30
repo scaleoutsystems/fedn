@@ -1,9 +1,7 @@
 import copy
 import time
 import uuid
-from datetime import datetime
 
-from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
@@ -18,7 +16,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class Control(ControlBase):
-    """ Controller, implements the overall global training strategy.
+    """ Conroller, implementing the overall global training strategy.
 
     """
 
@@ -28,10 +26,7 @@ class Control(ControlBase):
         self.name = "DefaultControl"
 
     def session(self, config):
-        """ Entrypoint for a training session.
-
-            A training session is comprised of one or more rounds.
-        """
+        """ Entrypoint for a training session. """
 
         if self._state == ReducerState.instructing:
             print("Already set in INSTRUCTING state. A session is in progress.", flush=True)
@@ -48,52 +43,38 @@ class Control(ControlBase):
 
         self._state = ReducerState.monitoring
 
-        # TODO: Refactor
-        # Initialize a tracer for this session
-        statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
-        last_round = self.tracer.get_latest_round()
+        last_round = int(self.get_latest_round_id())
 
+        # Do rounds
         for round in range(1, int(config['rounds'] + 1)):
-            tic = time.time()
             if last_round:
                 current_round = last_round + round
             else:
                 current_round = round
 
-            start_time = datetime.now()
-
-            self.tracer.start_monitor(round)
             model_id = None
             round_meta = {'round_id': current_round}
+
             try:
                 model_id, round_meta = self.round(config, current_round)
             except TypeError:
                 print("Could not unpack data from round...", flush=True)
 
-            end_time = datetime.now()
-
             if model_id:
                 print("CONTROL: Round completed, new model: {}".format(
                     model_id), flush=True)
-                round_time = end_time - start_time
-                self.tracer.set_latest_time(current_round, round_time.seconds)
                 round_meta['status'] = 'Success'
             else:
                 print("CONTROL: Round failed!")
                 round_meta['status'] = 'Failed'
 
-            # stop round monitor
-            self.tracer.stop_monitor()
-            round_meta['time_round'] = time.time() - tic
             self.tracer.set_round_meta_reducer(round_meta)
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
 
     def round(self, session_config, round_number):
-        """ Defines execution of one global round. """
+        """Execute one round. """
 
         round_meta = {'round_id': round_number}
 
@@ -122,31 +103,11 @@ class Control(ControlBase):
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
             return None
 
-        # 2. Sync up and ask participating combiners to coordinate model updates
-        # TODO refactor
-
-        start_time = datetime.now()
-
-        # Is this really necessary ?? Will combiner not pull
-        for combiner, combiner_round_config in combiners:
-            # combiner.submit(combiner_round_config)
-            try:
-                self.set_combiner_model([combiner], self.get_latest_model())
-                _ = combiner.start(combiner_round_config)
-            except CombinerUnavailableError:
-                # This is OK, handled by round accept policy
-                self._handle_unavailable_combiner(combiner)
-                pass
-            except Exception:
-                # Unknown error
-                raise
+        # 2. Ask participating combiners to coordinate model updates
+        cl = self.request_model_updates(combiners, combiner_round_config)
 
         # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: We do not need to wait until all combiners complete before we start reducing.
-        cl = []
-        for combiner, _ in combiners:
-            cl.append(combiner)
-
         wait = 0.0
         while len(self._check_combiners_out_of_sync(cl)) < len(combiners):
             time.sleep(1.0)
@@ -154,17 +115,9 @@ class Control(ControlBase):
             if wait >= session_config['round_timeout']:
                 break
 
-        # TODO refactor
-        end_time = datetime.now()
-        round_time = end_time - start_time
-        self.tracer.set_combiner_time(round_number, round_time.seconds)
-
-        round_meta['time_combiner_update'] = round_time.seconds
-
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
         updated = self._check_combiners_out_of_sync()
-        print("COMBINERS UPDATED MODELS: {}".format(updated), flush=True)
 
         print("Checking round validity policy...", flush=True)
         round_valid = self.evaluate_round_validity_policy(updated)
@@ -172,7 +125,7 @@ class Control(ControlBase):
             # TODO: Should we reset combiner state here?
             print("REDUCER CONTROL: Round invalid!", flush=True)
             return None, round_meta
-        print("Round valid.")
+        print("Round valid.", flush=True)
 
         print("Starting reducing models...", flush=True)
         # 3. Reduce combiner models into a global model
@@ -186,11 +139,12 @@ class Control(ControlBase):
             return None, round_meta
         print("DONE", flush=True)
 
-        # 6. Commit the global model to the model chain
+        # 6. Commit the global model to the ledger
         print("Committing global model...", flush=True)
         if model is not None:
-            # Commit to model chain
+            # Commit to model ledger
             tic = time.time()
+
             model_id = uuid.uuid4()
             self.commit(model_id, model)
             round_meta['time_commit'] = time.time() - tic
