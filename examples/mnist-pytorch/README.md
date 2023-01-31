@@ -48,7 +48,7 @@ bin/build.sh
 ### Deploy FEDn 
 Now we are ready to deploy FEDn with `docker-compose`.
 ```
-docker-compose -f ../../docker-compose.yaml up minio mongo mongo-express reducer combiner -d
+docker-compose -f ../../docker-compose.yaml up -d minio mongo mongo-express reducer combiner
 ```
 
 ### Initialize the federated model 
