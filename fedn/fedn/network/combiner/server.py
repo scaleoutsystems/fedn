@@ -329,7 +329,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return:
         """
         response = fedn.ControlResponse()
-        print("\nRECIEVED CONTROL **START** from Controller {}\n".format(control.command), flush=True)
+        print("\nRECIEVED **START** from Controller {}\n".format(control.command), flush=True)
 
         config = {}
         for parameter in control.parameter:
@@ -353,21 +353,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):
-        """
+        """ Not yet implemented.
 
         :param control:
         :param context:
         :return:
         """
         response = fedn.ControlResponse()
-        print("\n RECIEVED CONTROL **STOP** from Controller\n", flush=True)
+        print("\n RECIEVED **STOP** from Controller\n", flush=True)
         return response
 
     def Report(self, control: fedn.ControlRequest, context):
         """ Descibe current state of the Combiner. """
 
         response = fedn.ControlResponse()
-        print("\n RECIEVED CONTROL **REPORT** from Controller\n", flush=True)
+        print("\n RECIEVED **REPORT** from Controller\n", flush=True)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()
@@ -465,7 +465,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return active_clients
 
     def _drop_inactive_clients(self):
-        """ Clean up clients that has missed heartbeat """
+        """ Clean up clients that have missed the heartbeat. """
 
     def ListActiveClients(self, request: fedn.ListClientsRequest, context):
         """ RPC endpoint that returns a ClientList containing the names of all active clients.
@@ -655,7 +655,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response  # TODO Fill later
 
     # Reducer Service
-
     def GetGlobalModel(self, request, context):
         """
 

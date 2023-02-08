@@ -72,19 +72,15 @@ class CombinerInterface:
             self.config = config
 
     @classmethod
-    def from_statestore(statestore, name):
-        """ """
-
-    @classmethod
     def from_json(combiner_config):
-        """
+        """ Initialize the combiner config from a json document.
 
         : return:
         """
         return CombinerInterface(**combiner_config)
 
     def to_dict(self):
-        """
+        """ Export combiner configuration to a dictionary.
 
         : return:
         """
@@ -114,7 +110,7 @@ class CombinerInterface:
         return data
 
     def to_json(self):
-        """
+        """ Export combiner configuration to json.
 
         : return:
         """
@@ -127,33 +123,27 @@ class CombinerInterface:
         """
         if self.certificate:
             cert_b64 = base64.b64encode(self.certificate)
-        # data = self.to_dict()
             return str(cert_b64).split('\'')[1]
         else:
             return None
-        # return data['certificate']
 
     def get_key(self):
         """ Get combiner key.
 
         : return:
         """
-        # data = self.to_dict()
         if self.key:
             key_b64 = base64.b64encode(self.key)
             return str(key_b64).split('\'')[1]
         else:
             return None
-        # return data['key']
 
     def report(self, config=None):
-        """
+        """ Recieve a status report from the combiner. 
 
         : param config:
         : return:
         """
-        print(f"Trying to create Report channel to gRPC server at: address {self.address} port {self.port}", flush=True)
-        print(f"Certificate: {self.certificate}", flush=True)
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
         control = rpc.ControlStub(channel)
@@ -171,9 +161,9 @@ class CombinerInterface:
                 raise
 
     def configure(self, config=None):
-        """
+        """ Set configurations for the combiner.
 
-        : param config:
+        : param config: 
         """
         if not config:
             config = self.config
@@ -196,7 +186,7 @@ class CombinerInterface:
                 raise
 
     def start(self, config):
-        """
+        """ Submit a compute plan to the combiner.
 
         : param config:
         : return:
@@ -223,7 +213,7 @@ class CombinerInterface:
         return response
 
     def set_model_id(self, model_id):
-        """
+        """ Set the current model_id at the combiner.
 
         : param model_id:
         """
@@ -244,7 +234,7 @@ class CombinerInterface:
                 raise
 
     def get_model_id(self):
-        """
+        """ Retrieve the current model_id at the combiner.
 
         : return:
         """
@@ -285,7 +275,7 @@ class CombinerInterface:
                 return None
 
     def allowing_clients(self):
-        """
+        """ Check if the combiner is allowing additional client connections.
 
         : return:
         """
