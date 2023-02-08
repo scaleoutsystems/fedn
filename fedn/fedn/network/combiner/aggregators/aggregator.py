@@ -2,13 +2,11 @@ import json
 import queue
 from abc import ABC, abstractmethod
 
-from this import s
-
 import fedn.common.net.grpc.fedn_pb2 as fedn
 
 
 class Aggregator(ABC):
-    """ Abstract class defining aggregators. """
+    """ Abstract class defining an aggregator. """
 
     @abstractmethod
     def __init__(self, id, storage, server, modelservice, control):
@@ -23,12 +21,13 @@ class Aggregator(ABC):
 
     @abstractmethod
     def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
+        """Routine for combining model updates. Implemented in subclass. """
         pass
 
     def on_model_update(self, model_update):
-        """Callback when a new model update is recieved from a client.
-            Performs (optional) pre-processing and then puts the update id
-            on the aggregation queue.
+        """Callback when a new client model update is recieved.
+           Performs (optional) pre-processing and then puts the update id
+           on the aggregation queue.
 
         :param model_update: A ModelUpdate message.
         :type model_id: str
@@ -45,8 +44,8 @@ class Aggregator(ABC):
             pass
 
     def on_model_validation(self, model_validation):
-        """ Callback when a new model validation is recieved from a client.
-            Performs (optional) pre-processing and writes the validation
+        """ Callback when a new client model validation is recieved.
+            Performs (optional) pre-processing and then writes the validation
             to the database.
 
         :param validation: Dict containing validation data sent by client.
