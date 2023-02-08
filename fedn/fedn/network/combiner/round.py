@@ -110,8 +110,8 @@ class RoundController:
 
         return model_str
 
-    def waitforit(self, config, max_models=100, polling_interval=0.1):
-        """ Defines the policy for how long we should wait before starting to aggregate models. 
+    def waitforit(self, config, buffer_size=100, polling_interval=0.1):
+        """ Defines the policy for how long the server should wait before starting to aggregate models. 
 
         The policy is as follows:
             1. We wait a maximum of time_window time until the round times out.
@@ -120,10 +120,11 @@ class RoundController:
         """
 
         time_window = float(config['round_timeout'])
+        # buffer_size = int(config['buffer_size'])
 
         tt = 0.0
         while tt < time_window:
-            if self.aggregator.model_updates.qsize() >= max_models:
+            if self.aggregator.model_updates.qsize() >= buffer_size:
                 break
 
             time.sleep(polling_interval)
@@ -132,7 +133,7 @@ class RoundController:
     def _training_round(self, config, clients):
         """Send model update requests to clients and aggregate results.
 
-        : param config: The round config object(passed to the client).
+        : param config: The round config object (passed to the client).
         : type config: dict
         : param clients: [description]
         : type clients: list
