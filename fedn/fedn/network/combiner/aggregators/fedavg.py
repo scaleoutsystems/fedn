@@ -57,10 +57,10 @@ class FedAvg(Aggregator):
             try:
                 # Get next model from queue
                 model_next, update_data, model_id = self.next_model_update(helper)
-                print("MODEL UPDATE METADATA ", update_data, flush=True)
                 self.server.report_status(
                     "AGGREGATOR({}): Processing model update {}, update_data: {}  ".format(self.name, model_id, update_data))
 
+                # Increment total number of examples
                 total_examples += update_data['num_examples']
 
                 if nr_aggregated_models == 0:

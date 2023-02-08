@@ -27,7 +27,7 @@ class Aggregator(ABC):
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
            Performs (optional) pre-processing and then puts the update id
-           on the aggregation queue. Override in subclass as needed. 
+           on the aggregation queue. Override in subclass as needed.
 
         :param model_update: A ModelUpdate message.
         :type model_id: str
@@ -36,8 +36,13 @@ class Aggregator(ABC):
             self.server.report_status("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id),
                                       log_level=fedn.Status.INFO)
 
-            # Push the model update to the processing queue
-            self.model_updates.put(model_update)
+            # Validate the update and metadata
+            valid_update = self._validate_model_update(model_update)
+            if valid_update:
+                # Push the model update to the processing queue
+                self.model_updates.put(model_update)
+            else:
+                self.server.report_status("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
             self.server.report_status("AGGREGATOR({}): Failed to receive candidate model! {}".format(self.name, e),
                                       log_level=fedn.Status.WARNING)
@@ -56,6 +61,11 @@ class Aggregator(ABC):
         # self.report_validation(validation)
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
+
+    def _validate_model_update(self, model_update):
+        """ Validate the model update. """
+        # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
+        return True
 
     def next_model_update(self, helper):
         """ """
