@@ -114,9 +114,8 @@ class RoundController:
         """ Defines the policy for how long the server should wait before starting to aggregate models. 
 
         The policy is as follows:
-            1. We wait a maximum of time_window time until the round times out.
-            2. We terminate if a preset number of model updates (max_models) are recieved.
-            3. We terminate if there are no outstanding model update requests (not yet implemented).
+            1. Wait a maximum of time_window time until the round times out.
+            2. Terminate if a preset number of model updates (buffer_size) are in the queue.
         """
 
         time_window = float(config['round_timeout'])
@@ -149,10 +148,10 @@ class RoundController:
         meta['nr_required_updates'] = int(config['clients_required'])
         meta['timeout'] = float(config['round_timeout'])
 
-        # Request a model update from all active clients.
+        # Request model updates from all active clients.
         self.server.request_model_update(config, clients=clients)
 
-        # Wait until a criteria has been met, then trigger aggregation for this round.
+        # Wait / block until the round termination policy has been met.
         self.waitforit(config, max_models=len(clients))
 
         tic = time.time()
@@ -163,7 +162,7 @@ class RoundController:
             helper = get_helper(config['helper_type'])
             model, data = self.aggregator.combine_models(helper)
         except Exception as e:
-            print("AGGREGATIO FAILED AT COMBINER! {}".format(e), flush=True)
+            print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
 
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
@@ -196,7 +195,7 @@ class RoundController:
         if self.modelservice.models.exist(model_id):
             return
 
-        # If it is not there, download it from storage and stage it in memory at the combiner.
+        # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
             try:
@@ -292,7 +291,7 @@ class RoundController:
         self._validation_round(round_config, validators, model_id)
 
     def execute_training_round(self, config):
-        """ Coordinates clients to execute training and validation tasks. """
+        """ Coordinates clients to execute training tasks. """
 
         self.server.report_status(
             "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']), flush=True)
@@ -302,7 +301,7 @@ class RoundController:
         round_meta['round_id'] = config['round_id']
 
         # Make sure the model to update is available locally
-        # on this combiner, and if not download it from storage.
+        # on this combiner.
         self.stage_model(config['model_id'])
 
         clients = self._assign_round_clients(self.server.max_clients)
@@ -321,7 +320,7 @@ class RoundController:
             self.modelservice.set_model(a, model_id)
             a.close()
 
-            # Update Combiner latest model
+            # Update combiner latest model
             self.server.set_active_model(model_id)
 
             print("------------------------------------------")

@@ -27,7 +27,7 @@ class Aggregator(ABC):
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
            Performs (optional) pre-processing and then puts the update id
-           on the aggregation queue.
+           on the aggregation queue. Override in subclass as needed. 
 
         :param model_update: A ModelUpdate message.
         :type model_id: str
@@ -46,7 +46,7 @@ class Aggregator(ABC):
     def on_model_validation(self, model_validation):
         """ Callback when a new client model validation is recieved.
             Performs (optional) pre-processing and then writes the validation
-            to the database.
+            to the database. Override in subclass as needed.
 
         :param validation: Dict containing validation data sent by client.
                            Must be valid JSON.
