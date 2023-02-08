@@ -66,7 +66,7 @@ class Aggregator(ABC):
         """ Validate the model update. """
         # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
-        if not 'num_examples' in data.keys():
+        if 'num_examples' not in data.keys():
             self.server.report_status("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
             return False
         return True
