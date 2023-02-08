@@ -152,7 +152,7 @@ class RoundController:
         self.server.request_model_update(config, clients=clients)
 
         # Wait / block until the round termination policy has been met.
-        self.waitforit(config, max_models=len(clients))
+        self.waitforit(config, buffer_size=len(clients))
 
         tic = time.time()
         model = None
