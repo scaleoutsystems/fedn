@@ -81,17 +81,16 @@
                 </div>
 
                 <ul class="sidebar-nav">
-
                     <li class="sidebar-item">
-                        <a class="sidebar-link" href="/">
-                            <i class="align-middle" data-feather="clipboard"></i>
-                            <span class="align-middle">Events</span>
+                        <a class="sidebar-link" href="/network">
+                            <i class="align-middle" data-feather="compass"></i>
+                            <span class="align-middle">Network</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="/control">
                             <i class="align-middle" data-feather="sliders"></i>
-                            <span class="align-middle">Control</span>
+                            <span class="align-middle">Controller</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
@@ -106,10 +105,11 @@
                             <span class="align-middle">Dashboard</span>
                         </a>
                     </li>
+
                     <li class="sidebar-item">
-                        <a class="sidebar-link" href="/network">
-                            <i class="align-middle" data-feather="compass"></i>
-                            <span class="align-middle">Network</span>
+                        <a class="sidebar-link" href="/">
+                            <i class="align-middle" data-feather="clipboard"></i>
+                            <span class="align-middle">Events</span>
                         </a>
                     </li>
 
@@ -182,8 +182,13 @@
                                     </script>
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5 class="card-title">Configure session</h5>
-                                            <p> Configure training session.</p>
+                                            <h5 class="card-title">New session</h5>
+                                            <p> Configure and start a session. A session is composed of one
+                                                or several global rounds. Each round in the same session share
+                                                the same round configuration. Any model updates queued up at combiners
+                                                are dropped at the beginning of a new session. Stragglers are allowed
+                                                to update late in the same session.
+                                            </p>
                                         </div>
                                         <div class="card-body">
 
@@ -327,7 +332,7 @@
                                                     </label>
                                                     <div class="col-sm-9 ml-sm-auto">
                                                         <button type="submit" class="btn btn-square btn-primary">Start
-                                                            run
+                                                            session
                                                         </button>
                                                     </div>
                                                 </div>
