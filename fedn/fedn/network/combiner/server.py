@@ -334,7 +334,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
-        print("\n\nSTARTING ROUND AT COMBINER WITH ROUND CONFIG: {}\n\n".format(
+        print("\n\nSTARTING ROUND WITH ROUND CONFIG: {}\n\n".format(
             config), flush=True)
 
         self.control.push_round_config(config)

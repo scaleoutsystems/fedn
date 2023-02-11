@@ -10,12 +10,12 @@ from .helpers import HelperBase
 
 class PytorchHelper(HelperBase):
 
-    def increment_average(self, model, model_next, n):
-        """ Update an incremental average. """
+    def increment_average(self, model, model_next, a, W):
+        """ Update an incremental weighted average. """
         w = OrderedDict()
         for name in model.keys():
             tensorDiff = model_next[name] - model[name]
-            w[name] = model[name] + tensorDiff / n
+            w[name] = model[name] + a*tensorDiff / W
         return w
 
     def get_tmp_path(self):

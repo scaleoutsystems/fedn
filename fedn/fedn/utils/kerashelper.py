@@ -21,11 +21,11 @@ class KerasHelper(HelperBase):
 
         return avg_w
 
-    def increment_average(self, weights, weights_next, n):
+    def increment_average(self, weights, weights_next, a, W):
         """ Update an incremental average. """
         w_prev = weights
         w_next = weights_next
-        w = np.add(w_prev, (np.array(w_next) - np.array(w_prev)) / n)
+        w = np.add(w_prev, a*(np.array(w_next) - np.array(w_prev)) / W)
         return w
 
     def set_weights(self, weights_, weights):
