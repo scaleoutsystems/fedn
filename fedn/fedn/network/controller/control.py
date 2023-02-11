@@ -16,7 +16,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class Control(ControlBase):
-    """ Conroller, implementing the overall global training strategy.
+    """ Controller, implementing the overall global training strategy.
 
     """
 
@@ -26,7 +26,11 @@ class Control(ControlBase):
         self.name = "DefaultControl"
 
     def session(self, config):
-        """ Entrypoint for a training session. """
+        """ Entrypoint for a training session. A session consists of one 
+            or several global rounds. All rounds have the same config 
+            within one session.  
+
+        """
 
         if self._state == ReducerState.instructing:
             print("Already set in INSTRUCTING state. A session is in progress.", flush=True)
@@ -41,6 +45,7 @@ class Control(ControlBase):
             session_id = uuid.uuid4()
             config['session_id'] = str(session_id)
 
+        # self.statestore.new_session(session_id)
         self._state = ReducerState.monitoring
 
         last_round = int(self.get_latest_round_id())
