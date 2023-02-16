@@ -959,6 +959,55 @@ controller:
 
             return jsonify(data)
 
+        @app.route('/infer', methods=['POST'])
+        def infer():
+            """
+
+            :return:
+            """
+            # Token auth
+            if self.token_auth_enabled:
+                self.authorize(request, app.config.get('SECRET_KEY'))
+
+            # Check configured
+            not_configured = self.check_configured()
+            if not_configured:
+                return not_configured
+
+            # Check compute context
+            if self.remote_compute_context:
+                try:
+                    self.current_compute_context = self.control.get_compute_context()
+                except:
+                    self.current_compute_context = None
+            else:
+                self.current_compute_context = "None:Local"
+
+            # Redirect if in monitoring state
+            if self.control.state() == ReducerState.monitoring:
+                return redirect(
+                    url_for('index', state=ReducerStateToString(self.control.state()), refresh=True, message="Reducer is in monitoring state"))
+
+            # POST params
+            timeout = int(request.form.get('timeout', 180))
+            helper_type = request.form.get('helper', 'keras')
+            clients_required = request.form.get('clients_required', 1)
+            clients_requested = request.form.get('clients_requested', 8)
+
+            # Start inference request
+            config = {'round_timeout': timeout,
+                      'model_id': self.control.get_latest_model(),
+                      'clients_required': clients_required,
+                      'clients_requested': clients_requested,
+                      'task': 'inference',
+                      'helper_type': helper_type}
+            threading.Thread(target=self.control.infer_instruct,
+                             args=(config,)).start()
+
+            # Redirect
+            return redirect(url_for('index', state=ReducerStateToString(self.control.state()), refresh=True, message="Sent execution plan (inference).",
+                                    message_type='SUCCESS'))
+
         if self.certificate:
             print("trying to connect with certs {} and key {}".format(str(self.certificate.cert_path),
                                                                       str(self.certificate.key_path)), flush=True)

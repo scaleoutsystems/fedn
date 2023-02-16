@@ -174,7 +174,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print("COMBINER: Sent model update request for model {} to clients {}".format(
             model_id, clients), flush=True)
 
-    def request_model_validation(self, model_id, clients=[]):
+    def request_model_validation(self, model_id, config, clients=[]):
         """ Ask clients to validate the current global model.
 
         Parameters
@@ -193,6 +193,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.model_id = model_id
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
+        request.is_inference = (config['task'] == 'inference')
 
         if len(clients) == 0:
             clients = self.get_active_validators()

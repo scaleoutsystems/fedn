@@ -202,6 +202,9 @@ class ReducerControl:
             nr_active_clients = int(combiner_state['nr_active_trainers'])
         elif compute_plan['task'] == 'validation':
             nr_active_clients = int(combiner_state['nr_active_validators'])
+        elif compute_plan['task'] == 'inference':
+            # Using validators for inference
+            nr_active_clients = int(combiner_state['nr_active_validators'])
         else:
             print("Invalid task type!", flush=True)
             return False
@@ -401,6 +404,48 @@ class ReducerControl:
 
         return model_id, round_meta
 
+    def inference_round(self, config):
+        """ Execute inference round. """
+
+        # Init meta
+        round_meta = {}
+
+        # Check for at least one combiner in statestore
+        if len(self.network.get_combiners()) < 1:
+            print("REDUCER: No combiners connected!")
+            return round_meta
+
+        # Setup combiner configuration
+        combiner_config = copy.deepcopy(config)
+        combiner_config['model_id'] = self.get_latest_model()
+        combiner_config['task'] = 'inference'
+        combiner_config['helper_type'] = self.statestore.get_framework()
+
+        # Select combiners
+        validating_combiners = self._select_round_combiners(
+            combiner_config)
+
+        # Test round start policy
+        round_start = self.check_round_start_policy(validating_combiners)
+        if round_start:
+            print("CONTROL: round start policy met, participating combiners {}".format(
+                validating_combiners), flush=True)
+        else:
+            print("CONTROL: Round start policy not met, skipping round!", flush=True)
+            return None
+
+        # Synch combiners with latest model and trigger inference
+        for combiner, combiner_config in validating_combiners:
+            try:
+                self.sync_combiners([combiner], self.get_latest_model())
+                combiner.start(combiner_config)
+            except CombinerUnavailableError:
+                # It is OK if inference fails for a combiner
+                self._handle_unavailable_combiner(combiner)
+                pass
+
+        return round_meta
+
     def sync_combiners(self, combiners, model_id):
         """ Spread the current consensus model to all active combiner nodes. """
         if not model_id:
@@ -508,6 +553,31 @@ class ReducerControl:
                 i = i + 1
 
         return model, meta
+
+    def infer_instruct(self, config):
+        """ Main entrypoint for executing the inference compute plan. """
+
+        # Check/set instucting state
+        if self.__state == ReducerState.instructing:
+            print("Already set in INSTRUCTING state", flush=True)
+            return
+        self.__state = ReducerState.instructing
+
+        # Check for a model chain
+        if not self.get_latest_model():
+            print("No model in model chain, please seed the alliance!")
+
+        # Set reducer in monitoring state
+        self.__state = ReducerState.monitoring
+
+        # Start inference round
+        try:
+            self.inference_round(config)
+        except TypeError:
+            print("Could not unpack data from round...", flush=True)
+
+        # Set reducer in idle state
+        self.__state = ReducerState.idle
 
     def monitor(self, config=None):
         """

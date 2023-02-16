@@ -134,7 +134,7 @@ class RoundControl:
         :param model_id: [description]
         :type model_id: [type]
         """
-        self.server.request_model_validation(model_id, clients=clients)
+        self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download model from persistent storage.
@@ -303,7 +303,8 @@ class RoundControl:
                                 tic
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_meta(round_meta)
-                        elif round_config['task'] == 'validation':
+                        # Note: for inference we reuse validation logic
+                        elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation(round_config)
                         else:
                             self.server.report_status(
