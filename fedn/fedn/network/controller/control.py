@@ -26,9 +26,9 @@ class Control(ControlBase):
         self.name = "DefaultControl"
 
     def session(self, config):
-        """ Entrypoint for a training session. A session consists of one 
-            or several global rounds. All rounds have the same config 
-            within one session.  
+        """ Execute a new training session. A session consists of one
+            or several global rounds. All rounds have the same config
+            within one session.
 
         """
 
@@ -50,8 +50,9 @@ class Control(ControlBase):
 
         last_round = int(self.get_latest_round_id())
 
-        # Do rounds
+        # Execute rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
+            # Increment the round number
             if last_round:
                 current_round = last_round + round
             else:
@@ -87,18 +88,17 @@ class Control(ControlBase):
             print("REDUCER: No combiners connected!", flush=True)
             return None, round_meta
 
-        # 1. Assemble round config for combiners for this global round,
-        # and get combiners to participate in the round.
-        combiner_round_config = copy.deepcopy(session_config)
-        combiner_round_config['rounds'] = 1
-        combiner_round_config['round_id'] = round_number
-        combiner_round_config['task'] = 'training'
-        combiner_round_config['model_id'] = self.get_latest_model()
-        combiner_round_config['helper_type'] = self.statestore.get_framework()
+        # 1. Assemble round config for this global round,
+        # and check which combiners are able to participate
+        # in the round.
+        round_config = copy.deepcopy(session_config)
+        round_config['rounds'] = 1
+        round_config['round_id'] = round_number
+        round_config['task'] = 'training'
+        round_config['model_id'] = self.get_latest_model()
+        round_config['helper_type'] = self.statestore.get_framework()
 
-        round_meta['combiner_round_config'] = combiner_round_config
-
-        combiners = self.get_participating_combiners(combiner_round_config)
+        combiners = self.get_participating_combiners(round_config)
         round_start = self.evaluate_round_start_policy(combiners)
 
         if round_start:
@@ -108,12 +108,15 @@ class Control(ControlBase):
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
             return None
 
+        round_meta['round_config'] = round_config
+
         # 2. Ask participating combiners to coordinate model updates
-        cl = self.request_model_updates(combiners, combiner_round_config)
+        cl = self.request_model_updates(combiners, round_config)
 
         # Wait until participating combiners have a model that is out of sync with the current global model.
         # TODO: We do not need to wait until all combiners complete before we start reducing.
         wait = 0.0
+
         while len(self._check_combiners_out_of_sync(cl)) < len(combiners):
             time.sleep(1.0)
             wait += 1.0
@@ -122,15 +125,15 @@ class Control(ControlBase):
 
         # OBS! Here we are checking against all combiners, not just those that computed in this round.
         # This means we let straggling combiners participate in the update
-        updated = self._check_combiners_out_of_sync()
+        # updated = self._check_combiners_out_of_sync()
 
-        print("Checking round validity policy...", flush=True)
-        round_valid = self.evaluate_round_validity_policy(updated)
-        if not round_valid:
-            # TODO: Should we reset combiner state here?
-            print("REDUCER CONTROL: Round invalid!", flush=True)
-            return None, round_meta
-        print("Round valid.", flush=True)
+        # print("Checking round validity policy...", flush=True)
+        # round_valid = self.evaluate_round_validity_policy(updated)
+        # if not round_valid:
+        #    # TODO: Should we reset combiner state here?
+        #    print("REDUCER CONTROL: Round invalid!", flush=True)
+        #    return None, round_meta
+        # print("Round valid.", flush=True)
 
         print("Starting reducing models...", flush=True)
         # 3. Reduce combiner models into a global model
@@ -177,9 +180,6 @@ class Control(ControlBase):
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
-
-        # 5. Check commit policy based on validation result (optionally)
-        # TODO: Implement.
 
         return model_id, round_meta
 

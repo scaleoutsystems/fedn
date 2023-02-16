@@ -233,34 +233,12 @@ class CombinerInterface:
             else:
                 raise
 
-    def get_model_id(self):
-        """ Retrieve the current model_id at the combiner.
-
-        : return:
-        """
-        channel = Channel(self.address, self.port,
-                          self.certificate).get_channel()
-        reducer = rpc.ReducerStub(channel)
-        request = fedn.GetGlobalModelRequest()
-        try:
-            response = reducer.GetGlobalModel(request)
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-
-        return response.model_id
-
-    def get_model(self, id=None):
-        """ Retrive the model bundle from a combiner. """
+    def get_model(self, id):
+        """ Retrive a model object from a combiner. """
 
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
         modelservice = rpc.ModelServiceStub(channel)
-
-        if not id:
-            id = self.get_model_id()
 
         data = BytesIO()
         data.seek(0, 0)

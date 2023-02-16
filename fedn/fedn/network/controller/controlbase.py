@@ -193,27 +193,6 @@ class ControlBase(ABC):
         for combiner in combiners:
             _ = combiner.set_model_id(model_id)
 
-    def _check_combiners_out_of_sync(self, combiners=None):
-        """ Check if combiners have completed model updates by
-            checking if their active model_id differs from the
-            controller latest model_id.
-        """
-
-        if not combiners:
-            combiners = self.network.get_combiners()
-
-        out_of_sync = []
-        for combiner in combiners:
-            try:
-                model_id = combiner.get_model_id()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                model_id = None
-
-            if model_id and (model_id != self.get_latest_model()):
-                out_of_sync.append(combiner)
-        return out_of_sync
-
     def get_participating_combiners(self, combiner_round_config):
 
         combiners = []

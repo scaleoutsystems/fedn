@@ -55,7 +55,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def __init__(self, connect_config):
 
-        # Holds client queues
+        # Client queues
         self.clients = {}
 
         self.modelservice = ModelService()
@@ -69,7 +69,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.role = Role.COMBINER
         self.max_clients = connect_config['max_clients']
 
-        self.model_id = None
+        #self.model_id = None
 
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
@@ -91,7 +91,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if status == Status.Assigned:
                 config = response
                 print(
-                    "COMBINER: was announced successfully. Waiting for clients and commands!", flush=True)
+                    "COMBINER {0}: Announced successfully".format(self.id), flush=True)
                 break
             if status == Status.UnAuthorized:
                 print(response, flush=True)
@@ -142,20 +142,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.name = instance.id
         client.role = role_to_proto_role(instance.role)
         return client
-
-    def get_active_model(self):
-        """
-
-        :return:
-        """
-        return self.model_id
-
-    def set_active_model(self, model_id):
-        """
-
-        :param model_id:
-        """
-        self.model_id = model_id
 
     def report_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, flush=True):
         print("{}:COMBINER({}):{} {}".format(datetime.now().strftime(
@@ -322,22 +308,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     # Control Service
 
     def Start(self, control: fedn.ControlRequest, context):
-        """ Push a round config to RoundControl.
+        """ Start a round.
 
         :param control:
         :param context:
         :return:
         """
-        response = fedn.ControlResponse()
         print("\nRECIEVED **START** from Controller {}\n".format(control.command), flush=True)
 
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
-        print("\n\nSTARTING ROUND WITH ROUND CONFIG: {}\n\n".format(
-            config), flush=True)
 
         self.control.push_round_config(config)
+
+        response = fedn.ControlResponse()
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
@@ -398,13 +383,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "nr_active_clients"
         p.value = str(len(active_trainers)+len(active_validators))
-
-        p = response.parameter.add()
-        p.key = "model_id"
-        model_id = self.get_active_model()
-        if model_id is None:
-            model_id = ""
-        p.value = str(model_id)
 
         p = response.parameter.add()
         p.key = "nr_unprocessed_compute_plans"
@@ -653,24 +631,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.response = "RECEIVED ModelValidation {} from client  {}".format(
             response, response.sender.name)
         return response  # TODO Fill later
-
-    # Reducer Service
-    def GetGlobalModel(self, request, context):
-        """
-
-        :param request:
-        :param context:
-        :return:
-        """
-        response = fedn.GetGlobalModelResponse()
-        self.__whoami(response.sender, self)
-        response.receiver.name = "reducer"
-        response.receiver.role = role_to_proto_role(Role.REDUCER)
-        if not self.get_active_model():
-            response.model_id = ''
-        else:
-            response.model_id = self.get_active_model()
-        return response
 
     ####################################################################################################################
 

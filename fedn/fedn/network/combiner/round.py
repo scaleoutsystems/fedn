@@ -42,7 +42,7 @@ class RoundController:
             self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
-        """ Recieve a round_config (job description) and push on the queue.
+        """ Recieve a round_config (job description) and add it to the inbox.
 
         :param round_config: A dict containing the round configuration (from global controller).
         :type round_config: dict
@@ -296,17 +296,16 @@ class RoundController:
         self.server.report_status(
             "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']), flush=True)
 
-        round_meta = {}
-        round_meta['config'] = config
-        round_meta['round_id'] = config['round_id']
+        data = {}
+        data['config'] = config
+        data['round_id'] = config['round_id']
 
-        # Make sure the model to update is available locally
-        # on this combiner.
+        # Make sure the model to update is available on this combiner.
         self.stage_model(config['model_id'])
 
         clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients)
-        round_meta['data'] = meta
+        data['data'] = meta
 
         if model is None:
             self.server.report_status(
@@ -320,17 +319,16 @@ class RoundController:
             self.modelservice.set_model(a, model_id)
             a.close()
 
-            # Update combiner latest model
-            self.server.set_active_model(model_id)
+        data['model_id'] = model_id
 
-            print("------------------------------------------")
-            self.server.report_status(
-                "ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
-            print("\n")
-        return round_meta
+        print("------------------------------------------")
+        self.server.report_status(
+            "ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
+        print("\n")
+        return data
 
     def run(self, polling_interval=1.0):
-        """ Main control loop. Sequentially execute rounds based on round config.
+        """ Main control loop. Execute rounds based on round config on the queue.
 
         : param polling_interval: The polling interval in seconds for checking if a new job/config is available.
         : type polling_interval: float
@@ -342,7 +340,7 @@ class RoundController:
 
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
-
+                    round_meta = {}
                     if ready:
                         if round_config['task'] == 'training':
                             tic = time.time()
@@ -350,17 +348,20 @@ class RoundController:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['name'] = self.id
-                            self.server.tracer.set_round_meta(round_meta)
+                            round_meta['status'] = "Success"
                         elif round_config['task'] == 'validation':
                             self.execute_validation_round(round_config)
                         else:
                             self.server.report_status(
                                 "ROUNDCONTROL: Round config contains unkown task type.", flush=True)
                     else:
+                        round_meta['status'] = "Failed"
+                        round_meta['reason'] =
                         self.server.report_status(
                             "ROUNDCONTROL: Failed to meet client allocation requirements for this round config.", flush=True)
 
                     self.round_configs.task_done()
+                    self.server.tracer.set_round_meta(round_meta)
                 except queue.Empty:
                     time.sleep(polling_interval)
 
