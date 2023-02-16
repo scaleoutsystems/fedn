@@ -958,8 +958,6 @@ discover_port: {discover_port}
 
             return jsonify(data)
 
-        app.run(host=bind, port=self.port)
-
         @app.route('/infer', methods=['POST'])
         def infer():
             """
