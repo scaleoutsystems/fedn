@@ -44,11 +44,6 @@ class ModelServiceServicer(object):
 
 
 def add_ModelServiceServicer_to_server(servicer, server):
-    """
-
-    :param servicer:
-    :param server:
-    """
     rpc_method_handlers = {
         'Upload': grpc.stream_unary_rpc_method_handler(
             servicer.Upload,
@@ -65,8 +60,9 @@ def add_ModelServiceServicer_to_server(servicer, server):
         'grpc.ModelService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
+ # This class is part of an EXPERIMENTAL API.
 
-# This class is part of an EXPERIMENTAL API.
+
 class ModelService(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -81,26 +77,11 @@ class ModelService(object):
                wait_for_ready=None,
                timeout=None,
                metadata=None):
-        """
-
-        :param request_iterator:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.stream_unary(request_iterator, target, '/grpc.ModelService/Upload',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Download(request,
@@ -113,26 +94,11 @@ class ModelService(object):
                  wait_for_ready=None,
                  timeout=None,
                  metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.ModelService/Download',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class ControlStub(object):
@@ -195,11 +161,6 @@ class ControlServicer(object):
 
 
 def add_ControlServicer_to_server(servicer, server):
-    """
-
-    :param servicer:
-    :param server:
-    """
     rpc_method_handlers = {
         'Start': grpc.unary_unary_rpc_method_handler(
             servicer.Start,
@@ -226,8 +187,9 @@ def add_ControlServicer_to_server(servicer, server):
         'grpc.Control', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
+ # This class is part of an EXPERIMENTAL API.
 
-# This class is part of an EXPERIMENTAL API.
+
 class Control(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -242,20 +204,6 @@ class Control(object):
               wait_for_ready=None,
               timeout=None,
               metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Control/Start',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
@@ -273,20 +221,6 @@ class Control(object):
              wait_for_ready=None,
              timeout=None,
              metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Control/Stop',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
@@ -304,20 +238,6 @@ class Control(object):
                   wait_for_ready=None,
                   timeout=None,
                   metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Control/Configure',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReportResponse.FromString,
@@ -335,20 +255,6 @@ class Control(object):
                wait_for_ready=None,
                timeout=None,
                metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Control/Report',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReportResponse.FromString,
@@ -383,11 +289,6 @@ class ReducerServicer(object):
 
 
 def add_ReducerServicer_to_server(servicer, server):
-    """
-
-    :param servicer:
-    :param server:
-    """
     rpc_method_handlers = {
         'GetGlobalModel': grpc.unary_unary_rpc_method_handler(
             servicer.GetGlobalModel,
@@ -399,8 +300,9 @@ def add_ReducerServicer_to_server(servicer, server):
         'grpc.Reducer', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
+ # This class is part of an EXPERIMENTAL API.
 
-# This class is part of an EXPERIMENTAL API.
+
 class Reducer(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -415,20 +317,6 @@ class Reducer(object):
                        wait_for_ready=None,
                        timeout=None,
                        metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Reducer/GetGlobalModel',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
@@ -534,11 +422,6 @@ class ConnectorServicer(object):
 
 
 def add_ConnectorServicer_to_server(servicer, server):
-    """
-
-    :param servicer:
-    :param server:
-    """
     rpc_method_handlers = {
         'AllianceStatusStream': grpc.unary_stream_rpc_method_handler(
             servicer.AllianceStatusStream,
@@ -580,8 +463,9 @@ def add_ConnectorServicer_to_server(servicer, server):
         'grpc.Connector', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
+ # This class is part of an EXPERIMENTAL API.
 
-# This class is part of an EXPERIMENTAL API.
+
 class Connector(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -596,26 +480,11 @@ class Connector(object):
                              wait_for_ready=None,
                              timeout=None,
                              metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.Connector/AllianceStatusStream',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Status.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendStatus(request,
@@ -628,20 +497,6 @@ class Connector(object):
                    wait_for_ready=None,
                    timeout=None,
                    metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendStatus',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -659,20 +514,6 @@ class Connector(object):
                           wait_for_ready=None,
                           timeout=None,
                           metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ListActiveClients',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientList.FromString,
@@ -690,20 +531,6 @@ class Connector(object):
                          wait_for_ready=None,
                          timeout=None,
                          metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/AcceptingClients',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
@@ -721,20 +548,6 @@ class Connector(object):
                       wait_for_ready=None,
                       timeout=None,
                       metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendHeartbeat',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -752,20 +565,6 @@ class Connector(object):
                        wait_for_ready=None,
                        timeout=None,
                        metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReassignClient',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -783,20 +582,6 @@ class Connector(object):
                         wait_for_ready=None,
                         timeout=None,
                         metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReconnectClient',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -909,11 +694,6 @@ class CombinerServicer(object):
 
 
 def add_CombinerServicer_to_server(servicer, server):
-    """
-
-    :param servicer:
-    :param server:
-    """
     rpc_method_handlers = {
         'ModelUpdateRequestStream': grpc.unary_stream_rpc_method_handler(
             servicer.ModelUpdateRequestStream,
@@ -960,8 +740,9 @@ def add_CombinerServicer_to_server(servicer, server):
         'grpc.Combiner', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
+ # This class is part of an EXPERIMENTAL API.
 
-# This class is part of an EXPERIMENTAL API.
+
 class Combiner(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -976,26 +757,11 @@ class Combiner(object):
                                  wait_for_ready=None,
                                  timeout=None,
                                  metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelUpdateRequestStream',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelUpdateRequest.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelUpdateStream(request,
@@ -1008,26 +774,11 @@ class Combiner(object):
                           wait_for_ready=None,
                           timeout=None,
                           metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelUpdateStream',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelUpdate.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelValidationRequestStream(request,
@@ -1040,26 +791,11 @@ class Combiner(object):
                                      wait_for_ready=None,
                                      timeout=None,
                                      metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelValidationRequestStream',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelValidationRequest.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModelValidationStream(request,
@@ -1072,26 +808,11 @@ class Combiner(object):
                               wait_for_ready=None,
                               timeout=None,
                               metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelValidationStream',
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                                               fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
                                               options, channel_credentials,
-                                              insecure, call_credentials, compression, wait_for_ready, timeout,
-                                              metadata)
+                                              insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SendModelUpdateRequest(request,
@@ -1104,20 +825,6 @@ class Combiner(object):
                                wait_for_ready=None,
                                timeout=None,
                                metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelUpdateRequest',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelUpdateRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -1135,20 +842,6 @@ class Combiner(object):
                         wait_for_ready=None,
                         timeout=None,
                         metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelUpdate',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -1166,20 +859,6 @@ class Combiner(object):
                                    wait_for_ready=None,
                                    timeout=None,
                                    metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelValidationRequest',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelValidationRequest.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,
@@ -1197,20 +876,6 @@ class Combiner(object):
                             wait_for_ready=None,
                             timeout=None,
                             metadata=None):
-        """
-
-        :param request:
-        :param target:
-        :param options:
-        :param channel_credentials:
-        :param call_credentials:
-        :param insecure:
-        :param compression:
-        :param wait_for_ready:
-        :param timeout:
-        :param metadata:
-        :return:
-        """
         return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelValidation',
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
                                              fedn_dot_common_dot_net_dot_grpc_dot_fedn__pb2.Response.FromString,

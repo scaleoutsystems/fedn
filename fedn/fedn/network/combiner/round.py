@@ -178,7 +178,7 @@ class RoundController:
         : param model_id: [description]
         : type model_id: [type]
         """
-        self.server.request_model_validation(model_id, clients=clients)
+        self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download model from persistent storage and set in modelservice.
@@ -341,24 +341,29 @@ class RoundController:
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
                     round_meta = {}
+                    round_meta['name'] = self.id
+
                     if ready:
                         if round_config['task'] == 'training':
                             tic = time.time()
                             round_meta = self.execute_training_round(round_config)
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
-                            round_meta['name'] = self.id
                             round_meta['status'] = "Success"
-                        elif round_config['task'] == 'validation':
-                            self.execute_validation_round(round_config)
+                        # elif round_config['task'] == 'validation':
+                        #    self.execute_validation_round(round_config)
+                        #    self.server.tracer.set_round_meta(round_meta)
+                        # Note: for inference we reuse validation logic
+                        elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
+                            self.execute_validation(round_config)
                         else:
                             self.server.report_status(
                                 "ROUNDCONTROL: Round config contains unkown task type.", flush=True)
                     else:
                         round_meta['status'] = "Failed"
-                        round_meta['reason'] =
+                        round_meta['reason'] = "Failed to meet client allocation requirements for this round config."
                         self.server.report_status(
-                            "ROUNDCONTROL: Failed to meet client allocation requirements for this round config.", flush=True)
+                            "ROUNDCONTROL: {0}".format(round_meta['reason']), flush=True)
 
                     self.round_configs.task_done()
                     self.server.tracer.set_round_meta(round_meta)
