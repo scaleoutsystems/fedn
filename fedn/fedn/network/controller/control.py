@@ -221,3 +221,45 @@ class Control(ControlBase):
                 i = i + 1
 
         return model, meta
+
+    def inference_round(self, config):
+        """ Execute inference round. """
+
+        # Init meta
+        round_meta = {}
+
+        # Check for at least one combiner in statestore
+        if len(self.network.get_combiners()) < 1:
+            print("REDUCER: No combiners connected!")
+            return round_meta
+
+        # Setup combiner configuration
+        combiner_config = copy.deepcopy(config)
+        combiner_config['model_id'] = self.get_latest_model()
+        combiner_config['task'] = 'inference'
+        combiner_config['helper_type'] = self.statestore.get_framework()
+
+        # Select combiners
+        validating_combiners = self._select_round_combiners(
+            combiner_config)
+
+        # Test round start policy
+        round_start = self.check_round_start_policy(validating_combiners)
+        if round_start:
+            print("CONTROL: round start policy met, participating combiners {}".format(
+                validating_combiners), flush=True)
+        else:
+            print("CONTROL: Round start policy not met, skipping round!", flush=True)
+            return None
+
+        # Synch combiners with latest model and trigger inference
+        for combiner, combiner_config in validating_combiners:
+            try:
+                self.sync_combiners([combiner], self.get_latest_model())
+                combiner.start(combiner_config)
+            except CombinerUnavailableError:
+                # It is OK if inference fails for a combiner
+                self._handle_unavailable_combiner(combiner)
+                pass
+
+        return round_meta
