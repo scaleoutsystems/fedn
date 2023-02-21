@@ -130,6 +130,10 @@ class ControlBase(ABC):
         else:
             return last_round['key']
 
+    def get_latest_round(self):
+        round = self.statestore.get_latest_round()
+        return round
+
     def get_compute_context(self):
         """
 
@@ -241,7 +245,7 @@ class ControlBase(ABC):
             e.g. asserting that a certain number of combiners have reported in an
             updated model, or that criteria on model performance have been met.
         """
-        if combiners == []:
+        if combiners.keys() == []:
             return False
         else:
             return True

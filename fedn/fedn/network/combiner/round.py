@@ -341,7 +341,6 @@ class RoundController:
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
                     round_meta = {}
-                    round_meta['name'] = self.id
 
                     if ready:
                         if round_config['task'] == 'training':
@@ -350,22 +349,20 @@ class RoundController:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['status'] = "Success"
-                        # elif round_config['task'] == 'validation':
-                        #    self.execute_validation_round(round_config)
-                        #    self.server.tracer.set_round_meta(round_meta)
-                        # Note: for inference we reuse validation logic
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation(round_config)
                         else:
                             self.server.report_status(
                                 "ROUNDCONTROL: Round config contains unkown task type.", flush=True)
                     else:
+                        round_meta = {}
                         round_meta['status'] = "Failed"
                         round_meta['reason'] = "Failed to meet client allocation requirements for this round config."
                         self.server.report_status(
                             "ROUNDCONTROL: {0}".format(round_meta['reason']), flush=True)
 
                     self.round_configs.task_done()
+                    round_meta['name'] = self.id
                     self.server.tracer.set_round_meta(round_meta)
                 except queue.Empty:
                     time.sleep(polling_interval)

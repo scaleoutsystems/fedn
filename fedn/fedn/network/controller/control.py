@@ -60,6 +60,7 @@ class Control(ControlBase):
 
             model_id = None
             round_meta = {'round_id': current_round}
+            round_meta['session_id'] = session_id
 
             try:
                 model_id, round_meta = self.round(config, current_round)
@@ -67,7 +68,7 @@ class Control(ControlBase):
                 print("Could not unpack data from round...", flush=True)
 
             if model_id:
-                print("CONTROL: Round completed, new model: {}".format(
+                print("CONTROL: Round completed, new global model: {}".format(
                     model_id), flush=True)
                 round_meta['status'] = 'Success'
             else:
@@ -113,27 +114,30 @@ class Control(ControlBase):
         # 2. Ask participating combiners to coordinate model updates
         cl = self.request_model_updates(combiners, round_config)
 
-        # Wait until participating combiners have a model that is out of sync with the current global model.
-        # TODO: We do not need to wait until all combiners complete before we start reducing.
+        # Wait until participating combiners have produced an updated global model.
         wait = 0.0
+        updated = {}
 
-        while len(self._check_combiners_out_of_sync(cl)) < len(combiners):
-            time.sleep(1.0)
-            wait += 1.0
+        while len(updated) < len(combiners):
+            round = self.get_latest_round()
+            for combiner in round['combiners']:
+                print(combiner, flush=True)
+                if combiner['status'] == 'Success':
+                    if combiner['name'] not in updated.keys():
+                        updated['name'] = combiner['model_id']
+                print(combiner['status'])
+
             if wait >= session_config['round_timeout']:
                 break
+            time.sleep(1.0)
+            wait += 1.0
 
-        # OBS! Here we are checking against all combiners, not just those that computed in this round.
-        # This means we let straggling combiners participate in the update
-        # updated = self._check_combiners_out_of_sync()
-
-        # print("Checking round validity policy...", flush=True)
-        # round_valid = self.evaluate_round_validity_policy(updated)
-        # if not round_valid:
-        #    # TODO: Should we reset combiner state here?
-        #    print("REDUCER CONTROL: Round invalid!", flush=True)
-        #    return None, round_meta
-        # print("Round valid.", flush=True)
+        print("Checking round validity policy...", flush=True)
+        round_valid = self.evaluate_round_validity_policy(updated)
+        if not round_valid:
+            print("REDUCER CONTROL: Round invalid!", flush=True)
+            return None, round_meta
+        print("Round valid.", flush=True)
 
         print("Starting reducing models...", flush=True)
         # 3. Reduce combiner models into a global model
@@ -183,6 +187,12 @@ class Control(ControlBase):
 
         return model_id, round_meta
 
+    def get_combiner(self, name):
+        for combiner in self.combiners:
+            if combiner.name == name:
+                return combiner
+        return None
+
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
 
@@ -193,12 +203,13 @@ class Control(ControlBase):
 
         i = 1
         model = None
-        for combiner in combiners:
+        for name, model_id in combiners.items():
 
             # TODO: Handle inactive RPC error in get_model and raise specific error
             try:
                 tic = time.time()
-                data = combiner.get_model()
+                combiner = self.get_combiner(name)
+                data = combiner.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
             except Exception:
                 pass
@@ -208,7 +219,7 @@ class Control(ControlBase):
             if data is not None:
                 try:
                     tic = time.time()
-                    model_str = combiner.get_model().getbuffer()
+                    model_str = data.getbuffer()
                     model_next = helper.load_model_from_BytesIO(model_str)
                     meta['time_load_model'] += (time.time() - tic)
                     tic = time.time()
@@ -255,6 +266,7 @@ class Control(ControlBase):
         # Synch combiners with latest model and trigger inference
         for combiner, combiner_config in validating_combiners:
             try:
+                # TODO: FIX HERE.
                 self.sync_combiners([combiner], self.get_latest_model())
                 combiner.start(combiner_config)
             except CombinerUnavailableError:
