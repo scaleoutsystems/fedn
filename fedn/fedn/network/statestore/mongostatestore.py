@@ -187,27 +187,27 @@ class MongoStateStore(StateStoreBase):
 
         return self.round.find_one(sort=[("_id", pymongo.DESCENDING)])
 
-#    def set_round_config(self, config):
-#        """
-#
-#        :param config:
-#        """
-#        self.control.config.update_one(
-#            {'key': 'round_config'}, {'$set': config}, True)
-#
-#    def get_round_config(self):
-#        """
-#
-#        :return:
-#        """
-#        ret = self.control.config.find({'key': 'round_config'})
-#        try:
-#            retcheck = ret[0]
-#           if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
-#                return None
-#            return retcheck
-#        except (KeyError, IndexError):
-#            return None
+    def set_round_config(self, config):
+        """
+
+        :param config:
+        """
+        self.control.config.update_one(
+            {'key': 'round_config'}, {'$set': config}, True)
+
+    def get_round_config(self):
+        """
+
+        :return:
+        """
+        ret = self.control.config.find({'key': 'round_config'})
+        try:
+            retcheck = ret[0]
+            if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
+                return None
+            return retcheck
+        except (KeyError, IndexError):
+            return None
 
     def set_compute_context(self, filename):
         """
@@ -251,7 +251,6 @@ class MongoStateStore(StateStoreBase):
         if not ret:
             # get framework from round_config instead
             ret = self.control.config.find_one({'key': 'round_config'})
-        print('FRAMEWORK:', ret)
         try:
             retcheck = ret['helper']
             if retcheck == '' or retcheck == ' ':  # ugly check for empty string
