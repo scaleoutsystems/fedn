@@ -166,11 +166,12 @@ class ControlBase(ABC):
             compute_package = self.get_compute_context()
         return self.model_repository.get_compute_package(compute_package)
 
-    def request_model_updates(self, combiners, combiner_round_config):
+    def request_model_updates(self, combiners):
+        """Call Combiner server RPC to get a model update. """
         cl = []
         for combiner, combiner_round_config in combiners:
-            _ = combiner.start(combiner_round_config)
-            cl.append(combiner)
+            response = combiner.start(combiner_round_config)
+            cl.append((combiner, response))
         return cl
 
     def commit(self, model_id, model=None):
@@ -189,16 +190,16 @@ class ControlBase(ABC):
 
         self.statestore.set_latest(model_id)
 
-    def set_combiner_model(self, combiners, model_id):
-        """ Distribute a model to all active combiner nodes and set it as the current combiner model. """
-        if not model_id:
-            print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
-            return
-        for combiner in combiners:
-            _ = combiner.set_model_id(model_id)
+    def get_combiner(self, name):
+        for combiner in self.network.get_combiners():
+            if combiner.name == name:
+                return combiner
+        return None
 
     def get_participating_combiners(self, combiner_round_config):
-
+        """Assemble a list of combiners able to participate in a round as
+           descibed by combiner_round_config.
+        """
         combiners = []
         for combiner in self.network.get_combiners():
             try:
@@ -214,8 +215,19 @@ class ControlBase(ABC):
                     combiners.append((combiner, combiner_round_config))
         return combiners
 
+    # def set_combiner_model(self, combiners, model_id):
+    #    """ Distribute a model to all active combiner nodes and set it as the current combiner model. """
+    #    if not model_id:
+    #        print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
+    #        return
+    #    for combiner in combiners:
+    #        _ = combiner.set_model_id(model_id)
+
     def evaluate_round_participation_policy(self, compute_plan, combiner_state):
-        """ Evaluate reducer level policy for combiner round-participation. """
+        """ Evaluate policy for combiner round-participation.
+            A combiner participates if it is responsive and reports enough
+            active clients to participate in the round.
+        """
 
         if compute_plan['task'] == 'training':
             nr_active_clients = int(combiner_state['nr_active_trainers'])

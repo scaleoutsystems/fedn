@@ -27,13 +27,12 @@ class Control(ControlBase):
 
     def session(self, config):
         """ Execute a new training session. A session consists of one
-            or several global rounds. All rounds have the same config
-            within one session.
-
+            or several global rounds. All rounds in the same session
+            have the same round_config
         """
 
         if self._state == ReducerState.instructing:
-            print("Already set in INSTRUCTING state. A session is in progress.", flush=True)
+            print("Controller already in INSTRUCTING state. A session is in progress.", flush=True)
             return
 
         self._state = ReducerState.instructing
@@ -50,7 +49,7 @@ class Control(ControlBase):
 
         last_round = int(self.get_latest_round_id())
 
-        # Execute rounds in this session
+        # Execute the rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
             if last_round:
@@ -65,6 +64,7 @@ class Control(ControlBase):
             try:
                 model_id, round_meta = self.round(config, current_round)
             except TypeError:
+                raise
                 print("Could not unpack data from round...", flush=True)
 
             if model_id:
@@ -112,25 +112,28 @@ class Control(ControlBase):
         round_meta['round_config'] = round_config
 
         # 2. Ask participating combiners to coordinate model updates
-        cl = self.request_model_updates(combiners, round_config)
+        cl = self.request_model_updates(combiners)
+        #print(cl, flush=True)
 
         # Wait until participating combiners have produced an updated global model.
         wait = 0.0
         updated = {}
 
         while len(updated) < len(combiners):
-            round = self.get_latest_round()
-            for combiner in round['combiners']:
-                print(combiner, flush=True)
-                if combiner['status'] == 'Success':
-                    if combiner['name'] not in updated.keys():
-                        updated['name'] = combiner['model_id']
-                print(combiner['status'])
+            round = self.statestore.get_round(round_number)
+            if round:
+                for combiner in round['combiners']:
+                    print(combiner, flush=True)
+                    if combiner['status'] == 'Success':
+                        if combiner['name'] not in updated.keys():
+                            updated[combiner['name']] = combiner['model_id']
+                    print(combiner['status'])
 
             if wait >= session_config['round_timeout']:
                 break
             time.sleep(1.0)
             wait += 1.0
+        print(updated, flush=True)
 
         print("Checking round validity policy...", flush=True)
         round_valid = self.evaluate_round_validity_policy(updated)
@@ -151,12 +154,10 @@ class Control(ControlBase):
             return None, round_meta
         print("DONE", flush=True)
 
-        # 6. Commit the global model to the ledger
-        print("Committing global model...", flush=True)
+        # 6. Commit the global model to model trail
         if model is not None:
-            # Commit to model ledger
+            print("Committing global model...", flush=True)
             tic = time.time()
-
             model_id = uuid.uuid4()
             self.commit(model_id, model)
             round_meta['time_commit'] = time.time() - tic
@@ -170,6 +171,7 @@ class Control(ControlBase):
         validate = session_config['validate']
         if validate:
             combiner_config = copy.deepcopy(session_config)
+            combiner_config['round_id'] = round_number
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_framework()
@@ -179,19 +181,13 @@ class Control(ControlBase):
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    self.set_combiner_model([combiner], self.get_latest_model())
+                    #self.set_combiner_model([combiner], self.get_latest_model())
                     combiner.start(combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
 
         return model_id, round_meta
-
-    def get_combiner(self, name):
-        for combiner in self.combiners:
-            if combiner.name == name:
-                return combiner
-        return None
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
@@ -212,14 +208,14 @@ class Control(ControlBase):
                 data = combiner.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
             except Exception:
-                pass
-
-            helper = self.get_helper()
+                raise
+                data = None
 
             if data is not None:
                 try:
                     tic = time.time()
                     model_str = data.getbuffer()
+                    helper = self.get_helper()
                     model_next = helper.load_model_from_BytesIO(model_str)
                     meta['time_load_model'] += (time.time() - tic)
                     tic = time.time()

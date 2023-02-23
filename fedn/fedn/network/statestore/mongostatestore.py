@@ -187,6 +187,11 @@ class MongoStateStore(StateStoreBase):
 
         return self.round.find_one(sort=[("_id", pymongo.DESCENDING)])
 
+    def get_round(self, id):
+        """ Get the id of the most recent round. """
+
+        return self.round.find_one({'key': str(id)})
+
     def set_round_config(self, config):
         """
 

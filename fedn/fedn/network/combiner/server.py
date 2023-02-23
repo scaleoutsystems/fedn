@@ -69,8 +69,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.role = Role.COMBINER
         self.max_clients = connect_config['max_clients']
 
-        #self.model_id = None
-
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
                                             myhost=connect_config['myhost'],
@@ -321,9 +319,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
 
-        self.control.push_round_config(config)
+        job_id = self.control.push_round_config(config)
 
         response = fedn.ControlResponse()
+        p = response.parameter.add()
+        p.key = "job_id"
+        p.value = job_id
+
         return response
 
     def Configure(self, control: fedn.ControlRequest, context):
@@ -333,9 +335,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param context:
         :return:
         """
-        response = fedn.ControlResponse()
         for parameter in control.parameter:
             setattr(self, parameter.key, parameter.value)
+
+        response = fedn.ControlResponse()
         return response
 
     def Stop(self, control: fedn.ControlRequest, context):

@@ -35,14 +35,14 @@ class RoundController:
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        self.config = {}
+        #self.config = {}
 
         # TODO, make runtime configurable
         self.aggregator = FedAvg(
             self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
-        """ Recieve a round_config (job description) and add it to the inbox.
+        """Add a round_config (job description) to the inbox.
 
         :param round_config: A dict containing the round configuration (from global controller).
         :type round_config: dict
@@ -349,8 +349,10 @@ class RoundController:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['status'] = "Success"
+                            round_meta['name'] = self.id
+                            self.server.tracer.set_round_meta(round_meta)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
-                            self.execute_validation(round_config)
+                            self.execute_validation_round(round_config)
                         else:
                             self.server.report_status(
                                 "ROUNDCONTROL: Round config contains unkown task type.", flush=True)
@@ -362,8 +364,6 @@ class RoundController:
                             "ROUNDCONTROL: {0}".format(round_meta['reason']), flush=True)
 
                     self.round_configs.task_done()
-                    round_meta['name'] = self.id
-                    self.server.tracer.set_round_meta(round_meta)
                 except queue.Empty:
                     time.sleep(polling_interval)
 
