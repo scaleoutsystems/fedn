@@ -10,8 +10,6 @@ import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
-from google.protobuf.json_format import MessageToDict
-
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.net.connect import ConnectorCombiner, Status

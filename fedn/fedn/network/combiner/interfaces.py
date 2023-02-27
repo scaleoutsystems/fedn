@@ -50,7 +50,8 @@ class Channel:
 
 
 class CombinerInterface:
-    """
+    """ Interface for the Combiner (server).
+        Abstraction on top of the gRPC server servicer.
 
     """
 

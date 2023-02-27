@@ -8,7 +8,7 @@ CHUNK_SIZE = 1024 * 1024
 
 
 class ModelService(rpc.ModelServiceServicer):
-    """
+    """ Service for handling download and upload of models to the server.
 
     """
 
@@ -16,15 +16,15 @@ class ModelService(rpc.ModelServiceServicer):
         self.models = TempModelStorage()
 
     def exist(self, model_id):
-        """
+        """ Check if a model exists on the server.
 
-        :param model_id:
-        :return:
+        :param model_id: The model id.
+        :return: True if the model exists, else False.
         """
         return self.models.exist(model_id)
 
     def get_model(self, id):
-        """
+        """ Download model with id 'id' from server.
 
         :param id:
         :return:
@@ -44,10 +44,10 @@ class ModelService(rpc.ModelServiceServicer):
                 return None
 
     def set_model(self, model, id):
-        """
+        """ Upload model to server.
 
-        :param model:
-        :param id:
+        :param model: A model object (BytesIO)
+        :param id: The model id.
         """
 
         if not isinstance(model, BytesIO):
@@ -84,13 +84,13 @@ class ModelService(rpc.ModelServiceServicer):
 
     # Model Service
     def Upload(self, request_iterator, context):
-        """
+        """ RPC for uploading a model.
 
         :param request_iterator:
         :param context:
         :return:
         """
-        # print("STARTING UPLOAD!", flush=True)
+
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
@@ -107,7 +107,7 @@ class ModelService(rpc.ModelServiceServicer):
                 return result
 
     def Download(self, request, context):
-        """
+        """ RPC for downloading a model. 
 
         :param request:
         :param context:

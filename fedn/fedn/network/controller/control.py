@@ -116,9 +116,9 @@ class Control(ControlBase):
         #print(cl, flush=True)
 
         # Wait until participating combiners have produced an updated global model.
+        # TODO: Refactor
         wait = 0.0
         updated = {}
-
         while len(updated) < len(combiners):
             round = self.statestore.get_round(round_number)
             if round:
@@ -208,7 +208,6 @@ class Control(ControlBase):
                 data = combiner.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
             except Exception:
-                raise
                 data = None
 
             if data is not None:
