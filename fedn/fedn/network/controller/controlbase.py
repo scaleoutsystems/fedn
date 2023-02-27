@@ -173,7 +173,7 @@ class ControlBase(ABC):
         """Call Combiner server RPC to get a model update. """
         cl = []
         for combiner, combiner_round_config in combiners:
-            response = combiner.start(combiner_round_config)
+            response = combiner.submit(combiner_round_config)
             cl.append((combiner, response))
         return cl
 
@@ -217,14 +217,6 @@ class ControlBase(ABC):
                 if is_participating:
                     combiners.append((combiner, combiner_round_config))
         return combiners
-
-    # def set_combiner_model(self, combiners, model_id):
-    #    """ Distribute a model to all active combiner nodes and set it as the current combiner model. """
-    #    if not model_id:
-    #        print("GOT NO MODEL TO SET! Have you seeded the FedML model?", flush=True)
-    #        return
-    #    for combiner in combiners:
-    #        _ = combiner.set_model_id(model_id)
 
     def evaluate_round_participation_policy(self, compute_plan, combiner_state):
         """ Evaluate policy for combiner round-participation.

@@ -107,7 +107,7 @@ class ModelService(rpc.ModelServiceServicer):
                 return result
 
     def Download(self, request, context):
-        """ RPC for downloading a model. 
+        """ RPC for downloading a model.
 
         :param request:
         :param context:

@@ -94,7 +94,8 @@ class CombinerInterface:
             'port': self.port,
             'ip': self.ip,
             'certificate': None,
-            'key': None
+            'key': None,
+            'config': self.config
         }
 
         if self.certificate:
@@ -139,11 +140,10 @@ class CombinerInterface:
         else:
             return None
 
-    def report(self, config=None):
-        """ Recieve a status report from the combiner. 
+    def report(self):
+        """ Recieve a status report from the combiner.
 
-        : param config:
-        : return:
+        : return: A dictionary describing the combiner state.
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -162,9 +162,10 @@ class CombinerInterface:
                 raise
 
     def configure(self, config=None):
-        """ Set configurations for the combiner.
+        """ Configure the combiner.
+        Set the parameters in config at the server.
 
-        : param config: 
+        : param config: A dictionary containing parameters.
         """
         if not config:
             config = self.config
@@ -186,11 +187,11 @@ class CombinerInterface:
             else:
                 raise
 
-    def start(self, config):
+    def submit(self, config):
         """ Submit a compute plan to the combiner.
 
-        : param config:
-        : return:
+        : param config: The job configuration.
+        : return: Server ControlResponse object.
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -210,32 +211,10 @@ class CombinerInterface:
             else:
                 raise
 
-        print("Response from combiner {}".format(response.message))
         return response
 
-    def set_model_id(self, model_id):
-        """ Set the current model_id at the combiner.
-
-        : param model_id:
-        """
-        channel = Channel(self.address, self.port,
-                          self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
-        request = fedn.ControlRequest()
-        p = request.parameter.add()
-        p.key = 'model_id'
-        p.value = str(model_id)
-
-        try:
-            control.Configure(request)
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-
     def get_model(self, id):
-        """ Retrive a model object from a combiner. """
+        """ Download a model from the combiner server. """
 
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()

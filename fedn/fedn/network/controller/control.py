@@ -180,8 +180,8 @@ class Control(ControlBase):
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    #self.set_combiner_model([combiner], self.get_latest_model())
-                    combiner.start(combiner_config)
+                    # self.set_combiner_model([combiner], self.get_latest_model())
+                    combiner.submit(combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
@@ -285,9 +285,7 @@ class Control(ControlBase):
         # Synch combiners with latest model and trigger inference
         for combiner, combiner_config in validating_combiners:
             try:
-                # TODO: FIX HERE.
-                self.sync_combiners([combiner], self.get_latest_model())
-                combiner.start(combiner_config)
+                combiner.submit(combiner_config)
             except CombinerUnavailableError:
                 # It is OK if inference fails for a combiner
                 self._handle_unavailable_combiner(combiner)
