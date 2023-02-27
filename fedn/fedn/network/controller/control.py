@@ -113,7 +113,6 @@ class Control(ControlBase):
 
         # 2. Ask participating combiners to coordinate model updates
         cl = self.request_model_updates(combiners)
-        #print(cl, flush=True)
 
         # Wait until participating combiners have produced an updated global model.
         # TODO: Refactor
@@ -227,6 +226,31 @@ class Control(ControlBase):
                 i = i + 1
 
         return model, meta
+
+    def infer_instruct(self, config):
+        """ Main entrypoint for executing the inference compute plan. """
+
+        # Check/set instucting state
+        if self.__state == ReducerState.instructing:
+            print("Already set in INSTRUCTING state", flush=True)
+            return
+        self.__state = ReducerState.instructing
+
+        # Check for a model chain
+        if not self.get_latest_model():
+            print("No model in model chain, please seed the alliance!")
+
+        # Set reducer in monitoring state
+        self.__state = ReducerState.monitoring
+
+        # Start inference round
+        try:
+            self.inference_round(config)
+        except TypeError:
+            print("Could not unpack data from round...", flush=True)
+
+        # Set reducer in idle state
+        self.__state = ReducerState.idle
 
     def inference_round(self, config):
         """ Execute inference round. """

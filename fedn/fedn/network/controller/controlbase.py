@@ -22,7 +22,9 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class ControlBase(ABC):
-    """ Abstract class defining helpers. """
+    """ Base class and interface for a global controller.
+        Override this class to implement a global training strategy (control).
+    """
 
     @abstractmethod
     def __init__(self, statestore):
@@ -34,21 +36,22 @@ class ControlBase(ABC):
             self.network = Network(self, statestore)
 
         try:
-            config = self.statestore.get_storage_backend()
+            storage_config = self.statestore.get_storage_backend()
         except Exception:
             print(
                 "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
             raise MisconfiguredStorageBackend()
 
-        statestore_config = statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
-
-        if config['storage_type'] == 'S3':
-            self.model_repository = S3ModelRepository(config['storage_config'])
+        if storage_config['storage_type'] == 'S3':
+            self.model_repository = S3ModelRepository(storage_config['storage_config'])
         else:
             print("REDUCER CONTROL: Unsupported storage backend, exiting.", flush=True)
             raise UnsupportedStorageBackend()
+
+        # The tracer is a helper that manages state in the database backend
+        statestore_config = statestore.get_config()
+        self.tracer = MongoTracer(
+            statestore_config['mongo_config'], statestore_config['network_id'])
 
         if self.statestore.is_inited():
             self._state = ReducerState.idle
