@@ -235,7 +235,7 @@ class CombinerInterface:
     def allowing_clients(self):
         """ Check if the combiner is allowing additional client connections.
 
-        : return:
+        : return: True if accepting, else False.
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
