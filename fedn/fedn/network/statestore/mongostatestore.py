@@ -28,14 +28,14 @@ class MongoStateStore(StateStoreBase):
             self.combiners = self.network['combiners']
             self.clients = self.network['clients']
             self.storage = self.network['storage']
-            self.certificates = self.network['certificates']
 
             # Control
             self.control = self.mdb['control']
-            self.control_config = self.control['config']
+            self.compute_package = self.control['compute_package']
             self.state = self.control['state']
             self.model = self.control['model']
-            self.round = self.control["round"]
+            self.sessions = self.control['sessions']
+            self.rounds = self.control['rounds']
 
             # Logging
             self.status = self.control["status"]
@@ -185,37 +185,37 @@ class MongoStateStore(StateStoreBase):
     def get_latest_round(self):
         """ Get the id of the most recent round. """
 
-        return self.round.find_one(sort=[("_id", pymongo.DESCENDING)])
+        return self.rounds.find_one(sort=[("_id", pymongo.DESCENDING)])
 
     def get_round(self, id):
-        """ Get the id of the most recent round. """
+        """ Get round with id 'id'. """
 
-        return self.round.find_one({'key': str(id)})
+        return self.rounds.find_one({'key': str(id)})
 
-    def set_round_config(self, config):
-        """
+    # def set_round_config(self, config):
+    #    """
+    #
+    #    :param config:
+    #    """
+    #    self.control.config.update_one(
+    #        {'key': 'round_config'}, {'$set': config}, True)
 
-        :param config:
-        """
-        self.control.config.update_one(
-            {'key': 'round_config'}, {'$set': config}, True)
+    # def get_round_config(self):
+    #    """
+    #
+    #    :return:
+    #    """
+    #    ret = self.control.config.find({'key': 'round_config'})
+    #    try:
+    #        retcheck = ret[0]
+    #        if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
+    #            return None
+    #        return retcheck
+    #    except (KeyError, IndexError):
+    #        return None
 
-    def get_round_config(self):
-        """
-
-        :return:
-        """
-        ret = self.control.config.find({'key': 'round_config'})
-        try:
-            retcheck = ret[0]
-            if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
-                return None
-            return retcheck
-        except (KeyError, IndexError):
-            return None
-
-    def set_compute_context(self, filename):
-        """
+    def set_compute_package(self, filename):
+        """ Set the active compute package.
 
         :param filename:
         """
@@ -224,8 +224,8 @@ class MongoStateStore(StateStoreBase):
         self.control.config.update_one({'key': 'package_trail'},
                                        {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
-    def get_compute_context(self):
-        """
+    def get_compute_package(self):
+        """ Get the active compute package.
 
         :return:
         """
@@ -238,7 +238,7 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
-    def set_framework(self, helper):
+    def set_helper(self, helper):
         """
 
         :param helper:
@@ -246,16 +246,16 @@ class MongoStateStore(StateStoreBase):
         self.control.config.update_one({'key': 'package'},
                                        {'$set': {'helper': helper}}, True)
 
-    def get_framework(self):
+    def get_helper(self):
         """
 
         :return:
         """
         ret = self.control.config.find_one({'key': 'package'})
         # if local compute package used, then 'package' is None
-        if not ret:
-            # get framework from round_config instead
-            ret = self.control.config.find_one({'key': 'round_config'})
+        # if not ret:
+        # get framework from round_config instead
+        #    ret = self.control.config.find_one({'key': 'round_config'})
         try:
             retcheck = ret['helper']
             if retcheck == '' or retcheck == ' ':  # ugly check for empty string
@@ -355,7 +355,7 @@ class MongoStateStore(StateStoreBase):
             '$set': combiner_data}, True)
 
     def delete_combiner(self, combiner):
-        """ """
+        """ Delete a combiner entry. """
         try:
             self.combiners.delete_one({'name': combiner})
         except Exception:
@@ -372,7 +372,7 @@ class MongoStateStore(StateStoreBase):
             '$set': client_data}, True)
 
     def get_client(self, name):
-        """ """
+        """ Retrive a client record by name. """
         try:
             ret = self.clients.find({'key': name})
             if list(ret) == []:
@@ -383,7 +383,7 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def list_clients(self):
-        """ """
+        """List all clients registered on the network. """
         try:
             ret = self.clients.find()
             return list(ret)
