@@ -97,7 +97,7 @@ class Control(ControlBase):
         round_config['round_id'] = round_number
         round_config['task'] = 'training'
         round_config['model_id'] = self.get_latest_model()
-        round_config['helper_type'] = self.statestore.get_framework()
+        round_config['helper_type'] = self.statestore.get_helper()
 
         combiners = self.get_participating_combiners(round_config)
         round_start = self.evaluate_round_start_policy(combiners)
@@ -173,7 +173,7 @@ class Control(ControlBase):
             combiner_config['round_id'] = round_number
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
-            combiner_config['helper_type'] = self.statestore.get_framework()
+            combiner_config['helper_type'] = self.statestore.get_helper()
 
             validating_combiners = self._select_participating_combiners(
                 combiner_config)

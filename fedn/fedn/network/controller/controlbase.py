@@ -73,7 +73,7 @@ class ControlBase(ABC):
 
         :return:
         """
-        helper_type = self.statestore.get_framework()
+        helper_type = self.statestore.get_helper()
         helper = fedn.utils.helpers.get_helper(helper_type)
         if not helper:
             print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(helper_type),
@@ -137,16 +137,16 @@ class ControlBase(ABC):
         round = self.statestore.get_latest_round()
         return round
 
-    def get_compute_context(self):
+    def get_compute_package_name(self):
         """
 
         :return:
         """
-        definition = self.statestore.get_compute_context()
+        definition = self.statestore.get_compute_package()
         if definition:
             try:
-                context = definition['filename']
-                return context
+                package_name = definition['filename']
+                return package_name
             except (IndexError, KeyError):
                 print(
                     "No context filename set for compute context definition", flush=True)
@@ -154,10 +154,10 @@ class ControlBase(ABC):
         else:
             return None
 
-    def set_compute_context(self, filename, path):
+    def set_compute_package(self, filename, path):
         """ Persist the configuration for the compute package. """
-        self.model_repository.set_compute_context(filename, path)
-        self.statestore.set_compute_context(filename)
+        self.model_repository.set_compute_package(filename, path)
+        self.statestore.set_compute_package(filename)
 
     def get_compute_package(self, compute_package=''):
         """
@@ -166,8 +166,11 @@ class ControlBase(ABC):
         :return:
         """
         if compute_package == '':
-            compute_package = self.get_compute_context()
-        return self.model_repository.get_compute_package(compute_package)
+            compute_package = self.get_compute_package_name()
+        if compute_package:
+            return self.model_repository.get_compute_package(compute_package)
+        else:
+            return None
 
     def request_model_updates(self, combiners):
         """Call Combiner server RPC to get a model update. """

@@ -109,8 +109,8 @@ class ReducerRestService:
         if 'use_ssl' in config.keys():
             self.use_ssl = config['use_ssl']
 
-        self.remote_compute_context = config["remote_compute_context"]
-        if self.remote_compute_context:
+        self.remote_compute_package = config["remote_compute_package"]
+        if self.remote_compute_package:
             self.package = 'remote'
         else:
             self.package = 'local'
@@ -129,17 +129,17 @@ class ReducerRestService:
         }
         return data
 
-    def check_compute_context(self):
-        """Check if the compute context/package has been configured,
+    def check_compute_package(self):
+        """Check if the compute package has been configured,
         if remote compute context is set to False, True will be returned
 
         :return: True if configured
         :rtype: bool
         """
-        if not self.remote_compute_context:
+        if not self.remote_compute_package:
             return True
 
-        if not self.control.get_compute_context():
+        if not self.control.get_compute_package():
             return False
         else:
             return True
@@ -168,7 +168,7 @@ class ReducerRestService:
                             'package': self.package,
                             'msg': "Controller is not configured."})
 
-        if not self.check_compute_context():
+        if not self.check_compute_package():
             return jsonify({'status': 'retry',
                             'package': self.package,
                             'msg': "Compute package is not configured. Please upload the compute package."})
@@ -190,7 +190,7 @@ class ReducerRestService:
         Check if initial model has been configured, otherwise render setup_model template.
         :return: Rendered html template or None
         """
-        if not self.check_compute_context():
+        if not self.check_compute_package():
             return render_template('setup.html', client=self.name, state=ReducerStateToString(self.control.state()),
                                    logs=None, refresh=False,
                                    message='Please set the compute package')
@@ -556,9 +556,9 @@ class ReducerRestService:
             state = ReducerStateToString(self.control.state())
             refresh = True
 
-            if self.remote_compute_context:
+            if self.remote_compute_package:
                 try:
-                    self.current_compute_context = self.control.get_compute_context()
+                    self.current_compute_context = self.control.get_compute_package_name()
                 except Exception:
                     self.current_compute_context = None
             else:
@@ -622,7 +622,7 @@ class ReducerRestService:
                 return render_template('index.html', latest_model_id=latest_model_id,
                                        compute_package=self.current_compute_context,
                                        seed_model_id=seed_model_id,
-                                       helper=self.control.statestore.get_framework(), validate=True, configured=True)
+                                       helper=self.control.statestore.get_helper(), validate=True, configured=True)
 
         @app.route('/assign')
         def assign():
@@ -674,7 +674,7 @@ class ReducerRestService:
                 'ip': combiner.ip,
                 'port': combiner.port,
                 'certificate': cert,
-                'model_type': self.control.statestore.get_framework()
+                'model_type': self.control.statestore.get_helper()
             }
 
             return jsonify(response)
@@ -902,14 +902,14 @@ discover_port: {discover_port}
                     if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
                         return "Not allowed to change context while execution is ongoing."
 
-                    self.control.set_compute_context(filename, file_path)
-                    self.control.statestore.set_framework(helper_type)
+                    self.control.set_compute_package(filename, file_path)
+                    self.control.statestore.set_helper(helper_type)
                     return redirect(url_for('control'))
 
             name = request.args.get('name', '')
 
             if name == '':
-                name = self.control.get_compute_context()
+                name = self.control.get_compute_package_name()
                 if name is None or name == '':
                     return render_template('context.html')
 
@@ -942,7 +942,7 @@ discover_port: {discover_port}
             # sum = ''
             name = request.args.get('name', None)
             if name == '' or name is None:
-                name = self.control.get_compute_context()
+                name = self.control.get_compute_package_name()
                 if name is None or name == '':
                     return jsonify({})
 
@@ -976,7 +976,7 @@ discover_port: {discover_port}
             # Check compute context
             if self.remote_compute_context:
                 try:
-                    self.current_compute_context = self.control.get_compute_context()
+                    self.current_compute_context = self.control.get_compute_package()
                 except:
                     self.current_compute_context = None
             else:

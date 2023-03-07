@@ -13,7 +13,7 @@ class MongoTracer(Tracer):
         try:
             self.mdb = connect_to_mongodb(mongo_config, network_id)
             self.status = self.mdb['control.status']
-            self.round = self.mdb['control.round']
+            self.rounds = self.mdb['control.rounds']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -43,16 +43,16 @@ class MongoTracer(Tracer):
 
         :param round_meta:
         """
-        self.round.update_one({'key': str(round_meta['round_id'])}, {
-                              '$push': {'combiners': round_meta}}, True)
+        self.rounds.update_one({'key': str(round_meta['round_id'])}, {
+            '$push': {'combiners': round_meta}}, True)
 
     def set_round_meta_reducer(self, round_meta):
         """
 
         :param round_meta:
         """
-        self.round.update_one({'key': str(round_meta['round_id'])}, {
-                              '$push': {'reducer': round_meta}}, True)
+        self.rounds.update_one({'key': str(round_meta['round_id'])}, {
+            '$push': {'reducer': round_meta}}, True)
 
     def get_latest_round(self):
         """

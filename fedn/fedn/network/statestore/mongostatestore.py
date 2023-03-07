@@ -103,14 +103,14 @@ class MongoStateStore(StateStoreBase):
                     print(e)
 
     def is_inited(self):
-        """
+        """ Check if the statestore is intialized.
 
         :return:
         """
         return self.__inited
 
     def get_config(self):
-        """
+        """Retrive the statestor config. 
 
         :return:
         """

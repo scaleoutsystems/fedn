@@ -166,7 +166,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
     """
     remote = False if local_package else True
     config = {'host': host, 'port': port, 'secret_key': secret_key,
-              'name': name, 'remote_compute_context': remote, 'init': init}
+              'name': name, 'remote_compute_package': remote, 'init': init}
 
     # Read settings from config file
     try:
@@ -218,7 +218,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set reducer config in statestore, exiting.", flush=True)
         exit(-1)
 
-    # Configure storage backend (currently supports MinIO)
+    # Configure storage backend.
     try:
         statestore.set_storage_backend(fedn_config['storage'])
     except KeyError:
@@ -229,13 +229,13 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
         exit(-1)
 
     # Configure controller
-    control_config = fedn_config['control']
-    try:
-        statestore.set_round_config(control_config)
-    except Exception:
-        print("Failed to set control config, exiting.", flush=True)
-        raise
-        exit(-1)
+    #control_config = fedn_config['control']
+    # try:
+    #    statestore.set_round_config(control_config)
+    # except Exception:
+    #    print("Failed to set control config, exiting.", flush=True)
+    #    raise
+    #   exit(-1)
 
     reducer = Reducer(statestore)
     reducer.run()
