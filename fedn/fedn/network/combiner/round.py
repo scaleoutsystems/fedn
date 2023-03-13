@@ -35,7 +35,6 @@ class RoundController:
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        #self.config = {}
 
         # TODO, make runtime configurable
         self.aggregator = FedAvg(

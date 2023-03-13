@@ -11,21 +11,12 @@ from .helpers import HelperBase
 class PytorchHelper(HelperBase):
 
     def increment_average(self, model, model_next, a, W):
-        """ Update an incremental weighted average. """
+        """ Update a weighted incremental average. """
         w = OrderedDict()
         for name in model.keys():
             tensorDiff = model_next[name] - model[name]
             w[name] = model[name] + a*tensorDiff / W
         return w
-
-    def get_tmp_path(self):
-        """
-
-        :return:
-        """
-        fd, path = tempfile.mkstemp(suffix='.npz')
-        os.close(fd)
-        return path
 
     def save_model(self, weights_dict, path=None):
         """
@@ -39,7 +30,7 @@ class PytorchHelper(HelperBase):
         np.savez_compressed(path, **weights_dict)
         return path
 
-    def load_model(self, path="weights.npz"):
+    def load_model(self, path):
         """
 
         :param path:
@@ -50,28 +41,3 @@ class PytorchHelper(HelperBase):
         for i in b.files:
             weights_np[i] = b[i]
         return weights_np
-
-    def load_model_from_BytesIO(self, model_bytesio):
-        """ Load a model from a BytesIO object. """
-        path = self.get_tmp_path()
-        with open(path, 'wb') as fh:
-            fh.write(model_bytesio)
-            fh.flush()
-        model = self.load_model(path)
-        os.unlink(path)
-        return model
-
-    def serialize_model_to_BytesIO(self, model):
-        """
-
-        :param model:
-        :return:
-        """
-        outfile_name = self.save_model(model)
-
-        a = BytesIO()
-        a.seek(0, 0)
-        with open(outfile_name, 'rb') as f:
-            a.write(f.read())
-        os.unlink(outfile_name)
-        return a
