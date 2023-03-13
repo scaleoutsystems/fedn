@@ -31,7 +31,7 @@ class MongoStateStore(StateStoreBase):
 
             # Control
             self.control = self.mdb['control']
-            self.compute_package = self.control['compute_package']
+            self.package = self.control['package']
             self.state = self.control['state']
             self.model = self.control['model']
             self.sessions = self.control['sessions']
@@ -42,7 +42,7 @@ class MongoStateStore(StateStoreBase):
 
             self.__inited = True
         except Exception as e:
-            print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
+            print("FAILED TO CONNECT TO MONGODB, {}".format(e), flush=True)
             self.state = None
             self.model = None
             self.control = None
@@ -110,7 +110,7 @@ class MongoStateStore(StateStoreBase):
         return self.__inited
 
     def get_config(self):
-        """Retrive the statestor config. 
+        """Retrive the statestore config. 
 
         :return:
         """
@@ -219,17 +219,17 @@ class MongoStateStore(StateStoreBase):
 
         :param filename:
         """
-        self.control.config.update_one(
-            {'key': 'package'}, {'$set': {'filename': filename}}, True)
-        self.control.config.update_one({'key': 'package_trail'},
-                                       {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+        self.control.package.update_one(
+            {'key': 'active'}, {'$set': {'filename': filename}}, True)
+        self.control.package.update_one({'key': 'package_trail'},
+                                        {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
 
     def get_compute_package(self):
         """ Get the active compute package.
 
         :return:
         """
-        ret = self.control.config.find({'key': 'package'})
+        ret = self.control.package.find({'key': 'active'})
         try:
             retcheck = ret[0]
             if retcheck is None or retcheck == '' or retcheck == ' ':  # ugly check for empty string
@@ -243,15 +243,15 @@ class MongoStateStore(StateStoreBase):
 
         :param helper:
         """
-        self.control.config.update_one({'key': 'package'},
-                                       {'$set': {'helper': helper}}, True)
+        self.control.package.update_one({'key': 'active'},
+                                        {'$set': {'helper': helper}}, True)
 
     def get_helper(self):
         """
 
         :return:
         """
-        ret = self.control.config.find_one({'key': 'package'})
+        ret = self.control.package.find_one({'key': 'active'})
         # if local compute package used, then 'package' is None
         # if not ret:
         # get framework from round_config instead
