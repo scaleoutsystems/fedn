@@ -151,7 +151,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
 @click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8], help='Set service name')
-@click.option('-i', '--init', required=True, default=None,
+@click.option('-in', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer state from file.')
 @click.pass_context
 def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
@@ -241,7 +241,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
 @click.option('-i', '--port', required=False, default=12080, help='Set port.')
 @click.option('-f', '--fqdn', required=False, default=None, help='Set fully qualified domain name')
 @click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
-@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST service')
+@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST discovery service (reducer)')
 @click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
@@ -265,29 +265,6 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     if config['init']:
         apply_config(config)
-        # with open(config['init'], 'r') as file:
-        #    try:
-        #        settings = dict(yaml.safe_load(file))
-        #    except yaml.YAMLError as e:
-        #        print('Failed to read config from settings file, exiting.', flush=True)
-        #        raise (e)
-
-        # Read/overide settings from config file
-        # if 'controller' in settings:
-        #    controller_config = settings['controller']
-        #    for key, val in controller_config.items():
-        #        config[key] = val
-
-        # if 'combiner' in settings:
-        #    combiner_config = settings['combiner']
-        #    config['myname'] = combiner_config['name']
-        #    config['myhost'] = combiner_config['host']
-        #    if 'fqdn' in combiner_config.keys():
-        #        config['fqdn'] = combiner_config['fqdn']
-        #    else:
-        #        config['fqdn'] = None
-        #    config['myport'] = combiner_config['port']
-        #    config['max_clients'] = combiner_config['max_clients']
 
     combiner = Combiner(config)
     combiner.run()
