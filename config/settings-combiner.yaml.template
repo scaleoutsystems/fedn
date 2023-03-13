@@ -1,10 +1,10 @@
 network_id: fedn-network
+discover_host: reducer
+discover_port: 8090
 
 name: combiner
 host: combiner
 port: 12080
 max_clients: 30
 
-discover_host: reducer
-discover_port: 8090
 
