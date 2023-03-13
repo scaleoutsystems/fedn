@@ -1,5 +1,4 @@
 network_id: fedn-network
-token: fedn_token
 
 statestore:
   type: MongoDB

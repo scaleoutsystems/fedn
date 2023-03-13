@@ -59,21 +59,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.modelservice = ModelService()
 
         # Validate combiner name
-        match = re.search(VALID_NAME_REGEX, connect_config['myname'])
+        match = re.search(VALID_NAME_REGEX, connect_config['name'])
         if not match:
             raise ValueError('Unallowed character in combiner name. Allowed characters: a-z, A-Z, 0-9, _, -.')
 
-        self.id = connect_config['myname']
+        self.id = connect_config['name']
         self.role = Role.COMBINER
         self.max_clients = connect_config['max_clients']
 
         announce_client = ConnectorCombiner(host=connect_config['discover_host'],
                                             port=connect_config['discover_port'],
-                                            myhost=connect_config['myhost'],
+                                            myhost=connect_config['host'],
                                             fqdn=connect_config['fqdn'],
-                                            myport=connect_config['myport'],
+                                            myport=connect_config['port'],
                                             token=connect_config['token'],
-                                            name=connect_config['myname'],
+                                            name=connect_config['name'],
                                             secure=connect_config['secure'],
                                             verify=connect_config['verify'])
 
@@ -100,7 +100,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
             key = base64.b64decode(config['key'])  # .decode('utf-8')
 
-        grpc_config = {'port': connect_config['myport'],
+        grpc_config = {'port': connect_config['port'],
                        'secure': connect_config['secure'],
                        'certificate': cert,
                        'key': key}
