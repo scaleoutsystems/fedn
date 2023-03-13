@@ -1,10 +1,6 @@
 network_id: fedn-network
 token: fedn_token
 
-control:
-  state: idle
-  helper: keras
-
 statestore:
   type: MongoDB
   mongo_config:
