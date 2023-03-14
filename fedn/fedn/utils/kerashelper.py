@@ -10,17 +10,6 @@ from .helpers import HelperBase
 class KerasHelper(HelperBase):
     """ FEDn helper class for keras.Sequential. """
 
-    # def average_weights(self, weights):
-    #    """ Average weights of Keras Sequential models. """
-    #
-    #    avg_w = []
-    #    for i in range(len(weights[0])):
-    #        lay_l = np.array([w[i] for w in weights])
-    #        weight_l_avg = np.mean(lay_l, 0)
-    #        avg_w.append(weight_l_avg)
-    #
-    #    return avg_w
-
     def increment_average(self, weights, weights_next, a, W):
         """ Update a weighted incremental average. """
         w_prev = weights

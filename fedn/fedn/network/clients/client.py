@@ -391,8 +391,6 @@ class Client:
             except grpc.RpcError:
                 # TODO: make configurable
                 timeout = 5
-                # print("CLIENT __listen_to_model_update_request_stream: GRPC ERROR {} retrying in {}..".format(
-                #    status_code.name, timeout), flush=True)
                 time.sleep(timeout)
             except Exception:
                 raise
@@ -655,7 +653,7 @@ class Client:
     def run_web(self):
         """Starts a local logging UI (Flask app) serving on port 8080.
 
-        Currently not in use as default.
+        Currently not in use.
 
         """
         app = Flask(__name__)

@@ -11,9 +11,8 @@ class HelperBase(ABC):
         """ """
 
     @abstractmethod
-    def increment_average(self, model, model_next, n):
-        """ Compute one increment of incremental averaging.
-            n: the iteration index 1...N  in the sequence.
+    def increment_average(self, model, model_next, a, W):
+        """ Compute one increment of incremental weighted averaging.
         """
         pass
 
@@ -32,7 +31,7 @@ class HelperBase(ABC):
 
     def get_tmp_path(self):
         """ Return a temporary output path compatible with save_model, load_model. """
-        fd, path = tempfile.mkstemp(suffix='.npz')
+        fd, path = tempfile.mkstemp()
         os.close(fd)
         return path
 
