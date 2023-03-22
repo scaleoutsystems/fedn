@@ -482,9 +482,10 @@ class ReducerRestService:
                     a.seek(0, 0)
                     uploaded_seed.seek(0)
                     a.write(uploaded_seed.read())
-                    helper = self.control.get_helper()
-                    model = helper.load_model_from_BytesIO(a.getbuffer())
-                    self.control.commit(uploaded_seed.filename, model)
+                    #helper = self.control.get_helper()
+                    #model = helper.load_model_from_BytesIO(a.getbuffer())
+                    #self.control.commit(uploaded_seed.filename, model)
+                    self.control.commit(uploaded_seed.filename, a.getbuffer())
             else:
                 not_configured = self.check_configured()
                 if not_configured:
@@ -627,6 +628,7 @@ class ReducerRestService:
         @app.route('/assign')
         def assign():
             """Handle client assignment requests. """
+
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
 

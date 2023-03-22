@@ -72,7 +72,7 @@ class RoundController:
         model_str = self.load_model_update_str(model_id)
         if model_str:
             try:
-                model = helper.load_model_from_BytesIO(model_str.getbuffer())
+                model = self.modelservice.load_model_from_BytesIO(model_str.getbuffer(), helper)
             except IOError:
                 self.server.report_status(
                     "AGGREGATOR({}): Failed to load model!".format(self.name))
@@ -312,7 +312,7 @@ class RoundController:
 
         if model is not None:
             helper = get_helper(config['helper_type'])
-            a = helper.serialize_model_to_BytesIO(model)
+            a = self.modelservice.serialize_model_to_BytesIO(model, helper)
             # Send aggregated model to server
             model_id = str(uuid.uuid4())
             self.modelservice.set_model(a, model_id)

@@ -1,3 +1,5 @@
+import os
+import tempfile
 from io import BytesIO
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
@@ -22,6 +24,37 @@ class ModelService(rpc.ModelServiceServicer):
         :return: True if the model exists, else False.
         """
         return self.models.exist(model_id)
+
+    def get_tmp_path(self):
+        """ Return a temporary output path compatible with save_model, load_model. """
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        return path
+
+    def load_model_from_BytesIO(self, model_bytesio, helper):
+        """ Load a model from a BytesIO object. """
+        path = self.get_tmp_path()
+        with open(path, 'wb') as fh:
+            fh.write(model_bytesio)
+            fh.flush()
+        model = helper.load_model(path)
+        os.unlink(path)
+        return model
+
+    def serialize_model_to_BytesIO(self, model, helper):
+        """
+
+        :param model:
+        :return:
+        """
+        outfile_name = helper.save_model(model)
+
+        a = BytesIO()
+        a.seek(0, 0)
+        with open(outfile_name, 'rb') as f:
+            a.write(f.read())
+        os.unlink(outfile_name)
+        return a
 
     def get_model(self, id):
         """ Download model with id 'id' from server.
@@ -49,7 +82,6 @@ class ModelService(rpc.ModelServiceServicer):
         :param model: A model object (BytesIO)
         :param id: The model id.
         """
-
         if not isinstance(model, BytesIO):
             bt = BytesIO()
 

@@ -1,3 +1,5 @@
+import uuid
+
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
@@ -5,7 +7,7 @@ from fedn.common.tracer.tracer import Tracer
 
 
 class MongoTracer(Tracer):
-    """
+    """ Utitily for reporting and tracking state in the statestore.
 
     """
 
@@ -14,6 +16,7 @@ class MongoTracer(Tracer):
             self.mdb = connect_to_mongodb(mongo_config, network_id)
             self.status = self.mdb['control.status']
             self.rounds = self.mdb['control.rounds']
+            self.sessions = self.mdb['control.sessions']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -36,7 +39,16 @@ class MongoTracer(Tracer):
         if self.status:
             self.status.drop()
 
-    # Round statistics
+    def new_session(self, id=None):
+        """ Create a new session. """
+        if not id:
+            id = uuid.uuid4()
+        data = {'session_id': str(id)}
+        self.sessions.insert_one(data)
+
+    def set_session_config(self, id, config):
+        self.sessions.update_one({'session_id': str(id)}, {
+            '$push': {'session_config': config}}, True)
 
     def set_round_meta(self, round_meta):
         """

@@ -36,8 +36,8 @@ class PytorchHelper(HelperBase):
         :param path:
         :return:
         """
-        b = np.load(path)
+        a = np.load(path)
         weights_np = OrderedDict()
-        for i in b.files:
-            weights_np[i] = b[i]
+        for i in a.files:
+            weights_np[i] = a[i]
         return weights_np

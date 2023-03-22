@@ -37,14 +37,16 @@ class Control(ControlBase):
 
         self._state = ReducerState.instructing
 
-        if not self.get_latest_model():
-            print("No model in model chain, please provide a seed model!")
-
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
             config['session_id'] = str(session_id)
 
-        # self.statestore.new_session(session_id)
+        self.tracer.new_session(id=session_id)
+        self.tracer.set_session_config(session_id, config)
+
+        if not self.get_latest_model():
+            print("No model in model chain, please provide a seed model!")
+
         self._state = ReducerState.monitoring
 
         last_round = int(self.get_latest_round_id())
@@ -58,24 +60,21 @@ class Control(ControlBase):
                 current_round = round
 
             model_id = None
-            round_meta = {'round_id': current_round}
-            round_meta['session_id'] = session_id
 
             try:
-                model_id, round_meta = self.round(config, current_round)
-            except TypeError:
-                raise
-                print("Could not unpack data from round...", flush=True)
+                model_id, round_data = self.round(config, current_round)
+            except TypeError as e:
+                print("Could not unpack data from round: {0}".format(e), flush=True)
 
             if model_id:
                 print("CONTROL: Round completed, new global model: {}".format(
                     model_id), flush=True)
-                round_meta['status'] = 'Success'
+                round_data['status'] = 'Success'
             else:
                 print("CONTROL: Round failed!")
-                round_meta['status'] = 'Failed'
+                round_data['status'] = 'Failed'
 
-            self.tracer.set_round_meta_reducer(round_meta)
+            self.tracer.set_round_data_reducer(round_data)
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
@@ -83,11 +82,12 @@ class Control(ControlBase):
     def round(self, session_config, round_number):
         """Execute one round. """
 
-        round_meta = {'round_id': round_number}
+        round_data = {'round_id': round_number}
 
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!", flush=True)
-            return None, round_meta
+            round_data['status'] = 'Failed'
+            return None, round_data
 
         # 1. Assemble round config for this global round,
         # and check which combiners are able to participate
@@ -107,9 +107,10 @@ class Control(ControlBase):
                 combiners), flush=True)
         else:
             print("CONTROL: Round start policy not met, skipping round!", flush=True)
+            round_data['status'] = 'Failed'
             return None
 
-        round_meta['round_config'] = round_config
+        round_data['round_config'] = round_config
 
         # 2. Ask participating combiners to coordinate model updates
         cl = self.request_model_updates(combiners)
@@ -134,23 +135,22 @@ class Control(ControlBase):
             wait += 1.0
         print(updated, flush=True)
 
-        print("Checking round validity policy...", flush=True)
         round_valid = self.evaluate_round_validity_policy(updated)
         if not round_valid:
             print("REDUCER CONTROL: Round invalid!", flush=True)
-            return None, round_meta
-        print("Round valid.", flush=True)
+            round_data['status'] = 'Failed'
+            return None, round_data
 
-        print("Starting reducing models...", flush=True)
+        print("Reducing models...", flush=True)
         # 3. Reduce combiner models into a global model
         try:
             model, data = self.reduce(updated)
-            round_meta['reduce'] = data
+            round_data['reduce'] = data
         except Exception as e:
             print("CONTROL: Failed to reduce models from combiners: {}".format(
-                updated), flush=True)
-            print(e, flush=True)
-            return None, round_meta
+                e), flush=True)
+            round_data['status'] = 'Failed'
+            return None, round_data
         print("DONE", flush=True)
 
         # 6. Commit the global model to model trail
@@ -159,11 +159,12 @@ class Control(ControlBase):
             tic = time.time()
             model_id = uuid.uuid4()
             self.commit(model_id, model)
-            round_meta['time_commit'] = time.time() - tic
+            round_data['time_commit'] = time.time() - tic
         else:
             print("REDUCER: failed to update model in round with config {}".format(
                 session_config), flush=True)
-            return None, round_meta
+            round_data['status'] = 'Failed'
+            return None, round_data
         print("DONE", flush=True)
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
@@ -186,7 +187,7 @@ class Control(ControlBase):
                     self._handle_unavailable_combiner(combiner)
                     pass
 
-        return model_id, round_meta
+        return model_id, round_data
 
     def reduce(self, combiners):
         """ Combine current models at Combiner nodes into one global model. """
@@ -256,12 +257,12 @@ class Control(ControlBase):
         """ Execute inference round. """
 
         # Init meta
-        round_meta = {}
+        round_data = {}
 
         # Check for at least one combiner in statestore
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!")
-            return round_meta
+            return round_data
 
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
@@ -291,4 +292,4 @@ class Control(ControlBase):
                 self._handle_unavailable_combiner(combiner)
                 pass
 
-        return round_meta
+        return round_data
