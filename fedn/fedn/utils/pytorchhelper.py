@@ -18,25 +18,25 @@ class PytorchHelper(HelperBase):
             w[name] = model[name] + a*tensorDiff / W
         return w
 
-    def save_model(self, weights_dict, path=None):
-        """
+    def save(self, weights_dict, path=None):
+        """ Serialize weights to file.
 
         :param weights_dict:
-        :param path:
-        :return:
+        :param path: File path.
+        :return: Path to file (generated as tmp file unless path is set).
         """
         if not path:
             path = self.get_tmp_path()
         np.savez_compressed(path, **weights_dict)
         return path
 
-    def load_model(self, path):
-        """
+    def load(self, fh):
+        """ Load weights from file or filelike.
 
-        :param path:
-        :return:
+        :param fh: file path, filehandle, filelike.
+        :return: OrderedDict containing weights in numpy format.
         """
-        a = np.load(path)
+        a = np.load(fh)
         weights_np = OrderedDict()
         for i in a.files:
             weights_np[i] = a[i]

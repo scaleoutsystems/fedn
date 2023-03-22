@@ -18,7 +18,7 @@ class KerasHelper(HelperBase):
         return w
 
     def save_model(self, weights, path=None):
-        """
+        """ Serialize weights to file.
 
         :param weights:
         :param path:
@@ -35,13 +35,14 @@ class KerasHelper(HelperBase):
 
         return path
 
-    def load_model(self, path):
-        """
+    def load_model(self, fh):
+        """ Load weights from file or filelike.
 
-        :param path:
-        :return:
+        :param fh: file path, filehandle, filelike.
+        :return: List of weights in numpy format.
         """
         a = np.load(path)
+
         weights = []
         for i in range(len(a.files)):
             weights.append(a[str(i)])

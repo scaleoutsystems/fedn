@@ -37,7 +37,7 @@ class ModelService(rpc.ModelServiceServicer):
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
             fh.flush()
-        model = helper.load_model(path)
+        model = helper.load(path)
         os.unlink(path)
         return model
 
@@ -47,7 +47,7 @@ class ModelService(rpc.ModelServiceServicer):
         :param model:
         :return:
         """
-        outfile_name = helper.save_model(model)
+        outfile_name = helper.save(model)
 
         a = BytesIO()
         a.seek(0, 0)

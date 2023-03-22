@@ -186,13 +186,13 @@ class ControlBase(ABC):
         helper = self.get_helper()
         if model is not None:
             print("Saving model to disk...", flush=True)
-            #outfile_name = helper.save_model(model)
+            outfile_name = helper.save(model)
             print("DONE", flush=True)
             print("Uploading model to Minio...", flush=True)
-            # model_id = self.model_repository.set_model(
-            #    outfile_name, is_file=True)
             model_id = self.model_repository.set_model(
-                model, is_file=False)
+                outfile_name, is_file=True)
+            # model_id = self.model_repository.set_model(
+            #    model, is_file=False)
 
             print("DONE", flush=True)
             # os.unlink(outfile_name)

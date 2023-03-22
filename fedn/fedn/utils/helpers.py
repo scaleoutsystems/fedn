@@ -19,14 +19,14 @@ class HelperBase(ABC):
     @abstractmethod
     def save_model(self, model, path):
         """
-            Serialize the model to file on disk on path.
+            Serialize weights to file.
             The serialized model must be a single binary object.
         """
         pass
 
     @abstractmethod
-    def load_model(self, path):
-        """ Load the model save with save_model from disk on path.  """
+    def load_model(self, fh):
+        """ Load weights from file or filelike.  """
         pass
 
     def get_tmp_path(self):

@@ -14,8 +14,8 @@ class NumpyArrayHelper(HelperBase):
         """ Update an incremental average. """
         return np.add(model, (model_next - model) / n)
 
-    def save_model(self, model, path=None):
-        """
+    def save(self, model, path=None):
+        """Serialize weights/parameters to file.
 
         :param model:
         :param path:
@@ -26,8 +26,8 @@ class NumpyArrayHelper(HelperBase):
         np.savetxt(path, model)
         return path
 
-    def load_model(self, path):
-        """
+    def load(self, path):
+        """Load weights/parameters from file or filelike.
 
         :param path:
         :return:

@@ -74,7 +74,7 @@ class Control(ControlBase):
                 print("CONTROL: Round failed!")
                 round_data['status'] = 'Failed'
 
-            self.tracer.set_round_data_reducer(round_data)
+            # self.tracer.set_round_data_reducer(round_data)
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
@@ -213,16 +213,18 @@ class Control(ControlBase):
             if data is not None:
                 try:
                     tic = time.time()
-                    model_str = data.getbuffer()
+                    # model_str = data.getbuffer()
                     helper = self.get_helper()
-                    model_next = helper.load_model_from_BytesIO(model_str)
+                    data.seek(0)
+                    model_next = helper.load(data)
                     meta['time_load_model'] += (time.time() - tic)
                     tic = time.time()
                     model = helper.increment_average(model, model_next, i)
                     meta['time_aggregate_model'] += (time.time() - tic)
                 except Exception:
                     tic = time.time()
-                    model = helper.load_model_from_BytesIO(data.getbuffer())
+                    data.seek(0)
+                    model = helper.load(data)
                     meta['time_aggregate_model'] += (time.time() - tic)
                 i = i + 1
 
