@@ -1,7 +1,3 @@
-import os
-import tempfile
-from io import BytesIO
-
 import numpy as np
 
 from .helpers import HelperBase
@@ -17,7 +13,7 @@ class KerasHelper(HelperBase):
         w = np.add(w_prev, a*(np.array(w_next) - np.array(w_prev)) / W)
         return w
 
-    def save_model(self, weights, path=None):
+    def save(self, weights, path=None):
         """ Serialize weights to file.
 
         :param weights:
@@ -35,7 +31,7 @@ class KerasHelper(HelperBase):
 
         return path
 
-    def load_model(self, fh):
+    def load(self, fh):
         """ Load weights from file or filelike.
 
         :param fh: file path, filehandle, filelike.
