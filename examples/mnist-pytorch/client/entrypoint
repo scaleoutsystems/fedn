@@ -8,8 +8,9 @@ import docker
 import fire
 import torch
 
-from fedn.utils.pytorchhelper import PytorchHelper
+from fedn.utils.helpers import get_helper
 
+HELPER_MODULE = 'pytorchhelper'
 NUM_CLASSES = 10
 
 
@@ -69,12 +70,12 @@ def _save_model(model, out_path):
     weights_np = collections.OrderedDict()
     for w in weights:
         weights_np[w] = weights[w].cpu().detach().numpy()
-    helper = PytorchHelper()
+    helper = get_helper(HELPER_MODULE)
     helper.save(weights, out_path)
 
 
 def _load_model(model_path):
-    helper = PytorchHelper()
+    helper = get_helper(HELPER_MODULE)
     weights_np = helper.load(model_path)
     weights = collections.OrderedDict()
     for w in weights_np:

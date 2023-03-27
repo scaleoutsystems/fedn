@@ -2,10 +2,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .helpers import HelperBase
+from .helperbase import HelperBase
 
 
-class PytorchHelper(HelperBase):
+class Helper(HelperBase):
 
     def increment_average(self, model, model_next, a, W):
         """ Update a weighted incremental average. """

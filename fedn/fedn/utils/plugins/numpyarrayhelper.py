@@ -4,10 +4,10 @@ from io import BytesIO
 
 import numpy as np
 
-from .helpers import HelperBase
+from .helperbase import HelperBase
 
 
-class NumpyArrayHelper(HelperBase):
+class Helper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
     def increment_average(self, model, model_next, n):

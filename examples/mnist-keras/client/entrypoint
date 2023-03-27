@@ -8,8 +8,9 @@ import fire
 import numpy as np
 import tensorflow as tf
 
-from fedn.utils.kerashelper import KerasHelper
+from fedn.utils.helpers import get_helper
 
+HELPER_MODULE = 'kerashelper'
 NUM_CLASSES = 10
 
 
@@ -64,7 +65,7 @@ def _load_data(data_path, is_train=True):
 
 def init_seed(out_path='seed.npz'):
     weights = _compile_model().get_weights()
-    helper = KerasHelper()
+    helper = get_helper(HELPER_MODULE)
     helper.save(weights, out_path)
 
 
@@ -74,7 +75,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     # Load model
     model = _compile_model()
-    helper = KerasHelper()
+    helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
 
@@ -104,7 +105,7 @@ def validate(in_model_path, out_json_path, data_path=None):
 
     # Load model
     model = _compile_model()
-    helper = KerasHelper()
+    helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
 
@@ -133,7 +134,7 @@ def infer(in_model_path, out_json_path, data_path=None):
 
     # Load model
     model = _compile_model()
-    helper = KerasHelper()
+    helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
 

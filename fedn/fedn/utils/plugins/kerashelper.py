@@ -1,9 +1,9 @@
 import numpy as np
 
-from .helpers import HelperBase
+from .helperbase import HelperBase
 
 
-class KerasHelper(HelperBase):
+class Helper(HelperBase):
     """ FEDn helper class for keras.Sequential. """
 
     def increment_average(self, weights, weights_next, a, W):
