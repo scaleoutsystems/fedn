@@ -46,31 +46,28 @@ class MongoTracer(Tracer):
         data = {'session_id': str(id)}
         self.sessions.insert_one(data)
 
+    def new_round(self, id):
+        """ Create a new session. """
+
+        data = {'round_id': str(id)}
+        self.rounds.insert_one(data)
+
     def set_session_config(self, id, config):
         self.sessions.update_one({'session_id': str(id)}, {
             '$push': {'session_config': config}}, True)
 
-    def set_round_meta(self, round_meta):
+    def set_round_combiner_data(self, data):
         """
 
         :param round_meta:
         """
-        self.rounds.update_one({'key': str(round_meta['round_id'])}, {
-            '$push': {'combiners': round_meta}}, True)
+        self.rounds.update_one({'round_id': str(data['round_id'])}, {
+            '$push': {'combiners': data}}, True)
 
-    def set_round_meta_reducer(self, round_meta):
+    def set_round_data(self, round_data):
         """
 
         :param round_meta:
         """
-        self.rounds.update_one({'key': str(round_meta['round_id'])}, {
-            '$push': {'reducer': round_meta}}, True)
-
-    def get_latest_round(self):
-        """
-
-        :return:
-        """
-        for post in self.round_time.find({'key': 'round_time'}):
-            last_round = post['round'][-1]
-            return last_round
+        self.rounds.update_one({'round_id': str(round_data['round_id'])}, {
+            '$push': {'reducer': round_data}}, True)

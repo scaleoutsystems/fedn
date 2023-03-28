@@ -133,7 +133,7 @@ class ControlBase(ABC):
         if not last_round:
             return 0
         else:
-            return last_round['key']
+            return last_round['round_id']
 
     def get_latest_round(self):
         round = self.statestore.get_latest_round()
@@ -174,6 +174,16 @@ class ControlBase(ABC):
         else:
             return None
 
+    def new_session(self, config):
+        """ Initialize a new session in backend db. """
+
+        if "session_id" not in config.keys():
+            session_id = uuid.uuid4()
+            config['session_id'] = str(session_id)
+
+        self.tracer.new_session(id=session_id)
+        self.tracer.set_session_config(session_id, config)
+
     def request_model_updates(self, combiners):
         """Call Combiner server RPC to get a model update. """
         cl = []
@@ -188,7 +198,7 @@ class ControlBase(ABC):
         helper = self.get_helper()
         if model is not None:
             print("Saving model to disk...", flush=True)
-            outfile_name = helper.save_model(model)
+            outfile_name = helper.save(model)
             print("DONE", flush=True)
             print("Uploading model to Minio...", flush=True)
             model_id = self.model_repository.set_model(

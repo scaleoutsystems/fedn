@@ -41,12 +41,8 @@ class Control(ControlBase):
 
         self._state = ReducerState.instructing
 
-        if "session_id" not in config.keys():
-            session_id = uuid.uuid4()
-            config['session_id'] = str(session_id)
-
-        self.tracer.new_session(id=session_id)
-        self.tracer.set_session_config(session_id, config)
+        # Must be called to set info in the db
+        self.new_session(config)
 
         if not self.get_latest_model():
             print("No model in model chain, please provide a seed model!")
@@ -78,15 +74,15 @@ class Control(ControlBase):
                 print("CONTROL: Round failed!")
                 round_data['status'] = 'Failed'
 
-            # self.tracer.set_round_data_reducer(round_data)
+            self.tracer.set_round_data(round_data)
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
 
-    def round(self, session_config, round_number):
+    def round(self, session_config, round_id):
         """Execute one round. """
 
-        round_data = {'round_id': round_number}
+        round_data = {'round_id': round_id}
 
         if len(self.network.get_combiners()) < 1:
             print("REDUCER: No combiners connected!", flush=True)
@@ -98,7 +94,7 @@ class Control(ControlBase):
         # in the round.
         round_config = copy.deepcopy(session_config)
         round_config['rounds'] = 1
-        round_config['round_id'] = round_number
+        round_config['round_id'] = round_id
         round_config['task'] = 'training'
         round_config['model_id'] = self.get_latest_model()
         round_config['helper_type'] = self.statestore.get_helper()
@@ -124,7 +120,7 @@ class Control(ControlBase):
         wait = 0.0
         updated = {}
         while len(updated) < len(combiners):
-            round = self.statestore.get_round(round_number)
+            round = self.statestore.get_round(round_id)
             if round:
                 for combiner in round['combiners']:
                     print(combiner, flush=True)
@@ -175,7 +171,7 @@ class Control(ControlBase):
         validate = session_config['validate']
         if validate:
             combiner_config = copy.deepcopy(session_config)
-            combiner_config['round_id'] = round_number
+            combiner_config['round_id'] = round_id
             combiner_config['model_id'] = self.get_latest_model()
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_helper()
