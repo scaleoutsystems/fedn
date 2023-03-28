@@ -28,7 +28,11 @@ class Control(ControlBase):
     def session(self, config):
         """ Execute a new training session. A session consists of one
             or several global rounds. All rounds in the same session
-            have the same round_config
+            have the same round_config.
+
+        :param config: The session config.
+        :type config: dict
+
         """
 
         if self._state == ReducerState.instructing:

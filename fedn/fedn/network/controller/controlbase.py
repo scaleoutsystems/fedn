@@ -21,6 +21,10 @@ class MisconfiguredStorageBackend(Exception):
     pass
 
 
+class MisconfiguredHelper(Exception):
+    pass
+
+
 class ControlBase(ABC):
     """ Base class and interface for a global controller.
         Override this class to implement a global training strategy (control).
@@ -69,16 +73,14 @@ class ControlBase(ABC):
         pass
 
     def get_helper(self):
-        """
+        """ Get a helper instance from global config.
 
-        :return:
+        :return: Helper instance.
         """
         helper_type = self.statestore.get_helper()
         helper = fedn.utils.helpers.get_helper(helper_type)
         if not helper:
-            print("CONTROL: Unsupported helper type {}, please configure compute_context.helper !".format(helper_type),
-                  flush=True)
-            return None
+            raise MisconfiguredHelper("Unsupported helper type {}, please configure compute_package.helper !".format(helper_type))
         return helper
 
     def get_state(self):
@@ -186,7 +188,7 @@ class ControlBase(ABC):
         helper = self.get_helper()
         if model is not None:
             print("Saving model to disk...", flush=True)
-            outfile_name = helper.save(model)
+            outfile_name = helper.save_model(model)
             print("DONE", flush=True)
             print("Uploading model to Minio...", flush=True)
             model_id = self.model_repository.set_model(
