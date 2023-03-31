@@ -7,7 +7,7 @@ from fedn.network.combiner.aggregators.aggregator import Aggregator
 
 class FedAvg(Aggregator):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean 
-        of parameter updates. 
+        of parameter updates.
 
     :param id: A reference to id of :class: `fedn.combiner.Combiner`
     :type id: str
@@ -31,7 +31,7 @@ class FedAvg(Aggregator):
         self.name = "FedAvg"
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100):
-        """Aggregate client model updates in the queue by computing an incremental
+        """Aggregate model updates in the queue by computing an incremental
            weighted average of parameters.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None

@@ -54,25 +54,20 @@ class Control(ControlBase):
         # Execute the rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
+
+            #round_id = self.new_round(session['session_id'])
             if last_round:
                 current_round = last_round + round
             else:
                 current_round = round
 
-            model_id = None
-
             try:
-                model_id, round_data = self.round(config, current_round)
+                _, round_data = self.round(config, current_round)
             except TypeError as e:
                 print("Could not unpack data from round: {0}".format(e), flush=True)
 
-            if model_id:
-                print("CONTROL: Round completed, new global model: {}".format(
-                    model_id), flush=True)
-                round_data['status'] = 'Success'
-            else:
-                print("CONTROL: Round failed!")
-                round_data['status'] = 'Failed'
+            print("CONTROL: Round completed with status {}".format(
+                round_data['status']), flush=True)
 
             self.tracer.set_round_data(round_data)
 
@@ -113,7 +108,7 @@ class Control(ControlBase):
         round_data['round_config'] = round_config
 
         # 2. Ask participating combiners to coordinate model updates
-        cl = self.request_model_updates(combiners)
+        _ = self.request_model_updates(combiners)
 
         # Wait until participating combiners have produced an updated global model.
         # TODO: Refactor
@@ -167,6 +162,8 @@ class Control(ControlBase):
             return None, round_data
         print("DONE", flush=True)
 
+        round_data['status'] = 'Success'
+
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         validate = session_config['validate']
         if validate:
@@ -213,7 +210,6 @@ class Control(ControlBase):
             if data is not None:
                 try:
                     tic = time.time()
-                    # model_str = data.getbuffer()
                     helper = self.get_helper()
                     data.seek(0)
                     model_next = helper.load(data)
