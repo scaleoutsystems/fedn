@@ -37,7 +37,7 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in numpy format.
         """
-        a = np.load(path)
+        a = np.load(fh)
 
         weights = []
         for i in range(len(a.files)):
