@@ -250,7 +250,7 @@ class Client:
             host = client_config['fqdn']
             # assuming https if fqdn is used
             port = 443
-        print(f"CLIENT: Connecting to combiner host: {host}", flush=True)
+        print(f"CLIENT: Connecting to combiner host: {host}:{port}", flush=True)
 
         if client_config['certificate']:
             print("CLIENT: using certificate from Reducer for GRPC channel")
@@ -274,6 +274,8 @@ class Client:
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
+            if port == 443:
+                port = 80
             channel = grpc.insecure_channel("{}:{}".format(
                 host,
                 str(port)))
