@@ -271,7 +271,12 @@ class Client:
             cert = ssl.get_server_certificate((host, port))
 
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+            if self.config['token']:
+                token = self.config['token']
+                auth_creds = grpc.metadata_call_credentials(lambda _, callback: callback([('authorization', f'Token {token}')]))
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
+            else:
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
             if port == 443:
