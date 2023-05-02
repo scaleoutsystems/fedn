@@ -32,6 +32,14 @@ CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
+class GrpcAuth(grpc.AuthMetadataPlugin):
+    def __init__(self, key):
+        self._key = key
+
+    def __call__(self, context, callback):
+        callback((('authorization', f'Token {self._key}'),), None)
+
+
 class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
        recieving and handling model update and model validation requests.
@@ -273,7 +281,7 @@ class Client:
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
             if self.config['token']:
                 token = self.config['token']
-                auth_creds = grpc.metadata_call_credentials(lambda _, callback: callback([('authorization', f'Token {token}')]))
+                auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
                 channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
             else:
                 channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
