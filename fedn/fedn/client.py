@@ -32,6 +32,14 @@ CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
+class GrpcAuth(grpc.AuthMetadataPlugin):
+    def __init__(self, key):
+        self._key = key
+
+    def __call__(self, context, callback):
+        callback((('authorization', f'Token {self._key}'),), None)
+
+
 class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
        recieving and handling model update and model validation requests.
@@ -250,7 +258,7 @@ class Client:
             host = client_config['fqdn']
             # assuming https if fqdn is used
             port = 443
-        print(f"CLIENT: Connecting to combiner host: {host}", flush=True)
+        print(f"CLIENT: Connecting to combiner host: {host}:{port}", flush=True)
 
         if client_config['certificate']:
             print("CLIENT: using certificate from Reducer for GRPC channel")
@@ -271,9 +279,16 @@ class Client:
             cert = ssl.get_server_certificate((host, port))
 
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+            if self.config['token']:
+                token = self.config['token']
+                auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
+            else:
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
             print("CLIENT: using insecure GRPC channel")
+            if port == 443:
+                port = 80
             channel = grpc.insecure_channel("{}:{}".format(
                 host,
                 str(port)))
