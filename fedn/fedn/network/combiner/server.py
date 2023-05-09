@@ -45,9 +45,6 @@ def role_to_proto_role(role):
         return fedn.OTHER
 
 
-####################################################################################################################
-####################################################################################################################
-
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """ Combiner gRPC server. """
 
@@ -170,7 +167,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in clients:
             request.receiver.name = client.name
             request.receiver.role = fedn.WORKER
-            response = self.SendModelUpdateRequest(request, self)
+            _ = self.SendModelUpdateRequest(request, self)
             # TODO: Check response
 
         print("COMBINER: Sent model update request for model {} to clients {}".format(

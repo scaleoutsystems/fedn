@@ -55,7 +55,7 @@ class Control(ControlBase):
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
 
-            #round_id = self.new_round(session['session_id'])
+            # round_id = self.new_round(session['session_id'])
             if last_round:
                 current_round = last_round + round
             else:

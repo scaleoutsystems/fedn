@@ -1,12 +1,9 @@
-import queue
-import time
-
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.network.combiner.aggregators.aggregator import Aggregator
 
 
 class FedAvg(Aggregator):
-    """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean 
+    """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.
 
     :param id: A reference to id of :class: `fedn.combiner.Combiner`
