@@ -133,7 +133,7 @@ class ControlBase(ABC):
         if not last_round:
             return 0
         else:
-            return last_round['round_id']
+            return last_round['key']
 
     def get_latest_round(self):
         round = self.statestore.get_latest_round()
@@ -203,11 +203,8 @@ class ControlBase(ABC):
             print("Uploading model to Minio...", flush=True)
             model_id = self.model_repository.set_model(
                 outfile_name, is_file=True)
-            # model_id = self.model_repository.set_model(
-            #    model, is_file=False)
 
             print("DONE", flush=True)
-            # os.unlink(outfile_name)
 
         self.statestore.set_latest(model_id)
 
@@ -264,7 +261,8 @@ class ControlBase(ABC):
             return False
 
     def evaluate_round_validity_policy(self, combiners):
-        """
+        """ Check if the round should be seen as valid.
+
             At the end of the round, before committing a model to the global model trail,
             we check if the round validity policy has been met. This can involve
             e.g. asserting that a certain number of combiners have reported in an
