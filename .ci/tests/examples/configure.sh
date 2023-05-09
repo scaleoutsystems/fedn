@@ -2,7 +2,7 @@
 set -e
 
 # Parse example name
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 2 ]; then
     >&2 echo "Wrong number of arguments (usage: configure.sh <example-name>)"
     exit 1
 fi
