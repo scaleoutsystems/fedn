@@ -10,8 +10,20 @@ class Aggregator(ABC):
 
     @abstractmethod
     def __init__(self, id, storage, server, modelservice, control):
-        """ """
-        self.name = ""
+        """ Initialize the aggregator.
+
+        :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
+        :type id: str
+        :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
+        :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+        :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+        :type server: class: `fedn.network.combiner.Combiner`
+        :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+        :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+        :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
+        :type control: class: `fedn.network.combiner.round.RoundController`
+        """
+        self.name = self.__class__.__name__
         self.storage = storage
         self.id = id
         self.server = server
@@ -21,7 +33,18 @@ class Aggregator(ABC):
 
     @abstractmethod
     def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
-        """Routine for combining model updates. Implemented in subclass. """
+        """Routine for combining model updates. Implemented in subclass.
+
+        :param nr_expected_models: Number of expected models. If None, wait for all models.
+        :type nr_expected_models: int
+        :param nr_required_models: Number of required models to combine.
+        :type nr_required_models: int
+        :param helper: A helper object.
+        :type helper: :class: `fedn.utils.plugins.helperbase.HelperBase`
+        :param timeout: Timeout in seconds to wait for models to be combined.
+        :type timeout: int
+        :return: A combined model.
+        """
         pass
 
     def on_model_update(self, model_update):
@@ -63,7 +86,13 @@ class Aggregator(ABC):
                                   log_level=fedn.Status.INFO)
 
     def _validate_model_update(self, model_update):
-        """ Validate the model update. """
+        """ Validate the model update.
+
+        :param model_update: A ModelUpdate message.
+        :type model_update: object
+        :return: True if the model update is valid, False otherwise.
+        :rtype: bool
+        """
         # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
         if 'num_examples' not in data.keys():
@@ -72,7 +101,13 @@ class Aggregator(ABC):
         return True
 
     def next_model_update(self, helper):
-        """ """
+        """ Get the next model update from the queue.
+
+        :param helper: A helper object.
+        :type helper: object
+        :return: A tuple containing the model update, metadata and model id.
+        :rtype: tuple
+        """
         model_update = self.model_updates.get(block=False)
         model_id = model_update.model_update_id
         model_next = self.control.load_model_update(helper, model_id)
