@@ -8,19 +8,59 @@ from fedn.network.state import ReducerState
 
 
 class UnsupportedStorageBackend(Exception):
-    pass
+    """ Exception class for when storage backend is not supported. Passes """
+
+    def __init__(self, message):
+        """ Constructor method.
+
+        :param message: The exception message.
+        :type message: str
+
+        """
+        self.message = message
+        super().__init__(self.message)
 
 
 class MisconfiguredStorageBackend(Exception):
-    pass
+    """ Exception class for when storage backend is misconfigured. """
+
+    def __init__(self, message):
+        """ Constructor method.
+
+        :param message: The exception message.
+        :type message: str
+
+        """
+        self.message = message
+        super().__init__(self.message)
+
+# Exception class for when model is None
+
+
+class NoModelException(Exception):
+    """ Exception class for when model is None """
+
+    def __init__(self, message):
+        """ Constructor method.
+
+        :param message: The exception message.
+        :type message: str
+
+        """
+        self.message = message
+        super().__init__(self.message)
 
 
 class Control(ControlBase):
-    """ Controller, implementing the overall global training strategy.
-
-    """
+    """ Controller, implementing the overall global training, validation and inference logic. """
 
     def __init__(self, statestore):
+        """ Constructor method.
+
+        :param statestore: A StateStorage instance.
+        :type statestore: class: `fedn.common.storage.statestorage.StateStorage`
+
+        """
 
         super().__init__(statestore)
         self.name = "DefaultControl"
@@ -75,7 +115,14 @@ class Control(ControlBase):
         self._state = ReducerState.idle
 
     def round(self, session_config, round_id):
-        """Execute one round. """
+        """ Execute a single global round.
+
+        :param session_config: The session config.
+        :type session_config: dict
+        :param round_id: The round id.
+        :type round_id: str(int)
+
+        """
 
         round_data = {'round_id': round_id}
 
@@ -111,24 +158,36 @@ class Control(ControlBase):
         _ = self.request_model_updates(combiners)
 
         # Wait until participating combiners have produced an updated global model.
-        # TODO: Refactor
         wait = 0.0
+        # dict to store combiners that have successfully produced an updated model
         updated = {}
+        # wait until all combiners have produced an updated model or until round timeout
         while len(updated) < len(combiners):
             round = self.statestore.get_round(round_id)
+            print("CONTROL: Fetching round config (ID: {round_id}) from statestore:".format(
+                round_id=round_id), flush=True)
             if round:
+                print("CONTROL: Round found!", flush=True)
+                # For each combiner in the round, check if it has produced an updated model (status == 'Success')
                 for combiner in round['combiners']:
                     print(combiner, flush=True)
                     if combiner['status'] == 'Success':
                         if combiner['name'] not in updated.keys():
+                            # Add combiner to updated dict
                             updated[combiner['name']] = combiner['model_id']
-                    print(combiner['status'])
-
+                    # Print combiner status
+                    print("CONTROL: Combiner {name} status: {status}".format(
+                        name=combiner['name'], status=combiner['status']), flush=True)
+            else:
+                # Print every 5 seconds based on value of wait
+                if wait % 5 == 0:
+                    print("CONTROL: Round not found! Waiting...", flush=True)
             if wait >= session_config['round_timeout']:
+                print("CONTROL: Round timeout! Exiting round...", flush=True)
                 break
+            # Update wait time used for timeout
             time.sleep(1.0)
             wait += 1.0
-        print(updated, flush=True)
 
         round_valid = self.evaluate_round_validity_policy(updated)
         if not round_valid:
@@ -136,31 +195,31 @@ class Control(ControlBase):
             round_data['status'] = 'Failed'
             return None, round_data
 
-        print("Reducing models...", flush=True)
+        print("CONTROL: Reducing models from combiners...", flush=True)
         # 3. Reduce combiner models into a global model
         try:
             model, data = self.reduce(updated)
             round_data['reduce'] = data
+            print("CONTROL: Done reducing models from combiners!", flush=True)
         except Exception as e:
             print("CONTROL: Failed to reduce models from combiners: {}".format(
                 e), flush=True)
             round_data['status'] = 'Failed'
             return None, round_data
-        print("DONE", flush=True)
 
         # 6. Commit the global model to model trail
         if model is not None:
-            print("Committing global model...", flush=True)
+            print("CONTROL: Committing global model to model trail...", flush=True)
             tic = time.time()
             model_id = uuid.uuid4()
             self.commit(model_id, model)
             round_data['time_commit'] = time.time() - tic
+            print("CONTROL: Done committing global model to model trail!", flush=True)
         else:
             print("REDUCER: failed to update model in round with config {}".format(
                 session_config), flush=True)
             round_data['status'] = 'Failed'
             return None, round_data
-        print("DONE", flush=True)
 
         round_data['status'] = 'Success'
 
@@ -178,7 +237,8 @@ class Control(ControlBase):
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    # self.set_combiner_model([combiner], self.get_latest_model())
+                    print("CONTROL: Submitting validation round to combiner {}".format(
+                        combiner), flush=True)
                     combiner.submit(combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
@@ -187,7 +247,11 @@ class Control(ControlBase):
         return model_id, round_data
 
     def reduce(self, combiners):
-        """ Combine current models at Combiner nodes into one global model. """
+        """ Combine updated models from Combiner nodes into one global model.
+
+        :param combiners: dict of combiner names (key) and model IDs (value) to reduce
+        :type combiners: dict
+        """
 
         meta = {}
         meta['time_fetch_model'] = 0.0
@@ -196,15 +260,24 @@ class Control(ControlBase):
 
         i = 1
         model = None
+        # Check if there are any combiners to reduce
+        if len(combiners) == 0:
+            print("REDUCER: No combiners to reduce!", flush=True)
+            return model, meta
+
         for name, model_id in combiners.items():
 
             # TODO: Handle inactive RPC error in get_model and raise specific error
+            print("REDUCER: Fetching model ({model_id}) from combiner {name}".format(
+                model_id=model_id, name=name), flush=True)
             try:
                 tic = time.time()
                 combiner = self.get_combiner(name)
                 data = combiner.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
-            except Exception:
+            except Exception as e:
+                print("REDUCER: Failed to fetch model from combiner {}: {}".format(
+                    name, e), flush=True)
                 data = None
 
             if data is not None:
@@ -215,7 +288,7 @@ class Control(ControlBase):
                     model_next = helper.load(data)
                     meta['time_load_model'] += (time.time() - tic)
                     tic = time.time()
-                    model = helper.increment_average(model, model_next, i)
+                    model = helper.increment_average(model, model_next, i, i)
                     meta['time_aggregate_model'] += (time.time() - tic)
                 except Exception:
                     tic = time.time()
@@ -227,7 +300,10 @@ class Control(ControlBase):
         return model, meta
 
     def infer_instruct(self, config):
-        """ Main entrypoint for executing the inference compute plan. """
+        """ Main entrypoint for executing the inference compute plan.
+
+        :param config: configuration for the inference round
+        """
 
         # Check/set instucting state
         if self.__state == ReducerState.instructing:
@@ -252,7 +328,10 @@ class Control(ControlBase):
         self.__state = ReducerState.idle
 
     def inference_round(self, config):
-        """ Execute inference round. """
+        """ Execute an inference round.
+
+        :param config: configuration for the inference round
+        """
 
         # Init meta
         round_data = {}
