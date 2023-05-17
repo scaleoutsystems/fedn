@@ -4,14 +4,12 @@ from datetime import datetime
 import psutil
 from google.protobuf.json_format import MessageToDict
 
-from fedn.common.storage.db.mongo import connect_to_mongodb
+#from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.common.tracer.tracer import Tracer
 
-
+"""
 class MongoTracer(Tracer):
-    """
 
-    """
 
     def __init__(self, mongo_config, network_id):
         try:
@@ -32,7 +30,7 @@ class MongoTracer(Tracer):
     def report(self, msg):
         """
 
-        :param msg:
+        #:param msg:
         """
         data = MessageToDict(msg, including_default_value_fields=True)
 
@@ -93,8 +91,8 @@ class MongoTracer(Tracer):
     def set_latest_time(self, round, round_time):
         """
 
-        :param round:
-        :param round_time:
+        #:param round:
+        #:param round_time:
         """
         self.round_time.update_one({'key': 'round_time'}, {
                                    '$push': {'round': round}}, True)
@@ -104,8 +102,8 @@ class MongoTracer(Tracer):
     def set_combiner_time(self, round, round_time):
         """
 
-        :param round:
-        :param round_time:
+        #:param round:
+        #:param round_time:
         """
         self.combiner_round_time.update_one({'key': 'combiner_round_time'}, {
                                             '$push': {'round': round}}, True)
@@ -120,7 +118,7 @@ class MongoTracer(Tracer):
     def set_round_meta(self, round_meta):
         """
 
-        :param round_meta:
+        #:param round_meta:
         """
         self.round.update_one({'key': str(round_meta['round_id'])}, {
                               '$push': {'combiners': round_meta}}, True)
@@ -128,7 +126,7 @@ class MongoTracer(Tracer):
     def set_round_meta_reducer(self, round_meta):
         """
 
-        :param round_meta:
+        #:param round_meta:
         """
         self.round.update_one({'key': str(round_meta['round_id'])}, {
                               '$push': {'reducer': round_meta}}, True)
@@ -136,7 +134,7 @@ class MongoTracer(Tracer):
     def get_latest_round(self):
         """
 
-        :return:
+        #:return:
         """
         for post in self.round_time.find({'key': 'round_time'}):
             last_round = post['round'][-1]
@@ -145,7 +143,7 @@ class MongoTracer(Tracer):
     def ps_util_monitor(self, round=None):
         """
 
-        :param round:
+        #:param round:
         """
         global running
         running = True
@@ -168,7 +166,7 @@ class MongoTracer(Tracer):
     def start_monitor(self, round=None):
         """
 
-        :param round:
+        #:param round:
         """
         global t
         # create thread and start it
@@ -185,3 +183,4 @@ class MongoTracer(Tracer):
         running = False
         # wait for thread's end
         t.join()
+"""

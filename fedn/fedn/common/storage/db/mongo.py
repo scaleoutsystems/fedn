@@ -1,13 +1,9 @@
+
+
 import pymongo
 
-
 def connect_to_mongodb(config, network_id):
-    """
-
-    :param config:
-    :param network_id:
-    :return:
-    """
+   
     try:
         mc = pymongo.MongoClient(**config)
         # This is so that we check that the connection is live
@@ -19,12 +15,9 @@ def connect_to_mongodb(config, network_id):
         raise
 
 
-def drop_mongodb(config, network_id):
-    """
 
-    :param config:
-    :param network_id:
-    """
+def drop_mongodb(config, network_id):
+   
     try:
         mc = pymongo.MongoClient(**config)
         mdb = mc[network_id]

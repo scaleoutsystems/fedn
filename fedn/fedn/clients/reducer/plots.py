@@ -13,16 +13,16 @@ from bokeh.plotting import figure, from_networkx
 from networkx.algorithms import community
 from plotly.subplots import make_subplots
 
-from fedn.common.storage.db.mongo import connect_to_mongodb
+#from fedn.common.storage.db.mongo import connect_to_mongodb
 
-
+"""
 class Plot:
-    """
-
-    """
-
+   
     def __init__(self, statestore):
+        raise Exception("This class need to be decoupled from direct use of mongoDB.")
+
         try:
+
             statestore_config = statestore.get_config()
             self.mdb = connect_to_mongodb(
                 statestore_config['mongo_config'], statestore_config['network_id'])
@@ -669,3 +669,4 @@ class Plot:
         plot.grid.visible = False
         plot.outline_line_color = None
         return plot
+"""

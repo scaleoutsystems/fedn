@@ -11,16 +11,16 @@ from threading import Lock
 import jwt
 import pandas as pd
 from bokeh.embed import json_item
-from bson import json_util
+#from bson import json_util
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, send_file, send_from_directory,
                    url_for)
 from werkzeug.utils import secure_filename
 
 from fedn.clients.reducer.interfaces import CombinerInterface
-from fedn.clients.reducer.plots import Plot
+#from fedn.clients.reducer.plots import Plot
 from fedn.clients.reducer.state import ReducerState, ReducerStateToString
-from fedn.common.tracer.mongotracer import MongoTracer
+#from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.utils.checksum import sha
 
 UPLOAD_FOLDER = '/app/client/package/'
@@ -85,11 +85,11 @@ class ReducerRestService:
 
     def __init__(self, config, control, certificate_manager):
 
-        print("config object!: \n\n\n\n{}".format(config))
+        print("config object!: \n{}\n\n".format(config),flush=True)
         if config['host']:
             self.host = config['host']
         else:
-            self.host = None
+            self.host = "0.0.0.0"
 
         self.name = config['name']
 
@@ -264,7 +264,7 @@ class ReducerRestService:
             if not_configured_template:
                 template = not_configured_template
             else:
-                events = self.control.get_events()
+                events = {} #self.control.get_events()
                 message = request.args.get('message', None)
                 message_type = request.args.get('message_type', None)
                 template = render_template('events.html', client=self.name, state=ReducerStateToString(self.control.state()),
@@ -365,19 +365,7 @@ class ReducerRestService:
                 count = count + 1
             return result
 
-        @app.route('/networkgraph')
-        def network_graph():
 
-            try:
-                plot = Plot(self.control.statestore)
-                result = netgraph()
-                df_nodes = pd.DataFrame(result['nodes'])
-                df_edges = pd.DataFrame(result['edges'])
-                graph = plot.make_netgraph_plot(df_edges, df_nodes)
-                return json.dumps(json_item(graph, "myplot"))
-            except Exception:
-                raise
-                # return ''
 
         @app.route('/events')
         def events():
@@ -387,9 +375,10 @@ class ReducerRestService:
             """
 
             json_docs = []
-            for doc in self.control.get_events():
-                json_doc = json.dumps(doc, default=json_util.default)
-                json_docs.append(json_doc)
+            #TODO removed events. Fix this.
+            #for doc in self.control.get_events():
+            #    json_doc = json.dumps(doc, default=json_util.default)
+            #    json_docs.append(json_doc)
 
             json_docs.reverse()
             return {'events': json_docs}
@@ -397,24 +386,31 @@ class ReducerRestService:
         @app.route('/add')
         def add():
             """ Add a combiner to the network. """
-            print("Adding combiner to network:", flush=True)
+
+            #TODO Remove this temporary slowdown.............................................
+            import time
+            time.sleep(10)
             if self.token_auth_enabled:
                 self.authorize(request, app.config.get('SECRET_KEY'))
             if self.control.state() == ReducerState.setup:
                 return jsonify({'status': 'retry'})
 
             name = request.args.get('name', None)
+            print("Adding combiner to network: {}".format(name), flush=True)
             address = str(request.args.get('address', None))
             fqdn = str(request.args.get('fqdn', None))
             port = request.args.get('port', None)
             secure_grpc = request.args.get('secure', None)
 
             if port is None or address is None or name is None or secure_grpc is None:
+                print("Please specify correct parameters.", flush=True)
                 return "Please specify correct parameters."
 
             # Try to retrieve combiner from db
             combiner = self.control.network.get_combiner(name)
+            print("REST1: Got combiner:{}".format(combiner), flush=True)
             if not combiner:
+                print("REST: Could not find the combiner, adding new!", flush=True)
                 if secure_grpc == 'True':
                     certificate, key = self.certificate_manager.get_or_create(
                         address).get_keypair_raw()
@@ -435,14 +431,17 @@ class ReducerRestService:
                     certificate=certificate,
                     key=key,
                     ip=request.remote_addr)
+                print("REST: adding the combiner", flush=True)
                 self.control.network.add_combiner(combiner)
 
             combiner = self.control.network.get_combiner(name)
+            print("REST:got the combiner back: {}".format(combiner), flush=True)
 
             ret = {
                 'status': 'added',
                 'storage': self.control.statestore.get_storage_backend(),
-                'statestore': self.control.statestore.get_config(),
+                # TODO Remove statestore from config
+                #'statestore': self.control.statestore.get_config(),
                 'certificate': combiner['certificate'],
                 'key': combiner['key']
             }
@@ -487,14 +486,14 @@ class ReducerRestService:
                 if not_configured:
                     return not_configured
 
-                plot = Plot(self.control.statestore)
-                try:
-                    valid_metrics = plot.fetch_valid_metrics()
-                    box_plot = plot.create_box_plot(valid_metrics[0])
-                except Exception as e:
-                    valid_metrics = None
-                    box_plot = None
-                    print(e, flush=True)
+                #plot = Plot(self.control.statestore)
+                #try:
+                #    valid_metrics = plot.fetch_valid_metrics()
+                #    box_plot = plot.create_box_plot(valid_metrics[0])
+                #except Exception as e:
+                valid_metrics = None
+                box_plot = None
+                #    print(e, flush=True)
 
                 h_latest_model_id = self.control.get_latest_model()
 
@@ -513,9 +512,9 @@ class ReducerRestService:
             """
             if request.method == 'POST':
 
-                statestore_config = self.control.statestore.get_config()
-                self.tracer = MongoTracer(
-                    statestore_config['mongo_config'], statestore_config['network_id'])
+                #statestore_config = self.control.statestore.get_config()
+                #self.tracer = MongoTracer(
+                #    statestore_config['mongo_config'], statestore_config['network_id'])
                 try:
                     self.control.drop_models()
                 except Exception:
@@ -566,6 +565,7 @@ class ReducerRestService:
                     url_for('index', state=state, refresh=refresh, message="Reducer is in monitoring state"))
 
             if request.method == 'POST':
+                print("POST request received, starting round!!!!!!", flush=True)
                 timeout = float(request.form.get('timeout', 180))
                 rounds = int(request.form.get('rounds', 1))
                 task = (request.form.get('task', ''))
@@ -605,13 +605,13 @@ class ReducerRestService:
                                  args=(config,)).start()
                 # self.control.instruct(config)
                 return redirect(url_for('index', state=state, refresh=refresh, message="Sent execution plan.",
-                                        message_type='SUCCESS'))
+                                        message_type='SUCCESS',lats_model_id=latest_model_id))
 
             else:
                 seed_model_id = None
                 latest_model_id = None
                 try:
-                    seed_model_id = self.control.get_first_model()[0]
+                    seed_model_id = self.control.get_first_model()['model'] #[0]
                     latest_model_id = self.control.get_latest_model()
                 except Exception:
                     pass
@@ -758,75 +758,11 @@ class ReducerRestService:
                     'active_validators': []
                     }
 
-        @app.route('/metric_type', methods=['GET', 'POST'])
-        def change_features():
-            """
 
-            :return:
-            """
-            feature = request.args['selected']
-            plot = Plot(self.control.statestore)
-            graphJSON = plot.create_box_plot(feature)
-            return graphJSON
 
-        @app.route('/dashboard')
-        def dashboard():
-            """
 
-            :return:
-            """
-            # Token auth
-            if self.token_auth_enabled:
-                self.authorize(request, app.config.get('SECRET_KEY'))
 
-            not_configured = self.check_configured()
-            if not_configured:
-                return not_configured
 
-            plot = Plot(self.control.statestore)
-            combiners_plot = plot.create_combiner_plot()
-
-            timeline_plot = None
-            table_plot = None
-            clients_plot = plot.create_client_plot()
-            client_histogram_plot = plot.create_client_histogram_plot()
-
-            return render_template('dashboard.html', show_plot=True,
-                                   table_plot=table_plot,
-                                   timeline_plot=timeline_plot,
-                                   clients_plot=clients_plot,
-                                   client_histogram_plot=client_histogram_plot,
-                                   combiners_plot=combiners_plot,
-                                   configured=True
-                                   )
-
-        @app.route('/network')
-        def network():
-            """
-
-            :return:
-            """
-            # Token auth
-            if self.token_auth_enabled:
-                self.authorize(request, app.config.get('SECRET_KEY'))
-
-            not_configured = self.check_configured()
-            if not_configured:
-                return not_configured
-            plot = Plot(self.control.statestore)
-            round_time_plot = plot.create_round_plot()
-            mem_cpu_plot = plot.create_cpu_plot()
-            combiner_info = combiner_status()
-            active_clients = client_status()
-            return render_template('network.html', network_plot=True,
-                                   round_time_plot=round_time_plot,
-                                   mem_cpu_plot=mem_cpu_plot,
-                                   combiner_info=combiner_info,
-                                   active_clients=active_clients['active_clients'],
-                                   active_trainers=active_clients['active_trainers'],
-                                   active_validators=active_clients['active_validators'],
-                                   configured=True
-                                   )
 
         @app.route('/config/download', methods=['GET'])
         def config_download():

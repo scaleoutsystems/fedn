@@ -16,7 +16,8 @@ from fedn.clients.combiner.roundcontrol import RoundControl
 from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.tracer.mongotracer import MongoTracer
+
+#from fedn.common.tracer.mongotracer import MongoTracer
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
@@ -110,8 +111,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             config['storage']['storage_config'])
         self.server = Server(self, self.modelservice, grpc_config)
 
-        self.tracer = MongoTracer(
-            config['statestore']['mongo_config'], config['statestore']['network_id'])
+        self.tracer = None
+        if not self.tracer:
+            print("tracer disabled")
+        #self.tracer = MongoTracer(
+        #    config['statestore']['mongo_config'], config['statestore']['network_id'])
 
         self.control = RoundControl(
             self.id, self.repository, self, self.modelservice)
@@ -298,7 +302,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def _send_status(self, status):
 
-        self.tracer.report(status)
+        if self.tracer:
+            self.tracer.report(status)
         for name, client in self.clients.items():
             try:
                 q = client[fedn.Channel.STATUS]

@@ -302,7 +302,7 @@ class RoundControl:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['name'] = self.id
-                            self.server.tracer.set_round_meta(round_meta)
+                            #self.server.tracer.set_round_meta(round_meta)
                         elif round_config['task'] == 'validation':
                             self.execute_validation(round_config)
                         else:

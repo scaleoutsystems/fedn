@@ -7,8 +7,7 @@ import yaml
 from fedn.client import Client
 from fedn.clients.reducer.restservice import (decode_auth_token,
                                               encode_auth_token)
-from fedn.clients.reducer.statestore.mongoreducerstatestore import \
-    MongoReducerStateStore
+
 from fedn.combiner import Combiner
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.reducer import Reducer
@@ -188,9 +187,19 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
 
     # Obtain state from database, in case already initialized (service restart)
     statestore_config = fedn_config['statestore']
-    if statestore_config['type'] == 'MongoDB':
-        statestore = MongoReducerStateStore(
-            network_id, statestore_config['mongo_config'], defaults=config['init'])
+    #if statestore_config['type'] == 'MongoDB':
+    #    from fedn.clients.reducer.statestore.mongoreducerstatestore import \
+    #        MongoReducerStateStore
+    #    statestore = MongoReducerStateStore(
+    #        network_id, statestore_config['mongo_config'], defaults=config['init'])
+    # elif statestore_config['type'] == 'Redis':
+    print("the statestore_config is: ", statestore_config, flush=True)
+    if statestore_config['type'].lower() == 'redis':
+
+        from fedn.clients.reducer.statestore.redisreducerstatestore import \
+            RedisReducerStateStore
+        statestore = RedisReducerStateStore(
+            network_id, statestore_config['redis_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)

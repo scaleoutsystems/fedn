@@ -8,6 +8,15 @@ networks:
 
 services:
   # Base services
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    #--requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    #volumes:
+    #  - redis:/data
   minio:
     image: minio/minio:14128-5ee91dc
     hostname: minio
@@ -33,30 +42,30 @@ services:
       - 9000:9000
       - 9001:9001
 
-  mongo:
-    image: mongo:5.0.2
-    restart: always
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=fedn_admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-    ports:
-      - 6534:6534
-    command: mongod --port 6534
+  #mongo:
+  #  image: mongo:5.0.2
+  #  restart: always
+  #  environment:
+  #    - MONGO_INITDB_ROOT_USERNAME=fedn_admin
+  #    - MONGO_INITDB_ROOT_PASSWORD=password
+  #  ports:
+  #    - 6534:6534
+  #  command: mongod --port 6534
 
-  mongo-express:
-    image: mongo-express:latest
-    restart: always
-    depends_on:
-      - "mongo"
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
-      - ME_CONFIG_MONGODB_PORT=6534
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=fedn_admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
-      - ME_CONFIG_BASICAUTH_USERNAME=fedn_admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=password
-    ports:
-      - 8081:8081
+  #mongo-express:
+  #  image: mongo-express:latest
+  #  restart: always
+  #  depends_on:
+  #    - "mongo"
+  #  environment:
+  #    - ME_CONFIG_MONGODB_SERVER=mongo
+  #    - ME_CONFIG_MONGODB_PORT=6534
+  #    - ME_CONFIG_MONGODB_ADMINUSERNAME=fedn_admin
+  #    - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+  #    - ME_CONFIG_BASICAUTH_USERNAME=fedn_admin
+  #    - ME_CONFIG_BASICAUTH_PASSWORD=password
+  #  ports:
+  #    - 8081:8081
 
   # Reducer
   reducer:
@@ -72,10 +81,10 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ./fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=config/settings-reducer.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=/app/config/settings-reducer.yaml"
     ports:
       - 8090:8090
 
@@ -90,7 +99,7 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ./fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner -in config/settings-combiner.yaml"
@@ -105,11 +114,19 @@ services:
       context: .
       args:
         BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        #REQUIREMENTS: examples/mnist-keras/requirements.txt
+        #REQUIREMENTS: requirements-client.txt
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ./fedn:/app/fedn
+      - ./examples/mnist-pytorch:/app/examples/mnist-pytorch
+    #  - ./examples/mnist-keras/data:/var/data
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client -in config/settings-client.yaml"
+      - "sleep 20 && /venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client -in config/settings-client.yaml"
     deploy:
       replicas: 0
+
+#volumes:
+#  redis:
+#    driver: local

@@ -6,6 +6,7 @@ import yaml
 
 from fedn.clients.reducer.state import (ReducerStateToString,
                                         StringToReducerState)
+
 from fedn.common.storage.db.mongo import connect_to_mongodb
 
 from .reducerstatestore import ReducerStateStore
@@ -112,17 +113,17 @@ class MongoReducerStateStore(ReducerStateStore):
         """
         return self.__inited
 
-    def get_config(self):
-        """
+    #def get_config(self):
+    #    """
 
-        :return:
-        """
-        data = {
-            'type': 'MongoDB',
-            'mongo_config': self.config,
-            'network_id': self.network_id
-        }
-        return data
+    #    :return:
+    #    """
+    #    data = {
+    #        'type': 'MongoDB',
+    #        'mongo_config': self.config,
+    #        'network_id': self.network_id
+    #    }
+    #    return data
 
     def state(self):
         """

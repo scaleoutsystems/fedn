@@ -8,7 +8,7 @@ import fedn.utils.helpers
 from fedn.clients.reducer.interfaces import CombinerUnavailableError
 from fedn.clients.reducer.network import Network
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.tracer.mongotracer import MongoTracer
+#from fedn.common.tracer.mongotracer import MongoTracer
 
 from .state import ReducerState
 
@@ -29,6 +29,7 @@ class ReducerControl:
     def __init__(self, statestore):
 
         self.__state = ReducerState.setup
+        self.tracer = None
         self.statestore = statestore
         if self.statestore.is_inited():
             self.network = Network(self, statestore)
@@ -137,7 +138,7 @@ class ReducerControl:
             try:
                 context = definition['filename']
                 return context
-            except (IndexError, KeyError):
+            except (IndexError, KeyError, TypeError):
                 print(
                     "No context filename set for compute context definition", flush=True)
                 return None
@@ -297,10 +298,13 @@ class ReducerControl:
         # 2. Sync up and ask participating combiners to coordinate model updates
         # TODO refactor
 
-        statestore_config = self.statestore.get_config()
+        #statestore_config = self.statestore.get_config()
 
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
+        #self.tracer = None
+        if not self.tracer:
+            print("tracer disabled")
+        #self.tracer = MongoTracer(
+        #    statestore_config['mongo_config'], statestore_config['network_id'])
 
         start_time = datetime.now()
 
@@ -332,7 +336,8 @@ class ReducerControl:
         # TODO refactor
         end_time = datetime.now()
         round_time = end_time - start_time
-        self.tracer.set_combiner_time(round_number, round_time.seconds)
+        if self.tracer:
+            self.tracer.set_combiner_time(round_number, round_time.seconds)
 
         round_meta['time_combiner_update'] = round_time.seconds
 
@@ -428,13 +433,17 @@ class ReducerControl:
 
         # TODO: Refactor
 
-        statestore_config = self.statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config['mongo_config'], statestore_config['network_id'])
-        last_round = self.tracer.get_latest_round()
+        #statestore_config = self.statestore.get_config()
+
+        last_round = 0
+        #if self.tracer:
+        #self.tracer = MongoTracer(
+        #    statestore_config['mongo_config'], statestore_config['network_id'])
+        #last_round = self.tracer.get_latest_round()
 
         for round in range(1, int(config['rounds'] + 1)):
             tic = time.time()
+            #if self.tracer:
             if last_round:
                 current_round = last_round + round
             else:
@@ -442,7 +451,8 @@ class ReducerControl:
 
             start_time = datetime.now()
             # start round monitor
-            self.tracer.start_monitor(round)
+            if self.tracer:
+                self.tracer.start_monitor(round)
             # todo add try except bloc for round meta
             model_id = None
             round_meta = {'round_id': current_round}
@@ -454,19 +464,23 @@ class ReducerControl:
             end_time = datetime.now()
 
             if model_id:
-                print("REDUCER: Global round completed, new model: {}".format(
-                    model_id), flush=True)
+
                 round_time = end_time - start_time
-                self.tracer.set_latest_time(current_round, round_time.seconds)
+                print("REDUCER: Global round completed, new model: {} time: {}".format(
+                    model_id, round_time), flush=True)
+                if self.tracer:
+                    self.tracer.set_latest_time(current_round, round_time.seconds)
                 round_meta['status'] = 'Success'
             else:
                 print("REDUCER: Global round failed!")
                 round_meta['status'] = 'Failed'
 
             # stop round monitor
-            self.tracer.stop_monitor()
+            if self.tracer:
+                self.tracer.stop_monitor()
             round_meta['time_round'] = time.time() - tic
-            self.tracer.set_round_meta_reducer(round_meta)
+            if self.tracer:
+                self.tracer.set_round_meta_reducer(round_meta)
 
         self.__state = ReducerState.idle
 

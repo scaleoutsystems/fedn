@@ -1,4 +1,4 @@
-#!./.mnist-keras/bin/python
+#!/Users/morgan/develop/scaleout/fedn/env/bin/python3
 import json
 import os
 
