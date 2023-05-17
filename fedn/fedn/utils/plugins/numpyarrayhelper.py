@@ -1,6 +1,4 @@
-import os
 import tempfile
-from io import BytesIO
 
 import numpy as np
 

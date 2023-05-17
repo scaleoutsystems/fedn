@@ -110,7 +110,7 @@ class RoundController:
         return model_str
 
     def waitforit(self, config, buffer_size=100, polling_interval=0.1):
-        """ Defines the policy for how long the server should wait before starting to aggregate models. 
+        """ Defines the policy for how long the server should wait before starting to aggregate models.
 
         The policy is as follows:
             1. Wait a maximum of time_window time until the round times out.
