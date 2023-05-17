@@ -1,6 +1,5 @@
 #!./.mnist-pytorch/bin/python
 import collections
-import json
 import math
 import os
 
@@ -8,7 +7,7 @@ import docker
 import fire
 import torch
 
-from fedn.utils.helpers import get_helper
+from fedn.utils.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = 'pytorchhelper'
 NUM_CLASSES = 10
@@ -128,8 +127,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     }
 
     # Save JSON metadata file
-    with open(out_model_path+'-metadata', "w") as fh:
-        fh.write(json.dumps(metadata))
+    save_metadata(metadata, out_model_path)
 
     # Save model update
     _save_model(model, out_model_path)
@@ -164,8 +162,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     }
 
     # Save JSON
-    with open(out_json_path, "w") as fh:
-        fh.write(json.dumps(report))
+    save_metrics(report, out_json_path)
 
 
 if __name__ == '__main__':

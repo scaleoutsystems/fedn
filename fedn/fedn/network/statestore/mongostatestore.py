@@ -190,7 +190,7 @@ class MongoStateStore(StateStoreBase):
     def get_round(self, id):
         """ Get round with id 'id'. """
 
-        return self.rounds.find_one({'key': str(id)})
+        return self.rounds.find_one({'round_id': str(id)})
 
     def set_compute_package(self, filename):
         """ Set the active compute package.
