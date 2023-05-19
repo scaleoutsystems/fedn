@@ -45,6 +45,7 @@ class Channel:
         """ Get a channel.
 
         :return: An instance of a gRPC channel
+        :rtype: :class:`grpc.Channel`
         """
         return copy.copy(self.channel)
 
@@ -56,6 +57,27 @@ class CombinerInterface:
     """
 
     def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
+        """ Initialize the combiner interface.
+
+        :parameter parent: The parent combiner.
+        :type parent: :class:`fedn.network.combiner.Combiner`
+        :parameter name: The name of the combiner.
+        :type name: str
+        :parameter address: The address of the combiner.
+        :type address: str
+        :parameter fqdn: The fully qualified domain name of the combiner.
+        :type fqdn: str
+        :parameter port: The port of the combiner.
+        :type port: int
+        :parameter certificate: The certificate of the combiner (optional).
+        :type certificate: str
+        :parameter key: The key of the combiner (optional).
+        :type key: str
+        :parameter ip: The ip of the combiner (optional).
+        :type ip: str
+        :parameter config: The configuration of the combiner (optional).
+        :type config: dict
+        """
         self.parent = parent
         self.name = name
         self.address = address
@@ -76,14 +98,18 @@ class CombinerInterface:
     def from_json(combiner_config):
         """ Initialize the combiner config from a json document.
 
-        : return:
+        :parameter combiner_config: The combiner configuration.
+        :type combiner_config: dict
+        :return: An instance of the combiner interface.
+        :rtype: :class:`fedn.network.combiner.interfaces.CombinerInterface`
         """
         return CombinerInterface(**combiner_config)
 
     def to_dict(self):
         """ Export combiner configuration to a dictionary.
 
-        : return:
+        : return: A dictionary with the combiner configuration.
+        : rtype: dict
         """
 
         data = {
@@ -114,14 +140,16 @@ class CombinerInterface:
     def to_json(self):
         """ Export combiner configuration to json.
 
-        : return:
+        :return: A json document with the combiner configuration.
+        :rtype: str
         """
         return json.dumps(self.to_dict())
 
     def get_certificate(self):
         """ Get combiner certificate.
 
-        : return:
+        :return: The combiner certificate.
+        :rtype: str, None if no certificate is set.
         """
         if self.certificate:
             cert_b64 = base64.b64encode(self.certificate)
@@ -132,7 +160,8 @@ class CombinerInterface:
     def get_key(self):
         """ Get combiner key.
 
-        : return:
+        :return: The combiner key.
+        :rtype: str, None if no key is set.
         """
         if self.key:
             key_b64 = base64.b64encode(self.key)
@@ -143,7 +172,10 @@ class CombinerInterface:
     def report(self):
         """ Recieve a status report from the combiner.
 
-        : return: A dictionary describing the combiner state.
+        :return: A dictionary describing the combiner state.
+        :rtype: dict
+
+        :raises CombinerUnavailableError: If the combiner is unavailable.
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -165,7 +197,8 @@ class CombinerInterface:
         """ Configure the combiner.
         Set the parameters in config at the server.
 
-        : param config: A dictionary containing parameters.
+        :param config: A dictionary containing parameters.
+        :type config: dict
         """
         if not config:
             config = self.config
@@ -190,8 +223,10 @@ class CombinerInterface:
     def submit(self, config):
         """ Submit a compute plan to the combiner.
 
-        : param config: The job configuration.
-        : return: Server ControlResponse object.
+        :param config: The job configuration.
+        :type config: dict
+        :return: Server ControlResponse object.
+        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -214,7 +249,14 @@ class CombinerInterface:
         return response
 
     def get_model(self, id):
-        """ Download a model from the combiner server. """
+        """ Download a model from the combiner server. 
+
+
+        :param id: The model id.
+        :type id: str
+        :return: A file-like object containing the model.
+        :rtype: :class:`io.BytesIO`, None if the model is not available.
+        """
 
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -235,7 +277,8 @@ class CombinerInterface:
     def allowing_clients(self):
         """ Check if the combiner is allowing additional client connections.
 
-        : return: True if accepting, else False.
+        :return: True if accepting, else False.
+        :rtype: bool
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()

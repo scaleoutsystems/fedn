@@ -32,7 +32,15 @@ class ModelService(rpc.ModelServiceServicer):
         return path
 
     def load_model_from_BytesIO(self, model_bytesio, helper):
-        """ Load a model from a BytesIO object. """
+        """ Load a model from a BytesIO object.
+
+        :param model_bytesio: A BytesIO object containing the model.
+        :type model_bytesio: :class:`io.BytesIO`
+        :param helper: The helper object for the model. 
+        :type helper: :class:`fedn.utils.helperbase.HelperBase`
+        :return: The model object.
+        :rtype: return type of helper.load
+        """
         path = self.get_tmp_path()
         with open(path, 'wb') as fh:
             fh.write(model_bytesio)
@@ -42,10 +50,14 @@ class ModelService(rpc.ModelServiceServicer):
         return model
 
     def serialize_model_to_BytesIO(self, model, helper):
-        """
+        """ Serialize a model to a BytesIO object.
 
-        :param model:
-        :return:
+        :param model: The model object.
+        :type model: return type of helper.load
+        :param helper: The helper object for the model.
+        :type helper: :class:`fedn.utils.helperbase.HelperBase`
+        :return: A BytesIO object containing the model.
+        :rtype: :class:`io.BytesIO`
         """
         outfile_name = helper.save(model)
 
@@ -59,8 +71,10 @@ class ModelService(rpc.ModelServiceServicer):
     def get_model(self, id):
         """ Download model with id 'id' from server.
 
-        :param id:
-        :return:
+        :param id: The model id.
+        :type id: str
+        :return: A BytesIO object containing the model.
+        :rtype: :class:`io.BytesIO`, None if model does not exist.
         """
 
         data = BytesIO()
@@ -80,7 +94,9 @@ class ModelService(rpc.ModelServiceServicer):
         """ Upload model to server.
 
         :param model: A model object (BytesIO)
+        :type model: :class:`io.BytesIO`
         :param id: The model id.
+        :type id: str
         """
         if not isinstance(model, BytesIO):
             bt = BytesIO()
@@ -116,11 +132,14 @@ class ModelService(rpc.ModelServiceServicer):
 
     # Model Service
     def Upload(self, request_iterator, context):
-        """ RPC for uploading a model.
+        """ RPC endpoints for uploading a model.
 
-        :param request_iterator:
-        :param context:
-        :return:
+        :param request_iterator: The model request iterator.
+        :type request_iterator: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :param context: The context object (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: A model response object.
+        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
 
         result = None
@@ -139,11 +158,14 @@ class ModelService(rpc.ModelServiceServicer):
                 return result
 
     def Download(self, request, context):
-        """ RPC for downloading a model.
+        """ RPC endpoints for downloading a model.
 
-        :param request:
-        :param context:
-        :return:
+        :param request: The model request object.
+        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :param context: The context object (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: A model response iterator.
+        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
         try:
             if self.models.get_meta(request.id) != fedn.ModelStatus.OK:

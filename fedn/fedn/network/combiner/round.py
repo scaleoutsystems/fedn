@@ -18,14 +18,14 @@ class RoundController:
     The round controller recieves round configurations from the global controller
     and coordinates model updates and aggregation, and model validations.
 
-    :param id: A reference to id of :class: `fedn.combiner.Combiner`
+    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
-    :param storage: Model repository for :class: `fedn.combiner.Combiner`
+    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
-    :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
-    :type server: class: `fedn.combiner.Combiner`
-    :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
-    :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
+    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+    :type server: class: `fedn.network.combiner.Combiner`
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
     def __init__(self, id, storage, server, modelservice):
@@ -115,6 +115,13 @@ class RoundController:
         The policy is as follows:
             1. Wait a maximum of time_window time until the round times out.
             2. Terminate if a preset number of model updates (buffer_size) are in the queue.
+
+        :param config: The round config object
+        :type config: dict
+        :param buffer_size: The number of model updates to wait for before starting aggregation, defaults to 100
+        :type buffer_size: int, optional
+        :param polling_interval: The polling interval, defaults to 0.1
+        :type polling_interval: float, optional
         """
 
         time_window = float(config['round_timeout'])
@@ -131,12 +138,12 @@ class RoundController:
     def _training_round(self, config, clients):
         """Send model update requests to clients and aggregate results.
 
-        : param config: The round config object (passed to the client).
-        : type config: dict
-        : param clients: [description]
-        : type clients: list
-        : return: an aggregated model and associated metadata
-        : rtype: model, dict
+        :param config: The round config object (passed to the client).
+        :type config: dict
+        :param clients: clients to participate in the training round
+        :type clients: list
+        :return: an aggregated model and associated metadata
+        :rtype: model, dict
         """
 
         self.server.report_status(
@@ -168,26 +175,26 @@ class RoundController:
         return model, meta
 
     def _validation_round(self, config, clients, model_id):
-        """[summary]
+        """Send model validation requests to clients.
 
-        : param config: [description]
-        : type config: [type]
-        : param clients: [description]
-        : type clients: [type]
-        : param model_id: [description]
-        : type model_id: [type]
+        :param config: The round config object (passed to the client).
+        :type config: dict
+        :param clients: clients to send validation requests to
+        :type clients: list
+        :param model_id: The ID of the model to validate
+        :type model_id: str
         """
         self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download model from persistent storage and set in modelservice.
 
-        : param model_id: ID of the model update object to stage.
-        : type model_id: str
-        : param timeout_retry: Sleep before retrying download again(sec), defaults to 3
-        : type timeout_retry: int, optional
-        : param retry: Number of retries, defaults to 2
-        : type retry: int, optional
+        :param model_id: ID of the model update object to stage.
+        :type model_id: str
+        :param timeout_retry: Sleep before retrying download again(sec), defaults to 3
+        :type timeout_retry: int, optional
+        :param retry: Number of retries, defaults to 2
+        :type retry: int, optional
         """
 
         # If the model is already in memory at the server we do not need to do anything.
@@ -216,12 +223,12 @@ class RoundController:
     def _assign_round_clients(self, n, type="trainers"):
         """ Obtain a list of clients(trainers or validators) to ask for updates in this round.
 
-        : param n: Size of a random set taken from active trainers(clients), if n > "active trainers" all is used
-        : type n: int
-        : param type: type of clients, either "trainers" or "validators", defaults to "trainers"
-        : type type: str, optional
-        : return: Set of clients
-        : rtype: list
+        :param n: Size of a random set taken from active trainers(clients), if n > "active trainers" all is used
+        :type n: int
+        :param type: type of clients, either "trainers" or "validators", defaults to "trainers"
+        :type type: str, optional
+        :return: Set of clients
+        :rtype: list
         """
 
         if type == "validators":
@@ -245,12 +252,12 @@ class RoundController:
     def _check_nr_round_clients(self, config, timeout=0.0):
         """Check that the minimal number of clients required to start a round are available.
 
-        : param config: [description]
-        : type config: [type]
-        : param timeout: [description], defaults to 0.0
-        : type timeout: float, optional
-        : return: [description]
-        : rtype: [type]
+        :param config: The round config object.
+        :type config: dict
+        :param timeout: Timeout in seconds, defaults to 0.0
+        :type timeout: float, optional
+        :return: True if the required number of clients are available, False otherwise.
+        :rtype: bool
         """
 
         ready = False
@@ -278,8 +285,8 @@ class RoundController:
     def execute_validation_round(self, round_config):
         """ Coordinate validation rounds as specified in config.
 
-        : param round_config: [description]
-        : type round_config: [type]
+        :param round_config: The round config object.
+        :type round_config: dict
         """
         model_id = round_config['model_id']
         self.server.report_status(
@@ -290,7 +297,13 @@ class RoundController:
         self._validation_round(round_config, validators, model_id)
 
     def execute_training_round(self, config):
-        """ Coordinates clients to execute training tasks. """
+        """ Coordinates clients to execute training tasks. 
+
+        :param config: The round config object.
+        :type config: dict
+        :return: metadata about the training round.
+        :rtype: dict
+        """
 
         self.server.report_status(
             "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']), flush=True)
@@ -329,8 +342,8 @@ class RoundController:
     def run(self, polling_interval=1.0):
         """ Main control loop. Execute rounds based on round config on the queue.
 
-        : param polling_interval: The polling interval in seconds for checking if a new job/config is available.
-        : type polling_interval: float
+        :param polling_interval: The polling interval in seconds for checking if a new job/config is available.
+        :type polling_interval: float
         """
         try:
             while True:
