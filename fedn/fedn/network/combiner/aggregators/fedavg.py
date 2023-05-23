@@ -6,22 +6,21 @@ class FedAvg(Aggregator):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.
 
-    :param id: A reference to id of :class: `fedn.combiner.Combiner`
+    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
-    :param storage: Model repository for :class: `fedn.combiner.Combiner`
+    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
-    :param server: A handle to the Combiner class :class: `fedn.combiner.Combiner`
-    :type server: class: `fedn.combiner.Combiner`
-    :param modelservice: A handle to the model service :class: `fedn.clients.combiner.modelservice.ModelService`
-    :type modelservice: class: `fedn.clients.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.clients.combiner.roundcontrol.RoundControl`
-    :type control: class: `fedn.clients.combiner.roundcontrol.RoundControl`
+    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+    :type server: class: `fedn.network.combiner.Combiner`
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
+    :type control: class: `fedn.network.combiner.round.RoundController`
 
     """
 
     def __init__(self, id, storage, server, modelservice, control):
-        """Constructor method
-        """
+        """Constructor method"""
 
         super().__init__(id, storage, server, modelservice, control)
 
@@ -55,18 +54,18 @@ class FedAvg(Aggregator):
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
-                model_next, update_data, model_id = self.next_model_update(helper)
+                model_next, metadata, model_id = self.next_model_update(helper)
                 self.server.report_status(
-                    "AGGREGATOR({}): Processing model update {}, update_data: {}  ".format(self.name, model_id, update_data))
+                    "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_id, metadata))
 
                 # Increment total number of examples
-                total_examples += update_data['num_examples']
+                total_examples += metadata['num_examples']
 
                 if nr_aggregated_models == 0:
                     model = model_next
                 else:
                     model = helper.increment_average(
-                        model, model_next, update_data['num_examples'], total_examples)
+                        model, model_next, metadata['num_examples'], total_examples)
 
                 nr_aggregated_models += 1
                 self.model_updates.task_done()

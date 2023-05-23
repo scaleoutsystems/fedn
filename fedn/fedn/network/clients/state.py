@@ -8,10 +8,12 @@ class ClientState(Enum):
 
 
 def ClientStateToString(state):
-    """
+    """ Convert a ClientState to a string representation.
 
-    :param state:
-    :return:
+    :param state: the state to convert
+    :type state: :class:`fedn.network.clients.state.ClientState`
+    :return: string representation of the state
+    :rtype: str
     """
     if state == ClientState.idle:
         return "IDLE"

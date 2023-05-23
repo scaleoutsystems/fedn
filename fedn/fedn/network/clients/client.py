@@ -54,13 +54,12 @@ class Client:
     """
 
     def __init__(self, config):
-        """
-        Parameters
-        ----------
-        config: dict
-            A configuration dictionary containing connection information for
-            the discovery service (controller) and settings governing e.g.
-            client-combiner assignment behavior.
+        """Initialize the client.
+
+        :param config: A configuration dictionary containing connection information for
+        the discovery service (controller) and settings governing e.g.
+        client-combiner assignment behavior.
+        :type config: dict
         """
 
         self.state = None
@@ -111,6 +110,7 @@ class Client:
         self.state = ClientState.idle
 
     def _detach(self):
+        """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
         if not self._attached:
             print("Client is not attached.", flush=True)
@@ -120,7 +120,7 @@ class Client:
         self._disconnect()
 
     def _attach(self):
-        """ """
+        """Attach to the FEDn network (connect to combiner)"""
         # Ask controller for a combiner and connect to that combiner.
         if self._attached:
             print("Client is already attached. ", flush=True)
@@ -134,12 +134,23 @@ class Client:
         return client_config
 
     def _initialize_helper(self, client_config):
+        """Initialize the helper class for the client.
+
+        :param client_config: A configuration dictionary containing connection information for
+        the discovery service (controller) and settings governing e.g.
+        client-combiner assignment behavior.
+        :type client_config: dict
+        """
 
         if 'model_type' in client_config.keys():
             self.helper = get_helper(client_config['model_type'])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
+
+        :param config: A configuration dictionary containing connection information for
+        the discovery service (controller) and settings governing e.g.
+        client-combiner assignment behavior.
 
         """
 
@@ -160,7 +171,14 @@ class Client:
         threading.Thread(target=self.process_request, daemon=True).start()
 
     def _initialize_dispatcher(self, config):
-        """ """
+        """ Initialize the dispatcher for the client.
+
+        :param config: A configuration dictionary containing connection information for
+        the discovery service (controller) and settings governing e.g.
+        client-combiner assignment behavior.
+        :type config: dict
+
+        """
         if config['remote_compute_context']:
             pr = PackageRuntime(os.getcwd(), os.getcwd())
 
@@ -215,7 +233,11 @@ class Client:
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
     def _assign(self):
-        """Contacts the controller and asks for combiner assignment. """
+        """Contacts the controller and asks for combiner assignment.
+
+        :return: A configuration dictionary containing connection information for combiner.
+        :rtype: dict
+        """
 
         print("Asking for assignment!", flush=True)
         while True:
@@ -242,12 +264,9 @@ class Client:
     def _connect(self, client_config):
         """Connect to assigned combiner.
 
-        Parameters
-        ----------
-        client_config : dict
-            A dictionary with connection information and settings
-            for the assigned combiner.
-
+        :param client_config: A configuration dictionary containing connection information for
+        the combiner.
+        :type client_config: dict
         """
 
         # TODO use the client_config['certificate'] for setting up secure comms'
@@ -313,13 +332,12 @@ class Client:
 
     def get_model(self, id):
         """Fetch a model from the assigned combiner.
+        Downloads the model update object via a gRPC streaming channel, Download.
 
-        Downloads the model update object via a gRPC streaming channel, Dowload.
-
-        Parameters
-        ----------
-        id : str
-            The id of the model update object.
+        :param id: The id of the model update object.
+        :type id: str
+        :return: The model update object.
+        :rtype: BytesIO
 
         """
         data = BytesIO()
@@ -342,12 +360,12 @@ class Client:
 
         Uploads the model updated object via a gRPC streaming channel, Upload.
 
-        Parameters
-        ----------
-        model : BytesIO, object
-            The  model update object.
-        id : str
-            The id of the model update object.
+        :param model: The model update object.
+        :type model: BytesIO
+        :param id: The id of the model update object.
+        :type id: str
+        :return: The model update object.
+        :rtype: BytesIO
         """
         if not isinstance(model, BytesIO):
             bt = BytesIO()
@@ -360,9 +378,12 @@ class Client:
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):
-            """
+            """Generator function for model upload requests.
 
-            :param mdl:
+            :param mdl: The model update object.
+            :type mdl: BytesIO
+            :return: A model update request.
+            :rtype: fedn.ModelRequest
             """
             while True:
                 b = mdl.read(CHUNK_SIZE)
@@ -382,7 +403,11 @@ class Client:
         return result
 
     def _listen_to_model_update_request_stream(self):
-        """Subscribe to the model update request stream. """
+        """Subscribe to the model update request stream.
+
+        :return: None
+        :rtype: None
+        """
 
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
@@ -414,7 +439,12 @@ class Client:
                 return
 
     def _listen_to_model_validation_request_stream(self):
-        """Subscribe to the model validation request stream. """
+        """Subscribe to the model validation request stream.
+
+
+        :return: None
+        :rtype: None
+        """
 
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
@@ -521,10 +551,10 @@ class Client:
     def _process_training_request(self, model_id):
         """Process a training (model update) request.
 
-        Parameters
-        ----------
-        model_id : Str
-            The id of the model to update.
+        :param model_id: The model id of the model to be updated.
+        :type model_id: str
+        :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
+        :rtype: tuple
 
         """
 
@@ -578,6 +608,15 @@ class Client:
         return updated_model_id, meta
 
     def _process_validation_request(self, model_id, is_inference):
+        """Process a validation request.
+
+        :param model_id: The model id of the model to be validated.
+        :type model_id: str
+        :param is_inference: True if the validation is an inference request, False if it is a validation request.
+        :type is_inference: bool
+        :return: The validation metrics, or None if validation failed.
+        :rtype: dict
+        """
         # Figure out cmd
         if is_inference:
             cmd = 'infer'
@@ -613,9 +652,7 @@ class Client:
         return validation
 
     def _handle_combiner_failure(self):
-        """ Register failed combiner connection.
-
-        """
+        """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
             self._detach()
@@ -623,11 +660,10 @@ class Client:
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
 
-        Parameters
-        ----------
-        update_frequency : float
-            The interval in seconds between heartbeat messages.
-
+        :param update_frequency: The frequency of the heartbeat in seconds.
+        :type update_frequency: float
+        :return: None if the client is detached.
+        :rtype: None
         """
 
         while True:
@@ -647,7 +683,17 @@ class Client:
                 return
 
     def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
-        """Send status message. """
+        """Send status message.
+
+        :param msg: The message to send.
+        :type msg: str
+        :param log_level: The log level of the message.
+        :type log_level: fedn.Status.INFO, fedn.Status.WARNING, fedn.Status.ERROR
+        :param type: The type of the message.
+        :type type: str
+        :param request: The request message.
+        :type request: fedn.Request
+        """
         status = fedn.Status()
         status.timestamp = str(datetime.now())
         status.sender.name = self.name
@@ -692,7 +738,7 @@ class Client:
         sys.stdout = self._original_stdout
 
     def run(self):
-        """ Main run loop. """
+        """ Run the client. """
         try:
             cnt = 0
             old_state = self.state
