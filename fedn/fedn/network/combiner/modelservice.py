@@ -172,7 +172,7 @@ class ModelService(rpc.ModelServiceServicer):
                 print("Error file is not ready", flush=True)
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:
-            print("Error file does not exist", flush=True)
+            print("Error file does not exist: {}".format(request.id), flush=True)
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
@@ -185,4 +185,4 @@ class ModelService(rpc.ModelServiceServicer):
                         return
                     yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
-            print("Downloading went wrong! {}".format(e), flush=True)
+            print("Downloading went wrong: {} {}".format(request.id, e), flush=True)
