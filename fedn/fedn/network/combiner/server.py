@@ -785,7 +785,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response  # TODO Fill later
 
     def SendModelValidationRequest(self, request, context):
-        """ Send a model update request.
+        """ Send a model validation request.
 
         :param request: the request
         :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidationRequest`
@@ -802,7 +802,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response  # TODO Fill later
 
     def SendModelValidation(self, request, context):
-        """ Send a model update response.
+        """ Send a model validation response.
 
         :param request: the request
         :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`

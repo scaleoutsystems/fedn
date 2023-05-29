@@ -162,10 +162,10 @@ class Control(ControlBase):
         # dict to store combiners that have successfully produced an updated model
         updated = {}
         # wait until all combiners have produced an updated model or until round timeout
+        print("CONTROL: Fetching round config (ID: {round_id}) from statestore:".format(
+            round_id=round_id), flush=True)
         while len(updated) < len(combiners):
             round = self.statestore.get_round(round_id)
-            print("CONTROL: Fetching round config (ID: {round_id}) from statestore:".format(
-                round_id=round_id), flush=True)
             if round:
                 print("CONTROL: Round found!", flush=True)
                 # For each combiner in the round, check if it has produced an updated model (status == 'Success')
@@ -179,8 +179,8 @@ class Control(ControlBase):
                     print("CONTROL: Combiner {name} status: {status}".format(
                         name=combiner['name'], status=combiner['status']), flush=True)
             else:
-                # Print every 5 seconds based on value of wait
-                if wait % 5 == 0:
+                # Print every 10 seconds based on value of wait
+                if wait % 10 == 0:
                     print("CONTROL: Round not found! Waiting...", flush=True)
             if wait >= session_config['round_timeout']:
                 print("CONTROL: Round timeout! Exiting round...", flush=True)
