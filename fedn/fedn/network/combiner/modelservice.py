@@ -36,7 +36,7 @@ class ModelService(rpc.ModelServiceServicer):
 
         :param model_bytesio: A BytesIO object containing the model.
         :type model_bytesio: :class:`io.BytesIO`
-        :param helper: The helper object for the model. 
+        :param helper: The helper object for the model.
         :type helper: :class:`fedn.utils.helperbase.HelperBase`
         :return: The model object.
         :rtype: return type of helper.load

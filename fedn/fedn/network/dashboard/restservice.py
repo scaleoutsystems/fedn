@@ -834,7 +834,7 @@ class ReducerRestService:
             :return:
             """
             chk_string = ""
-            name = self.control.get_compute_context()
+            name = self.control.get_compute_package_name()
             if name is None or name == '':
                 chk_string = ''
             else:

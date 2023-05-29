@@ -297,7 +297,7 @@ class RoundController:
         self._validation_round(round_config, validators, model_id)
 
     def execute_training_round(self, config):
-        """ Coordinates clients to execute training tasks. 
+        """ Coordinates clients to execute training tasks.
 
         :param config: The round config object.
         :type config: dict

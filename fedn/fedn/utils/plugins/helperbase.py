@@ -35,7 +35,7 @@ class HelperBase(ABC):
 
     @abstractmethod
     def load(self, fh):
-        """ Load weights from file or filelike.  
+        """ Load weights from file or filelike.
 
         :param fh: file path, filehandle, filelike.
         :return: Weights in array-like format.
@@ -43,7 +43,7 @@ class HelperBase(ABC):
         pass
 
     def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model. 
+        """ Return a temporary output path compatible with save_model, load_model.
 
         :return: Path to file.
         """

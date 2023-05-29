@@ -20,7 +20,6 @@ setup(
         "grpcio~=1.48.0",
         "grpcio-tools",
         "numpy>=1.21.6",
-        # "numpy==1.21.0",
         "protobuf",
         "pymongo",
         "Flask",

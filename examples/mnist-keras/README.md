@@ -66,8 +66,6 @@ Finally, you can start the experiment from the "control" tab of the UI.
 
 ## Clean up
 You can clean up by running `docker-compose down`.
-<<<<<<< HEAD
-=======
 
 ## Connecting to a distributed deployment
 To start and remotely connect a client with the required dependencies for this example, start by downloading the `client.yaml` file. You can either navigate the reducer UI or run the following command.
@@ -87,4 +85,3 @@ docker run -d \
   ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-keras run client -in client.yaml
 ```
 > **Note** If reducer and combiner host names, as specfied in the configuration files, are not resolvable in the client host network you need to use the docker option `--add-hosts` to make them resolvable. Please refer to the Docker documentation for more detail.
->>>>>>> 4733d34e5850c29a492485a6701d9f3c49d04dbe

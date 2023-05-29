@@ -249,7 +249,7 @@ class CombinerInterface:
         return response
 
     def get_model(self, id):
-        """ Download a model from the combiner server. 
+        """ Download a model from the combiner server.
 
 
         :param id: The model id.

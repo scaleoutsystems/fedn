@@ -21,7 +21,7 @@ def _wait_n_rounds(collection):
             return n
         _eprint(f'Succeded cleints {n}. Sleeping for {SLEEP}.')
         sleep(SLEEP)
-    _eprint(f'Succeded cleints: {n}. Giving up.')
+    _eprint(f'Succeded clients: {n}. Giving up.')
     return n
 
 
