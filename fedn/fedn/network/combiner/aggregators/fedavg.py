@@ -68,6 +68,10 @@ class FedAvg(Aggregator):
                         model, model_next, metadata['num_examples'], total_examples)
 
                 nr_aggregated_models += 1
+                # Delete model from storage
+                self.modelservice.models.delete(model_id)
+                self.server.report_status(
+                    "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
                 self.model_updates.task_done()
             except Exception as e:
                 self.server.report_status(
