@@ -201,7 +201,7 @@ class RoundController:
         if self.modelservice.models.exist(model_id):
             print("MODEL EXISTST (NOT)", flush=True)
             return
-
+        print("MODEL STAGING", flush=True)
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -364,6 +364,7 @@ class RoundController:
                             round_meta['status'] = "Success"
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_combiner_data(round_meta)
+                            self.modelservice.models.delete(round_config['model_id'])
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:

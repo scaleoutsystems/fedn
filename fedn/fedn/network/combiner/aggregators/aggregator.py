@@ -86,14 +86,14 @@ class Aggregator(ABC):
         self.report_validation(model_validation)
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
-        total_expected_validations = self.server.nr_active_validators()
+        #total_expected_validations = self.server.nr_active_validators()
         # Check if all validations have been received for the model and delete the model if so
-        if total_expected_validations == self.get_total_validations(model_validation.model_id):
-            self.server.report_status("AGGREGATOR({}): All validations received for model {}, deleting model.".format(self.name, model_validation.model_id),
-                                      log_level=fedn.Status.INFO)
-            self.modelservice.models.delete(model_validation.model_id)
-            # Delete the model from the validation dictionary
-            # del self.validations[model_validation.model_id]
+        # if total_expected_validations == self.get_total_validations(model_validation.model_id):
+        #    self.server.report_status("AGGREGATOR({}): All validations received for model {}, deleting model.".format(self.name, model_validation.model_id),
+        #                              log_level=fedn.Status.INFO)
+        #    self.modelservice.models.delete(model_validation.model_id)
+        # Delete the model from the validation dictionary
+        # del self.validations[model_validation.model_id]
 
     def report_validation(self, request):
         """ Report validation to dict.
