@@ -14,6 +14,7 @@ enum StatusType {
   MODEL_UPDATE = 2;
   MODEL_VALIDATION_REQUEST = 3;
   MODEL_VALIDATION = 4;
+  INFERENCE = 5;
 }
 
 message Status {
@@ -54,6 +55,7 @@ message ModelUpdateRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6;
+  string meta = 7;
 }
 
 message ModelUpdate {
@@ -73,6 +75,8 @@ message ModelValidationRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6; 
+  string meta = 7;
+  bool is_inference = 8;
 }
 
 message ModelValidation {

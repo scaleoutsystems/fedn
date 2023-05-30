@@ -1,9 +1,4 @@
-network_id: fedn-test-network
-token: fedn_token
-
-control:
-  state: idle
-  helper: keras
+network_id: fedn-network
 
 statestore:
   type: MongoDB

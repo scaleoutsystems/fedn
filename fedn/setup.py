@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='fedn',
-    version='0.4.1',
+    version='0.5.0-dev',
     description="""Scaleout Federated Learning""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -17,9 +17,9 @@ setup(
         "urllib3>=1.26.4",
         "minio",
         "python-slugify",
-        "grpcio~=1.47.0",
+        "grpcio~=1.48.0",
         "grpcio-tools",
-        "numpy>=1.21.6,<=1.22.2",
+        "numpy>=1.21.6",
         "protobuf",
         "pymongo",
         "Flask",
@@ -47,5 +47,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
 )
