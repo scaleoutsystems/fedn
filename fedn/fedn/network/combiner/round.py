@@ -199,6 +199,7 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
+            print("MODEL EXISTST (NOT)", flush=True)
             return
 
         # If not, download it and stage it in memory at the combiner.

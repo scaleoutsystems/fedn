@@ -129,7 +129,7 @@ class ControlBase(ABC):
         if not last_round:
             return 0
         else:
-            return last_round['key']
+            return last_round['round_id']
 
     def get_latest_round(self):
         round = self.statestore.get_latest_round()
