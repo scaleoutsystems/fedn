@@ -69,7 +69,7 @@ class Aggregator(ABC):
             else:
                 self.server.report_status("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            self.server.report_status("AGGREGATOR({}): Failed to receive candidate model! {}".format(self.name, e),
+            self.server.report_status("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
                                       log_level=fedn.Status.WARNING)
             pass
 
@@ -86,7 +86,8 @@ class Aggregator(ABC):
         self.report_validation(model_validation)
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
-        #total_expected_validations = self.server.nr_active_validators()
+
+        # total_expected_validations = self.server.nr_active_validators()
         # Check if all validations have been received for the model and delete the model if so
         # if total_expected_validations == self.get_total_validations(model_validation.model_id):
         #    self.server.report_status("AGGREGATOR({}): All validations received for model {}, deleting model.".format(self.name, model_validation.model_id),

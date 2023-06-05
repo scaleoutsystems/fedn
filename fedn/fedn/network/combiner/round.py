@@ -58,10 +58,7 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Load model update in native format.
-
-        First the model is loaded in BytesIO, then the helper is used to
-        parse it into its native model format (Keras, PyTorch, etc).
+        """Load model update in its native format.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`
@@ -187,7 +184,7 @@ class RoundController:
         self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
-        """Download model from persistent storage and set in modelservice.
+        """Download a model from persistent storage and set in modelservice.
 
         :param model_id: ID of the model update object to stage.
         :type model_id: str
