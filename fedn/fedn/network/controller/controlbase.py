@@ -1,6 +1,6 @@
+import os
 import uuid
 from abc import ABC, abstractmethod
-import os
 
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
@@ -201,7 +201,7 @@ class ControlBase(ABC):
                 outfile_name, is_file=True)
 
             print("CONTROL: Deleting temporary model file...", flush=True)
-            os.remove(outfile_name)
+            os.unlink(outfile_name)
 
         print("CONTROL: Committing model {} to global model trail in statestore...".format(
             model_id), flush=True)
