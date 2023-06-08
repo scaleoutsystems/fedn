@@ -30,11 +30,9 @@ class Aggregator(ABC):
         self.modelservice = modelservice
         self.control = control
         self.model_updates = queue.Queue()
-        # Track the number of model validations performed
-        self.validations = {}
 
     @abstractmethod
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True):
         """Routine for combining model updates. Implemented in subclass.
 
         :param nr_expected_models: Number of expected models. If None, wait for all models.
@@ -45,6 +43,8 @@ class Aggregator(ABC):
         :type helper: :class: `fedn.utils.plugins.helperbase.HelperBase`
         :param timeout: Timeout in seconds to wait for models to be combined.
         :type timeout: int
+        :param delete_models: Delete client models after combining.
+        :type delete_models: bool
         :return: A combined model.
         """
         pass
@@ -83,44 +83,8 @@ class Aggregator(ABC):
         :type validation: dict
         """
 
-        self.report_validation(model_validation)
         self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
                                   log_level=fedn.Status.INFO)
-        #total_expected_validations = self.server.nr_active_validators()
-        # Check if all validations have been received for the model and delete the model if so
-        # if total_expected_validations == self.get_total_validations(model_validation.model_id):
-        #    self.server.report_status("AGGREGATOR({}): All validations received for model {}, deleting model.".format(self.name, model_validation.model_id),
-        #                              log_level=fedn.Status.INFO)
-        #    self.modelservice.models.delete(model_validation.model_id)
-        # Delete the model from the validation dictionary
-        # del self.validations[model_validation.model_id]
-
-    def report_validation(self, request):
-        """ Report validation to dict.
-
-        :param request: A validation request.
-        :type request: object
-        """
-        client_name = request.sender.name
-        model_id = request.model_id
-        if model_id not in self.validations.keys():
-            self.validations[model_id] = [client_name]
-        else:
-            self.validations[model_id].append(client_name)
-
-    # Get total number of validations for a model
-    def get_total_validations(self, model_id):
-        """ Get total number of validations for a model.
-
-        :param model_id: A model id.
-        :type model_id: str
-        :return: The total number of validations.
-        :rtype: int
-        """
-        if model_id not in self.validations.keys():
-            return 0
-        else:
-            return len(self.validations[model_id])
 
     def _validate_model_update(self, model_update):
         """ Validate the model update.
