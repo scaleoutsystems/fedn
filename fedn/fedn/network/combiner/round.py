@@ -163,7 +163,14 @@ class RoundController:
 
         try:
             helper = get_helper(config['helper_type'])
-            model, data = self.aggregator.combine_models(helper)
+            # print config delete_models_storage
+            print("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']), flush=True)
+            if config['delete_models_storage'] == 'True':
+                delete_models = True
+            else:
+                delete_models = False
+            model, data = self.aggregator.combine_models(helper=helper,
+                                                         delete_models=delete_models)
         except Exception as e:
             print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
 
@@ -361,7 +368,11 @@ class RoundController:
                             round_meta['status'] = "Success"
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_combiner_data(round_meta)
-                            self.modelservice.models.delete(round_config['model_id'])
+                            if round_config['delete_models_storage'] == 'True':
+                                self.modelservice.models.delete(round_config['model_id'])
+                                # Print deleting model from storage
+                                print("ROUNDCONTROL: Deleting model {} from storage".format(
+                                    round_config['model_id']))
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:

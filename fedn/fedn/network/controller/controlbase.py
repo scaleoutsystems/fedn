@@ -1,3 +1,4 @@
+import os
 import uuid
 from abc import ABC, abstractmethod
 
@@ -193,15 +194,17 @@ class ControlBase(ABC):
 
         helper = self.get_helper()
         if model is not None:
-            print("Saving model to disk...", flush=True)
+            print("CONTROL: Saving model file temporarily to disk...", flush=True)
             outfile_name = helper.save(model)
-            print("DONE", flush=True)
-            print("Uploading model to Minio...", flush=True)
+            print("CONTROL: Uploading model to Minio...", flush=True)
             model_id = self.model_repository.set_model(
                 outfile_name, is_file=True)
 
-            print("DONE", flush=True)
+            print("CONTROL: Deleting temporary model file...", flush=True)
+            os.unlink(outfile_name)
 
+        print("CONTROL: Committing model {} to global model trail in statestore...".format(
+            model_id), flush=True)
         self.statestore.set_latest(model_id)
 
     def get_combiner(self, name):
