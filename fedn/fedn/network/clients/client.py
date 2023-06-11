@@ -488,7 +488,7 @@ class Client:
                     meta['config'] = request.data
 
                     if model_id is not None:
-                        # Notify the combiner that a model update is available
+                        # Send model update to combiner
                         update = fedn.ModelUpdate()
                         update.sender.name = self.name
                         update.sender.role = fedn.WORKER

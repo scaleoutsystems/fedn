@@ -32,7 +32,7 @@ class Aggregator(ABC):
         self.model_updates = queue.Queue()
 
     @abstractmethod
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180):
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True):
         """Routine for combining model updates. Implemented in subclass.
 
         :param nr_expected_models: Number of expected models. If None, wait for all models.
@@ -43,6 +43,8 @@ class Aggregator(ABC):
         :type helper: :class: `fedn.utils.plugins.helperbase.HelperBase`
         :param timeout: Timeout in seconds to wait for models to be combined.
         :type timeout: int
+        :param delete_models: Delete client models after combining.
+        :type delete_models: bool
         :return: A combined model.
         """
         pass
@@ -67,23 +69,9 @@ class Aggregator(ABC):
             else:
                 self.server.report_status("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            self.server.report_status("AGGREGATOR({}): Failed to receive candidate model! {}".format(self.name, e),
+            self.server.report_status("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
                                       log_level=fedn.Status.WARNING)
             pass
-
-    def on_model_validation(self, model_validation):
-        """ Callback when a new client model validation is recieved.
-            Performs (optional) pre-processing and then writes the validation
-            to the database. Override in subclass as needed.
-
-        :param validation: Dict containing validation data sent by client.
-                           Must be valid JSON.
-        :type validation: dict
-        """
-
-        # self.report_validation(validation)
-        self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
-                                  log_level=fedn.Status.INFO)
 
     def _validate_model_update(self, model_update):
         """ Validate the model update.

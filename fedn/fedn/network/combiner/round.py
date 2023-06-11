@@ -58,10 +58,7 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Load model update in native format.
-
-        First the model is loaded in BytesIO, then the helper is used to
-        parse it into its native model format (Keras, PyTorch, etc).
+        """Load model update in its native format.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`
@@ -166,7 +163,14 @@ class RoundController:
 
         try:
             helper = get_helper(config['helper_type'])
-            model, data = self.aggregator.combine_models(helper)
+            # print config delete_models_storage
+            print("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']), flush=True)
+            if config['delete_models_storage'] == 'True':
+                delete_models = True
+            else:
+                delete_models = False
+            model, data = self.aggregator.combine_models(helper=helper,
+                                                         delete_models=delete_models)
         except Exception as e:
             print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
 
@@ -187,7 +191,7 @@ class RoundController:
         self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
-        """Download model from persistent storage and set in modelservice.
+        """Download a model from persistent storage and set in modelservice.
 
         :param model_id: ID of the model update object to stage.
         :type model_id: str
@@ -199,8 +203,9 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
+            print("MODEL EXISTST (NOT)", flush=True)
             return
-
+        print("MODEL STAGING", flush=True)
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -335,7 +340,7 @@ class RoundController:
 
         print("------------------------------------------")
         self.server.report_status(
-            "ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
+            "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
         print("\n")
         return data
 
@@ -363,6 +368,10 @@ class RoundController:
                             round_meta['status'] = "Success"
                             round_meta['name'] = self.id
                             self.server.tracer.set_round_combiner_data(round_meta)
+                            if round_config['delete_models_storage'] == 'True':
+                                self.modelservice.models.delete(round_config['model_id'])
+                                self.server.report_status("ROUNDCONTROL: Deleting model {} from storage".format(
+                                    round_config['model_id']), flush=True)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:

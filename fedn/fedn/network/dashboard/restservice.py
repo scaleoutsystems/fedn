@@ -572,6 +572,7 @@ class ReducerRestService:
                 # Get session configuration
                 round_timeout = float(request.form.get('timeout', 180))
                 rounds = int(request.form.get('rounds', 1))
+                delete_models = request.form.get('delete_models', True)
                 task = (request.form.get('task', ''))
                 clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
@@ -601,7 +602,8 @@ class ReducerRestService:
                 latest_model_id = self.control.get_latest_model()
 
                 config = {'round_timeout': round_timeout, 'model_id': latest_model_id,
-                          'rounds': rounds, 'clients_required': clients_required,
+                          'rounds': rounds, 'delete_models_storage': delete_models,
+                          'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
