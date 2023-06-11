@@ -798,7 +798,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """Register a model validation.
 
         :param validation: the model validation
-        :type validation: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation` 
+        :type validation: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
         """
 
         self.tracer.report_validation(validation)
