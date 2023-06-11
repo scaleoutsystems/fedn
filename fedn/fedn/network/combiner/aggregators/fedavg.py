@@ -1,8 +1,8 @@
 import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.network.combiner.aggregators.aggregator import Aggregator
+from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
-class FedAvg(Aggregator):
+class Aggregator(AggregatorBase):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.
 

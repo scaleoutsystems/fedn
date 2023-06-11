@@ -1,11 +1,14 @@
+import importlib
 import json
 import queue
 from abc import ABC, abstractmethod
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 
+AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
-class Aggregator(ABC):
+
+class AggregatorBase(ABC):
     """ Abstract class defining an aggregator. """
 
     @abstractmethod
@@ -117,3 +120,16 @@ class Aggregator(ABC):
         data['round_id'] = config['round_id']
 
         return model_next, data, model_id
+
+
+def get_aggregator(aggregator_module_name, id, storage, server, modelservice, control):
+    """ Return an instance of the helper class.
+
+    :param helper_module_name: The name of the helper plugin module.
+    :type helper_module_name: str
+    :return: A helper instance.
+    :rtype: class: `fedn.utils.helpers.HelperBase`
+    """
+    aggregator_plugin = AGGREGATOR_PLUGIN_PATH.format(aggregator_module_name)
+    aggregator = importlib.import_module(aggregator_plugin)
+    return aggregator.Aggregator(id, storage, server, modelservice, control)

@@ -4,8 +4,11 @@ import sys
 import time
 import uuid
 
-from fedn.network.combiner.aggregators.fedavg import FedAvg
+from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
+#from fedn.network.combiner.aggregators.fedavg import FedAvg
 from fedn.utils.helpers import get_helper
+
+AGGREGATOR_NAME = 'fedavg'
 
 
 class ModelUpdateError(Exception):
@@ -37,8 +40,10 @@ class RoundController:
         self.modelservice = modelservice
 
         # TODO, make runtime configurable
-        self.aggregator = FedAvg(
-            self.id, self.storage, self.server, self.modelservice, self)
+        self.aggregator = get_aggregator(AGGREGATOR_NAME, self.id, self.storage, self.server, self.modelservice, self)
+
+        # FedAvg(
+        #   self.id, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
         """Add a round_config (job description) to the inbox.
