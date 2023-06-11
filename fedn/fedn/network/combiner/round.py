@@ -370,9 +370,8 @@ class RoundController:
                             self.server.tracer.set_round_combiner_data(round_meta)
                             if round_config['delete_models_storage'] == 'True':
                                 self.modelservice.models.delete(round_config['model_id'])
-                                # Print deleting model from storage
-                                print("ROUNDCONTROL: Deleting model {} from storage".format(
-                                    round_config['model_id']))
+                                self.server.report_status("ROUNDCONTROL: Deleting model {} from storage".format(
+                                    round_config['model_id']), flush=True)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:
