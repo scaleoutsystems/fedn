@@ -17,23 +17,34 @@ class MongoTracer(Tracer):
             self.status = self.mdb['control.status']
             self.rounds = self.mdb['control.rounds']
             self.sessions = self.mdb['control.sessions']
+            self.validations = self.mdb['control.validations']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
             raise
 
-    def report(self, msg):
-        """
+    def report_status(self, msg):
+        """Write status message to the database.
 
-        :param msg:
+        :param msg: The status message.
         """
         data = MessageToDict(msg, including_default_value_fields=True)
 
         if self.status is not None:
             self.status.insert_one(data)
 
-    def drop_status(self):
+    def report_validation(self, validation):
+        """Write model validation to the database.
+
+        :param validation: The model validation.
         """
+        data = MessageToDict(validation, including_default_value_fields=True)
+
+        if self.validations is not None:
+            self.validations.insert_one(data)
+
+    def drop_status(self):
+        """Drop the status collection.
 
         """
         if self.status:

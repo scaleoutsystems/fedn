@@ -73,19 +73,6 @@ class Aggregator(ABC):
                                       log_level=fedn.Status.WARNING)
             pass
 
-    def on_model_validation(self, model_validation):
-        """ Callback when a new client model validation is recieved.
-            Performs (optional) pre-processing and then writes the validation
-            to the database. Override in subclass as needed.
-
-        :param validation: Dict containing validation data sent by client.
-                           Must be valid JSON.
-        :type validation: dict
-        """
-
-        self.server.report_status("AGGREGATOR({}): callback processed validation {}".format(self.name, model_validation.model_id),
-                                  log_level=fedn.Status.INFO)
-
     def _validate_model_update(self, model_update):
         """ Validate the model update.
 
