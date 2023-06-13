@@ -114,8 +114,16 @@ def get_aggregator(aggregator_module_name, storage, server, modelservice, contro
 
     :param helper_module_name: The name of the helper plugin module.
     :type helper_module_name: str
-    :return: A helper instance.
-    :rtype: class: `fedn.utils.helpers.HelperBase`
+    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
+    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+    :type server: class: `fedn.network.combiner.Combiner`
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
+    :type control: class: `fedn.network.combiner.round.RoundController`
+    :return: An aggregator instance.
+    :rtype: class: `fedn.combiner.aggregators.AggregatorBase`
     """
     aggregator_plugin = AGGREGATOR_PLUGIN_PATH.format(aggregator_module_name)
     aggregator = importlib.import_module(aggregator_plugin)

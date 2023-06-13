@@ -18,8 +18,8 @@ class RoundController:
     The round controller recieves round configurations from the global controller
     and coordinates model updates and aggregation, and model validations.
 
-    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
-    :type id: str
+    :param aggregator_name: The name of the aggregator plugin module.
+    :type aggregator_name: str
     :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
     :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
