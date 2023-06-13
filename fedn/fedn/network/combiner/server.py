@@ -354,20 +354,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def _send_status(self, status):
-        """ Send a status to tracer and update all clients.
+        """ Report a status to tracer.
 
-        :param status: the status to send
+        :param status: the status to report
         :type status: :class:`fedn.common.net.grpc.fedn_pb2.Status`
         """
 
-        self.tracer.report(status)
-        for name, client in self.clients.items():
-            try:
-                q = client[fedn.Channel.STATUS]
-                status.timestamp = str(datetime.now())
-                q.put(status)
-            except KeyError:
-                pass  # TODO: Don't pass silently
+        self.tracer.report_status(status)
 
     def __register_heartbeat(self, client):
         """ Register a client if first time connecting. Update heartbeat timestamp.
@@ -522,7 +515,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
         """
-        # Add the status message to all subscribers of the status channel
+
         self._send_status(status)
 
         response = fedn.Response()
@@ -801,6 +794,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.sender.name)
         return response  # TODO Fill later
 
+    def register_model_validation(self, validation):
+        """Register a model validation.
+
+        :param validation: the model validation
+        :type validation: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
+        """
+
+        self.tracer.report_validation(validation)
+
     def SendModelValidation(self, request, context):
         """ Send a model validation response.
 
@@ -811,12 +813,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
         """
-        self.control.aggregator.on_model_validation(request)
-        print("ORCHESTRATOR received validation ", flush=True)
+        self.report_status("Recieved ModelValidation from {}".format(request.sender.name),
+                           log_level=fedn.Status.INFO)
+
+        self.register_model_validation(request)
+
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(
             response, response.sender.name)
-        return response  # TODO Fill later
+        return response
 
     ####################################################################################################################
 

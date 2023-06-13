@@ -85,3 +85,45 @@ class TempModelStorage(ModelStorage):
         :param model_metadata:
         """
         self.models_metadata.update({model_id: model_metadata})
+
+    # Delete model from disk
+    def delete(self, model_id):
+        """ Delete model from temp disk/storage
+
+        :param model_id: model id
+        :type model_id: str
+        :return: True if successful, False otherwise
+        :rtype: bool
+        """
+        try:
+            os.remove(os.path.join(self.default_dir, str(model_id)))
+            print("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id), flush=True)
+            # Delete id from metadata and models dict
+            del self.models_metadata[model_id]
+            del self.models[model_id]
+        except FileNotFoundError:
+            print("Could not delete model from disk. File not found!", flush=True)
+            return False
+        return True
+
+    # Delete all models from disk
+    def delete_all(self):
+        """ Delete all models from temp disk/storage
+
+        :return: True if successful, False otherwise
+        :rtype: bool
+        """
+        ids_pop = []
+        for model_id in self.models.keys():
+            try:
+                os.remove(os.path.join(self.default_dir, str(model_id)))
+                print("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id), flush=True)
+                # Add id to list of ids to pop/delete from metadata and models dict
+                ids_pop.append(model_id)
+            except FileNotFoundError:
+                print("TEMPMODELSTORAGE: Could not delete model {} from disk. File not found!".format(model_id), flush=True)
+        # Remove id from metadata and models dict
+        for model_id in ids_pop:
+            del self.models_metadata[model_id]
+            del self.models[model_id]
+        return True
