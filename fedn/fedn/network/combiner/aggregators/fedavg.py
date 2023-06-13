@@ -19,12 +19,12 @@ class Aggregator(AggregatorBase):
 
     """
 
-    def __init__(self, id, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, control):
         """Constructor method"""
 
-        super().__init__(id, storage, server, modelservice, control)
+        super().__init__(storage, server, modelservice, control)
 
-        self.name = "FedAvg"
+        self.name = "fedavg"
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
         """Aggregate model updates in the queue by computing an incremental

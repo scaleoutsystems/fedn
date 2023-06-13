@@ -34,8 +34,6 @@ class MisconfiguredStorageBackend(Exception):
         self.message = message
         super().__init__(self.message)
 
-# Exception class for when model is None
-
 
 class NoModelException(Exception):
     """ Exception class for when model is None """

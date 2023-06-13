@@ -245,8 +245,9 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
 @click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
+@click.option('-a', '--aggregator', required=False, default='fedavg', help='Filename of the aggregator module to use.')
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init, aggregator):
     """
 
     :param ctx:
@@ -261,7 +262,8 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param init:
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients, 'init': init}
+              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
+              'init': init, 'aggregator': aggregator}
 
     if config['init']:
         apply_config(config)

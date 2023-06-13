@@ -12,7 +12,7 @@ class AggregatorBase(ABC):
     """ Abstract class defining an aggregator. """
 
     @abstractmethod
-    def __init__(self, id, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, control):
         """ Initialize the aggregator.
 
         :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
@@ -28,7 +28,7 @@ class AggregatorBase(ABC):
         """
         self.name = self.__class__.__name__
         self.storage = storage
-        self.id = id
+        #self.id = id
         self.server = server
         self.modelservice = modelservice
         self.control = control
@@ -110,7 +110,7 @@ class AggregatorBase(ABC):
         return model_next, data, model_id
 
 
-def get_aggregator(aggregator_module_name, id, storage, server, modelservice, control):
+def get_aggregator(aggregator_module_name, storage, server, modelservice, control):
     """ Return an instance of the helper class.
 
     :param helper_module_name: The name of the helper plugin module.
@@ -120,4 +120,4 @@ def get_aggregator(aggregator_module_name, id, storage, server, modelservice, co
     """
     aggregator_plugin = AGGREGATOR_PLUGIN_PATH.format(aggregator_module_name)
     aggregator = importlib.import_module(aggregator_plugin)
-    return aggregator.Aggregator(id, storage, server, modelservice, control)
+    return aggregator.Aggregator(storage, server, modelservice, control)

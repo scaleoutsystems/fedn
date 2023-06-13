@@ -5,10 +5,7 @@ import time
 import uuid
 
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-#from fedn.network.combiner.aggregators.fedavg import FedAvg
 from fedn.utils.helpers import get_helper
-
-AGGREGATOR_NAME = 'fedavg'
 
 
 class ModelUpdateError(Exception):
@@ -31,19 +28,13 @@ class RoundController:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, id, storage, server, modelservice):
+    def __init__(self, aggregator_name, storage, server, modelservice):
 
-        self.id = id
         self.round_configs = queue.Queue()
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-
-        # TODO, make runtime configurable
-        self.aggregator = get_aggregator(AGGREGATOR_NAME, self.id, self.storage, self.server, self.modelservice, self)
-
-        # FedAvg(
-        #   self.id, self.storage, self.server, self.modelservice, self)
+        self.aggregator = get_aggregator(aggregator_name, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
         """Add a round_config (job description) to the inbox.
@@ -371,7 +362,7 @@ class RoundController:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['status'] = "Success"
-                            round_meta['name'] = self.id
+                            round_meta['name'] = self.server.id
                             self.server.tracer.set_round_combiner_data(round_meta)
                             if round_config['delete_models_storage'] == 'True':
                                 self.modelservice.models.delete(round_config['model_id'])

@@ -51,11 +51,11 @@ def role_to_proto_role(role):
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """ Combiner gRPC server. """
 
-    def __init__(self, connect_config):
+    def __init__(self, config):
         """ Initialize a Combiner.
 
-        :param connect_config: configuration for the combiner
-        :type connect_config: dict
+        :param config: configuration for the combiner
+        :type config: dict
         """
 
         # Client queues
@@ -64,24 +64,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.modelservice = ModelService()
 
         # Validate combiner name
-        match = re.search(VALID_NAME_REGEX, connect_config['name'])
+        match = re.search(VALID_NAME_REGEX, config['name'])
         if not match:
             raise ValueError('Unallowed character in combiner name. Allowed characters: a-z, A-Z, 0-9, _, -.')
 
-        self.id = connect_config['name']
+        self.id = config['name']
         self.role = Role.COMBINER
-        self.max_clients = connect_config['max_clients']
+        self.max_clients = config['max_clients']
 
         # Connector to announce combiner to discover service (reducer)
-        announce_client = ConnectorCombiner(host=connect_config['discover_host'],
-                                            port=connect_config['discover_port'],
-                                            myhost=connect_config['host'],
-                                            fqdn=connect_config['fqdn'],
-                                            myport=connect_config['port'],
-                                            token=connect_config['token'],
-                                            name=connect_config['name'],
-                                            secure=connect_config['secure'],
-                                            verify=connect_config['verify'])
+        announce_client = ConnectorCombiner(host=config['discover_host'],
+                                            port=config['discover_port'],
+                                            myhost=config['host'],
+                                            fqdn=config['fqdn'],
+                                            myport=config['port'],
+                                            token=config['token'],
+                                            name=config['name'],
+                                            secure=config['secure'],
+                                            verify=config['verify'])
 
         response = None
         while True:
@@ -92,7 +92,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 time.sleep(5)
                 continue
             if status == Status.Assigned:
-                config = response
+                announce_config = response
                 print(
                     "COMBINER {0}: Announced successfully".format(self.id), flush=True)
                 break
@@ -100,33 +100,33 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 print(response, flush=True)
                 sys.exit("Exiting: Unauthorized")
 
-        cert = config['certificate']
-        key = config['key']
+        cert = announce_config['certificate']
+        key = announce_config['key']
 
-        if config['certificate']:
-            cert = base64.b64decode(config['certificate'])  # .decode('utf-8')
-            key = base64.b64decode(config['key'])  # .decode('utf-8')
+        if announce_config['certificate']:
+            cert = base64.b64decode(announce_config['certificate'])  # .decode('utf-8')
+            key = base64.b64decode(announce_config['key'])  # .decode('utf-8')
 
         # Set up gRPC server configuration
-        grpc_config = {'port': connect_config['port'],
-                       'secure': connect_config['secure'],
+        grpc_config = {'port': config['port'],
+                       'secure': config['secure'],
                        'certificate': cert,
                        'key': key}
 
         # Set up model repository
         self.repository = S3ModelRepository(
-            config['storage']['storage_config'])
+            announce_config['storage']['storage_config'])
 
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)
 
         # Set up tracer for statestore
         self.tracer = MongoTracer(
-            config['statestore']['mongo_config'], config['statestore']['network_id'])
+            announce_config['statestore']['mongo_config'], announce_config['statestore']['network_id'])
 
         # Set up round controller
-        self.control = RoundController(
-            self.id, self.repository, self, self.modelservice)
+        self.control = RoundController(config['aggregator'], self.repository, self, self.modelservice)
+
         # Start thread for round controller
         threading.Thread(target=self.control.run, daemon=True).start()
 
