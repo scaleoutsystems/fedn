@@ -28,7 +28,6 @@ class AggregatorBase(ABC):
         """
         self.name = self.__class__.__name__
         self.storage = storage
-        #self.id = id
         self.server = server
         self.modelservice = modelservice
         self.control = control
