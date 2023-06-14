@@ -1,15 +1,18 @@
+import importlib
 import json
 import queue
 from abc import ABC, abstractmethod
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 
+AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
-class Aggregator(ABC):
+
+class AggregatorBase(ABC):
     """ Abstract class defining an aggregator. """
 
     @abstractmethod
-    def __init__(self, id, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, control):
         """ Initialize the aggregator.
 
         :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
@@ -25,7 +28,6 @@ class Aggregator(ABC):
         """
         self.name = self.__class__.__name__
         self.storage = storage
-        self.id = id
         self.server = server
         self.modelservice = modelservice
         self.control = control
@@ -105,3 +107,24 @@ class Aggregator(ABC):
         data['round_id'] = config['round_id']
 
         return model_next, data, model_id
+
+
+def get_aggregator(aggregator_module_name, storage, server, modelservice, control):
+    """ Return an instance of the helper class.
+
+    :param helper_module_name: The name of the helper plugin module.
+    :type helper_module_name: str
+    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
+    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+    :type server: class: `fedn.network.combiner.Combiner`
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
+    :type control: class: `fedn.network.combiner.round.RoundController`
+    :return: An aggregator instance.
+    :rtype: class: `fedn.combiner.aggregators.AggregatorBase`
+    """
+    aggregator_plugin = AGGREGATOR_PLUGIN_PATH.format(aggregator_module_name)
+    aggregator = importlib.import_module(aggregator_plugin)
+    return aggregator.Aggregator(storage, server, modelservice, control)
