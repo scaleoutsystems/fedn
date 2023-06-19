@@ -333,8 +333,8 @@ class RoundController:
             a.close()
             data['model_id'] = model_id
 
-        self.server.report_status(
-            "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
+            self.server.report_status(
+                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
 
         return data
 
