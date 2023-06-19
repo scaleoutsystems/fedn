@@ -108,6 +108,13 @@ class AggregatorBase(ABC):
 
         return model_next, data, model_id
 
+    def get_state(self):
+        state = {
+            'queue_len': self.model_updates.qsize()
+
+        }
+        return state
+
 
 def get_aggregator(aggregator_module_name, storage, server, modelservice, control):
     """ Return an instance of the helper class.
