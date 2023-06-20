@@ -442,7 +442,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
 
         response = fedn.ControlResponse()
-        print("\n RECIEVED **REPORT** from Controller\n", flush=True)
+        self.report_status("\n RECIEVED **REPORT** from Controller\n",
+                           log_level=fedn.Status.INFO)
+
+        control_state = self.control.aggregator.get_state()
+        self.report_status("Aggregator state: {}".format(control_state), log_level=fedn.Status.INFO)
+        p = response.parameter.add()
+        for key, value in control_state.items():
+            p.key = str(key)
+            p.value = str(value)
 
         active_trainers = self.get_active_trainers()
         p = response.parameter.add()

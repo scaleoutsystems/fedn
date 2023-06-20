@@ -331,13 +331,11 @@ class RoundController:
             model_id = str(uuid.uuid4())
             self.modelservice.set_model(a, model_id)
             a.close()
+            data['model_id'] = model_id
 
-        data['model_id'] = model_id
+            self.server.report_status(
+                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
 
-        print("------------------------------------------")
-        self.server.report_status(
-            "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
-        print("\n")
         return data
 
     def run(self, polling_interval=1.0):
