@@ -109,6 +109,7 @@ class AggregatorBase(ABC):
         return model_next, data, model_id
 
     def get_state(self):
+        """ Get the state of the aggregator's queue, including the number of model updates."""
         state = {
             'queue_len': self.model_updates.qsize()
 
