@@ -643,7 +643,7 @@ class ReducerRestService:
             combiner_preferred = request.args.get('combiner', None)
 
             if combiner_preferred:
-                combiner = self.control.network.get(combiner_preferred)
+                combiner = self.control.network.get_combiner(combiner_preferred)
             else:
                 combiner = self.control.network.find_available_combiner()
 
