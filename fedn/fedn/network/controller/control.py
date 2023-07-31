@@ -184,7 +184,7 @@ class Control(ControlBase):
             else:
                 # Print every 10 seconds based on value of wait
                 if wait % 10 == 0:
-                    print("CONTROL: Round not found! Waiting...", flush=True)
+                    print("CONTROL: Waiting for round to complete...", flush=True)
             if wait >= session_config['round_timeout']:
                 print("CONTROL: Round timeout! Exiting round...", flush=True)
                 break
