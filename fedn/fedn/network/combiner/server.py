@@ -524,25 +524,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     #####################################################################################################################
 
-    # def AllianceStatusStream(self, response, context):
-    #    """ A server stream RPC endpoint that emits status messages.
-    #
-    #    :param response: the response
-    #    :type response: :class:`fedn.common.net.grpc.fedn_pb2.Response`
-    #    :param context: the context (unused)
-    #    :type context: :class:`grpc._server._Context`"""
-    #    status = fedn.Status(
-    #        status="Client {} connecting to AllianceStatusStream.".format(response.sender))
-    #    status.log_level = fedn.Status.INFO
-    #    status.sender.name = self.id
-    #    status.sender.role = role_to_proto_role(self.role)
-    #    self._subscribe_client_to_queue(response.sender, fedn.Channel.STATUS)
-    #    q = self.__get_queue(response.sender, fedn.Channel.STATUS)
-    #    self._send_status(status)
-    #
-    #    while True:
-    #        yield q.get()
-
     def SendStatus(self, status: fedn.Status, context):
         """ A client stream RPC endpoint that accepts status messages.
 
