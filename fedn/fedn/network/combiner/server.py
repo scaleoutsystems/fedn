@@ -375,10 +375,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """Clear the model update queue (aggregator). """
 
         q = self.control.aggregator.model_updates
-        with q.mutex:
-            q.queue.clear()
-            q.all_tasks_done.notify_all()
-            q.unfinished_tasks = 0
+        try:
+            with q.mutex:
+                q.queue.clear()
+                q.all_tasks_done.notify_all()
+                q.unfinished_tasks = 0
+            return True
+        except Exception:
+            return False
 
     #####################################################################################################################
 
@@ -439,9 +443,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
 
-        self.flush_model_update_queue()
+        status = self.flush_model_update_queue()
 
         response = fedn.ControlResponse()
+        if status:
+            response.message = 'Success'
+        else:
+            response.message = 'Failed'
+
         return response
 
     ##############################################################################
