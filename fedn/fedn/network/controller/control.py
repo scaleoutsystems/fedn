@@ -77,17 +77,22 @@ class Control(ControlBase):
             print("Controller already in INSTRUCTING state. A session is in progress.", flush=True)
             return
 
+        if not self.get_latest_model():
+            print("No model in model chain, please provide a seed model!")
+            return
+
         self._state = ReducerState.instructing
 
         # Must be called to set info in the db
         self.new_session(config)
 
-        if not self.get_latest_model():
-            print("No model in model chain, please provide a seed model!")
-
         self._state = ReducerState.monitoring
 
         last_round = int(self.get_latest_round_id())
+
+        # Clear potential stragglers/old model updates at combiners
+        for combiner in self.network.get_combiners():
+            combiner.flush_model_update_queue()
 
         # Execute the rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
@@ -179,7 +184,7 @@ class Control(ControlBase):
             else:
                 # Print every 10 seconds based on value of wait
                 if wait % 10 == 0:
-                    print("CONTROL: Round not found! Waiting...", flush=True)
+                    print("CONTROL: Waiting for round to complete...", flush=True)
             if wait >= session_config['round_timeout']:
                 print("CONTROL: Round timeout! Exiting round...", flush=True)
                 break
