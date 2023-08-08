@@ -617,7 +617,7 @@ class ReducerRestService:
                 seed_model_id = None
                 latest_model_id = None
                 try:
-                    seed_model_id = self.control.get_first_model()[0]
+                    seed_model_id = self.control.get_first_model()
                     latest_model_id = self.control.get_latest_model()
                 except Exception:
                     pass

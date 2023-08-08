@@ -1,4 +1,5 @@
 import copy
+import datetime
 import time
 import uuid
 
@@ -80,6 +81,7 @@ class Control(ControlBase):
         self._state = ReducerState.instructing
 
         # Must be called to set info in the db
+        config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.new_session(config)
 
         if not self.get_latest_model():
@@ -93,7 +95,6 @@ class Control(ControlBase):
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
 
-            # round_id = self.new_round(session['session_id'])
             if last_round:
                 current_round = last_round + round
             else:

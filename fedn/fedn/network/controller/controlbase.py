@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
-from fedn.network.network import Network
 from fedn.network.state import ReducerState
 
 
@@ -118,6 +118,7 @@ class ControlBase(ABC):
         """
         return self.statestore.get_model_info()
 
+    # TODO: remove use statestore.get_events() instead
     def get_events(self):
         """
 

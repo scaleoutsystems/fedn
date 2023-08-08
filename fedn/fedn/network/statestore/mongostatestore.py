@@ -141,6 +141,14 @@ class MongoStateStore(StateStoreBase):
             print("Not updating state, already in {}".format(
                 ReducerStateToString(state)))
 
+    def get_sessions(self):
+        """ Get all sessions. """
+        return self.sessions.find()
+
+    def get_session(self, session_id):
+        """ Get session with id. """
+        return self.sessions.find_one({'session_id': session_id})
+
     def set_latest(self, model_id):
         """
 
@@ -153,30 +161,30 @@ class MongoStateStore(StateStoreBase):
                               True)
 
     def get_first(self):
-        """ Return model_id for the latest model in the model_trail """
+        """ Return model_id for the initial model in the model_trail """
 
-        ret = self.model.find_one({'key': 'model_trail'}, sort=[
-                                  ("committed_at", pymongo.ASCENDING)])
-        if ret is None:
+        result = self.model.find_one({'key': 'model_trail'}, sort=[
+            ("committed_at", pymongo.ASCENDING)])
+        if result is None:
             return None
 
         try:
-            model_id = ret['model']
+            model_id = result['model']
             if model_id == '' or model_id == ' ':  # ugly check for empty string
                 return None
-            return model_id
+            return model_id[0]
         except (KeyError, IndexError):
             return None
 
     def get_latest(self):
         """ Return model_id for the latest model in the model_trail """
-        ret = self.model.find_one({'key': 'current_model'})
-        if ret is None:
+        result = self.model.find_one({'key': 'current_model'})
+        if result is None:
             return None
 
         try:
-            model_id = ret['model']
-            if model_id == '' or model_id == ' ':  # ugly check for empty string
+            model_id = result['model']
+            if model_id == '' or model_id == ' ':
                 return None
             return model_id
         except (KeyError, IndexError):
@@ -188,9 +196,19 @@ class MongoStateStore(StateStoreBase):
         return self.rounds.find_one(sort=[("_id", pymongo.DESCENDING)])
 
     def get_round(self, id):
-        """ Get round with id 'id'. """
+        """ Get round with id.
+        param id: id of round to get
+        type id: int
+        return: round with id, reducer and combiners
+        rtype: ObjectId
+        """
 
         return self.rounds.find_one({'round_id': str(id)})
+
+    def get_rounds(self):
+        """ Get all rounds. """
+
+        return self.rounds.find()
 
     def set_compute_package(self, filename):
         """ Set the active compute package.
@@ -198,9 +216,10 @@ class MongoStateStore(StateStoreBase):
         :param filename:
         """
         self.control.package.update_one(
-            {'key': 'active'}, {'$set': {'filename': filename}}, True)
+            {'key': 'active'}, {'$set': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
         self.control.package.update_one({'key': 'package_trail'},
                                         {'$push': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
+        return True
 
     def get_compute_package(self):
         """ Get the active compute package.
@@ -243,15 +262,15 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_model_info(self):
+        """ Get the model trail.
+        return: dictionary of model_id: committed_at
+        rtype: dict
         """
-
-        :return:
-        """
-        ret = self.model.find_one({'key': 'model_trail'})
+        result = self.model.find_one({'key': 'model_trail'})
         try:
-            if ret:
-                committed_at = ret['committed_at']
-                model = ret['model']
+            if result is not None:
+                committed_at = result['committed_at']
+                model = result['model']
                 model_dictionary = dict(zip(model, committed_at))
                 return model_dictionary
             else:
@@ -259,13 +278,19 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
-    def get_events(self):
+    def get_events(self, **kwargs):
+        """ Get events from the database.
+        param kwargs: query to filter events
+        type kwargs: dict
+        return: events matching query
+        rtype: ObjectId
         """
-
-        :return:
-        """
-        ret = self.control.status.find({})
-        return ret
+        # check if kwargs is empty
+        if not kwargs:
+            return self.control.status.find()
+        else:
+            result = self.control.status.find(kwargs)
+        return result
 
     def get_storage_backend(self):
         """  """
@@ -307,7 +332,10 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_combiner(self, name):
-        """ """
+        """ Get combiner by name.
+        return: combiner dictionary
+        rtype: dict
+        """
         try:
             ret = self.combiners.find_one({'name': name})
             return ret
@@ -315,7 +343,10 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_combiners(self):
-        """ """
+        """ Get all combiners in the network. 
+        return: list of combiner dictionaries
+        rtype: list
+        """
         try:
             ret = self.combiners.find()
             return list(ret)
