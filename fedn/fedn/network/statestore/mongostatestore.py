@@ -210,6 +210,20 @@ class MongoStateStore(StateStoreBase):
 
         return self.rounds.find()
 
+    def get_validations(self, **kwargs):
+        """ Get validations from the database.
+        param kwargs: query to filter validations
+        type kwargs: dict
+        return: validations matching query
+        rtype: ObjectId
+        """
+        # check if kwargs is empty
+        if not kwargs:
+            return self.control.validations.find()
+        else:
+            result = self.control.validations.find(kwargs)
+        return result
+
     def set_compute_package(self, filename):
         """ Set the active compute package.
 

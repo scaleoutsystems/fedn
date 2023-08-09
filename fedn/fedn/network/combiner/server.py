@@ -12,10 +12,10 @@ from enum import Enum
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
 
@@ -99,6 +99,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if status == Status.UnAuthorized:
                 print(response, flush=True)
                 sys.exit("Exiting: Unauthorized")
+            if status == Status.UnMatchedConfig:
+                print(response, flush=True)
+                sys.exit("Exiting: Missing config")
 
         cert = announce_config['certificate']
         key = announce_config['key']

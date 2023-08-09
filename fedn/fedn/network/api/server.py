@@ -1,9 +1,9 @@
 import uuid
 
 from flask import Flask, jsonify, request
-from interface import API
 
 from fedn.common.config import get_network_config, get_statestore_config
+from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
 from fedn.network.statestore.mongostatestore import MongoStateStore
 
@@ -250,8 +250,20 @@ def get_events():
     return: The events as a json object.
     rtype: json
     """
+    # TODO: except filter with request.get_json()
     kwargs = request.args.to_dict()
     return api.get_events(**kwargs)
+
+
+@app.route('/list_validations', methods=['GET'])
+def list_validations():
+    """ Get all validations from the statestore.
+    return: All validations as a json object.
+    rtype: json
+    """
+    # TODO: except filter with request.get_json()
+    kwargs = request.args.to_dict()
+    return api.get_all_validations(**kwargs)
 
 
 @app.route('/add_combiner', methods=['POST'])
@@ -261,25 +273,20 @@ def add_combiner():
     rtype: json
     """
 
-    name = request.args.get('name', None)
-    address = str(request.args.get('address', None))
+    # name = request.args.get('name', None)
+    # address = str(request.args.get('address', None))
+    # remote_addr = request.remote_addr
+    # fqdn = str(request.args.get('fqdn', None))
+    # port = request.args.get('port', None)
+    # secure_grpc = request.args.get('secure', None)
+
+    json_data = request.get_json()
     remote_addr = request.remote_addr
-    fqdn = str(request.args.get('fqdn', None))
-    port = request.args.get('port', None)
-    secure_grpc = request.args.get('secure', None)
-
-    if None in [name, address, secure_grpc, port]:
-        message = "Missing required parameters: name, address, secure_grpc, port. Got None."
-        return jsonify({'success': False, 'message': message})
-
-    return api.add_combiner(combiner_id=name,
-                            address=address,
-                            remote_addr=remote_addr,
-                            fqdn=fqdn,
-                            port=port,
-                            secure_grpc=secure_grpc)
-
-# Add client endpoint
+    try:
+        response = api.add_combiner(**json_data, remote_addr=remote_addr)
+    except TypeError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    return response
 
 
 @app.route('/add_client', methods=['POST'])
@@ -289,12 +296,13 @@ def add_client():
     rtype: json
     """
 
-    name = request.args.get('name', None)
-    preferred_combiner = str(request.args.get('combiner', None))
+    json_data = request.get_json()
     remote_addr = request.remote_addr
-    return api.add_client(client_id=name,
-                          preferred_combiner=preferred_combiner,
-                          remote_addr=remote_addr)
+    try:
+        response = api.add_client(**json_data, remote_addr=remote_addr)
+    except TypeError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    return response
 
 
 if __name__ == '__main__':

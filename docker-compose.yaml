@@ -95,6 +95,9 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    depends_on:
+      - minio
+      - mongo
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/python fedn/fedn/network/api/server.py"

@@ -15,14 +15,12 @@ from distutils.dir_util import copy_tree
 from io import BytesIO
 
 import grpc
-from flask import Flask
 from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.control.package import PackageRuntime
-from fedn.common.net.connect import ConnectorClient, Status
-from fedn.common.net.web.client import page, style
+from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
@@ -108,6 +106,105 @@ class Client:
         self._subscribe_to_combiner(config)
 
         self.state = ClientState.idle
+
+    def _assign(self):
+        """Contacts the controller and asks for combiner assignment.
+
+        :return: A configuration dictionary containing connection information for combiner.
+        :rtype: dict
+        """
+
+        print("Asking for assignment!", flush=True)
+        while True:
+            status, response = self.connector.assign()
+            if status == Status.TryAgain:
+                print(response, flush=True)
+                time.sleep(5)
+                continue
+            if status == Status.Assigned:
+                client_config = response
+                break
+            if status == Status.UnAuthorized:
+                print(response, flush=True)
+                sys.exit("Exiting: Unauthorized")
+            if status == Status.UnMatchedConfig:
+                print(response, flush=True)
+                sys.exit("Exiting: UnMatchedConfig")
+            time.sleep(5)
+            print(".", end=' ', flush=True)
+
+        print("Got assigned!", flush=True)
+        return client_config
+
+    def _connect(self, client_config):
+        """Connect to assigned combiner.
+
+        :param client_config: A configuration dictionary containing connection information for
+        the combiner.
+        :type client_config: dict
+        """
+
+        # TODO use the client_config['certificate'] for setting up secure comms'
+        host = client_config['host']
+        port = client_config['port']
+        secure = False
+        if client_config['fqdn'] != "None":
+            host = client_config['fqdn']
+            # assuming https if fqdn is used
+            port = 443
+        print(f"CLIENT: Connecting to combiner host: {host}:{port}", flush=True)
+
+        if client_config['certificate']:
+            print("CLIENT: using certificate from Reducer for GRPC channel")
+            secure = True
+            cert = base64.b64decode(
+                client_config['certificate'])  # .decode('utf-8')
+            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+            secure = True
+            print("CLIENT: using root certificate from environment variable for GRPC channel")
+            with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
+                credentials = grpc.ssl_channel_credentials(f.read())
+            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        elif self.config['secure']:
+            secure = True
+            print("CLIENT: using CA certificate for GRPC channel")
+            cert = ssl.get_server_certificate((host, port))
+
+            credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
+            if self.config['token']:
+                token = self.config['token']
+                auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
+            else:
+                channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+        else:
+            print("CLIENT: using insecure GRPC channel")
+            if port == 443:
+                port = 80
+            channel = grpc.insecure_channel("{}:{}".format(
+                host,
+                str(port)))
+
+        self.channel = channel
+
+        self.connectorStub = rpc.ConnectorStub(channel)
+        self.combinerStub = rpc.CombinerStub(channel)
+        self.modelStub = rpc.ModelServiceStub(channel)
+
+        print("Client: {} connected {} to {}:{}".format(self.name,
+                                                        "SECURED" if secure else "INSECURE",
+                                                        host,
+                                                        port),
+              flush=True)
+
+        print("Client: Using {} compute package.".format(
+            client_config["package"]))
+
+    def _disconnect(self):
+        """Disconnect from the combiner."""
+        self.channel.close()
 
     def _detach(self):
         """Detach from the FEDn network (disconnect from combiner)"""
@@ -232,104 +329,6 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-    def _assign(self):
-        """Contacts the controller and asks for combiner assignment.
-
-        :return: A configuration dictionary containing connection information for combiner.
-        :rtype: dict
-        """
-
-        print("Asking for assignment!", flush=True)
-        while True:
-            status, response = self.connector.assign()
-            if status == Status.TryAgain:
-                print(response, flush=True)
-                time.sleep(5)
-                continue
-            if status == Status.Assigned:
-                client_config = response
-                break
-            if status == Status.UnAuthorized:
-                print(response, flush=True)
-                sys.exit("Exiting: Unauthorized")
-            if status == Status.UnMatchedConfig:
-                print(response, flush=True)
-                sys.exit("Exiting: UnMatchedConfig")
-            time.sleep(5)
-            print(".", end=' ', flush=True)
-
-        print("Got assigned!", flush=True)
-        return client_config
-
-    def _connect(self, client_config):
-        """Connect to assigned combiner.
-
-        :param client_config: A configuration dictionary containing connection information for
-        the combiner.
-        :type client_config: dict
-        """
-
-        # TODO use the client_config['certificate'] for setting up secure comms'
-        host = client_config['host']
-        port = client_config['port']
-        secure = False
-        if client_config['fqdn'] != "None":
-            host = client_config['fqdn']
-            # assuming https if fqdn is used
-            port = 443
-        print(f"CLIENT: Connecting to combiner host: {host}:{port}", flush=True)
-
-        if client_config['certificate']:
-            print("CLIENT: using certificate from Reducer for GRPC channel")
-            secure = True
-            cert = base64.b64decode(
-                client_config['certificate'])  # .decode('utf-8')
-            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
-            secure = True
-            print("CLIENT: using root certificate from environment variable for GRPC channel")
-            with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
-                credentials = grpc.ssl_channel_credentials(f.read())
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif self.config['secure']:
-            secure = True
-            print("CLIENT: using CA certificate for GRPC channel")
-            cert = ssl.get_server_certificate((host, port))
-
-            credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
-            if self.config['token']:
-                token = self.config['token']
-                auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
-                channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
-            else:
-                channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        else:
-            print("CLIENT: using insecure GRPC channel")
-            if port == 443:
-                port = 80
-            channel = grpc.insecure_channel("{}:{}".format(
-                host,
-                str(port)))
-
-        self.channel = channel
-
-        self.connection = rpc.ConnectorStub(channel)
-        self.orchestrator = rpc.CombinerStub(channel)
-        self.models = rpc.ModelServiceStub(channel)
-
-        print("Client: {} connected {} to {}:{}".format(self.name,
-                                                        "SECURED" if secure else "INSECURE",
-                                                        host,
-                                                        port),
-              flush=True)
-
-        print("Client: Using {} compute package.".format(
-            client_config["package"]))
-
-    def _disconnect(self):
-        self.channel.close()
-
     def get_model(self, id):
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel, Download.
@@ -342,7 +341,7 @@ class Client:
         """
         data = BytesIO()
 
-        for part in self.models.Download(fedn.ModelRequest(id=id)):
+        for part in self.modelStub.Download(fedn.ModelRequest(id=id)):
 
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -398,7 +397,7 @@ class Client:
                 if not b:
                     break
 
-        result = self.models.Upload(upload_request_generator(bt))
+        result = self.modelStub.Upload(upload_request_generator(bt))
 
         return result
 
@@ -416,7 +415,7 @@ class Client:
 
         while True:
             try:
-                for request in self.orchestrator.ModelUpdateRequestStream(r, metadata=metadata):
+                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=metadata):
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
@@ -451,7 +450,7 @@ class Client:
         r.sender.role = fedn.WORKER
         while True:
             try:
-                for request in self.orchestrator.ModelValidationRequestStream(r):
+                for request in self.combinerStub.ModelValidationRequestStream(r):
                     # Process validation request
                     _ = request.model_id
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
@@ -467,86 +466,6 @@ class Client:
 
             if not self._attached:
                 return
-
-    def process_request(self):
-        """Process training and validation tasks. """
-        while True:
-
-            if not self._attached:
-                return
-
-            try:
-                (task_type, request) = self.inbox.get(timeout=1.0)
-                if task_type == 'train':
-
-                    tic = time.time()
-                    self.state = ClientState.training
-                    model_id, meta = self._process_training_request(
-                        request.model_id)
-                    processing_time = time.time()-tic
-                    meta['processing_time'] = processing_time
-                    meta['config'] = request.data
-
-                    if model_id is not None:
-                        # Send model update to combiner
-                        update = fedn.ModelUpdate()
-                        update.sender.name = self.name
-                        update.sender.role = fedn.WORKER
-                        update.receiver.name = request.sender.name
-                        update.receiver.role = request.sender.role
-                        update.model_id = request.model_id
-                        update.model_update_id = str(model_id)
-                        update.timestamp = str(datetime.now())
-                        update.correlation_id = request.correlation_id
-                        update.meta = json.dumps(meta)
-                        # TODO: Check responses
-                        _ = self.orchestrator.SendModelUpdate(update)
-                        self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE, request=update)
-
-                    else:
-                        self._send_status("Client {} failed to complete model update.",
-                                          log_level=fedn.Status.WARNING,
-                                          request=request)
-                    self.state = ClientState.idle
-                    self.inbox.task_done()
-
-                elif task_type == 'validate':
-                    self.state = ClientState.validating
-                    metrics = self._process_validation_request(
-                        request.model_id, request.is_inference)
-
-                    if metrics is not None:
-                        # Send validation
-                        validation = fedn.ModelValidation()
-                        validation.sender.name = self.name
-                        validation.sender.role = fedn.WORKER
-                        validation.receiver.name = request.sender.name
-                        validation.receiver.role = request.sender.role
-                        validation.model_id = str(request.model_id)
-                        validation.data = json.dumps(metrics)
-                        self.str = str(datetime.now())
-                        validation.timestamp = self.str
-                        validation.correlation_id = request.correlation_id
-                        _ = self.orchestrator.SendModelValidation(
-                            validation)
-
-                        # Set status type
-                        if request.is_inference:
-                            status_type = fedn.StatusType.INFERENCE
-                        else:
-                            status_type = fedn.StatusType.MODEL_VALIDATION
-
-                        self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                          type=status_type, request=validation)
-                    else:
-                        self._send_status("Client {} failed to complete model validation.".format(self.name),
-                                          log_level=fedn.Status.WARNING, request=request)
-
-                    self.state = ClientState.idle
-                    self.inbox.task_done()
-            except queue.Empty:
-                pass
 
     def _process_training_request(self, model_id):
         """Process a training (model update) request.
@@ -651,6 +570,86 @@ class Client:
         self.state = ClientState.idle
         return validation
 
+    def process_request(self):
+        """Process training and validation tasks. """
+        while True:
+
+            if not self._attached:
+                return
+
+            try:
+                (task_type, request) = self.inbox.get(timeout=1.0)
+                if task_type == 'train':
+
+                    tic = time.time()
+                    self.state = ClientState.training
+                    model_id, meta = self._process_training_request(
+                        request.model_id)
+                    processing_time = time.time()-tic
+                    meta['processing_time'] = processing_time
+                    meta['config'] = request.data
+
+                    if model_id is not None:
+                        # Send model update to combiner
+                        update = fedn.ModelUpdate()
+                        update.sender.name = self.name
+                        update.sender.role = fedn.WORKER
+                        update.receiver.name = request.sender.name
+                        update.receiver.role = request.sender.role
+                        update.model_id = request.model_id
+                        update.model_update_id = str(model_id)
+                        update.timestamp = str(datetime.now())
+                        update.correlation_id = request.correlation_id
+                        update.meta = json.dumps(meta)
+                        # TODO: Check responses
+                        _ = self.combinerStub.SendModelUpdate(update)
+                        self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
+                                          type=fedn.StatusType.MODEL_UPDATE, request=update)
+
+                    else:
+                        self._send_status("Client {} failed to complete model update.",
+                                          log_level=fedn.Status.WARNING,
+                                          request=request)
+                    self.state = ClientState.idle
+                    self.inbox.task_done()
+
+                elif task_type == 'validate':
+                    self.state = ClientState.validating
+                    metrics = self._process_validation_request(
+                        request.model_id, request.is_inference)
+
+                    if metrics is not None:
+                        # Send validation
+                        validation = fedn.ModelValidation()
+                        validation.sender.name = self.name
+                        validation.sender.role = fedn.WORKER
+                        validation.receiver.name = request.sender.name
+                        validation.receiver.role = request.sender.role
+                        validation.model_id = str(request.model_id)
+                        validation.data = json.dumps(metrics)
+                        self.str = str(datetime.now())
+                        validation.timestamp = self.str
+                        validation.correlation_id = request.correlation_id
+                        _ = self.combinerStub.SendModelValidation(
+                            validation)
+
+                        # Set status type
+                        if request.is_inference:
+                            status_type = fedn.StatusType.INFERENCE
+                        else:
+                            status_type = fedn.StatusType.MODEL_VALIDATION
+
+                        self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
+                                          type=status_type, request=validation)
+                    else:
+                        self._send_status("Client {} failed to complete model validation.".format(self.name),
+                                          log_level=fedn.Status.WARNING, request=request)
+
+                    self.state = ClientState.idle
+                    self.inbox.task_done()
+            except queue.Empty:
+                pass
+
     def _handle_combiner_failure(self):
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
@@ -670,7 +669,7 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(
                 name=self.name, role=fedn.WORKER))
             try:
-                self.connection.SendHeartbeat(heartbeat)
+                self.connectorStub.SendHeartbeat(heartbeat)
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
@@ -709,33 +708,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        _ = self.connection.SendStatus(status)
-
-    def run_web(self):
-        """Starts a local logging UI (Flask app) serving on port 8080.
-
-        Currently not in use.
-
-        """
-        app = Flask(__name__)
-
-        @ app.route('/')
-        def index():
-            """
-
-            :return:
-            """
-            logs_fancy = str()
-            for log in self.logs:
-                logs_fancy += "<p>" + log + "</p>\n"
-
-            return page.format(client=self.name, state=ClientStateToString(self.state), style=style, logs=logs_fancy)
-
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-        app.run(host="0.0.0.0", port="8080")
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
+        _ = self.connectorStub.SendStatus(status)
 
     def run(self):
         """ Run the client. """

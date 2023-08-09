@@ -1,10 +1,15 @@
+import base64
+import copy
 import json
 import threading
+from io import BytesIO
 
 from bson import json_util
 from flask import jsonify
 
-from fedn.network.state import ReducerStateToString
+from fedn.network.combiner.interfaces import (CombinerInterface,
+                                              CombinerUnavailableError)
+from fedn.network.state import ReducerState, ReducerStateToString
 
 
 class API:
@@ -13,6 +18,17 @@ class API:
     def __init__(self, statestore, control):
         self.statestore = statestore
         self.control = control
+        self.name = 'api'
+
+    def _to_dict(self):
+        """ Convert the object to a dict.
+        return: The object as a dict.
+        rtype: dict
+        """
+        data = {
+            'name': self.name
+        }
+        return data
 
     def _get_combiner_report(self, combiner_id):
         """ Get report response from combiner.
@@ -176,6 +192,9 @@ class API:
         return: The events as a json object.
         rtype: json
         """
+        event_objects = self.statestore.get_events(**kwargs)
+        if event_objects is None or len(list(event_objects)) == 0:
+            return jsonify({"success": False, "message": "No events found."}), 404
         json_docs = []
         for doc in self.statestore.get_events(**kwargs):
             json_doc = json.dumps(doc, default=json_util.default)
@@ -184,13 +203,61 @@ class API:
         json_docs.reverse()
         return jsonify({'events': json_docs})
 
-    def add_combiner(self, combiner_id, secure_grpc, name, address, remote_addr, fqdn, port):
+    def get_all_validations(self, **kwargs):
+        """ Get all validations from the statestore.
+        return: All validations as a json object.
+        rtype: json
+        """
+        validations_objects = self.statestore.get_validations(**kwargs)
+        if validations_objects is None or len(list(validations_objects)) == 0:
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No validations found.",
+                    "filter_used": kwargs
+                }
+            ), 404
+        payload = {}
+        for object in validations_objects:
+            id = str(object['_id'])
+            info = {
+                'model_id': object['modelId'],
+                'data': object['data'],
+                'timestamp': object['timestamp'],
+                'meta': object['meta'],
+                'sender': object['sender'],
+                'receiver': object['receiver'],
+            }
+            payload[id] = info
+        return jsonify(payload)
+
+    def add_combiner(self, combiner_id, secure_grpc, address, remote_addr, fqdn, port):
         """ Add a combiner to the network.
         param: combiner_id: The combiner id to add.
         type: combiner_id: str
-        return: True if the combiner was added, else False.
-        rtype: bool
+        param: secure_grpc: Whether to use secure grpc or not.
+        type: secure_grpc: bool
+        param: name: The name of the combiner.
+        type: name: str
+        param: address: The address of the combiner.
+        type: address: str
+        param: remote_addr: The remote address of the combiner.
+        type: remote_addr: str
+        param: fqdn: The fqdn of the combiner.
+        type: fqdn: str
+        param: port: The port of the combiner.
+        type: port: int
+        return: Config of the combiner as a json object.
+        rtype: json
         """
+        # TODO: Any more required check for config? Formerly based on status: "retry"
+        if not self.control.idle():
+            return jsonify({
+                'success': False,
+                'status': 'retry',
+                'message': 'Conroller is not in idle state, try again later. '
+            }
+            )
         # Check if combiner already exists
         combiner = self.control.network.get_combiner(combiner_id)
         if not combiner:
@@ -205,7 +272,7 @@ class API:
                 key = None
 
             combiner_interface = CombinerInterface(
-                self,
+                parent=self._to_dict(),
                 name=combiner_id,
                 address=address,
                 fqdn=fqdn,
@@ -225,8 +292,8 @@ class API:
             'success': True,
             'message': 'Combiner added successfully.',
             'status': 'added',
-            'storage': self.control.statestore.get_storage_backend(),
-            'statestore': self.control.statestore.get_config(),
+            'storage': self.statestore.get_storage_backend(),
+            'statestore': self.statestore.get_config(),
             'certificate': combiner.get_certificate(),
             'key': combiner.get_key()
         }
@@ -243,6 +310,11 @@ class API:
         return: True if the client was added, else False. As json.
         rtype: json
         """
+        # Check if package has been set
+        package_object = self.statestore.get_compute_package()
+        if package_object is None:
+            return jsonify({'success': False, 'status': 'retry', 'message': 'No compute package found. Set package in controller.'}), 203
+
         # Assign client to combiner
         if preferred_combiner:
             combiner = self.control.network.get_combiner(preferred_combiner)
@@ -406,13 +478,13 @@ class API:
         rtype: json
         """
         # Check if session already exists
-        #session = self.control.get_session(session_id)
-        # if session:
-        #    return jsonify({'success': False, 'message': 'Session already exists.'})
+        session = self.control.get_session(session_id)
+        if session:
+            return jsonify({'success': False, 'message': 'Session already exists.'})
 
         # Check if session is running
-        # if self.control.state() == ReducerState.RUNNING:
-        #    return jsonify({'success': False, 'message': 'A session is already running.'})
+        if self.control.state() == ReducerState.monitoring:
+            return jsonify({'success': False, 'message': 'A session is already running.'})
 
         # Check available clients per combiner
         clients_available = 0
@@ -421,8 +493,11 @@ class API:
                 combiner_state = combiner.report()
                 nr_active_clients = combiner_state['nr_active_clients']
                 clients_available = clients_available + int(nr_active_clients)
-            except Exception:
-                pass
+            except CombinerUnavailableError as e:
+                # TODO: Handle unavailable combiner, stop session or continue?
+                print("COMBINER UNAVAILABLE: {}".format(e), flush=True)
+                continue
+
         if clients_available < min_clients:
             return jsonify({'success': False, 'message': 'Not enough clients available to start session.'})
 

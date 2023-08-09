@@ -114,7 +114,7 @@ class CombinerInterface:
         """
 
         data = {
-            'parent': self.parent.to_dict(),
+            'parent': self.parent,
             'name': self.name,
             'address': self.address,
             'fqdn': self.fqdn,
