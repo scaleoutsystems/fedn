@@ -78,15 +78,15 @@ class TestChecks(unittest.TestCase):
 
     def test_check_initial_model(self):
 
-        self.restservice.control.get_latest_model.return_value = 'model-uid'
+        self.restservice.statestore.get_latest_model.return_value = 'model-uid'
         retval = self.restservice.check_initial_model()
         self.assertTrue(retval)
 
-        self.restservice.control.get_latest_model.return_value = None
+        self.restservice.statestore.get_latest_model.return_value = None
         retval = self.restservice.check_initial_model()
         self.assertFalse(retval)
 
-        self.restservice.control.get_latest_model.return_value = ''
+        self.restservice.statestore.get_latest_model.return_value = ''
         retval = self.restservice.check_initial_model()
         self.assertFalse(retval)
 

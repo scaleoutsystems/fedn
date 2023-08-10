@@ -122,16 +122,18 @@ class MongoStateStore(StateStoreBase):
         return data
 
     def state(self):
-        """
+        """ Get the current state.
 
-        :return:
+        :return: The current state.
+        rtype: str
         """
         return StringToReducerState(self.state.find_one()['current_state'])
 
     def transition(self, state):
-        """
+        """ Transition to a new state.
 
-        :param state:
+        :param state: The new state.
+        type state: str
         :return:
         """
         old_state = self.state.find_one({'state': 'current_state'})
@@ -142,17 +144,27 @@ class MongoStateStore(StateStoreBase):
                 ReducerStateToString(state)))
 
     def get_sessions(self):
-        """ Get all sessions. """
+        """ Get all sessions. 
+        return: All sessions.
+        rtype: ObjectID
+        """
         return self.sessions.find()
 
     def get_session(self, session_id):
-        """ Get session with id. """
+        """ Get session with id. 
+        param session_id: The session id.
+        type session_id: str
+        return: The session.
+        rtype: ObjectID
+        """
         return self.sessions.find_one({'session_id': session_id})
 
-    def set_latest(self, model_id):
-        """
+    def set_latest_model(self, model_id):
+        """ Set the latest model id.
 
-        :param model_id:
+        :param model_id: The model id.
+        type model_id: str
+        :return:
         """
 
         self.model.update_one({'key': 'current_model'}, {
@@ -160,8 +172,12 @@ class MongoStateStore(StateStoreBase):
         self.model.update_one({'key': 'model_trail'}, {'$push': {'model': model_id, 'committed_at': str(datetime.now())}},
                               True)
 
-    def get_first(self):
-        """ Return model_id for the initial model in the model_trail """
+    def get_initial_model(self):
+        """ Return model_id for the initial model in the model trail 
+
+        :return: The initial model id. None if no model is found.
+        rtype: str
+        """
 
         result = self.model.find_one({'key': 'model_trail'}, sort=[
             ("committed_at", pymongo.ASCENDING)])
@@ -170,14 +186,18 @@ class MongoStateStore(StateStoreBase):
 
         try:
             model_id = result['model']
-            if model_id == '' or model_id == ' ':  # ugly check for empty string
+            if model_id == '' or model_id == ' ':
                 return None
             return model_id[0]
         except (KeyError, IndexError):
             return None
 
-    def get_latest(self):
-        """ Return model_id for the latest model in the model_trail """
+    def get_latest_model(self):
+        """ Return model_id for the latest model in the model_trail 
+
+        :return: The latest model id. None if no model is found.
+        rtype: str
+        """
         result = self.model.find_one({'key': 'current_model'})
         if result is None:
             return None
@@ -191,7 +211,11 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_latest_round(self):
-        """ Get the id of the most recent round. """
+        """ Get the id of the most recent round. 
+
+        :return: The id of the most recent round.
+        rtype: ObjectId
+        """
 
         return self.rounds.find_one(sort=[("_id", pymongo.DESCENDING)])
 
@@ -206,7 +230,10 @@ class MongoStateStore(StateStoreBase):
         return self.rounds.find_one({'round_id': str(id)})
 
     def get_rounds(self):
-        """ Get all rounds. """
+        """ Get all rounds.
+        return: All rounds.
+        rtype: ObjectId
+        """
 
         return self.rounds.find()
 
@@ -217,17 +244,17 @@ class MongoStateStore(StateStoreBase):
         return: validations matching query
         rtype: ObjectId
         """
-        # check if kwargs is empty
-        if not kwargs:
-            return self.control.validations.find()
-        else:
-            result = self.control.validations.find(kwargs)
+
+        result = self.control.validations.find(kwargs)
         return result
 
     def set_compute_package(self, filename):
         """ Set the active compute package in statestore.
 
-        :param filename:
+        :param filename: The filename of the compute package.
+        type filename: str
+        :return: True if successful.
+        rtype: bool
         """
         self.control.package.update_one(
             {'key': 'active'}, {'$set': {'filename': filename, 'committed_at': str(datetime.now())}}, True)
@@ -238,7 +265,8 @@ class MongoStateStore(StateStoreBase):
     def get_compute_package(self):
         """ Get the active compute package.
 
-        :return:
+        :return: The active compute package.
+        rtype: ObjectID
         """
         ret = self.control.package.find({'key': 'active'})
         try:
@@ -250,17 +278,20 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def set_helper(self, helper):
-        """
+        """ Set the active helper package in statestore.
 
-        :param helper:
+        :param helper: The name of the helper package. See helper.py for available helpers.
+        type helper: str
+        :return:
         """
         self.control.package.update_one({'key': 'active'},
                                         {'$set': {'helper': helper}}, True)
 
     def get_helper(self):
-        """
+        """ Get the active helper package.
 
-        :return:
+        :return: The active helper set for the package.
+        rtype: str
         """
         ret = self.control.package.find_one({'key': 'active'})
         # if local compute package used, then 'package' is None
@@ -275,7 +306,7 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
-    def get_model_info(self):
+    def get_model_trail(self):
         """ Get the model trail.
         return: dictionary of model_id: committed_at
         rtype: dict
@@ -307,7 +338,11 @@ class MongoStateStore(StateStoreBase):
         return result
 
     def get_storage_backend(self):
-        """  """
+        """ Get the storage backend.
+
+        :return: The storage backend.
+        rtype: ObjectID
+        """
         try:
             ret = self.storage.find(
                 {'status': 'enabled'}, projection={'_id': False})
@@ -316,7 +351,12 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def set_storage_backend(self, config):
-        """ """
+        """ Set the storage backend.
+
+        :param config: The storage backend configuration.
+        type config: dict
+        :return:
+        """
         config = copy.deepcopy(config)
         config['updated_at'] = str(datetime.now())
         config['status'] = 'enabled'
@@ -324,31 +364,29 @@ class MongoStateStore(StateStoreBase):
             {'storage_type': config['storage_type']}, {'$set': config}, True)
 
     def set_reducer(self, reducer_data):
-        """ """
+        """ Set the reducer in the statestore.
+        param reducer_data: dictionary of reducer config.
+        type reducer_data: dict
+        """
         reducer_data['updated_at'] = str(datetime.now())
         self.reducer.update_one({'name': reducer_data['name']}, {
             '$set': reducer_data}, True)
 
     def get_reducer(self):
-        """ """
+        """ Get reducer.config.
+        return: reducer config.
+        rtype: ObjectId
+        """
         try:
             ret = self.reducer.find_one()
             return ret
         except Exception:
             return None
 
-    def list_combiners(self):
-        """ """
-        try:
-            ret = self.combiners.find()
-            return list(ret)
-        except Exception:
-            return None
-
     def get_combiner(self, name):
         """ Get combiner by name.
-        return: combiner dictionary
-        rtype: dict
+        return: The combiner.
+        rtype: ObjectId
         """
         try:
             ret = self.combiners.find_one({'name': name})
@@ -357,8 +395,8 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_combiners(self):
-        """ Get all combiners in the network. 
-        return: list of combiner dictionaries
+        """ Get all combiners. 
+        return: list of combiners.
         rtype: list
         """
         try:
@@ -368,9 +406,9 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def set_combiner(self, combiner_data):
-        """
-            Set or update combiner record.
-            combiner_data: dictionary, output of combiner.to_dict())
+        """ Set combiner in statestore.
+        param combiner_data: dictionary of combiner config
+        type combiner_data: dict
         """
 
         combiner_data['updated_at'] = str(datetime.now())
@@ -378,7 +416,10 @@ class MongoStateStore(StateStoreBase):
             '$set': combiner_data}, True)
 
     def delete_combiner(self, combiner):
-        """ Delete a combiner entry. """
+        """ Delete a combiner from statestore.
+         param combiner: name of combiner to delete.
+         type combiner: str
+        """
         try:
             self.combiners.delete_one({'name': combiner})
         except Exception:
@@ -386,16 +427,23 @@ class MongoStateStore(StateStoreBase):
                 combiner), flush=True)
 
     def set_client(self, client_data):
-        """
-            Set or update client record.
-            client_data: dictionarys
+        """ Set client in statestore.
+
+        param client_data: dictionary of client config.
+        type client_data: dict
         """
         client_data['updated_at'] = str(datetime.now())
         self.clients.update_one({'name': client_data['name']}, {
             '$set': client_data}, True)
 
     def get_client(self, name):
-        """ Retrive a client record by name. """
+        """ Get client by name.
+
+        param name: name of client to get.
+        type name: str
+        return: The client. None if not found.
+        rtype: ObjectId
+        """
         try:
             ret = self.clients.find({'key': name})
             if list(ret) == []:
@@ -406,7 +454,11 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def list_clients(self):
-        """List all clients registered on the network. """
+        """List all clients registered on the network. 
+
+        return: list of clients.
+        rtype: list(ObjectId)
+        """
         try:
             ret = self.clients.find()
             return list(ret)
@@ -414,9 +466,14 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def update_client_status(self, client_data, status, role):
-        """
-            Set or update client status.
-            assign roles to the active clients (trainer, validator, trainer-validator)
+        """ Set or update client status.
+
+        param client_data: dictionary of client config.
+        type client_data: dict
+        param status: status of client.
+        type status: str
+        param role: role of client.
+        type role: str
         """
         self.clients.update_one({"name": client_data['name']},
                                 {"$set":

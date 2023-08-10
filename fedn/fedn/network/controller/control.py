@@ -84,7 +84,7 @@ class Control(ControlBase):
         config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.new_session(config)
 
-        if not self.get_latest_model():
+        if not self.statestore.get_latest_model():
             print("No model in model chain, please provide a seed model!")
 
         self._state = ReducerState.monitoring
@@ -137,7 +137,7 @@ class Control(ControlBase):
         round_config['rounds'] = 1
         round_config['round_id'] = round_id
         round_config['task'] = 'training'
-        round_config['model_id'] = self.get_latest_model()
+        round_config['model_id'] = self.statestore.get_latest_model()
         round_config['helper_type'] = self.statestore.get_helper()
 
         combiners = self.get_participating_combiners(round_config)
@@ -227,7 +227,7 @@ class Control(ControlBase):
         if validate:
             combiner_config = copy.deepcopy(session_config)
             combiner_config['round_id'] = round_id
-            combiner_config['model_id'] = self.get_latest_model()
+            combiner_config['model_id'] = self.statestore.get_latest_model()
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_helper()
 
@@ -311,7 +311,7 @@ class Control(ControlBase):
         self.__state = ReducerState.instructing
 
         # Check for a model chain
-        if not self.get_latest_model():
+        if not self.statestore.latest_model():
             print("No model in model chain, please seed the alliance!")
 
         # Set reducer in monitoring state
@@ -342,7 +342,7 @@ class Control(ControlBase):
 
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
-        combiner_config['model_id'] = self.get_latest_model()
+        combiner_config['model_id'] = self.statestore.get_latest_model()
         combiner_config['task'] = 'inference'
         combiner_config['helper_type'] = self.statestore.get_framework()
 

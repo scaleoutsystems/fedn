@@ -151,7 +151,7 @@ class ReducerRestService:
         :rtype: bool
         """
 
-        if self.control.get_latest_model():
+        if self.statestore.get_latest_model():
             return True
         else:
             return False
@@ -500,7 +500,7 @@ class ReducerRestService:
                     box_plot = None
                     print(e, flush=True)
 
-                h_latest_model_id = self.control.get_latest_model()
+                h_latest_model_id = self.statestore.get_latest_model()
 
                 model_info = self.control.get_model_info()
                 return render_template('models.html', box_plot=box_plot, metrics=valid_metrics, h_latest_model_id=h_latest_model_id, seed=True,
@@ -599,7 +599,7 @@ class ReducerRestService:
                 helper_type = request.form.get('helper', 'keras')
                 # self.control.statestore.set_framework(helper_type)
 
-                latest_model_id = self.control.get_latest_model()
+                latest_model_id = self.statestore.get_latest_model()
 
                 config = {'round_timeout': round_timeout, 'model_id': latest_model_id,
                           'rounds': rounds, 'delete_models_storage': delete_models,
@@ -618,7 +618,7 @@ class ReducerRestService:
                 latest_model_id = None
                 try:
                     seed_model_id = self.control.get_first_model()
-                    latest_model_id = self.control.get_latest_model()
+                    latest_model_id = self.statestore.get_latest_model()
                 except Exception:
                     pass
 
@@ -1000,7 +1000,7 @@ discover_port: {discover_port}
 
             # Start inference request
             config = {'round_timeout': timeout,
-                      'model_id': self.control.get_latest_model(),
+                      'model_id': self.statestore.get_latest_model(),
                       'clients_required': clients_required,
                       'clients_requested': clients_requested,
                       'task': 'inference',

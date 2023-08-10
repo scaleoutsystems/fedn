@@ -25,7 +25,7 @@ class StateStoreBase(ABC):
         pass
 
     @abstractmethod
-    def set_latest(self, model_id):
+    def set_latest_model(self, model_id):
         """
 
         :param model_id:
@@ -33,7 +33,7 @@ class StateStoreBase(ABC):
         pass
 
     @abstractmethod
-    def get_latest(self):
+    def get_latest_model(self):
         """
 
         """

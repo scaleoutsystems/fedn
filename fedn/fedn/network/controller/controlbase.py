@@ -97,26 +97,12 @@ class ControlBase(ABC):
         else:
             return False
 
-    def get_first_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_first()
-
-    def get_latest_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_latest()
-
     def get_model_info(self):
         """
 
         :return:
         """
-        return self.statestore.get_model_info()
+        return self.statestore.get_model_trail()
 
     # TODO: remove use statestore.get_events() instead
     def get_events(self):
@@ -206,7 +192,7 @@ class ControlBase(ABC):
 
         print("CONTROL: Committing model {} to global model trail in statestore...".format(
             model_id), flush=True)
-        self.statestore.set_latest(model_id)
+        self.statestore.set_latest_model(model_id)
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():

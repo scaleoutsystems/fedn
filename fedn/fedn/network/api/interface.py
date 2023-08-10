@@ -198,7 +198,7 @@ class API:
         rtype: str
         """
         package_objects = self.statestore.get_compute_package()
-        if package_objects is None or len(package_objects) == 0:
+        if package_objects is None:
             message = "No compute package found."
             return None, message
         else:
@@ -289,7 +289,7 @@ class API:
         rtype: json
         """
         event_objects = self.statestore.get_events(**kwargs)
-        if event_objects is None or len(list(event_objects)) == 0:
+        if event_objects is None:
             return jsonify({"success": False, "message": "No events found."}), 404
         json_docs = []
         for doc in self.statestore.get_events(**kwargs):
@@ -305,7 +305,7 @@ class API:
         rtype: json
         """
         validations_objects = self.statestore.get_validations(**kwargs)
-        if validations_objects is None or len(list(validations_objects)) == 0:
+        if validations_objects is None:
             return jsonify(
                 {
                     "success": False,
@@ -459,10 +459,8 @@ class API:
         return: The initial model as a json object.
         rtype: json
         """
-        model_id = self.control.get_first_model()
+        model_id = self.statestore.get_initial_model()
         payload = {
-            'success': True,
-            'message': 'Initial model retrieved successfully.',
             'model_id': model_id
         }
         return jsonify(payload)
@@ -494,11 +492,9 @@ class API:
         return: The initial model as a json object.
         rtype: json
         """
-        if self.control.get_latest_model():
-            model_id = self.control.get_latest_model()
+        if self.statestore.get_latest_model():
+            model_id = self.statestore.get_latest_model()
             payload = {
-                'success': True,
-                'message': 'Initial model retrieved successfully.',
                 'model_id': model_id
             }
             return jsonify(payload)
@@ -512,7 +508,7 @@ class API:
         return: The model trail for the given session as a json object.
         rtype: json
         """
-        model_info = self.statestore.get_model_info()
+        model_info = self.statestore.get_model_trail()
         if model_info:
             return jsonify(model_info)
         else:
@@ -576,7 +572,7 @@ class API:
         rtype: json
         """
         # Check if session already exists
-        session = self.control.get_session(session_id)
+        session = self.statestore.get_session(session_id)
         if session:
             return jsonify({'success': False, 'message': 'Session already exists.'})
 
@@ -607,7 +603,7 @@ class API:
                 validate = False
 
         # Get lastest model as initial model for session
-        model_id = self.control.get_latest_model()
+        model_id = self.statestore.get_latest_model()
 
         # Setup session config
         session_config = {'round_timeout': round_timeout,

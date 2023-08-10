@@ -65,7 +65,6 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
-      - FLASK_ENV=development
       - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
     build:
       context: .
@@ -86,7 +85,6 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
-      - FLASK_ENV=development
       - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
     build:
       context: .
