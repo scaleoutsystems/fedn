@@ -225,7 +225,7 @@ class MongoStateStore(StateStoreBase):
         return result
 
     def set_compute_package(self, filename):
-        """ Set the active compute package.
+        """ Set the active compute package in statestore.
 
         :param filename:
         """

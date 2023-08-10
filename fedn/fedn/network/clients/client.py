@@ -19,8 +19,8 @@ from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.control.package import PackageRuntime
 from fedn.network.clients.connect import ConnectorClient, Status
+from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
@@ -134,6 +134,7 @@ class Client:
             print(".", end=' ', flush=True)
 
         print("Got assigned!", flush=True)
+        print("Received combiner config: {}".format(client_config), flush=True)
         return client_config
 
     def _connect(self, client_config):
@@ -148,7 +149,7 @@ class Client:
         host = client_config['host']
         port = client_config['port']
         secure = False
-        if client_config['fqdn'] != "None":
+        if client_config['fqdn'] is not None:
             host = client_config['fqdn']
             # assuming https if fqdn is used
             port = 443
@@ -239,8 +240,8 @@ class Client:
         :type client_config: dict
         """
 
-        if 'model_type' in client_config.keys():
-            self.helper = get_helper(client_config['model_type'])
+        if 'helper_type' in client_config.keys():
+            self.helper = get_helper(client_config['helper_type'])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.

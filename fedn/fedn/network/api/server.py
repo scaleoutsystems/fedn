@@ -174,15 +174,27 @@ def get_session():
 
 
 @app.route('/set_package', methods=['POST'])
-def set_compute_package():
+def set_package():
     """ Set the compute package in the statestore.
+        Usage with curl:
+        curl -k -X POST \
+            -F file=@package.tgz \
+            -F helper="kerashelper" \
+            http://localhost:8092/set_package
+
     param: file: The compute package file to set.
     type: file: file
     return: The response from the statestore.
     rtype: json
     """
-    file = request.files['file']
-    return api.set_compute_package(file)
+    helper_type = request.form.get('helper', None)
+    if helper_type is None:
+        return jsonify({"success": False, "message": "Missing helper type."}), 400
+    try:
+        file = request.files['file']
+    except KeyError:
+        return jsonify({"success": False, "message": "Missing file."}), 400
+    return api.set_compute_package(file=file, helper_type=helper_type)
 
 
 @app.route('/get_package', methods=['GET'])
@@ -192,6 +204,22 @@ def get_package():
     rtype: json
     """
     return api.get_compute_package()
+
+
+@app.route('/download_package', methods=['GET'])
+def download_package():
+    """ Download the compute package.
+    return: The compute package as a json object.
+    rtype: json
+    """
+    name = request.args.get('name', None)
+    return api.download_compute_package(name)
+
+
+@app.route('/get_package_checksum', methods=['GET'])
+def get_package_checksum():
+    name = request.args.get('name', None)
+    return api.get_checksum(name)
 
 
 @app.route('/get_latest_model', methods=['GET'])
@@ -216,23 +244,22 @@ def get_initial_model():
 
 @app.route('/set_initial_model', methods=['POST'])
 def set_initial_model():
-    """ Set the initial model in the statestore.
+    """ Set the initial model in the statestore and upload to model repository.
+        Usage with curl:
+        curl -k -X POST \
+            -F file=@seed.npz \   
+            http://localhost:8092/set_initial_model
+
     param: file: The initial model file to set.
     type: file: file
     return: The response from the statestore.
     rtype: json
     """
-    file = request.files['file']
+    try:
+        file = request.files['file']
+    except KeyError:
+        return jsonify({"success": False, "message": "Missing file."}), 400
     return api.set_initial_model(file)
-
-
-@app.route('/fetch_compute_package', methods=['GET'])
-def fetch_compute_package():
-    """ Fetch the compute package from the statestore.
-    return: The compute package as a json object.
-    rtype: json
-    """
-    return api.fetch_compute_package()
 
 
 @app.route('/get_controller_status', methods=['GET'])

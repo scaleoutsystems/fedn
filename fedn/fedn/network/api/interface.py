@@ -1,15 +1,18 @@
 import base64
 import copy
 import json
+import os
 import threading
 from io import BytesIO
 
 from bson import json_util
-from flask import jsonify
+from flask import jsonify, send_from_directory
+from werkzeug.utils import secure_filename
 
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
+from fedn.utils.checksum import sha
 
 
 class API:
@@ -41,6 +44,17 @@ class API:
         combiner = self.control.network.get_combiner(combiner_id)
         report = combiner.report
         return report
+
+    def _allowed_file_extension(self, filename, ALLOWED_EXTENSIONS={'gz', 'bz2', 'tar', 'zip', 'tgz'}):
+        """ Check if file extension is allowed.
+        param: filename: The filename to check.
+        type: filename: str
+        return: True if file extension is allowed, else False.
+        rtype: bool
+        """
+
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
     def get_all_clients(self):
         """ Get all clients from the statestore.
@@ -151,17 +165,50 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
-    def set_compute_package(self, file):
+    def set_compute_package(self, file, helper_type):
         """ Set the compute package in the statestore.
         param: file: The compute package to set.
         type: file: file
         return: True if the compute package was set, else False.
         rtype: bool
         """
-        success = self.statestore.set_compute_package(file)
+
+        if file and self._allowed_file_extension(file.filename):
+            filename = secure_filename(file.filename)
+            # TODO: make configurable, perhaps in config.py or package.py
+            file_path = os.path.join(
+                '/app/client/package/', filename)
+            file.save(file_path)
+
+            if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
+                return jsonify({"success": False, "message": "Reducer is in instructing or monitoring state."
+                                "Cannot set compute package."}), 400
+
+            self.control.set_compute_package(filename, file_path)
+            self.statestore.set_helper(helper_type)
+
+        success = self.statestore.set_compute_package(filename)
         if not success:
             return jsonify({"success": False, "message": "Failed to set compute package."}), 400
         return jsonify({"success": True, "message": "Compute package set."})
+
+    def _get_compute_package_name(self):
+        """ Get the compute package name from the statestore.
+        return: The compute package name.
+        rtype: str
+        """
+        package_objects = self.statestore.get_compute_package()
+        if package_objects is None or len(package_objects) == 0:
+            message = "No compute package found."
+            return None, message
+        else:
+            try:
+                name = package_objects['filename']
+            except KeyError as e:
+                message = "No compute package found. Key error."
+                print(e)
+                return None, message
+            return name, 'success'
 
     def get_compute_package(self):
         """ Get the compute package from the statestore.
@@ -177,6 +224,55 @@ class API:
                 "helper": package_object['helper'],
                 }
         payload[id] = info
+        return jsonify(payload)
+
+    def download_compute_package(self, name):
+        """ Download the compute package.
+        return: The compute package as a json object.
+        rtype: json
+        """
+        if name is None:
+            name, message = self._get_compute_package_name()
+            if name is None:
+                return jsonify({"success": False, "message": message}), 404
+        try:
+            mutex = threading.Lock()
+            mutex.acquire()
+            # TODO: make configurable, perhaps in config.py or package.py
+            return send_from_directory('/app/client/package/', name, as_attachment=True)
+        except Exception:
+            try:
+                data = self.control.get_compute_package(name)
+                # TODO: make configurable, perhaps in config.py or package.py
+                file_path = os.path.join('/app/client/package/', name)
+                with open(file_path, 'wb') as fh:
+                    fh.write(data)
+                # TODO: make configurable, perhaps in config.py or package.py
+                return send_from_directory('/app/client/package/', name, as_attachment=True)
+            except Exception:
+                raise
+        finally:
+            mutex.release()
+
+    def get_checksum(self, name):
+        """ Get the checksum of the compute package.
+        return: The checksum as a json object.
+        rtype: json
+        """
+
+        if name is None:
+            name, message = self._get_compute_package_name()
+            if name is None:
+                return jsonify({"success": False, "message": message}), 404
+
+        file_path = os.path.join('/app/client/package/', name)  # TODO: make configurable, perhaps in config.py or package.py
+        try:
+            sum = str(sha(file_path))
+        except FileNotFoundError:
+            sum = ''
+
+        payload = {'checksum': sum}
+
         return jsonify(payload)
 
     def get_controller_status(self):
@@ -354,6 +450,7 @@ class API:
             'certificate': cert,
             'helper_type': self.control.statestore.get_helper()
         }
+        print("Seding payload: ", payload, flush=True)
 
         return jsonify(payload)
 
@@ -377,7 +474,7 @@ class API:
         return: True if the initial model was added, else False.
         rtype: bool
         """
-        if file:
+        try:
             object = BytesIO()
             object.seek(0, 0)
             file.seek(0)
@@ -386,8 +483,9 @@ class API:
             object.seek(0)
             model = helper.load(object)
             self.control.commit(file.filename, model)
-        else:
-            return jsonify({'success': False, 'message': 'No file provided.'})
+        except Exception as e:
+            print(e, flush=True)
+            return jsonify({'success': False, 'message': e})
 
         return jsonify({'success': True, 'message': 'Initial model added successfully.'})
 
