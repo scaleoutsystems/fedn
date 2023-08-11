@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from fedn.clients.reducer.restservice import ReducerRestService
+from fedn.network.dashboard.restservice import ReducerRestService
 
 
 class TestInit(unittest.TestCase):

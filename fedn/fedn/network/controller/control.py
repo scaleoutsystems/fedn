@@ -23,43 +23,40 @@ class UnsupportedStorageBackend(Exception):
 
 
 class MisconfiguredStorageBackend(Exception):
-    """ Exception class for when storage backend is misconfigured. """
+    """ Exception class for when storage backend is misconfigured.
+
+    :param message: The exception message.
+    :type message: str
+    """
 
     def __init__(self, message):
-        """ Constructor method.
-
-        :param message: The exception message.
-        :type message: str
-
-        """
+        """ Constructor method."""
         self.message = message
         super().__init__(self.message)
 
 
 class NoModelException(Exception):
-    """ Exception class for when model is None """
+    """ Exception class for when model is None 
+
+    :param message: The exception message.
+    :type message: str
+    """
 
     def __init__(self, message):
-        """ Constructor method.
-
-        :param message: The exception message.
-        :type message: str
-
-        """
+        """ Constructor method."""
         self.message = message
         super().__init__(self.message)
 
 
 class Control(ControlBase):
-    """ Controller, implementing the overall global training, validation and inference logic. """
+    """ Controller, implementing the overall global training, validation and inference logic. 
+
+    :param statestore: A StateStorage instance.
+    :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
+    """
 
     def __init__(self, statestore):
-        """ Constructor method.
-
-        :param statestore: A StateStorage instance.
-        :type statestore: class: `fedn.common.storage.statestorage.StateStorage`
-
-        """
+        """ Constructor method."""
 
         super().__init__(statestore)
         self.name = "DefaultControl"
@@ -120,7 +117,6 @@ class Control(ControlBase):
         :type session_config: dict
         :param round_id: The round id.
         :type round_id: str(int)
-
         """
 
         round_data = {'round_id': round_id}

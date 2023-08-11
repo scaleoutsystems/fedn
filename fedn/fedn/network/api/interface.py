@@ -14,6 +14,8 @@ from fedn.network.combiner.interfaces import (CombinerInterface,
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
+__all__ = 'API',
+
 
 class API:
     """ The API class is a wrapper for the statestore. It is used to expose the statestore to the network API. """
@@ -25,8 +27,9 @@ class API:
 
     def _to_dict(self):
         """ Convert the object to a dict.
-        return: The object as a dict.
-        rtype: dict
+
+        ::return: The object as a dict.
+        ::rtype: dict
         """
         data = {
             'name': self.name
@@ -35,10 +38,11 @@ class API:
 
     def _get_combiner_report(self, combiner_id):
         """ Get report response from combiner.
-        param: combiner_id: The combiner id to get report response from.
-        type: combiner_id: str
-        return: The report response from combiner.
-        rtype: dict
+
+        :param combiner_id: The combiner id to get report response from.
+        :type combiner_id: str
+        ::return: The report response from combiner.
+        ::rtype: dict
         """
         # Get CombinerInterface (fedn.network.combiner.inferface.CombinerInterface) for combiner_id
         combiner = self.control.network.get_combiner(combiner_id)
@@ -47,10 +51,11 @@ class API:
 
     def _allowed_file_extension(self, filename, ALLOWED_EXTENSIONS={'gz', 'bz2', 'tar', 'zip', 'tgz'}):
         """ Check if file extension is allowed.
-        param: filename: The filename to check.
-        type: filename: str
-        return: True if file extension is allowed, else False.
-        rtype: bool
+
+        :param filename: The filename to check.
+        :type filename: str
+        :return: True if file extension is allowed, else False.
+        :rtype: bool
         """
 
         return '.' in filename and \
@@ -58,8 +63,9 @@ class API:
 
     def get_all_clients(self):
         """ Get all clients from the statestore.
-        return: All clients as a json object.
-        rtype: json
+
+        :return: All clients as a json response.
+        :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
         clients_objects = self.statestore.list_clients()
@@ -79,10 +85,11 @@ class API:
     def get_active_clients(self, combiner_id):
         """ Get all active clients, i.e that are assigned to a combiner.
             A report request to the combiner is neccessary to determine if a client is active or not.
-        param: combiner_id: The combiner id to get active clients for.
-        type: combiner_id: str
-        return: All active clients as a json object.
-        rtype: json
+
+        :param combiner_id: The combiner id to get active clients for.
+        :type combiner_id: str
+        :return: All active clients as a json response.
+        :rtype: :class:`flask.Response`
         """
         # Get combiner interface object
         combiner = self.control.network.get_combiner(combiner_id)
@@ -93,8 +100,9 @@ class API:
 
     def get_all_combiners(self):
         """ Get all combiners from the statestore.
-        return: All combiners as a json object.
-        rtype: json
+
+        :return: All combiners as a json response.
+        :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
         combiner_objects = self.statestore.get_combiners()
@@ -114,10 +122,11 @@ class API:
 
     def get_combiner(self, combiner_id):
         """ Get a combiner from the statestore.
-        param: combiner_id: The combiner id to get.
-        type: combiner_id: str
-        return: The combiner info dict as a json object.
-        rtype: json
+
+        :param combiner_id: The combiner id to get.
+        :type combiner_id: str
+        :return: The combiner info dict as a json response.
+        :rtype: :class:`flask.Response`
         """
         # Will return ObjectId
         object = self.statestore.get_combiner(combiner_id)
@@ -136,8 +145,9 @@ class API:
 
     def get_all_sessions(self):
         """ Get all sessions from the statestore.
-        return: All sessions as a json object.
-        rtype: json
+
+        :return: All sessions as a json response.
+        :rtype: :class:`flask.Response`
         """
         sessions_objects = self.statestore.get_sessions()
         if sessions_objects is None:
@@ -151,10 +161,11 @@ class API:
 
     def get_session(self, session_id):
         """ Get a session from the statestore.
-        param: session_id: The session id to get.
-        type: session_id: str
-        return: The session info dict as a json object.
-        rtype: json
+
+        :param session_id: The session id to get.
+        :type session_id: str
+        :return: The session info dict as a json response.
+        :rtype: :class:`flask.Response`
         """
         session_object = self.statestore.get_session(session_id)
         if session_object is None:
@@ -167,10 +178,11 @@ class API:
 
     def set_compute_package(self, file, helper_type):
         """ Set the compute package in the statestore.
-        param: file: The compute package to set.
-        type: file: file
-        return: True if the compute package was set, else False.
-        rtype: bool
+
+        :param file: The compute package to set.
+        :type file: file
+        :return: A json response with success or failure message.
+        :rtype: :class:`flask.Response`
         """
 
         if file and self._allowed_file_extension(file.filename):
@@ -194,8 +206,9 @@ class API:
 
     def _get_compute_package_name(self):
         """ Get the compute package name from the statestore.
-        return: The compute package name.
-        rtype: str
+
+        :return: The compute package name.
+        :rtype: str
         """
         package_objects = self.statestore.get_compute_package()
         if package_objects is None:
@@ -212,8 +225,9 @@ class API:
 
     def get_compute_package(self):
         """ Get the compute package from the statestore.
-        return: The compute package as a json object.
-        rtype: json
+
+        :return: The compute package as a json response.
+        :rtype: :class:`flask.Response`
         """
         package_object = self.statestore.get_compute_package()
         if package_object is None:
@@ -228,8 +242,9 @@ class API:
 
     def download_compute_package(self, name):
         """ Download the compute package.
-        return: The compute package as a json object.
-        rtype: json
+
+        :return: The compute package as a json object.
+        :rtype: :class:`flask.Response`
         """
         if name is None:
             name, message = self._get_compute_package_name()
@@ -256,8 +271,9 @@ class API:
 
     def get_checksum(self, name):
         """ Get the checksum of the compute package.
-        return: The checksum as a json object.
-        rtype: json
+
+        :return: The checksum as a json object.
+        :rtype: :class:`flask.Response`
         """
 
         if name is None:
@@ -277,16 +293,18 @@ class API:
 
     def get_controller_status(self):
         """ Get the status of the controller.
-        return: The status of the controller as a json object.
-        rtype: json
+
+        :return: The status of the controller as a json object.
+        :rtype: :class:`flask.Response`
         """
         return jsonify({'state': ReducerStateToString(self.control.state())})
     # function with kwargs
 
     def get_events(self, **kwargs):
         """ Get the events of the federated network.
-        return: The events as a json object.
-        rtype: json
+
+        :return: The events as a json object.
+        :rtype: :class:`flask.Response`
         """
         event_objects = self.statestore.get_events(**kwargs)
         if event_objects is None:
@@ -301,8 +319,9 @@ class API:
 
     def get_all_validations(self, **kwargs):
         """ Get all validations from the statestore.
-        return: All validations as a json object.
-        rtype: json
+
+        :return: All validations as a json response.
+        :rtype: :class:`flask.Response`
         """
         validations_objects = self.statestore.get_validations(**kwargs)
         if validations_objects is None:
@@ -329,22 +348,23 @@ class API:
 
     def add_combiner(self, combiner_id, secure_grpc, address, remote_addr, fqdn, port):
         """ Add a combiner to the network.
-        param: combiner_id: The combiner id to add.
-        type: combiner_id: str
-        param: secure_grpc: Whether to use secure grpc or not.
-        type: secure_grpc: bool
-        param: name: The name of the combiner.
-        type: name: str
-        param: address: The address of the combiner.
-        type: address: str
-        param: remote_addr: The remote address of the combiner.
-        type: remote_addr: str
-        param: fqdn: The fqdn of the combiner.
-        type: fqdn: str
-        param: port: The port of the combiner.
-        type: port: int
-        return: Config of the combiner as a json object.
-        rtype: json
+
+        :param combiner_id: The combiner id to add.
+        :type combiner_id: str
+        :param secure_grpc: Whether to use secure grpc or not.
+        :type secure_grpc: bool
+        :param name: The name of the combiner.
+        :type name: str
+        :param address: The address of the combiner.
+        :type address: str
+        :param remote_addr: The remote address of the combiner.
+        :type remote_addr: str
+        :param fqdn: The fqdn of the combiner.
+        :type fqdn: str
+        :param port: The port of the combiner.
+        :type port: int
+        :return: Config of the combiner as a json response.
+        :rtype: :class:`flask.Response`
         """
         # TODO: Any more required check for config? Formerly based on status: "retry"
         if not self.control.idle():
@@ -398,13 +418,13 @@ class API:
 
     def add_client(self, client_id, preferred_combiner, remote_addr):
         """ Add a client to the network.
-        param: client_id: The client id to add.
-        type: client_id: str
-        param: preferred_combiner: The preferred combiner for the client. 
-        If None, the combiner will be chosen based on availability.
-        type: preferred_combiner: str
-        return: True if the client was added, else False. As json.
-        rtype: json
+
+        :param client_id: The client id to add.
+        :type client_id: str
+        :param preferred_combiner: The preferred combiner for the client.If None, the combiner will be chosen based on availability.
+        :type preferred_combiner: str
+        :return: A json response with combiner assignment config.
+        :rtype: :class:`flask.Response`
         """
         # Check if package has been set
         package_object = self.statestore.get_compute_package()
@@ -456,8 +476,9 @@ class API:
 
     def get_initial_model(self):
         """ Get the initial model from the statestore.
-        return: The initial model as a json object.
-        rtype: json
+
+        :return: The initial model as a json response.
+        :rtype: :class:`flask.Response`
         """
         model_id = self.statestore.get_initial_model()
         payload = {
@@ -467,10 +488,11 @@ class API:
 
     def set_initial_model(self, file):
         """ Add an initial model to the network.
-        param: file: The initial model to add.
-        type: file: file
-        return: True if the initial model was added, else False.
-        rtype: bool
+
+        :param file: The initial model to add.
+        :type file: file
+        :return: A json response with success or failure message.
+        :rtype: :class:`flask.Response`
         """
         try:
             object = BytesIO()
@@ -489,8 +511,9 @@ class API:
 
     def get_latest_model(self):
         """ Get the latest model from the statestore.
-        return: The initial model as a json object.
-        rtype: json
+
+        :return: The initial model as a json response.
+        :rtype: :class:`flask.Response`
         """
         if self.statestore.get_latest_model():
             model_id = self.statestore.get_latest_model()
@@ -503,10 +526,11 @@ class API:
 
     def get_model_trail(self):
         """ Get the model trail for a given session.
-        param: session: The session id to get the model trail for.
-        type: session: str
-        return: The model trail for the given session as a json object.
-        rtype: json
+
+        :param session: The session id to get the model trail for.
+        :type session: str
+        :return: The model trail for the given session as a json response.
+        :rtype: :class:`flask.Response`
         """
         model_info = self.statestore.get_model_trail()
         if model_info:
@@ -516,8 +540,9 @@ class API:
 
     def get_all_rounds(self):
         """ Get all rounds.
-        return: The rounds as json object.
-        rtype: json
+
+        :return: The rounds as json response.
+        :rtype: :class:`flask.Response`
         """
         rounds_objects = self.statestore.get_rounds()
         if rounds_objects is None:
@@ -534,10 +559,11 @@ class API:
 
     def get_round(self, round_id):
         """ Get a round.
-        param: round_id: The round id to get.
-        type: round_id: str
-        return: The round as json object.
-        rtype: json
+
+        :param round_id: The round id to get.
+        :type round_id: str
+        :return: The round as json response.
+        :rtype: :class:`flask.Response`
         """
         round_object = self.statestore.get_round(round_id)
         if round_object is None:
@@ -552,24 +578,25 @@ class API:
     def start_session(self, session_id, rounds=5, round_timeout=180, round_buffer_size=-1, delete_models=False,
                       validate=True, helper='keras', min_clients=1, requested_clients=8):
         """ Start a session.
-        param: session_id: The session id to start.
-        type: session_id: str
-        param: rounds: The number of rounds to perform.
-        type: rounds: int
-        param: round_timeout: The round timeout to use in seconds.
-        type: round_timeout: int
-        param: round_buffer_size: The round buffer size to use.
-        type: round_buffer_size: int
-        param: delete_models: Whether to delete models after each round at combiner (save storage).
-        type: delete_models: bool
-        param: validate: Whether to validate the model after each round.
-        type: validate: bool
-        param: min_clients: The minimum number of clients required.
-        type: min_clients: int
-        param: requested_clients: The requested number of clients.
-        type: requested_clients: int
-        return: True if the session was started, else False. In json format.
-        rtype: json
+
+        :param session_id: The session id to start.
+        :type session_id: str
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :param round_buffer_size: The round buffer size to use.
+        :type round_buffer_size: int
+        :param delete_models: Whether to delete models after each round at combiner (save storage).
+        :type delete_models: bool
+        :param validate: Whether to validate the model after each round.
+        :type validate: bool
+        :param min_clients: The minimum number of clients required.
+        :type min_clients: int
+        :param requested_clients: The requested number of clients.
+        :type requested_clients: int
+        :return: A json response with success or failure message and session config.
+        :rtype: :class:`flask.Response`
         """
         # Check if session already exists
         session = self.statestore.get_session(session_id)

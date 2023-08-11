@@ -15,6 +15,11 @@ from fedn.utils.dispatcher import Dispatcher
 
 class PackageRuntime:
     """ PackageRuntime is used to download, validate and unpack compute packages.
+
+    :param package_path: path to compute package
+    :type package_path: str
+    :param package_dir: directory to unpack compute package
+    :type package_dir: str
     """
 
     def __init__(self, package_path, package_dir):
@@ -31,14 +36,14 @@ class PackageRuntime:
         self.expected_checksum = None
 
     def download(self, host, port, token, force_ssl=False, secure=False, name=None):
-        """
-        Download compute package from controller
+        """ Download compute package from controller
 
         :param host: host of controller
         :param port: port of controller
         :param token: token for authentication
         :param name: name of package
-        :return:
+        :return: True if download was successful, None otherwise
+        :rtype: bool
         """
         # for https we assume a an ingress handles permanent redirect (308)
         if force_ssl:
@@ -86,8 +91,10 @@ class PackageRuntime:
 
     def validate(self, expected_checksum):
         """ Validate the package against the checksum provided by the controller
+
         :param expected_checksum: checksum provided by the controller
         :return: True if checksums match, False otherwise
+        :rtype: bool
         """
         self.expected_checksum = expected_checksum
 
@@ -101,8 +108,10 @@ class PackageRuntime:
             return False
 
     def unpack(self):
-        """ Unpack the package
-        :return: 
+        """ Unpack the compute package
+
+        :return: True if unpacking was successful, False otherwise
+        :rtype: bool 
         """
         if self.pkg_name:
             f = None
@@ -136,10 +145,12 @@ class PackageRuntime:
             return False
 
     def dispatcher(self, run_path):
-        """
+        """ Dispatch the compute package
 
-        :param run_path:
-        :return:
+        :param run_path: path to dispatch the compute package
+        :type run_path: str
+        :return: Dispatcher object
+        :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
         from_path = os.path.join(os.getcwd(), 'client')
 

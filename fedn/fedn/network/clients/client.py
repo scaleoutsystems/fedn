@@ -40,25 +40,15 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
 
 class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
-       recieving and handling model update and model validation requests.
+    recieving and handling model update and model validation requests.
 
-    Attibutes
-    ---------
-    config: dict
-        A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g.
-        client-combiner assignment behavior.
-
+    :param config: A configuration dictionary containing connection information for the discovery service (controller) 
+        and settings governing e.g. client-combiner assignment behavior.
+    :type config: dict
     """
 
     def __init__(self, config):
-        """Initialize the client.
-
-        :param config: A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g.
-        client-combiner assignment behavior.
-        :type config: dict
-        """
+        """Initialize the client."""
 
         self.state = None
         self.error_state = False
@@ -235,9 +225,10 @@ class Client:
         """Initialize the helper class for the client.
 
         :param client_config: A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g.
-        client-combiner assignment behavior.
+        | the discovery service (controller) and settings governing e.g.
+        | client-combiner assignment behavior.
         :type client_config: dict
+        :return:
         """
 
         if 'helper_type' in client_config.keys():
@@ -247,9 +238,8 @@ class Client:
         """Listen to combiner message stream and start all processing threads.
 
         :param config: A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g.
-        client-combiner assignment behavior.
-
+        | the discovery service (controller) and settings governing e.g.
+        | client-combiner assignment behavior.
         """
 
         # Start sending heartbeats to the combiner.
@@ -272,10 +262,10 @@ class Client:
         """ Initialize the dispatcher for the client.
 
         :param config: A configuration dictionary containing connection information for
-        the discovery service (controller) and settings governing e.g.
-        client-combiner assignment behavior.
+        | the discovery service (controller) and settings governing e.g.
+        | client-combiner assignment behavior.
         :type config: dict
-
+        :return:
         """
         if config['remote_compute_context']:
             pr = PackageRuntime(os.getcwd(), os.getcwd())
@@ -332,13 +322,12 @@ class Client:
 
     def get_model(self, id):
         """Fetch a model from the assigned combiner.
-        Downloads the model update object via a gRPC streaming channel, Download.
+        Downloads the model update object via a gRPC streaming channel.
 
         :param id: The id of the model update object.
         :type id: str
         :return: The model update object.
         :rtype: BytesIO
-
         """
         data = BytesIO()
 
@@ -357,7 +346,6 @@ class Client:
 
     def set_model(self, model, id):
         """Send a model update to the assigned combiner.
-
         Uploads the model updated object via a gRPC streaming channel, Upload.
 
         :param model: The model update object.
@@ -441,7 +429,6 @@ class Client:
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream.
 
-
         :return: None
         :rtype: None
         """
@@ -475,7 +462,6 @@ class Client:
         :type model_id: str
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
-
         """
 
         self._send_status(
@@ -665,7 +651,6 @@ class Client:
         :return: None if the client is detached.
         :rtype: None
         """
-
         while True:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(
                 name=self.name, role=fedn.WORKER))

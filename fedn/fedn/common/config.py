@@ -7,10 +7,11 @@ STATESTORE_CONFIG = os.environ.get('STATESTORE_CONFIG', '/workspaces/fedn/config
 
 def get_statestore_config(file=STATESTORE_CONFIG):
     """ Get the statestore configuration from file.
-    param: file: The statestore configuration file (yaml) path.
-    type: file: str
-    return: The statestore configuration as a dict.
-    rtype: dict
+
+    :param file: The statestore configuration file (yaml) path.
+    :type file: str
+    :return: The statestore configuration as a dict.
+    :rtype: dict
     """
     with open(file, 'r') as config_file:
         try:
@@ -22,10 +23,11 @@ def get_statestore_config(file=STATESTORE_CONFIG):
 
 def get_network_config(file=STATESTORE_CONFIG):
     """ Get the network configuration from file.
-    param: file: The network configuration file (yaml) path.
-    type: file: str
-    return: The network id.
-    rtype: str
+
+    :param file: The network configuration file (yaml) path.
+    :type file: str
+    :return: The network id.
+    :rtype: str
     """
     with open(file, 'r') as config_file:
         try:

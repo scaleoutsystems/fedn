@@ -10,6 +10,7 @@ import requests
 
 
 class Status(enum.Enum):
+    """ Enum for representing the status of a combiner announcement."""
     Unassigned = 0
     Assigned = 1
     TryAgain = 2
@@ -18,8 +19,26 @@ class Status(enum.Enum):
 
 
 class ConnectorCombiner:
-    """
-    Connector for annnouncing combiner to the FEDn network.
+    """ Connector for annnouncing combiner to the FEDn network.
+
+    :param host: host of discovery service
+    :type host: str
+    :param port: port of discovery service
+    :type port: int
+    :param myhost: host of combiner
+    :type myhost: str
+    :param fqdn: fully qualified domain name of combiner
+    :type fqdn: str
+    :param myport: port of combiner
+    :type myport: int
+    :param token: token for authentication
+    :type token: str
+    :param name: name of combiner
+    :type name: str
+    :param secure: True if https is used, False if http
+    :type secure: bool
+    :param verify: True if certificate is verified, False if not
+    :type verify: bool
     """
 
     def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False, verify=False):
@@ -71,9 +90,8 @@ class ConnectorCombiner:
         """
         Announce combiner to FEDn network via discovery service (REST-API).
 
-        :return: Tuple with announcement Status, FEDn network configuration
-        if sucessful, else None.
-        :rtype: Status, json
+        :return: Tuple with announcement Status, FEDn network configuration if sucessful, else None.
+        :rtype: :class:`fedn.network.combiner.connect.Status`, str
         """
         payload = {
             "combiner_id": self.name,

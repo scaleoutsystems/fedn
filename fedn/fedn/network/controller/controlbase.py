@@ -25,11 +25,14 @@ class MisconfiguredHelper(Exception):
 class ControlBase(ABC):
     """ Base class and interface for a global controller.
         Override this class to implement a global training strategy (control).
+
+    :param statestore: The statestore object.
+    :type statestore: :class:`fedn.network.statestore.statestorebase.StateStoreBase`
     """
 
     @abstractmethod
     def __init__(self, statestore):
-        """ """
+        """ Constructor. """
         self._state = ReducerState.setup
 
         self.statestore = statestore

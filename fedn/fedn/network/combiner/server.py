@@ -49,14 +49,14 @@ def role_to_proto_role(role):
 
 
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
-    """ Combiner gRPC server. """
+    """ Combiner gRPC server.
+
+    :param config: configuration for the combiner
+    :type config: dict
+    """
 
     def __init__(self, config):
-        """ Initialize a Combiner.
-
-        :param config: configuration for the combiner
-        :type config: dict
-        """
+        """ Initialize Combiner server."""
 
         # Client queues
         self.clients = {}

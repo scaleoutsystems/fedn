@@ -10,6 +10,7 @@ import requests
 
 
 class Status(enum.Enum):
+    """ Enum for representing the status of a client assignment."""
     Unassigned = 0
     Assigned = 1
     TryAgain = 2
@@ -18,8 +19,25 @@ class Status(enum.Enum):
 
 
 class ConnectorClient:
-    """
-    Connector for assigning client to a combiner in the FEDn network.
+    """ Connector for assigning client to a combiner in the FEDn network.
+
+    :param host: host of discovery service
+    :type host: str
+    :param port: port of discovery service
+    :type port: int
+    :param token: token for authentication
+    :type token: str
+    :param name: name of client
+    :type name: str
+    :param remote_package: True if remote package is used, False if local
+    :type remote_package: bool
+    :param force_ssl: True if https is used, False if http
+    :type force_ssl: bool
+    :param verify: True if certificate is verified, False if not
+    :type verify: bool
+    :param combiner: name of preferred combiner
+    :type combiner: str
+    :param id: id of client
     """
 
     def __init__(self, host, port, token, name, remote_package, force_ssl=False, verify=False, combiner=None, id=None):
@@ -52,9 +70,8 @@ class ConnectorClient:
         """
         Connect client to FEDn network discovery service, ask for combiner assignment.
 
-        :return: Tuple with assingment status, combiner connection information
-        if sucessful, else None.
-        :rtype: Status, json
+        :return: Tuple with assingment status, combiner connection information if sucessful, else None.
+        :rtype: tuple(:class:`fedn.network.clients.connect.Status`, str)
         """
         try:
             retval = None

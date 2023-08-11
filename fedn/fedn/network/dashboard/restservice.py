@@ -83,7 +83,7 @@ class ReducerRestService:
 
     """
 
-    def __init__(self, config, control, certificate_manager):
+    def __init__(self, config, control, statestore, certificate_manager):
 
         print("config object!: \n\n\n\n{}".format(config))
         if config['host']:
@@ -116,6 +116,7 @@ class ReducerRestService:
             self.package = 'local'
 
         self.control = control
+        self.statestore = statestore
         self.certificate_manager = certificate_manager
         self.current_compute_context = None
 
