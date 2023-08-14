@@ -7,6 +7,14 @@ from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
 from fedn.network.statestore.mongostatestore import MongoStateStore
 
+statestore_config = get_statestore_config()
+network_id = get_network_config()
+statestore = MongoStateStore(
+    network_id,
+    statestore_config['mongo_config']
+)
+control = Control(statestore=statestore)
+api = API(statestore, control)
 app = Flask(__name__)
 
 
@@ -325,12 +333,4 @@ def add_client():
 
 
 if __name__ == '__main__':
-    statestore_config = get_statestore_config()
-    network_id = get_network_config()
-    statestore = MongoStateStore(
-        network_id,
-        statestore_config['mongo_config']
-    )
-    control = Control(statestore=statestore)
-    api = API(statestore, control)
     app.run(debug=True, port=8092, host='0.0.0.0')

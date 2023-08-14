@@ -25,6 +25,7 @@ jobs:
           --exclude .venv
           --exclude .mnist-keras
           --exclude .mnist-pytorch
+          --exclude='tests.py'
           .
 
       - name: run Python linter

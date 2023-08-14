@@ -135,13 +135,14 @@ class NetworkAPITests(unittest.TestCase):
         return_value = {"test": "test"}
         fedn.network.api.server.api.add_client = MagicMock(return_value=return_value)
         # Make request
-        response = self.app.post('/add_client?combiner=test')
+        response = self.app.post('/add_client', json={
+            'preferred_combiner': 'test',
+        })
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
         # Assert api.add_client was called
         fedn.network.api.server.api.add_client.assert_called_once_with(
-            client_id=None,
             preferred_combiner="test",
             remote_addr='127.0.0.1'
         )
@@ -178,7 +179,7 @@ class NetworkAPITests(unittest.TestCase):
         return_value = {"test": "test"}
         fedn.network.api.server.api.get_round = MagicMock(return_value=return_value)
         # Make request
-        response = self.app.get('/get_round?round=test')
+        response = self.app.get('/get_round?round_id=test')
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
@@ -206,7 +207,13 @@ class NetworkAPITests(unittest.TestCase):
         return_value = {'success': success, 'message': message}
         fedn.network.api.server.api.add_combiner = MagicMock(return_value=return_value)
         # Make request
-        response = self.app.post('/add_combiner?name=test&address=1234&port=1234&secure=True&fqdn=test')
+        response = self.app.post('/add_combiner', json={
+            'combiner_id': 'test',
+            'address': '1234',
+            'port': '1234',
+            'secure_grpc': 'True',
+            'fqdn': 'test',
+        })
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
@@ -219,14 +226,6 @@ class NetworkAPITests(unittest.TestCase):
             secure_grpc='True',
             fqdn='test',
         )
-
-        # Test add_combiner endpoint with missing arguments
-        # Make request
-        response = self.app.post('/add_combiner?name=test')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, {'success': False,
-                                         'message': 'Missing required parameters: name, address, secure_grpc, port. Got None.'})
 
     def test_get_events(self):
         """ Test get_events endpoint. """
@@ -245,14 +244,14 @@ class NetworkAPITests(unittest.TestCase):
         """ Test get_status endpoint. """
         # Mock api.get_status
         return_value = {"test": "test"}
-        fedn.network.api.server.api.get_status = MagicMock(return_value=return_value)
+        fedn.network.api.server.api.get_controller_status = MagicMock(return_value=return_value)
         # Make request
-        response = self.app.get('/get_status')
+        response = self.app.get('/get_controller_status')
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
         # Assert api.get_status was called
-        fedn.network.api.server.api.get_status.assert_called_once()
+        fedn.network.api.server.api.get_controller_status.assert_called_once()
 
     def test_start_session(self):
         """ Test start_session endpoint. """
@@ -274,7 +273,7 @@ class NetworkAPITests(unittest.TestCase):
             round_buffer_size=-1,
             delete_models=True,
             validate=True,
-            helper='keras',
+            helper='kerashelper',
             min_clients=1,
             requested_clients=1,
         )
@@ -305,7 +304,7 @@ class NetworkAPITests(unittest.TestCase):
         """ Test list_sessions endpoint. """
         # Mock api.list_sessions
         return_value = {"test": "test"}
-        fedn.network.api.server.api.list_sessions = MagicMock(return_value=return_value)
+        fedn.network.api.server.api.get_all_sessions = MagicMock(return_value=return_value)
         # Make request
         response = self.app.get('/list_sessions')
         # Assert response
@@ -318,14 +317,14 @@ class NetworkAPITests(unittest.TestCase):
         """ Test get_package endpoint. """
         # Mock api.get_package
         return_value = {"test": "test"}
-        fedn.network.api.server.api.get_package = MagicMock(return_value=return_value)
+        fedn.network.api.server.api.get_compute_package = MagicMock(return_value=return_value)
         # Make request
         response = self.app.get('/get_package')
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
         # Assert api.get_package was called
-        fedn.network.api.server.api.get_package.assert_called_once_with()
+        fedn.network.api.server.api.get_compute_package.assert_called_once_with()
 
     def test_get_controller_status(self):
         """ Test get_controller_status endpoint. """
