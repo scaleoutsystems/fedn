@@ -15,7 +15,7 @@ class CombinerUnavailableError(Exception):
 
 
 class Channel:
-    """ Wrapper for a gRPC channel. 
+    """ Wrapper for a gRPC channel.
 
     :param address: The address for the gRPC server.
     :type address: str

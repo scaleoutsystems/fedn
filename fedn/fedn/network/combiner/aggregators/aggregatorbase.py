@@ -9,7 +9,7 @@ AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
 
 class AggregatorBase(ABC):
-    """ Abstract class defining an aggregator. 
+    """ Abstract class defining an aggregator.
 
     :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str

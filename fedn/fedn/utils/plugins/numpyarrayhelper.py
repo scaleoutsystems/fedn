@@ -9,7 +9,7 @@ class Helper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
     def increment_average(self, model, model_next, n):
-        """ Update an incremental average. 
+        """ Update an incremental average.
 
         :param model: Current model weights.
         :type model: numpy array.

@@ -111,7 +111,7 @@ class PackageRuntime:
         """ Unpack the compute package
 
         :return: True if unpacking was successful, False otherwise
-        :rtype: bool 
+        :rtype: bool
         """
         if self.pkg_name:
             f = None

@@ -4,7 +4,7 @@ __all__ = ['APIClient']
 
 
 class APIClient:
-    """ An API client for interacting with the statestore and controller. 
+    """ An API client for interacting with the statestore and controller.
 
     :param host: The host of the api server.
     :type host: str

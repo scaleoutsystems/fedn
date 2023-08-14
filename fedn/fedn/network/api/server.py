@@ -238,8 +238,8 @@ def get_initial_model():
 def set_initial_model():
     """ Set the initial model in the statestore and upload to model repository.
         Usage with curl:
-        curl -k -X POST \
-            -F file=@seed.npz \   
+        curl -k -X POST
+            -F file=@seed.npz
             http://localhost:8092/set_initial_model
 
     param: file: The initial model file to set.

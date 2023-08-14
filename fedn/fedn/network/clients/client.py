@@ -42,7 +42,7 @@ class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
     recieving and handling model update and model validation requests.
 
-    :param config: A configuration dictionary containing connection information for the discovery service (controller) 
+    :param config: A configuration dictionary containing connection information for the discovery service (controller)
         and settings governing e.g. client-combiner assignment behavior.
     :type config: dict
     """

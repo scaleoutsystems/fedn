@@ -99,7 +99,7 @@ class Network:
         return combiner
 
     def handle_unavailable_combiner(self, combiner):
-        """ This callback is triggered if a combiner is found to be unresponsive. 
+        """ This callback is triggered if a combiner is found to be unresponsive.
 
         :param combiner: The combiner instance object
         :type combiner: :class:`fedn.network.combiner.interfaces.CombinerInterface`
