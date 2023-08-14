@@ -1,6 +1,7 @@
 import os
 import uuid
 from abc import ABC, abstractmethod
+from time import sleep
 
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
@@ -40,7 +41,13 @@ class ControlBase(ABC):
             self.network = Network(self, statestore)
 
         try:
-            storage_config = self.statestore.get_storage_backend()
+            not_ready = True
+            while not_ready:
+                storage_config = self.statestore.get_storage_backend()
+                if storage_config:
+                    not_ready = False
+                else:
+                    sleep(5)
         except Exception:
             print(
                 "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)

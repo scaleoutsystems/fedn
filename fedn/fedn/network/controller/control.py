@@ -36,7 +36,7 @@ class MisconfiguredStorageBackend(Exception):
 
 
 class NoModelException(Exception):
-    """ Exception class for when model is None 
+    """ Exception class for when model is None
 
     :param message: The exception message.
     :type message: str
@@ -49,7 +49,7 @@ class NoModelException(Exception):
 
 
 class Control(ControlBase):
-    """ Controller, implementing the overall global training, validation and inference logic. 
+    """ Controller, implementing the overall global training, validation and inference logic.
 
     :param statestore: A StateStorage instance.
     :type statestore: class: `fedn.network.statestorebase.StateStorageBase`

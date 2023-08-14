@@ -184,7 +184,7 @@ class MongoStateStore(StateStoreBase):
                               True)
 
     def get_initial_model(self):
-        """ Return model_id for the initial model in the model trail 
+        """ Return model_id for the initial model in the model trail
 
         :return: The initial model id. None if no model is found.
         :rtype: str
@@ -204,7 +204,7 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_latest_model(self):
-        """ Return model_id for the latest model in the model_trail 
+        """ Return model_id for the latest model in the model_trail
 
         :return: The latest model id. None if no model is found.
         :rtype: str
@@ -222,7 +222,7 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def get_latest_round(self):
-        """ Get the id of the most recent round. 
+        """ Get the id of the most recent round.
 
         :return: The id of the most recent round.
         :rtype: ObjectId
@@ -480,7 +480,7 @@ class MongoStateStore(StateStoreBase):
             return None
 
     def list_clients(self):
-        """List all clients registered on the network. 
+        """List all clients registered on the network.
 
         :return: list of clients.
         :rtype: list(ObjectId)
