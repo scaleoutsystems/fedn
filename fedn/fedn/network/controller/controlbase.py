@@ -174,6 +174,8 @@ class ControlBase(ABC):
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
             config['session_id'] = str(session_id)
+        else:
+            session_id = config['session_id']
 
         self.tracer.new_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
