@@ -83,6 +83,7 @@ class ControlBase(ABC):
         """ Get a helper instance from global config.
 
         :return: Helper instance.
+        :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
         """
         helper_type = self.statestore.get_helper()
         helper = fedn.utils.helpers.get_helper(helper_type)
@@ -91,16 +92,18 @@ class ControlBase(ABC):
         return helper
 
     def get_state(self):
-        """
+        """ Get the current state of the controller.
 
-        :return:
+        :return: The current state.
+        :rtype: :class:`fedn.network.state.ReducerState`
         """
         return self._state
 
     def idle(self):
-        """
+        """ Check if the controller is idle.
 
-        :return:
+        :return: True if idle, False otherwise.
+        :rtype: bool
         """
         if self._state == ReducerState.idle:
             return True
