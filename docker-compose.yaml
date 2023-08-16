@@ -58,8 +58,7 @@ services:
     ports:
       - 8081:8081
 
-  # Reducer
-  reducer:
+  dashboard:
     environment:
       - GET_HOSTS_FROM=dns
       - USER=test
@@ -75,7 +74,7 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=config/settings-reducer.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run dashboard -n reducer --init=config/settings-reducer.yaml"
     ports:
       - 8090:8090
 

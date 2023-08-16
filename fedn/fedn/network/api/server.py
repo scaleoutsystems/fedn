@@ -1,5 +1,3 @@
-import uuid
-
 from flask import Flask, jsonify, request
 
 from fedn.common.config import get_network_config, get_statestore_config
