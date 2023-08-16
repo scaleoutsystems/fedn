@@ -118,7 +118,7 @@ class Control(ControlBase):
         self._state = ReducerState.idle
 
     def round(self, session_config, round_id):
-        """ Execute a single global round.
+        """ Execute one global round.
 
         :param session_config: The session config.
         :type session_config: dict
