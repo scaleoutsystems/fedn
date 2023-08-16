@@ -261,43 +261,21 @@ class NetworkAPITests(unittest.TestCase):
         return_value = {'success': success, 'message': message}
         fedn.network.api.server.api.start_session = MagicMock(return_value=return_value)
         # Make request with only session_id
-        response = self.app.post('/start_session?session_id=test')
+        json = {'session_id': 'test',
+                'round_timeout': float(60),
+                'rounds': 1,
+                'round_buffer_size': -1,
+                }
+        response = self.app.post('/start_session', json=json)
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, return_value)
         # Assert api.start_session was called
         fedn.network.api.server.api.start_session.assert_called_once_with(
             session_id='test',
-            round_timeout=float(180),
-            rounds=5,
-            round_buffer_size=-1,
-            delete_models=True,
-            validate=True,
-            helper='kerashelper',
-            min_clients=1,
-            requested_clients=1,
-        )
-
-        # Make request with all arguments
-        response = self.app.post(
-            '/start_session?session_id=test&round_timeout=1'
-            '&rounds=1&round_buffer_size=1&delete_models=False'
-            '&validate=False&helper=pytorch&min_clients=2&requested_clients=3'
-        )
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.start_session was called
-        fedn.network.api.server.api.start_session.assert_called_with(
-            session_id='test',
-            round_timeout=float(1),
+            round_timeout=float(60),
             rounds=1,
-            round_buffer_size=1,
-            delete_models=False,
-            validate=False,
-            helper='pytorch',
-            min_clients=2,
-            requested_clients=3,
+            round_buffer_size=-1,
         )
 
     def test_list_sessions(self):

@@ -633,7 +633,8 @@ class API:
         model_id = self.statestore.get_latest_model()
 
         # Setup session config
-        session_config = {'round_timeout': round_timeout,
+        session_config = {'session_id': session_id,
+                          'round_timeout': round_timeout,
                           'model_id': model_id,
                           'rounds': rounds,
                           'delete_models_storage': delete_models,

@@ -1,3 +1,5 @@
+import uuid
+
 import requests
 
 __all__ = ['APIClient']
@@ -47,7 +49,7 @@ class APIClient:
         response = requests.get(self._get_url('list_clients'))
         return response.json()
 
-    def get_active_clients(self):
+    def get_active_clients(self, combiner_id):
         """ Get all active clients from the statestore.
 
         :param combiner_id: The combiner id to get active clients for.
@@ -55,7 +57,7 @@ class APIClient:
         :return: All active clients.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_active_clients'), verify=self.verify)
+        response = requests.get(self._get_url('get_active_clients'), params={'combiner': combiner_id}, verify=self.verify)
         return response.json()
 
     def list_combiners(self):
@@ -123,6 +125,9 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        # If session id is None, generate a random session id.
+        if session_id is None:
+            session_id = str(uuid.uuid4())
         response = requests.post(self._get_url('start_session'), json={
             'session_id': session_id,
             'round_timeout': round_timeout,

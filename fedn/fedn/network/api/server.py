@@ -115,39 +115,8 @@ def start_session():
     return: The response from control.
     rtype: json
     """
-    # Get session id, if none is provided, generate a new one
-    session_id = request.args.get('session_id', str(uuid.uuid4()))
-    # Get round timeout, if none is provided, use default
-    round_timeout = float(request.args.get('round_timeout', 180))
-    # Get number of rounds, if none is provided, use default
-    rounds = int(request.args.get('rounds', 5))
-    # Get round buffer size, if none is provided, use default
-    round_buffer_size = int(request.args.get('round_buffer_size', -1))
-    # Get delete models, if none is provided, use default
-    delete_models = request.args.get('delete_models', True)
-    # Convert string to boolean, "True" -> True, "False" -> False
-    if isinstance(delete_models, str):
-        delete_models = delete_models == "True"
-    # Get validation strategy, if none is provided, use default
-    validation_strategy = request.args.get('validate', True)
-    if isinstance(validation_strategy, str):
-        validation_strategy = validation_strategy == "True"
-    # Get helper type, if none is provided, use default
-    helper_type = request.args.get('helper', 'kerashelper')
-    # Get minimum number of clients, if none is provided, use default
-    min_clients = int(request.args.get('min_clients', 1))
-    # Get requested clients, if none is provided, use default
-    requested_clients = int(request.args.get('requested_clients', 1))
-
-    return api.start_session(session_id=session_id,
-                             round_timeout=round_timeout,
-                             rounds=rounds,
-                             round_buffer_size=round_buffer_size,
-                             delete_models=delete_models,
-                             validate=validation_strategy,
-                             helper=helper_type,
-                             min_clients=min_clients,
-                             requested_clients=requested_clients)
+    json_data = request.get_json()
+    return api.start_session(**json_data)
 
 
 @app.route('/list_sessions', methods=['GET'])
