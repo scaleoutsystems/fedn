@@ -64,7 +64,7 @@ class CombinerInterface:
         Abstraction on top of the gRPC server servicer.
 
     :param parent: The parent combiner (controller)
-    :type parent: :class:`fedn.network.api.interfaces.API'
+    :type parent: :class:`fedn.network.api.interfaces.API`
     :param name: The name of the combiner.
     :type name: str
     :param address: The address of the combiner.
