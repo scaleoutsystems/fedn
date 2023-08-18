@@ -181,8 +181,26 @@ class ControlBase(ABC):
         self.tracer.new_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
 
+    def new_round(self, round_data):
+        """Initialize a new round in backend db. """
+
+        self.tracer.new_round(round_data)
+
+    def update_round(self, round_data):
+        """ Upate round in backend db. """
+        self.tracer.set_round_data(round_data)
+
+    def set_round_status(self, round_id, status):
+        """ Upate round in backend db. """
+        self.tracer.set_round_status(round_id, status)
+
+    def set_round_config(self, round_id, round_config):
+        """ Upate round in backend db. """
+        self.tracer.set_round_config(round_id, round_config)
+
     def request_model_updates(self, combiners):
-        """Call Combiner server RPC to get a model update. """
+        """Ask Combiner server to produce a model update. """
+
         cl = []
         for combiner, combiner_round_config in combiners:
             response = combiner.submit(combiner_round_config)
