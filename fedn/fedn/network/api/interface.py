@@ -9,6 +9,7 @@ from bson import json_util
 from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
+from fedn.common.config import get_controller_config, get_network_config
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -269,24 +270,39 @@ class API:
         finally:
             mutex.release()
 
-    def get_checksum(self, name):
-        """ Get the checksum of the compute package.
+    def _create_checksum(self, name=None):
+        """ Create the checksum of the compute package.
 
-        :return: The checksum as a json object.
-        :rtype: :class:`flask.Response`
+        :param name: The name of the compute package.
+        :type name: str
+        :return: Success or failure boolean, message and the checksum.
+        :rtype: bool, str, str
         """
 
         if name is None:
             name, message = self._get_compute_package_name()
             if name is None:
-                return jsonify({"success": False, "message": message}), 404
-
+                return False, message, ''
         file_path = os.path.join('/app/client/package/', name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
             sum = ''
+            message = 'File not found.'
+        return True, message, sum
 
+    def get_checksum(self, name):
+        """ Get the checksum of the compute package.
+
+        :param name: The name of the compute package.
+        :type name: str
+        :return: The checksum as a json object.
+        :rtype: :py:class:`flask.Response`
+        """
+
+        success, message, sum = self._create_checksum(name)
+        if not success:
+            return jsonify({"success": False, "message": message}), 404
         payload = {'checksum': sum}
 
         return jsonify(payload)
@@ -295,16 +311,15 @@ class API:
         """ Get the status of the controller.
 
         :return: The status of the controller as a json object.
-        :rtype: :class:`flask.Response`
+        :rtype: :py:class:`flask.Response`
         """
         return jsonify({'state': ReducerStateToString(self.control.state())})
-    # function with kwargs
 
     def get_events(self, **kwargs):
         """ Get the events of the federated network.
 
         :return: The events as a json object.
-        :rtype: :class:`flask.Response`
+        :rtype: :py:class:`flask.Response`
         """
         event_objects = self.statestore.get_events(**kwargs)
         if event_objects is None:
@@ -573,6 +588,27 @@ class API:
             'reducer': round_object['reducer'],
             'combiners': round_object['combiners'],
         }
+        return jsonify(payload)
+
+    def get_client_config(self, checksum=True):
+        """ Get the client config.
+
+        :return: The client config as json response.
+        :rtype: :py:class:`flask.Response`
+        """
+        config = get_controller_config()
+        network_id = get_network_config()
+        port = config['port']
+        host = config['host']
+        payload = {
+            'network_id': network_id,
+            'discover_host': host,
+            'discover_port': port,
+        }
+        if checksum:
+            success, _, checksum_str = self._create_checksum()
+            if success:
+                payload['checksum'] = checksum_str
         return jsonify(payload)
 
     def start_session(self, session_id, rounds=5, round_timeout=180, round_buffer_size=-1, delete_models=False,

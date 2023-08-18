@@ -52,3 +52,19 @@ def get_network_config(file=STATESTORE_CONFIG):
         except yaml.YAMLError as e:
             raise (e)
     return settings["network_id"]
+
+
+def get_controller_config(file=STATESTORE_CONFIG):
+    """ Get the controller configuration from file.
+
+    :param file: The controller configuration file (yaml) path.
+    :type file: str
+    :return: The controller configuration as a dict.
+    :rtype: dict
+    """
+    with open(file, 'r') as config_file:
+        try:
+            settings = dict(yaml.safe_load(config_file))
+        except yaml.YAMLError as e:
+            raise (e)
+    return settings["controller"]

@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_network_config, get_statestore_config
+from fedn.common.config import (get_controller_config, get_network_config,
+                                get_statestore_config)
 from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
 from fedn.network.statestore.mongostatestore import MongoStateStore
@@ -238,6 +239,16 @@ def get_controller_status():
     return api.get_controller_status()
 
 
+@app.route('/get_client_config', methods=['GET'])
+def get_client_config():
+    """ Get the client configuration.
+    return: The client configuration as a json object.
+    rtype: json
+    """
+    checksum = request.args.get('checksum', True)
+    return api.get_client_config(checksum)
+
+
 @app.route('/get_events', methods=['GET'])
 def get_events():
     """ Get the events from the statestore.
@@ -300,4 +311,7 @@ def add_client():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8092, host='0.0.0.0')
+    config = get_controller_config()
+    port = config['port']
+    debug = config['debug']
+    app.run(debug=debug, port=port, host='0.0.0.0')

@@ -78,8 +78,10 @@ Now navigate to http://localhost:8090/network and download the client config fil
 
    .. code:: python
 
-      >>> ...
-      >>> client.get_client_config("client.yaml", checksum=True)
+      >>> import yaml
+      >>> config = client.get_client_config(checksum=True)
+      >>> with open("client.yaml", "w") as f:
+      >>>    f.write(yaml.dump(config))
 
 To connect a client that uses the data partition 'data/clients/1/mnist.pt': 
 

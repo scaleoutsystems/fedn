@@ -317,6 +317,19 @@ class NetworkAPITests(unittest.TestCase):
         # Assert api.get_controller_status was called
         fedn.network.api.server.api.get_controller_status.assert_called_once_with()
 
+    def test_get_client_config(self):
+        """ Test get_client_config endpoint. """
+        # Mock api.get_client_config
+        return_value = {"test": "test"}
+        fedn.network.api.server.api.get_client_config = MagicMock(return_value=return_value)
+        # Make request
+        response = self.app.get('/get_client_config')
+        # Assert response
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, return_value)
+        # Assert api.get_client_config was called
+        fedn.network.api.server.api.get_client_config.assert_called_once_with(True)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -60,6 +60,18 @@ class APIClient:
         response = requests.get(self._get_url('get_active_clients'), params={'combiner': combiner_id}, verify=self.verify)
         return response.json()
 
+    def get_client_config(self, checksum=True):
+        """ Get the controller configuration. Optionally include the checksum.
+        The config is used for clients to connect to the controller and ask for combiner assignment.
+
+        :param checksum: Whether to include the checksum of the package.
+        :type checksum: bool
+        :return: The client configuration.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify)
+        return response.json()
+
     def list_combiners(self):
         """ Get all combiners in the network.
 
