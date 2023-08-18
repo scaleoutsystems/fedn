@@ -53,6 +53,7 @@ FEDn logs events in the federation and does real-time tracking of training progr
 Data is logged as JSON to MongoDB, enabling users to create custom dashboards and visualizations easily.
 
 User Interfaces
+...............
 
 FEDn offers a Flask-based Dashboard that allows users to monitor client model validations in real time. It also facilitates tracking client training time distributions 
 and key performance metrics for clients and combiners, providing a comprehensive view of the system’s operation and performance.
