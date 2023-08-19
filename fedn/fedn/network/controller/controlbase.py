@@ -277,7 +277,7 @@ class ControlBase(ABC):
         else:
             return False
 
-    def evaluate_round_validity_policy(self, combiners):
+    def evaluate_round_validity_policy(self, round):
         """ Check if the round should be seen as valid.
 
             At the end of the round, before committing a model to the global model trail,
@@ -285,10 +285,17 @@ class ControlBase(ABC):
             e.g. asserting that a certain number of combiners have reported in an
             updated model, or that criteria on model performance have been met.
         """
-        if combiners.keys() == []:
+        model_ids = []
+        for combiner in round['combiners']:
+            try:
+                model_ids.append(combiner['model_id'])
+            except KeyError:
+                pass
+
+        if len(model_ids) == 0:
             return False
-        else:
-            return True
+
+        return True
 
     def _select_participating_combiners(self, compute_plan):
         participating_combiners = []
