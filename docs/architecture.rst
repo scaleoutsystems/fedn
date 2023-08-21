@@ -1,7 +1,7 @@
 Architecture overview
 =====================
 
-Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network. A FEDn network, as illustrated in the picture below, is made up of components into three different tiers: the *Controller* tier (1), one or more *Combiners* in second tier (2), and a number of *Clients* in tier (3). 
+Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network. A FEDn network, as illustrated in the picture below, is made up of components into three different tiers: the *Controller* tier (3), one or more *Combiners* in second tier (2), and a number of *Clients* in tier (1). 
 The combiners forms the backbone of the federated ML orchestration mechanism, while the Controller tier provides discovery services and controls to coordinate training over the federated network. 
 By horizontally scaling the number of combiners, one can meet the needs of a growing number of clients.  
  
