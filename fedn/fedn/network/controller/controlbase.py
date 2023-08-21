@@ -186,9 +186,9 @@ class ControlBase(ABC):
 
         self.tracer.new_round(round_data)
 
-    def update_round(self, round_data):
+    def set_round_data(self, round_id, round_data):
         """ Upate round in backend db. """
-        self.tracer.set_round_data(round_data)
+        self.tracer.set_round_data(round_id, round_data)
 
     def set_round_status(self, round_id, status):
         """ Upate round in backend db. """
@@ -278,7 +278,7 @@ class ControlBase(ABC):
             return False
 
     def evaluate_round_validity_policy(self, round):
-        """ Check if the round should be seen as valid.
+        """ Check if the round is valid.
 
             At the end of the round, before committing a model to the global model trail,
             we check if the round validity policy has been met. This can involve
@@ -296,22 +296,6 @@ class ControlBase(ABC):
             return False
 
         return True
-
-    def _select_participating_combiners(self, compute_plan):
-        participating_combiners = []
-        for combiner in self.network.get_combiners():
-            try:
-                combiner_state = combiner.report()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                combiner_state = None
-
-            if combiner_state:
-                is_participating = self.evaluate_round_participation_policy(
-                    compute_plan, combiner_state)
-                if is_participating:
-                    participating_combiners.append((combiner, compute_plan))
-        return participating_combiners
 
     def state(self):
         """

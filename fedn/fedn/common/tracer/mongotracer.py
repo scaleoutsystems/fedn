@@ -89,10 +89,10 @@ class MongoTracer(Tracer):
         self.rounds.update_one({'round_id': round_id}, {
             '$set': {'status': round_status}}, True)
 
-    def set_round_data(self, round_data):
+    def set_round_data(self, round_id, round_data):
         """
 
         :param round_meta:
         """
-        self.rounds.update_one({'round_id': str(round_data['round_id'])}, {
+        self.rounds.update_one({'round_id': round_id}, {
             '$set': {'round_data': round_data}}, True)
