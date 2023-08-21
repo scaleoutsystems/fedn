@@ -177,7 +177,6 @@ class Control(ControlBase):
 
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
-
         def do_if_round_times_out(result):
             print("CONTROL: Round timed out!", flush=True)
 
@@ -200,6 +199,17 @@ class Control(ControlBase):
             return True
 
         combiners_done()
+
+        # Due to the distributed nature, combiners may report late to db,
+        # so we need some robustness here
+        @retry(wait=wait_random(min=0.1, max=1.0),
+               retry=retry_if_exception_type(KeyError))
+        def check_combiners_done_reporting():
+            round = self.statestore.get_round()
+            combiners = round['combiners']
+            return combiners
+
+        _ = check_combiners_done_reporting()
 
         round = self.statestore.get_round(round_id)
         round_valid = self.evaluate_round_validity_policy(round)
