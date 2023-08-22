@@ -200,12 +200,13 @@ class Control(ControlBase):
 
         combiners_done()
 
-        # Due to the distributed nature, combiners may report late to db,
-        # so we need some robustness here
+        # Due to the distributed nature of the computation, there might be a
+        # delay before combiners have reported the round data to the db,
+        # so we need some robustness here.
         @retry(wait=wait_random(min=0.1, max=1.0),
                retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
-            round = self.statestore.get_round()
+            round = self.statestore.get_round(round_id)
             combiners = round['combiners']
             return combiners
 
@@ -245,8 +246,6 @@ class Control(ControlBase):
                 session_config), flush=True)
             self.set_round_status(round_id, 'Failed')
             return None, self.statestore.get_round(round_id)
-
-        # round_data['status'] = 'Success'
 
         # Ask combiners to validate the new global model
         validate = session_config['validate']
