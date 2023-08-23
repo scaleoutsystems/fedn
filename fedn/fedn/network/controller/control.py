@@ -75,7 +75,7 @@ class Control(ControlBase):
             print("Controller already in INSTRUCTING state. A session is in progress.", flush=True)
             return
 
-        if not self.get_latest_model():
+        if not self.statestore.get_latest_model():
             print("No model in model chain, please provide a seed model!")
             return
 
