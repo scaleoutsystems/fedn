@@ -85,10 +85,8 @@ class Control(ControlBase):
         config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.new_session(config)
 
-
         if not self.statestore.get_latest_model():
             print("No model in model chain, please provide a seed model!", flush=True)
-        
         self._state = ReducerState.monitoring
 
         last_round = int(self.get_latest_round_id())
