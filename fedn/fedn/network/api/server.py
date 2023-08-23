@@ -277,14 +277,6 @@ def add_combiner():
     return: The response from the statestore.
     rtype: json
     """
-
-    # name = request.args.get('name', None)
-    # address = str(request.args.get('address', None))
-    # remote_addr = request.remote_addr
-    # fqdn = str(request.args.get('fqdn', None))
-    # port = request.args.get('port', None)
-    # secure_grpc = request.args.get('secure', None)
-
     json_data = request.get_json()
     remote_addr = request.remote_addr
     try:

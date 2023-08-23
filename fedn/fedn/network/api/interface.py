@@ -451,12 +451,12 @@ class API:
             combiner = self.control.network.get_combiner(preferred_combiner)
             if combiner is None:
                 return jsonify({'success': False,
-                                'message': f'Combiner {preferred_combiner} not found or unavailable.'})
+                                'message': f'Combiner {preferred_combiner} not found or unavailable.'}), 400
         else:
             combiner = self.control.network.find_available_combiner()
             if combiner is None:
                 return jsonify({'success': False,
-                                'message': 'No combiner available.'})
+                                'message': 'No combiner available.'}), 400
 
         client_config = {
             'name': client_id,
