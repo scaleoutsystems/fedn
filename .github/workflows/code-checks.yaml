@@ -18,6 +18,8 @@ jobs:
           --skip .venv
           --skip .mnist-keras
           --skip .mnist-pytorch
+          --skip fedn_pb2.py
+          --skip fedn_pb2_grpc.py
 
       - name: check Python formatting
         run: >
@@ -25,12 +27,14 @@ jobs:
           --exclude .venv
           --exclude .mnist-keras
           --exclude .mnist-pytorch
+          --exclude fedn_pb2.py
+          --exclude fedn_pb2_grpc.py
           .
 
       - name: run Python linter
         run: >
           .venv/bin/flake8 . 
-          --exclude ".venv,.mnist-keras,.mnist-pytorch,fedn_pb2.py"
+          --exclude ".venv,.mnist-keras,.mnist-pytorch,fedn_pb2.py,fedn_pb2_grpc.py"
 
       - name: check for floating imports
         run: >

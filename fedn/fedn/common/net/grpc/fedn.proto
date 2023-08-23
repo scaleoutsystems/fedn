@@ -4,7 +4,6 @@ package grpc;
 
 message Response {
     Client sender = 1;
-    //string client = 1;
     string response = 2;
 }
 
@@ -19,7 +18,6 @@ enum StatusType {
 
 message Status {
     Client sender = 1;
-    //string client = 1;
     string status = 2;
 
     enum LogLevel {
@@ -95,6 +93,7 @@ enum ModelStatus {
   IN_PROGRESS_OK = 2;
   FAILED = 3;
 }
+
 message ModelRequest {
   Client sender = 1;
   Client receiver = 2;
@@ -204,7 +203,8 @@ message ReportResponse {
 service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
-  rpc Configure(ControlRequest) returns (ReportResponse);  
+  rpc Configure(ControlRequest) returns (ReportResponse);
+  rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);  
   rpc Report(ControlRequest) returns (ReportResponse);
 }
 
