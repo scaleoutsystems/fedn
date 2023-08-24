@@ -1,6 +1,6 @@
 network_id: fedn-network
-discover_host: reducer
-discover_port: 8090
+discover_host: api-server
+discover_port: 8092
 
 name: combiner
 host: combiner

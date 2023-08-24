@@ -54,6 +54,7 @@ class Helper(HelperBase):
         :param path: file path, filehandle, filelike.
         :type path: str
         :return: Weights of model with keys from torch state_dict.
+        :rtype: OrderedDict
         """
         a = np.load(path)
         weights_np = OrderedDict()
