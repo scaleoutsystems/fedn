@@ -565,8 +565,17 @@ class API:
         payload = {}
         for object in rounds_objects:
             id = object['round_id']
-            info = {'reducer': object['reducer'],
-                    'combiners': object['combiners'],
+            if 'reducer' in object.keys():
+                reducer = object['reducer']
+            else:
+                reducer = None
+            if 'combiners' in object.keys():
+                combiners = object['combiners']
+            else:
+                combiners = None
+
+            info = {'reducer': reducer,
+                    'combiners': combiners,
                     }
             payload[id] = info
         else:
@@ -671,6 +680,7 @@ class API:
         # Setup session config
         session_config = {'session_id': session_id,
                           'round_timeout': round_timeout,
+                          'buffer_size': round_buffer_size,
                           'model_id': model_id,
                           'rounds': rounds,
                           'delete_models_storage': delete_models,

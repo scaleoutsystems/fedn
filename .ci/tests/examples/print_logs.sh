@@ -5,8 +5,8 @@ docker logs "$(basename $PWD)_minio_1"
 echo "Mongo logs"
 docker logs "$(basename $PWD)_mongo_1"
 
-echo "Reducer logs"
-docker logs "$(basename $PWD)_reducer_1"
+echo "Dashboard logs"
+docker logs "$(basename $PWD)_dashboard_1"
 
 echo "API-Server logs"
 docker logs "$(basename $PWD)_api-server_1"
