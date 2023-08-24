@@ -8,6 +8,9 @@ docker logs "$(basename $PWD)_mongo_1"
 echo "Reducer logs"
 docker logs "$(basename $PWD)_reducer_1"
 
+echo "API-Server logs"
+docker logs "$(basename $PWD)_api-server_1"
+
 echo "Combiner logs"
 docker logs "$(basename $PWD)_combiner_1"
           
