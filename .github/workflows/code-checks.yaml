@@ -42,7 +42,8 @@ jobs:
           --exclude-dir='.venv' 
           --exclude-dir='.mnist-pytorch' 
           --exclude-dir='.mnist-keras' 
-          --exclude-dir='docs' 
+          --exclude-dir='docs'
+          --exclude='tests.py'
           '^[ \t]+(import|from) ' -I . 
 
       # TODO: add linting/formatting for all file types

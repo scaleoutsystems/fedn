@@ -1,12 +1,13 @@
 import os
 import uuid
 from abc import ABC, abstractmethod
+from time import sleep
 
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
-from fedn.network.network import Network
 from fedn.network.state import ReducerState
 
 
@@ -25,11 +26,14 @@ class MisconfiguredHelper(Exception):
 class ControlBase(ABC):
     """ Base class and interface for a global controller.
         Override this class to implement a global training strategy (control).
+
+    :param statestore: The statestore object.
+    :type statestore: :class:`fedn.network.statestore.statestorebase.StateStoreBase`
     """
 
     @abstractmethod
     def __init__(self, statestore):
-        """ """
+        """ Constructor. """
         self._state = ReducerState.setup
 
         self.statestore = statestore
@@ -37,7 +41,13 @@ class ControlBase(ABC):
             self.network = Network(self, statestore)
 
         try:
-            storage_config = self.statestore.get_storage_backend()
+            not_ready = True
+            while not_ready:
+                storage_config = self.statestore.get_storage_backend()
+                if storage_config:
+                    not_ready = False
+                else:
+                    sleep(5)
         except Exception:
             print(
                 "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
@@ -73,6 +83,7 @@ class ControlBase(ABC):
         """ Get a helper instance from global config.
 
         :return: Helper instance.
+        :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
         """
         helper_type = self.statestore.get_helper()
         helper = fedn.utils.helpers.get_helper(helper_type)
@@ -81,43 +92,32 @@ class ControlBase(ABC):
         return helper
 
     def get_state(self):
-        """
+        """ Get the current state of the controller.
 
-        :return:
+        :return: The current state.
+        :rtype: :class:`fedn.network.state.ReducerState`
         """
         return self._state
 
     def idle(self):
-        """
+        """ Check if the controller is idle.
 
-        :return:
+        :return: True if idle, False otherwise.
+        :rtype: bool
         """
         if self._state == ReducerState.idle:
             return True
         else:
             return False
 
-    def get_first_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_first()
-
-    def get_latest_model(self):
-        """
-
-        :return:
-        """
-        return self.statestore.get_latest()
-
     def get_model_info(self):
         """
 
         :return:
         """
-        return self.statestore.get_model_info()
+        return self.statestore.get_model_trail()
 
+    # TODO: remove use statestore.get_events() instead
     def get_events(self):
         """
 
@@ -177,6 +177,8 @@ class ControlBase(ABC):
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
             config['session_id'] = str(session_id)
+        else:
+            session_id = config['session_id']
 
         self.tracer.new_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
@@ -223,7 +225,7 @@ class ControlBase(ABC):
 
         print("CONTROL: Committing model {} to global model trail in statestore...".format(
             model_id), flush=True)
-        self.statestore.set_latest(model_id)
+        self.statestore.set_latest_model(model_id)
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():

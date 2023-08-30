@@ -4,8 +4,6 @@ setup(
     name='fedn',
     version='0.5.0-dev',
     description="""Scaleout Federated Learning""",
-    long_description=open('README.md').read(),
-    long_description_content_type="text/markdown",
     author='Scaleout Systems AB',
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',

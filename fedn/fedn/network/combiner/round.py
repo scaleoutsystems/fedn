@@ -29,6 +29,7 @@ class RoundController:
     """
 
     def __init__(self, aggregator_name, storage, server, modelservice):
+        """ Initialize the RoundController."""
 
         self.round_configs = queue.Queue()
         self.storage = storage

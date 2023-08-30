@@ -1,4 +1,5 @@
 import copy
+import datetime
 import time
 import uuid
 
@@ -25,29 +26,27 @@ class UnsupportedStorageBackend(Exception):
 
 
 class MisconfiguredStorageBackend(Exception):
-    """ Exception class for when storage backend is misconfigured. """
+    """ Exception class for when storage backend is misconfigured.
+
+    :param message: The exception message.
+    :type message: str
+    """
 
     def __init__(self, message):
-        """ Constructor method.
-
-        :param message: The exception message.
-        :type message: str
-
-        """
+        """ Constructor method."""
         self.message = message
         super().__init__(self.message)
 
 
 class NoModelException(Exception):
-    """ Exception class for when model is None """
+    """ Exception class for when model is None
+
+    :param message: The exception message.
+    :type message: str
+    """
 
     def __init__(self, message):
-        """ Constructor method.
-
-        :param message: The exception message.
-        :type message: str
-
-        """
+        """ Constructor method."""
         self.message = message
         super().__init__(self.message)
 
@@ -67,15 +66,14 @@ class CombinersNotDoneException(Exception):
 
 
 class Control(ControlBase):
-    """ Controller, implementing the overall global training, validation and inference logic. """
+    """ Controller, implementing the overall global training, validation and inference logic.
+
+    :param statestore: A StateStorage instance.
+    :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
+    """
 
     def __init__(self, statestore):
-        """ Constructor method.
-
-        :param statestore: A StateStorage instance.
-        :type statestore: class: `fedn.common.storage.statestorage.StateStorage`
-
-        """
+        """ Constructor method."""
 
         super().__init__(statestore)
         self.name = "DefaultControl"
@@ -94,15 +92,22 @@ class Control(ControlBase):
             print("Controller already in INSTRUCTING state. A session is in progress.", flush=True)
             return
 
-        if not self.get_latest_model():
+        if not self.statestore.get_latest_model():
             print("No model in model chain, please provide a seed model!")
             return
 
         self._state = ReducerState.instructing
 
+<<<<<<< HEAD
         # Must be called once to set info in the db
+=======
+        # Must be called to set info in the db
+        config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+>>>>>>> develop
         self.new_session(config)
 
+        if not self.statestore.get_latest_model():
+            print("No model in model chain, please provide a seed model!", flush=True)
         self._state = ReducerState.monitoring
 
         last_round = int(self.get_latest_round_id())
@@ -114,6 +119,10 @@ class Control(ControlBase):
         # Execute the rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
             if last_round:
                 current_round = last_round + round
             else:
@@ -136,8 +145,12 @@ class Control(ControlBase):
         :param session_config: The session config.
         :type session_config: dict
         :param round_id: The round id.
+<<<<<<< HEAD
         :type round_id: str
 
+=======
+        :type round_id: str(int)
+>>>>>>> develop
         """
 
         self.new_round({'round_id': round_id, 'status': "Pending"})
@@ -152,7 +165,7 @@ class Control(ControlBase):
         round_config['rounds'] = 1
         round_config['round_id'] = round_id
         round_config['task'] = 'training'
-        round_config['model_id'] = self.get_latest_model()
+        round_config['model_id'] = self.statestore.get_latest_model()
         round_config['helper_type'] = self.statestore.get_helper()
 
         self.set_round_config(round_id, round_config)
@@ -252,7 +265,7 @@ class Control(ControlBase):
         if validate:
             combiner_config = copy.deepcopy(session_config)
             combiner_config['round_id'] = round_id
-            combiner_config['model_id'] = self.get_latest_model()
+            combiner_config['model_id'] = self.statestore.get_latest_model()
             combiner_config['task'] = 'validation'
             combiner_config['helper_type'] = self.statestore.get_helper()
 
@@ -339,7 +352,7 @@ class Control(ControlBase):
         self.__state = ReducerState.instructing
 
         # Check for a model chain
-        if not self.get_latest_model():
+        if not self.statestore.latest_model():
             print("No model in model chain, please seed the alliance!")
 
         # Set reducer in monitoring state
@@ -370,7 +383,7 @@ class Control(ControlBase):
 
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
-        combiner_config['model_id'] = self.get_latest_model()
+        combiner_config['model_id'] = self.statestore.get_latest_model()
         combiner_config['task'] = 'inference'
         combiner_config['helper_type'] = self.statestore.get_framework()
 
