@@ -97,13 +97,8 @@ class Control(ControlBase):
             return
 
         self._state = ReducerState.instructing
-
-<<<<<<< HEAD
-        # Must be called once to set info in the db
-=======
         # Must be called to set info in the db
         config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
->>>>>>> develop
         self.new_session(config)
 
         if not self.statestore.get_latest_model():
@@ -119,10 +114,6 @@ class Control(ControlBase):
         # Execute the rounds in this session
         for round in range(1, int(config['rounds'] + 1)):
             # Increment the round number
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
             if last_round:
                 current_round = last_round + round
             else:
@@ -145,12 +136,8 @@ class Control(ControlBase):
         :param session_config: The session config.
         :type session_config: dict
         :param round_id: The round id.
-<<<<<<< HEAD
         :type round_id: str
 
-=======
-        :type round_id: str(int)
->>>>>>> develop
         """
 
         self.new_round({'round_id': round_id, 'status': "Pending"})
