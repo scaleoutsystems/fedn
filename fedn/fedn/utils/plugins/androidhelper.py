@@ -6,33 +6,33 @@ from .helperbase import HelperBase
 
 
 class Helper(HelperBase):
-    """ FEDn helper class for keras.Sequential. """
+    """ FEDn helper class for android json model weights. """
 
     def __init__(self):
         """ Initialize helper. """
-        self.name = "kerashelper"
+        self.name = "androidhelper"
         super().__init__()
 
     # function to calculate an incremental weighted average of the weights
     def increment_average(self, model, model_next, num_examples, total_examples):
         """ Incremental weighted average of model weights.
 
-        :param model: Current model weights.
-        :type model: list of numpy arrays.
-        :param model_next: New model weights.
-        :type model_next: list of numpy arrays.
-        :param num_examples: Number of examples in new model.
-        :type num_examples: int
-        :param total_examples: Total number of examples.
-        :type total_examples: int
-        :return: Incremental weighted average of model weights.
-        :rtype: list of numpy arrays.
-        """
+            :param model: Current model weights.
+            :type model: list of numpy arrays.
+            :param model_next: New model weights.
+            :type model_next: list of numpy arrays.
+            :param num_examples: Number of examples in new model.
+            :type num_examples: int
+            :param total_examples: Total number of examples.
+            :type total_examples: int
+            :return: Incremental weighted average of model weights.
+            :rtype: list of numpy arrays.
+            """
         # Incremental weighted average
         w = num_examples / total_examples
-        weights = []
-        for i in range(len(model)):
-            weights.append(w * model[i] + (1 - w) * model_next[i])
+        weights = {}
+        for i in model.keys():
+            weights[i] = list(w * np.array(model[i]) + (1 - w) * np.array(model_next[i]))
 
         return weights
 
