@@ -74,7 +74,8 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in json format.
         """
-        weights = json.loads(fh)
+        with open(fh) as openfile:
+            weights = json.load(openfile)
 
         return weights
 
