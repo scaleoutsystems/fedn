@@ -62,6 +62,8 @@ class Helper(HelperBase):
         :param path: Path to file.
         :return: Path to file.
         """
+        if not path:
+            path = self.get_tmp_path()
 
         with open(path, 'w') as outfile:
             json.dump(weights, outfile)
@@ -74,8 +76,8 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in json format.
         """
-        with open(fh) as openfile:
-            weights = json.load(openfile)
+        byte_array = fh.read()
+        weights = json.loads(byte_array)
 
         return weights
 
