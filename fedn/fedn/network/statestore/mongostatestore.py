@@ -59,7 +59,7 @@ class MongoStateStore(StateStoreBase):
 
         # Storage settings
         self.set_storage_backend(model_storage_config)
-        self.__inited = True       
+        self.__inited = True
 
     def is_inited(self):
         """ Check if the statestore is intialized.
