@@ -2,7 +2,6 @@ import copy
 from datetime import datetime
 
 import pymongo
-import yaml
 
 from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.network.state import ReducerStateToString, StringToReducerState
@@ -21,7 +20,7 @@ class MongoStateStore(StateStoreBase):
     :type defaults: dict
     """
 
-    def __init__(self, network_id, config, defaults=None):
+    def __init__(self, network_id, config, model_storage_config):
         """ Constructor."""
         self.__inited = False
         try:
@@ -58,56 +57,9 @@ class MongoStateStore(StateStoreBase):
             self.clients = None
             raise
 
-        if defaults:
-            with open(defaults, 'r') as file:
-                try:
-                    settings = dict(yaml.safe_load(file))
-                    print(settings, flush=True)
-
-                    # Control settings
-                    if "control" in settings and settings["control"]:
-                        control = settings['control']
-                        try:
-                            self.transition(str(control['state']))
-                        except KeyError:
-                            self.transition("idle")
-
-                        if "model" in control:
-                            if not self.get_latest():
-                                self.set_latest(str(control['model']))
-                            else:
-                                print(
-                                    "Model trail already initialized - refusing to overwrite from config. Purge model trail if you want to reseed the system.",
-                                    flush=True)
-
-                        if "context" in control:
-                            print("Setting filepath to {}".format(
-                                control['context']), flush=True)
-                            # TODO Fix the ugly latering of indirection due to a bug in secure_filename returning an object with filename as attribute
-                            # TODO fix with unboxing of value before storing and where consuming.
-                            self.control.config.update_one({'key': 'package'},
-                                                           {'$set': {'filename': control['context']}}, True)
-                        if "helper" in control:
-                            # self.set_framework(control['helper'])
-                            pass
-
-                        round_config = {'timeout': 180, 'validate': True}
-                        try:
-                            round_config['timeout'] = control['timeout']
-                        except Exception:
-                            pass
-
-                        try:
-                            round_config['validate'] = control['validate']
-                        except Exception:
-                            pass
-
-                    # Storage settings
-                    self.set_storage_backend(settings['storage'])
-
-                    self.__inited = True
-                except yaml.YAMLError as e:
-                    print(e)
+        # Storage settings
+        self.set_storage_backend(model_storage_config)
+        self.__inited = True       
 
     def is_inited(self):
         """ Check if the statestore is intialized.
