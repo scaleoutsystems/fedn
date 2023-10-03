@@ -5,17 +5,17 @@ import yaml
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
+
 def get_environment_config():
     """ Get the configuration from environment variables.
     """
     global STATESTORE_CONFIG
     global MODELSTORAGE_CONFIG
 
-    STATESTORE_CONFIG = os.environ.get('STATESTORE_CONFIG', 
-                                            '/workspaces/fedn/config/settings-reducer.yaml.template')
-    MODELSTORAGE_CONFIG = os.environ.get('MODELSTORAGE_CONFIG', 
-                                                '/workspaces/fedn/config/settings-reducer.yaml.template')
-
+    STATESTORE_CONFIG = os.environ.get('STATESTORE_CONFIG',
+                                       '/workspaces/fedn/config/settings-reducer.yaml.template')
+    MODELSTORAGE_CONFIG = os.environ.get('MODELSTORAGE_CONFIG',
+                                         '/workspaces/fedn/config/settings-reducer.yaml.template')
 
 
 def get_statestore_config(file=None):
