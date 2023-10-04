@@ -10,6 +10,9 @@ from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
 
+# Maximum number of tries to connect to statestore and retrieve storage configuration
+MAX_TRIES_BACKEND = os.getenv('MAX_TRIES_BACKEND', 10)
+
 
 class UnsupportedStorageBackend(Exception):
     pass
@@ -42,12 +45,18 @@ class ControlBase(ABC):
 
         try:
             not_ready = True
+            tries = 0
             while not_ready:
                 storage_config = self.statestore.get_storage_backend()
                 if storage_config:
                     not_ready = False
                 else:
+                    print(
+                        "REDUCER CONTROL: Storage backend not configured, waiting...", flush=True)
                     sleep(5)
+                    tries += 1
+                    if tries > MAX_TRIES_BACKEND:
+                        raise Exception
         except Exception:
             print(
                 "REDUCER CONTROL: Failed to retrive storage configuration, exiting.", flush=True)
