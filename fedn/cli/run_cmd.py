@@ -190,7 +190,7 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
         statestore = MongoStateStore(
-            network_id, statestore_config['mongo_config'], defaults=config['init'])
+            network_id, statestore_config['mongo_config'], fedn_config['storage'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
