@@ -165,17 +165,21 @@ class API:
         :return: All sessions as a json response.
         :rtype: :class:`flask.Response`
         """
-        sessions_objects = self.statestore.get_sessions(limit, skip)
-        if sessions_objects is None:
+        sessions_object = self.statestore.get_sessions(limit, skip)
+        if sessions_object is None:
             return (
                 jsonify({"success": False, "message": "No sessions found."}),
                 404,
             )
         payload = {}
-        for object in sessions_objects:
+        for object in sessions_object["result"]:
             id = object["session_id"]
             info = object["session_config"][0]
             payload[id] = info
+
+        result = {"result": payload, "count": sessions_object["count"]}
+
+        return jsonify(result)
         return jsonify(payload)
 
     def get_session(self, session_id):

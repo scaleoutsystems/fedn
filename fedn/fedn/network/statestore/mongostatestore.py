@@ -118,10 +118,22 @@ class MongoStateStore(StateStoreBase):
         :rtype: ObjectID
         """
 
-        if limit is not None and skip is not None:
-            return self.sessions.find().limit(limit).skip(skip)
+        result = None
 
-        return self.sessions.find()
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+
+            result = self.sessions.find().limit(limit).skip(skip)
+        else:
+            result = self.sessions.find()
+
+        count = self.sessions.count_documents({})
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def get_session(self, session_id):
         """Get session with id.
