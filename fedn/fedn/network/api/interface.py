@@ -632,22 +632,30 @@ class API:
             )
 
     def get_models(self, session_id=None, limit=None, skip=None):
-        result = self.statestore.list_models(session_id, limit, skip)
+        models_object = self.statestore.list_models(session_id, limit, skip)
 
-        if result is None:
+        if models_object is None:
             return (
                 jsonify({"success": False, "message": "No models found."}),
                 404,
             )
 
-        json_docs = []
-        for doc in result["result"]:
-            json_doc = json.dumps(doc, default=json_util.default)
-            json_docs.append(json_doc)
+        payload = {}
+        for object in models_object["result"]:
+            model = object["model"]
+            session_id = object["session_id"]
+            commited_at = object["commited_at"]
 
-        json_docs.reverse()
+            obj = {
+                "session_id": session_id,
+                "commited_at": commited_at,
+                "model": model,
+            }
+            payload[model] = obj
 
-        return jsonify({"result": json_docs, "count": result["count"]})
+        result = {"result": payload, "count": models_object["count"]}
+
+        return jsonify(result)
 
     def get_model_trail(self):
         """Get the model trail for a given session.
