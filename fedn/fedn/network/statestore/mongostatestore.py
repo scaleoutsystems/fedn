@@ -145,13 +145,24 @@ class MongoStateStore(StateStoreBase):
         """
         return self.sessions.find_one({"session_id": session_id})
 
-    def set_latest_model(self, model_id):
+    def set_latest_model(self, model_id, session_id=None):
         """Set the latest model id.
 
         :param model_id: The model id.
         :type model_id: str
         :return:
         """
+
+        commited_at = str(datetime.now())
+
+        self.model.insert_one(
+            {
+                "key": "models",
+                "model": model_id,
+                "session_id": session_id,
+                "committed_at": commited_at,
+            }
+        )
 
         self.model.update_one(
             {"key": "current_model"}, {"$set": {"model": model_id}}, True
@@ -161,7 +172,7 @@ class MongoStateStore(StateStoreBase):
             {
                 "$push": {
                     "model": model_id,
-                    "committed_at": str(datetime.now()),
+                    "committed_at": commited_at,
                 }
             },
             True,
@@ -325,6 +336,42 @@ class MongoStateStore(StateStoreBase):
             return retcheck
         except (KeyError, IndexError):
             return None
+
+    def list_models(self, session_id=None, limit=None, skip=None):
+        """List all models in the statestore.
+
+        :param session_id: The session id.
+        :type session_id: str
+        :param limit: The maximum number of models to return.
+        :type limit: int
+        :param skip: The number of models to skip.
+        :type skip: int
+        :return: List of models.
+        :rtype: list
+        """
+        result = None
+
+        find_option = (
+            {"key": "models"}
+            if session_id is None
+            else {"key": "models", "session_id": session_id}
+        )
+
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+
+            result = self.model.find(find_option).limit(limit).skip(skip)
+
+        else:
+            result = self.model.find(find_option)
+
+        count = self.model.count_documents({})
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def get_model_trail(self):
         """Get the model trail.

@@ -32,6 +32,26 @@ def get_model_trail():
     return api.get_model_trail()
 
 
+@app.route("/list_models", methods=["GET"])
+def list_models():
+    """Get models from the statestore.
+    param:
+    session_id: The session id to get the model trail for.
+    limit: The maximum number of models to return.
+    type: limit: int
+    param: skip: The number of models to skip.
+    type: skip: int
+    Returns:
+        _type_: json
+    """
+
+    session_id = request.args.get("session_id", None)
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+
+    return api.get_models(session_id, limit, skip)
+
+
 @app.route("/delete_model_trail", methods=["GET", "POST"])
 def delete_model_trail():
     """Delete the model trail for a given session.

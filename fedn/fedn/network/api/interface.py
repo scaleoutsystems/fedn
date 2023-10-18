@@ -180,7 +180,6 @@ class API:
         result = {"result": payload, "count": sessions_object["count"]}
 
         return jsonify(result)
-        return jsonify(payload)
 
     def get_session(self, session_id):
         """Get a session from the statestore.
@@ -631,6 +630,24 @@ class API:
             return jsonify(
                 {"success": False, "message": "No initial model set."}
             )
+
+    def get_models(self, session_id=None, limit=None, skip=None):
+        result = self.statestore.list_models(session_id, limit, skip)
+
+        if result is None:
+            return (
+                jsonify({"success": False, "message": "No models found."}),
+                404,
+            )
+
+        json_docs = []
+        for doc in result["result"]:
+            json_doc = json.dumps(doc, default=json_util.default)
+            json_docs.append(json_doc)
+
+        json_docs.reverse()
+
+        return jsonify({"result": json_docs, "count": result["count"]})
 
     def get_model_trail(self):
         """Get the model trail for a given session.
