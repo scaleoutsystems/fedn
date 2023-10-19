@@ -18,7 +18,7 @@ def _retry(try_func, **func_args):
     for _ in range(RETRIES):
         is_success = try_func(**func_args)
         if is_success:
-            _eprint('Sucess.')
+            _eprint('Success.')
             return True
         _eprint(f'Sleeping for {SLEEP}.')
         sleep(SLEEP)
@@ -42,7 +42,7 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090
         resp = requests.get(
             f'http://{reducer_host}:{reducer_port}/netgraph', verify=False)
     except Exception as e:
-        _eprint(f'Reques exception econuntered: {e}.')
+        _eprint(f'Reques exception enconuntered: {e}.')
         return False
     if resp.status_code == 200:
         gr = json.loads(resp.content)
@@ -50,7 +50,7 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090
             'status') == 'active' for values in gr['nodes'])
         _eprint(f'Active {node_type}s: {n}.')
         return n == n_nodes
-    _eprint(f'Reducer returned {resp.status_code}.')
+    _eprint(f'Controller returned {resp.status_code}.')
     return False
 
 
