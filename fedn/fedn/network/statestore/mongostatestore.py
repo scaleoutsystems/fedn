@@ -366,7 +366,7 @@ class MongoStateStore(StateStoreBase):
         else:
             result = self.model.find(find_option)
 
-        count = self.model.count_documents({})
+        count = self.model.count_documents({"key": "models"})
 
         return {
             "result": result,
