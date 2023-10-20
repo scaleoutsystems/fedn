@@ -1,8 +1,5 @@
-import logging
-
 from fedn.utils.process import run_process
-
-logger = logging.getLogger(__name__)
+from fedn.common.log_config import logger
 
 
 class Dispatcher:
@@ -39,11 +36,9 @@ class Dispatcher:
 
             # add the corresponding process defined in project.yaml and append arguments from invoked command
             args = shell + [' '.join(cmd + args)]
-            # print("trying to run process {} with args {}".format(cmd, args))
             run_process(args=args, cwd=self.project_dir)
 
-            logger.info('DONE RUNNING {}'.format(cmd_type))
+            logger.info('Done executing {}'.format(cmd_type))
         except IndexError:
-            message = "No such argument or configuration to run!"
+            message = "No such argument or configuration to run."
             logger.error(message)
-            print(message, flush=True)

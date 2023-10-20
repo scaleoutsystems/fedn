@@ -31,7 +31,8 @@ setup(
         "plotly",
         "pandas",
         "bokeh<3.0.0",
-        "networkx"
+        "networkx",
+        "termcolor"
     ],
     license='Apache 2.0',
     zip_safe=False,

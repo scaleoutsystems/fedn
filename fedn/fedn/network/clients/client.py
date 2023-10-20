@@ -19,12 +19,13 @@ from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.common.log_config import logger, set_log_level_from_string, set_theme_from_string
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
-from fedn.utils.logger import Logger
+
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
@@ -49,12 +50,21 @@ class Client:
 
     def __init__(self, config):
         """Initialize the client."""
-
+        print("""   _____           _                  _     ______ ______ _____        
+  / ____|         | |                | |   |  ____|  ____|  __ \       
+ | (___   ___ __ _| | ___  ___  _   _| |_  | |__  | |__  | |  | |_ __  
+  \___ \ / __/ _` | |/ _ \/ _ \| | | | __| |  __| |  __| | |  | | '_ \ 
+  ____) | (_| (_| | |  __/ (_) | |_| | |_  | |    | |____| |__| | | | |
+ |_____/ \___\__,_|_|\___|\___/ \__,_|\__| |_|    |______|_____/|_| |_|
+""")
         self.state = None
         self.error_state = False
         self._attached = False
         self._missed_heartbeat = 0
         self.config = config
+
+        set_log_level_from_string(config.get('verbosity', "INFO"))
+        set_theme_from_string(config.get('theme', 'default'))
 
         self.connector = ConnectorClient(host=config['discover_host'],
                                          port=config['discover_port'],
@@ -76,8 +86,8 @@ class Client:
         self.run_path = os.path.join(os.getcwd(), dirname)
         os.mkdir(self.run_path)
 
-        self.logger = Logger(
-            to_file=config['logfile'], file_path=self.run_path)
+        # self.logger = Logger(
+        #     to_file=config['logfile'], file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
 
@@ -90,8 +100,8 @@ class Client:
 
         self._initialize_helper(client_config)
         if not self.helper:
-            print("Failed to retrive helper class settings! {}".format(
-                client_config), flush=True)
+            logger.warning("Failed to retrive helper class settings: {}".format(
+                client_config))
 
         self._subscribe_to_combiner(config)
 
@@ -104,27 +114,26 @@ class Client:
         :rtype: dict
         """
 
-        print("Asking for assignment!", flush=True)
+        logger.info("Initiating assignment request.")
         while True:
             status, response = self.connector.assign()
             if status == Status.TryAgain:
-                print(response, flush=True)
+                logger.info(response)
                 time.sleep(5)
                 continue
             if status == Status.Assigned:
                 client_config = response
                 break
             if status == Status.UnAuthorized:
-                print(response, flush=True)
+                logger.warning(response)
                 sys.exit("Exiting: Unauthorized")
             if status == Status.UnMatchedConfig:
-                print(response, flush=True)
+                logger.warning(response)
                 sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
-            print(".", end=' ', flush=True)
 
-        print("Got assigned!", flush=True)
-        print("Received combiner config: {}".format(client_config), flush=True)
+        logger.info("Assignment successfully received.")
+        logger.info("Received combiner configuration: {}".format(client_config))
         return client_config
 
     def _connect(self, client_config):
@@ -143,10 +152,10 @@ class Client:
             host = client_config['fqdn']
             # assuming https if fqdn is used
             port = 443
-        print(f"CLIENT: Connecting to combiner host: {host}:{port}", flush=True)
+        logger.info(f"Initiating connection to combiner host at: {host}:{port}")
 
         if client_config['certificate']:
-            print("CLIENT: using certificate from Reducer for GRPC channel")
+            logger.info("Utilizing CA certificate for GRPC channel authentication.")
             secure = True
             cert = base64.b64decode(
                 client_config['certificate'])  # .decode('utf-8')
@@ -154,13 +163,13 @@ class Client:
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             secure = True
-            print("CLIENT: using root certificate from environment variable for GRPC channel")
+            logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], 'rb') as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         elif self.config['secure']:
             secure = True
-            print("CLIENT: using CA certificate for GRPC channel")
+            logger.info("Using CA certificate for GRPC channel.")
             cert = ssl.get_server_certificate((host, port))
 
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
@@ -171,7 +180,7 @@ class Client:
             else:
                 channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         else:
-            print("CLIENT: using insecure GRPC channel")
+            logger.info("Using insecure GRPC channel.")
             if port == 443:
                 port = 80
             channel = grpc.insecure_channel("{}:{}".format(
@@ -184,13 +193,11 @@ class Client:
         self.combinerStub = rpc.CombinerStub(channel)
         self.modelStub = rpc.ModelServiceStub(channel)
 
-        print("Client: {} connected {} to {}:{}".format(self.name,
-                                                        "SECURED" if secure else "INSECURE",
-                                                        host,
-                                                        port),
-              flush=True)
+        logger.info("Successfully established {} connection to {}:{}".format("secure" if secure else "insecure",
+                                                                             host,
+                                                                             port))
 
-        print("Client: Using {} compute package.".format(
+        logger.info("Using {} compute package.".format(
             client_config["package"]))
 
     def _disconnect(self):
@@ -201,7 +208,7 @@ class Client:
         """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
         if not self._attached:
-            print("Client is not attached.", flush=True)
+            logger.info("Client is not attached.")
 
         self._attached = False
         # Close gRPC connection to combiner
@@ -211,7 +218,7 @@ class Client:
         """Attach to the FEDn network (connect to combiner)"""
         # Ask controller for a combiner and connect to that combiner.
         if self._attached:
-            print("Client is already attached. ", flush=True)
+            logger.info("Client is already attached. ")
             return None
 
         client_config = self._assign()
@@ -284,19 +291,16 @@ class Client:
                 if retval:
                     break
                 time.sleep(60)
-                print("No compute package available... retrying in 60s Trying {} more times.".format(
-                    tries), flush=True)
+                logger.warning("Compute package not available. Retrying in 60 seconds. {} attempts remaining.".format(tries))
                 tries -= 1
 
             if retval:
                 if 'checksum' not in config:
-                    print(
-                        "\nWARNING: Skipping security validation of local package!, make sure you trust the package source.\n",
-                        flush=True)
+                    logger.warning("Bypassing security validation for local package. Ensure the package source is trusted.")
                 else:
                     checks_out = pr.validate(config['checksum'])
                     if not checks_out:
-                        print("Validation was enforced and invalid, client closing!")
+                        logger.critical("Validation of local package failed. Client terminating.")
                         self.error_state = True
                         return
 
@@ -305,10 +309,12 @@ class Client:
 
             self.dispatcher = pr.dispatcher(self.run_path)
             try:
-                print("Running Dispatcher for entrypoint: startup", flush=True)
+                logger.info("Initiating Dispatcher with entrypoint set to: startup")
                 self.dispatcher.run_cmd("startup")
             except KeyError:
                 pass
+            except Exception as e:
+                logger.error(f"Caught exception: {type(e).__name__}")
         else:
             # TODO: Deprecate
             dispatch_config = {'entry_points':
@@ -481,11 +487,14 @@ class Client:
             outpath = self.helper.get_tmp_path()
             tic = time.time()
             # TODO: Check return status, fail gracefully
+
             self.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+
             meta['exec_training'] = time.time() - tic
 
             tic = time.time()
             out_model = None
+
             with open(outpath, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
 
@@ -508,6 +517,11 @@ class Client:
                 e), flush=True)
             updated_model_id = None
             meta = {'status': 'failed', 'error': str(e)}
+
+        # Push model update to combiner server
+        updated_model_id = uuid.uuid4()
+        self.set_model(out_model, str(updated_model_id))
+        meta['upload_model'] = time.time() - tic
 
         self.state = ClientState.idle
 
@@ -549,7 +563,7 @@ class Client:
             os.unlink(outpath)
 
         except Exception as e:
-            print("Validation failed with exception {}".format(e), flush=True)
+            logger.warning("Validation failed with exception {}".format(e))
             raise
             self.state = ClientState.idle
             return None
@@ -659,8 +673,9 @@ class Client:
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
-                print("CLIENT heartbeat: GRPC ERROR {} retrying..".format(
-                    status_code.name), flush=True)
+                logger.warning("CLIENT heartbeat: GRPC ERROR {} retrying..".format(
+                    status_code.name))
+                logger.debug(e)
                 self._handle_combiner_failure()
 
             time.sleep(update_frequency)
@@ -705,18 +720,15 @@ class Client:
                 time.sleep(1)
                 cnt += 1
                 if self.state != old_state:
-                    print("{}:CLIENT in {} state".format(datetime.now().strftime(
-                        '%Y-%m-%d %H:%M:%S'), ClientStateToString(self.state)), flush=True)
+                    logger.info("Client in {} state.".format(ClientStateToString(self.state)))
                 if cnt > 5:
-                    print("{}:CLIENT active".format(
-                        datetime.now().strftime('%Y-%m-%d %H:%M:%S')), flush=True)
                     cnt = 0
                 if not self._attached:
-                    print("Detatched from combiner.", flush=True)
+                    logger.info("Detached from combiner.")
                     # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s
                     self._attach()
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:
                     return
         except KeyboardInterrupt:
-            print("Ok, exiting..")
+            logger.info("Shutting down.")

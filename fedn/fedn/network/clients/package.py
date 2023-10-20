@@ -11,7 +11,7 @@ import yaml
 
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
-
+from fedn.common.log_config import logger
 
 class PackageRuntime:
     """ PackageRuntime is used to download, validate and unpack compute packages.
@@ -65,7 +65,7 @@ class PackageRuntime:
                 try:
                     self.pkg_name = params['filename']
                 except KeyError:
-                    print("No package returned!", flush=True)
+                    logger.error("No package returned.")
                     return None
                 r.raise_for_status()
                 with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
@@ -85,7 +85,7 @@ class PackageRuntime:
                 try:
                     self.checksum = data['checksum']
                 except Exception:
-                    print("Could not extract checksum!")
+                    logger.error("Could not extract checksum.")
 
         return True
 
@@ -102,7 +102,7 @@ class PackageRuntime:
         file_checksum = str(sha(os.path.join(self.pkg_path, self.pkg_name)))
 
         if self.checksum == self.expected_checksum == file_checksum:
-            print("Package validated {}".format(self.checksum))
+            logger.info("Package validated {}".format(self.checksum))
             return True
         else:
             return False
@@ -165,8 +165,8 @@ class PackageRuntime:
                 self.dispatch_config = cfg
 
         except Exception:
-            print(
-                "Error trying to load and unpack dispatcher config - trying default", flush=True)
+            logger.error(
+                "Error trying to load and unpack dispatcher config - trying default")
 
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 
