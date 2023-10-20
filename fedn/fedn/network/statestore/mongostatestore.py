@@ -153,14 +153,14 @@ class MongoStateStore(StateStoreBase):
         :return:
         """
 
-        commited_at = str(datetime.now())
+        committed_at = datetime.now()
 
         self.model.insert_one(
             {
                 "key": "models",
                 "model": model_id,
                 "session_id": session_id,
-                "committed_at": commited_at,
+                "committed_at": committed_at,
             }
         )
 
@@ -172,7 +172,7 @@ class MongoStateStore(StateStoreBase):
             {
                 "$push": {
                     "model": model_id,
-                    "committed_at": commited_at,
+                    "committed_at": str(committed_at),
                 }
             },
             True,
@@ -337,7 +337,14 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
-    def list_models(self, session_id=None, limit=None, skip=None):
+    def list_models(
+        self,
+        session_id=None,
+        limit=None,
+        skip=None,
+        sort_key="committed_at",
+        sort_order=pymongo.DESCENDING,
+    ):
         """List all models in the statestore.
 
         :param session_id: The session id.
@@ -357,14 +364,23 @@ class MongoStateStore(StateStoreBase):
             else {"key": "models", "session_id": session_id}
         )
 
+        projection = {"_id": False, "key": False}
+
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
 
-            result = self.model.find(find_option).limit(limit).skip(skip)
+            result = (
+                self.model.find(find_option, projection)
+                .limit(limit)
+                .skip(skip)
+                .sort(sort_key, sort_order)
+            )
 
         else:
-            result = self.model.find(find_option)
+            result = self.model.find(find_option, projection).sort(
+                sort_key, sort_order
+            )
 
         count = self.model.count_documents(find_option)
 
