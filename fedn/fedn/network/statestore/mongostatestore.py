@@ -416,8 +416,16 @@ class MongoStateStore(StateStoreBase):
         :rtype: ObjectId
         """
         # check if kwargs is empty
+
+        result = None
+        count = None
+        projection = {"_id": False}
+
         if not kwargs:
-            result = self.control.status.find()
+            result = self.control.status.find({}, projection).sort(
+                "timestamp", pymongo.DESCENDING
+            )
+            count = self.control.status.count_documents({})
         else:
             limit = kwargs.pop("limit", None)
             skip = kwargs.pop("skip", None)
@@ -426,12 +434,22 @@ class MongoStateStore(StateStoreBase):
                 limit = int(limit)
                 skip = int(skip)
                 result = (
-                    self.control.status.find(kwargs).limit(limit).skip(skip)
+                    self.control.status.find(kwargs, projection)
+                    .sort("timestamp", pymongo.DESCENDING)
+                    .limit(limit)
+                    .skip(skip)
                 )
             else:
-                result = self.control.status.find(kwargs)
+                result = self.control.status.find(kwargs, projection).sort(
+                    "timestamp", pymongo.DESCENDING
+                )
 
-        return result
+            count = self.control.status.count_documents(kwargs)
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def get_storage_backend(self):
         """Get the storage backend.

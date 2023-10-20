@@ -298,8 +298,6 @@ def get_events():
     # TODO: except filter with request.get_json()
     kwargs = request.args.to_dict()
 
-    print("get_events")
-    print(kwargs)
     return api.get_events(**kwargs)
 
 

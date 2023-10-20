@@ -1,11 +1,10 @@
 import base64
 import copy
-import json
+
 import os
 import threading
 from io import BytesIO
 
-from bson import json_util
 from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
@@ -380,19 +379,20 @@ class API:
         :return: The events as a json object.
         :rtype: :py:class:`flask.Response`
         """
-        event_objects = self.statestore.get_events(**kwargs)
-        if event_objects is None:
+        response = self.statestore.get_events(**kwargs)
+
+        result = response["result"]
+        if result is None:
             return (
                 jsonify({"success": False, "message": "No events found."}),
                 404,
             )
-        json_docs = []
-        for doc in self.statestore.get_events(**kwargs):
-            json_doc = json.dumps(doc, default=json_util.default)
-            json_docs.append(json_doc)
 
-        json_docs.reverse()
-        return jsonify({"events": json_docs})
+        events = []
+        for evt in result:
+            events.append(evt)
+
+        return jsonify({"result": events, "count": response["count"]})
 
     def get_all_validations(self, **kwargs):
         """Get all validations from the statestore.
