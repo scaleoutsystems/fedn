@@ -1,0 +1,101 @@
+# /bin/python
+import collections
+import math
+import os
+import time
+
+import fire
+import numpy as np
+
+from fedn.utils.helpers import get_helper, save_metadata, save_metrics
+
+HELPER_MODULE = 'numpyarrayhelper'
+ARRAY_SIZE = 1000
+
+
+def _save_model(weights, out_path):
+    """ Save model to disk. 
+
+    :param model: The model to save.
+    :type model: torch.nn.Module
+    :param out_path: The path to save to.
+    :type out_path: str
+    """
+    helper = get_helper(HELPER_MODULE)
+    helper.save(weights, out_path)
+
+
+def _load_model(model_path):
+    """ Load model from disk.
+
+    param model_path: The path to load from.
+    :type model_path: str
+    :return: The loaded model.
+    :rtype: torch.nn.Module
+    """
+    helper = get_helper(HELPER_MODULE)
+    weights = helper.load(model_path)
+    return weights
+
+
+def init_seed(out_path='seed.npz'):
+    """ Initialize seed model.
+
+    :param out_path: The path to save the seed model to.
+    :type out_path: str
+    """
+    # Init and save
+    weights = np.random.rand(1, ARRAY_SIZE)
+    _save_model(weights, out_path)
+
+
+def train(in_model_path, out_model_path):
+    """ Train model.
+
+    """
+
+    # Load model
+    weights = _load_model(in_model_path)
+
+    # Train
+    time.sleep(4)
+
+    # Metadata needed for aggregation server side
+    metadata = {
+        'num_examples': ARRAY_SIZE,
+    }
+
+    # Save JSON metadata file
+    save_metadata(metadata, out_model_path)
+
+    # Save model update
+    _save_model(weights, out_model_path)
+
+
+def validate(in_model_path, out_json_path):
+    """ Validate model.
+
+    :param in_model_path: The path to the input model.
+    :type in_model_path: str
+    :param out_json_path: The path to save the output JSON to.
+    :type out_json_path: str
+    :param data_path: The path to the data file.
+    :type data_path: str
+    """
+    weights = _load_model(in_model_path)
+
+    # JSON schema
+    report = {
+        "mean": str(np.mean(weights))
+    }
+
+    # Save JSON
+    save_metrics(report, out_json_path)
+
+
+if __name__ == '__main__':
+    fire.Fire({
+        'init_seed': init_seed,
+        'train': train,
+        'validate': validate
+    })

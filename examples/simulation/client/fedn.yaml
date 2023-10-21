@@ -1,0 +1,7 @@
+entry_points:
+  train:
+    command: python entrypoint train
+  validate: 
+    command: python entrypoint train
+
+
