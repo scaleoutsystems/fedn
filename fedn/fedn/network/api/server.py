@@ -343,6 +343,20 @@ def add_client():
     return response
 
 
+@app.route("/get_plot_data", methods=["GET"])
+def get_plot_data():
+    """Get plot data from the statestore.
+    rtype: json
+    """
+
+    try:
+        feature = request.args.get("feature", None)
+        response = api.get_plot_data(feature=feature)
+    except TypeError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+    return response
+
+
 if __name__ == "__main__":
     config = get_controller_config()
     port = config["port"]

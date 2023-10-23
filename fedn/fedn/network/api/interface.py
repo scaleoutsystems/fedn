@@ -7,6 +7,7 @@ from io import BytesIO
 
 from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
+from fedn.network.dashboard.plots import Plot
 
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.network.combiner.interfaces import (
@@ -732,6 +733,31 @@ class API:
             if success:
                 payload["checksum"] = checksum_str
         return jsonify(payload)
+
+    def get_plot_data(self, feature=None):
+        """Get plot data.
+
+        :return: The plot data as json response.
+        :rtype: :py:class:`flask.Response`
+        """
+
+        plot = Plot(self.control.statestore)
+
+        try:
+            valid_metrics = plot.fetch_valid_metrics()
+            feature = feature or valid_metrics[0]
+            box_plot = plot.create_box_plot(feature)
+        except Exception as e:
+            valid_metrics = None
+            box_plot = None
+            print(e, flush=True)
+
+        result = {
+            "valid_metrics": valid_metrics,
+            "box_plot": box_plot,
+        }
+
+        return jsonify(result)
 
     def start_session(
         self,
