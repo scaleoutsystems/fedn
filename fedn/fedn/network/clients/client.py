@@ -19,13 +19,13 @@ from google.protobuf.json_format import MessageToJson
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import logger, set_log_level_from_string, set_theme_from_string
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_theme_from_string)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers import get_helper
-
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
@@ -50,13 +50,6 @@ class Client:
 
     def __init__(self, config):
         """Initialize the client."""
-        print("""   _____           _                  _     ______ ______ _____        
-  / ____|         | |                | |   |  ____|  ____|  __ \       
- | (___   ___ __ _| | ___  ___  _   _| |_  | |__  | |__  | |  | |_ __  
-  \___ \ / __/ _` | |/ _ \/ _ \| | | | __| |  __| |  __| | |  | | '_ \ 
-  ____) | (_| (_| | |  __/ (_) | |_| | |_  | |    | |____| |__| | | | |
- |_____/ \___\__,_|_|\___|\___/ \__,_|\__| |_|    |______|_____/|_| |_|
-""")
         self.state = None
         self.error_state = False
         self._attached = False
@@ -100,7 +93,7 @@ class Client:
 
         self._initialize_helper(client_config)
         if not self.helper:
-            logger.warning("Failed to retrive helper class settings: {}".format(
+            logger.warning("Failed to retrieve helper class settings: {}".format(
                 client_config))
 
         self._subscribe_to_combiner(config)
@@ -125,10 +118,10 @@ class Client:
                 client_config = response
                 break
             if status == Status.UnAuthorized:
-                logger.warning(response)
+                logger.critical(response)
                 sys.exit("Exiting: Unauthorized")
             if status == Status.UnMatchedConfig:
-                logger.warning(response)
+                logger.critical(response)
                 sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
 

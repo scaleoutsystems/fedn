@@ -107,7 +107,7 @@ def run_cmd(ctx):
 @click.option('--heartbeat-interval', required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
 @click.option('--verbosity', required=False, default='INFO', type=click.Choice(['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'], case_sensitive=False))
-@click.option('--theme', required=False, default='default', type=click.Choice(['dark', 'light', 'vibrant', 'default'], case_sensitive=False))
+@click.option('--theme', required=False, default='default', type=click.Choice(['dark', 'light', 'default'], case_sensitive=False))
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
                verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat,

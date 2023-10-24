@@ -19,14 +19,6 @@ class ColorizingStreamHandler(logging.StreamHandler):
         'CRITICAL': 'red',
     }
 
-    vibrant_theme = {
-        'DEBUG': 'cyan',
-        'INFO': 'green',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red',
-    }
-
     def __init__(self, theme='dark'):
         super().__init__()
         self.set_theme(theme)
@@ -36,8 +28,6 @@ class ColorizingStreamHandler(logging.StreamHandler):
             self.color_map = self.dark_theme
         elif theme == 'light':
             self.color_map = self.light_theme
-        elif theme == 'vibrant':
-            self.color_map = self.vibrant_theme
         elif theme == 'default':
             self.color_map = {}  # No color applied
         else:

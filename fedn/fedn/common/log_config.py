@@ -41,7 +41,7 @@ def set_theme_from_string(theme_str):
     Set the logging color theme based on a string input.
     """
     # Check if the theme string is valid
-    valid_themes = ['dark', 'light', 'vibrant', 'default']
+    valid_themes = ['dark', 'light', 'default']
     if theme_str.lower() not in valid_themes:
         raise ValueError(f"Invalid theme: {theme_str}. Valid themes are: {', '.join(valid_themes)}")
 
