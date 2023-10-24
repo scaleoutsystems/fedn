@@ -1,7 +1,10 @@
 import logging
 import logging.config
+
 import urllib3
+
 from fedn.common.color_handler import ColorizingStreamHandler
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 

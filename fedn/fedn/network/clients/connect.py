@@ -10,6 +10,7 @@ import requests
 
 from fedn.common.log_config import logger
 
+
 class Status(enum.Enum):
     """ Enum for representing the status of a client assignment."""
     Unassigned = 0

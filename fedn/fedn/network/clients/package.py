@@ -9,9 +9,10 @@ from distutils.dir_util import copy_tree
 import requests
 import yaml
 
+from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
-from fedn.common.log_config import logger
+
 
 class PackageRuntime:
     """ PackageRuntime is used to download, validate and unpack compute packages.
