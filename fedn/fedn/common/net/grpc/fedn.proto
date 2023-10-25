@@ -4,7 +4,6 @@ package grpc;
 
 message Response {
     Client sender = 1;
-    //string client = 1;
     string response = 2;
 }
 
@@ -14,11 +13,11 @@ enum StatusType {
   MODEL_UPDATE = 2;
   MODEL_VALIDATION_REQUEST = 3;
   MODEL_VALIDATION = 4;
+  INFERENCE = 5;
 }
 
 message Status {
     Client sender = 1;
-    //string client = 1;
     string status = 2;
 
     enum LogLevel {
@@ -54,6 +53,7 @@ message ModelUpdateRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6;
+  string meta = 7;
 }
 
 message ModelUpdate {
@@ -73,6 +73,8 @@ message ModelValidationRequest {
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6; 
+  string meta = 7;
+  bool is_inference = 8;
 }
 
 message ModelValidation {
@@ -91,6 +93,7 @@ enum ModelStatus {
   IN_PROGRESS_OK = 2;
   FAILED = 3;
 }
+
 message ModelRequest {
   Client sender = 1;
   Client receiver = 2;
@@ -200,7 +203,8 @@ message ReportResponse {
 service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
-  rpc Configure(ControlRequest) returns (ReportResponse);  
+  rpc Configure(ControlRequest) returns (ReportResponse);
+  rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);  
   rpc Report(ControlRequest) returns (ReportResponse);
 }
 

@@ -4,14 +4,13 @@ import uuid
 import click
 import yaml
 
-from fedn.client import Client
-from fedn.clients.reducer.restservice import (decode_auth_token,
-                                              encode_auth_token)
-from fedn.clients.reducer.statestore.mongoreducerstatestore import \
-    MongoReducerStateStore
-from fedn.combiner import Combiner
 from fedn.common.exceptions import InvalidClientConfig
-from fedn.reducer import Reducer
+from fedn.network.clients.client import Client
+from fedn.network.combiner.server import Combiner
+from fedn.network.dashboard.restservice import (decode_auth_token,
+                                                encode_auth_token)
+from fedn.network.reducer import Reducer
+from fedn.network.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 
@@ -40,7 +39,7 @@ def check_helper_config_file(config):
     return helper
 
 
-def parse_client_config(config):
+def apply_config(config):
     """Parse client config from file.
 
     Override configs from the CLI with settings in config file.
@@ -71,7 +70,7 @@ def validate_client_config(config):
         if 'discover_port' not in config.keys():
             config['discover_port'] = None
     except Exception:
-        raise InvalidClientConfig("Could not load config appropriately. Check config")
+        raise InvalidClientConfig("Could not load config from file. Check config")
 
 
 @main.group('run')
@@ -87,8 +86,8 @@ def run_cmd(ctx):
 
 
 @run_cmd.command('client')
-@click.option('-d', '--discoverhost', required=False)
-@click.option('-p', '--discoverport', required=False)
+@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services(reducer).')
+@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
 @click.option('--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
@@ -138,7 +137,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
 
     if init:
-        parse_client_config(config)
+        apply_config(config)
 
     validate_client_config(config)
 
@@ -152,7 +151,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
 @click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8], help='Set service name')
-@click.option('-i', '--init', required=True, default=None,
+@click.option('-in', '--init', required=True, default=None,
               help='Set to a filename to (re)init reducer state from file.')
 @click.pass_context
 def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
@@ -161,13 +160,13 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
     :param ctx:
     :param discoverhost:
     :param discoverport:
-    :param token:
+    :param secret_key:
     :param name:
     :param init:
     """
     remote = False if local_package else True
     config = {'host': host, 'port': port, 'secret_key': secret_key,
-              'name': name, 'remote_compute_context': remote, 'init': init}
+              'name': name, 'remote_compute_package': remote, 'init': init}
 
     # Read settings from config file
     try:
@@ -189,7 +188,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
     # Obtain state from database, in case already initialized (service restart)
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
-        statestore = MongoReducerStateStore(
+        statestore = MongoStateStore(
             network_id, statestore_config['mongo_config'], defaults=config['init'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
@@ -219,7 +218,7 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set reducer config in statestore, exiting.", flush=True)
         exit(-1)
 
-    # Configure storage backend (currently supports MinIO)
+    # Configure storage backend.
     try:
         statestore.set_storage_backend(fedn_config['storage'])
     except KeyError:
@@ -229,14 +228,6 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set storage config in statestore, exiting.", flush=True)
         exit(-1)
 
-    # Configure controller
-    control_config = fedn_config['control']
-    try:
-        statestore.set_round_config(control_config)
-    except Exception:
-        print("Failed to set control config, exiting.", flush=True)
-        exit(-1)
-
     reducer = Reducer(statestore)
     reducer.run()
 
@@ -244,17 +235,19 @@ def reducer_cmd(ctx, host, port, secret_key, local_package, name, init):
 @run_cmd.command('combiner')
 @click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services (reducer).')
 @click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
-@click.option('-t', '--token', required=False, help='Specify token for connecting to the reducer.')
+@click.option('-t', '--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8], help='Set name for combiner.')
 @click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
 @click.option('-i', '--port', required=False, default=12080, help='Set port.')
+@click.option('-f', '--fqdn', required=False, default=None, help='Set fully qualified domain name')
 @click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
-@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST service')
+@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST discovery service (reducer)')
 @click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
+@click.option('-a', '--aggregator', required=False, default='fedavg', help='Filename of the aggregator module to use.')
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secure, verify, max_clients, init):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init, aggregator):
     """
 
     :param ctx:
@@ -268,33 +261,12 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, secur
     :param max_clients:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'myhost': host,
-              'myport': port, 'myname': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients, 'init': init}
+    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
+              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
+              'init': init, 'aggregator': aggregator}
 
     if config['init']:
-        with open(config['init'], 'r') as file:
-            try:
-                settings = dict(yaml.safe_load(file))
-            except yaml.YAMLError as e:
-                print('Failed to read config from settings file, exiting.', flush=True)
-                raise (e)
-
-        # Read/overide settings from config file
-        if 'controller' in settings:
-            controller_config = settings['controller']
-            for key, val in controller_config.items():
-                config[key] = val
-
-        if 'combiner' in settings:
-            combiner_config = settings['combiner']
-            config['myname'] = combiner_config['name']
-            config['myhost'] = combiner_config['host']
-            if 'fqdn' in combiner_config.keys():
-                config['fqdn'] = combiner_config['fqdn']
-            else:
-                config['fqdn'] = None
-            config['myport'] = combiner_config['port']
-            config['max_clients'] = combiner_config['max_clients']
+        apply_config(config)
 
     combiner = Combiner(config)
     combiner.run()

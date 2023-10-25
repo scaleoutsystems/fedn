@@ -2,7 +2,7 @@
 set -e
 
 # Init venv
-python -m venv .mnist-keras
+python3 -m venv .mnist-keras
 
 # Pip deps
 .mnist-keras/bin/pip install --upgrade pip

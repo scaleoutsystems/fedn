@@ -48,7 +48,7 @@ class S3ModelRepository(MINIORepository):
             raise
         return str(model_id)
 
-    def set_compute_context(self, name, compute_package, is_file=True):
+    def set_compute_package(self, name, compute_package, is_file=True):
         """
 
         :param name:
@@ -75,7 +75,7 @@ class S3ModelRepository(MINIORepository):
             raise
         return data
 
-    def delete_compute_context(self, compute_package):
+    def delete_compute_package(self, compute_package):
         """
 
         :param compute_package:

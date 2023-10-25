@@ -29,7 +29,7 @@ def _retry(try_func, **func_args):
 def _test_rounds(n_rounds):
     client = pymongo.MongoClient(
         "mongodb://fedn_admin:password@localhost:6534")
-    collection = client['fedn-test-network']['control']['round']
+    collection = client['fedn-network']['control']['rounds']
     query = {'reducer.status': 'Success'}
     n = collection.count_documents(query)
     client.close()
