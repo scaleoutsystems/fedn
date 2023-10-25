@@ -1,5 +1,5 @@
-from fedn.utils.process import run_process
 from fedn.common.log_config import logger
+from fedn.utils.process import run_process
 
 
 class Dispatcher:
