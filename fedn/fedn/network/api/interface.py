@@ -1,19 +1,16 @@
 import base64
 import copy
-
 import os
 import threading
 from io import BytesIO
 
 from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-from fedn.network.dashboard.plots import Plot
 
 from fedn.common.config import get_controller_config, get_network_config
-from fedn.network.combiner.interfaces import (
-    CombinerInterface,
-    CombinerUnavailableError,
-)
+from fedn.network.combiner.interfaces import (CombinerInterface,
+                                              CombinerUnavailableError)
+from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -66,27 +63,32 @@ class API:
             and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
         )
 
-    def get_all_clients(self):
+    def get_clients(self, limit=None, skip=None, active_only=False):
         """Get all clients from the statestore.
 
         :return: All clients as a json response.
         :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
-        clients_objects = self.statestore.list_clients()
-        payload = {}
-        for object in clients_objects:
-            id = object["name"]
-            info = {
-                "combiner": object["combiner"],
-                "combiner_preferred": object["combiner_preferred"],
-                "ip": object["ip"],
-                "updated_at": object["updated_at"],
-                "status": object["status"],
+        response = self.statestore.list_clients(limit, skip, active_only)
+        
+        arr = []
+        
+        for element in response["result"]:
+            obj = {
+                "id": element["name"],
+                "combiner": element["combiner"],
+                "combiner_preferred": element["combiner_preferred"],
+                "ip": element["ip"],
+                "updated_at": element["updated_at"],
+                "last_seen": element["last_seen"],
             }
-            payload[id] = info
 
-        return jsonify(payload)
+            arr.append(obj)
+
+        result = {"result": , "count": response["count"]}
+        
+        return jsonify(result)
 
     def get_active_clients(self, combiner_id):
         """Get all active clients, i.e that are assigned to a combiner.

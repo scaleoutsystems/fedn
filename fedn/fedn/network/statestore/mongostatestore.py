@@ -584,17 +584,29 @@ class MongoStateStore(StateStoreBase):
         except Exception:
             return None
 
-    def list_clients(self):
+    def list_clients(self, limit=None, skip=None, active_only=False):
         """List all clients registered on the network.
 
         :return: list of clients.
         :rtype: list(ObjectId)
         """
-        try:
-            ret = self.clients.find()
-            return list(ret)
-        except Exception:
-            return None
+
+        result = None
+        count = None
+
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+            result = self.clients.find().limit(limit).skip(skip)
+        else:
+            result = self.clients.find()
+        
+        count = self.clients.count_documents({})
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def update_client_status(self, client_data, status, role):
         """Set or update client status.

@@ -69,7 +69,12 @@ def list_clients():
     return: All clients as a json object.
     rtype: json
     """
-    return api.get_all_clients()
+
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+    active_only = request.args.get("active_only", None)
+    
+    return api.get_clients(limit, skip, active_only)
 
 
 @app.route("/get_active_clients", methods=["GET"])

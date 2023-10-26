@@ -712,6 +712,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
+        self.tracer.update_client_timestamp(client.name)
+
         while context.is_active():
             try:
                 yield q.get(timeout=1.0)
