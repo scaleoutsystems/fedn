@@ -111,7 +111,7 @@ class MongoStateStore(StateStoreBase):
                 )
             )
 
-    def get_sessions(self, limit=None, skip=None):
+    def get_sessions(self, limit=None, skip=None, sort_key="_id", sort_order=pymongo.DESCENDING):
         """Get all sessions.
 
         :return: All sessions.
@@ -124,9 +124,13 @@ class MongoStateStore(StateStoreBase):
             limit = int(limit)
             skip = int(skip)
 
-            result = self.sessions.find().limit(limit).skip(skip)
+            result = self.sessions.find().limit(limit).skip(skip).sort(
+                sort_key, sort_order
+            )
         else:
-            result = self.sessions.find()
+            result = self.sessions.find().sort(
+                sort_key, sort_order
+            )
 
         count = self.sessions.count_documents({})
 

@@ -173,13 +173,12 @@ class API:
                 jsonify({"success": False, "message": "No sessions found."}),
                 404,
             )
-        payload = {}
-        for object in sessions_object["result"]:
-            id = object["session_id"]
-            info = object["session_config"][0]
-            payload[id] = info
+        arr = []
+        for element in sessions_object["result"]:
+            obj = element["session_config"][0]
+            arr.append(obj)
 
-        result = {"result": payload, "count": sessions_object["count"]}
+        result = {"result": arr, "count": sessions_object["count"]}
 
         return jsonify(result)
 
