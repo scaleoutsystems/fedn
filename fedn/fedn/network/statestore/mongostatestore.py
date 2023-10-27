@@ -584,7 +584,7 @@ class MongoStateStore(StateStoreBase):
         except Exception:
             return None
 
-    def list_clients(self, limit=None, skip=None, active_only=False):
+    def list_clients(self, limit=None, skip=None, status=False, sort_key="last_seen", sort_order=pymongo.DESCENDING):
         """List all clients registered on the network.
 
         :return: list of clients.
@@ -594,14 +594,17 @@ class MongoStateStore(StateStoreBase):
         result = None
         count = None
 
+        find = {} if status is None else {"status": status}
+        projection = {"_id": False, "updated_at": False}
+
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
-            result = self.clients.find().limit(limit).skip(skip)
+            result = self.clients.find(find, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
         else:
-            result = self.clients.find()
+            result = self.clients.find(find, projection).sort(sort_key, sort_order)
         
-        count = self.clients.count_documents({})
+        count = self.clients.count_documents(find)
 
         return {
             "result": result,

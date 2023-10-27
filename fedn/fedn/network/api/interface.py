@@ -63,14 +63,14 @@ class API:
             and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
         )
 
-    def get_clients(self, limit=None, skip=None, active_only=False):
+    def get_clients(self, limit=None, skip=None, status=False):
         """Get all clients from the statestore.
 
         :return: All clients as a json response.
         :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
-        response = self.statestore.list_clients(limit, skip, active_only)
+        response = self.statestore.list_clients(limit, skip, status)
         
         arr = []
         
@@ -80,13 +80,13 @@ class API:
                 "combiner": element["combiner"],
                 "combiner_preferred": element["combiner_preferred"],
                 "ip": element["ip"],
-                "updated_at": element["updated_at"],
+                "status": element["status"],
                 "last_seen": element["last_seen"],
             }
 
             arr.append(obj)
 
-        result = {"result": , "count": response["count"]}
+        result = {"result": arr, "count": response["count"]}
         
         return jsonify(result)
 

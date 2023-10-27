@@ -1,11 +1,7 @@
 from flask import Flask, jsonify, request
 
-from fedn.common.config import (
-    get_controller_config,
-    get_modelstorage_config,
-    get_network_config,
-    get_statestore_config,
-)
+from fedn.common.config import (get_controller_config, get_modelstorage_config,
+                                get_network_config, get_statestore_config)
 from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
 from fedn.network.statestore.mongostatestore import MongoStateStore
@@ -72,9 +68,9 @@ def list_clients():
 
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
-    active_only = request.args.get("active_only", None)
+    status = request.args.get("status", None)
     
-    return api.get_clients(limit, skip, active_only)
+    return api.get_clients(limit, skip, status)
 
 
 @app.route("/get_active_clients", methods=["GET"])

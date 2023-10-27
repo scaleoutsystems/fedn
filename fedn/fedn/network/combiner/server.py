@@ -98,9 +98,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
             if status == Status.UnAuthorized:
                 print(response, flush=True)
+                print("Status.UnAuthorized", flush=True)
                 sys.exit("Exiting: Unauthorized")
             if status == Status.UnMatchedConfig:
                 print(response, flush=True)
+                print("Status.UnMatchedConfig", flush=True)
                 sys.exit("Exiting: Missing config")
 
         cert = announce_config['certificate']
@@ -712,7 +714,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        self.tracer.update_client_timestamp(client.name)
+        self.tracer.update_client_status(client.name, "online")
 
         while context.is_active():
             try:
@@ -720,6 +722,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             except queue.Empty:
                 pass
 
+        self.tracer.update_client_status(client.name, "offline")
+
+        
     def ModelValidationStream(self, update, context):
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
 
