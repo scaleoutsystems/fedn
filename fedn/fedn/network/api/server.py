@@ -344,6 +344,22 @@ def add_client():
     return response
 
 
+@app.route("/list_combiners_data", methods=["GET"])
+def list_combiners_data():
+    """Add a client to the network.
+    return: The response from control.
+    rtype: json
+    """
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+
+    try:
+        response = api.list_combiners_data(limit=limit, skip=skip)
+    except TypeError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+    return response
+
+
 @app.route("/get_plot_data", methods=["GET"])
 def get_plot_data():
     """Get plot data from the statestore.

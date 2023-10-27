@@ -615,6 +615,42 @@ class MongoStateStore(StateStoreBase):
             "count": count,
         }
 
+    def list_combiners_data(self, limit=None, skip=None):
+        """List all combiner data.
+
+        :return: list of combiner data.
+        :rtype: list(ObjectId)
+        """
+
+        result = None
+        count = None
+        
+        pipeline = [
+            {"$group": {"_id": "$combiner", "count": {"$sum": 1}}}
+        ]
+
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+            pipeline.append({"$limit": limit})
+            pipeline.append({"$skip": skip})
+
+        result = self.clients.aggregate(pipeline)
+        
+        pipeline_count = [
+            {"$group": {"_id": "$combiner"}},
+            {"$group": {"_id": None, "count": {"$sum": 1}}}
+        ]
+
+        result_count = list(self.clients.aggregate(pipeline_count))
+
+        count = result_count[0]['count']
+
+        return {
+            "result": result,
+            "count": count,
+        }
+
     def update_client_status(self, client_data, status, role):
         """Set or update client status.
 

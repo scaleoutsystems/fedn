@@ -759,6 +759,31 @@ class API:
         }
 
         return jsonify(result)
+    
+    def list_combiners_data(self, limit=None, skip=None):
+        """Get combiners data.
+        """
+
+        response = self.statestore.list_combiners_data(limit, skip)
+
+        arr = []
+
+        ## order list by combiner name
+
+        for element in response["result"]:
+
+            obj = {
+                "combiner": element["_id"],
+                "count": element["count"],
+            }
+
+            arr.append(obj)
+
+        arr.sort(key=lambda x: x["count"], reverse=True)
+
+        result = {"result": arr, "count": response["count"]}
+
+        return jsonify(result)
 
     def start_session(
         self,
