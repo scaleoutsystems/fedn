@@ -71,9 +71,9 @@ class API:
         """
         # Will return list of ObjectId
         response = self.statestore.list_clients(limit, skip, status)
-        
+
         arr = []
-        
+
         for element in response["result"]:
             obj = {
                 "id": element["name"],
@@ -87,7 +87,7 @@ class API:
             arr.append(obj)
 
         result = {"result": arr, "count": response["count"]}
-        
+
         return jsonify(result)
 
     def get_active_clients(self, combiner_id):
@@ -759,7 +759,7 @@ class API:
         }
 
         return jsonify(result)
-    
+
     def list_combiners_data(self, limit=None, skip=None):
         """Get combiners data.
         """
@@ -768,8 +768,7 @@ class API:
 
         arr = []
 
-        ## order list by combiner name
-
+        # order list by combiner name
         for element in response["result"]:
 
             obj = {
@@ -778,8 +777,6 @@ class API:
             }
 
             arr.append(obj)
-
-        arr.sort(key=lambda x: x["count"], reverse=True)
 
         result = {"result": arr, "count": response["count"]}
 

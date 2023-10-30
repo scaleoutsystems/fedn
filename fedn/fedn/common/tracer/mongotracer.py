@@ -85,11 +85,10 @@ class MongoTracer(Tracer):
         self.rounds.update_one({'round_id': str(round_data['round_id'])}, {
             '$push': {'reducer': round_data}}, True)
 
-
     def update_client_status(self, client_name, status):
         datetime_now = datetime.now()
         filter_query = {"name": client_name}  # Replace with the desired name
-        
+
         # Define the update operation
         update_query = {"$set": {"last_seen": datetime_now, "status": status}}  # Replace with the property and value to update
 

@@ -607,7 +607,7 @@ class MongoStateStore(StateStoreBase):
             result = self.clients.find(find, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
         else:
             result = self.clients.find(find, projection).sort(sort_key, sort_order)
-        
+
         count = self.clients.count_documents(find)
 
         return {
@@ -615,7 +615,7 @@ class MongoStateStore(StateStoreBase):
             "count": count,
         }
 
-    def list_combiners_data(self, limit=None, skip=None):
+    def list_combiners_data(self, limit=None, skip=None, sort_key="count", sort_order=pymongo.DESCENDING):
         """List all combiner data.
 
         :return: list of combiner data.
@@ -624,19 +624,21 @@ class MongoStateStore(StateStoreBase):
 
         result = None
         count = None
-        
+
         pipeline = [
-            {"$group": {"_id": "$combiner", "count": {"$sum": 1}}}
+            {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+            {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
         ]
 
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
-            pipeline.append({"$limit": limit})
+
             pipeline.append({"$skip": skip})
+            pipeline.append({"$limit": limit})
 
         result = self.clients.aggregate(pipeline)
-        
+
         pipeline_count = [
             {"$group": {"_id": "$combiner"}},
             {"$group": {"_id": None, "count": {"$sum": 1}}}
