@@ -101,7 +101,7 @@ To connect a client that uses the data partition 'data/clients/1/mnist.pt':
   -v $PWD/data/clients/1:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
   --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch run client -in client.yaml --name client1 
+  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1 
 
 You are now ready to start training the model at http://localhost:8090/control.
 
