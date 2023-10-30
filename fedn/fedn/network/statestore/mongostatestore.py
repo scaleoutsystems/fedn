@@ -510,6 +510,8 @@ class MongoStateStore(StateStoreBase):
     def get_combiner(self, name):
         """Get combiner by name.
 
+        :param name: name of combiner to get.
+        :type name: str
         :return: The combiner.
         :rtype: ObjectId
         """
@@ -519,17 +521,25 @@ class MongoStateStore(StateStoreBase):
         except Exception:
             return None
 
-    def get_combiners(self, limit=None, skip=None, sort_key="updated_at", sort_order=pymongo.DESCENDING):
+    def get_combiners(self, limit=None, skip=None, sort_key="updated_at", sort_order=pymongo.DESCENDING, projection={}):
         """Get all combiners.
 
-        :return: list of combiners.
-        :rtype: list
+        :param limit: The maximum number of combiners to return.
+        :type limit: int
+        :param skip: The number of combiners to skip.
+        :type skip: int
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
+        :param projection: The projection.
+        :type projection: dict
+        :return: Dictionary of combiners in result and count.
+        :rtype: dict
         """
 
         result = None
         count = None
-
-        projection = {"name": True, "updated_at": True}
 
         try:
             if limit is not None and skip is not None:
@@ -640,6 +650,12 @@ class MongoStateStore(StateStoreBase):
     def list_combiners_data(self, combiners, sort_key="count", sort_order=pymongo.DESCENDING):
         """List all combiner data.
 
+        :param combiners: list of combiners to get data for.
+        :type combiners: list
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
         :return: list of combiner data.
         :rtype: list(ObjectId)
         """

@@ -350,7 +350,7 @@ def add_client():
 
 @app.route("/list_combiners_data", methods=["POST"])
 def list_combiners_data():
-    """Add a client to the network.
+    """List data from combiners.
     return: The response from control.
     rtype: json
     """

@@ -121,7 +121,8 @@ class API:
         :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
-        response = self.statestore.get_combiners(limit, skip)
+        projection = {"name": True, "updated_at": True}
+        response = self.statestore.get_combiners(limit, skip, projection=projection)
         arr = []
         for element in response["result"]:
             obj = {
@@ -760,6 +761,11 @@ class API:
 
     def list_combiners_data(self, combiners):
         """Get combiners data.
+
+        :param combiners: The combiners to get data for.
+        :type combiners: list
+        :return: The combiners data as json response.
+        :rtype: :py:class:`flask.Response`
         """
 
         response = self.statestore.list_combiners_data(combiners)
