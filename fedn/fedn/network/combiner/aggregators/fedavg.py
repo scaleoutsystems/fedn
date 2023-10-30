@@ -1,8 +1,8 @@
 import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.network.combiner.aggregators.aggregator import Aggregator
+from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
-class FedAvg(Aggregator):
+class Aggregator(AggregatorBase):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.
 
@@ -19,14 +19,14 @@ class FedAvg(Aggregator):
 
     """
 
-    def __init__(self, id, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, control):
         """Constructor method"""
 
-        super().__init__(id, storage, server, modelservice, control)
+        super().__init__(storage, server, modelservice, control)
 
-        self.name = "FedAvg"
+        self.name = "fedavg"
 
-    def combine_models(self, helper=None, time_window=180, max_nr_models=100):
+    def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
         """Aggregate model updates in the queue by computing an incremental
            weighted average of parameters.
 
@@ -36,6 +36,8 @@ class FedAvg(Aggregator):
         :type time_window: int, optional
         :param max_nr_models: The maximum number of updates aggregated, defaults to 100
         :type max_nr_models: int, optional
+        :param delete_models: Delete models from storage after aggregation, defaults to True
+        :type delete_models: bool, optional
         :return: The global model and metadata
         :rtype: tuple
         """
@@ -68,6 +70,11 @@ class FedAvg(Aggregator):
                         model, model_next, metadata['num_examples'], total_examples)
 
                 nr_aggregated_models += 1
+                # Delete model from storage
+                if delete_models:
+                    self.modelservice.models.delete(model_id)
+                    self.server.report_status(
+                        "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
                 self.model_updates.task_done()
             except Exception as e:
                 self.server.report_status(

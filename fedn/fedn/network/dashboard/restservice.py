@@ -571,7 +571,9 @@ class ReducerRestService:
             if request.method == 'POST':
                 # Get session configuration
                 round_timeout = float(request.form.get('timeout', 180))
+                buffer_size = int(request.form.get('buffer_size', -1))
                 rounds = int(request.form.get('rounds', 1))
+                delete_models = request.form.get('delete_models', True)
                 task = (request.form.get('task', ''))
                 clients_required = request.form.get('clients_required', 1)
                 clients_requested = request.form.get('clients_requested', 8)
@@ -600,8 +602,9 @@ class ReducerRestService:
 
                 latest_model_id = self.control.get_latest_model()
 
-                config = {'round_timeout': round_timeout, 'model_id': latest_model_id,
-                          'rounds': rounds, 'clients_required': clients_required,
+                config = {'round_timeout': round_timeout, 'buffer_size': buffer_size,
+                          'model_id': latest_model_id, 'rounds': rounds, 'delete_models_storage': delete_models,
+                          'clients_required': clients_required,
                           'clients_requested': clients_requested, 'task': task,
                           'validate': validate, 'helper_type': helper_type}
 
@@ -641,7 +644,7 @@ class ReducerRestService:
             combiner_preferred = request.args.get('combiner', None)
 
             if combiner_preferred:
-                combiner = self.control.network.get(combiner_preferred)
+                combiner = self.control.network.get_combiner(combiner_preferred)
             else:
                 combiner = self.control.network.find_available_combiner()
 

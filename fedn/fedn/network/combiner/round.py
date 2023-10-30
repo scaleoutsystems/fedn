@@ -4,7 +4,7 @@ import sys
 import time
 import uuid
 
-from fedn.network.combiner.aggregators.fedavg import FedAvg
+from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.utils.helpers import get_helper
 
 
@@ -18,8 +18,8 @@ class RoundController:
     The round controller recieves round configurations from the global controller
     and coordinates model updates and aggregation, and model validations.
 
-    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
-    :type id: str
+    :param aggregator_name: The name of the aggregator plugin module.
+    :type aggregator_name: str
     :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
     :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
     :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
@@ -28,17 +28,13 @@ class RoundController:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, id, storage, server, modelservice):
+    def __init__(self, aggregator_name, storage, server, modelservice):
 
-        self.id = id
         self.round_configs = queue.Queue()
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-
-        # TODO, make runtime configurable
-        self.aggregator = FedAvg(
-            self.id, self.storage, self.server, self.modelservice, self)
+        self.aggregator = get_aggregator(aggregator_name, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
         """Add a round_config (job description) to the inbox.
@@ -58,10 +54,7 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Load model update in native format.
-
-        First the model is loaded in BytesIO, then the helper is used to
-        parse it into its native model format (Keras, PyTorch, etc).
+        """Load model update in its native format.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`
@@ -125,7 +118,6 @@ class RoundController:
         """
 
         time_window = float(config['round_timeout'])
-        # buffer_size = int(config['buffer_size'])
 
         tt = 0.0
         while tt < time_window:
@@ -157,8 +149,14 @@ class RoundController:
         # Request model updates from all active clients.
         self.server.request_model_update(config, clients=clients)
 
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
+        if int(config['buffer_size']) == -1:
+            buffer_size = len(clients)
+        else:
+            buffer_size = int(config['buffer_size'])
+
         # Wait / block until the round termination policy has been met.
-        self.waitforit(config, buffer_size=len(clients))
+        self.waitforit(config, buffer_size=buffer_size)
 
         tic = time.time()
         model = None
@@ -166,7 +164,13 @@ class RoundController:
 
         try:
             helper = get_helper(config['helper_type'])
-            model, data = self.aggregator.combine_models(helper)
+            print("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']), flush=True)
+            if config['delete_models_storage'] == 'True':
+                delete_models = True
+            else:
+                delete_models = False
+            model, data = self.aggregator.combine_models(helper=helper,
+                                                         delete_models=delete_models)
         except Exception as e:
             print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
 
@@ -187,7 +191,7 @@ class RoundController:
         self.server.request_model_validation(model_id, config, clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
-        """Download model from persistent storage and set in modelservice.
+        """Download a model from persistent storage and set in modelservice.
 
         :param model_id: ID of the model update object to stage.
         :type model_id: str
@@ -199,8 +203,9 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
+            print("MODEL EXISTST (NOT)", flush=True)
             return
-
+        print("MODEL STAGING", flush=True)
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -330,13 +335,11 @@ class RoundController:
             model_id = str(uuid.uuid4())
             self.modelservice.set_model(a, model_id)
             a.close()
+            data['model_id'] = model_id
 
-        data['model_id'] = model_id
+            self.server.report_status(
+                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
 
-        print("------------------------------------------")
-        self.server.report_status(
-            "ROUNDCONTROL: TRAINING ROUND COMPLETED.", flush=True)
-        print("\n")
         return data
 
     def run(self, polling_interval=1.0):
@@ -361,7 +364,7 @@ class RoundController:
                             round_meta['time_exec_training'] = time.time() - \
                                 tic
                             round_meta['status'] = "Success"
-                            round_meta['name'] = self.id
+                            round_meta['name'] = self.server.id
                             self.server.tracer.set_round_combiner_data(round_meta)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)

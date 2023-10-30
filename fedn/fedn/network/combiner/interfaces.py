@@ -51,7 +51,7 @@ class Channel:
 
 
 class CombinerInterface:
-    """ Interface for the Combiner (server).
+    """ Interface for the Combiner (aggregation server).
         Abstraction on top of the gRPC server servicer.
 
     """
@@ -214,6 +214,23 @@ class CombinerInterface:
 
         try:
             control.Configure(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
+
+    def flush_model_update_queue(self):
+        """ Reset the model update queue on the combiner. """
+
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+
+        request = fedn.ControlRequest()
+
+        try:
+            control.FlushAggregationQueue(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
                 raise CombinerUnavailableError
