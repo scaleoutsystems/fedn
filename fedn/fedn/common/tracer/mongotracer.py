@@ -50,15 +50,25 @@ class MongoTracer(Tracer):
         if self.status:
             self.status.drop()
 
-    def new_session(self, id=None):
-        """ Create a new session. """
+    def create_session(self, id=None):
+        """ Create a new session.
+
+        :param id: The ID of the created session.
+        :type id: uuid, str
+
+        """
         if not id:
             id = uuid.uuid4()
         data = {'session_id': str(id)}
         self.sessions.insert_one(data)
 
-    def new_round(self, round_data):
-        """ Create a new session. """
+    def create_round(self, round_data):
+        """ Create a new round.
+
+        :param round_data: Dictionary with round data.
+        :type round_data: dict
+        """
+        # TODO: Add check if round_id already exists
         self.rounds.insert_one(round_data)
 
     def set_session_config(self, id, config):
@@ -68,7 +78,8 @@ class MongoTracer(Tracer):
     def set_round_combiner_data(self, data):
         """
 
-        :param round_meta:
+        :param data: The combiner data
+        :type data: dict
         """
         self.rounds.update_one({'round_id': str(data['round_id'])}, {
             '$push': {'combiners': data}}, True)
