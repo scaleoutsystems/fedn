@@ -99,7 +99,7 @@ class Control(ControlBase):
         self._state = ReducerState.instructing
         # Must be called to set info in the db
         config['committed_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.new_session(config)
+        self.create_session(config)
 
         if not self.statestore.get_latest_model():
             print("No model in model chain, please provide a seed model!", flush=True)
@@ -140,7 +140,7 @@ class Control(ControlBase):
 
         """
 
-        self.new_round({'round_id': round_id, 'status': "Pending"})
+        self.create_round({'round_id': round_id, 'status': "Pending"})
 
         if len(self.network.get_combiners()) < 1:
             print("CONTROLLER: Round cannot start, no combiners connected!", flush=True)

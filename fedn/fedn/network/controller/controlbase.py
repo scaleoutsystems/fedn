@@ -180,7 +180,7 @@ class ControlBase(ABC):
         else:
             return None
 
-    def new_session(self, config):
+    def create_session(self, config):
         """ Initialize a new session in backend db. """
 
         if "session_id" not in config.keys():
@@ -189,13 +189,13 @@ class ControlBase(ABC):
         else:
             session_id = config['session_id']
 
-        self.tracer.new_session(id=session_id)
+        self.tracer.create_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
 
-    def new_round(self, round_data):
+    def create_round(self, round_data):
         """Initialize a new round in backend db. """
 
-        self.tracer.new_round(round_data)
+        self.tracer.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
         """ Upate round in backend db. """
