@@ -114,28 +114,26 @@ class API:
         response = combiner.list_active_clients()
         return response
 
-    def get_all_combiners(self):
+    def get_all_combiners(self, limit=None, skip=None):
         """Get all combiners from the statestore.
 
         :return: All combiners as a json response.
         :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
-        combiner_objects = self.statestore.get_combiners()
-        payload = {}
-        for object in combiner_objects:
-            id = object["name"]
-            info = {
-                "address": object["address"],
-                "fqdn": object["fqdn"],
-                "parent_reducer": object["parent"]["name"],
-                "port": object["port"],
-                "report": object["report"],
-                "updated_at": object["updated_at"],
+        response = self.statestore.get_combiners(limit, skip)
+        arr = []
+        for element in response["result"]:
+            obj = {
+                "name": element["name"],
+                "updated_at": element["updated_at"],
             }
-            payload[id] = info
 
-        return jsonify(payload)
+            arr.append(obj)
+
+        result = {"result": arr, "count": response["count"]}
+
+        return jsonify(result)
 
     def get_combiner(self, combiner_id):
         """Get a combiner from the statestore.
@@ -760,16 +758,16 @@ class API:
 
         return jsonify(result)
 
-    def list_combiners_data(self, limit=None, skip=None):
+    def list_combiners_data(self, combiners):
         """Get combiners data.
         """
 
-        response = self.statestore.list_combiners_data(limit, skip)
+        response = self.statestore.list_combiners_data(combiners)
 
         arr = []
 
         # order list by combiner name
-        for element in response["result"]:
+        for element in response:
 
             obj = {
                 "combiner": element["_id"],
@@ -778,7 +776,7 @@ class API:
 
             arr.append(obj)
 
-        result = {"result": arr, "count": response["count"]}
+        result = {"result": arr}
 
         return jsonify(result)
 

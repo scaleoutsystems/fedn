@@ -69,7 +69,7 @@ def list_clients():
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
     status = request.args.get("status", None)
-    
+
     return api.get_clients(limit, skip, status)
 
 
@@ -96,7 +96,11 @@ def list_combiners():
     return: All combiners as a json object.
     rtype: json
     """
-    return api.get_all_combiners()
+
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+
+    return api.get_all_combiners(limit, skip)
 
 
 @app.route("/get_combiner", methods=["GET"])
@@ -344,17 +348,20 @@ def add_client():
     return response
 
 
-@app.route("/list_combiners_data", methods=["GET"])
+@app.route("/list_combiners_data", methods=["POST"])
 def list_combiners_data():
     """Add a client to the network.
     return: The response from control.
     rtype: json
     """
-    limit = request.args.get("limit", None)
-    skip = request.args.get("skip", None)
+
+    json_data = request.get_json()
+
+    # expects a list of combiner names (strings) in an array
+    combiners = json_data.get("combiners", None)
 
     try:
-        response = api.list_combiners_data(limit=limit, skip=skip)
+        response = api.list_combiners_data(combiners)
     except TypeError as e:
         return jsonify({"success": False, "message": str(e)}), 400
     return response

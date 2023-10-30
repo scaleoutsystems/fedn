@@ -519,17 +519,35 @@ class MongoStateStore(StateStoreBase):
         except Exception:
             return None
 
-    def get_combiners(self):
+    def get_combiners(self, limit=None, skip=None, sort_key="updated_at", sort_order=pymongo.DESCENDING):
         """Get all combiners.
 
         :return: list of combiners.
         :rtype: list
         """
+
+        result = None
+        count = None
+
+        projection = {"name": True, "updated_at": True}
+
         try:
-            ret = self.combiners.find()
-            return list(ret)
+            if limit is not None and skip is not None:
+                limit = int(limit)
+                skip = int(skip)
+                result = self.combiners.find({}, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
+            else:
+                result = self.combiners.find({}, projection).sort(sort_key, sort_order)
+
+            count = self.combiners.count_documents({})
+
         except Exception:
             return None
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def set_combiner(self, combiner_data):
         """Set combiner in statestore.
@@ -598,24 +616,28 @@ class MongoStateStore(StateStoreBase):
         result = None
         count = None
 
-        find = {} if status is None else {"status": status}
-        projection = {"_id": False, "updated_at": False}
+        try:
+            find = {} if status is None else {"status": status}
+            projection = {"_id": False, "updated_at": False}
 
-        if limit is not None and skip is not None:
-            limit = int(limit)
-            skip = int(skip)
-            result = self.clients.find(find, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
-        else:
-            result = self.clients.find(find, projection).sort(sort_key, sort_order)
+            if limit is not None and skip is not None:
+                limit = int(limit)
+                skip = int(skip)
+                result = self.clients.find(find, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
+            else:
+                result = self.clients.find(find, projection).sort(sort_key, sort_order)
 
-        count = self.clients.count_documents(find)
+            count = self.clients.count_documents(find)
+
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
 
         return {
             "result": result,
             "count": count,
         }
 
-    def list_combiners_data(self, limit=None, skip=None, sort_key="count", sort_order=pymongo.DESCENDING):
+    def list_combiners_data(self, combiners, sort_key="count", sort_order=pymongo.DESCENDING):
         """List all combiner data.
 
         :return: list of combiner data.
@@ -623,35 +645,24 @@ class MongoStateStore(StateStoreBase):
         """
 
         result = None
-        count = None
 
-        pipeline = [
-            {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-            {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
-        ]
+        try:
 
-        if limit is not None and skip is not None:
-            limit = int(limit)
-            skip = int(skip)
+            pipeline = [
+                {"$match": {"combiner": {"$in": combiners}}},
+                {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+                {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
+            ] if combiners is not None else [
+                {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+                {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
+            ]
 
-            pipeline.append({"$skip": skip})
-            pipeline.append({"$limit": limit})
+            result = self.clients.aggregate(pipeline)
 
-        result = self.clients.aggregate(pipeline)
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
 
-        pipeline_count = [
-            {"$group": {"_id": "$combiner"}},
-            {"$group": {"_id": None, "count": {"$sum": 1}}}
-        ]
-
-        result_count = list(self.clients.aggregate(pipeline_count))
-
-        count = result_count[0]['count']
-
-        return {
-            "result": result,
-            "count": count,
-        }
+        return result
 
     def update_client_status(self, client_data, status, role):
         """Set or update client status.
