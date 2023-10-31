@@ -724,7 +724,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.tracer.update_client_status(client.name, "offline")
 
-        
     def ModelValidationStream(self, update, context):
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
 

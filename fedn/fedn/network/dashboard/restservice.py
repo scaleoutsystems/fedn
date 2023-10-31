@@ -821,15 +821,15 @@ class ReducerRestService:
                     active_trainers_str = client["active_trainers"]
                     active_validators_str = client["active_validators"]
                     active_trainers_str = re.sub(
-                        "[^a-zA-Z0-9-:\n\.]", "", active_trainers_str
+                        "[^a-zA-Z0-9-:\n\.]", "", active_trainers_str  # noqa: W605
                     ).replace(
                         "name:", " "
-                    )  # noqa: W605
+                    )
                     active_validators_str = re.sub(
-                        "[^a-zA-Z0-9-:\n\.]", "", active_validators_str
+                        "[^a-zA-Z0-9-:\n\.]", "", active_validators_str  # noqa: W605
                     ).replace(
                         "name:", " "
-                    )  # noqa: W605
+                    )
                     all_active_trainers.extend(
                         " ".join(active_trainers_str.split(" ")).split()
                     )
