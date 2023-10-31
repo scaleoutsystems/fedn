@@ -665,7 +665,7 @@ class MongoStateStore(StateStoreBase):
         try:
 
             pipeline = [
-                {"$match": {"combiner": {"$in": combiners}}},
+                {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
                 {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
                 {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
             ] if combiners is not None else [
