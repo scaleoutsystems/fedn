@@ -46,8 +46,11 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090
         return False
     if resp.status_code == 200:
         gr = json.loads(resp.content)
+
+        status_key = "online" if node_type == "client" else "active"
+
         n = sum(values.get('type') == node_type and values.get(
-            'status') == 'active' for values in gr['nodes'])
+            'status') == status_key for values in gr['nodes'])
         _eprint(f'Active {node_type}s: {n}.')
         return n == n_nodes
     _eprint(f'Reducer returned {resp.status_code}.')
