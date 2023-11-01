@@ -86,6 +86,13 @@ class MongoTracer(Tracer):
             '$push': {'reducer': round_data}}, True)
 
     def update_client_status(self, client_name, status):
+        """ Update client status in statestore.
+        :param client_name: The client name
+        :type client_name: str
+        :param status: The client status
+        :type status: str
+        :return: None
+        """
         datetime_now = datetime.now()
         filter_query = {"name": client_name}
 

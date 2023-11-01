@@ -114,8 +114,15 @@ class MongoStateStore(StateStoreBase):
     def get_sessions(self, limit=None, skip=None, sort_key="_id", sort_order=pymongo.DESCENDING):
         """Get all sessions.
 
-        :return: All sessions.
-        :rtype: ObjectID
+        :param limit: The maximum number of sessions to return.
+        :type limit: int
+        :param skip: The number of sessions to skip.
+        :type skip: int
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
+        :return: Dictionary of sessions in result (array of session objects) and count.
         """
 
         result = None
@@ -616,11 +623,16 @@ class MongoStateStore(StateStoreBase):
         except Exception:
             return None
 
-    def list_clients(self, limit=None, skip=None, status=False, sort_key="last_seen", sort_order=pymongo.DESCENDING):
+    def list_clients(self, limit=None, skip=None, status=None, sort_key="last_seen", sort_order=pymongo.DESCENDING):
         """List all clients registered on the network.
 
-        :return: list of clients.
-        :rtype: list(ObjectId)
+        :param limit: The maximum number of clients to return.
+        :type limit: int
+        :param skip: The number of clients to skip.
+        :type skip: int
+        :param status:  online | offline
+        :type status: str
+        :param sort_key: The key to sort by.
         """
 
         result = None
