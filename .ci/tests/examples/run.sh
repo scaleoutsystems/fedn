@@ -23,34 +23,23 @@ docker-compose \
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py combiners
 
 >&2 echo "Upload compute package"
-curl -k -X POST \
-    -F file=@package.tgz \
-    -F helper="$helper" \
-    http://localhost:8090/context
-printf '\n'
+".$example/bin/python" ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper"
 
 >&2 echo "Upload seed"
-curl -k -X POST \
-    -F seed=@seed.npz \
-    http://localhost:8090/models
-printf '\n'
+".$example/bin/python" ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
 
 >&2 echo "Wait for clients to connect"
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py clients
 
->&2 echo "Start round"
-curl -k -X POST \
-    -F rounds=3 \
-    -F validate=True \
-    http://localhost:8090/control
-printf '\n'
+>&2 echo "Start session"
+".$example/bin/python" ../../.ci/tests/examples/api_test.py start_session --rounds 3 --helper "$helper"
 
 >&2 echo "Checking rounds success"
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py rounds
 
 >&2 echo "Test client connection with dowloaded settings"
 # Get config
-curl -k http://localhost:8090/config/download > ../../client.yaml
+".$example/bin/python" ../../.ci/tests/examples/api_test.py get_client_config --output ../../client.yaml
 
 # Redeploy clients with config
 docker-compose \
@@ -61,6 +50,9 @@ docker-compose \
 
 >&2 echo "Wait for clients to reconnect"
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py clients
+
+>&2 echo "Test API GET requests"
+".$example/bin/python" ../../.ci/tests/examples/api_test.py test_api_get_methods
 
 popd
 >&2 echo "Test completed successfully"

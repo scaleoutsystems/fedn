@@ -12,10 +12,10 @@ from enum import Enum
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.net.connect import ConnectorCombiner, Status
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
+from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
 
@@ -49,14 +49,14 @@ def role_to_proto_role(role):
 
 
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
-    """ Combiner gRPC server. """
+    """ Combiner gRPC server.
+
+    :param config: configuration for the combiner
+    :type config: dict
+    """
 
     def __init__(self, config):
-        """ Initialize a Combiner.
-
-        :param config: configuration for the combiner
-        :type config: dict
-        """
+        """ Initialize Combiner server."""
 
         # Client queues
         self.clients = {}
@@ -98,7 +98,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 break
             if status == Status.UnAuthorized:
                 print(response, flush=True)
+                print("Status.UnAuthorized", flush=True)
                 sys.exit("Exiting: Unauthorized")
+            if status == Status.UnMatchedConfig:
+                print(response, flush=True)
+                print("Status.UnMatchedConfig", flush=True)
+                sys.exit("Exiting: Missing config")
 
         cert = announce_config['certificate']
         key = announce_config['key']
@@ -371,6 +376,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__join_client(client)
         self.clients[client.name]["lastseen"] = datetime.now()
 
+    def flush_model_update_queue(self):
+        """Clear the model update queue (aggregator). """
+
+        q = self.control.aggregator.model_updates
+        try:
+            with q.mutex:
+                q.queue.clear()
+                q.all_tasks_done.notify_all()
+                q.unfinished_tasks = 0
+            return True
+        except Exception:
+            return False
+
     #####################################################################################################################
 
     # Control Service
@@ -400,6 +418,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         return response
 
+    # RPCs related to remote configuration of the server, round controller,
+    # aggregator and their states.
+
     def Configure(self, control: fedn.ControlRequest, context):
         """ Configure the Combiner.
 
@@ -415,6 +436,29 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         response = fedn.ControlResponse()
         return response
+
+    def FlushAggregationQueue(self, control: fedn.ControlRequest, context):
+        """ Flush the queue.
+
+        :param control: the control request
+        :type control: :class:`fedn.common.net.grpc.fedn_pb2.ControlRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the control response
+        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        """
+
+        status = self.flush_model_update_queue()
+
+        response = fedn.ControlResponse()
+        if status:
+            response.message = 'Success'
+        else:
+            response.message = 'Failed'
+
+        return response
+
+    ##############################################################################
 
     def Stop(self, control: fedn.ControlRequest, context):
         """ TODO: Not yet implemented.
@@ -493,25 +537,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     #####################################################################################################################
-
-    def AllianceStatusStream(self, response, context):
-        """ A server stream RPC endpoint that emits status messages.
-
-        :param response: the response
-        :type response: :class:`fedn.common.net.grpc.fedn_pb2.Response`
-        :param context: the context (unused)
-        :type context: :class:`grpc._server._Context`"""
-        status = fedn.Status(
-            status="Client {} connecting to AllianceStatusStream.".format(response.sender))
-        status.log_level = fedn.Status.INFO
-        status.sender.name = self.id
-        status.sender.role = role_to_proto_role(self.role)
-        self._subscribe_client_to_queue(response.sender, fedn.Channel.STATUS)
-        q = self.__get_queue(response.sender, fedn.Channel.STATUS)
-        self._send_status(status)
-
-        while True:
-            yield q.get()
 
     def SendStatus(self, status: fedn.Status, context):
         """ A client stream RPC endpoint that accepts status messages.
@@ -689,11 +714,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
+        self.tracer.update_client_status(client.name, "online")
+
         while context.is_active():
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
                 pass
+
+        self.tracer.update_client_status(client.name, "offline")
 
     def ModelValidationStream(self, update, context):
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.

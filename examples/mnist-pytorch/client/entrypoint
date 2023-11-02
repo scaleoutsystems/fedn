@@ -25,7 +25,11 @@ def _get_data_path():
 
 
 def _compile_model():
-    # Define model
+    """ Compile the pytorch model.
+
+    :return: The compiled model.
+    :rtype: torch.nn.Module
+    """
     class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
@@ -45,7 +49,15 @@ def _compile_model():
 
 
 def _load_data(data_path, is_train=True):
-    # Load data
+    """ Load data from disk. 
+
+    :param data_path: Path to data file.
+    :type data_path: str
+    :param is_train: Whether to load training or test data.
+    :type is_train: bool
+    :return: Tuple of data and labels.
+    :rtype: tuple
+    """
     if data_path is None:
         data = torch.load(_get_data_path())
     else:
@@ -65,6 +77,13 @@ def _load_data(data_path, is_train=True):
 
 
 def _save_model(model, out_path):
+    """ Save model to disk. 
+
+    :param model: The model to save.
+    :type model: torch.nn.Module
+    :param out_path: The path to save to.
+    :type out_path: str
+    """
     weights = model.state_dict()
     weights_np = collections.OrderedDict()
     for w in weights:
@@ -74,6 +93,13 @@ def _save_model(model, out_path):
 
 
 def _load_model(model_path):
+    """ Load model from disk.
+
+    param model_path: The path to load from.
+    :type model_path: str
+    :return: The loaded model.
+    :rtype: torch.nn.Module
+    """
     helper = get_helper(HELPER_MODULE)
     weights_np = helper.load(model_path)
     weights = collections.OrderedDict()
@@ -86,12 +112,32 @@ def _load_model(model_path):
 
 
 def init_seed(out_path='seed.npz'):
+    """ Initialize seed model.
+
+    :param out_path: The path to save the seed model to.
+    :type out_path: str
+    """
     # Init and save
     model = _compile_model()
     _save_model(model, out_path)
 
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
+    """ Train model.
+
+    :param in_model_path: The path to the input model.
+    :type in_model_path: str
+    :param out_model_path: The path to save the output model to.
+    :type out_model_path: str
+    :param data_path: The path to the data file.
+    :type data_path: str
+    :param batch_size: The batch size to use.
+    :type batch_size: int
+    :param epochs: The number of epochs to train.
+    :type epochs: int
+    :param lr: The learning rate to use.
+    :type lr: float
+    """
     # Load data
     x_train, y_train = _load_data(data_path)
 
@@ -134,6 +180,15 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
 
 def validate(in_model_path, out_json_path, data_path=None):
+    """ Validate model.
+
+    :param in_model_path: The path to the input model.
+    :type in_model_path: str
+    :param out_json_path: The path to save the output JSON to.
+    :type out_json_path: str
+    :param data_path: The path to the data file.
+    :type data_path: str
+    """
     # Load data
     x_train, y_train = _load_data(data_path)
     x_test, y_test = _load_data(data_path, is_train=False)

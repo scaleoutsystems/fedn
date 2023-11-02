@@ -6,18 +6,25 @@ logger = logging.getLogger(__name__)
 
 
 class Dispatcher:
-    """
+    """ Dispatcher class for compute packages.
 
+    :param config: The configuration.
+    :type config: dict
+    :param dir: The directory to dispatch to.
+    :type dir: str
     """
 
     def __init__(self, config, dir):
+        """ Initialize the dispatcher."""
         self.config = config
         self.project_dir = dir
 
     def run_cmd(self, cmd_type):
-        """
+        """ Run a command.
 
-        :param cmd_type:
+        :param cmd_type: The command type.
+        :type cmd_type: str
+        :return:
         """
         try:
             cmdsandargs = cmd_type.split(' ')

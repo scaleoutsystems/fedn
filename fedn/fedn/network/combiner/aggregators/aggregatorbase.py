@@ -9,23 +9,23 @@ AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
 
 class AggregatorBase(ABC):
-    """ Abstract class defining an aggregator. """
+    """ Abstract class defining an aggregator.
+
+    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
+    :type id: str
+    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
+    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
+    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
+    :type server: class: `fedn.network.combiner.Combiner`
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
+    :type control: class: `fedn.network.combiner.round.RoundController`
+    """
 
     @abstractmethod
     def __init__(self, storage, server, modelservice, control):
-        """ Initialize the aggregator.
-
-        :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
-        :type id: str
-        :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
-        :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
-        :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
-        :type server: class: `fedn.network.combiner.Combiner`
-        :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
-        :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-        :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-        :type control: class: `fedn.network.combiner.round.RoundController`
-        """
+        """ Initialize the aggregator."""
         self.name = self.__class__.__name__
         self.storage = storage
         self.server = server

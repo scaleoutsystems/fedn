@@ -29,6 +29,7 @@ class RoundController:
     """
 
     def __init__(self, aggregator_name, storage, server, modelservice):
+        """ Initialize the RoundController."""
 
         self.round_configs = queue.Queue()
         self.storage = storage
@@ -118,7 +119,6 @@ class RoundController:
         """
 
         time_window = float(config['round_timeout'])
-        # buffer_size = int(config['buffer_size'])
 
         tt = 0.0
         while tt < time_window:
@@ -150,8 +150,14 @@ class RoundController:
         # Request model updates from all active clients.
         self.server.request_model_update(config, clients=clients)
 
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
+        if int(config['buffer_size']) == -1:
+            buffer_size = len(clients)
+        else:
+            buffer_size = int(config['buffer_size'])
+
         # Wait / block until the round termination policy has been met.
-        self.waitforit(config, buffer_size=len(clients))
+        self.waitforit(config, buffer_size=buffer_size)
 
         tic = time.time()
         model = None
@@ -159,7 +165,6 @@ class RoundController:
 
         try:
             helper = get_helper(config['helper_type'])
-            # print config delete_models_storage
             print("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']), flush=True)
             if config['delete_models_storage'] == 'True':
                 delete_models = True
@@ -199,9 +204,9 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
-            print("MODEL EXISTST (NOT)", flush=True)
+            print("ROUNDCONTROL: Model already exists in memory, skipping model staging.", flush=True)
             return
-        print("MODEL STAGING", flush=True)
+        print("ROUNDCONTROL: Model Staging, fetching model from storage...", flush=True)
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:

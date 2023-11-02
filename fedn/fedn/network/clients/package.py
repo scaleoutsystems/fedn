@@ -1,5 +1,7 @@
+# This file contains the PackageRuntime class, which is used to download, validate and unpack compute packages.
+#
+#
 import cgi
-import hashlib
 import os
 import tarfile
 from distutils.dir_util import copy_tree
@@ -11,91 +13,13 @@ from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
 
 
-class Package:
-    """
-
-    """
-
-    def __init__(self, config):
-        self.config = config
-        self.name = config['name']
-        self.cwd = config['cwd']
-        if 'port' in config:
-            self.reducer_port = config['port']
-        if 'host' in config:
-            self.reducer_host = config['host']
-        if 'token' in config:
-            self.reducer_token = config['token']
-
-        self.package_file = None
-        self.file_path = None
-        self.package_hash = None
-
-    def package(self, validate=False):
-        """
-
-        :param validate:
-        :return:
-        """
-        # check config
-        package_file = '{name}.tar.gz'.format(name=self.name)
-
-        # package the file
-        cwd = os.getcwd()
-        self.file_path = os.getcwd()
-        if self.config['cwd'] == '':
-            self.file_path = os.getcwd()
-        os.chdir(self.file_path)
-        with tarfile.open(os.path.join(os.path.dirname(self.file_path), package_file), 'w:gz') as tf:
-            # for walking the current dir with absolute path (in archive)
-            # for root, dirs, files in os.walk(self.file_path):
-            # for file in files:
-            # tf.add(os.path.join(root, file))
-            # for walking the current dir
-            for file in os.listdir(self.file_path):
-                tf.add(file)
-            tf.close()
-
-        hsh = hashlib.sha256()
-        with open(os.path.join(os.path.dirname(self.file_path), package_file), 'rb') as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                hsh.update(byte_block)
-
-        os.chdir(cwd)
-        self.package_file = package_file
-        self.package_hash = hsh.hexdigest()
-
-        return package_file, hsh.hexdigest()
-
-    def upload(self):
-        """
-
-        """
-        if self.package_file:
-            # data = {'name': self.package_file, 'hash': str(self.package_hash)}
-            # print("going to send {}".format(data),flush=True)
-            f = open(os.path.join(os.path.dirname(
-                self.file_path), self.package_file), 'rb')
-            print("Sending the following file {}".format(f.read()), flush=True)
-            f.seek(0, 0)
-            files = {'file': f}
-            try:
-                requests.post('https://{}:{}/context'.format(self.reducer_host, self.reducer_port),
-                              verify=False, files=files,
-                              # data=data,
-                              headers={'Authorization': 'Token {}'.format(self.reducer_token)})
-            except Exception as e:
-                print("failed to put execution context to reducer. {}".format(
-                    e), flush=True)
-            finally:
-                f.close()
-
-            print("Upload 4 ", flush=True)
-
-
 class PackageRuntime:
-    """
+    """ PackageRuntime is used to download, validate and unpack compute packages.
 
+    :param package_path: path to compute package
+    :type package_path: str
+    :param package_dir: directory to unpack compute package
+    :type package_dir: str
     """
 
     def __init__(self, package_path, package_dir):
@@ -112,14 +36,14 @@ class PackageRuntime:
         self.expected_checksum = None
 
     def download(self, host, port, token, force_ssl=False, secure=False, name=None):
-        """
-        Download compute package from controller
+        """ Download compute package from controller
 
-        :param host:
-        :param port:
-        :param token:
-        :param name:
-        :return:
+        :param host: host of controller
+        :param port: port of controller
+        :param token: token for authentication
+        :param name: name of package
+        :return: True if download was successful, None otherwise
+        :rtype: bool
         """
         # for https we assume a an ingress handles permanent redirect (308)
         if force_ssl:
@@ -127,9 +51,9 @@ class PackageRuntime:
         else:
             scheme = "http"
         if port:
-            path = f"{scheme}://{host}:{port}/context"
+            path = f"{scheme}://{host}:{port}/download_package"
         else:
-            path = f"{scheme}://{host}/context"
+            path = f"{scheme}://{host}/download_package"
         if name:
             path = path + "?name={}".format(name)
 
@@ -148,9 +72,9 @@ class PackageRuntime:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
         if port:
-            path = f"{scheme}://{host}:{port}/checksum"
+            path = f"{scheme}://{host}:{port}/get_package_checksum"
         else:
-            path = f"{scheme}://{host}/checksum"
+            path = f"{scheme}://{host}/get_package_checksum"
 
         if name:
             path = path + "?name={}".format(name)
@@ -166,21 +90,16 @@ class PackageRuntime:
         return True
 
     def validate(self, expected_checksum):
-        """
+        """ Validate the package against the checksum provided by the controller
 
-        :param expected_checksum:
-        :return:
+        :param expected_checksum: checksum provided by the controller
+        :return: True if checksums match, False otherwise
+        :rtype: bool
         """
         self.expected_checksum = expected_checksum
 
         # crosscheck checksum and unpack if security checks are ok.
-        # print("check if checksum {} is equal to checksum expected {}".format(self.checksum,self.expected_checksum))
         file_checksum = str(sha(os.path.join(self.pkg_path, self.pkg_name)))
-
-        # catched by client, make configurable by governance network!
-        # if self.expected_checksum is None:
-        #    print("CAUTION: Package validation turned OFF on client", flush=True)
-        #    return True
 
         if self.checksum == self.expected_checksum == file_checksum:
             print("Package validated {}".format(self.checksum))
@@ -189,8 +108,10 @@ class PackageRuntime:
             return False
 
     def unpack(self):
-        """
+        """ Unpack the compute package
 
+        :return: True if unpacking was successful, False otherwise
+        :rtype: bool
         """
         if self.pkg_name:
             f = None
@@ -205,7 +126,10 @@ class PackageRuntime:
                     self.pkg_path, self.pkg_name), 'r:bz2')
         else:
             print(
-                "Failed to unpack compute package, no pkg_name set. Has the reducer been configured with a compute package?")
+                "Failed to unpack compute package, no pkg_name set."
+                "Has the reducer been configured with a compute package?"
+            )
+            return False
 
         os.getcwd()
         try:
@@ -215,14 +139,18 @@ class PackageRuntime:
                 f.extractall()
                 print("Successfully extracted compute package content in {}".format(
                     self.dir), flush=True)
+                return True
         except Exception:
             print("Error extracting files!")
+            return False
 
     def dispatcher(self, run_path):
-        """
+        """ Dispatch the compute package
 
-        :param run_path:
-        :return:
+        :param run_path: path to dispatch the compute package
+        :type run_path: str
+        :return: Dispatcher object
+        :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
         from_path = os.path.join(os.getcwd(), 'client')
 
