@@ -214,11 +214,23 @@ class ControlBase(ABC):
         self.tracer.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
-        """ Upate round in backend db. """
+        """ Set round data.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_data: The status
+        :type status: dict
+        """
         self.tracer.set_round_data(round_id, round_data)
 
     def set_round_status(self, round_id, status):
-        """ Upate round in backend db. """
+        """ Set the round round stats.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param status: The status
+        :type status: str
+        """
         self.tracer.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
