@@ -81,7 +81,7 @@ class API:
                 "combiner_preferred": element["combiner_preferred"],
                 "ip": element["ip"],
                 "status": element["status"],
-                "last_seen": element["last_seen"] if element.has_key("last_seen") else "",
+                "last_seen": element["last_seen"] if "last_seen" in element else "",
             }
 
             arr.append(obj)
