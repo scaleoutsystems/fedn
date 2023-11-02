@@ -109,8 +109,6 @@ class MongoTracer(Tracer):
         """
         self.rounds.update_one({'round_id': round_id}, {
             '$set': {'round_data': round_data}}, True)
-        self.rounds.update_one({'round_id': str(round_data['round_id'])}, {
-            '$push': {'reducer': round_data}}, True)
 
     def update_client_status(self, client_name, status):
         """ Update client status in statestore.
