@@ -46,7 +46,7 @@ class Network:
         """
         data = self.statestore.get_combiners()
         combiners = []
-        for c in data:
+        for c in data["result"]:
             if c['certificate']:
                 cert = base64.b64decode(c['certificate'])
                 key = base64.b64decode(c['key'])

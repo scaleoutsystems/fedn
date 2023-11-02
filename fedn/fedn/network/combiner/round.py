@@ -204,9 +204,9 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
-            print("MODEL EXISTST (NOT)", flush=True)
+            print("ROUNDCONTROL: Model already exists in memory, skipping model staging.", flush=True)
             return
-        print("MODEL STAGING", flush=True)
+        print("ROUNDCONTROL: Model Staging, fetching model from storage...", flush=True)
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
