@@ -234,7 +234,7 @@ class ControlBase(ABC):
         self.tracer.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
-        """ Upate round in backend db. 
+        """ Upate round in backend db.
 
         :param round_id: The round unique identifier
         :type round_id: str
