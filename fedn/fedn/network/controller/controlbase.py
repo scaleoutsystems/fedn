@@ -234,11 +234,21 @@ class ControlBase(ABC):
         self.tracer.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
-        """ Upate round in backend db. """
+        """ Upate round in backend db. 
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_config: The round configuration
+        :type round_config: dict
+        """
         self.tracer.set_round_config(round_id, round_config)
 
     def request_model_updates(self, combiners):
-        """Ask Combiner server to produce a model update. """
+        """Ask Combiner server to produce a model update.
+
+        :param combiners: A list of combiners
+        :type combiners: tuple (combiner, comboner_round_config)
+        """
         cl = []
         for combiner, combiner_round_config in combiners:
             response = combiner.submit(combiner_round_config)
@@ -246,7 +256,15 @@ class ControlBase(ABC):
         return cl
 
     def commit(self, model_id, model=None, session_id=None):
-        """Commit a model to the global model trail. The model commited becomes the lastest consensus model."""
+        """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
+
+        :param model_id: Unique identifier for the model to commit.
+        :type model_id: str (uuid)
+        :param model: The model object to commit
+        :type model: BytesIO
+        :param session_id: Unique identifier for the session
+        :type session_id: str
+        """
 
         helper = self.get_helper()
         if model is not None:
@@ -318,7 +336,13 @@ class ControlBase(ABC):
             return False
 
     def evaluate_round_start_policy(self, combiners):
-        """Check if the policy to start a round is met."""
+        """Check if the policy to start a round is met.
+
+        :param combiners: A list of combiners
+        :type combiners: list
+        :return: True if the round policy is mer, otherwise False
+        :rtype: bool
+        """
         if len(combiners) > 0:
             return True
         else:
@@ -331,6 +355,11 @@ class ControlBase(ABC):
         we check if the round validity policy has been met. This can involve
         e.g. asserting that a certain number of combiners have reported in an
         updated model, or that criteria on model performance have been met.
+
+        :param round: The round object
+        :rtype round: dict
+        :return: True if the policy is met, otherwise False
+        :rtype: bool
         """
         model_ids = []
         for combiner in round['combiners']:
@@ -345,8 +374,9 @@ class ControlBase(ABC):
         return True
 
     def state(self):
-        """
+        """ Get the current state of the controller
 
-        : return:
+        :return: The state
+        :rype: str
         """
         return self._state
