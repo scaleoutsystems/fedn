@@ -276,7 +276,7 @@ class Control(ControlBase):
             self.set_round_status(round_id, 'Failed')
             return None, self.statestore.get_round(round_id)
 
-        round_data["status"] = "Success"
+        self.set_round_status(round_id, 'Success')
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         validate = session_config["validate"]
