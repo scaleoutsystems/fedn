@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from google.protobuf.json_format import MessageToDict
 
@@ -18,6 +19,7 @@ class MongoTracer(Tracer):
             self.rounds = self.mdb['control.rounds']
             self.sessions = self.mdb['control.sessions']
             self.validations = self.mdb['control.validations']
+            self.clients = self.mdb['network.clients']
         except Exception as e:
             print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
             self.status = None
@@ -107,3 +109,17 @@ class MongoTracer(Tracer):
         """
         self.rounds.update_one({'round_id': round_id}, {
             '$set': {'round_data': round_data}}, True)
+
+    def update_client_status(self, client_name, status):
+        """ Update client status in statestore.
+        :param client_name: The client name
+        :type client_name: str
+        :param status: The client status
+        :type status: str
+        :return: None
+        """
+        datetime_now = datetime.now()
+        filter_query = {"name": client_name}
+
+        update_query = {"$set": {"last_seen": datetime_now, "status": status}}
+        self.clients.update_one(filter_query, update_query)
