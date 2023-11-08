@@ -1,3 +1,4 @@
+import os
 import logging
 
 from fedn.utils.process import run_process
@@ -28,11 +29,14 @@ class Dispatcher:
             args = cmdsandargs[1:]
 
             # shell (this could be a venv, TODO: parametrize)
-            shell = ['/bin/sh', '-c']
+            if os.name == "nt":
+                shell = []
+            else:
+                shell = ['/bin/sh', '-c']
 
             # add the corresponding process defined in project.yaml and append arguments from invoked command
             args = shell + [' '.join(cmd + args)]
-            # print("trying to run process {} with args {}".format(cmd, args))
+            print("trying to run process {} with args {}".format(cmd, args))
             run_process(args=args, cwd=self.project_dir)
 
             logger.info('DONE RUNNING {}'.format(cmd_type))
