@@ -707,9 +707,8 @@ class API:
         if round_object is None:
             return jsonify({"success": False, "message": "Round not found."})
         payload = {
-            "round_id": round_object["round_id"],
-            "reducer": round_object["reducer"],
-            "combiners": round_object["combiners"],
+            'round_id': round_object['round_id'],
+            'combiners': round_object['combiners'],
         }
         return jsonify(payload)
 

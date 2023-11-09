@@ -18,7 +18,7 @@ def _retry(try_func, **func_args):
     for _ in range(RETRIES):
         is_success = try_func(**func_args)
         if is_success:
-            _eprint('Sucess.')
+            _eprint('Success.')
             return True
         _eprint(f'Sleeping for {SLEEP}.')
         sleep(SLEEP)
@@ -30,7 +30,7 @@ def _test_rounds(n_rounds):
     client = pymongo.MongoClient(
         "mongodb://fedn_admin:password@localhost:6534")
     collection = client['fedn-network']['control']['rounds']
-    query = {'reducer.status': 'Success'}
+    query = {'status': 'Finished'}
     n = collection.count_documents(query)
     client.close()
     _eprint(f'Succeded rounds: {n}.')
@@ -60,7 +60,7 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8092
             return count == n_nodes
 
     except Exception as e:
-        _eprint(f'Reques exception econuntered: {e}.')
+        _eprint(f'Request exception enconuntered: {e}.')
         return False
 
 
