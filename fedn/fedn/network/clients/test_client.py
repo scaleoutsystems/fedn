@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import MagicMock
 
 from fedn.network.clients.client import Client
 
