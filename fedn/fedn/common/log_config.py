@@ -36,6 +36,7 @@ def set_log_level_from_string(level_str):
     # Set the log level
     logger.setLevel(level)
 
+
 def set_log_stream(log_file):
     """
     Redirect the log stream to a specified file, if log_file is set.
