@@ -127,6 +127,28 @@ class Client:
         logger.info("Received combiner configuration: {}".format(client_config))
         return client_config
 
+    def _add_grpc_metadata(self, key, value):
+        """Add metadata for gRPC calls.
+
+        :param key: The key of the metadata.
+        :type key: str
+        :param value: The value of the metadata.
+        :type value: str
+        """
+        # Check if metadata exists and add if not
+        if not hasattr(self, 'metadata'):
+            self.metadata = ()
+
+        # Check if metadata key already exists and replace value if so
+        for i, (k, v) in enumerate(self.metadata):
+            if k == key:
+                # Replace value
+                self.metadata = self.metadata[:i] + ((key, value),) + self.metadata[i + 1:]
+                return
+
+        # Set metadata using tuple concatenation
+        self.metadata += ((key, value),)
+
     def _connect(self, client_config):
         """Connect to assigned combiner.
 
@@ -137,6 +159,9 @@ class Client:
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         host = client_config['host']
+        # Add host to gRPC metadata
+        self._add_grpc_metadata('grpc-server', host)
+        print("CLIENT: Using metadata: {}".format(self.metadata), flush=True)
         port = client_config['port']
         secure = False
         if client_config['fqdn'] is not None:
@@ -328,7 +353,7 @@ class Client:
         """
         data = BytesIO()
 
-        for part in self.modelStub.Download(fedn.ModelRequest(id=id)):
+        for part in self.modelStub.Download(fedn.ModelRequest(id=id), metadata=self.metadata):
 
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -383,7 +408,7 @@ class Client:
                 if not b:
                     break
 
-        result = self.modelStub.Upload(upload_request_generator(bt))
+        result = self.modelStub.Upload(upload_request_generator(bt), metadata=self.metadata)
 
         return result
 
@@ -397,11 +422,12 @@ class Client:
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
-        metadata = [('client', r.sender.name)]
+        # Add client to metadata
+        self._add_grpc_metadata('client', self.name)
 
         while True:
             try:
-                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=metadata):
+                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
@@ -435,7 +461,7 @@ class Client:
         r.sender.role = fedn.WORKER
         while True:
             try:
-                for request in self.combinerStub.ModelValidationRequestStream(r):
+                for request in self.combinerStub.ModelValidationRequestStream(r, metadata=self.metadata):
                     # Process validation request
                     _ = request.model_id
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
@@ -594,7 +620,7 @@ class Client:
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
                         # TODO: Check responses
-                        _ = self.combinerStub.SendModelUpdate(update)
+                        _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE, request=update)
 
@@ -623,7 +649,7 @@ class Client:
                         validation.timestamp = self.str
                         validation.correlation_id = request.correlation_id
                         _ = self.combinerStub.SendModelValidation(
-                            validation)
+                            validation, metadata=self.metadata)
 
                         # Set status type
                         if request.is_inference:
@@ -660,7 +686,7 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(
                 name=self.name, role=fedn.WORKER))
             try:
-                self.connectorStub.SendHeartbeat(heartbeat)
+                self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
@@ -700,7 +726,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        _ = self.connectorStub.SendStatus(status)
+        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
     def run(self):
         """ Run the client. """
