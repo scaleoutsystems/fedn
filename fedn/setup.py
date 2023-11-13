@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='fedn',
-    version='0.5.0-dev',
+    version='0.5.0',
     description="""Scaleout Federated Learning""",
     author='Scaleout Systems AB',
     author_email='contact@scaleoutsystems.com',
