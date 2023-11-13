@@ -126,7 +126,7 @@ class PackageRuntime:
                 f = tarfile.open(os.path.join(
                     self.pkg_path, self.pkg_name), 'r:bz2')
         else:
-            print(
+            logger.error(
                 "Failed to unpack compute package, no pkg_name set."
                 "Has the reducer been configured with a compute package?"
             )
@@ -138,11 +138,11 @@ class PackageRuntime:
 
             if f:
                 f.extractall()
-                print("Successfully extracted compute package content in {}".format(
+                logger.info("Successfully extracted compute package content in {}".format(
                     self.dir), flush=True)
                 return True
         except Exception:
-            print("Error extracting files!")
+            logger.error("Error extracting files!")
             return False
 
     def dispatcher(self, run_path):

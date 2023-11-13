@@ -3,12 +3,10 @@ import logging.config
 
 import urllib3
 
-from fedn.common.color_handler import ColorizingStreamHandler
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 
-handler = ColorizingStreamHandler(theme='dark')
+handler = logging.StreamHandler()
 logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
@@ -38,15 +36,20 @@ def set_log_level_from_string(level_str):
     # Set the log level
     logger.setLevel(level)
 
-
-def set_theme_from_string(theme_str):
+def set_log_stream(log_file):
     """
-    Set the logging color theme based on a string input.
+    Redirect the log stream to a specified file, if log_file is set.
     """
-    # Check if the theme string is valid
-    valid_themes = ['dark', 'light', 'default']
-    if theme_str.lower() not in valid_themes:
-        raise ValueError(f"Invalid theme: {theme_str}. Valid themes are: {', '.join(valid_themes)}")
+    if not log_file:
+        return
 
-    # Set the theme for the ColorizingStreamHandler
-    handler.set_theme(theme_str.lower())
+    # Remove existing handlers
+    for h in logger.handlers[:]:
+        logger.removeHandler(h)
+
+    # Create a FileHandler
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)

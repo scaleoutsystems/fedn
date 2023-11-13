@@ -20,7 +20,7 @@ from google.protobuf.json_format import MessageToJson
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_theme_from_string)
+                                    set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
@@ -57,7 +57,7 @@ class Client:
         self.config = config
 
         set_log_level_from_string(config.get('verbosity', "INFO"))
-        set_theme_from_string(config.get('theme', 'default'))
+        set_log_stream(config.get('logfile', None))
 
         self.connector = ConnectorClient(host=config['discover_host'],
                                          port=config['discover_port'],
@@ -79,8 +79,6 @@ class Client:
         self.run_path = os.path.join(os.getcwd(), dirname)
         os.mkdir(self.run_path)
 
-        # self.logger = Logger(
-        #     to_file=config['logfile'], file_path=self.run_path)
         self.started_at = datetime.now()
         self.logs = []
 
@@ -666,7 +664,7 @@ class Client:
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
-                logger.warning("CLIENT heartbeat: GRPC ERROR {} retrying..".format(
+                logger.warning("Client heartbeat: GRPC error, {}. Retrying.".format(
                     status_code.name))
                 logger.debug(e)
                 self._handle_combiner_failure()
