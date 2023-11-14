@@ -1,5 +1,5 @@
 # Base image
-ARG BASE_IMG=python:3.9-slim
+ARG BASE_IMG=python:3.10-slim
 FROM $BASE_IMG
 
 # Requirements (use MNIST Keras as default)

@@ -68,7 +68,7 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -89,7 +89,7 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -110,7 +110,7 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -127,7 +127,7 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
