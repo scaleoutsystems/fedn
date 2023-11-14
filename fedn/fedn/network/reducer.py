@@ -23,16 +23,12 @@ class MissingReducerConfiguration(Exception):
 class Reducer:
     """ A class used to instantiate the Reducer service.
 
-    Start Reducer service.
+    :param statestore: The backend statestore object.
+    :type statestore: :class:`fedn.network.statestore.statestorebase.StateStoreBase`
     """
 
     def __init__(self, statestore):
-        """
-        Parameters
-        ----------
-        statestore: dict
-            The backend statestore object.
-        """
+        """ Constructor"""
 
         self.statestore = statestore
         config = self.statestore.get_reducer()
@@ -52,7 +48,7 @@ class Reducer:
         self.control = Control(self.statestore)
 
         self.rest = ReducerRestService(
-            config, self.control, self.certificate_manager)
+            config, self.control, self.statestore, self.certificate_manager)
 
     def run(self):
         """Start REST service and control loop."""

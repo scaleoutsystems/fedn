@@ -18,7 +18,7 @@ def _retry(try_func, **func_args):
     for _ in range(RETRIES):
         is_success = try_func(**func_args)
         if is_success:
-            _eprint('Sucess.')
+            _eprint('Success.')
             return True
         _eprint(f'Sleeping for {SLEEP}.')
         sleep(SLEEP)
@@ -30,28 +30,38 @@ def _test_rounds(n_rounds):
     client = pymongo.MongoClient(
         "mongodb://fedn_admin:password@localhost:6534")
     collection = client['fedn-network']['control']['rounds']
-    query = {'reducer.status': 'Success'}
+    query = {'status': 'Finished'}
     n = collection.count_documents(query)
     client.close()
     _eprint(f'Succeded rounds: {n}.')
     return n == n_rounds
 
 
-def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8090'):
+def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8092'):
     try:
-        resp = requests.get(
-            f'http://{reducer_host}:{reducer_port}/netgraph', verify=False)
+
+        endpoint = "list_clients" if node_type == "client" else "list_combiners"
+
+        response = requests.get(
+            f'http://{reducer_host}:{reducer_port}/{endpoint}', verify=False)
+
+        if response.status_code == 200:
+
+            data = json.loads(response.content)
+
+            count = 0
+            if node_type == "client":
+                arr = data.get('result')
+                count = sum(element.get('status') == "online" for element in arr)
+            else:
+                count = data.get('count')
+
+            _eprint(f'Active {node_type}s: {count}.')
+            return count == n_nodes
+
     except Exception as e:
-        _eprint(f'Reques exception econuntered: {e}.')
+        _eprint(f'Request exception enconuntered: {e}.')
         return False
-    if resp.status_code == 200:
-        gr = json.loads(resp.content)
-        n = sum(values.get('type') == node_type and values.get(
-            'status') == 'active' for values in gr['nodes'])
-        _eprint(f'Active {node_type}s: {n}.')
-        return n == n_nodes
-    _eprint(f'Reducer returned {resp.status_code}.')
-    return False
 
 
 def rounds(n_rounds=3):

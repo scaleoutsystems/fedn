@@ -12,7 +12,7 @@ copyright = '2021, Scaleout Systems AB'
 author = 'Scaleout Systems AB'
 
 # The full version, including alpha/beta/rc tags
-release = '0.4.1'
+release = '0.6.0'
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -106,3 +106,5 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+pygments_style = 'sphinx'

@@ -71,7 +71,7 @@ Q: How can I configure the round validity policy:
 In the main control implementation https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py you can modify or replace the wiwmethod "check_round_validity_policy". As we expand with more implementations of this policy, we plan to make it runtime configurable. 
 
 Q: Can I start a client listening only to training requests or only on validation requests?:
--------------------------------------------------
+--------------------------------------------------------------------------------------------
 
 Yes! From FEDn 0.3.0 there is an option to toggle which message streams a client subscibes to. For example, to start a pure validation client: 
 

@@ -6,9 +6,7 @@ class Config(ABC):
 
 
 class ReducerConfig(Config):
-    """
-
-    """
+    """ Configuration for the Reducer component. """
     compute_bundle_dir = None
     models_dir = None
 
