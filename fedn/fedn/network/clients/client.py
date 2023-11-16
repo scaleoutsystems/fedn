@@ -4,7 +4,7 @@ import json
 import os
 import queue
 import re
-import ssl
+import socket
 import sys
 import tempfile
 import threading
@@ -15,7 +15,9 @@ from distutils.dir_util import copy_tree
 from io import BytesIO
 
 import grpc
+from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
+from OpenSSL import SSL
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -149,6 +151,20 @@ class Client:
         # Set metadata using tuple concatenation
         self.metadata += ((key, value),)
 
+    def _get_ssl_certificate(self, domain, port=443):
+        context = SSL.Context(SSL.SSLv23_METHOD)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((domain, port))
+        ssl_sock = SSL.Connection(context, sock)
+        ssl_sock.set_tlsext_host_name(domain.encode())
+        ssl_sock.set_connect_state()
+        ssl_sock.do_handshake()
+        cert = ssl_sock.get_peer_certificate()
+        ssl_sock.close()
+        sock.close()
+        cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
+        return cert
+
     def _connect(self, client_config):
         """Connect to assigned combiner.
 
@@ -186,7 +202,7 @@ class Client:
         elif self.config['secure']:
             secure = True
             print("CLIENT: using CA certificate for GRPC channel")
-            cert = ssl.get_server_certificate((host, port))
+            cert = self._get_ssl_certificate(host, port=port)
 
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
             if self.config['token']:
