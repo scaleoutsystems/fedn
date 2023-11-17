@@ -2,6 +2,7 @@ import base64
 import copy
 import os
 import threading
+import uuid
 from io import BytesIO
 
 from flask import jsonify, send_from_directory
@@ -863,7 +864,7 @@ class API:
 
         # Setup session config
         session_config = {
-            "session_id": session_id,
+            "session_id": session_id if session_id else str(uuid.uuid4()),
             "round_timeout": round_timeout,
             "buffer_size": round_buffer_size,
             "model_id": model_id,
