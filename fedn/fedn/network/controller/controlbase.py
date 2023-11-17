@@ -196,8 +196,8 @@ class ControlBase(ABC):
         else:
             return None
 
-    def new_session(self, config):
-        """Initialize a new session in backend db."""
+    def create_session(self, config):
+        """ Initialize a new session in backend db. """
 
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
@@ -205,11 +205,50 @@ class ControlBase(ABC):
         else:
             session_id = config["session_id"]
 
-        self.tracer.new_session(id=session_id)
+        self.tracer.create_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
 
+    def create_round(self, round_data):
+        """Initialize a new round in backend db. """
+
+        self.tracer.create_round(round_data)
+
+    def set_round_data(self, round_id, round_data):
+        """ Set round data.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_data: The status
+        :type status: dict
+        """
+        self.tracer.set_round_data(round_id, round_data)
+
+    def set_round_status(self, round_id, status):
+        """ Set the round round stats.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param status: The status
+        :type status: str
+        """
+        self.tracer.set_round_status(round_id, status)
+
+    def set_round_config(self, round_id, round_config):
+        """ Upate round in backend db.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_config: The round configuration
+        :type round_config: dict
+        """
+        self.tracer.set_round_config(round_id, round_config)
+
     def request_model_updates(self, combiners):
-        """Call Combiner server RPC to get a model update."""
+        """Ask Combiner server to produce a model update.
+
+        :param combiners: A list of combiners
+        :type combiners: tuple (combiner, comboner_round_config)
+        """
         cl = []
         for combiner, combiner_round_config in combiners:
             response = combiner.submit(combiner_round_config)
@@ -217,7 +256,15 @@ class ControlBase(ABC):
         return cl
 
     def commit(self, model_id, model=None, session_id=None):
-        """Commit a model to the global model trail. The model commited becomes the lastest consensus model."""
+        """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
+
+        :param model_id: Unique identifier for the model to commit.
+        :type model_id: str (uuid)
+        :param model: The model object to commit
+        :type model: BytesIO
+        :param session_id: Unique identifier for the session
+        :type session_id: str
+        """
 
         helper = self.get_helper()
         if model is not None:
@@ -289,45 +336,47 @@ class ControlBase(ABC):
             return False
 
     def evaluate_round_start_policy(self, combiners):
-        """Check if the policy to start a round is met."""
+        """Check if the policy to start a round is met.
+
+        :param combiners: A list of combiners
+        :type combiners: list
+        :return: True if the round policy is mer, otherwise False
+        :rtype: bool
+        """
         if len(combiners) > 0:
             return True
         else:
             return False
 
-    def evaluate_round_validity_policy(self, combiners):
-        """Check if the round should be seen as valid.
+    def evaluate_round_validity_policy(self, round):
+        """ Check if the round is valid.
 
         At the end of the round, before committing a model to the global model trail,
         we check if the round validity policy has been met. This can involve
         e.g. asserting that a certain number of combiners have reported in an
         updated model, or that criteria on model performance have been met.
+
+        :param round: The round object
+        :rtype round: dict
+        :return: True if the policy is met, otherwise False
+        :rtype: bool
         """
-        if combiners.keys() == []:
-            return False
-        else:
-            return True
-
-    def _select_participating_combiners(self, compute_plan):
-        participating_combiners = []
-        for combiner in self.network.get_combiners():
+        model_ids = []
+        for combiner in round['combiners']:
             try:
-                combiner_state = combiner.report()
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
-                combiner_state = None
+                model_ids.append(combiner['model_id'])
+            except KeyError:
+                pass
 
-            if combiner_state:
-                is_participating = self.evaluate_round_participation_policy(
-                    compute_plan, combiner_state
-                )
-                if is_participating:
-                    participating_combiners.append((combiner, compute_plan))
-        return participating_combiners
+        if len(model_ids) == 0:
+            return False
+
+        return True
 
     def state(self):
-        """
+        """ Get the current state of the controller
 
-        :return:
+        :return: The state
+        :rype: str
         """
         return self._state

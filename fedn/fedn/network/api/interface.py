@@ -2,6 +2,7 @@ import base64
 import copy
 import os
 import threading
+import uuid
 from io import BytesIO
 
 from flask import jsonify, send_from_directory
@@ -707,9 +708,8 @@ class API:
         if round_object is None:
             return jsonify({"success": False, "message": "Round not found."})
         payload = {
-            "round_id": round_object["round_id"],
-            "reducer": round_object["reducer"],
-            "combiners": round_object["combiners"],
+            'round_id': round_object['round_id'],
+            'combiners': round_object['combiners'],
         }
         return jsonify(payload)
 
@@ -864,7 +864,7 @@ class API:
 
         # Setup session config
         session_config = {
-            "session_id": session_id,
+            "session_id": session_id if session_id else str(uuid.uuid4()),
             "round_timeout": round_timeout,
             "buffer_size": round_buffer_size,
             "model_id": model_id,

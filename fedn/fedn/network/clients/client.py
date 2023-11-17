@@ -4,7 +4,7 @@ import json
 import os
 import queue
 import re
-import ssl
+import socket
 import sys
 import tempfile
 import threading
@@ -15,7 +15,9 @@ from distutils.dir_util import copy_tree
 from io import BytesIO
 
 import grpc
+from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
+from OpenSSL import SSL
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
@@ -127,6 +129,42 @@ class Client:
         print("Received combiner config: {}".format(client_config), flush=True)
         return client_config
 
+    def _add_grpc_metadata(self, key, value):
+        """Add metadata for gRPC calls.
+
+        :param key: The key of the metadata.
+        :type key: str
+        :param value: The value of the metadata.
+        :type value: str
+        """
+        # Check if metadata exists and add if not
+        if not hasattr(self, 'metadata'):
+            self.metadata = ()
+
+        # Check if metadata key already exists and replace value if so
+        for i, (k, v) in enumerate(self.metadata):
+            if k == key:
+                # Replace value
+                self.metadata = self.metadata[:i] + ((key, value),) + self.metadata[i + 1:]
+                return
+
+        # Set metadata using tuple concatenation
+        self.metadata += ((key, value),)
+
+    def _get_ssl_certificate(self, domain, port=443):
+        context = SSL.Context(SSL.SSLv23_METHOD)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((domain, port))
+        ssl_sock = SSL.Connection(context, sock)
+        ssl_sock.set_tlsext_host_name(domain.encode())
+        ssl_sock.set_connect_state()
+        ssl_sock.do_handshake()
+        cert = ssl_sock.get_peer_certificate()
+        ssl_sock.close()
+        sock.close()
+        cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
+        return cert
+
     def _connect(self, client_config):
         """Connect to assigned combiner.
 
@@ -137,6 +175,9 @@ class Client:
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         host = client_config['host']
+        # Add host to gRPC metadata
+        self._add_grpc_metadata('grpc-server', host)
+        print("CLIENT: Using metadata: {}".format(self.metadata), flush=True)
         port = client_config['port']
         secure = False
         if client_config['fqdn'] is not None:
@@ -161,7 +202,7 @@ class Client:
         elif self.config['secure']:
             secure = True
             print("CLIENT: using CA certificate for GRPC channel")
-            cert = ssl.get_server_certificate((host, port))
+            cert = self._get_ssl_certificate(host, port=port)
 
             credentials = grpc.ssl_channel_credentials(cert.encode('utf-8'))
             if self.config['token']:
@@ -331,7 +372,7 @@ class Client:
         """
         data = BytesIO()
 
-        for part in self.modelStub.Download(fedn.ModelRequest(id=id)):
+        for part in self.modelStub.Download(fedn.ModelRequest(id=id), metadata=self.metadata):
 
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -386,7 +427,7 @@ class Client:
                 if not b:
                     break
 
-        result = self.modelStub.Upload(upload_request_generator(bt))
+        result = self.modelStub.Upload(upload_request_generator(bt), metadata=self.metadata)
 
         return result
 
@@ -400,11 +441,12 @@ class Client:
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
-        metadata = [('client', r.sender.name)]
+        # Add client to metadata
+        self._add_grpc_metadata('client', self.name)
 
         while True:
             try:
-                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=metadata):
+                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
@@ -438,7 +480,7 @@ class Client:
         r.sender.role = fedn.WORKER
         while True:
             try:
-                for request in self.combinerStub.ModelValidationRequestStream(r):
+                for request in self.combinerStub.ModelValidationRequestStream(r, metadata=self.metadata):
                     # Process validation request
                     _ = request.model_id
                     self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
@@ -589,7 +631,7 @@ class Client:
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
                         # TODO: Check responses
-                        _ = self.combinerStub.SendModelUpdate(update)
+                        _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE, request=update)
 
@@ -618,7 +660,7 @@ class Client:
                         validation.timestamp = self.str
                         validation.correlation_id = request.correlation_id
                         _ = self.combinerStub.SendModelValidation(
-                            validation)
+                            validation, metadata=self.metadata)
 
                         # Set status type
                         if request.is_inference:
@@ -655,7 +697,7 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(
                 name=self.name, role=fedn.WORKER))
             try:
-                self.connectorStub.SendHeartbeat(heartbeat)
+                self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
@@ -694,7 +736,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        _ = self.connectorStub.SendStatus(status)
+        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
     def run(self):
         """ Run the client. """
