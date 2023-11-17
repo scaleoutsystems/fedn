@@ -203,7 +203,7 @@ class ControlBase(ABC):
             session_id = uuid.uuid4()
             config["session_id"] = str(session_id)
         else:
-            session_id = config["session_id"]
+            session_id = config["session_id"] if config["session_id"] else uuid.uuid4()
 
         self.tracer.create_session(id=session_id)
         self.tracer.set_session_config(session_id, config)
