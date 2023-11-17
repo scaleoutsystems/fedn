@@ -1,5 +1,3 @@
-import uuid
-
 import requests
 
 __all__ = ['APIClient']
@@ -137,9 +135,6 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
-        # If session id is None, generate a random session id.
-        if session_id is None:
-            session_id = str(uuid.uuid4())
         response = requests.post(self._get_url('start_session'), json={
             'session_id': session_id,
             'round_timeout': round_timeout,
