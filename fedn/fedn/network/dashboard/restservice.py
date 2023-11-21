@@ -190,7 +190,7 @@ class ReducerRestService:
                 {
                     "status": "retry",
                     "package": self.package,
-                    "msg": "Conroller is not in idle state, try again later. ",
+                    "msg": "Controller is not in idle state, try again later. ",
                 }
             )
         return None

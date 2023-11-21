@@ -9,6 +9,7 @@ from distutils.dir_util import copy_tree
 import requests
 import yaml
 
+from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
 
@@ -65,7 +66,7 @@ class PackageRuntime:
                 try:
                     self.pkg_name = params['filename']
                 except KeyError:
-                    print("No package returned!", flush=True)
+                    logger.error("No package returned.")
                     return None
                 r.raise_for_status()
                 with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
@@ -85,7 +86,7 @@ class PackageRuntime:
                 try:
                     self.checksum = data['checksum']
                 except Exception:
-                    print("Could not extract checksum!")
+                    logger.error("Could not extract checksum.")
 
         return True
 
@@ -102,7 +103,7 @@ class PackageRuntime:
         file_checksum = str(sha(os.path.join(self.pkg_path, self.pkg_name)))
 
         if self.checksum == self.expected_checksum == file_checksum:
-            print("Package validated {}".format(self.checksum))
+            logger.info("Package validated {}".format(self.checksum))
             return True
         else:
             return False
@@ -125,7 +126,7 @@ class PackageRuntime:
                 f = tarfile.open(os.path.join(
                     self.pkg_path, self.pkg_name), 'r:bz2')
         else:
-            print(
+            logger.error(
                 "Failed to unpack compute package, no pkg_name set."
                 "Has the reducer been configured with a compute package?"
             )
@@ -137,11 +138,10 @@ class PackageRuntime:
 
             if f:
                 f.extractall()
-                print("Successfully extracted compute package content in {}".format(
-                    self.dir), flush=True)
+                logger.info("Successfully extracted compute package content in {}".format(self.dir))
                 return True
         except Exception:
-            print("Error extracting files!")
+            logger.error("Error extracting files.")
             return False
 
     def dispatcher(self, run_path):
@@ -165,8 +165,8 @@ class PackageRuntime:
                 self.dispatch_config = cfg
 
         except Exception:
-            print(
-                "Error trying to load and unpack dispatcher config - trying default", flush=True)
+            logger.error(
+                "Error trying to load and unpack dispatcher config - trying default")
 
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 
