@@ -1,5 +1,5 @@
 entry_points:
   train:
-    command: python entrypoint train $ENTRYPOINT_OPTS
+    command: /venv/bin/python entrypoint train $ENTRYPOINT_OPTS
   validate:
-    command: python entrypoint validate $ENTRYPOINT_OPTS
+    command: /venv/bin/python entrypoint validate $ENTRYPOINT_OPTS
