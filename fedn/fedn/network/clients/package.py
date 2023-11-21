@@ -138,11 +138,10 @@ class PackageRuntime:
 
             if f:
                 f.extractall()
-                logger.info("Successfully extracted compute package content in {}".format(
-                    self.dir), flush=True)
+                logger.info("Successfully extracted compute package content in {}".format(self.dir))
                 return True
         except Exception:
-            logger.error("Error extracting files!")
+            logger.error("Error extracting files.")
             return False
 
     def dispatcher(self, run_path):
