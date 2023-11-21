@@ -750,11 +750,11 @@ class Client:
             old_state = self.state
             while True:
                 time.sleep(1)
-                cnt += 1
+                if cnt==0:
+                    logger.info("Client is active, waiting for model update requests.")
+                    cnt = 1
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
-                if cnt > 5:
-                    cnt = 0
                 if not self._attached:
                     logger.info("Detached from combiner.")
                     # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s
