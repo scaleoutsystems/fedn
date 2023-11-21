@@ -177,7 +177,7 @@ class Client:
         host = client_config['host']
         # Add host to gRPC metadata
         self._add_grpc_metadata('grpc-server', host)
-        logger.info("Client using metadata: {}.".format(self.metadata), flush=True)
+        logger.info("Client using metadata: {}.".format(self.metadata))
         port = client_config['port']
         secure = False
         if client_config['fqdn'] is not None:
@@ -546,8 +546,7 @@ class Client:
             os.unlink(outpath+'-metadata')
 
         except Exception as e:
-            logger.error("Could not process training request due to error: {}".format(
-                e), flush=True)
+            logger.error("Could not process training request due to error: {}".format(e))
             updated_model_id = None
             meta = {'status': 'failed', 'error': str(e)}
 
