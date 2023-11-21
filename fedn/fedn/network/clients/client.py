@@ -750,7 +750,7 @@ class Client:
             old_state = self.state
             while True:
                 time.sleep(1)
-                if cnt==0:
+                if cnt == 0:
                     logger.info("Client is active, waiting for model update requests.")
                     cnt = 1
                 if self.state != old_state:
