@@ -1,10 +1,10 @@
-network_id: fedn-test-network
-controller:
-    discover_host: reducer
-    discover_port: 8090
+network_id: fedn-network
+discover_host: api-server
+discover_port: 8092
 
-combiner:
-    name: combiner
-    host: combiner
-    port: 12080
-    max_clients: 30
+name: combiner
+host: combiner
+port: 12080
+max_clients: 30
+
+

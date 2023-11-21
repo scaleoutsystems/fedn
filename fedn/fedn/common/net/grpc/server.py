@@ -27,7 +27,7 @@ class Server:
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         if config['secure']:
-            print(f"Creating secure gRPCS server using certificate: {config['certificate']}", flush=True)
+            print("Creating secure gRPCS server using certificate: {config['certificate']}", flush=True)
             server_credentials = grpc.ssl_server_credentials(
                 ((config['key'], config['certificate'],),))
             self.server.add_secure_port(

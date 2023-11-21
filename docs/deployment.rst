@@ -1,4 +1,4 @@
-Deployment
+Distributed Deployment
 ======================
 
 This guide serves as reference deployment for setting up a FEDn network consisting of:
@@ -29,7 +29,7 @@ The reducer and clients need to be able to resolve the hostname for the combiner
 we show how this can be achieved if no external DNS resolution is available, by setting "extra host" in the Docker containers for the Reducer and client. Note that there are many other possible ways to achieve this, depending on your setup.  
 
 1. Deploy storage and database services (MinIO, MongoDB and MongoExpress)  
---------------------------------------------------------------------
+-------------------------------------------------------------------------
 
 First, deploy MinIO and Mongo services on one of the hosts. Edit the `docker-compose.yaml` file to change the default passwords and ports.
 

@@ -58,26 +58,49 @@ services:
     ports:
       - 8081:8081
 
-  # Reducer
-  reducer:
+  dashboard:
     environment:
       - GET_HOSTS_FROM=dns
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
-      - FLASK_ENV=development
+      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run reducer -n reducer --init=config/settings-reducer.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run dashboard -n reducer --init=config/settings-reducer.yaml"
     ports:
       - 8090:8090
+
+  api-server:
+    environment:
+      - GET_HOSTS_FROM=dns
+      - USER=test
+      - PROJECT=project
+      - FLASK_DEBUG=1
+      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
+      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    depends_on:
+      - minio
+      - mongo
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/python fedn/fedn/network/api/server.py"
+    ports:
+      - 8092:8092
 
   # Combiner
   combiner:
@@ -87,13 +110,13 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner -in config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
 
@@ -104,12 +127,12 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.9-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client -in config/settings-client.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
     deploy:
       replicas: 0

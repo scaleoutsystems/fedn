@@ -62,11 +62,13 @@ class MINIORepository(Repository):
         self.create_bucket(self.bucket)
 
     def create_bucket(self, bucket_name):
-        """
+        """ Create a new bucket. If bucket exists, do nothing.
 
-        :param bucket_name:
+        :param bucket_name: The name of the bucket
+        :type bucket_name: str
         """
         found = self.client.bucket_exists(bucket_name)
+
         if not found:
             try:
                 self.client.make_bucket(bucket_name)
