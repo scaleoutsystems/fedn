@@ -8,7 +8,7 @@ from .helperbase import HelperBase
 class Helper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
-    def increment_average(self, model, model_next, n):
+    def increment_average(self, model, model_next, num_examples, total_examples):
         """ Update an incremental average.
 
         :param model: Current model weights.
@@ -20,7 +20,8 @@ class Helper(HelperBase):
         :return: Incremental weighted average of model weights.
         :rtype: :class:`numpy.array`
         """
-        return np.add(model, (model_next - model) / n)
+        w = num_examples / total_examples
+        return np.add(model, w*(model_next - model))
 
     def save(self, model, path=None):
         """Serialize weights/parameters to file.

@@ -592,7 +592,6 @@ class Client:
 
         except Exception as e:
             print("Validation failed with exception {}".format(e), flush=True)
-            raise
             self.state = ClientState.idle
             return None
 
