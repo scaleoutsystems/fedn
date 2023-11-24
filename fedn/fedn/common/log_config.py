@@ -12,6 +12,24 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.semconv.resource import ResourceAttributes
 
+import os
+import platform
+import socket
+import psutil
+
+def get_system_info():
+    system_info = [
+        ["os.name", os.name],
+        ["platform.system", platform.system()],
+        ["platform.release", platform.release()],
+        ["hostname", socket.gethostname()],
+        ["ip_address", socket.gethostbyname(socket.gethostname())],
+        ["cpu_count", psutil.cpu_count(logical=True)],
+        ["total_memory", psutil.virtual_memory().total],
+        ["total_disk", psutil.disk_usage('/').total],
+    ]
+    return system_info
+
 # Configure the tracer to export traces to Jaeger
 resource = Resource.create({ResourceAttributes.SERVICE_NAME: "FEDn Client"})
 tracer_provider = TracerProvider(resource=resource)
@@ -49,16 +67,25 @@ def add_trace(name=""):
             self = args[0]
             name = func.__name__
             if tracer:
+                
                 with tracer.start_as_current_span(name) as span:
                     # print("name={}....{}".format(name, attributes))
                     if self.trace_attribs:
                         for attrib in self.trace_attribs:
                             span.set_attribute(attrib[0], attrib[1])
+                        # system_attribs = get_system_info()
+                        # print(system_attribs)
+                        # for attrib in system_attribs:
+                        #     span.set_attribute(attrib[0], attrib[1])
                     return func(*args, **kwargs)
             else:
                 return func(*args, **kwargs)
         return wrapper
     return decorator
+
+def get_tracer():
+    global tracer
+    return tracer
 
 def enable_tracing():
     global tracer

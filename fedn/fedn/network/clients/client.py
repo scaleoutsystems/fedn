@@ -23,7 +23,7 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream, log_remote,
-                                    add_trace, enable_tracing)
+                                    add_trace, enable_tracing, get_tracer)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
@@ -33,6 +33,28 @@ from fedn.utils.helpers import get_helper
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
+import os
+import platform
+import socket
+import psutil
+import GPUtil
+
+def get_system_info():
+    gpus = GPUtil.getGPUs()
+    gpu_info = [[gpu.id, gpu.name] for gpu in gpus]
+
+    system_info = {
+        "os.name": os.name,
+        "platform.system": platform.system(),
+        "platform.release": platform.release(),
+        "hostname": socket.gethostname(),
+        "ip_address": socket.gethostbyname(socket.gethostname()),
+        "cpu_count": psutil.cpu_count(logical=True),
+        "total_memory": psutil.virtual_memory().total,
+        "total_disk": psutil.disk_usage('/').total,
+        # Add more details as needed
+    }
+    return system_info, gpu_info
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
@@ -66,6 +88,17 @@ class Client:
             enable_tracing()
             proj = config['discover_host'].split('/')[1]
             self.trace_attribs = [["project", proj], ["client_name", config["name"]]]
+            system_info, gpu_info = get_system_info()
+            print(system_info)
+            with get_tracer().start_as_current_span("TelemetryInit") as span:
+                for key, value in system_info.items():
+                    span.set_attribute(key, value)
+                print(gpu_info)
+                for attrib in gpu_info:
+                    span.set_attribute(attrib[0], attrib[1])
+                for attrib in self.trace_attribs:
+                    span.set_attribute(attrib[0], attrib[1])
+
         self.connector = ConnectorClient(host=config['discover_host'],
                                         port=config['discover_port'],
                                         token=config['token'],
