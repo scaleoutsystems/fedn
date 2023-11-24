@@ -33,6 +33,15 @@ setup(
         "bokeh<3.0.0",
         "networkx"
     ],
+    extras_require={
+        'telemetry': [
+            "GPUtil",
+            "opentelemetry-exporter-jaeger",
+            "opentelemetry-instrumentation",
+            "opentelemetry-sdk",
+            "opentelemetry-api"
+        ]
+    },
     license='Apache 2.0',
     zip_safe=False,
     entry_points={

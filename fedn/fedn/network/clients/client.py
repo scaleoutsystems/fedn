@@ -21,9 +21,9 @@ from OpenSSL import SSL
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream, log_remote,
-                                    add_trace, enable_tracing, get_tracer)
+from fedn.common.log_config import (add_trace, enable_tracing, get_tracer,
+                                    log_remote, logger,
+                                    set_log_level_from_string, set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
@@ -36,12 +36,14 @@ VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 import os
 import platform
 import socket
-import psutil
+
 import GPUtil
+import psutil
+
 
 def get_system_info():
     gpus = GPUtil.getGPUs()
-    gpu_info = [[gpu.id, gpu.name] for gpu in gpus]
+    gpu_info = [["GPU ID: {}".format(gpu.id), gpu.name] for gpu in gpus]
 
     system_info = {
         "os.name": os.name,

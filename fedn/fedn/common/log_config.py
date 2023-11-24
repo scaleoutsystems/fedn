@@ -1,21 +1,25 @@
 import logging
 import logging.config
+from functools import wraps
 
 import urllib3
 
-from functools import wraps
+try:
+    import os
+    import platform
+    import socket
 
-from opentelemetry import trace
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
+    import psutil
+    from opentelemetry import trace
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.semconv.resource import ResourceAttributes
 
-import os
-import platform
-import socket
-import psutil
+    telemetry_enabled = True
+except ImportError:
+    telemetry_enabled = False
 
 def get_system_info():
     system_info = [
