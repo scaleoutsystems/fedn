@@ -441,29 +441,35 @@ class Client:
         # Add client to metadata
         self._add_grpc_metadata('client', self.name)
 
-        while True:
+        while self._attached:
             try:
                 for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
+                        logger.info("Received model update request.")
 
                         self.inbox.put(('train', request))
 
-                    if not self._attached:
-                        return
             except grpc.RpcError as e:
-                _ = e.code()
-            except grpc.RpcError:
-                # TODO: make configurable
-                timeout = 5
-                time.sleep(timeout)
-            except Exception:
-                raise
+                # Handle gRPC errors
+                status_code = e.code()
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.warning("GRPC server unavailable during model update request stream. Retrying.")
+                    # Retry after a delay
+                    time.sleep(5)
+                else:
+                    # Log the error and continue
+                    logger.error(f"An error occurred during model update request stream: {e}")
 
-            if not self._attached:
-                return
+            except Exception as ex:
+                # Handle other exceptions
+                logger.error(f"An error occurred during model update request stream: {ex}")
+
+        # Detach if not attached
+        if not self._attached:
+            return
 
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream.
@@ -479,17 +485,27 @@ class Client:
             try:
                 for request in self.combinerStub.ModelValidationRequestStream(r, metadata=self.metadata):
                     # Process validation request
-                    _ = request.model_id
-                    self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
-                                      type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
+                    model_id = request.model_id
+                    self._send_status("Received model validation request for model_id {}".format(model_id),
+                                      log_level=fedn.Status.AUDIT, type=fedn.StatusType.MODEL_VALIDATION_REQUEST,
+                                      request=request)
+                    logger.info("Received model validation request for model_id {}".format(model_id))
                     self.inbox.put(('validate', request))
 
-            except grpc.RpcError:
-                # TODO: make configurable
-                timeout = 5
-                time.sleep(timeout)
-            except Exception:
-                raise
+            except grpc.RpcError as e:
+                # Handle gRPC errors
+                status_code = e.code()
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.warning("GRPC server unavailable during model validation request stream. Retrying.")
+                    # Retry after a delay
+                    time.sleep(5)
+                else:
+                    # Log the error and continue
+                    logger.error(f"An error occurred during model validation request stream: {e}")
+
+            except Exception as ex:
+                # Handle other exceptions
+                logger.error(f"An error occurred during model validation request stream: {ex}")
 
             if not self._attached:
                 return

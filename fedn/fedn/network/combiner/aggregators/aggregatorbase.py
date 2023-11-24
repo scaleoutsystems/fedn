@@ -4,6 +4,7 @@ import queue
 from abc import ABC, abstractmethod
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
+from fedn.common.log_config import logger
 
 AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
@@ -60,7 +61,7 @@ class AggregatorBase(ABC):
         :type model_id: str
         """
         try:
-            self.server.report_status("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id),
+            logger.info("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id),
                                       log_level=fedn.Status.INFO)
 
             # Validate the update and metadata
@@ -69,9 +70,9 @@ class AggregatorBase(ABC):
                 # Push the model update to the processing queue
                 self.model_updates.put(model_update)
             else:
-                self.server.report_status("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
+                logger.info("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            self.server.report_status("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
+            logger.info("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
                                       log_level=fedn.Status.WARNING)
             pass
 
@@ -86,7 +87,7 @@ class AggregatorBase(ABC):
         # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
         if 'num_examples' not in data.keys():
-            self.server.report_status("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
+            logger.info("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
             return False
         return True
 

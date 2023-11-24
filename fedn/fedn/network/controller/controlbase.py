@@ -301,35 +301,27 @@ class ControlBase(ABC):
         combiners = []
         for combiner in self.network.get_combiners():
             try:
-                combiner_state = combiner.report()
+                # Current gRPC endpoint only returns active clients (both trainers and validators)
+                nr_active_clients = len(combiner.list_active_clients())
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 combiner_state = None
 
             if combiner_state is not None:
                 is_participating = self.evaluate_round_participation_policy(
-                    combiner_round_config, combiner_state
+                    combiner_round_config, nr_active_clients
                 )
                 if is_participating:
                     combiners.append((combiner, combiner_round_config))
         return combiners
 
     def evaluate_round_participation_policy(
-        self, compute_plan, combiner_state
+        self, compute_plan, nr_active_clients
     ):
         """Evaluate policy for combiner round-participation.
         A combiner participates if it is responsive and reports enough
         active clients to participate in the round.
         """
-
-        if compute_plan["task"] == "training":
-            nr_active_clients = int(combiner_state["nr_active_trainers"])
-        elif compute_plan["task"] == "validation":
-            nr_active_clients = int(combiner_state["nr_active_validators"])
-        else:
-            print("Invalid task type!", flush=True)
-            return False
-
         if int(compute_plan["clients_required"]) <= nr_active_clients:
             return True
         else:

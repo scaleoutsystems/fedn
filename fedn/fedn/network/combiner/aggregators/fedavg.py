@@ -1,5 +1,6 @@
 import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
+from fedn.common.log_config import logger
 
 
 class Aggregator(AggregatorBase):
@@ -50,14 +51,14 @@ class Aggregator(AggregatorBase):
         nr_aggregated_models = 0
         total_examples = 0
 
-        self.server.report_status(
+        logger.info(
             "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
                 model_next, metadata, model_id = self.next_model_update(helper)
-                self.server.report_status(
+                logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_id, metadata))
 
                 # Increment total number of examples
@@ -73,16 +74,16 @@ class Aggregator(AggregatorBase):
                 # Delete model from storage
                 if delete_models:
                     self.modelservice.models.delete(model_id)
-                    self.server.report_status(
+                    logger.info(
                         "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
                 self.model_updates.task_done()
             except Exception as e:
-                self.server.report_status(
+                logger.info(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
-        self.server.report_status("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models),
+        logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models),
                                   log_level=fedn.Status.INFO)
         return model, data
