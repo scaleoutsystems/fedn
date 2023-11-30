@@ -3,14 +3,19 @@ from concurrent import futures
 import grpc
 
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 
 
 class Server:
     """
-
+    Server class for gRPC server.
     """
 
     def __init__(self, servicer, modelservicer, config):
+
+        set_log_level_from_string(config.get('verbosity', "INFO"))
+        set_log_stream(config.get('logfile', None))
 
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=350))
         self.certificate = None
@@ -27,24 +32,21 @@ class Server:
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         if config['secure']:
-            print("Creating secure gRPCS server using certificate: {config['certificate']}", flush=True)
+            logger.info(f'Creating secure gRPCS server using certificate: {config["certificate"]}')
             server_credentials = grpc.ssl_server_credentials(
                 ((config['key'], config['certificate'],),))
             self.server.add_secure_port(
                 '[::]:' + str(config['port']), server_credentials)
         else:
-            print("Creating insecure gRPC server", flush=True)
+            logger.info("Creating insecure gRPC server")
             self.server.add_insecure_port('[::]:' + str(config['port']))
 
     def start(self):
-        """
-
-        """
-        print("Server started", flush=True)
+        """ Start the gRPC server."""
+        logger.info("gRPC Server started")
         self.server.start()
 
     def stop(self):
-        """
-
-        """
+        """ Stop the gRPC server."""
+        logger.info("gRPC Server stopped")
         self.server.stop(0)

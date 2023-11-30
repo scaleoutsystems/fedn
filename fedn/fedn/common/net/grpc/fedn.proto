@@ -195,16 +195,10 @@ message ControlResponse {
   repeated Parameter parameter = 2;
 }
 
-message ReportResponse {
-  Client sender = 1;
-  repeated Parameter parameter = 2;
-}
-
 service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
-  rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);  
-  rpc Report(ControlRequest) returns (ReportResponse);
+  rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
 }
 
 service Reducer {

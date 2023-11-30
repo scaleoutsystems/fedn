@@ -244,14 +244,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         return len(self.get_active_trainers())
 
-    def nr_active_validators(self):
-        """ Get the number of active validators.
-
-        :return: the number of active validators
-        :rtype: int
-        """
-        return len(self.get_active_validators())
-
     ####################################################################################################################
 
     def __join_client(self, client):
@@ -383,13 +375,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the control response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
-        print("\nRECIEVED **START** from Controller {}\n".format(control.command), flush=True)
+        logger.info("grpc.Combiner.Start: Starting round")
 
         config = {}
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
 
+        logger.debug("grpc.Combiner.Start: Round config {}".format(config))
+
         job_id = self.control.push_round_config(config)
+        logger.info("grcp.Combiner.Start: Pushed round config (job_id): {}".format(job_id))
 
         response = fedn.ControlResponse()
         p = response.parameter.add()
@@ -408,7 +403,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the control response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
-
+        logger.info("grpc.Combiner.FlushAggregationQueue: Called")
         status = self._flush_model_update_queue()
 
         response = fedn.ControlResponse()
@@ -432,7 +427,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
         response = fedn.ControlResponse()
-        print("\n RECIEVED **STOP** from Controller\n", flush=True)
+        logger.info("grpc.Combiner.Stop: Called")
         return response
 
     #####################################################################################################################
@@ -447,7 +442,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
         """
-
+        logger.debug("grpc.Combiner.SendStatus: Called")
         self._send_status(status)
 
         response = fedn.Response()
@@ -468,8 +463,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         clients = fedn.ClientList()
         active_clients = self._list_active_clients(request.channel)
-        logger.info("Active clients: {}".format(active_clients))
-        logger.info("All clients: {}".format(self.clients))
+        nr_active_clients = len(active_clients)
+        if nr_active_clients < 20:
+            logger.info("grpc.Combiner.ListActiveClients:  Active clients: {}".format(active_clients))
+        else:
+            logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
 
         for client in active_clients:
             clients.client.append(fedn.Client(name=client, role=fedn.WORKER))
@@ -500,7 +498,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 return response
 
         except Exception as e:
-            print("Combiner not properly configured! {}".format(e), flush=True)
+            logger.error("Combiner not properly configured! {}".format(e), flush=True)
             raise
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER
@@ -572,7 +570,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         metadata = context.invocation_metadata()
         if metadata:
             metadata = dict(metadata)
-            print("\nClient connected: {}\n".format(metadata['client']), flush=True)
+            logger.info("grpc.Combiner.ModelUpdateRequestStream: Client connected: {}\n".format(metadata['client']))
 
         status = fedn.Status(
             status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
@@ -703,8 +701,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def run(self):
         """ Start the server."""
 
-        print("COMBINER: {} started, ready for requests. ".format(
-            self.id), flush=True)
+        logger.info("COMBINER: {} started, ready for gRPC requests.".format(
+            self.id))
         try:
             while True:
                 signal.pause()

@@ -270,7 +270,7 @@ class CombinerInterface:
     def list_active_clients(self, queue=1):
         """ List active clients.
 
-        :param queue: The channel (queque) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
+        :param queue: The channel (queue) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
             see :class:`fedn.common.net.grpc.fedn_pb2.Channel`
         :type channel: int
         :return: A list of active clients.

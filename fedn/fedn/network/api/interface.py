@@ -78,7 +78,6 @@ class API:
 
         return jsonify(result)
 
-
     def get_all_combiners(self, limit=None, skip=None):
         """Get all combiners from the statestore.
 

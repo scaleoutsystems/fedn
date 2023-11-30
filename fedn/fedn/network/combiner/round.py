@@ -4,9 +4,9 @@ import sys
 import time
 import uuid
 
+from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.utils.helpers import get_helper
-from fedn.common.log_config import logger
 
 
 class ModelUpdateError(Exception):
@@ -207,7 +207,7 @@ class RoundController:
         if self.modelservice.models.exist(model_id):
             logger.info("ROUNDCONTROL: Model already exists in memory, skipping model staging.")
             return
-        print("ROUNDCONTROL: Model Staging, fetching model from storage...")
+        logger.info("ROUNDCONTROL: Model Staging, fetching model from storage...")
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -216,8 +216,7 @@ class RoundController:
                 if model:
                     break
             except Exception:
-                logger.info("ROUNDCONTROL: Could not fetch model from storage backend, retrying.",
-                                          flush=True)
+                logger.info("ROUNDCONTROL: Could not fetch model from storage backend, retrying.")
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
