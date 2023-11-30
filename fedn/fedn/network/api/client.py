@@ -16,7 +16,7 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port, secure=False, verify=False):
+    def __init__(self, host='localhost', port='8092', secure=False, verify=False):
         self.host = host
         self.port = port
         self.secure = secure

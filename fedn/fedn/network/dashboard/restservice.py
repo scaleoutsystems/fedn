@@ -23,7 +23,7 @@ from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
-UPLOAD_FOLDER = "/app/client/package/"
+UPLOAD_FOLDER = "./"
 ALLOWED_EXTENSIONS = {"gz", "bz2", "tar", "zip", "tgz"}
 
 
@@ -1181,7 +1181,7 @@ discover_port: {discover_port}
             bind = "0.0.0.0"
         else:
             bind = self.host
-
-        app.run(host=bind, port=self.port)
+        print(self.port)
+        app.run(host=bind, port=8900)
 
         return app

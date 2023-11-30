@@ -5,6 +5,7 @@ from time import sleep
 
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
+from fedn.common.storage.filesystem.filesystem import LocalFileSystemModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
@@ -65,11 +66,14 @@ class ControlBase(ABC):
                 flush=True,
             )
             raise MisconfiguredStorageBackend()
-
-        if storage_config["storage_type"] == "S3":
-            self.model_repository = S3ModelRepository(
-                storage_config["storage_config"]
-            )
+        print(storage_config)
+        if storage_config["storage_type"] == "S3" or True:
+        #     self.model_repository = S3ModelRepository(
+        #         storage_config["storage_config"]
+        #     )
+        # elif storage_config['storage_type'] == "filesystem":
+        #     print("Using local filesystem for storage.")
+            self.model_repository = LocalFileSystemModelRepository()
         else:
             print(
                 "REDUCER CONTROL: Unsupported storage backend, exiting.",

@@ -93,21 +93,33 @@ class ModelService(rpc.ModelServiceServicer):
     def set_model(self, model, id):
         """ Upload model to server.
 
-        :param model: A model object (BytesIO)
-        :type model: :class:`io.BytesIO`
+        :param model: A model object (file object, BytesIO, or Minio get_object response)
+        :type model: file-like object or :class:`io.BytesIO`
         :param id: The model id.
         :type id: str
         """
-        if not isinstance(model, BytesIO):
-            bt = BytesIO()
-
-            written_total = 0
-            for d in model.stream(32 * 1024):
-                written = bt.write(d)
-                written_total += written
-        else:
+        # Check if model is already a BytesIO object
+        if isinstance(model, BytesIO):
             bt = model
+        else:
+            # Handle other file-like objects (including Minio get_object response)
+            bt = BytesIO()
+            
+            # Read in chunks of data
+            while True:
+                if hasattr(model, 'stream'):
+                    chunk = model.stream(32 * 1024)  # Read 32KB at a time
+                elif hasattr(model, 'read'):
+                    chunk = model.read(32 * 1024)  # Read 32KB at a time
+                else:
+                    chunk = None
+                if not chunk:
+                    break
+                bt.write(chunk)
+            else:
+                raise TypeError("The model object must be a BytesIO or file-like object with a read method.")
 
+        # Reset the pointer to the start of the BytesIO object
         bt.seek(0, 0)
 
         def upload_request_generator(mdl):

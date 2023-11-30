@@ -4,6 +4,7 @@ import click
 import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.network.api.server import Controller
 from fedn.network.clients.client import Client
 from fedn.network.combiner.server import Combiner
 from fedn.network.dashboard.restservice import (decode_auth_token,
@@ -134,6 +135,11 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :return:
     """
     remote = False if local_package else True
+    if not init:
+        if not discoverhost:
+            discoverhost = "localhost"
+        if not discoverport:
+            discoverport = 8092
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
@@ -155,7 +161,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 @click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
 @click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
 @click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8], help='Set service name')
-@click.option('-in', '--init', required=True, default=None,
+@click.option('-in', '--init', required=False, default=None,
               help='Set to a filename to (re)init reducer state from file.')
 @click.pass_context
 def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
@@ -177,9 +183,38 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
     try:
         fedn_config = get_statestore_config_from_file(config['init'])
     except Exception as e:
-        print('Failed to read config from settings file, exiting.', flush=True)
-        print(e, flush=True)
-        exit(-1)
+        print('Failed to read config from settings file, trying default values.', flush=True)
+        fedn_config = {
+            "statestore": {
+                "type": "MongoDB",
+                "mongo_config": {
+                    "username": "admin",
+                    "password": "admin",
+                    "host": "localhost",
+                    "port": 27017
+                }
+            },
+            "network_id": "fedn-network",
+            "controller": {
+                "host": "localhost",
+                "port": 8092,
+                "debug": True
+            },
+            "storage": {
+                "storage_type": "S3",
+                "storage_config": {
+                    "storage_hostname": "localhost",
+                    "storage_port": 9100,
+                    "storage_access_key": "admin",
+                    "storage_secret_key": "password",
+                    "storage_bucket": "fedn-models",
+                    "context_bucket": "fedn-context",
+                    "storage_secure_mode": False 
+                }
+            }
+        }
+        # print(e, flush=True)
+        # exit(-1)
 
     if not remote:
         _ = check_helper_config_file(fedn_config)
@@ -242,7 +277,7 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
 @click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
 @click.option('-t', '--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8], help='Set name for combiner.')
-@click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
+@click.option('-h', '--host', required=False, default="localhost", help='Set hostname.')
 @click.option('-i', '--port', required=False, default=12080, help='Set port.')
 @click.option('-f', '--fqdn', required=False, default=None, help='Set fully qualified domain name')
 @click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
@@ -266,6 +301,13 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param max_clients:
     :param init:
     """
+
+    if not init:
+        if not discoverhost:
+            discoverhost = "localhost"
+        if not discoverport:
+            discoverport = 8092
+
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
               'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
               'init': init, 'aggregator': aggregator}
@@ -275,3 +317,18 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     combiner = Combiner(config)
     combiner.run()
+
+
+@run_cmd.command('controller')
+@click.pass_context
+def controller_cmd(ctx):
+    """
+    """
+    # config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
+    #           'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
+    #           'init': init, 'aggregator': aggregator}
+
+    # if config['init']:
+    #     apply_config(config)
+    controller = Controller()
+    controller.run()

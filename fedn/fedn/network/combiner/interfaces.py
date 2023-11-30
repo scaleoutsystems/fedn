@@ -310,6 +310,7 @@ class CombinerInterface:
             response = connector.AcceptingClients(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
+                print(e)
                 raise CombinerUnavailableError
             else:
                 raise

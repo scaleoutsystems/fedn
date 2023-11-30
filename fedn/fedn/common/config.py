@@ -2,6 +2,8 @@ import os
 
 import yaml
 
+from fedn.common.log_config import logger
+
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
@@ -29,6 +31,7 @@ def get_statestore_config(file=None):
     if file is None:
         get_environment_config()
         file = STATESTORE_CONFIG
+             
     with open(file, 'r') as config_file:
         try:
             settings = dict(yaml.safe_load(config_file))

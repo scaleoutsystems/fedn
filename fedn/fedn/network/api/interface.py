@@ -219,7 +219,13 @@ class API:
         if file and self._allowed_file_extension(file.filename):
             filename = secure_filename(file.filename)
             # TODO: make configurable, perhaps in config.py or package.py
-            file_path = os.path.join("/app/client/package/", filename)
+            file_path = os.path.join(os.getcwd(), filename)
+            print("ASDASDASDASDASD")
+            print(file_path)
+            file.seek(0, 2) # seeks the end of the file
+            filesize = file.tell() # tell at which byte we are
+            print(filesize)
+            file.seek(0)
             file.save(file_path)
 
             if (
@@ -264,12 +270,15 @@ class API:
             message = "No compute package found."
             return None, message
         else:
+            print("<><><><><><><>><><><><><")
             try:
+                print(package_objects)
                 name = package_objects["filename"]
             except KeyError as e:
                 message = "No compute package found. Key error."
                 print(e)
                 return None, message
+            print("SUCCESS <><><<><><><><><><><")
             return name, "success"
 
     def get_compute_package(self):
@@ -309,19 +318,23 @@ class API:
             mutex = threading.Lock()
             mutex.acquire()
             # TODO: make configurable, perhaps in config.py or package.py
+            print("SENDING >?>?>?>?>>?>?>?>?>?>?>?>?>")
+            print("{}{}".format(os.getcwd()+"./", name))
             return send_from_directory(
-                "/app/client/package/", name, as_attachment=True
+                os.getcwd()+"/./", name, as_attachment=True
             )
-        except Exception:
+        except Exception as err:
+            print("IN EXCEPTION >?>?>?>?>?>?>?>?>?>")
+            print(err)
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = os.path.join("./", name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
                 return send_from_directory(
-                    "/app/client/package/", name, as_attachment=True
+                    "./", name, as_attachment=True
                 )
             except Exception:
                 raise
@@ -342,7 +355,7 @@ class API:
             if name is None:
                 return False, message, ""
         file_path = os.path.join(
-            "/app/client/package/", name
+            ".//", name
         )  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))

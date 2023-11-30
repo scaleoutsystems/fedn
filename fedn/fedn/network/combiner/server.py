@@ -14,6 +14,7 @@ import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
+from fedn.common.storage.filesystem.filesystem import LocalFileSystemModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
@@ -119,8 +120,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'key': key}
 
         # Set up model repository
-        self.repository = S3ModelRepository(
-            announce_config['storage']['storage_config'])
+        # if announce_config['storage']['storage_type'] == 'filesystem':
+        self.repository = LocalFileSystemModelRepository()
+        # else:
+        #     self.repository = S3ModelRepository(
+        #         announce_config['storage']['storage_config'])
 
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)

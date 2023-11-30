@@ -4,6 +4,7 @@
 import cgi
 import os
 import tarfile
+import sys
 from distutils.dir_util import copy_tree
 
 import requests
@@ -56,7 +57,13 @@ class PackageRuntime:
         else:
             path = f"{scheme}://{host}/download_package"
         if name:
+            logger.debug("Downloading package with name: {}.".format(name))
             path = path + "?name={}".format(name)
+        else:
+            logger.critical("No name set for compute package.")
+            logger.debug("Name: {}.".format(name))
+            logger.debug("Path: {}://{}".format(scheme, path))
+            # sys.exit(1)
 
         with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
             if 200 <= r.status_code < 204:
@@ -72,6 +79,12 @@ class PackageRuntime:
                 with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
+            else:
+                logger.critical("Failed to download compute package from controller.")
+                logger.debug("{}: {}".format(r.status_code, r.reason))
+                logger.debug("URL: {}".format(path))
+                sys.exit()
+
         if port:
             path = f"{scheme}://{host}:{port}/get_package_checksum"
         else:
