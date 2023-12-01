@@ -8,18 +8,19 @@ CHUNK_SIZE = 1024 * 1024
 
 
 class MemoryModelStorage(ModelStorage):
-    """
+    """ Class for in-memory storage of model artifacts.
+
+    Models are stored as BytesIO objects in a dictionary.
 
     """
 
     def __init__(self):
 
-        # self.dir = tempfile.TemporaryDirectory()
         self.models = defaultdict(io.BytesIO)
         self.models_metadata = {}
 
     def exist(self, model_id):
-        """
+        """ 
 
         :param model_id:
         :return:

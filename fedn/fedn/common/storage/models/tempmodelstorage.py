@@ -8,7 +8,9 @@ CHUNK_SIZE = 1024 * 1024
 
 
 class TempModelStorage(ModelStorage):
-    """
+    """ Class for model storage using temporary files on local disk.
+
+    Models are stored as files on disk. 
 
     """
 
@@ -20,8 +22,6 @@ class TempModelStorage(ModelStorage):
             os.makedirs(self.default_dir)
 
         # TODO should read in already existing temp models if crashed? or fetch new on demand (default)
-
-        # self.models = defaultdict(io.BytesIO)
         self.models = {}
         self.models_metadata = {}
 
@@ -29,7 +29,8 @@ class TempModelStorage(ModelStorage):
         """
 
         :param model_id:
-        :return:
+        :type model_id: str
+        :return: True if exists in storage, otherwise False.
         """
         if model_id in self.models.keys():
             return True
