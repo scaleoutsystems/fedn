@@ -8,6 +8,8 @@ import enum
 
 import requests
 
+from fedn.common.log_config import logger
+
 
 class Status(enum.Enum):
     """ Enum for representing the status of a combiner announcement."""
@@ -83,8 +85,7 @@ class ConnectorCombiner:
             self.connect_string = "{}{}".format(
                 self.prefix, self.host)
 
-        print("\n\nsetting the connection string to {}\n\n".format(
-            self.connect_string), flush=True)
+        logger.info("Setting connection string to {}".format(self.connect_string))
 
     def announce(self):
         """
