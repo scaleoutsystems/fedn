@@ -6,7 +6,7 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 
 
 class Server:
-    """
+    """ 
 
     """
 
@@ -37,14 +37,12 @@ class Server:
             self.server.add_insecure_port('[::]:' + str(config['port']))
 
     def start(self):
-        """
+        """ Start gRPC server. """
 
-        """
         print("Server started", flush=True)
         self.server.start()
 
     def stop(self):
-        """
+        """ Stop gRPC server. """
 
-        """
         self.server.stop(0)

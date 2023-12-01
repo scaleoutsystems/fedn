@@ -25,7 +25,7 @@ class HelperBase(ABC):
 
     @abstractmethod
     def save(self, model, path):
-        """Serialize weights to file. The serialized model must be a single binary object.
+        """ Serialize weights to file. The serialized model must be a single binary object.
 
         :param model: Weights in array-like format.
         :param path: Path to file.
