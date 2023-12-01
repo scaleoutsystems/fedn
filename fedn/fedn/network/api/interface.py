@@ -55,14 +55,16 @@ class API:
 
         :param filename: The filename to check.
         :type filename: str
-        :return: True if file extension is allowed, else False.
-        :rtype: bool
-        """
+        :return: True and extension str if file extension is allowed, else False and None.
+        :rtype: Tuple (bool, str)
+        """        
+        if "." in filename:
+            extension = filename.rsplit(".", 1)[1].lower()
+            if extension in ALLOWED_EXTENSIONS:
+                return (True, extension)
+        
+        return (False, None)
 
-        return (
-            "." in filename
-            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-        )
 
     def get_clients(self, limit=None, skip=None, status=False):
         """Get all clients from the statestore.
@@ -207,7 +209,7 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
-    def set_compute_package(self, file, helper_type):
+    def set_compute_package(self, file, helper_type: str):
         """Set the compute package in the statestore.
 
         :param file: The compute package to set.
@@ -216,7 +218,72 @@ class API:
         :rtype: :class:`flask.Response`
         """
 
+        if (
+            self.control.state() == ReducerState.instructing
+            or self.control.state() == ReducerState.monitoring
+        ):
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Reducer is in instructing or monitoring state."
+                        "Cannot set compute package.",
+                    }
+                ),
+                400,
+            )
+
+        if file is None:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "No file provided.",
+                    }
+                ),
+                404,
+            )
+        
+        success, extension = self._allowed_file_extension(file.filename)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": f"File extension {extension} not allowed.",
+                    }
+                ),
+                404,
+            )
+        
+        file_name = file.filename
+        storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
+
+        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file.save(file_path)
+
+        self.control.set_compute_package(storage_file_name, file_path)
+        self.statestore.set_helper(helper_type)
+
+        success = self.statestore.set_compute_package(file_name, storage_file_name)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to set compute package.",
+                    }
+                ),
+                400,
+            )
+        
+        return jsonify({"success": True, "message": "Compute package set."})
+
+
         if file and self._allowed_file_extension(file.filename):
+            
             filename = secure_filename(file.filename)
             # TODO: make configurable, perhaps in config.py or package.py
             file_path = os.path.join("/app/client/package/", filename)

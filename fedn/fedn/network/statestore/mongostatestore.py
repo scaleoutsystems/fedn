@@ -269,34 +269,31 @@ class MongoStateStore(StateStoreBase):
         result = self.control.validations.find(kwargs)
         return result
 
-    def set_compute_package(self, filename):
+    def set_compute_package(self, file_name: str, storage_file_name: str):
         """Set the active compute package in statestore.
 
-        :param filename: The filename of the compute package.
-        :type filename: str
+        :param file_name: The file_name of the compute package.
+        :type file_name: str
         :return: True if successful.
         :rtype: bool
         """
+
+        obj = {
+            "file_name": file_name,
+            "storage_file_name": storage_file_name,
+            "committed_at": str(datetime.now()),
+        }
+
         self.control.package.update_one(
             {"key": "active"},
-            {
-                "$set": {
-                    "filename": filename,
-                    "committed_at": str(datetime.now()),
-                }
-            },
+            obj,
             True,
         )
-        self.control.package.update_one(
-            {"key": "package_trail"},
-            {
-                "$push": {
-                    "filename": filename,
-                    "committed_at": str(datetime.now()),
-                }
-            },
-            True,
-        )
+
+        trail_obj = {**{"key": "package_trail"}, **obj}
+
+        self.control.package.insert_one(trail_obj)
+
         return True
 
     def get_compute_package(self):
