@@ -305,14 +305,13 @@ class ControlBase(ABC):
                 nr_active_clients = len(combiner.list_active_clients())
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
-                combiner_state = None
+                continue
 
-            if combiner_state is not None:
-                is_participating = self.evaluate_round_participation_policy(
-                    combiner_round_config, nr_active_clients
-                )
-                if is_participating:
-                    combiners.append((combiner, combiner_round_config))
+            is_participating = self.evaluate_round_participation_policy(
+                combiner_round_config, nr_active_clients
+            )
+            if is_participating:
+                combiners.append((combiner, combiner_round_config))
         return combiners
 
     def evaluate_round_participation_policy(

@@ -1,6 +1,5 @@
-import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 from fedn.common.log_config import logger
+from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
 class Aggregator(AggregatorBase):
@@ -78,12 +77,11 @@ class Aggregator(AggregatorBase):
                         "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
                 self.model_updates.task_done()
             except Exception as e:
-                logger.info(
+                logger.error(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
-        logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models),
-                                  log_level=fedn.Status.INFO)
+        logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data

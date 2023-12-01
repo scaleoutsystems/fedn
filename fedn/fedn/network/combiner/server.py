@@ -166,7 +166,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # The request to be added to the client queue
         request = fedn.ModelUpdateRequest()
         request.model_id = config['model_id']
-        request.correlation_id = str(uuid.uuid4())  # Obesolete?
+        request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
         request.data = json.dumps(config)
 
@@ -174,7 +174,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients = self.get_active_trainers()
 
         for client in clients:
-            request.receiver.name = client.name
+            request.receiver.name = client
             request.receiver.role = fedn.WORKER
             self._put_request_to_client_queue(request, fedn.Channel.MODEL_UPDATE_REQUESTS)
 
@@ -592,6 +592,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 yield q.get(timeout=1.0)
             except queue.Empty:
                 pass
+            except Exception as e:
+                logger.error("Error in ModelUpdateRequestStream: {}".format(e))
+                break
 
         self.tracer.update_client_status(client.name, "offline")
 

@@ -794,11 +794,20 @@ class API:
                 {"success": False, "message": "A session is already running."}
             )
 
+        # Check that initial (seed) model is set
+        if not self.statestore.get_initial_model():
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No initial model set. Set initial model before starting session.",
+                }
+            )
+
         # Check available clients per combiner
         clients_available = 0
         for combiner in self.control.network.get_combiners():
             try:
-                nr_active_clients = len(combiner.get_active_clients())
+                nr_active_clients = len(combiner.list_active_clients())
                 clients_available = clients_available + int(nr_active_clients)
             except CombinerUnavailableError as e:
                 # TODO: Handle unavailable combiner, stop session or continue?

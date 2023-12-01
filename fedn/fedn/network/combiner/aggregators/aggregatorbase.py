@@ -3,7 +3,6 @@ import json
 import queue
 from abc import ABC, abstractmethod
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 
 AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
@@ -61,8 +60,7 @@ class AggregatorBase(ABC):
         :type model_id: str
         """
         try:
-            logger.info("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id),
-                                      log_level=fedn.Status.INFO)
+            logger.info("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id))
 
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)
@@ -70,10 +68,9 @@ class AggregatorBase(ABC):
                 # Push the model update to the processing queue
                 self.model_updates.put(model_update)
             else:
-                logger.info("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
+                logger.warning("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            logger.info("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
-                                      log_level=fedn.Status.WARNING)
+            logger.error("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e))
             pass
 
     def _validate_model_update(self, model_update):
@@ -87,7 +84,7 @@ class AggregatorBase(ABC):
         # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
         if 'num_examples' not in data.keys():
-            logger.info("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
+            logger.error("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
             return False
         return True
 
