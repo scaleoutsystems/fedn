@@ -11,12 +11,17 @@ logger = logging.getLogger(__name__)
 
 
 class MINIORepository(Repository):
-    """
+    """ Class implementing Repoistory for MinIO. """
 
-    """
     client = None
 
     def __init__(self, config):
+        """ Initialize object.
+
+        :param config: Configuration including connection credential and bucket names.
+        :type config: dict
+        """
+
         super().__init__()
         try:
             access_key = config['storage_access_key']
@@ -91,7 +96,7 @@ class MINIORepository(Repository):
         return True
 
     def get_artifact(self, instance_name, bucket=''):
-        """
+        """ Retrive object with name instance_name.
 
         :param instance_name:
         :param bucket:
@@ -107,10 +112,11 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def get_artifact_stream(self, instance_name):
-        """
+        """ Return a stream handler for object with name instance_name.
 
-        :param instance_name:
-        :return:
+        :param instance_name: The name if the object
+        :type instance_name: str
+        :return: stream handler for object instance name
         """
         try:
             data = self.client.get_object(self.bucket, instance_name)
@@ -135,10 +141,11 @@ class MINIORepository(Repository):
         return objects_to_delete
 
     def delete_artifact(self, instance_name, bucket=[]):
-        """
+        """ Delete object with name instance_name from buckets.
 
-        :param instance_name:
-        :param bucket:
+        :param instance_name: The object name
+        :param bucket: List of buckets to delete from
+        :type bucket: list
         """
         if not bucket:
             bucket = self.bucket
@@ -150,7 +157,7 @@ class MINIORepository(Repository):
             print('Could not delete artifact: {}'.format(instance_name))
 
     def delete_objects(self):
-        """
+        """ Delete all objects 
 
         """
         objects_to_delete = self.list_artifacts()
