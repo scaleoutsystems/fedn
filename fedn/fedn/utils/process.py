@@ -1,7 +1,6 @@
-import logging
 import subprocess
 
-logger = logging.getLogger()
+from fedn.common.log_config import logger
 
 
 def run_process(args, cwd):
@@ -25,7 +24,7 @@ def run_process(args, cwd):
         while True:
             output = status.stdout.readline().decode()
             if output:
-                logger.log(logging.INFO, output)
+                logger.info(output)
             else:
                 break
 

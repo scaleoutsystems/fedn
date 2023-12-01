@@ -1,4 +1,3 @@
-import time
 import uuid
 
 import click
@@ -102,13 +101,15 @@ def run_cmd(ctx):
 @click.option('-tr', '--trainer', required=False, default=True)
 @click.option('-in', '--init', required=False, default=None,
               help='Set to a filename to (re)init client from file state.')
-@click.option('-l', '--logfile', required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")),
+@click.option('-l', '--logfile', required=False, default=None,
               help='Set logfile for client log to file.')
 @click.option('--heartbeat-interval', required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
+@click.option('--verbosity', required=False, default='INFO', type=click.Choice(['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'], case_sensitive=False))
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
-               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
+               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat,
+               verbosity):
     """
 
     :param ctx:
@@ -127,6 +128,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :param logfile:
     :param hearbeat_interval
     :param reconnect_after_missed_heartbeat
+    :param verbosity
     :return:
     """
     remote = False if local_package else True
@@ -134,7 +136,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
+              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
 
     if init:
         apply_config(config)

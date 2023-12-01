@@ -1,9 +1,4 @@
-import logging
-
 import click
-
-logging.basicConfig(format='%(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S %p')  # , level=logging.DEBUG)
 
 CONTEXT_SETTINGS = dict(
     # Support -h as a shortcut for --help
