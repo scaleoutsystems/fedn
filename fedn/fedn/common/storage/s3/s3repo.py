@@ -1,10 +1,12 @@
 import uuid
 
+from fedn.common.log_config import logger
+
 from .miniorepo import MINIORepository
 
 
 class S3ModelRepository(MINIORepository):
-    """
+    """ Class for S3 Repository.
 
     """
 
@@ -17,7 +19,7 @@ class S3ModelRepository(MINIORepository):
         :param model_id:
         :return:
         """
-        print("Client {} trying to get model with id: {}".format(
+        logger.info("Client {} trying to get model with id: {}".format(
             self.client, model_id), flush=True)
         return self.get_artifact(model_id)
 
@@ -27,7 +29,7 @@ class S3ModelRepository(MINIORepository):
         :param model_id:
         :return:
         """
-        print("Client {} trying to get model with id: {}".format(
+        logger.info("Client {} trying to get model with id: {}".format(
             self.client, model_id), flush=True)
         return self.get_artifact_stream(model_id)
 
@@ -44,7 +46,7 @@ class S3ModelRepository(MINIORepository):
             self.set_artifact(str(model_id), model,
                               bucket=self.bucket, is_file=is_file)
         except Exception:
-            print("Failed to write model with ID {} to repository.".format(model_id))
+            logger.error("Failed to write model with ID {} to repository.".format(model_id))
             raise
         return str(model_id)
 
@@ -59,7 +61,7 @@ class S3ModelRepository(MINIORepository):
             self.set_artifact(str(name), compute_package,
                               bucket="fedn-context", is_file=is_file)
         except Exception:
-            print("Failed to write compute_package to repository.")
+            logger.error("Failed to write compute_package to repository.")
             raise
 
     def get_compute_package(self, compute_package):
@@ -71,7 +73,7 @@ class S3ModelRepository(MINIORepository):
         try:
             data = self.get_artifact(compute_package, bucket="fedn-context")
         except Exception:
-            print("Failed to get compute_package from repository.")
+            logger.error("Failed to get compute_package from repository.")
             raise
         return data
 
@@ -83,5 +85,5 @@ class S3ModelRepository(MINIORepository):
         try:
             self.delete_artifact(compute_package, bucket=['fedn-context'])
         except Exception:
-            print("Failed to delete compute_package from repository.")
+            logger.error("Failed to delete compute_package from repository.")
             raise

@@ -5,13 +5,13 @@ from minio import Minio
 from minio.error import InvalidResponseError
 from urllib3.poolmanager import PoolManager
 
-from .base import Repository
+from fedn.common.log_config import logger
 
-logger = logging.getLogger(__name__)
+from .base import Repository
 
 
 class MINIORepository(Repository):
-    """ Class implementing Repoistory for MinIO. """
+    """ Class implementing Repository for MinIO. """
 
     client = None
 
@@ -45,8 +45,8 @@ class MINIORepository(Repository):
             self.secure_mode = False
 
         if not self.secure_mode:
-            print(
-                "\n\n\nWARNING : S3/MINIO RUNNING IN **INSECURE** MODE! THIS IS NOT FOR PRODUCTION!\n\n\n")
+            logger.warning(
+                "S3/MINIO RUNNING IN **INSECURE** MODE!")
 
         if self.secure_mode:
             manager = PoolManager(
@@ -66,22 +66,8 @@ class MINIORepository(Repository):
         self.create_bucket(self.context_bucket)
         self.create_bucket(self.bucket)
 
-    def create_bucket(self, bucket_name):
-        """ Create a new bucket. If bucket exists, do nothing.
-
-        :param bucket_name: The name of the bucket
-        :type bucket_name: str
-        """
-        found = self.client.bucket_exists(bucket_name)
-
-        if not found:
-            try:
-                self.client.make_bucket(bucket_name)
-            except InvalidResponseError:
-                raise
-
     def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
-        """ Instance must be a byte-like object. """
+
         if bucket == '':
             bucket = self.bucket
         if is_file:
@@ -96,12 +82,7 @@ class MINIORepository(Repository):
         return True
 
     def get_artifact(self, instance_name, bucket=''):
-        """ Retrive object with name instance_name.
 
-        :param instance_name:
-        :param bucket:
-        :return:
-        """
         if bucket == '':
             bucket = self.bucket
 
@@ -125,20 +106,19 @@ class MINIORepository(Repository):
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
     def list_artifacts(self):
-        """
+        """ List all objects.
 
-        :return:
+        :return: A list of object names
         """
-        objects_to_delete = []
+        objects = []
         try:
             objs = self.client.list_objects(self.bucket)
             for obj in objs:
-                print(obj.object_name)
-                objects_to_delete.append(obj.object_name)
+                objects.append(obj.object_name)
         except Exception:
             raise Exception(
                 "Could not list models in bucket {}".format(self.bucket))
-        return objects_to_delete
+        return objects
 
     def delete_artifact(self, instance_name, bucket=[]):
         """ Delete object with name instance_name from buckets.
@@ -153,11 +133,25 @@ class MINIORepository(Repository):
         try:
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:
-            print(err)
-            print('Could not delete artifact: {}'.format(instance_name))
+            logger.error('Could not delete artifact: {0} err: {1}'.format(instance_name, err))
+            pass
+
+    def create_bucket(self, bucket_name):
+        """ Create a new bucket. If bucket exists, do nothing.
+
+        :param bucket_name: The name of the bucket
+        :type bucket_name: str
+        """
+        found = self.client.bucket_exists(bucket_name)
+
+        if not found:
+            try:
+                self.client.make_bucket(bucket_name)
+            except InvalidResponseError:
+                raise
 
     def delete_objects(self):
-        """ Delete all objects 
+        """ Delete all objects.
 
         """
         objects_to_delete = self.list_artifacts()
@@ -167,6 +161,7 @@ class MINIORepository(Repository):
                 self.bucket, objects_to_delete
             )
             for del_err in errors:
-                print("Deletion Error: {}".format(del_err))
+                logger.error("Deletion Error: {}".format(del_err))
         except Exception:
-            print('Could not delete objects: {}'.format(objects_to_delete))
+            logger.error('Could not delete objects: {}'.format(objects_to_delete))
+            pass
