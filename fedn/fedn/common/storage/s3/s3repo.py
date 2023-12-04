@@ -1,89 +1,100 @@
 import uuid
 
 from fedn.common.log_config import logger
+from fedn.common.storage.s3.miniorepo import MINIORepository
 
-from .miniorepo import MINIORepository
 
-
-class S3ModelRepository(MINIORepository):
-    """ Class for S3 Repository.
-
-    """
+class S3ModelRepository:
+    """ Interface for storing model objects and compute packages in S3 compatible storage. """
 
     def __init__(self, config):
-        super().__init__(config)
+
+        self.model_bucket = config['storage_bucket']
+        self.context_bucket = config['context_bucket']
+
+        self.client = MINIORepository(config)
+
+        self.client.create_bucket(self.context_bucket)
+        self.client.create_bucket(self.model_bucket)
 
     def get_model(self, model_id):
-        """
+        """ Retrieve a model with id model_id.
 
-        :param model_id:
-        :return:
+        :param model_id: Unique identifier for model to retrive.
+        :return: The model object
         """
         logger.info("Client {} trying to get model with id: {}".format(
-            self.client, model_id), flush=True)
-        return self.get_artifact(model_id)
+            self.client.name, model_id))
+        return self.client.get_artifact(model_id, self.model_bucket)
 
     def get_model_stream(self, model_id):
-        """
+        """ Retrieve a stream handle to model with id model_id.
 
         :param model_id:
-        :return:
+        :return: Handle to model object
         """
         logger.info("Client {} trying to get model with id: {}".format(
-            self.client, model_id), flush=True)
-        return self.get_artifact_stream(model_id)
+            self.client.name, model_id))
+        return self.client.get_artifact_stream(model_id, self.model_bucket)
 
     def set_model(self, model, is_file=True):
-        """
+        """ Upload model object.
 
-        :param model:
-        :param is_file:
-        :return:
+        :param model: The model object
+        :type model: BytesIO or str file name.
+        :param is_file: True if model is a file name, else False
+        :return: id for the uploaded object (str)
         """
         model_id = uuid.uuid4()
-        # TODO: Check that this call succeeds
+
         try:
-            self.set_artifact(str(model_id), model,
-                              bucket=self.bucket, is_file=is_file)
+            self.client.set_artifact(str(model_id), model,
+                                     bucket=self.model_bucket, is_file=is_file)
         except Exception:
-            logger.error("Failed to write model with ID {} to repository.".format(model_id))
+            logger.error("Failed to upload model with ID {} to repository.".format(model_id))
             raise
         return str(model_id)
 
     def set_compute_package(self, name, compute_package, is_file=True):
+        """ Upload compute package.
+
+        :param name: The name of the compute package.
+        :type name: str
+        :param compute_package: The compute package
+        :type compute_pacakge: BytesIO or str file name.
+        :param is_file: True if model is a file name, else False
         """
 
-        :param name:
-        :param compute_package:
-        :param is_file:
-        """
         try:
-            self.set_artifact(str(name), compute_package,
-                              bucket="fedn-context", is_file=is_file)
+            self.client.set_artifact(str(name), compute_package,
+                                     bucket=self.context_bucket, is_file=is_file)
         except Exception:
             logger.error("Failed to write compute_package to repository.")
             raise
 
     def get_compute_package(self, compute_package):
-        """
+        """ Retrieve compute package from object store.
 
-        :param compute_package:
-        :return:
+        :param compute_package: The name of the compute package.
+        :type compute_pacakge: str
+        :return: Compute package.
         """
         try:
-            data = self.get_artifact(compute_package, bucket="fedn-context")
+            data = self.client.get_artifact(compute_package, bucket=self.context_bucket)
         except Exception:
             logger.error("Failed to get compute_package from repository.")
             raise
         return data
 
     def delete_compute_package(self, compute_package):
+        """ Delete a compute package from storage.
+
+        :param compute_package: The name of the compute_package
+        :type compute_package: str
         """
 
-        :param compute_package:
-        """
         try:
-            self.delete_artifact(compute_package, bucket=['fedn-context'])
+            self.client.delete_artifact(compute_package, bucket=[self.context_bucket])
         except Exception:
             logger.error("Failed to delete compute_package from repository.")
             raise

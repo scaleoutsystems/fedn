@@ -374,7 +374,7 @@ class ControlBase(ABC):
         return True
 
     def state(self):
-        """ Get the current state of the controller
+        """ Get the current state of the controller.
 
         :return: The state
         :rype: str

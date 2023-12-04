@@ -18,58 +18,30 @@ class MINIORepository(Repository):
     def __init__(self, config):
         """ Initialize object.
 
-        :param config: Configuration including connection credential and bucket names.
+        :param config: Dictionary containing configuration for credentials and bucket names.
         :type config: dict
         """
 
         super().__init__()
-        try:
-            access_key = config['storage_access_key']
-        except Exception:
-            access_key = 'minio'
-        try:
-            secret_key = config['storage_secret_key']
-        except Exception:
-            secret_key = 'minio123'
-        try:
-            self.bucket = config['storage_bucket']
-        except Exception:
-            self.bucket = 'fedn-models'
-        try:
-            self.context_bucket = config['context_bucket']
-        except Exception:
-            self.bucket = 'fedn-context'
-        try:
-            self.secure_mode = bool(config['storage_secure_mode'])
-        except Exception:
-            self.secure_mode = False
+        self.name = "MINIORepository"
 
-        if not self.secure_mode:
-            logger.warning(
-                "S3/MINIO RUNNING IN **INSECURE** MODE!")
-
-        if self.secure_mode:
+        if config['storage_secure_mode']:
             manager = PoolManager(
                 num_pools=100, cert_reqs='CERT_NONE', assert_hostname=False)
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
-                                access_key=access_key,
-                                secret_key=secret_key,
-                                secure=self.secure_mode, http_client=manager)
+                                access_key=config['storage_access_key'],
+                                secret_key=config['storage_secret_key'],
+                                secure=config['storage_secure_mode'], http_client=manager)
         else:
             self.client = Minio("{0}:{1}".format(config['storage_hostname'], config['storage_port']),
-                                access_key=access_key,
-                                secret_key=secret_key,
-                                secure=self.secure_mode)
+                                access_key=config['storage_access_key'],
+                                secret_key=config['storage_secret_key'],
+                                secure=config['storage_secure_mode'])
+            logger.warning(
+                "S3/MINIO RUNNING IN **INSECURE** MODE!")
 
-        # TODO: generalize
-        self.context_bucket = 'fedn-context'
-        self.create_bucket(self.context_bucket)
-        self.create_bucket(self.bucket)
+    def set_artifact(self, instance_name, instance, bucket, is_file=False):
 
-    def set_artifact(self, instance_name, instance, is_file=False, bucket=''):
-
-        if bucket == '':
-            bucket = self.bucket
         if is_file:
             self.client.fput_object(bucket, instance_name, instance)
         else:
@@ -81,10 +53,7 @@ class MINIORepository(Repository):
 
         return True
 
-    def get_artifact(self, instance_name, bucket=''):
-
-        if bucket == '':
-            bucket = self.bucket
+    def get_artifact(self, instance_name, bucket):
 
         try:
             data = self.client.get_object(bucket, instance_name)
@@ -92,32 +61,29 @@ class MINIORepository(Repository):
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
-    def get_artifact_stream(self, instance_name):
-        """ Return a stream handler for object with name instance_name.
+    def get_artifact_stream(self, instance_name, bucket):
 
-        :param instance_name: The name if the object
-        :type instance_name: str
-        :return: stream handler for object instance name
-        """
         try:
-            data = self.client.get_object(self.bucket, instance_name)
+            data = self.client.get_object(bucket, instance_name)
             return data
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
 
-    def list_artifacts(self):
-        """ List all objects.
+    def list_artifacts(self, bucket):
+        """ List all objects in bucket.
 
+        :param bucket: Name of the bucket
+        :type bucket: str
         :return: A list of object names
         """
         objects = []
         try:
-            objs = self.client.list_objects(self.bucket)
+            objs = self.client.list_objects(bucket)
             for obj in objs:
                 objects.append(obj.object_name)
         except Exception:
             raise Exception(
-                "Could not list models in bucket {}".format(self.bucket))
+                "Could not list models in bucket {}".format(bucket))
         return objects
 
     def delete_artifact(self, instance_name, bucket=[]):
@@ -127,8 +93,6 @@ class MINIORepository(Repository):
         :param bucket: List of buckets to delete from
         :type bucket: list
         """
-        if not bucket:
-            bucket = self.bucket
 
         try:
             self.client.remove_object(bucket, instance_name)
@@ -149,19 +113,3 @@ class MINIORepository(Repository):
                 self.client.make_bucket(bucket_name)
             except InvalidResponseError:
                 raise
-
-    def delete_objects(self):
-        """ Delete all objects.
-
-        """
-        objects_to_delete = self.list_artifacts()
-        try:
-            # Remove list of objects.
-            errors = self.client.remove_objects(
-                self.bucket, objects_to_delete
-            )
-            for del_err in errors:
-                logger.error("Deletion Error: {}".format(del_err))
-        except Exception:
-            logger.error('Could not delete objects: {}'.format(objects_to_delete))
-            pass

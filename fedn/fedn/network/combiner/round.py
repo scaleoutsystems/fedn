@@ -222,6 +222,7 @@ class RoundController:
                 if tries > retry:
                     self.server.report_status(
                         "ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id), flush=True)
+                    raise
                     return
 
         self.modelservice.set_model(model, model_id)
