@@ -314,8 +314,10 @@ class API:
         payload = {}
         id = str(package_object["_id"])
         info = {
-            "filename": package_object["filename"],
+            "file_name": package_object["file_name"],
             "helper": package_object["helper"],
+            "committed_at": package_object["committed_at"],
+            "storage_file_name": package_object["storage_file_name"],
         }
         payload[id] = info
         return jsonify(payload)
