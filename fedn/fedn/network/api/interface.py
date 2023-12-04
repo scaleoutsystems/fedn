@@ -320,6 +320,49 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
+    def list_compute_packages(self, limit: str = None, skip: str = None):
+        """Get paginated list of compute packages from the statestore.
+
+        :return: All compute packages as a json response.
+        :rtype: :class:`flask.Response`
+        """
+
+        if limit is None:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "No limit provided.",
+                    }
+                ),
+                404,
+            )
+
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+
+        result = self.statestore.list_compute_packages(limit, skip)
+        if result is None:
+            return (
+                jsonify(
+                    {"success": False, "message": "No compute packages found."}
+                ),
+                404,
+            )
+        arr = []
+        for element in result["result"]:
+            obj = {
+                "file_name": element["file_name"],
+                "helper": element["helper"],
+                "committed_at": element["committed_at"],
+                "storage_file_name": element["storage_file_name"],
+            }
+            arr.append(obj)
+
+        result = {"result": arr, "count": result["count"]}
+        return jsonify(result)
+
     def download_compute_package(self, name):
         """Download the compute package.
 

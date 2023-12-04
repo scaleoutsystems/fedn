@@ -218,6 +218,22 @@ def get_package():
     return api.get_compute_package()
 
 
+@app.route("/list_compute_packages", methods=["GET"])
+def list_compute_packages():
+    """Get the compute package from the statestore.
+    return: The compute package as a json object.
+    rtype: json
+    """
+
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+
+    return api.list_compute_packages(
+        limit=limit,
+        skip=skip,
+    )
+
+
 @app.route("/download_package", methods=["GET"])
 def download_package():
     """Download the compute package.

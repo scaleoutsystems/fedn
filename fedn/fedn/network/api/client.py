@@ -192,6 +192,15 @@ class APIClient:
         response = requests.get(self._get_url('get_package'), verify=self.verify)
         return response.json()
 
+    def list_compute_packages(self):
+        """ Get all compute packages from the statestore.
+
+        :return: All compute packages with info.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify)
+        return response.json()
+
     def download_package(self, path):
         """ Download the compute package.
 

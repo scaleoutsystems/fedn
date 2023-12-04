@@ -282,7 +282,7 @@ class MongoStateStore(StateStoreBase):
             "file_name": file_name,
             "storage_file_name": storage_file_name,
             "helper": helper_type,
-            "committed_at": str(datetime.now()),
+            "committed_at": datetime.now(),
         }
 
         self.control.package.update_one(
@@ -315,6 +315,44 @@ class MongoStateStore(StateStoreBase):
             return retcheck
         except (KeyError, IndexError):
             return None
+
+    def list_compute_packages(self, limit: int = None, skip: int = None, sort_key="committed_at", sort_order=pymongo.DESCENDING):
+        """List compute packages in the statestore (paginated).
+
+        :param limit: The maximum number of compute packages to return.
+        :type limit: int
+        :param skip: The number of compute packages to skip.
+        :type skip: int
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
+        :return: Dictionary of compute packages in result and count.
+        :rtype: dict
+        """
+
+        result = None
+        count = None
+
+        find_option = {"key": "package_trail"}
+        projection = {"_id": False, "key": False}
+
+        try:
+            if limit is not None and skip is not None:
+                result = self.control.package.find(find_option, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
+            else:
+                result = self.control.package.find(find_option, projection).sort(sort_key, sort_order)
+
+            count = self.control.package.count_documents(find_option)
+
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+            return None
+
+        return {
+            "result": result,
+            "count": count,
+        }
 
     def set_helper(self, helper):
         """Set the active helper package in statestore.
