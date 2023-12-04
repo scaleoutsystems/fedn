@@ -181,7 +181,7 @@ class ControlBase(ABC):
     def set_compute_package(self, filename, path):
         """Persist the configuration for the compute package."""
         self.model_repository.set_compute_package(filename, path)
-        self.statestore.set_compute_package(filename)
+        # self.statestore.set_compute_package(filename)
 
     def get_compute_package(self, compute_package=""):
         """

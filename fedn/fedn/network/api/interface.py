@@ -57,14 +57,13 @@ class API:
         :type filename: str
         :return: True and extension str if file extension is allowed, else False and None.
         :rtype: Tuple (bool, str)
-        """        
+        """
         if "." in filename:
             extension = filename.rsplit(".", 1)[1].lower()
             if extension in ALLOWED_EXTENSIONS:
                 return (True, extension)
-        
-        return (False, None)
 
+        return (False, None)
 
     def get_clients(self, limit=None, skip=None, status=False):
         """Get all clients from the statestore.
@@ -243,7 +242,7 @@ class API:
                 ),
                 404,
             )
-        
+
         success, extension = self._allowed_file_extension(file.filename)
 
         if not success:
@@ -256,7 +255,7 @@ class API:
                 ),
                 404,
             )
-        
+
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
@@ -264,9 +263,7 @@ class API:
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
-        self.statestore.set_helper(helper_type)
-
-        success = self.statestore.set_compute_package(file_name, storage_file_name)
+        success = self.statestore.set_compute_package(file_name, storage_file_name, helper_type)
 
         if not success:
             return (
@@ -278,46 +275,7 @@ class API:
                 ),
                 400,
             )
-        
-        return jsonify({"success": True, "message": "Compute package set."})
 
-
-        if file and self._allowed_file_extension(file.filename):
-            
-            filename = secure_filename(file.filename)
-            # TODO: make configurable, perhaps in config.py or package.py
-            file_path = os.path.join("/app/client/package/", filename)
-            file.save(file_path)
-
-            if (
-                self.control.state() == ReducerState.instructing
-                or self.control.state() == ReducerState.monitoring
-            ):
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "message": "Reducer is in instructing or monitoring state."
-                            "Cannot set compute package.",
-                        }
-                    ),
-                    400,
-                )
-
-            self.control.set_compute_package(filename, file_path)
-            self.statestore.set_helper(helper_type)
-
-        success = self.statestore.set_compute_package(filename)
-        if not success:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "message": "Failed to set compute package.",
-                    }
-                ),
-                400,
-            )
         return jsonify({"success": True, "message": "Compute package set."})
 
     def _get_compute_package_name(self):
