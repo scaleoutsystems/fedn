@@ -1,5 +1,4 @@
 import io
-import logging
 
 from minio import Minio
 from minio.error import InvalidResponseError

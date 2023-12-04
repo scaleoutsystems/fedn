@@ -6,9 +6,7 @@ import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 
 
 class Server:
-    """ 
-
-    """
+    """ Class for configuring and launching the gRPC server."""
 
     def __init__(self, servicer, modelservicer, config):
 
