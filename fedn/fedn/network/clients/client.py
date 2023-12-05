@@ -2,7 +2,6 @@ import base64
 import io
 import json
 import os
-import platform
 import queue
 import re
 import socket
@@ -16,7 +15,6 @@ from distutils.dir_util import copy_tree
 from io import BytesIO
 
 import grpc
-import psutil
 from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
 from OpenSSL import SSL
