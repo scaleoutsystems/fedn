@@ -12,8 +12,6 @@ from enum import Enum
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.config import (get_controller_config, get_modelstorage_config,
-                                get_network_config, get_statestore_config)
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.network.combiner.connect import ConnectorCombiner, Status
