@@ -208,7 +208,7 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
-    def set_compute_package(self, file, helper_type: str):
+    def set_compute_package(self, file, helper_type: str, name: str = None, description: str = None):
         """Set the compute package in the statestore.
 
         :param file: The compute package to set.
@@ -263,7 +263,7 @@ class API:
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
-        success = self.statestore.set_compute_package(file_name, storage_file_name, helper_type)
+        success = self.statestore.set_compute_package(file_name, storage_file_name, helper_type, name, description)
 
         if not success:
             return (

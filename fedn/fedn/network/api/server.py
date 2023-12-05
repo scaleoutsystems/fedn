@@ -197,6 +197,9 @@ def set_package():
     rtype: json
     """
     helper_type = request.form.get("helper", None)
+    name = request.form.get("name", None)
+    description = request.form.get("description", None)
+
     if helper_type is None:
         return (
             jsonify({"success": False, "message": "Missing helper type."}),
@@ -206,7 +209,7 @@ def set_package():
         file = request.files["file"]
     except KeyError:
         return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_compute_package(file=file, helper_type=helper_type)
+    return api.set_compute_package(file=file, helper_type=helper_type, name=name, description=description)
 
 
 @app.route("/get_package", methods=["GET"])

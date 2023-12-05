@@ -269,7 +269,7 @@ class MongoStateStore(StateStoreBase):
         result = self.control.validations.find(kwargs)
         return result
 
-    def set_compute_package(self, file_name: str, storage_file_name: str, helper_type: str):
+    def set_compute_package(self, file_name: str, storage_file_name: str, helper_type: str, name: str = None, description: str = None):
         """Set the active compute package in statestore.
 
         :param file_name: The file_name of the compute package.
@@ -283,6 +283,8 @@ class MongoStateStore(StateStoreBase):
             "storage_file_name": storage_file_name,
             "helper": helper_type,
             "committed_at": datetime.now(),
+            "name": name,
+            "description": description,
         }
 
         self.control.package.update_one(
