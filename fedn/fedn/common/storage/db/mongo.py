@@ -1,5 +1,6 @@
 import pymongo
 
+
 def connect_to_mongodb(config, network_id):
     """
 

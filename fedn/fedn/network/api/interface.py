@@ -314,7 +314,7 @@ class API:
             return send_from_directory(
                 self.local_path, name, as_attachment=True
             )
-        except Exception as err:
+        except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 file_path = os.path.join(self.local_path, name)
@@ -323,7 +323,7 @@ class API:
                 return send_from_directory(
                     self.local_path, name, as_attachment=True
                 )
-            except Exception as err:
+            except Exception:
                 raise
         finally:
             mutex.release()

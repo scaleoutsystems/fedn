@@ -2,10 +2,9 @@ import os
 
 import yaml
 
-from fedn.common.log_config import logger
-
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
+
 
 def get_default_config():
     statestore_config = {
@@ -45,6 +44,7 @@ def get_default_config():
     fedn_config.update(storage_config)
     return fedn_config
 
+
 def get_environment_config():
     """ Get the configuration from environment variables.
     """
@@ -65,7 +65,7 @@ def get_statestore_config(file=None):
     """
     if file is None:
         get_environment_config()
-    if STATESTORE_CONFIG:    
+    if STATESTORE_CONFIG:
         file = STATESTORE_CONFIG
     else:
         fedn_config = get_default_config()

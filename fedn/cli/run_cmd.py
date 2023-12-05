@@ -183,7 +183,7 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
     # Read settings from config file
     try:
         fedn_config = get_statestore_config_from_file(config['init'])
-    except Exception as e:
+    except Exception:
         print('Failed to read config from settings file, trying default values.', flush=True)
         fedn_config = get_default_config()
 

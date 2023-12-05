@@ -21,6 +21,7 @@ try:
 except ImportError:
     telemetry_enabled = False
 
+
 def get_system_info():
     system_info = [
         ["os.name", os.name],
@@ -33,6 +34,7 @@ def get_system_info():
         ["total_disk", psutil.disk_usage('/').total],
     ]
     return system_info
+
 
 # Configure the tracer to export traces to Jaeger
 resource = Resource.create({ResourceAttributes.SERVICE_NAME: "FEDn Client"})
@@ -53,7 +55,6 @@ tracer_provider.add_span_processor(
 tracer = None
 
 
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 
@@ -64,6 +65,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 handler.setFormatter(formatter)
 
+
 def add_trace(name=""):
     def decorator(func):
         @wraps(func)
@@ -71,7 +73,7 @@ def add_trace(name=""):
             self = args[0]
             name = func.__name__
             if tracer:
-                
+
                 with tracer.start_as_current_span(name) as span:
                     # print("name={}....{}".format(name, attributes))
                     if self.trace_attribs:
@@ -87,18 +89,22 @@ def add_trace(name=""):
         return wrapper
     return decorator
 
+
 def get_tracer():
     global tracer
     return tracer
+
 
 def enable_tracing():
     global tracer
     tracer = trace.get_tracer(__name__)
 
+
 def log_remote(server='localhost:8000', path='/log'):
     http_handler = logging.handlers.HTTPHandler(server, '/log', method='POST')
     http_handler.setLevel(logging.WARNING)
     logger.addHandler(http_handler)
+
 
 def set_log_level_from_string(level_str):
     """

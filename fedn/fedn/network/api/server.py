@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request
 
-from fedn.common.config import (get_controller_config, get_modelstorage_config,
-                                get_network_config, get_statestore_config, get_default_config)
+from fedn.common.config import (get_controller_config, get_default_config,
+                                get_modelstorage_config, get_network_config,
+                                get_statestore_config)
 from fedn.common.log_config import logger
 from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
@@ -13,19 +14,19 @@ class Controller():
         self.app = Flask(__name__)
         try:
             statestore_config = get_statestore_config()
-        except FileNotFoundError as err:
+        except (FileNotFoundError, TypeError):
             logger.debug("No statestore config, using default values.")
             fedn_config = get_default_config()
             statestore_config = fedn_config['statestore']
         try:
             network_id = get_network_config()
-        except (FileNotFoundError, TypeError) as err:
+        except (FileNotFoundError, TypeError):
             logger.debug("No network config found, using default values.")
             fedn_config = get_default_config()
             network_id = fedn_config['network_id']
         try:
             modelstorage_config = get_modelstorage_config()
-        except (FileNotFoundError, TypeError) as err:
+        except (FileNotFoundError, TypeError):
             logger.debug("No model storage config found, using default values.")
             fedn_config = get_default_config()
             modelstorage_config = fedn_config['storage_config']
@@ -36,7 +37,7 @@ class Controller():
         self.api = API(statestore, control)
 
         self.setup_routes()
-        
+
     def setup_routes(self):
         @self.app.route("/get_model_trail", methods=["GET"])
         def get_model_trail():
@@ -47,7 +48,6 @@ class Controller():
             rtype: json
             """
             return self.api.get_model_trail()
-
 
         @self.app.route("/list_models", methods=["GET"])
         def list_models():
@@ -68,7 +68,6 @@ class Controller():
 
             return self.api.get_models(session_id, limit, skip)
 
-
         @self.app.route("/delete_model_trail", methods=["GET", "POST"])
         def delete_model_trail():
             """Delete the model trail for a given session.
@@ -78,7 +77,6 @@ class Controller():
             rtype: json
             """
             return jsonify({"message": "Not implemented"}), 501
-
 
         @self.app.route("/list_clients", methods=["GET"])
         def list_clients():
@@ -92,7 +90,6 @@ class Controller():
             status = request.args.get("status", None)
 
             return self.api.get_clients(limit, skip, status)
-
 
         @self.app.route("/get_active_clients", methods=["GET"])
         def get_active_clients():
@@ -110,7 +107,6 @@ class Controller():
                 )
             return self.api.get_active_clients(combiner_id)
 
-
         @self.app.route("/list_combiners", methods=["GET"])
         def list_combiners():
             """Get all combiners in the network.
@@ -122,7 +118,6 @@ class Controller():
             skip = request.args.get("skip", None)
 
             return self.api.get_all_combiners(limit, skip)
-
 
         @self.app.route("/get_combiner", methods=["GET"])
         def get_combiner():
@@ -140,7 +135,6 @@ class Controller():
                 )
             return self.api.get_combiner(combiner_id)
 
-
         @self.app.route("/list_rounds", methods=["GET"])
         def list_rounds():
             """Get all rounds from the statestore.
@@ -148,7 +142,6 @@ class Controller():
             rtype: json
             """
             return self.api.get_all_rounds()
-
 
         @self.app.route("/get_round", methods=["GET"])
         def get_round():
@@ -163,7 +156,6 @@ class Controller():
                 return jsonify({"success": False, "message": "Missing round id."}), 400
             return self.api.get_round(round_id)
 
-
         @self.app.route("/start_session", methods=["GET", "POST"])
         def start_session():
             """Start a new session.
@@ -172,7 +164,6 @@ class Controller():
             """
             json_data = request.get_json()
             return self.api.start_session(**json_data)
-
 
         @self.app.route("/list_sessions", methods=["GET"])
         def list_sessions():
@@ -184,7 +175,6 @@ class Controller():
             skip = request.args.get("skip", None)
 
             return self.api.get_all_sessions(limit, skip)
-
 
         @self.app.route("/get_session", methods=["GET"])
         def get_session():
@@ -201,7 +191,6 @@ class Controller():
                     400,
                 )
             return self.api.get_session(session_id)
-
 
         @self.app.route("/set_package", methods=["POST"])
         def set_package():
@@ -229,7 +218,6 @@ class Controller():
                 return jsonify({"success": False, "message": "Missing file."}), 400
             return self.api.set_compute_package(file=file, helper_type=helper_type)
 
-
         @self.app.route("/get_package", methods=["GET"])
         def get_package():
             """Get the compute package from the statestore.
@@ -237,7 +225,6 @@ class Controller():
             rtype: json
             """
             return self.api.get_compute_package()
-
 
         @self.app.route("/download_package", methods=["GET"])
         def download_package():
@@ -248,12 +235,10 @@ class Controller():
             name = request.args.get("name", None)
             return self.api.download_compute_package(name)
 
-
         @self.app.route("/get_package_checksum", methods=["GET"])
         def get_package_checksum():
             name = request.args.get("name", None)
             return self.api.get_checksum(name)
-
 
         @self.app.route("/get_latest_model", methods=["GET"])
         def get_latest_model():
@@ -263,9 +248,7 @@ class Controller():
             """
             return self.api.get_latest_model()
 
-
         # Get initial model endpoint
-
 
         @self.app.route("/get_initial_model", methods=["GET"])
         def get_initial_model():
@@ -274,7 +257,6 @@ class Controller():
             rtype: json
             """
             return self.api.get_initial_model()
-
 
         @self.app.route("/set_initial_model", methods=["POST"])
         def set_initial_model():
@@ -295,7 +277,6 @@ class Controller():
                 return jsonify({"success": False, "message": "Missing file."}), 400
             return self.api.set_initial_model(file)
 
-
         @self.app.route("/get_controller_status", methods=["GET"])
         def get_controller_status():
             """Get the status of the controller.
@@ -303,7 +284,6 @@ class Controller():
             rtype: json
             """
             return self.api.get_controller_status()
-
 
         @self.app.route("/get_client_config", methods=["GET"])
         def get_client_config():
@@ -313,7 +293,6 @@ class Controller():
             """
             checksum = request.args.get("checksum", True)
             return self.api.get_client_config(checksum)
-
 
         @self.app.route("/get_events", methods=["GET"])
         def get_events():
@@ -326,7 +305,6 @@ class Controller():
 
             return self.api.get_events(**kwargs)
 
-
         @self.app.route("/list_validations", methods=["GET"])
         def list_validations():
             """Get all validations from the statestore.
@@ -336,7 +314,6 @@ class Controller():
             # TODO: except filter with request.get_json()
             kwargs = request.args.to_dict()
             return self.api.get_all_validations(**kwargs)
-
 
         @self.app.route("/add_combiner", methods=["POST"])
         def add_combiner():
@@ -352,7 +329,6 @@ class Controller():
                 return jsonify({"success": False, "message": str(e)}), 400
             return response
 
-
         @self.app.route("/add_client", methods=["POST"])
         def add_client():
             """Add a client to the network.
@@ -367,7 +343,6 @@ class Controller():
             except TypeError as e:
                 return jsonify({"success": False, "message": str(e)}), 400
             return response
-
 
         @self.app.route("/list_combiners_data", methods=["POST"])
         def list_combiners_data():
@@ -387,7 +362,6 @@ class Controller():
                 return jsonify({"success": False, "message": str(e)}), 400
             return response
 
-
         @self.app.route("/get_plot_data", methods=["GET"])
         def get_plot_data():
             """Get plot data from the statestore.
@@ -404,13 +378,14 @@ class Controller():
     def run(self):
         try:
             config = get_controller_config()
-        except (FileNotFoundError, TypeError) as err:
+        except (FileNotFoundError, TypeError):
             logger.debug("Found no controller config, using default values.")
             fedn_config = get_default_config()
             config = fedn_config['controller']
         port = config["port"]
         debug = config["debug"]
         self.app.run(debug=debug, port=port, host="0.0.0.0")
+
 
 if __name__ == "__main__":
     controller = Controller()

@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 from time import sleep
 
 import fedn.utils.helpers
+from fedn.common.storage.filesystem.filesystem import \
+    LocalFileSystemModelRepository
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.storage.filesystem.filesystem import LocalFileSystemModelRepository
 from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
