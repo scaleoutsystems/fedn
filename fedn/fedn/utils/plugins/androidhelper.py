@@ -37,7 +37,7 @@ class Helper(HelperBase):
         weights = {}
         for i in model.keys():
             weights[i] = list(
-                w * np.array(model[i]) + (1 - w) * np.array(model_next[i])
+                (1-w) * np.array(model[i]) + w * np.array(model_next[i])
             )
 
         return weights
