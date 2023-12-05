@@ -307,15 +307,14 @@ class MongoStateStore(StateStoreBase):
         :return: The active compute package.
         :rtype: ObjectID
         """
-        ret = self.control.package.find({"key": "active"})
         try:
-            retcheck = ret[0]
-            if (
-                retcheck is None or retcheck == "" or retcheck == " "
-            ):  # ugly check for empty string
-                return None
-            return retcheck
-        except (KeyError, IndexError):
+
+            find = {"key": "active"}
+            projection = {"_id": False, "key": False}
+            ret = self.control.package.find_one(find, projection)
+            return ret
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
             return None
 
     def list_compute_packages(self, limit: int = None, skip: int = None, sort_key="committed_at", sort_order=pymongo.DESCENDING):

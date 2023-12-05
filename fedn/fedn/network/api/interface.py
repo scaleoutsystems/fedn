@@ -303,24 +303,16 @@ class API:
         :return: The compute package as a json response.
         :rtype: :class:`flask.Response`
         """
-        package_object = self.statestore.get_compute_package()
-        if package_object is None:
+        result = self.statestore.get_compute_package()
+        if result is None:
             return (
                 jsonify(
                     {"success": False, "message": "No compute package found."}
                 ),
                 404,
             )
-        payload = {}
-        id = str(package_object["_id"])
-        info = {
-            "file_name": package_object["file_name"],
-            "helper": package_object["helper"],
-            "committed_at": package_object["committed_at"],
-            "storage_file_name": package_object["storage_file_name"],
-        }
-        payload[id] = info
-        return jsonify(payload)
+
+        return jsonify(result)
 
     def list_compute_packages(self, limit: str = None, skip: str = None):
         """Get paginated list of compute packages from the statestore.
