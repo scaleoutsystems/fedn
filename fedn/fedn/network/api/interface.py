@@ -312,7 +312,17 @@ class API:
                 404,
             )
 
-        return jsonify(result)
+        obj = {
+            "id": result["_id"].__str__(),
+            "file_name": result["file_name"],
+            "helper": result["helper"],
+            "committed_at": result["committed_at"],
+            "storage_file_name": result["storage_file_name"] if "storage_file_name" in result else "",
+            "name": result["name"] if "name" in result else "",
+            "description": result["description"] if "description" in result else "",
+        }
+
+        return jsonify(obj)
 
     def list_compute_packages(self, limit: str = None, skip: str = None):
         """Get paginated list of compute packages from the statestore.
@@ -347,6 +357,7 @@ class API:
         arr = []
         for element in result["result"]:
             obj = {
+                "id": element["_id"].__str__(),
                 "file_name": element["file_name"],
                 "helper": element["helper"],
                 "committed_at": element["committed_at"],

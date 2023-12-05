@@ -310,7 +310,7 @@ class MongoStateStore(StateStoreBase):
         try:
 
             find = {"key": "active"}
-            projection = {"_id": False, "key": False}
+            projection = {"key": False}
             ret = self.control.package.find_one(find, projection)
             return ret
         except Exception as e:
@@ -336,7 +336,7 @@ class MongoStateStore(StateStoreBase):
         count = None
 
         find_option = {"key": "package_trail"}
-        projection = {"_id": False, "key": False}
+        projection = {"key": False}
 
         try:
             if limit is not None and skip is not None:
