@@ -230,10 +230,12 @@ def list_compute_packages():
 
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
+    include_active = request.args.get("include_active", None)
 
     return api.list_compute_packages(
         limit=limit,
         skip=skip,
+        include_active=include_active
     )
 
 

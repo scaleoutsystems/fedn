@@ -1,4 +1,5 @@
 import copy
+import uuid
 from datetime import datetime
 
 import pymongo
@@ -285,6 +286,7 @@ class MongoStateStore(StateStoreBase):
             "committed_at": datetime.now(),
             "name": name,
             "description": description,
+            "id": str(uuid.uuid4()),
         }
 
         self.control.package.update_one(
@@ -310,7 +312,7 @@ class MongoStateStore(StateStoreBase):
         try:
 
             find = {"key": "active"}
-            projection = {"key": False}
+            projection = {"key": False, "_id": False}
             ret = self.control.package.find_one(find, projection)
             return ret
         except Exception as e:
@@ -336,7 +338,7 @@ class MongoStateStore(StateStoreBase):
         count = None
 
         find_option = {"key": "package_trail"}
-        projection = {"key": False}
+        projection = {"key": False, "_id": False}
 
         try:
             if limit is not None and skip is not None:

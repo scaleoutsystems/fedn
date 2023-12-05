@@ -313,7 +313,7 @@ class API:
             )
 
         obj = {
-            "id": result["_id"].__str__(),
+            "id": result["id"] if "id" in result else "",
             "file_name": result["file_name"],
             "helper": result["helper"],
             "committed_at": result["committed_at"],
@@ -324,27 +324,18 @@ class API:
 
         return jsonify(obj)
 
-    def list_compute_packages(self, limit: str = None, skip: str = None):
+    def list_compute_packages(self, limit: str = None, skip: str = None, include_active: str = None):
         """Get paginated list of compute packages from the statestore.
 
         :return: All compute packages as a json response.
         :rtype: :class:`flask.Response`
         """
 
-        if limit is None:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "message": "No limit provided.",
-                    }
-                ),
-                404,
-            )
-
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
+
+        include_active: bool = include_active == "true"
 
         result = self.statestore.list_compute_packages(limit, skip)
         if result is None:
@@ -354,18 +345,42 @@ class API:
                 ),
                 404,
             )
-        arr = []
-        for element in result["result"]:
-            obj = {
-                "id": element["_id"].__str__(),
-                "file_name": element["file_name"],
-                "helper": element["helper"],
-                "committed_at": element["committed_at"],
-                "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
-                "name": element["name"] if "name" in element else "",
-                "description": element["description"] if "description" in element else "",
-            }
-            arr.append(obj)
+
+        active_package_id: str = None
+
+        if include_active:
+            active_package = self.statestore.get_compute_package()
+
+            if active_package is not None:
+                active_package_id = active_package["id"] if "id" in active_package else ""
+
+        if include_active:
+            arr = [
+                {
+                    "id": element["id"] if "id" in element else "",
+                    "file_name": element["file_name"],
+                    "helper": element["helper"],
+                    "committed_at": element["committed_at"],
+                    "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
+                    "name": element["name"] if "name" in element else "",
+                    "description": element["description"] if "description" in element else "",
+                    "active": "id" in element and element["id"] == active_package_id,
+                }
+                for element in result["result"]
+            ]
+        else:
+            arr = [
+                {
+                    "id": element["id"] if "id" in element else "",
+                    "file_name": element["file_name"],
+                    "helper": element["helper"],
+                    "committed_at": element["committed_at"],
+                    "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
+                    "name": element["name"] if "name" in element else "",
+                    "description": element["description"] if "description" in element else "",
+                }
+                for element in result["result"]
+            ]
 
         result = {"result": arr, "count": result["count"]}
         return jsonify(result)
