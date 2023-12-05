@@ -108,11 +108,10 @@ def run_cmd(ctx):
 @click.option('--heartbeat-interval', required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
 @click.option('--verbosity', required=False, default='INFO', type=click.Choice(['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'], case_sensitive=False))
-@click.option('--telemetry', required=False, default=False)
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
                verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat,
-               verbosity, telemetry):
+               verbosity):
     """
 
     :param ctx:
@@ -132,7 +131,6 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :param hearbeat_interval
     :param reconnect_after_missed_heartbeat
     :param verbosity
-    :param telemetry
     :return:
     """
     remote = False if local_package else True
@@ -145,7 +143,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity, 'telemetry': telemetry}
+              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
 
     if init:
         apply_config(config)

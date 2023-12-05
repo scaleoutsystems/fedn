@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import os
+import platform
 import queue
 import re
 import socket
@@ -14,16 +15,17 @@ from datetime import datetime
 from distutils.dir_util import copy_tree
 from io import BytesIO
 
+import GPUtil
 import grpc
+import psutil
 from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
 from OpenSSL import SSL
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (add_trace, enable_tracing, get_tracer,
-                                    log_remote, logger,
-                                    set_log_level_from_string, set_log_stream)
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
@@ -32,13 +34,6 @@ from fedn.utils.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
-
-import os
-import platform
-import socket
-
-import GPUtil
-import psutil
 
 
 def get_system_info():
@@ -58,12 +53,14 @@ def get_system_info():
     }
     return system_info, gpu_info
 
+
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
         self._key = key
 
     def __call__(self, context, callback):
         callback((('authorization', f'Token {self._key}'),), None)
+
 
 class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
@@ -85,31 +82,15 @@ class Client:
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
 
-        if config.get('telemetry', False):
-            log_remote()
-            enable_tracing()
-            proj = config['discover_host'].split('/')[1]
-            self.trace_attribs = [["project", proj], ["client_name", config["name"]]]
-            system_info, gpu_info = get_system_info()
-            print(system_info)
-            with get_tracer().start_as_current_span("TelemetryInit") as span:
-                for key, value in system_info.items():
-                    span.set_attribute(key, value)
-                print(gpu_info)
-                for attrib in gpu_info:
-                    span.set_attribute(attrib[0], attrib[1])
-                for attrib in self.trace_attribs:
-                    span.set_attribute(attrib[0], attrib[1])
-
         self.connector = ConnectorClient(host=config['discover_host'],
-                                        port=config['discover_port'],
-                                        token=config['token'],
-                                        name=config['name'],
-                                        remote_package=config['remote_compute_context'],
-                                        force_ssl=config['force_ssl'],
-                                        verify=config['verify'],
-                                        combiner=config['preferred_combiner'],
-                                        id=config['client_id'])
+                                         port=config['discover_port'],
+                                         token=config['token'],
+                                         name=config['name'],
+                                         remote_package=config['remote_compute_context'],
+                                         force_ssl=config['force_ssl'],
+                                         verify=config['verify'],
+                                         combiner=config['preferred_combiner'],
+                                         id=config['client_id'])
 
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])
@@ -140,7 +121,6 @@ class Client:
 
         self.state = ClientState.idle
 
-    @add_trace()
     def _assign(self):
         """Contacts the controller and asks for combiner assignment.
 
@@ -170,7 +150,6 @@ class Client:
         logger.info("Received combiner configuration: {}".format(client_config))
         return client_config
 
-    @add_trace()
     def _add_grpc_metadata(self, key, value):
         """Add metadata for gRPC calls.
 
@@ -193,7 +172,6 @@ class Client:
         # Set metadata using tuple concatenation
         self.metadata += ((key, value),)
 
-    @add_trace()
     def _get_ssl_certificate(self, domain, port=443):
         context = SSL.Context(SSL.SSLv23_METHOD)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -208,7 +186,6 @@ class Client:
         cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
         return cert
 
-    @add_trace()
     def _connect(self, client_config):
         """Connect to assigned combiner.
 
@@ -276,12 +253,10 @@ class Client:
         logger.info("Using {} compute package.".format(
             client_config["package"]))
 
-    @add_trace()
     def _disconnect(self):
         """Disconnect from the combiner."""
         self.channel.close()
 
-    @add_trace()
     def _detach(self):
         """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
@@ -292,7 +267,6 @@ class Client:
         # Close gRPC connection to combiner
         self._disconnect()
 
-    @add_trace()
     def _attach(self):
         """Attach to the FEDn network (connect to combiner)"""
         # Ask controller for a combiner and connect to that combiner.
@@ -307,7 +281,6 @@ class Client:
             self._attached = True
         return client_config
 
-    @add_trace()
     def _initialize_helper(self, client_config):
         """Initialize the helper class for the client.
 
@@ -321,7 +294,6 @@ class Client:
         if 'helper_type' in client_config.keys():
             self.helper = get_helper(client_config['helper_type'])
 
-    @add_trace()
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
 
@@ -346,7 +318,6 @@ class Client:
         # Start processing the client message inbox
         threading.Thread(target=self.process_request, daemon=True).start()
 
-    @add_trace()
     def _initialize_dispatcher(self, config):
         """ Initialize the dispatcher for the client.
 
@@ -408,7 +379,6 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-    @add_trace()
     def get_model(self, id):
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
@@ -433,7 +403,6 @@ class Client:
 
         return data
 
-    @add_trace()
     def set_model(self, model, id):
         """Send a model update to the assigned combiner.
         Uploads the model updated object via a gRPC streaming channel, Upload.
@@ -480,7 +449,6 @@ class Client:
 
         return result
 
-    @add_trace()
     def _listen_to_model_update_request_stream(self):
         """Subscribe to the model update request stream.
 
@@ -518,7 +486,6 @@ class Client:
             if not self._attached:
                 return
 
-    @add_trace()
     def _listen_to_model_validation_request_stream(self):
         """Subscribe to the model validation request stream.
 
@@ -548,7 +515,6 @@ class Client:
             if not self._attached:
                 return
 
-    @add_trace()
     def _process_training_request(self, model_id):
         """Process a training (model update) request.
 
@@ -614,7 +580,6 @@ class Client:
 
         return updated_model_id, meta
 
-    @add_trace()
     def _process_validation_request(self, model_id, is_inference):
         """Process a validation request.
 
@@ -659,7 +624,6 @@ class Client:
         self.state = ClientState.idle
         return validation
 
-    @add_trace()
     def process_request(self):
         """Process training and validation tasks. """
         while True:
@@ -740,14 +704,12 @@ class Client:
             except queue.Empty:
                 pass
 
-    @add_trace()
     def _handle_combiner_failure(self):
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
             self._detach()
 
-    @add_trace()
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
 
@@ -773,7 +735,6 @@ class Client:
             if not self._attached:
                 return
 
-    @add_trace()
     def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
         """Send status message.
 
@@ -803,7 +764,6 @@ class Client:
                                                    status.status))
         _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
-    @add_trace()
     def run(self):
         """ Run the client. """
         try:
