@@ -170,6 +170,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.timestamp = str(datetime.now())
         request.data = json.dumps(config)
 
+        request.sender.name = self.id
+        request.sender.role = fedn.COMBINER
+
         if len(clients) == 0:
             clients = self.get_active_trainers()
 
@@ -207,7 +210,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients = self.get_active_validators()
 
         for client in clients:
-            request.receiver.name = client.name
+            request.receiver.name = client
             request.receiver.role = fedn.WORKER
             self._put_request_to_client_queue(request, fedn.Channel.MODEL_VALIDATION_REQUESTS)
 
@@ -403,7 +406,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the control response
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
         """
-        logger.info("grpc.Combiner.FlushAggregationQueue: Called")
+        logger.debug("grpc.Combiner.FlushAggregationQueue: Called")
         status = self._flush_model_update_queue()
 
         response = fedn.ControlResponse()

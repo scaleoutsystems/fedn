@@ -142,7 +142,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response object.
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
-        logger.info("grpc.ModelService.Upload: Called")
+        logger.debug("grpc.ModelService.Upload: Called")
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
@@ -168,7 +168,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
-        logger.info("grpc.ModelService.Download: Called")
+        logger.debug("grpc.ModelService.Download: Called")
         try:
             if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
                 logger.warning("Error file is not ready")

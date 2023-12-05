@@ -444,6 +444,8 @@ class Client:
         while self._attached:
             try:
                 for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
+                    if request:
+                        logger.debug("Received model update request from combiner: {}.".format(request))
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
