@@ -350,7 +350,9 @@ class API:
                 "file_name": element["file_name"],
                 "helper": element["helper"],
                 "committed_at": element["committed_at"],
-                "storage_file_name": element["storage_file_name"],
+                "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
+                "name": element["name"] if "name" in element else "",
+                "description": element["description"] if "description" in element else "",
             }
             arr.append(obj)
 
