@@ -15,7 +15,6 @@ from datetime import datetime
 from distutils.dir_util import copy_tree
 from io import BytesIO
 
-import GPUtil
 import grpc
 import psutil
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -34,24 +33,6 @@ from fedn.utils.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
-
-
-def get_system_info():
-    gpus = GPUtil.getGPUs()
-    gpu_info = [["GPU ID: {}".format(gpu.id), gpu.name] for gpu in gpus]
-
-    system_info = {
-        "os.name": os.name,
-        "platform.system": platform.system(),
-        "platform.release": platform.release(),
-        "hostname": socket.gethostname(),
-        "ip_address": socket.gethostbyname(socket.gethostname()),
-        "cpu_count": psutil.cpu_count(logical=True),
-        "total_memory": psutil.virtual_memory().total,
-        "total_disk": psutil.disk_usage('/').total,
-        # Add more details as needed
-    }
-    return system_info, gpu_info
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):

@@ -104,7 +104,7 @@ class ModelService(rpc.ModelServiceServicer):
         else:
             # Handle other file-like objects (including Minio get_object response)
             bt = BytesIO()
-            
+
             # Read in chunks of data
             while True:
                 if hasattr(model, 'stream'):
