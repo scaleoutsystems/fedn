@@ -367,7 +367,7 @@ class RoundController:
                                 tic
                             round_meta['status'] = "Success"
                             round_meta['name'] = self.server.id
-                            self.server.tracer.set_round_combiner_data(round_meta)
+                            self.server.statestore.set_round_combiner_data(round_meta)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:

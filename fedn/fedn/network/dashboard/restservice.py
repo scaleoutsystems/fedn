@@ -17,7 +17,6 @@ from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    url_for)
 from werkzeug.utils import secure_filename
 
-from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -584,11 +583,6 @@ class ReducerRestService:
             :return:
             """
             if request.method == "POST":
-                statestore_config = self.control.statestore.get_config()
-                self.tracer = MongoTracer(
-                    statestore_config["mongo_config"],
-                    statestore_config["network_id"],
-                )
                 try:
                     self.control.drop_models()
                 except Exception:

@@ -10,8 +10,9 @@ statestore_config = get_statestore_config()
 network_id = get_network_config()
 modelstorage_config = get_modelstorage_config()
 statestore = MongoStateStore(
-    network_id, statestore_config["mongo_config"], modelstorage_config
+    network_id, statestore_config["mongo_config"]
 )
+statestore.set_storage_backend(modelstorage_config)
 control = Control(statestore=statestore)
 api = API(statestore, control)
 app = Flask(__name__)

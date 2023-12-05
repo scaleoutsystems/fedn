@@ -1,3 +1,1 @@
-#
-# Scaleout Systems AB
-# __author__ = 'Morgan Ekmefjord morgan@scaleout.se'
+"""Module handling storing state in the backend database (currently MongoDB)."""

@@ -5,7 +5,6 @@ from time import sleep
 
 import fedn.utils.helpers
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
@@ -76,12 +75,6 @@ class ControlBase(ABC):
                 flush=True,
             )
             raise UnsupportedStorageBackend()
-
-        # The tracer is a helper that manages state in the database backend
-        statestore_config = statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config["mongo_config"], statestore_config["network_id"]
-        )
 
         if self.statestore.is_inited():
             self._state = ReducerState.idle
@@ -205,13 +198,13 @@ class ControlBase(ABC):
         else:
             session_id = config["session_id"]
 
-        self.tracer.create_session(id=session_id)
-        self.tracer.set_session_config(session_id, config)
+        self.statestore.create_session(id=session_id)
+        self.statestore.set_session_config(session_id, config)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db. """
 
-        self.tracer.create_round(round_data)
+        self.statestore.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
         """ Set round data.
@@ -221,7 +214,7 @@ class ControlBase(ABC):
         :param round_data: The status
         :type status: dict
         """
-        self.tracer.set_round_data(round_id, round_data)
+        self.statestore.set_round_data(round_id, round_data)
 
     def set_round_status(self, round_id, status):
         """ Set the round round stats.
@@ -231,7 +224,7 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        self.tracer.set_round_status(round_id, status)
+        self.statestore.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
         """ Upate round in backend db.
@@ -241,7 +234,7 @@ class ControlBase(ABC):
         :param round_config: The round configuration
         :type round_config: dict
         """
-        self.tracer.set_round_config(round_id, round_config)
+        self.statestore.set_round_config(round_id, round_config)
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.

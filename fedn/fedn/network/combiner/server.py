@@ -12,12 +12,14 @@ from enum import Enum
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.common.config import (get_controller_config, get_modelstorage_config,
+                                get_network_config, get_statestore_config)
 from fedn.common.net.grpc.server import Server
 from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.tracer.mongotracer import MongoTracer
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
+from fedn.network.statestore.mongostatestore import MongoStateStore
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
@@ -118,16 +120,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'certificate': cert,
                        'key': key}
 
+        print(announce_config, flush=True)
+
         # Set up model repository
         self.repository = S3ModelRepository(
             announce_config['storage']['storage_config'])
 
+        self.statestore = MongoStateStore(
+            announce_config['statestore']['network_id'],
+            announce_config['statestore']['mongo_config']
+        )
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)
-
-        # Set up tracer for statestore
-        self.tracer = MongoTracer(
-            announce_config['statestore']['mongo_config'], announce_config['statestore']['network_id'])
 
         # Set up round controller
         self.control = RoundController(config['aggregator'], self.repository, self, self.modelservice)
@@ -359,13 +363,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def _send_status(self, status):
-        """ Report a status to tracer.
+        """ Report a status to backend db.
 
         :param status: the status to report
         :type status: :class:`fedn.common.net.grpc.fedn_pb2.Status`
         """
 
-        self.tracer.report_status(status)
+        self.statestore.report_status(status)
 
     def __register_heartbeat(self, client):
         """ Register a client if first time connecting. Update heartbeat timestamp.
@@ -714,7 +718,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        self.tracer.update_client_status(client.name, "online")
+        self.statestore.update_client_status(client.name, "online")
 
         while context.is_active():
             try:
@@ -722,7 +726,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             except queue.Empty:
                 pass
 
-        self.tracer.update_client_status(client.name, "offline")
+        self.statestore.update_client_status(client.name, "offline")
 
     def ModelValidationStream(self, update, context):
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
@@ -838,7 +842,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type validation: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
         """
 
-        self.tracer.report_validation(validation)
+        self.statestore.report_validation(validation)
 
     def SendModelValidation(self, request, context):
         """ Send a model validation response.
