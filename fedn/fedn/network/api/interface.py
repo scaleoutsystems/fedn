@@ -24,6 +24,10 @@ class API:
     def __init__(self, statestore, control):
         self.statestore = statestore
         self.control = control
+        # TODO: make configurable, perhaps in config.py or package.py
+        self.local_path = os.path.expanduser("~/.fedn/tmp_dir")
+        if not os.path.exists(self.local_path):
+            os.makedirs(self.local_path)
         self.name = "api"
 
     def _to_dict(self):
@@ -218,14 +222,7 @@ class API:
 
         if file and self._allowed_file_extension(file.filename):
             filename = secure_filename(file.filename)
-            # TODO: make configurable, perhaps in config.py or package.py
-            file_path = os.path.join(os.getcwd(), filename)
-            print("ASDASDASDASDASD")
-            print(file_path)
-            file.seek(0, 2) # seeks the end of the file
-            filesize = file.tell() # tell at which byte we are
-            print(filesize)
-            file.seek(0)
+            file_path = os.path.join(self.local_path, filename)
             file.save(file_path)
 
             if (
@@ -270,15 +267,12 @@ class API:
             message = "No compute package found."
             return None, message
         else:
-            print("<><><><><><><>><><><><><")
             try:
-                print(package_objects)
                 name = package_objects["filename"]
             except KeyError as e:
                 message = "No compute package found. Key error."
                 print(e)
                 return None, message
-            print("SUCCESS <><><<><><><><><><><")
             return name, "success"
 
     def get_compute_package(self):
@@ -317,26 +311,19 @@ class API:
         try:
             mutex = threading.Lock()
             mutex.acquire()
-            # TODO: make configurable, perhaps in config.py or package.py
-            print("SENDING >?>?>?>?>>?>?>?>?>?>?>?>?>")
-            print("{}{}".format(os.getcwd()+"./", name))
             return send_from_directory(
-                os.getcwd()+"/./", name, as_attachment=True
+                self.local_path, name, as_attachment=True
             )
         except Exception as err:
-            print("IN EXCEPTION >?>?>?>?>?>?>?>?>?>")
-            print(err)
             try:
                 data = self.control.get_compute_package(name)
-                # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("./", name)
+                file_path = os.path.join(self.local_path, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
-                # TODO: make configurable, perhaps in config.py or package.py
                 return send_from_directory(
-                    "./", name, as_attachment=True
+                    self.local_path, name, as_attachment=True
                 )
-            except Exception:
+            except Exception as err:
                 raise
         finally:
             mutex.release()
@@ -354,9 +341,7 @@ class API:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = os.path.join(
-            ".//", name
-        )  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = os.path.join(self.local_path, name)
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:

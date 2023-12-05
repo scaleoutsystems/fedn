@@ -19,12 +19,9 @@ class LeastPacked(LoadBalancerBase):
         """
         min_clients = None
         selected_combiner = None
-        print("HERE")
         for combiner in self.network.get_combiners():
-            print("COMB")
             try:
                 if combiner.allowing_clients():
-                    print("ALLOW")
                     combiner_state = combiner.report()
                     if not min_clients:
                         min_clients = combiner_state['nr_active_clients']

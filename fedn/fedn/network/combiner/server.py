@@ -120,11 +120,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'key': key}
 
         # Set up model repository
-        # if announce_config['storage']['storage_type'] == 'filesystem':
-        self.repository = LocalFileSystemModelRepository()
-        # else:
-        #     self.repository = S3ModelRepository(
-        #         announce_config['storage']['storage_config'])
+        if announce_config['storage']['storage_type'] == 'filesystem':
+            storage_path = announce_config['storage']['storage_config'].get('storage_path', './')
+            self.repository = LocalFileSystemModelRepository(storage_path)
+        else:
+            self.repository = S3ModelRepository(
+                announce_config['storage']['storage_config'])
 
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)

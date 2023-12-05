@@ -59,11 +59,10 @@ class PackageRuntime:
         if name:
             logger.debug("Downloading package with name: {}.".format(name))
             path = path + "?name={}".format(name)
-        else:
-            logger.critical("No name set for compute package.")
-            logger.debug("Name: {}.".format(name))
-            logger.debug("Path: {}://{}".format(scheme, path))
-            # sys.exit(1)
+        # else:
+        #     logger.critical("No name set for compute package.")
+        #     logger.debug("Name: {}.".format(name))
+        #     logger.debug("Path: {}".format(path))
 
         with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
             if 200 <= r.status_code < 204:

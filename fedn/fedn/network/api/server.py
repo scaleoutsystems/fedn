@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
-                                get_network_config, get_statestore_config)
+                                get_network_config, get_statestore_config, get_default_config)
 from fedn.common.log_config import logger
 from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
@@ -15,36 +15,20 @@ class Controller():
             statestore_config = get_statestore_config()
         except FileNotFoundError as err:
             logger.debug("No statestore config, using default values.")
-            statestore_config = {
-                "type": "MongoDB",
-                "mongo_config": {
-                    "username": "admin",
-                    "password": "admin",
-                    "host": "localhost",
-                    "port": 27017
-                }
-            }
+            fedn_config = get_default_config()
+            statestore_config = fedn_config['statestore']
         try:
             network_id = get_network_config()
-        except FileNotFoundError as err:
+        except (FileNotFoundError, TypeError) as err:
             logger.debug("No network config found, using default values.")
-            network_id = "fedn_network"
+            fedn_config = get_default_config()
+            network_id = fedn_config['network_id']
         try:
             modelstorage_config = get_modelstorage_config()
-        except FileNotFoundError as err:
+        except (FileNotFoundError, TypeError) as err:
             logger.debug("No model storage config found, using default values.")
-            modelstorage_config = {
-                "storage_type": "filesystem",
-                "storage_config": {
-                    "storage_hostname": "localhost",
-                    "storage_port": 9100,
-                    "storage_access_key": "admin",
-                    "storage_secret_key": "password",
-                    "storage_bucket": "fedn-models",
-                    "context_bucket": "fedn-context",
-                    "storage_secure_mode": False 
-                }
-            }
+            fedn_config = get_default_config()
+            modelstorage_config = fedn_config['storage_config']
         statestore = MongoStateStore(
             network_id, statestore_config["mongo_config"], modelstorage_config
         )
@@ -241,13 +225,6 @@ class Controller():
                 )
             try:
                 file = request.files["file"]
-                print(file)
-                print(file.content_length)
-                file.seek(0, 2) # seeks the end of the file
-                filesize = file.tell() # tell at which byte we are
-                print(filesize)
-                file.seek(0)
-                file.save("testest.tgz")
             except KeyError:
                 return jsonify({"success": False, "message": "Missing file."}), 400
             return self.api.set_compute_package(file=file, helper_type=helper_type)
@@ -268,9 +245,7 @@ class Controller():
             return: The compute package as a json object.
             rtype: json
             """
-            print("HERE")
             name = request.args.get("name", None)
-            print(name)
             return self.api.download_compute_package(name)
 
 
@@ -429,13 +404,10 @@ class Controller():
     def run(self):
         try:
             config = get_controller_config()
-        except FileNotFoundError as err:
+        except (FileNotFoundError, TypeError) as err:
             logger.debug("Found no controller config, using default values.")
-            config = {
-                "host": "localhost",
-                "port": 8092,
-                "debug": True
-            }
+            fedn_config = get_default_config()
+            config = fedn_config['controller']
         port = config["port"]
         debug = config["debug"]
         self.app.run(debug=debug, port=port, host="0.0.0.0")

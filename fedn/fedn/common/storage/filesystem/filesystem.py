@@ -2,7 +2,7 @@ import os
 import uuid
 
 class LocalFileSystemModelRepository:
-    def __init__(self, directory='./fedn-files'):
+    def __init__(self, directory='./'):
         self.directory = directory
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -44,9 +44,6 @@ class LocalFileSystemModelRepository:
     def set_compute_package(self, name, compute_package, is_file=True):
         package_path = self.get_model_path(name)
         if is_file:
-            print("MMMMMMMMMMMMMMMMMMM")
-            print(package_path)
-            print(compute_package)
             with open(compute_package, 'rb') as src, open(package_path, 'wb') as dst:
                 dst.write(src.read())
         else:
@@ -54,9 +51,7 @@ class LocalFileSystemModelRepository:
                 file.write(compute_package)
 
     def get_compute_package(self, compute_package):
-        print("GETTING COMPUTE PACKAGE")
         package_path = self.get_model_path(compute_package)
-        print(package_path)
         if os.path.exists(package_path):
             with open(package_path, 'rb') as file:
                 return file.read()

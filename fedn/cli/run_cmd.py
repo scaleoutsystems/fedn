@@ -3,6 +3,7 @@ import uuid
 import click
 import yaml
 
+from fedn.common.config import get_default_config
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.api.server import Controller
 from fedn.network.clients.client import Client
@@ -184,37 +185,7 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
         fedn_config = get_statestore_config_from_file(config['init'])
     except Exception as e:
         print('Failed to read config from settings file, trying default values.', flush=True)
-        fedn_config = {
-            "statestore": {
-                "type": "MongoDB",
-                "mongo_config": {
-                    "username": "admin",
-                    "password": "admin",
-                    "host": "localhost",
-                    "port": 27017
-                }
-            },
-            "network_id": "fedn-network",
-            "controller": {
-                "host": "localhost",
-                "port": 8092,
-                "debug": True
-            },
-            "storage": {
-                "storage_type": "S3",
-                "storage_config": {
-                    "storage_hostname": "localhost",
-                    "storage_port": 9100,
-                    "storage_access_key": "admin",
-                    "storage_secret_key": "password",
-                    "storage_bucket": "fedn-models",
-                    "context_bucket": "fedn-context",
-                    "storage_secure_mode": False 
-                }
-            }
-        }
-        # print(e, flush=True)
-        # exit(-1)
+        fedn_config = get_default_config()
 
     if not remote:
         _ = check_helper_config_file(fedn_config)
@@ -324,11 +295,5 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 def controller_cmd(ctx):
     """
     """
-    # config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-    #           'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-    #           'init': init, 'aggregator': aggregator}
-
-    # if config['init']:
-    #     apply_config(config)
     controller = Controller()
     controller.run()

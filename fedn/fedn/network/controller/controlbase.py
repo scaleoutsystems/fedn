@@ -67,13 +67,13 @@ class ControlBase(ABC):
             )
             raise MisconfiguredStorageBackend()
         print(storage_config)
-        if storage_config["storage_type"] == "S3" or True:
-        #     self.model_repository = S3ModelRepository(
-        #         storage_config["storage_config"]
-        #     )
-        # elif storage_config['storage_type'] == "filesystem":
-        #     print("Using local filesystem for storage.")
-            self.model_repository = LocalFileSystemModelRepository()
+        if storage_config["storage_type"] == "S3":
+            self.model_repository = S3ModelRepository(
+                storage_config["storage_config"]
+            )
+        elif storage_config['storage_type'] == "filesystem":
+            storage_path = storage_config['storage_config'].get('storage_path', './')
+            self.model_repository = LocalFileSystemModelRepository(storage_path)
         else:
             print(
                 "REDUCER CONTROL: Unsupported storage backend, exiting.",
@@ -276,7 +276,7 @@ class ControlBase(ABC):
                 "CONTROL: Saving model file temporarily to disk...", flush=True
             )
             outfile_name = helper.save(model)
-            print("CONTROL: Uploading model to Minio...", flush=True)
+            print("CONTROL: Moving model to permanent storage...", flush=True)
             model_id = self.model_repository.set_model(
                 outfile_name, is_file=True
             )
