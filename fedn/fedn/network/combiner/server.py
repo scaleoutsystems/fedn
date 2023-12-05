@@ -137,6 +137,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start thread for round controller
         threading.Thread(target=self.control.run, daemon=True).start()
 
+        # Start thread for client status updates: TODO: Should be configurable
+        threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
+
         # Start the gRPC server
         self.server.start()
 
@@ -256,7 +259,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type client: :class:`fedn.common.net.grpc.fedn_pb2.Client`
         """
         if client.name not in self.clients.keys():
-            self.clients[client.name] = {"lastseen": datetime.now()}
+            # The status is set to offline by default, and will be updated once _list_active_clients is called.
+            self.clients[client.name] = {"lastseen": datetime.now(), "status": "offline"}
 
     def _subscribe_client_to_queue(self, client, queue_name):
         """ Subscribe a client to the queue.
@@ -309,15 +313,41 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: a list of client names
         :rtype: list
         """
-        active_clients = []
+        # Temporary dict to store client status
+        clients = {
+            "active_clients": [],
+            "update_active_clients": [],
+            "update_offline_clients": [],
+        }
         for client in self._list_subscribed_clients(channel):
-            # This can break with different timezones.
+            status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["lastseen"]
-            # TODO: move the heartbeat timeout to config.
             if (now - then) < timedelta(seconds=10):
-                active_clients.append(client)
-        return active_clients
+                clients["active_clients"].append(client)
+                # If client has changed status, update statestore
+                if status == "offline":
+                    self.clients[client]["status"] = "online"
+                    clients["update_active_clients"].append(client)
+            else:
+                # If client has changed status, update statestore
+                if status == "online":
+                    self.clients[client]["status"] = "offline"
+                    clients["update_offline_clients"].append(client)
+        # Update statestore with client status
+        if len(clients["update_active_clients"]) > 0:
+            self.tracer.update_client_status(clients["update_active_clients"], "online")
+        if len(clients["update_offline_clients"]) > 0:
+            self.tracer.update_client_status(clients["update_offline_clients"], "offline")
+
+        return clients["active_clients"]
+
+    def _deamon_thread_client_status(self, timeout=10):
+        """ Deamon thread that checks for inactive clients and updates statestore. """
+        while True:
+            time.sleep(timeout)
+            # TODO: Also update validation clients
+            self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
 
     def _put_request_to_client_queue(self, request, queue_name):
         """ Get a client specific queue and add a request to it.
@@ -523,8 +553,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client = heartbeat.sender
         self.__join_client(client)
         self.clients[client.name]["lastseen"] = datetime.now()
-        # Send a status message to the tracer to update the client status.
-        self.tracer.update_client_status(client.name, "online")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -588,18 +616,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self._send_status(status)
 
-        self.tracer.update_client_status(client.name, "online")
-
+        # Keep track of the time context has been active
+        start_time = time.time()
         while context.is_active():
+            # Check if the context has been active for more than 10 seconds
+            if time.time() - start_time > 10:
+                self.clients[client.name]["lastseen"] = datetime.now()
+                # Reset the start time
+                start_time = time.time()
             try:
                 yield q.get(timeout=1.0)
             except queue.Empty:
                 pass
             except Exception as e:
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
-                break
-
-        self.tracer.update_client_status(client.name, "offline")
 
     def ModelValidationStream(self, update, context):
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
