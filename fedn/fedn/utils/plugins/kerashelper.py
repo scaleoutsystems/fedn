@@ -30,7 +30,7 @@ class Helper(HelperBase):
         w = num_examples / total_examples
         weights = []
         for i in range(len(model)):
-            weights.append(w * model[i] + (1 - w) * model_next[i])
+            weights.append(w * model_next[i] + (1 - w) * model[i])
 
         return weights
 
