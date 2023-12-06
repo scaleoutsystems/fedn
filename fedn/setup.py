@@ -15,7 +15,7 @@ setup(
         "urllib3>=1.26.4",
         "minio",
         "python-slugify",
-        "grpcio~=1.48.0",
+        "grpcio~=1.57.0",
         "grpcio-tools",
         "numpy>=1.21.6",
         "protobuf",
