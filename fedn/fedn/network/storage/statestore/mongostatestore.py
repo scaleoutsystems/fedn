@@ -5,7 +5,6 @@ from datetime import datetime
 import pymongo
 from google.protobuf.json_format import MessageToDict
 
-from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
 from .statestorebase import StateStoreBase
@@ -28,7 +27,7 @@ class MongoStateStore(StateStoreBase):
         try:
             self.config = config
             self.network_id = network_id
-            self.mdb = connect_to_mongodb(self.config, self.network_id)
+            self.mdb = self.connect(self.config, self.network_id)
 
             # FEDn network
             self.network = self.mdb["network"]
@@ -58,6 +57,25 @@ class MongoStateStore(StateStoreBase):
             self.network = None
             self.combiners = None
             self.clients = None
+            raise
+
+    @classmethod
+    def connect(config, network_id):
+        """ Establish client connection to MongoDB.
+
+        :param config: Dictionary containing connection strings and security credentials.
+        :type config: dict
+        :param network_id: Unique identifier for the FEDn network, used as db name
+        :type network_id: str
+        :return: MongoDB client pointing to the db corresponding to network_id
+        """
+        try:
+            mc = pymongo.MongoClient(**config)
+            # This is so that we check that the connection is live
+            mc.server_info()
+            mdb = mc[network_id]
+            return mdb
+        except Exception:
             raise
 
     def is_inited(self):
