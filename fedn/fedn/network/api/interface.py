@@ -740,7 +740,7 @@ class API:
                 {"success": False, "message": "No initial model set."}
             )
 
-    def get_models(self, session_id=None, limit=None, skip=None):
+    def get_models(self, session_id: str = None, limit: str = None, skip: str = None, include_active: str = None):
         result = self.statestore.list_models(session_id, limit, skip)
 
         if result is None:
@@ -749,10 +749,30 @@ class API:
                 404,
             )
 
-        arr = []
+        include_active: bool = include_active == "true"
 
-        for model in result["result"]:
-            arr.append(model)
+        if include_active:
+
+            latest_model = self.statestore.get_latest_model()
+
+            arr = [
+                {
+                    "committed_at": element["committed_at"],
+                    "model": element["model"],
+                    "session_id": element["session_id"],
+                    "active": element["model"] == latest_model,
+                }
+                for element in result["result"]
+            ]
+        else:
+            arr = [
+                {
+                    "committed_at": element["committed_at"],
+                    "model": element["model"],
+                    "session_id": element["session_id"],
+                }
+                for element in result["result"]
+            ]
 
         result = {"result": arr, "count": result["count"]}
 

@@ -44,8 +44,9 @@ def list_models():
     session_id = request.args.get("session_id", None)
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
+    include_active = request.args.get("include_active", None)
 
-    return api.get_models(session_id, limit, skip)
+    return api.get_models(session_id, limit, skip, include_active)
 
 
 @app.route("/delete_model_trail", methods=["GET", "POST"])
