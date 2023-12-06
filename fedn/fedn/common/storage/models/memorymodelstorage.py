@@ -41,10 +41,10 @@ class MemoryModelStorage(ModelStorage):
         """
         return self.models[model_id]
 
-    def get_meta(self, model_id):
+    def get_model_metadata(self, model_id):
 
         return self.models_metadata[model_id]
 
-    def set_meta(self, model_id, model_metadata):
+    def set_model_metadata(self, model_id, model_metadata):
 
         self.models_metadata.update({model_id: model_metadata})
