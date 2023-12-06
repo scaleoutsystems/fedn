@@ -208,6 +208,23 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
+    def set_active_compute_package(self, id: str):
+
+        success = self.statestore.set_active_compute_package(id)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to set compute package.",
+                    }
+                ),
+                400,
+            )
+
+        return jsonify({"success": True, "message": "Compute package set."})
+
     def set_compute_package(self, file, helper_type: str, name: str = None, description: str = None):
         """Set the compute package in the statestore.
 

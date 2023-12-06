@@ -60,7 +60,11 @@ class MongoStateStore(StateStoreBase):
 
         # Storage settings
         self.set_storage_backend(model_storage_config)
+        self.init_index()
         self.__inited = True
+
+    def init_index(self):
+        self.package.create_index([("id", pymongo.DESCENDING)])
 
     def is_inited(self):
         """Check if the statestore is intialized.
@@ -270,6 +274,37 @@ class MongoStateStore(StateStoreBase):
         result = self.control.validations.find(kwargs)
         return result
 
+    def set_active_compute_package(self, id: str):
+        """Set the active compute package in statestore.
+
+        :param id: The id of the compute package (not document _id).
+        :type id: str
+        :return: True if successful.
+        :rtype: bool
+        """
+
+        try:
+
+            find = {"id": id}
+            projection = {"_id": False, "key": False}
+
+            doc = self.control.package.find_one(find, projection)
+
+            if doc is None:
+                return False
+
+            doc["key"] = "active"
+
+            self.control.package.replace_one(
+                {"key": "active"}, doc
+            )
+
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+            return False
+
+        return True
+
     def set_compute_package(self, file_name: str, storage_file_name: str, helper_type: str, name: str = None, description: str = None):
         """Set the active compute package in statestore.
 
@@ -353,8 +388,8 @@ class MongoStateStore(StateStoreBase):
             return None
 
         return {
-            "result": result,
-            "count": count,
+            "result": result or [],
+            "count": count or 0,
         }
 
     def set_helper(self, helper):

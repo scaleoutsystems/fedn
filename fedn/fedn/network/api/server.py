@@ -182,6 +182,12 @@ def get_session():
     return api.get_session(session_id)
 
 
+@app.route("/set_active_package", methods=["PUT"])
+def set_active_package():
+    id = request.args.get("id", None)
+    return api.set_active_compute_package(id)
+
+
 @app.route("/set_package", methods=["POST"])
 def set_package():
     """ Set the compute package in the statestore.
