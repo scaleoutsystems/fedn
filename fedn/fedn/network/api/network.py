@@ -1,7 +1,6 @@
 import base64
 
-from fedn.network.combiner.interfaces import (CombinerInterface,
-                                              CombinerUnavailableError)
+from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 
 __all__ = 'Network',
