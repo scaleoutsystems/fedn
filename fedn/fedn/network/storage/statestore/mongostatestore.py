@@ -7,10 +7,8 @@ from google.protobuf.json_format import MessageToDict
 
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
-from .statestorebase import StateStoreBase
 
-
-class MongoStateStore(StateStoreBase):
+class MongoStateStore:
     """Statestore implementation using MongoDB.
 
     :param network_id: The network id.

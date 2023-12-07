@@ -2,8 +2,8 @@ import os
 import tempfile
 from io import BytesIO
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
 from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 
@@ -136,11 +136,11 @@ class ModelService(rpc.ModelServiceServicer):
         """ RPC endpoints for uploading a model.
 
         :param request_iterator: The model request iterator.
-        :type request_iterator: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ModelRequest`
         :param context: The context object (unused)
         :type context: :class:`grpc._server._Context`
         :return: A model response object.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
         logger.debug("grpc.ModelService.Upload: Called")
         result = None
@@ -162,11 +162,11 @@ class ModelService(rpc.ModelServiceServicer):
         """ RPC endpoints for downloading a model.
 
         :param request: The model request object.
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelRequest`
         :param context: The context object (unused)
         :type context: :class:`grpc._server._Context`
         :return: A model response iterator.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
         logger.debug("grpc.ModelService.Download: Called")
         try:

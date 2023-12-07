@@ -1,7 +1,7 @@
 import os
 from io import BytesIO
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024

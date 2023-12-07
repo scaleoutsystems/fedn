@@ -10,14 +10,14 @@ import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
-from fedn.common.net.grpc.server import Server
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
+from fedn.network.grpc.server import Server
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
@@ -38,7 +38,7 @@ def role_to_proto_role(role):
     :param role: the role to convert
     :type role: :class:`fedn.network.combiner.server.Role`
     :return: proto role
-    :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Role`
+    :rtype: :class:`fedn.network.grpc.fedn_pb2.Role`
     """
     if role == Role.COMBINER:
         return fedn.COMBINER
@@ -149,11 +149,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Set the client id and role in a proto message.
 
         :param client: the client to set the id and role for
-        :type client: :class:`fedn.common.net.grpc.fedn_pb2.Client`
+        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         :param instance: the instance to get the id and role from
         :type instance: :class:`fedn.network.combiner.server.Combiner`
         :return: the client with id and role set
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Client`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Client`
         """
         client.name = instance.id
         client.role = role_to_proto_role(instance.role)
@@ -258,7 +258,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Add a client to the list of active clients.
 
         :param client: the client to add
-        :type client: :class:`fedn.common.net.grpc.fedn_pb2.Client`
+        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         """
         if client.name not in self.clients.keys():
             # The status is set to offline by default, and will be updated once _list_active_clients is called.
@@ -268,7 +268,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Subscribe a client to the queue.
 
         :param client: the client to subscribe
-        :type client: :class:`fedn.common.net.grpc.fedn_pb2.Client`
+        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         :param queue_name: the name of the queue to subscribe to
         :type queue_name: str
         """
@@ -280,7 +280,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Get the queue for a client.
 
         :param client: the client to get the queue for
-        :type client: :class:`fedn.common.net.grpc.fedn_pb2.Client`
+        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         :param queue_name: the name of the queue to get
         :type queue_name: str
         :return: the queue
@@ -356,7 +356,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         The client is identified by the request.receiver.
 
         :param request: the request to send
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.Request`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.Request`
         :param queue_name: the name of the queue to send the request to
         :type queue_name: str
         """
@@ -374,7 +374,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Report a status to backend db.
 
         :param status: the status to report
-        :type status: :class:`fedn.common.net.grpc.fedn_pb2.Status`
+        :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
 
         self.statestore.report_status(status)
@@ -404,11 +404,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Start a round of federated learning"
 
         :param control: the control request
-        :type control: :class:`fedn.common.net.grpc.fedn_pb2.ControlRequest`
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the control response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         logger.info("grpc.Combiner.Start: Starting round")
 
@@ -432,11 +432,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Flush the queue.
 
         :param control: the control request
-        :type control: :class:`fedn.common.net.grpc.fedn_pb2.ControlRequest`
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the control response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         logger.debug("grpc.Combiner.FlushAggregationQueue: Called")
         status = self._flush_model_update_queue()
@@ -455,11 +455,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ TODO: Not yet implemented.
 
         :param control: the control request
-        :type control: :class:`fedn.common.net.grpc.fedn_pb2.ControlRequest`
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the control response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         response = fedn.ControlResponse()
         logger.info("grpc.Combiner.Stop: Called")
@@ -471,11 +471,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ A client RPC endpoint that accepts status messages.
 
         :param status: the status message
-        :type status: :class:`fedn.common.net.grpc.fedn_pb2.Status`
+        :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.debug("grpc.Combiner.SendStatus: Called")
         self._send_status(status)
@@ -490,11 +490,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request in the last 10 seconds.
 
         :param request: the request
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ListClientsRequest`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ListClientsRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the client list
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ClientList`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientList`
         """
         clients = fedn.ClientList()
         active_clients = self._list_active_clients(request.channel)
@@ -513,11 +513,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         is accepting clients or not.
 
         :param request: the request (unused)
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ConnectionRequest`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ConnectionRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ConnectionResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ConnectionResponse`
         """
         response = fedn.ConnectionResponse()
         active_clients = self._list_active_clients(
@@ -544,11 +544,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             the client is available.
 
         :param heartbeat: the heartbeat
-        :type heartbeat: :class:`fedn.common.net.grpc.fedn_pb2.Heartbeat`
+        :type heartbeat: :class:`fedn.network.grpc.fedn_pb2.Heartbeat`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.debug("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
         # Update the clients dict with the last seen timestamp.
@@ -568,7 +568,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Model update stream RPC endpoint. Update status for client is connecting to stream.
 
         :param update: the update message
-        :type update: :class:`fedn.common.net.grpc.fedn_pb2.ModelUpdate`
+        :type update: :class:`fedn.network.grpc.fedn_pb2.ModelUpdate`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
@@ -594,7 +594,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ A server stream RPC endpoint (Update model). Messages from client stream.
 
         :param response: the response
-        :type response: :class:`fedn.common.net.grpc.fedn_pb2.ModelUpdateRequest`
+        :type response: :class:`fedn.network.grpc.fedn_pb2.ModelUpdateRequest`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
@@ -637,7 +637,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
 
         :param update: the update message
-        :type update: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
+        :type update: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
@@ -664,7 +664,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ A server stream RPC endpoint (Validation). Messages from client stream.
 
         :param response: the response
-        :type response: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidationRequest`
+        :type response: :class:`fedn.network.grpc.fedn_pb2.ModelValidationRequest`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
@@ -693,11 +693,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Send a model update response.
 
         :param request: the request
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelUpdate`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelUpdate`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         :return: the response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         self.control.aggregator.on_model_update(request)
 
@@ -710,7 +710,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """Register a model validation.
 
         :param validation: the model validation
-        :type validation: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
+        :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
 
         self.statestore.report_validation(validation)
@@ -719,11 +719,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """ Send a model validation response.
 
         :param request: the request
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelValidation`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         :return: the response
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.Response`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 

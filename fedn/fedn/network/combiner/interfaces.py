@@ -5,8 +5,8 @@ from io import BytesIO
 
 import grpc
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 
 
 class CombinerUnavailableError(Exception):
@@ -193,7 +193,7 @@ class CombinerInterface:
         :param config: The job configuration.
         :type config: dict
         :return: Server ControlResponse object.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -271,7 +271,7 @@ class CombinerInterface:
         """ List active clients.
 
         :param queue: The channel (queue) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
-            see :class:`fedn.common.net.grpc.fedn_pb2.Channel`
+            see :class:`fedn.network.grpc.fedn_pb2.Channel`
         :type channel: int
         :return: A list of active clients.
         :rtype: json

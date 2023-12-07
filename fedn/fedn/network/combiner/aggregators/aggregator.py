@@ -2,7 +2,7 @@ import json
 import queue
 from abc import ABC, abstractmethod
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2 as fedn
 
 
 class Aggregator(ABC):
