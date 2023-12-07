@@ -167,7 +167,7 @@ class ControlBase(ABC):
         definition = self.statestore.get_compute_package()
         if definition:
             try:
-                package_name = definition["filename"]
+                package_name = definition["storage_file_name"]
                 return package_name
             except (IndexError, KeyError):
                 print(

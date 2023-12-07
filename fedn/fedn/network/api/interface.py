@@ -307,7 +307,7 @@ class API:
             return None, message
         else:
             try:
-                name = package_objects["filename"]
+                name = package_objects["storage_file_name"]
             except KeyError as e:
                 message = "No compute package found. Key error."
                 print(e)
