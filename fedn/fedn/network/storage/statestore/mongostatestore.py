@@ -808,9 +808,8 @@ class MongoStateStore(StateStoreBase):
         self.rounds.update_one({'round_id': round_id}, {
             '$set': {'round_data': round_data}}, True)
 
-    def update_client_status(self, client_name, status):
-        """Update client status in statestore.
-
+    def update_client_status(self, clients, status):
+        """ Update client status in statestore.
         :param client_name: The client name
         :type client_name: str
         :param status: The client status
@@ -818,7 +817,7 @@ class MongoStateStore(StateStoreBase):
         :return: None
         """
         datetime_now = datetime.now()
-        filter_query = {"name": client_name}
+        filter_query = {"name": {"$in": clients}}
 
         update_query = {"$set": {"last_seen": datetime_now, "status": status}}
-        self.clients.update_one(filter_query, update_query)
+        self.clients.update_many(filter_query, update_query)
