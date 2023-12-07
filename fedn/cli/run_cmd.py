@@ -5,7 +5,7 @@ import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
-from fedn.network.combiner.server import Combiner
+from fedn.network.combiner.combiner import Combiner
 from fedn.network.dashboard.restservice import (decode_auth_token,
                                                 encode_auth_token)
 from fedn.network.reducer import Reducer
