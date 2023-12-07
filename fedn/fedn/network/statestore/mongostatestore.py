@@ -233,6 +233,32 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
+    def set_active_model(self, model_id: str):
+        """Set the active model in statestore.
+
+        :param model_id: The model id.
+        :type model_id: str
+        :return:
+        """
+
+        try:
+
+            committed_at = datetime.now()
+
+            existing_model = self.model.find_one({"key": "models", "model": model_id})
+
+            if existing_model is not None:
+
+                self.model.update_one(
+                    {"key": "active_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True
+                )
+
+                return True
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+
+        return False
+
     def get_latest_round(self):
         """Get the id of the most recent round.
 
