@@ -4,6 +4,7 @@ from io import BytesIO
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+from fedn.common.log_config import logger
 from fedn.common.storage.models.tempmodelstorage import TempModelStorage
 
 CHUNK_SIZE = 1024 * 1024
@@ -141,7 +142,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response object.
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
-
+        logger.debug("grpc.ModelService.Upload: Called")
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
@@ -167,12 +168,13 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
+        logger.debug("grpc.ModelService.Download: Called")
         try:
             if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
-                print("Error file is not ready", flush=True)
+                logger.warning("Error file is not ready")
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:
-            print("Error file does not exist: {}".format(request.id), flush=True)
+            logger.error("Error file does not exist: {}".format(request.id))
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
@@ -185,4 +187,4 @@ class ModelService(rpc.ModelServiceServicer):
                         return
                     yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
-            print("Downloading went wrong: {} {}".format(request.id, e), flush=True)
+            logger.error("Downloading went wrong: {} {}".format(request.id, e))
