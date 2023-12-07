@@ -27,7 +27,7 @@ class MongoStateStore(StateStoreBase):
         try:
             self.config = config
             self.network_id = network_id
-            self.mdb = self.connect(self.config, self.network_id)
+            self.mdb = self.connect()
 
             # FEDn network
             self.network = self.mdb["network"]
@@ -59,8 +59,7 @@ class MongoStateStore(StateStoreBase):
             self.clients = None
             raise
 
-    @classmethod
-    def connect(config, network_id):
+    def connect(self):
         """ Establish client connection to MongoDB.
 
         :param config: Dictionary containing connection strings and security credentials.
@@ -70,10 +69,10 @@ class MongoStateStore(StateStoreBase):
         :return: MongoDB client pointing to the db corresponding to network_id
         """
         try:
-            mc = pymongo.MongoClient(**config)
+            mc = pymongo.MongoClient(**self.config)
             # This is so that we check that the connection is live
             mc.server_info()
-            mdb = mc[network_id]
+            mdb = mc[self.network_id]
             return mdb
         except Exception:
             raise

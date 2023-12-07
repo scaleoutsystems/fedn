@@ -4,7 +4,7 @@ from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
 from fedn.network.api.interface import API
 from fedn.network.controller.control import Control
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 statestore_config = get_statestore_config()
 network_id = get_network_config()

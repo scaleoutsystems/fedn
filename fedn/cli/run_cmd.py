@@ -9,7 +9,7 @@ from fedn.network.combiner.server import Combiner
 from fedn.network.dashboard.restservice import (decode_auth_token,
                                                 encode_auth_token)
 from fedn.network.reducer import Reducer
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 

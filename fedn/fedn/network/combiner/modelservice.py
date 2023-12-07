@@ -146,13 +146,13 @@ class ModelService(rpc.ModelServiceServicer):
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
                 self.models.get_ptr(request.id).write(request.data)
-                self.models.set_meta(request.id, fedn.ModelStatus.IN_PROGRESS)
+                self.models.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                             message="Got model successfully.")
                 # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.models.set_meta(request.id, fedn.ModelStatus.OK)
+                self.models.set_model_metadata(request.id, fedn.ModelStatus.OK)
                 self.models.get_ptr(request.id).flush()
                 self.models.get_ptr(request.id).close()
                 return result
@@ -168,7 +168,7 @@ class ModelService(rpc.ModelServiceServicer):
         :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
         """
         try:
-            if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
+            if self.models.get_model_metadata(request.id) != fedn.ModelStatus.OK:
                 print("Error file is not ready", flush=True)
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:

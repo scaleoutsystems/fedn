@@ -17,7 +17,7 @@ from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 

@@ -13,7 +13,7 @@ from bokeh.plotting import figure, from_networkx
 from networkx.algorithms import community
 from plotly.subplots import make_subplots
 
-from fedn.common.storage.db.mongo import connect_to_mongodb
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 
 class Plot:
@@ -24,8 +24,9 @@ class Plot:
     def __init__(self, statestore):
         try:
             statestore_config = statestore.get_config()
-            self.mdb = connect_to_mongodb(
-                statestore_config['mongo_config'], statestore_config['network_id'])
+            statestore = MongoStateStore(
+                statestore_config['network_id'], statestore_config['mongo_config'])
+            self.mdb = statestore.connect()
             self.status = self.mdb['control.status']
             self.round_time = self.mdb["control.round_time"]
             self.combiner_round_time = self.mdb["control.combiner_round_time"]
