@@ -2,17 +2,13 @@ import os
 from io import BytesIO
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.common.storage.models.modelstorage import ModelStorage
+from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
 
 class TempModelStorage(ModelStorage):
-    """ Class for model storage using temporary files on local disk.
-
-    Models are stored as files on disk.
-
-    """
+    """ Class for managing local temporary models on file on combiners."""
 
     def __init__(self):
 
@@ -21,7 +17,6 @@ class TempModelStorage(ModelStorage):
         if not os.path.exists(self.default_dir):
             os.makedirs(self.default_dir)
 
-        # TODO should read in already existing temp models if crashed? or fetch new on demand (default)
         self.models = {}
         self.models_metadata = {}
 

@@ -2,7 +2,7 @@ import io
 from collections import defaultdict
 from io import BytesIO
 
-from fedn.common.storage.models.modelstorage import ModelStorage
+from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 

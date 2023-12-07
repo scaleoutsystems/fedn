@@ -1,10 +1,10 @@
 import uuid
 
 from fedn.common.log_config import logger
-from fedn.common.storage.s3.miniorepo import MINIORepository
+from fedn.network.storage.s3.miniorepository import MINIORepository
 
 
-class S3ModelRepository:
+class Repository:
     """ Interface for storing model objects and compute packages in S3 compatible storage. """
 
     def __init__(self, config):
@@ -12,6 +12,7 @@ class S3ModelRepository:
         self.model_bucket = config['storage_bucket']
         self.context_bucket = config['context_bucket']
 
+        # TODO: Make a plug-in solution
         self.client = MINIORepository(config)
 
         self.client.create_bucket(self.context_bucket)

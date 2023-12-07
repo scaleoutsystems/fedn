@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from time import sleep
 
 import fedn.utils.helpers
-from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
+from fedn.network.storage.s3.repository import Repository
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -66,7 +66,7 @@ class ControlBase(ABC):
             raise MisconfiguredStorageBackend()
 
         if storage_config["storage_type"] == "S3":
-            self.model_repository = S3ModelRepository(
+            self.model_repository = Repository(
                 storage_config["storage_config"]
             )
         else:

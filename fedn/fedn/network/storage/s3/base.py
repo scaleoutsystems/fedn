@@ -1,7 +1,7 @@
 import abc
 
 
-class Repository(object):
+class RepositoryBase(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod

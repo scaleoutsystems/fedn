@@ -4,7 +4,7 @@ from io import BytesIO
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 

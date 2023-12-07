@@ -13,10 +13,10 @@ from enum import Enum
 import fedn.common.net.grpc.fedn_pb2 as fedn
 import fedn.common.net.grpc.fedn_pb2_grpc as rpc
 from fedn.common.net.grpc.server import Server
-from fedn.common.storage.s3.s3repo import S3ModelRepository
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.round import RoundController
+from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
@@ -121,7 +121,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         print(announce_config, flush=True)
 
         # Set up model repository
-        self.repository = S3ModelRepository(
+        self.repository = Repository(
             announce_config['storage']['storage_config'])
 
         self.statestore = MongoStateStore(
