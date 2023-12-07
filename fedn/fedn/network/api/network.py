@@ -1,7 +1,6 @@
 import base64
 
-from fedn.network.combiner.interfaces import (CombinerInterface,
-                                              CombinerUnavailableError)
+from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 
 __all__ = 'Network',
@@ -154,18 +153,3 @@ class Network:
         :rtype: list(ObjectId)
         """
         return self.statestore.list_clients()
-
-    def describe(self):
-        """ Describe the network.
-
-        :return: The network description
-        :rtype: dict
-        """
-        network = []
-        for combiner in self.get_combiners():
-            try:
-                network.append(combiner.report())
-            except CombinerUnavailableError:
-                # TODO, do better here.
-                pass
-        return network
