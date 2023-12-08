@@ -6,9 +6,9 @@ import yaml
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
+from fedn.network.dashboard.dashboard import Dashboard
 from fedn.network.dashboard.restservice import (decode_auth_token,
                                                 encode_auth_token)
-from fedn.network.reducer import Reducer
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
@@ -233,8 +233,8 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set storage config in statestore, exiting.", flush=True)
         exit(-1)
 
-    reducer = Reducer(statestore)
-    reducer.run()
+    dashboard = Dashboard(statestore)
+    dashboard.run()
 
 
 @run_cmd.command('combiner')

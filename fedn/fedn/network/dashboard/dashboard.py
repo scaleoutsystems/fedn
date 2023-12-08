@@ -20,7 +20,7 @@ class MissingReducerConfiguration(Exception):
     pass
 
 
-class Reducer:
+class Dashboard:
     """ A class used to instantiate the Reducer service.
 
     :param statestore: The backend statestore object.
