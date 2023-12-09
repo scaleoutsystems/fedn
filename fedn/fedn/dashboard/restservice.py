@@ -17,8 +17,8 @@ from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    url_for)
 from werkzeug.utils import secure_filename
 
+from fedn.dashboard.plots import Plot
 from fedn.network.combiner.interfaces import CombinerInterface
-from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -326,105 +326,6 @@ class ReducerRestService:
             """
             return {"state": ReducerStateToString(self.control.state())}
 
-        @app.route("/netgraph")
-        def netgraph():
-            """
-            Creates nodes and edges for network graph
-
-            :return: nodes and edges as keys
-            :rtype: dict
-            """
-            result = {"nodes": [], "edges": []}
-
-            result["nodes"].append(
-                {
-                    "id": "reducer",
-                    "label": "Reducer",
-                    "role": "reducer",
-                    "status": "active",
-                    "name": "reducer",  # TODO: get real host name
-                    "type": "reducer",
-                }
-            )
-
-            combiner_info = combiner_status()
-            client_info = client_status()
-
-            if len(combiner_info) < 1:
-                return result
-
-            for combiner in combiner_info:
-                print("combiner info {}".format(combiner_info), flush=True)
-                try:
-                    result["nodes"].append(
-                        {
-                            "id": combiner["name"],  # "n{}".format(count),
-                            "label": "Combiner ({} clients)".format(
-                                combiner["nr_active_clients"]
-                            ),
-                            "role": "combiner",
-                            "status": "active",  # TODO: Hard-coded, combiner_info does not contain status
-                            "name": combiner["name"],
-                            "type": "combiner",
-                        }
-                    )
-                except Exception as err:
-                    print(err)
-
-            for client in client_info["active_clients"]:
-                try:
-                    if client["status"] != "offline":
-                        result["nodes"].append(
-                            {
-                                "id": str(client["_id"]),
-                                "label": "Client",
-                                "role": client["role"],
-                                "status": client["status"],
-                                "name": client["name"],
-                                "combiner": client["combiner"],
-                                "type": "client",
-                            }
-                        )
-                except Exception as err:
-                    print(err)
-
-            count = 0
-            for node in result["nodes"]:
-                try:
-                    if node["type"] == "combiner":
-                        result["edges"].append(
-                            {
-                                "id": "e{}".format(count),
-                                "source": node["id"],
-                                "target": "reducer",
-                            }
-                        )
-                    elif node["type"] == "client":
-                        result["edges"].append(
-                            {
-                                "id": "e{}".format(count),
-                                "source": node["combiner"],
-                                "target": node["id"],
-                            }
-                        )
-                except Exception:
-                    pass
-                count = count + 1
-            return result
-
-        @app.route("/networkgraph")
-        def network_graph():
-            try:
-                plot = Plot(self.control.statestore)
-                result = netgraph()
-                df_nodes = pd.DataFrame(result["nodes"])
-                df_edges = pd.DataFrame(result["edges"])
-                graph = plot.make_netgraph_plot(df_edges, df_nodes)
-                return json.dumps(json_item(graph, "myplot"))
-            except Exception:
-                raise
-                # return ''
-
         @app.route("/events")
         def events():
             """
@@ -653,11 +554,11 @@ class ReducerRestService:
                 clients_available = 0
                 for combiner in self.control.network.get_combiners():
                     try:
-                        combiner_state = combiner.report()
-                        nac = combiner_state["nr_active_clients"]
+                        nac = len(combiner.list_active_clients())
+                        #nac = combiner_state["nr_active_clients"]
                         clients_available = clients_available + int(nac)
                     except Exception:
-                        pass
+                        raise
 
                 if clients_available < clients_required:
                     return redirect(
@@ -674,7 +575,6 @@ class ReducerRestService:
                 if validate == "False":
                     validate = False
                 helper_type = request.form.get("helper", "keras")
-                # self.control.statestore.set_framework(helper_type)
 
                 latest_model_id = self.statestore.get_latest_model()
 
@@ -712,7 +612,7 @@ class ReducerRestService:
                     seed_model_id = self.statestore.get_initial_model()
                     latest_model_id = self.statestore.get_latest_model()
                 except Exception:
-                    pass
+                    raise
 
                 return render_template(
                     "index.html",
@@ -786,104 +686,6 @@ class ReducerRestService:
 
             return jsonify(response)
 
-        def combiner_status():
-            """Get current status reports from all combiners registered in the network.
-
-            :return:
-            """
-            combiner_info = []
-            for combiner in self.control.network.get_combiners():
-                try:
-                    report = combiner.report()
-                    combiner_info.append(report)
-                except Exception:
-                    pass
-            return combiner_info
-
-        def client_status():
-            """
-            Get current status of clients (available) from DB compared with client status from all combiners,
-            update client status to DB and add their roles.
-            """
-            client_info = self.control.network.get_client_info()
-            combiner_info = combiner_status()
-            try:
-                all_active_trainers = []
-                all_active_validators = []
-
-                for client in combiner_info:
-                    active_trainers_str = client["active_trainers"]
-                    active_validators_str = client["active_validators"]
-                    active_trainers_str = re.sub(
-                        "[^a-zA-Z0-9-:\n\.]", "", active_trainers_str  # noqa: W605
-                    ).replace(
-                        "name:", " "
-                    )
-                    active_validators_str = re.sub(
-                        "[^a-zA-Z0-9-:\n\.]", "", active_validators_str  # noqa: W605
-                    ).replace(
-                        "name:", " "
-                    )
-                    all_active_trainers.extend(
-                        " ".join(active_trainers_str.split(" ")).split()
-                    )
-                    all_active_validators.extend(
-                        " ".join(active_validators_str.split(" ")).split()
-                    )
-
-                active_trainers_list = [
-                    client
-                    for client in client_info
-                    if client["name"] in all_active_trainers
-                ]
-                active_validators_list = [
-                    cl
-                    for cl in client_info
-                    if cl["name"] in all_active_validators
-                ]
-                all_clients = [cl for cl in client_info]
-
-                for client in all_clients:
-                    status = "offline"
-                    role = "None"
-                    self.control.network.update_client_data(
-                        client, status, role
-                    )
-
-                all_active_clients = (
-                    active_validators_list + active_trainers_list
-                )
-                for client in all_active_clients:
-                    status = "active"
-                    if (
-                        client in active_trainers_list
-                        and client in active_validators_list
-                    ):
-                        role = "trainer-validator"
-                    elif client in active_trainers_list:
-                        role = "trainer"
-                    elif client in active_validators_list:
-                        role = "validator"
-                    else:
-                        role = "unknown"
-                    self.control.network.update_client_data(
-                        client, status, role
-                    )
-
-                return {
-                    "active_clients": all_clients,
-                    "active_trainers": active_trainers_list,
-                    "active_validators": active_validators_list,
-                }
-            except Exception:
-                pass
-
-            return {
-                "active_clients": [],
-                "active_trainers": [],
-                "active_validators": [],
-            }
-
         @app.route("/metric_type", methods=["GET", "POST"])
         def change_features():
             """
@@ -925,37 +727,6 @@ class ReducerRestService:
                 clients_plot=clients_plot,
                 client_histogram_plot=client_histogram_plot,
                 combiners_plot=combiners_plot,
-                configured=True,
-            )
-
-        @app.route("/network")
-        def network():
-            """
-
-            :return:
-            """
-            # Token auth
-            if self.token_auth_enabled:
-                self.authorize(request, app.config.get("SECRET_KEY"))
-
-            not_configured = self.check_configured()
-            if not_configured:
-                return not_configured
-            plot = Plot(self.control.statestore)
-            round_time_plot = plot.create_round_plot()
-            mem_cpu_plot = plot.create_cpu_plot()
-            combiner_info = combiner_status()
-            active_clients = client_status()
-            # print(combiner_info, flush=True)
-            return render_template(
-                "network.html",
-                network_plot=True,
-                round_time_plot=round_time_plot,
-                mem_cpu_plot=mem_cpu_plot,
-                combiner_info=combiner_info,
-                active_clients=active_clients["active_clients"],
-                active_trainers=active_clients["active_trainers"],
-                active_validators=active_clients["active_validators"],
                 configured=True,
             )
 

@@ -5,8 +5,8 @@ import time
 from datetime import datetime
 
 from fedn.common.certificate.certificatemanager import CertificateManager
+from fedn.dashboard.restservice import ReducerRestService
 from fedn.network.controller.control import Control
-from fedn.network.dashboard.restservice import ReducerRestService
 from fedn.network.state import ReducerStateToString
 
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'

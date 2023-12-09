@@ -4,11 +4,11 @@ import click
 import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.common.log_config import logger
+from fedn.dashboard.dashboard import Dashboard
+from fedn.dashboard.restservice import decode_auth_token, encode_auth_token
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
-from fedn.network.dashboard.dashboard import Dashboard
-from fedn.network.dashboard.restservice import (decode_auth_token,
-                                                encode_auth_token)
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
@@ -235,6 +235,7 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
 
     dashboard = Dashboard(statestore)
     dashboard.run()
+    logger.warning("The Dashboard is deprecated and will be removed in a future release.")
 
 
 @run_cmd.command('combiner')
