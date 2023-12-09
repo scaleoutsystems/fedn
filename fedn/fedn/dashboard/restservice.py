@@ -3,14 +3,11 @@ import copy
 import datetime
 import json
 import os
-import re
 import threading
 from io import BytesIO
 from threading import Lock
 
 import jwt
-import pandas as pd
-from bokeh.embed import json_item
 from bson import json_util
 from flask import (Flask, abort, flash, jsonify, make_response, redirect,
                    render_template, request, send_file, send_from_directory,
@@ -555,7 +552,6 @@ class ReducerRestService:
                 for combiner in self.control.network.get_combiners():
                     try:
                         nac = len(combiner.list_active_clients())
-                        #nac = combiner_state["nr_active_clients"]
                         clients_available = clients_available + int(nac)
                     except Exception:
                         raise
