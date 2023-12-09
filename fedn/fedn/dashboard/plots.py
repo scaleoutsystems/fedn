@@ -1,16 +1,10 @@
 import json
 from datetime import datetime
 
-import networkx
 import numpy
 import pandas as pd
 import plotly
 import plotly.graph_objs as go
-from bokeh.models import (Circle, ColumnDataSource, Label, LabelSet, MultiLine,
-                          NodesAndLinkedEdges, Range1d)
-from bokeh.palettes import Spectral8
-from bokeh.plotting import figure, from_networkx
-from networkx.algorithms import community
 from plotly.subplots import make_subplots
 
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
