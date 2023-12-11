@@ -23,7 +23,7 @@ class Helper(HelperBase):
         return np.add(model, (model_next - model) / n)
 
     def save(self, model, path=None):
-        """Serialize weights/parameters to file.
+        """ Serialize weights/parameters to file.
 
         :param model: Weights/parameters in numpy array format.
         :type model: numpy array.
@@ -38,7 +38,7 @@ class Helper(HelperBase):
         return path
 
     def load(self, path):
-        """Load weights/parameters from file or filelike.
+        """ Load weights/parameters from file or filelike.
 
         :param path: Path to file.
         :type path: str

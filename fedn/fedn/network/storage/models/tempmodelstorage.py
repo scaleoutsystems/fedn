@@ -1,16 +1,14 @@
 import os
 from io import BytesIO
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-from fedn.common.storage.models.modelstorage import ModelStorage
+import fedn.network.grpc.fedn_pb2 as fedn
+from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
 
 class TempModelStorage(ModelStorage):
-    """
-
-    """
+    """ Class for managing local temporary models on file on combiners."""
 
     def __init__(self):
 
@@ -19,28 +17,17 @@ class TempModelStorage(ModelStorage):
         if not os.path.exists(self.default_dir):
             os.makedirs(self.default_dir)
 
-        # TODO should read in already existing temp models if crashed? or fetch new on demand (default)
-
-        # self.models = defaultdict(io.BytesIO)
         self.models = {}
         self.models_metadata = {}
 
     def exist(self, model_id):
-        """
 
-        :param model_id:
-        :return:
-        """
         if model_id in self.models.keys():
             return True
         return False
 
     def get(self, model_id):
-        """
 
-        :param model_id:
-        :return:
-        """
         try:
             if self.models_metadata[model_id] != fedn.ModelStatus.OK:
                 print("File not ready! Try again", flush=True)
@@ -70,31 +57,17 @@ class TempModelStorage(ModelStorage):
         self.models[model_id] = {'file': f}
         return self.models[model_id]['file']
 
-    def get_meta(self, model_id):
-        """
+    def get_model_metadata(self, model_id):
 
-        :param model_id:
-        :return:
-        """
         return self.models_metadata[model_id]
 
-    def set_meta(self, model_id, model_metadata):
-        """
+    def set_model_metadata(self, model_id, model_metadata):
 
-        :param model_id:
-        :param model_metadata:
-        """
         self.models_metadata.update({model_id: model_metadata})
 
     # Delete model from disk
     def delete(self, model_id):
-        """ Delete model from temp disk/storage
 
-        :param model_id: model id
-        :type model_id: str
-        :return: True if successful, False otherwise
-        :rtype: bool
-        """
         try:
             os.remove(os.path.join(self.default_dir, str(model_id)))
             print("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id), flush=True)
@@ -108,11 +81,7 @@ class TempModelStorage(ModelStorage):
 
     # Delete all models from disk
     def delete_all(self):
-        """ Delete all models from temp disk/storage
 
-        :return: True if successful, False otherwise
-        :rtype: bool
-        """
         ids_pop = []
         for model_id in self.models.keys():
             try:

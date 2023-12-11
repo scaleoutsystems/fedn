@@ -26,7 +26,7 @@ class ModelStorage(ABC):
         pass
 
     @abstractmethod
-    def get_meta(self, model_id):
+    def get_model_metadata(self, model_id):
         """ Get model metadata from storage
 
         :param model_id: The model id
@@ -37,7 +37,7 @@ class ModelStorage(ABC):
         pass
 
     @abstractmethod
-    def set_meta(self, model_id, model_metadata):
+    def set_model_metadata(self, model_id, model_metadata):
         """ Set model metadata in storage
 
         :param model_id: The model id

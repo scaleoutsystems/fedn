@@ -28,8 +28,6 @@ def save_metadata(metadata, filename):
     with open(filename+'-metadata', 'w') as outfile:
         json.dump(metadata, outfile)
 
-# Save metric data to file
-
 
 def save_metrics(metrics, filename):
     """ Save metrics to file.

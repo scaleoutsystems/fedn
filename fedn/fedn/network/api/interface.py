@@ -9,9 +9,9 @@ from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
+from fedn.dashboard.plots import Plot
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
-from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 

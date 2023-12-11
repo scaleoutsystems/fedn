@@ -2,15 +2,13 @@ from concurrent import futures
 
 import grpc
 
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
 
 
 class Server:
-    """
-    Server class for gRPC server.
-    """
+    """ Class for configuring and launching the gRPC server."""
 
     def __init__(self, servicer, modelservicer, config):
 

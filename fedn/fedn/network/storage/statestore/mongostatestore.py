@@ -1,15 +1,14 @@
 import copy
+import uuid
 from datetime import datetime
 
 import pymongo
+from google.protobuf.json_format import MessageToDict
 
-from fedn.common.storage.db.mongo import connect_to_mongodb
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
-from .statestorebase import StateStoreBase
 
-
-class MongoStateStore(StateStoreBase):
+class MongoStateStore:
     """Statestore implementation using MongoDB.
 
     :param network_id: The network id.
@@ -20,13 +19,13 @@ class MongoStateStore(StateStoreBase):
     :type defaults: dict
     """
 
-    def __init__(self, network_id, config, model_storage_config):
+    def __init__(self, network_id, config):
         """Constructor."""
         self.__inited = False
         try:
             self.config = config
             self.network_id = network_id
-            self.mdb = connect_to_mongodb(self.config, self.network_id)
+            self.mdb = self.connect()
 
             # FEDn network
             self.network = self.mdb["network"]
@@ -42,6 +41,7 @@ class MongoStateStore(StateStoreBase):
             self.model = self.control["model"]
             self.sessions = self.control["sessions"]
             self.rounds = self.control["rounds"]
+            self.validations = self.control["validations"]
 
             # Logging
             self.status = self.control["status"]
@@ -57,9 +57,23 @@ class MongoStateStore(StateStoreBase):
             self.clients = None
             raise
 
-        # Storage settings
-        self.set_storage_backend(model_storage_config)
-        self.__inited = True
+    def connect(self):
+        """ Establish client connection to MongoDB.
+
+        :param config: Dictionary containing connection strings and security credentials.
+        :type config: dict
+        :param network_id: Unique identifier for the FEDn network, used as db name
+        :type network_id: str
+        :return: MongoDB client pointing to the db corresponding to network_id
+        """
+        try:
+            mc = pymongo.MongoClient(**self.config)
+            # This is so that we check that the connection is live
+            mc.server_info()
+            mdb = mc[self.network_id]
+            return mdb
+        except Exception:
+            raise
 
     def is_inited(self):
         """Check if the statestore is intialized.
@@ -692,18 +706,116 @@ class MongoStateStore(StateStoreBase):
 
         return result
 
-    def update_client_status(self, client_data, status, role):
-        """Set or update client status.
+    def report_status(self, msg):
+        """Write status message to the database.
 
-        :param client_data: dictionary of client config.
-        :type client_data: dict
-        :param status: status of client.
-        :type status: str
-        :param role: role of client.
-        :type role: str
-        :return:
+        :param msg: The status message.
+        :type msg: str
         """
-        self.clients.update_one(
-            {"name": client_data["name"]},
-            {"$set": {"status": status, "role": role}},
-        )
+        data = MessageToDict(msg, including_default_value_fields=True)
+
+        if self.status is not None:
+            self.status.insert_one(data)
+
+    def report_validation(self, validation):
+        """Write model validation to database.
+
+        :param validation: The model validation.
+        :type validation: dict
+        """
+        data = MessageToDict(validation, including_default_value_fields=True)
+
+        if self.validations is not None:
+            self.validations.insert_one(data)
+
+    def drop_status(self):
+        """Drop the status collection."""
+        if self.status:
+            self.status.drop()
+
+    def create_session(self, id=None):
+        """ Create a new session object.
+
+        :param id: The ID of the created session.
+        :type id: uuid, str
+
+        """
+        if not id:
+            id = uuid.uuid4()
+        data = {'session_id': str(id)}
+        self.sessions.insert_one(data)
+
+    def create_round(self, round_data):
+        """ Create a new round.
+
+        :param round_data: Dictionary with round data.
+        :type round_data: dict
+        """
+        # TODO: Add check if round_id already exists
+        self.rounds.insert_one(round_data)
+
+    def set_session_config(self, id, config):
+        """Set the session configuration.
+
+        :param id: The session id
+        :type id: str
+        :param config: Session configuration
+        :type config: dict
+        """
+        self.sessions.update_one({'session_id': str(id)}, {
+            '$push': {'session_config': config}}, True)
+
+    def set_round_combiner_data(self, data):
+        """Set combiner round controller data.
+
+        :param data: The combiner data
+        :type data: dict
+        """
+        self.rounds.update_one({'round_id': str(data['round_id'])}, {
+            '$push': {'combiners': data}}, True)
+
+    def set_round_config(self, round_id, round_config):
+        """Set round configuration.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_config: The round configuration
+        :type round_config: dict
+        """
+        self.rounds.update_one({'round_id': round_id}, {
+            '$set': {'round_config': round_config}}, True)
+
+    def set_round_status(self, round_id, round_status):
+        """Set round status.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_status: The status of the round.
+        """
+        self.rounds.update_one({'round_id': round_id}, {
+            '$set': {'status': round_status}}, True)
+
+    def set_round_data(self, round_id, round_data):
+        """Update round metadata
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param round_data: The round metadata
+        :type round_data: dict
+        """
+        self.rounds.update_one({'round_id': round_id}, {
+            '$set': {'round_data': round_data}}, True)
+
+    def update_client_status(self, clients, status):
+        """ Update client status in statestore.
+        :param client_name: The client name
+        :type client_name: str
+        :param status: The client status
+        :type status: str
+        :return: None
+        """
+        datetime_now = datetime.now()
+        filter_query = {"name": {"$in": clients}}
+
+        update_query = {"$set": {"last_seen": datetime_now, "status": status}}
+        self.clients.update_many(filter_query, update_query)
