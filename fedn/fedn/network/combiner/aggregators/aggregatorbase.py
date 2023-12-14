@@ -53,8 +53,10 @@ class AggregatorBase(ABC):
 
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
-           Performs (optional) pre-processing and then puts the update id
-           on the aggregation queue. Override in subclass as needed.
+
+        Performs (optional) validation and pre-processing,
+        and then puts the update id on the aggregation queue. 
+        Override in subclass as needed.
 
         :param model_update: A ModelUpdate message.
         :type model_id: str
@@ -70,7 +72,7 @@ class AggregatorBase(ABC):
             else:
                 logger.warning("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            logger.error("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e))
+            logger.error("AGGREGATOR({}): failed to receive model update! {}".format(self.name, e))
             pass
 
     def _validate_model_update(self, model_update):
@@ -110,7 +112,6 @@ class AggregatorBase(ABC):
         """ Get the state of the aggregator's queue, including the number of model updates."""
         state = {
             'queue_len': self.model_updates.qsize()
-
         }
         return state
 
