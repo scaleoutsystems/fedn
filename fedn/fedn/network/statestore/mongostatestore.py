@@ -233,8 +233,8 @@ class MongoStateStore(StateStoreBase):
         except (KeyError, IndexError):
             return None
 
-    def set_active_model(self, model_id: str):
-        """Set the active model in statestore.
+    def set_current_model(self, model_id: str):
+        """Set the current model in statestore.
 
         :param model_id: The model id.
         :type model_id: str
@@ -250,7 +250,7 @@ class MongoStateStore(StateStoreBase):
             if existing_model is not None:
 
                 self.model.update_one(
-                    {"key": "active_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True
+                    {"key": "current_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True
                 )
 
                 return True

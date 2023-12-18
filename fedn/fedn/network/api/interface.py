@@ -740,7 +740,7 @@ class API:
                 {"success": False, "message": "No initial model set."}
             )
 
-    def set_active_model(self, model_id: str):
+    def set_current_model(self, model_id: str):
         """Set the active model in the statestore.
 
         :param model_id: The model id to set.
@@ -748,7 +748,7 @@ class API:
         :return: A json response with success or failure message.
         :rtype: :class:`flask.Response`
         """
-        success = self.statestore.set_active_model(model_id)
+        success = self.statestore.set_current_model(model_id)
 
         if not success:
             return (

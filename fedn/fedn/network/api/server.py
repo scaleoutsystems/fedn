@@ -271,13 +271,13 @@ def get_latest_model():
     return api.get_latest_model()
 
 
-@app.route("/set_active_model", methods=["PUT"])
-def set_active_model():
+@app.route("/set_current_model", methods=["PUT"])
+def set_current_model():
     """Set the initial model in the statestore and upload to model repository.
           Usage with curl:
           curl -k -X PUT
               -F id=<model-id>
-              http://localhost:8092/set_initial_model
+              http://localhost:8092/set_current_model
 
       param: id: The model id to set.
       type: id: str
@@ -287,7 +287,7 @@ def set_active_model():
     id = request.args.get("id", None)
     if id is None:
         return jsonify({"success": False, "message": "Missing model id."}), 400
-    return api.set_active_model(id)
+    return api.set_current_model(id)
 
 # Get initial model endpoint
 
