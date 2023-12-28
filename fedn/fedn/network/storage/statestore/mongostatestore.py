@@ -58,6 +58,7 @@ class MongoStateStore:
             raise
 
         self.init_index()
+
     def connect(self):
         """ Establish client connection to MongoDB.
 
