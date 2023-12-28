@@ -56,7 +56,7 @@ class Aggregator(AggregatorBase):
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
-                model_next, metadata, model_id = self.next_model_update(helper)
+                model_next, metadata, model_id, model_update = self.next_model_update(helper)
                 logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_id, metadata))
 

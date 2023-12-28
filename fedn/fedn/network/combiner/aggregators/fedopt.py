@@ -34,7 +34,7 @@ class Aggregator(AggregatorBase):
 
         self.name = "fedavg"
         # Server side hyperparameters
-        self.eta = 1.0
+        self.eta = 1
         self.beta1 = 0.9
         self.beta2 = 0.99
         self.tau = 1e-3
@@ -107,7 +107,7 @@ class Aggregator(AggregatorBase):
 
         #model = model_old + self.eta*m/helper.sqrt(v+self.tau)
 
-        model = helper.subtract(model_old, pseudo_gradient, 1.0, self.eta)
+        model = helper.add(model_old, pseudo_gradient, 1.0, self.eta)
 
         data['nr_aggregated_models'] = nr_aggregated_models
 

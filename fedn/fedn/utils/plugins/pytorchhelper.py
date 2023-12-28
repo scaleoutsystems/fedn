@@ -33,6 +33,22 @@ class Helper(HelperBase):
             w[name] = model[name] + num_examples*tensorDiff / total_examples
         return w
 
+    def add(self, m1, m2, a=1.0, b=1.0):
+        """ Add weights.
+
+        :param model: Current model weights with keys from torch state_dict.
+        :type model: OrderedDict
+        :param model_next: New model weights with keys from torch state_dict.
+        :type model_next: OrderedDict
+        :return: Incremental weighted average of model weights.
+        :rtype: OrderedDict
+        """
+        w = OrderedDict()
+        for name in m1.keys():
+            tensorSum = a*m1[name] + b*m2[name]
+            w[name] = tensorSum
+        return w
+
     def subtract(self, m1, m2, a=1.0, b=1.0):
         """ Subtract weights.
 
