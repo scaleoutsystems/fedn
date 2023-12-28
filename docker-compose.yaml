@@ -136,3 +136,5 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
     deploy:
       replicas: 0
+    depends_on:
+      - combiner
