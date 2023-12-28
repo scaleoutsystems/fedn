@@ -106,7 +106,7 @@ class AggregatorBase(ABC):
         config = json.loads(json.loads(model_update.meta)['config'])
         data['round_id'] = config['round_id']
 
-        return model_next, data, model_id
+        return model_next, data, model_id, model_update
 
     def get_state(self):
         """ Get the state of the aggregator's queue, including the number of model updates."""

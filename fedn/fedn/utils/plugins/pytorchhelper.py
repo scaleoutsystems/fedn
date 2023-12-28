@@ -33,6 +33,29 @@ class Helper(HelperBase):
             w[name] = model[name] + num_examples*tensorDiff / total_examples
         return w
 
+    def subtract(self, m1, m2, a=1.0, b=1.0):
+        """ Subtract weights.
+
+        :param model: Current model weights with keys from torch state_dict.
+        :type model: OrderedDict
+        :param model_next: New model weights with keys from torch state_dict.
+        :type model_next: OrderedDict
+        :return: Incremental weighted average of model weights.
+        :rtype: OrderedDict
+        """
+        w = OrderedDict()
+        for name in m1.keys():
+            tensorDiff = a*m1[name] - b*m2[name]
+            w[name] = tensorDiff
+        return w
+
+    def norm(self, model):
+        """Compute the L1-norm of the tensor. """
+        n = 0.0
+        for name, val in model.items():
+            n += np.linalg.norm(np.array(val), 1)
+        return n
+
     def save(self, model, path=None):
         """ Serialize weights to file. The serialized model must be a single binary object.
 

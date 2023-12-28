@@ -1,10 +1,18 @@
+import math
+
+import numpy as np
+
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
 class Aggregator(AggregatorBase):
-    """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
-        of parameter updates.
+    """ Federated Optimization (FedOpt) aggregator.
+
+    Implmentation following: https://arxiv.org/pdf/2003.00295.pdf
+
+    Aggregate pseudo gradients computed by subtracting the model update
+    from the global model weights from the previous round.
 
     :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
@@ -25,10 +33,14 @@ class Aggregator(AggregatorBase):
         super().__init__(storage, server, modelservice, control)
 
         self.name = "fedavg"
+        # Server side hyperparameters
+        self.eta = 1.0
+        self.beta1 = 0.9
+        self.beta2 = 0.99
+        self.tau = 1e-3
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
-        """Aggregate model updates in the queue by computing an incremental
-           weighted average of parameters.
+        """Compute pseudo gradients usigng model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`, optional
@@ -53,21 +65,29 @@ class Aggregator(AggregatorBase):
         logger.info(
             "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
+        v = math.pow(self.tau, 2)
+        m = 0.0
+
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
-                model_next, metadata, model_id = self.next_model_update(helper)
+                model_next, metadata, model_id, model_update = self.next_model_update(helper)
                 logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_id, metadata))
+                print("***** ", model_update, flush=True)
 
                 # Increment total number of examples
                 total_examples += metadata['num_examples']
 
                 if nr_aggregated_models == 0:
-                    model = model_next
+                    model_old = self.control.load_model_update(helper, model_update.model_id)
+                    pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
-                    model = helper.increment_average(
-                        model, model_next, metadata['num_examples'], total_examples)
+                    pseudo_gradient_next = helper.subtract(model_next, model_old)
+                    pseudo_gradient = helper.increment_average(
+                        pseudo_gradient, pseudo_gradient_next, metadata['num_examples'], total_examples)
+
+                print("NORM PSEUDOGRADIENT: ", helper.norm(pseudo_gradient), flush=True)
 
                 nr_aggregated_models += 1
                 # Delete model from storage
@@ -80,6 +100,14 @@ class Aggregator(AggregatorBase):
                 logger.error(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
+
+        # Server-side momentum
+        #m = helper.add(m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+        #v = v + helper.power(pseudo_gradient, 2)
+
+        #model = model_old + self.eta*m/helper.sqrt(v+self.tau)
+
+        model = helper.subtract(model_old, pseudo_gradient, 1.0, self.eta)
 
         data['nr_aggregated_models'] = nr_aggregated_models
 

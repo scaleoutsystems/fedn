@@ -27,8 +27,8 @@ class Aggregator(AggregatorBase):
         self.name = "fedavg"
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
-        """Aggregate model updates in the queue by computing an incremental
-           weighted average of parameters.
+        """Aggregate all model updates in the queue by computing an incremental
+        weighted average of model parameters.
 
         :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.HelperBase`, optional
