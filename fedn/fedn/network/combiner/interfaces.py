@@ -4,10 +4,9 @@ import json
 from io import BytesIO
 
 import grpc
-from google.protobuf.json_format import MessageToJson
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 
 
 class CombinerUnavailableError(Exception):
@@ -137,11 +136,6 @@ class CombinerInterface:
             data['certificate'] = str(cert_b64).split('\'')[1]
             data['key'] = str(key_b64).split('\'')[1]
 
-        try:
-            data['report'] = self.report()
-        except CombinerUnavailableError:
-            data['report'] = None
-
         return data
 
     def to_json(self):
@@ -176,55 +170,6 @@ class CombinerInterface:
         else:
             return None
 
-    def report(self):
-        """ Recieve a status report from the combiner.
-
-        :return: A dictionary describing the combiner state.
-        :rtype: dict
-        :raises CombinerUnavailableError: If the combiner is unavailable.
-        """
-        channel = Channel(self.address, self.port,
-                          self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
-        request = fedn.ControlRequest()
-        try:
-            response = control.Report(request)
-            data = {}
-            for p in response.parameter:
-                data[p.key] = p.value
-            return data
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-
-    def configure(self, config=None):
-        """ Configure the combiner. Set the parameters in config at the server.
-
-        :param config: A dictionary containing parameters.
-        :type config: dict
-        """
-        if not config:
-            config = self.config
-        channel = Channel(self.address, self.port,
-                          self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
-
-        request = fedn.ControlRequest()
-        for key, value in config.items():
-            p = request.parameter.add()
-            p.key = key
-            p.value = str(value)
-
-        try:
-            control.Configure(request)
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-
     def flush_model_update_queue(self):
         """ Reset the model update queue on the combiner. """
 
@@ -248,7 +193,7 @@ class CombinerInterface:
         :param config: The job configuration.
         :type config: dict
         :return: Server ControlResponse object.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ControlResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
@@ -322,9 +267,12 @@ class CombinerInterface:
 
         return False
 
-    def list_active_clients(self):
+    def list_active_clients(self, queue=1):
         """ List active clients.
 
+        :param queue: The channel (queue) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
+            see :class:`fedn.network.grpc.fedn_pb2.Channel`
+        :type channel: int
         :return: A list of active clients.
         :rtype: json
         """
@@ -332,6 +280,7 @@ class CombinerInterface:
                           self.certificate).get_channel()
         control = rpc.ConnectorStub(channel)
         request = fedn.ListClientsRequest()
+        request.channel = queue
         try:
             response = control.ListActiveClients(request)
         except grpc.RpcError as e:
@@ -339,4 +288,4 @@ class CombinerInterface:
                 raise CombinerUnavailableError
             else:
                 raise
-        return MessageToJson(response)
+        return response.client

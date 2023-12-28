@@ -4,6 +4,7 @@ import sys
 import time
 import uuid
 
+from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.utils.helpers import get_helper
 
@@ -49,8 +50,8 @@ class RoundController:
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
-            self.server.report_status(
-                "ROUNDCONTROL: Failed to push round config.", flush=True)
+            logger.warning(
+                "ROUNDCONTROL: Failed to push round config.")
             raise
         return round_config['_job_id']
 
@@ -68,7 +69,7 @@ class RoundController:
             try:
                 model = self.modelservice.load_model_from_BytesIO(model_str.getbuffer(), helper)
             except IOError:
-                self.server.report_status(
+                logger.warning(
                     "AGGREGATOR({}): Failed to load model!".format(self.name))
         else:
             raise ModelUpdateError("Failed to load model.")
@@ -95,8 +96,8 @@ class RoundController:
             while tries < retry:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    self.server.report_status(
-                        "ROUNDCONTROL: Model download failed. retrying", flush=True)
+                    logger.warning(
+                        "ROUNDCONTROL: Model download failed. retrying")
 
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
@@ -139,7 +140,7 @@ class RoundController:
         :rtype: model, dict
         """
 
-        self.server.report_status(
+        logger.info(
             "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
@@ -165,7 +166,7 @@ class RoundController:
 
         try:
             helper = get_helper(config['helper_type'])
-            print("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']), flush=True)
+            logger.info("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']))
             if config['delete_models_storage'] == 'True':
                 delete_models = True
             else:
@@ -173,7 +174,7 @@ class RoundController:
             model, data = self.aggregator.combine_models(helper=helper,
                                                          delete_models=delete_models)
         except Exception as e:
-            print("AGGREGATION FAILED AT COMBINER! {}".format(e), flush=True)
+            logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
 
         meta['time_combination'] = time.time() - tic
         meta['aggregation_time'] = data
@@ -204,9 +205,9 @@ class RoundController:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.models.exist(model_id):
-            print("ROUNDCONTROL: Model already exists in memory, skipping model staging.", flush=True)
+            logger.info("ROUNDCONTROL: Model already exists in memory, skipping model staging.")
             return
-        print("ROUNDCONTROL: Model Staging, fetching model from storage...", flush=True)
+        logger.info("ROUNDCONTROL: Model Staging, fetching model from storage...")
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -215,14 +216,13 @@ class RoundController:
                 if model:
                     break
             except Exception:
-                self.server.report_status("ROUNDCONTROL: Could not fetch model from storage backend, retrying.",
-                                          flush=True)
+                logger.info("ROUNDCONTROL: Could not fetch model from storage backend, retrying.")
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    self.server.report_status(
-                        "ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id), flush=True)
-                    return
+                    logger.info(
+                        "ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id))
+                    raise
 
         self.modelservice.set_model(model, model_id)
 
@@ -242,8 +242,8 @@ class RoundController:
         elif type == "trainers":
             clients = self.server.get_active_trainers()
         else:
-            self.server.report_status(
-                "ROUNDCONTROL(ERROR): {} is not a supported type of client".format(type), flush=True)
+            logger.info(
+                "ROUNDCONTROL(ERROR): {} is not a supported type of client".format(type))
             raise
 
         # If the number of requested trainers exceeds the number of available, use all available.
@@ -274,9 +274,9 @@ class RoundController:
             if active >= int(config['clients_requested']):
                 return True
             else:
-                self.server.report_status("waiting for {} clients to get started, currently: {}".format(
+                logger.info("waiting for {} clients to get started, currently: {}".format(
                     int(config['clients_requested']) - active,
-                    active), flush=True)
+                    active))
             if t >= timeout:
                 if active >= int(config['clients_required']):
                     return True
@@ -295,7 +295,7 @@ class RoundController:
         :type round_config: dict
         """
         model_id = round_config['model_id']
-        self.server.report_status(
+        logger.info(
             "COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
         validators = self._assign_round_clients(
@@ -311,8 +311,8 @@ class RoundController:
         :rtype: dict
         """
 
-        self.server.report_status(
-            "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']), flush=True)
+        logger.info(
+            "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']))
 
         data = {}
         data['config'] = config
@@ -326,7 +326,7 @@ class RoundController:
         data['data'] = meta
 
         if model is None:
-            self.server.report_status(
+            logger.warning(
                 "\t Failed to update global model in round {0}!".format(config['round_id']))
 
         if model is not None:
@@ -338,8 +338,8 @@ class RoundController:
             a.close()
             data['model_id'] = model_id
 
-            self.server.report_status(
-                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']), flush=True)
+            logger.info(
+                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
         return data
 
@@ -366,18 +366,18 @@ class RoundController:
                                 tic
                             round_meta['status'] = "Success"
                             round_meta['name'] = self.server.id
-                            self.server.tracer.set_round_combiner_data(round_meta)
+                            self.server.statestore.set_round_combiner_data(round_meta)
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:
-                            self.server.report_status(
-                                "ROUNDCONTROL: Round config contains unkown task type.", flush=True)
+                            logger.warning(
+                                "ROUNDCONTROL: Round config contains unkown task type.")
                     else:
                         round_meta = {}
                         round_meta['status'] = "Failed"
                         round_meta['reason'] = "Failed to meet client allocation requirements for this round config."
-                        self.server.report_status(
-                            "ROUNDCONTROL: {0}".format(round_meta['reason']), flush=True)
+                        logger.warning(
+                            "ROUNDCONTROL: {0}".format(round_meta['reason']))
 
                     self.round_configs.task_done()
                 except queue.Empty:

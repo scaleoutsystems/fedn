@@ -9,9 +9,9 @@ from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
+from fedn.dashboard.plots import Plot
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
-from fedn.network.dashboard.plots import Plot
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -34,19 +34,6 @@ class API:
         """
         data = {"name": self.name}
         return data
-
-    def _get_combiner_report(self, combiner_id):
-        """Get report response from combiner.
-
-        :param combiner_id: The combiner id to get report response from.
-        :type combiner_id: str
-        ::return: The report response from combiner.
-        ::rtype: dict
-        """
-        # Get CombinerInterface (fedn.network.combiner.inferface.CombinerInterface) for combiner_id
-        combiner = self.control.network.get_combiner(combiner_id)
-        report = combiner.report
-        return report
 
     def _allowed_file_extension(
         self, filename, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}
@@ -92,30 +79,6 @@ class API:
 
         return jsonify(result)
 
-    def get_active_clients(self, combiner_id):
-        """Get all active clients, i.e that are assigned to a combiner.
-            A report request to the combiner is neccessary to determine if a client is active or not.
-
-        :param combiner_id: The combiner id to get active clients for.
-        :type combiner_id: str
-        :return: All active clients as a json response.
-        :rtype: :class:`flask.Response`
-        """
-        # Get combiner interface object
-        combiner = self.control.network.get_combiner(combiner_id)
-        if combiner is None:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "message": f"Combiner {combiner_id}  not found.",
-                    }
-                ),
-                404,
-            )
-        response = combiner.list_active_clients()
-        return response
-
     def get_all_combiners(self, limit=None, skip=None):
         """Get all combiners from the statestore.
 
@@ -155,7 +118,6 @@ class API:
             "fqdn": object["fqdn"],
             "parent_reducer": object["parent"]["name"],
             "port": object["port"],
-            "report": object["report"],
             "updated_at": object["updated_at"],
         }
         payload[id] = info
@@ -982,12 +944,20 @@ class API:
                 {"success": False, "message": "A session is already running."}
             )
 
+        # Check that initial (seed) model is set
+        if not self.statestore.get_initial_model():
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No initial model set. Set initial model before starting session.",
+                }
+            )
+
         # Check available clients per combiner
         clients_available = 0
         for combiner in self.control.network.get_combiners():
             try:
-                combiner_state = combiner.report()
-                nr_active_clients = combiner_state["nr_active_clients"]
+                nr_active_clients = len(combiner.list_active_clients())
                 clients_available = clients_available + int(nr_active_clients)
             except CombinerUnavailableError as e:
                 # TODO: Handle unavailable combiner, stop session or continue?

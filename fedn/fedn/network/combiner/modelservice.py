@@ -2,9 +2,10 @@ import os
 import tempfile
 from io import BytesIO
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
-import fedn.common.net.grpc.fedn_pb2_grpc as rpc
-from fedn.common.storage.models.tempmodelstorage import TempModelStorage
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.log_config import logger
+from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -135,24 +136,24 @@ class ModelService(rpc.ModelServiceServicer):
         """ RPC endpoints for uploading a model.
 
         :param request_iterator: The model request iterator.
-        :type request_iterator: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ModelRequest`
         :param context: The context object (unused)
         :type context: :class:`grpc._server._Context`
         :return: A model response object.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-
+        logger.debug("grpc.ModelService.Upload: Called")
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
                 self.models.get_ptr(request.id).write(request.data)
-                self.models.set_meta(request.id, fedn.ModelStatus.IN_PROGRESS)
+                self.models.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                             message="Got model successfully.")
                 # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.models.set_meta(request.id, fedn.ModelStatus.OK)
+                self.models.set_model_metadata(request.id, fedn.ModelStatus.OK)
                 self.models.get_ptr(request.id).flush()
                 self.models.get_ptr(request.id).close()
                 return result
@@ -161,18 +162,19 @@ class ModelService(rpc.ModelServiceServicer):
         """ RPC endpoints for downloading a model.
 
         :param request: The model request object.
-        :type request: :class:`fedn.common.net.grpc.fedn_pb2.ModelRequest`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelRequest`
         :param context: The context object (unused)
         :type context: :class:`grpc._server._Context`
         :return: A model response iterator.
-        :rtype: :class:`fedn.common.net.grpc.fedn_pb2.ModelResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
+        logger.debug("grpc.ModelService.Download: Called")
         try:
-            if self.models.get_meta(request.id) != fedn.ModelStatus.OK:
-                print("Error file is not ready", flush=True)
+            if self.models.get_model_metadata(request.id) != fedn.ModelStatus.OK:
+                logger.error("Error file is not ready")
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:
-            print("Error file does not exist: {}".format(request.id), flush=True)
+            logger.error("Error file does not exist: {}".format(request.id))
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
@@ -185,4 +187,4 @@ class ModelService(rpc.ModelServiceServicer):
                         return
                     yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
-            print("Downloading went wrong: {} {}".format(request.id, e), flush=True)
+            logger.error("Downloading went wrong: {} {}".format(request.id, e))

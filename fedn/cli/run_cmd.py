@@ -4,12 +4,12 @@ import click
 import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.common.log_config import logger
+from fedn.dashboard.dashboard import Dashboard
+from fedn.dashboard.restservice import decode_auth_token, encode_auth_token
 from fedn.network.clients.client import Client
-from fedn.network.combiner.server import Combiner
-from fedn.network.dashboard.restservice import (decode_auth_token,
-                                                encode_auth_token)
-from fedn.network.reducer import Reducer
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.combiner.combiner import Combiner
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 
@@ -192,10 +192,12 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
         statestore = MongoStateStore(
-            network_id, statestore_config['mongo_config'], fedn_config['storage'])
+            network_id, statestore_config['mongo_config'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
+
+    statestore.set_storage_backend(fedn_config['storage'])
 
     # Enable JWT token authentication.
     if config['secret_key']:
@@ -231,8 +233,9 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set storage config in statestore, exiting.", flush=True)
         exit(-1)
 
-    reducer = Reducer(statestore)
-    reducer.run()
+    dashboard = Dashboard(statestore)
+    dashboard.run()
+    logger.warning("The Dashboard is deprecated and will be removed in a future release.")
 
 
 @run_cmd.command('combiner')
