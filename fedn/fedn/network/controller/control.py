@@ -116,7 +116,8 @@ class Control(ControlBase):
 
         # Clear potential stragglers/old model updates at combiners
         for combiner in self.network.get_combiners():
-            combiner.flush_model_update_queue()
+            #    combiner.flush_model_update_queue()
+            combiner.set_aggregator(config['aggregator'])
 
         # Execute the rounds in this session
         for round in range(1, int(config["rounds"] + 1)):

@@ -751,6 +751,7 @@ class API:
     def start_session(
         self,
         session_id,
+        aggregator='fedavg',
         rounds=5,
         round_timeout=180,
         round_buffer_size=-1,
@@ -836,6 +837,7 @@ class API:
         session_config = {
             "session_id": session_id if session_id else str(uuid.uuid4()),
             "round_timeout": round_timeout,
+            "aggregator": aggregator,
             "buffer_size": round_buffer_size,
             "model_id": model_id,
             "rounds": rounds,

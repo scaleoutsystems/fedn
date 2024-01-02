@@ -32,7 +32,7 @@ class Aggregator(AggregatorBase):
 
         super().__init__(storage, server, modelservice, control)
 
-        self.name = "fedavg"
+        self.name = "fedopt"
         # Server side hyperparameters
         self.eta = 1
         self.beta1 = 0.9

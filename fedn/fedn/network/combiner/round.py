@@ -29,14 +29,16 @@ class RoundController:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, aggregator_name, storage, server, modelservice):
+    def __init__(self, storage, server, modelservice):
         """ Initialize the RoundController."""
 
         self.round_configs = queue.Queue()
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        self.aggregator = get_aggregator(aggregator_name, self.storage, self.server, self.modelservice, self)
+
+    def set_aggregator(self, aggregator):
+        self.aggregator = get_aggregator(aggregator, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
         """Add a round_config (job description) to the inbox.

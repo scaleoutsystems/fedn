@@ -134,7 +134,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.server = Server(self, self.modelservice, grpc_config)
 
         # Set up round controller
-        self.control = RoundController(config['aggregator'], self.repository, self, self.modelservice)
+        self.control = RoundController(self.repository, self, self.modelservice)
 
         # Start thread for round controller
         threading.Thread(target=self.control.run, daemon=True).start()
@@ -425,6 +425,30 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         p = response.parameter.add()
         p.key = "job_id"
         p.value = job_id
+
+        return response
+
+    def SetAggregator(self, control: fedn.ControlRequest, context):
+        """ Set the active aggregator.
+
+        :param control: the control request
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the control response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
+        """
+        logger.debug("grpc.Combiner.SetAggregator: Called")
+        for parameter in control.parameter:
+            aggregator = parameter.value
+
+        status = self.control.set_aggregator(aggregator)
+
+        response = fedn.ControlResponse()
+        if status:
+            response.message = 'Success'
+        else:
+            response.message = 'Failed'
 
         return response
 
