@@ -65,8 +65,8 @@ class Aggregator(AggregatorBase):
         logger.info(
             "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
-        v = math.pow(self.tau, 2)
-        m = 0.0
+        # v = math.pow(self.tau, 2)
+        # m = 0.0
 
         while not self.model_updates.empty():
             try:
@@ -102,10 +102,9 @@ class Aggregator(AggregatorBase):
                 self.model_updates.task_done()
 
         # Server-side momentum
-        #m = helper.add(m, pseudo_gradient, self.beta1, (1.0-self.beta1))
-        #v = v + helper.power(pseudo_gradient, 2)
-
-        #model = model_old + self.eta*m/helper.sqrt(v+self.tau)
+        # m = helper.add(m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+        # v = v + helper.power(pseudo_gradient, 2)
+        # model = model_old + self.eta*m/helper.sqrt(v+self.tau)
 
         model = helper.add(model_old, pseudo_gradient, 1.0, self.eta)
 

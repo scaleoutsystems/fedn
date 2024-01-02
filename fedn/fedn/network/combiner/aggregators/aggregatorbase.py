@@ -55,7 +55,7 @@ class AggregatorBase(ABC):
         """Callback when a new client model update is recieved.
 
         Performs (optional) validation and pre-processing,
-        and then puts the update id on the aggregation queue. 
+        and then puts the update id on the aggregation queue.
         Override in subclass as needed.
 
         :param model_update: A ModelUpdate message.
@@ -83,7 +83,6 @@ class AggregatorBase(ABC):
         :return: True if the model update is valid, False otherwise.
         :rtype: bool
         """
-        # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
         if 'num_examples' not in data.keys():
             logger.error("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
