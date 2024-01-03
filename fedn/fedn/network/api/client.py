@@ -38,6 +38,15 @@ class APIClient:
         response = requests.get(self._get_url('get_model_trail'), verify=self.verify)
         return response.json()
 
+    def list_models(self, session_id=None):
+        """ Get all models from the statestore.
+
+        :return: All models.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('list_models'), params={'session_id': session_id}, verify=self.verify)
+        return response.json()
+
     def list_clients(self):
         """ Get all clients from the statestore.
 
