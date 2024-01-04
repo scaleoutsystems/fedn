@@ -304,6 +304,19 @@ class NetworkAPITests(unittest.TestCase):
         # Assert api.list_sessions was called
         fedn.network.api.server.api.get_all_sessions.assert_called_once()
 
+    def test_list_models(self):
+        """ Test list_models endpoint. """
+        # Mock api.list_models
+        return_value = {"test": "test"}
+        fedn.network.api.server.api.get_models = MagicMock(return_value=return_value)
+        # Make request
+        response = self.app.get('/list_models')
+        # Assert response
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, return_value)
+        # Assert api.list_models was called
+        fedn.network.api.server.api.get_models.assert_called_once()
+
     def test_get_package(self):
         """ Test get_package endpoint. """
         # Mock api.get_package
