@@ -305,7 +305,12 @@ class API:
 
     def list_compute_packages(self, limit: str = None, skip: str = None, include_active: str = None):
         """Get paginated list of compute packages from the statestore.
-
+        :param limit: The number of compute packages to return.
+        :type limit: str
+        :param skip: The number of compute packages to skip.
+        :type skip: str
+        :param include_active: Whether to include the active compute package or not.
+        :type include_active: str
         :return: All compute packages as a json response.
         :rtype: :class:`flask.Response`
         """
