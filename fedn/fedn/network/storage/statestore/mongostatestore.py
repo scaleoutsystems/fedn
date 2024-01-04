@@ -57,6 +57,8 @@ class MongoStateStore:
             self.clients = None
             raise
 
+        self.init_index()
+
     def connect(self):
         """ Establish client connection to MongoDB.
 
@@ -74,6 +76,9 @@ class MongoStateStore:
             return mdb
         except Exception:
             raise
+
+    def init_index(self):
+        self.package.create_index([("id", pymongo.DESCENDING)])
 
     def is_inited(self):
         """Check if the statestore is intialized.
@@ -242,6 +247,32 @@ class MongoStateStore:
         except (KeyError, IndexError):
             return None
 
+    def set_current_model(self, model_id: str):
+        """Set the current model in statestore.
+
+        :param model_id: The model id.
+        :type model_id: str
+        :return:
+        """
+
+        try:
+
+            committed_at = datetime.now()
+
+            existing_model = self.model.find_one({"key": "models", "model": model_id})
+
+            if existing_model is not None:
+
+                self.model.update_one(
+                    {"key": "current_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True
+                )
+
+                return True
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+
+        return False
+
     def get_latest_round(self):
         """Get the id of the most recent round.
 
@@ -283,34 +314,68 @@ class MongoStateStore:
         result = self.control.validations.find(kwargs)
         return result
 
-    def set_compute_package(self, filename):
+    def set_active_compute_package(self, id: str):
         """Set the active compute package in statestore.
 
-        :param filename: The filename of the compute package.
-        :type filename: str
+        :param id: The id of the compute package (not document _id).
+        :type id: str
         :return: True if successful.
         :rtype: bool
         """
+
+        try:
+
+            find = {"id": id}
+            projection = {"_id": False, "key": False}
+
+            doc = self.control.package.find_one(find, projection)
+
+            if doc is None:
+                return False
+
+            doc["key"] = "active"
+
+            self.control.package.replace_one(
+                {"key": "active"}, doc
+            )
+
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+            return False
+
+        return True
+
+    def set_compute_package(self, file_name: str, storage_file_name: str, helper_type: str, name: str = None, description: str = None):
+        """Set the active compute package in statestore.
+
+        :param file_name: The file_name of the compute package.
+        :type file_name: str
+        :return: True if successful.
+        :rtype: bool
+        """
+
+        obj = {
+            "file_name": file_name,
+            "storage_file_name": storage_file_name,
+            "helper": helper_type,
+            "committed_at": datetime.now(),
+            "name": name,
+            "description": description,
+            "id": str(uuid.uuid4()),
+        }
+
         self.control.package.update_one(
             {"key": "active"},
             {
-                "$set": {
-                    "filename": filename,
-                    "committed_at": str(datetime.now()),
-                }
+                "$set": obj
             },
             True,
         )
-        self.control.package.update_one(
-            {"key": "package_trail"},
-            {
-                "$push": {
-                    "filename": filename,
-                    "committed_at": str(datetime.now()),
-                }
-            },
-            True,
-        )
+
+        trail_obj = {**{"key": "package_trail"}, **obj}
+
+        self.control.package.insert_one(trail_obj)
+
         return True
 
     def get_compute_package(self):
@@ -319,16 +384,53 @@ class MongoStateStore:
         :return: The active compute package.
         :rtype: ObjectID
         """
-        ret = self.control.package.find({"key": "active"})
         try:
-            retcheck = ret[0]
-            if (
-                retcheck is None or retcheck == "" or retcheck == " "
-            ):  # ugly check for empty string
-                return None
-            return retcheck
-        except (KeyError, IndexError):
+
+            find = {"key": "active"}
+            projection = {"key": False, "_id": False}
+            ret = self.control.package.find_one(find, projection)
+            return ret
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
             return None
+
+    def list_compute_packages(self, limit: int = None, skip: int = None, sort_key="committed_at", sort_order=pymongo.DESCENDING):
+        """List compute packages in the statestore (paginated).
+
+        :param limit: The maximum number of compute packages to return.
+        :type limit: int
+        :param skip: The number of compute packages to skip.
+        :type skip: int
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
+        :return: Dictionary of compute packages in result and count.
+        :rtype: dict
+        """
+
+        result = None
+        count = None
+
+        find_option = {"key": "package_trail"}
+        projection = {"key": False, "_id": False}
+
+        try:
+            if limit is not None and skip is not None:
+                result = self.control.package.find(find_option, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
+            else:
+                result = self.control.package.find(find_option, projection).sort(sort_key, sort_order)
+
+            count = self.control.package.count_documents(find_option)
+
+        except Exception as e:
+            print("ERROR: {}".format(e), flush=True)
+            return None
+
+        return {
+            "result": result or [],
+            "count": count or 0,
+        }
 
     def set_helper(self, helper):
         """Set the active helper package in statestore.

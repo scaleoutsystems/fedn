@@ -169,7 +169,7 @@ class APIClient:
         response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify)
         return response.json()
 
-    def set_package(self, path, helper):
+    def set_package(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
@@ -180,7 +180,8 @@ class APIClient:
         :rtype: dict
         """
         with open(path, 'rb') as file:
-            response = requests.post(self._get_url('set_package'), files={'file': file}, data={'helper': helper}, verify=self.verify)
+            response = requests.post(self._get_url('set_package'), files={'file': file}, data={
+                                     'helper': helper, 'name': name, 'description': description}, verify=self.verify)
         return response.json()
 
     def get_package(self):
@@ -190,6 +191,15 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url('get_package'), verify=self.verify)
+        return response.json()
+
+    def list_compute_packages(self):
+        """ Get all compute packages from the statestore.
+
+        :return: All compute packages with info.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify)
         return response.json()
 
     def download_package(self, path):
