@@ -784,6 +784,45 @@ class API:
                 {"success": False, "message": "No model trail available."}
             )
 
+    def get_model_ancestors(self, model_id: str, limit: str = None):
+        """Get the model ancestors for a given model.
+
+        :param model_id: The model id to get the model ancestors for.
+        :type model_id: str
+        :param limit: The number of ancestors to return.
+        :type limit: str
+        :return: The model ancestors for the given model as a json response.
+        :rtype: :class:`flask.Response`
+        """
+        if model_id is None:
+            return jsonify(
+                {"success": False, "message": "No model id provided."}
+            )
+
+        limit = int(limit) if limit is not None else 10  # if limit is None, default to 10
+
+        response = self.statestore.get_model_ancestors(model_id, limit)
+        if response:
+
+            arr = []
+
+            for element in response:
+                obj = {
+                    "model": element["model"],
+                    "committed_at": element["committed_at"],
+                    "session_id": element["session_id"],
+                    "parent_model": element["parent_model"],
+                }
+                arr.append(obj)
+
+            result = {"result": arr}
+
+            return jsonify(result)
+        else:
+            return jsonify(
+                {"success": False, "message": "No model ancestors available."}
+            )
+
     def get_all_rounds(self):
         """Get all rounds.
 

@@ -29,6 +29,21 @@ def get_model_trail():
     return api.get_model_trail()
 
 
+@app.route("/get_model_ancestors", methods=["GET"])
+def get_model_ancestors():
+    """Get the ancestors of a model.
+    param: model: The model id to get the ancestors for.
+    type: model: str
+    type: limit: int
+    return: The a list of model objects that the model derives from.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    limit = request.args.get("limit", None)
+
+    return api.get_model_ancestors(model, limit)
+
+
 @app.route("/list_models", methods=["GET"])
 def list_models():
     """Get models from the statestore.
