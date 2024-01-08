@@ -572,6 +572,45 @@ class MongoStateStore:
 
         return result
 
+    def get_model_descendants(self, model_id: str, limit: int):
+        """Get the model descendants.
+
+        :param model_id: The model id.
+        :type model_id: str
+        :param limit: The maximum number of descendants to return.
+        :type limit: int
+        :return: List of model descendants.
+        :rtype: list
+        """
+
+        model: object = self.model.find_one({"key": "models", "model": model_id})
+        current_model_id: str = model["model"] if model is not None else None
+        result: list = []
+
+        for _ in range(limit):
+            if current_model_id is None:
+                break
+
+            model: str = self.model.find_one({"key": "models", "parent_model": current_model_id})
+
+            if model is not None:
+                result.append(model)
+                current_model_id = model["model"]
+
+        result.reverse()
+
+        return result
+
+    def get_model(self, model_id):
+        """Get model with id.
+
+        :param model_id: id of model to get
+        :type model_id: str
+        :return: model with id
+        :rtype: ObjectId
+        """
+        return self.model.find_one({"key": "models", "model": model_id})
+
     def get_events(self, **kwargs):
         """Get events from the database.
 
