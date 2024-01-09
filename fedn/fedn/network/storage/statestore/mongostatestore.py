@@ -184,9 +184,7 @@ class MongoStateStore:
         """
 
         committed_at = datetime.now()
-
         current_model = self.model.find_one({"key": "current_model"})
-        
         parent_model = None
 
         # if session_id is set the it means the model is generated from a session
@@ -555,7 +553,6 @@ class MongoStateStore:
         :return: List of model ancestors.
         :rtype: list
         """
-        
         model = self.model.find_one({"key": "models", "model": model_id})
         current_model_id = model["parent_model"] if model is not None else None
         result = []
