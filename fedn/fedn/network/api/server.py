@@ -93,7 +93,7 @@ def get_model():
     model = request.args.get("model", None)
     if model is None:
         return jsonify({"success": False, "message": "Missing model id."}), 400
-    
+
     return api.get_model(model)
 
 
