@@ -65,10 +65,10 @@ class Helper(HelperBase):
             w[name] = tensorDiff
         return w
 
-    def norm(self, model):
-        """Compute the L1-norm of the tensor. """
+    def norm(self, m):
+        """Compute the L1-norm of the tensor m. """
         n = 0.0
-        for name, val in model.items():
+        for name, val in m.items():
             n += np.linalg.norm(np.array(val), 1)
         return n
 

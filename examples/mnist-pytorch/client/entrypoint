@@ -77,7 +77,7 @@ def _load_data(data_path, is_train=True):
 
 
 def _save_model(model, out_path):
-    """ Save model to disk. 
+    """ Save model to disk.
 
     :param model: The model to save.
     :type model: torch.nn.Module

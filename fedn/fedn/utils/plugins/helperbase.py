@@ -12,11 +12,11 @@ class HelperBase(ABC):
         self.name = self.__class__.__name__
 
     @abstractmethod
-    def increment_average(self, model, model_next, a, W):
+    def increment_average(self, m1, m2, a, W):
         """ Compute one increment of incremental weighted averaging.
 
-        :param model: Current model weights in array-like format.
-        :param model_next: New model weights in array-like format.
+        :param m1: Current model weights in array-like format.
+        :param m2: New model weights in array-like format.
         :param a: Number of examples in new model.
         :param W: Total number of examples.
         :return: Incremental weighted average of model weights.

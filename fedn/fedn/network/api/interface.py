@@ -752,6 +752,7 @@ class API:
         self,
         session_id,
         aggregator='fedavg',
+        model_id=None,
         rounds=5,
         round_timeout=180,
         round_buffer_size=-1,
@@ -765,6 +766,10 @@ class API:
 
         :param session_id: The session id to start.
         :type session_id: str
+        :param aggregator: The aggregator plugin to use.
+        :type aggregator: str
+        :param initial_model: The initial model for the session.
+        :type initial_model: str
         :param rounds: The number of rounds to perform.
         :type rounds: int
         :param round_timeout: The round timeout to use in seconds.
@@ -831,13 +836,14 @@ class API:
                 validate = False
 
         # Get lastest model as initial model for session
-        model_id = self.statestore.get_latest_model()
+        if not model_id:
+            model_id = self.statestore.get_latest_model()
 
         # Setup session config
         session_config = {
             "session_id": session_id if session_id else str(uuid.uuid4()),
-            "round_timeout": round_timeout,
             "aggregator": aggregator,
+            "round_timeout": round_timeout,
             "buffer_size": round_buffer_size,
             "model_id": model_id,
             "rounds": rounds,

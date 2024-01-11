@@ -110,12 +110,16 @@ class APIClient:
         response = requests.get(self._get_url(f'get_round?round_id={round_id}'), verify=self.verify)
         return response.json()
 
-    def start_session(self, session_id=None, aggregator='fedavg', round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
+    def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
                       validate=True, helper='kerashelper', min_clients=1, requested_clients=8):
         """ Start a new session.
 
         :param session_id: The session id to start.
         :type session_id: str
+        :param aggregator: The aggregator plugin to use.
+        :type aggregator: str
+        :param model_id: The id of the initial model.
+        :type model_id: str
         :param round_timeout: The round timeout to use in seconds.
         :type round_timeout: int
         :param rounds: The number of rounds to perform.
@@ -136,8 +140,9 @@ class APIClient:
         :rtype: dict
         """
         response = requests.post(self._get_url('start_session'), json={
-            'aggregator': aggregator,
             'session_id': session_id,
+            'aggregator': aggregator,
+            'model_id': model_id,
             'round_timeout': round_timeout,
             'rounds': rounds,
             'round_buffer_size': round_buffer_size,
