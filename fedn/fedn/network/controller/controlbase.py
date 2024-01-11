@@ -160,7 +160,7 @@ class ControlBase(ABC):
         definition = self.statestore.get_compute_package()
         if definition:
             try:
-                package_name = definition["filename"]
+                package_name = definition["storage_file_name"]
                 return package_name
             except (IndexError, KeyError):
                 print(
@@ -174,7 +174,6 @@ class ControlBase(ABC):
     def set_compute_package(self, filename, path):
         """Persist the configuration for the compute package."""
         self.model_repository.set_compute_package(filename, path)
-        self.statestore.set_compute_package(filename)
 
     def get_compute_package(self, compute_package=""):
         """

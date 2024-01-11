@@ -29,6 +29,38 @@ def get_model_trail():
     return api.get_model_trail()
 
 
+@app.route("/get_model_ancestors", methods=["GET"])
+def get_model_ancestors():
+    """Get the ancestors of a model.
+    param: model: The model id to get the ancestors for.
+    type: model: str
+    param: limit: The maximum number of ancestors to return.
+    type: limit: int
+    return: A list of model objects that the model derives from.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    limit = request.args.get("limit", None)
+
+    return api.get_model_ancestors(model, limit)
+
+
+@app.route("/get_model_descendants", methods=["GET"])
+def get_model_descendants():
+    """Get the ancestors of a model.
+    param: model: The model id to get the child for.
+    type: model: str
+    param: limit: The maximum number of descendants to return.
+    type: limit: int
+    return: A list of model objects that are descendents of the provided model id.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    limit = request.args.get("limit", None)
+
+    return api.get_model_descendants(model, limit)
+
+
 @app.route("/list_models", methods=["GET"])
 def list_models():
     """Get models from the statestore.
@@ -45,8 +77,24 @@ def list_models():
     session_id = request.args.get("session_id", None)
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
+    include_active = request.args.get("include_active", None)
 
-    return api.get_models(session_id, limit, skip)
+    return api.get_models(session_id, limit, skip, include_active)
+
+
+@app.route("/get_model", methods=["GET"])
+def get_model():
+    """Get a model from the statestore.
+    param: model: The model id to get.
+    type: model: str
+    return: The model as a json object.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    if model is None:
+        return jsonify({"success": False, "message": "Missing model id."}), 400
+
+    return api.get_model(model)
 
 
 @app.route("/delete_model_trail", methods=["GET", "POST"])
@@ -183,6 +231,12 @@ def get_session():
     return api.get_session(session_id)
 
 
+@app.route("/set_active_package", methods=["PUT"])
+def set_active_package():
+    id = request.args.get("id", None)
+    return api.set_active_compute_package(id)
+
+
 @app.route("/set_package", methods=["POST"])
 def set_package():
     """ Set the compute package in the statestore.
@@ -198,6 +252,9 @@ def set_package():
     rtype: json
     """
     helper_type = request.form.get("helper", None)
+    name = request.form.get("name", None)
+    description = request.form.get("description", None)
+
     if helper_type is None:
         return (
             jsonify({"success": False, "message": "Missing helper type."}),
@@ -207,7 +264,7 @@ def set_package():
         file = request.files["file"]
     except KeyError:
         return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_compute_package(file=file, helper_type=helper_type)
+    return api.set_compute_package(file=file, helper_type=helper_type, name=name, description=description)
 
 
 @app.route("/get_package", methods=["GET"])
@@ -217,6 +274,24 @@ def get_package():
     rtype: json
     """
     return api.get_compute_package()
+
+
+@app.route("/list_compute_packages", methods=["GET"])
+def list_compute_packages():
+    """Get the compute package from the statestore.
+    return: The compute package as a json object.
+    rtype: json
+    """
+
+    limit = request.args.get("limit", None)
+    skip = request.args.get("skip", None)
+    include_active = request.args.get("include_active", None)
+
+    return api.list_compute_packages(
+        limit=limit,
+        skip=skip,
+        include_active=include_active
+    )
 
 
 @app.route("/download_package", methods=["GET"])
@@ -243,6 +318,24 @@ def get_latest_model():
     """
     return api.get_latest_model()
 
+
+@app.route("/set_current_model", methods=["PUT"])
+def set_current_model():
+    """Set the initial model in the statestore and upload to model repository.
+          Usage with curl:
+          curl -k -X PUT
+              -F id=<model-id>
+              http://localhost:8092/set_current_model
+
+      param: id: The model id to set.
+      type: id: str
+      return: boolean.
+      rtype: json
+      """
+    id = request.args.get("id", None)
+    if id is None:
+        return jsonify({"success": False, "message": "Missing model id."}), 400
+    return api.set_current_model(id)
 
 # Get initial model endpoint
 

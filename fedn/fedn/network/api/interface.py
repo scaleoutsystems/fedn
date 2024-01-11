@@ -42,14 +42,15 @@ class API:
 
         :param filename: The filename to check.
         :type filename: str
-        :return: True if file extension is allowed, else False.
-        :rtype: bool
+        :return: True and extension str if file extension is allowed, else False and None.
+        :rtype: Tuple (bool, str)
         """
+        if "." in filename:
+            extension = filename.rsplit(".", 1)[1].lower()
+            if extension in ALLOWED_EXTENSIONS:
+                return (True, extension)
 
-        return (
-            "." in filename
-            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-        )
+        return (False, None)
 
     def get_clients(self, limit=None, skip=None, status=False):
         """Get all clients from the statestore.
@@ -169,40 +170,10 @@ class API:
         payload[id] = info
         return jsonify(payload)
 
-    def set_compute_package(self, file, helper_type):
-        """Set the compute package in the statestore.
+    def set_active_compute_package(self, id: str):
 
-        :param file: The compute package to set.
-        :type file: file
-        :return: A json response with success or failure message.
-        :rtype: :class:`flask.Response`
-        """
+        success = self.statestore.set_active_compute_package(id)
 
-        if file and self._allowed_file_extension(file.filename):
-            filename = secure_filename(file.filename)
-            # TODO: make configurable, perhaps in config.py or package.py
-            file_path = os.path.join("/app/client/package/", filename)
-            file.save(file_path)
-
-            if (
-                self.control.state() == ReducerState.instructing
-                or self.control.state() == ReducerState.monitoring
-            ):
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "message": "Reducer is in instructing or monitoring state."
-                            "Cannot set compute package.",
-                        }
-                    ),
-                    400,
-                )
-
-            self.control.set_compute_package(filename, file_path)
-            self.statestore.set_helper(helper_type)
-
-        success = self.statestore.set_compute_package(filename)
         if not success:
             return (
                 jsonify(
@@ -213,6 +184,77 @@ class API:
                 ),
                 400,
             )
+
+        return jsonify({"success": True, "message": "Compute package set."})
+
+    def set_compute_package(self, file, helper_type: str, name: str = None, description: str = None):
+        """Set the compute package in the statestore.
+
+        :param file: The compute package to set.
+        :type file: file
+        :return: A json response with success or failure message.
+        :rtype: :class:`flask.Response`
+        """
+
+        if (
+            self.control.state() == ReducerState.instructing
+            or self.control.state() == ReducerState.monitoring
+        ):
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Reducer is in instructing or monitoring state."
+                        "Cannot set compute package.",
+                    }
+                ),
+                400,
+            )
+
+        if file is None:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "No file provided.",
+                    }
+                ),
+                404,
+            )
+
+        success, extension = self._allowed_file_extension(file.filename)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": f"File extension {extension} not allowed.",
+                    }
+                ),
+                404,
+            )
+
+        file_name = file.filename
+        storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
+
+        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file.save(file_path)
+
+        self.control.set_compute_package(storage_file_name, file_path)
+        success = self.statestore.set_compute_package(file_name, storage_file_name, helper_type, name, description)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to set compute package.",
+                    }
+                ),
+                400,
+            )
+
         return jsonify({"success": True, "message": "Compute package set."})
 
     def _get_compute_package_name(self):
@@ -227,7 +269,7 @@ class API:
             return None, message
         else:
             try:
-                name = package_objects["filename"]
+                name = package_objects["storage_file_name"]
             except KeyError as e:
                 message = "No compute package found. Key error."
                 print(e)
@@ -240,22 +282,92 @@ class API:
         :return: The compute package as a json response.
         :rtype: :class:`flask.Response`
         """
-        package_object = self.statestore.get_compute_package()
-        if package_object is None:
+        result = self.statestore.get_compute_package()
+        if result is None:
             return (
                 jsonify(
                     {"success": False, "message": "No compute package found."}
                 ),
                 404,
             )
-        payload = {}
-        id = str(package_object["_id"])
-        info = {
-            "filename": package_object["filename"],
-            "helper": package_object["helper"],
+
+        obj = {
+            "id": result["id"] if "id" in result else "",
+            "file_name": result["file_name"],
+            "helper": result["helper"],
+            "committed_at": result["committed_at"],
+            "storage_file_name": result["storage_file_name"] if "storage_file_name" in result else "",
+            "name": result["name"] if "name" in result else "",
+            "description": result["description"] if "description" in result else "",
         }
-        payload[id] = info
-        return jsonify(payload)
+
+        return jsonify(obj)
+
+    def list_compute_packages(self, limit: str = None, skip: str = None, include_active: str = None):
+        """Get paginated list of compute packages from the statestore.
+        :param limit: The number of compute packages to return.
+        :type limit: str
+        :param skip: The number of compute packages to skip.
+        :type skip: str
+        :param include_active: Whether to include the active compute package or not.
+        :type include_active: str
+        :return: All compute packages as a json response.
+        :rtype: :class:`flask.Response`
+        """
+
+        if limit is not None and skip is not None:
+            limit = int(limit)
+            skip = int(skip)
+
+        include_active: bool = include_active == "true"
+
+        result = self.statestore.list_compute_packages(limit, skip)
+        if result is None:
+            return (
+                jsonify(
+                    {"success": False, "message": "No compute packages found."}
+                ),
+                404,
+            )
+
+        active_package_id: str = None
+
+        if include_active:
+            active_package = self.statestore.get_compute_package()
+
+            if active_package is not None:
+                active_package_id = active_package["id"] if "id" in active_package else ""
+
+        if include_active:
+            arr = [
+                {
+                    "id": element["id"] if "id" in element else "",
+                    "file_name": element["file_name"],
+                    "helper": element["helper"],
+                    "committed_at": element["committed_at"],
+                    "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
+                    "name": element["name"] if "name" in element else "",
+                    "description": element["description"] if "description" in element else "",
+                    "active": "id" in element and element["id"] == active_package_id,
+                }
+                for element in result["result"]
+            ]
+        else:
+            arr = [
+                {
+                    "id": element["id"] if "id" in element else "",
+                    "file_name": element["file_name"],
+                    "helper": element["helper"],
+                    "committed_at": element["committed_at"],
+                    "storage_file_name": element["storage_file_name"] if "storage_file_name" in element else "",
+                    "name": element["name"] if "name" in element else "",
+                    "description": element["description"] if "description" in element else "",
+                }
+                for element in result["result"]
+            ]
+
+        result = {"result": arr, "count": result["count"]}
+        return jsonify(result)
 
     def download_compute_package(self, name):
         """Download the compute package.
@@ -595,7 +707,30 @@ class API:
                 {"success": False, "message": "No initial model set."}
             )
 
-    def get_models(self, session_id=None, limit=None, skip=None):
+    def set_current_model(self, model_id: str):
+        """Set the active model in the statestore.
+
+        :param model_id: The model id to set.
+        :type model_id: str
+        :return: A json response with success or failure message.
+        :rtype: :class:`flask.Response`
+        """
+        success = self.statestore.set_current_model(model_id)
+
+        if not success:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to set active model.",
+                    }
+                ),
+                400,
+            )
+
+        return jsonify({"success": True, "message": "Active model set."})
+
+    def get_models(self, session_id: str = None, limit: str = None, skip: str = None, include_active: str = None):
         result = self.statestore.list_models(session_id, limit, skip)
 
         if result is None:
@@ -604,14 +739,52 @@ class API:
                 404,
             )
 
-        arr = []
+        include_active: bool = include_active == "true"
 
-        for model in result["result"]:
-            arr.append(model)
+        if include_active:
+
+            latest_model = self.statestore.get_latest_model()
+
+            arr = [
+                {
+                    "committed_at": element["committed_at"],
+                    "model": element["model"],
+                    "session_id": element["session_id"],
+                    "active": element["model"] == latest_model,
+                }
+                for element in result["result"]
+            ]
+        else:
+            arr = [
+                {
+                    "committed_at": element["committed_at"],
+                    "model": element["model"],
+                    "session_id": element["session_id"],
+                }
+                for element in result["result"]
+            ]
 
         result = {"result": arr, "count": result["count"]}
 
         return jsonify(result)
+
+    def get_model(self, model_id: str):
+        result = self.statestore.get_model(model_id)
+
+        if result is None:
+            return (
+                jsonify({"success": False, "message": "No model found."}),
+                404,
+            )
+
+        payload = {
+            "committed_at": result["committed_at"],
+            "parent_model": result["parent_model"],
+            "model": result["model"],
+            "session_id": result["session_id"],
+        }
+
+        return jsonify(payload)
 
     def get_model_trail(self):
         """Get the model trail for a given session.
@@ -627,6 +800,86 @@ class API:
         else:
             return jsonify(
                 {"success": False, "message": "No model trail available."}
+            )
+
+    def get_model_ancestors(self, model_id: str, limit: str = None):
+        """Get the model ancestors for a given model.
+
+        :param model_id: The model id to get the model ancestors for.
+        :type model_id: str
+        :param limit: The number of ancestors to return.
+        :type limit: str
+        :return: The model ancestors for the given model as a json response.
+        :rtype: :class:`flask.Response`
+        """
+        if model_id is None:
+            return jsonify(
+                {"success": False, "message": "No model id provided."}
+            )
+
+        limit: int = int(limit) if limit is not None else 10  # if limit is None, default to 10
+
+        response = self.statestore.get_model_ancestors(model_id, limit)
+        if response:
+
+            arr: list = []
+
+            for element in response:
+                obj = {
+                    "model": element["model"],
+                    "committed_at": element["committed_at"],
+                    "session_id": element["session_id"],
+                    "parent_model": element["parent_model"],
+                }
+                arr.append(obj)
+
+            result = {"result": arr}
+
+            return jsonify(result)
+        else:
+            return jsonify(
+                {"success": False, "message": "No model ancestors available."}
+            )
+
+    def get_model_descendants(self, model_id: str, limit: str = None):
+        """Get the model descendants for a given model.
+
+        :param model_id: The model id to get the model descendants for.
+        :type model_id: str
+        :param limit: The number of descendants to return.
+        :type limit: str
+        :return: The model descendants for the given model as a json response.
+        :rtype: :class:`flask.Response`
+        """
+
+        if model_id is None:
+            return jsonify(
+                {"success": False, "message": "No model id provided."}
+            )
+
+        limit: int = int(limit) if limit is not None else 10
+
+        response: list = self.statestore.get_model_descendants(model_id, limit)
+
+        if response:
+
+            arr: list = []
+
+            for element in response:
+                obj = {
+                    "model": element["model"],
+                    "committed_at": element["committed_at"],
+                    "session_id": element["session_id"],
+                    "parent_model": element["parent_model"],
+                }
+                arr.append(obj)
+
+            result = {"result": arr}
+
+            return jsonify(result)
+        else:
+            return jsonify(
+                {"success": False, "message": "No model descendants available."}
             )
 
     def get_all_rounds(self):
