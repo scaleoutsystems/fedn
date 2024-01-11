@@ -184,11 +184,20 @@ class MongoStateStore:
         """
 
         committed_at = datetime.now()
+        current_model = self.model.find_one({"key": "current_model"})
+        parent_model = None
+
+        # if session_id is set the it means the model is generated from a session
+        # and we need to set the parent model
+        # if not the model is uploaded by the user and we don't need to set the parent model
+        if session_id is not None:
+            parent_model = current_model["model"] if current_model and "model" in current_model else None
 
         self.model.insert_one(
             {
                 "key": "models",
                 "model": model_id,
+                "parent_model": parent_model,
                 "session_id": session_id,
                 "committed_at": committed_at,
             }
@@ -533,6 +542,71 @@ class MongoStateStore:
                 return None
         except (KeyError, IndexError):
             return None
+
+    def get_model_ancestors(self, model_id: str, limit: int):
+        """Get the model ancestors.
+
+        :param model_id: The model id.
+        :type model_id: str
+        :param limit: The maximum number of ancestors to return.
+        :type limit: int
+        :return: List of model ancestors.
+        :rtype: list
+        """
+        model = self.model.find_one({"key": "models", "model": model_id})
+        current_model_id = model["parent_model"] if model is not None else None
+        result = []
+
+        for _ in range(limit):
+            if current_model_id is None:
+                break
+
+            model = self.model.find_one({"key": "models", "model": current_model_id})
+
+            if model is not None:
+                result.append(model)
+                current_model_id = model["parent_model"]
+
+        return result
+
+    def get_model_descendants(self, model_id: str, limit: int):
+        """Get the model descendants.
+
+        :param model_id: The model id.
+        :type model_id: str
+        :param limit: The maximum number of descendants to return.
+        :type limit: int
+        :return: List of model descendants.
+        :rtype: list
+        """
+
+        model: object = self.model.find_one({"key": "models", "model": model_id})
+        current_model_id: str = model["model"] if model is not None else None
+        result: list = []
+
+        for _ in range(limit):
+            if current_model_id is None:
+                break
+
+            model: str = self.model.find_one({"key": "models", "parent_model": current_model_id})
+
+            if model is not None:
+                result.append(model)
+                current_model_id = model["model"]
+
+        result.reverse()
+
+        return result
+
+    def get_model(self, model_id):
+        """Get model with id.
+
+        :param model_id: id of model to get
+        :type model_id: str
+        :return: model with id
+        :rtype: ObjectId
+        """
+        return self.model.find_one({"key": "models", "model": model_id})
 
     def get_events(self, **kwargs):
         """Get events from the database.

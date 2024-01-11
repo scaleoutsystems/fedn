@@ -29,6 +29,38 @@ def get_model_trail():
     return api.get_model_trail()
 
 
+@app.route("/get_model_ancestors", methods=["GET"])
+def get_model_ancestors():
+    """Get the ancestors of a model.
+    param: model: The model id to get the ancestors for.
+    type: model: str
+    param: limit: The maximum number of ancestors to return.
+    type: limit: int
+    return: A list of model objects that the model derives from.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    limit = request.args.get("limit", None)
+
+    return api.get_model_ancestors(model, limit)
+
+
+@app.route("/get_model_descendants", methods=["GET"])
+def get_model_descendants():
+    """Get the ancestors of a model.
+    param: model: The model id to get the child for.
+    type: model: str
+    param: limit: The maximum number of descendants to return.
+    type: limit: int
+    return: A list of model objects that are descendents of the provided model id.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    limit = request.args.get("limit", None)
+
+    return api.get_model_descendants(model, limit)
+
+
 @app.route("/list_models", methods=["GET"])
 def list_models():
     """Get models from the statestore.
@@ -48,6 +80,21 @@ def list_models():
     include_active = request.args.get("include_active", None)
 
     return api.get_models(session_id, limit, skip, include_active)
+
+
+@app.route("/get_model", methods=["GET"])
+def get_model():
+    """Get a model from the statestore.
+    param: model: The model id to get.
+    type: model: str
+    return: The model as a json object.
+    rtype: json
+    """
+    model = request.args.get("model", None)
+    if model is None:
+        return jsonify({"success": False, "message": "Missing model id."}), 400
+
+    return api.get_model(model)
 
 
 @app.route("/delete_model_trail", methods=["GET", "POST"])
