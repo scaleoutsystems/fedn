@@ -1,4 +1,3 @@
-import json
 import os
 import struct
 import tempfile
@@ -17,6 +16,7 @@ class Helper(HelperBase):
         super().__init__()
 
     # function to calculate an incremental weighted average of the weights
+
     def increment_average(
             self, model, model_next, num_examples, total_examples
     ):
@@ -74,7 +74,7 @@ class Helper(HelperBase):
         if not path:
             path = self.get_tmp_path()
 
-        byte_array = struct.pack("f"*len(weights),*weights)
+        byte_array = struct.pack("f"*len(weights), *weights)
         with open(path, "wb") as file:
             file.write(byte_array)
 
