@@ -1,5 +1,6 @@
 import json
 import os
+import struct
 import tempfile
 
 import numpy as np
@@ -17,7 +18,7 @@ class Helper(HelperBase):
 
     # function to calculate an incremental weighted average of the weights
     def increment_average(
-        self, model, model_next, num_examples, total_examples
+            model, model_next, num_examples, total_examples
     ):
         """Incremental weighted average of model weights.
 
@@ -34,13 +35,8 @@ class Helper(HelperBase):
         """
         # Incremental weighted average
         w = num_examples / total_examples
-        weights = {}
-        for i in model.keys():
-            weights[i] = list(
-                (1-w) * np.array(model[i]) + w * np.array(model_next[i])
-            )
 
-        return weights
+        return (1 - w) * model + w * model_next
 
     # function to calculate an incremental weighted average of the weights using numpy.add
     def increment_average_add(
@@ -78,8 +74,9 @@ class Helper(HelperBase):
         if not path:
             path = self.get_tmp_path()
 
-        with open(path, "w") as outfile:
-            json.dump(weights, outfile)
+        byte_array = struct.pack("f"*len(weights),*weights)
+        with open(path, "wb") as file:
+            file.write(byte_array)
 
         return path
 
@@ -89,12 +86,14 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in json format.
         """
+        print("in android helper load")
         if isinstance(fh, str):
-            with open(fh, "r") as openfile:
-                weights = json.load(openfile)
+            with open(fh, "rb") as file:
+                byte_data = file.read()
         else:
-            byte_array = fh.read()
-            weights = json.loads(byte_array)
+            byte_data = fh.read()
+
+        weights = np.array(struct.unpack(f'{len(byte_data) // 4}f', byte_data))
 
         return weights
 
