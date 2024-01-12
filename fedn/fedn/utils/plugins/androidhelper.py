@@ -18,7 +18,7 @@ class Helper(HelperBase):
 
     # function to calculate an incremental weighted average of the weights
     def increment_average(
-            model, model_next, num_examples, total_examples
+            self, model, model_next, num_examples, total_examples
     ):
         """Incremental weighted average of model weights.
 
@@ -102,6 +102,6 @@ class Helper(HelperBase):
 
         :return: Path to file.
         """
-        fd, path = tempfile.mkstemp(suffix=".json")
+        fd, path = tempfile.mkstemp(suffix="")
         os.close(fd)
         return path
