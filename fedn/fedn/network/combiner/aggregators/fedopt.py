@@ -33,11 +33,14 @@ class Aggregator(AggregatorBase):
         super().__init__(storage, server, modelservice, control)
 
         self.name = "fedopt"
+        self.v = None
+        self.m = None
+
         # Server side hyperparameters
-        self.eta = 1
+        self.eta = 0.1
         self.beta1 = 0.9
         self.beta2 = 0.99
-        self.tau = 1e-3
+        self.tau = 1e-4
 
     def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
         """Compute pseudo gradients usigng model updates in the queue.
@@ -64,9 +67,6 @@ class Aggregator(AggregatorBase):
 
         logger.info(
             "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
-
-        # v = math.pow(self.tau, 2)
-        # m = 0.0
 
         while not self.model_updates.empty():
             try:
@@ -101,14 +101,36 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        # Server-side momentum
-        # m = helper.add(m, pseudo_gradient, self.beta1, (1.0-self.beta1))
-        # v = v + helper.power(pseudo_gradient, 2)
-        # model = model_old + self.eta*m/helper.sqrt(v+self.tau)
-
-        model = helper.add(model_old, pseudo_gradient, 1.0, self.eta)
+        model = self.serveropt_adam(helper, pseudo_gradient, model_old)
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data
+
+    def serveropt_adam(self, helper, pseudo_gradient, model_old):
+        """ Server side optimization, FedAdam.
+
+        :param helper: instance of helper class.
+        :type helper: Helper
+        :param pseudo_gradient: The pseudo gradient.
+        :type pseudo_gradient: As defined by helper.
+        :return: new model weights.
+        :rtype: as defined by helper.
+        """
+
+        if not self.v:
+            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+
+        if not self.m:
+            self.m = helper.multiply(pseudo_gradient, (1.0-self.beta1))
+        else:
+            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+
+        p = helper.power(pseudo_gradient, 2)
+        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
+        t = helper.divide(self.m, sv)
+
+        model = helper.add(model_old, t, 1.0, self.eta)
+        return model

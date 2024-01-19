@@ -167,11 +167,10 @@ class Control(ControlBase):
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
-        #round_config["helper_type"] = self.statestore.get_helper()
 
         self.set_round_config(round_id, round_config)
 
-        # Get combiners that are able to participate in round, given round_config
+        # Get combiners that are able to participate in the round, given round_config
         participating_combiners = self.get_participating_combiners(round_config)
 
         # Check if the policy to start the round is met
