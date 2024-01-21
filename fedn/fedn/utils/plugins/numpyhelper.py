@@ -8,6 +8,11 @@ from .helperbase import HelperBase
 class Helper(HelperBase):
     """ FEDn helper class for numpy arrays. """
 
+    def __init__(self):
+        """ Initialize helper. """
+        super().__init__()
+        self.name = "numpyhelper"
+
     def increment_average(self, m1, m2, n, N):
         """ Update an incremental average.
 

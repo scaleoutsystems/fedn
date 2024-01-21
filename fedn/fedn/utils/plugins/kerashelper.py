@@ -4,14 +4,12 @@ from .helperbase import HelperBase
 
 
 class Helper(HelperBase):
-    """ FEDn helper class for keras.Sequential. """
+    """ FEDn helper class for Tensorflow/Keras models. """
 
     def __init__(self):
         """ Initialize helper. """
         self.name = "kerashelper"
         super().__init__()
-
-    # function to calculate an incremental weighted average of the weights using numpy.add
 
     def increment_average(self, model, model_next, num_examples, total_examples):
         """ Incremental weighted average of model weights.

@@ -6,7 +6,7 @@ from .helperbase import HelperBase
 
 
 class Helper(HelperBase):
-    """ FEDn helper class for pytorch. """
+    """ FEDn helper class for pytorch models. """
 
     def __init__(self):
         """ Initialize helper. """
