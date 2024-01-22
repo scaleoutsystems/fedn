@@ -6,7 +6,12 @@ from .helperbase import HelperBase
 
 
 class Helper(HelperBase):
-    """ FEDn helper class for numpy arrays. """
+    """ FEDn helper class.
+
+    For models that can be serialized as a
+    list of numpy ndarrays.
+
+    """
 
     def __init__(self):
         """ Initialize helper. """
