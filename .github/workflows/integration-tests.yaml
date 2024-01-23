@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         to_test:
-          - "mnist-keras kerashelper"
-          - "mnist-pytorch pytorchhelper"
+          - "mnist-keras numpyhelper"
+          - "mnist-pytorch numpyhelper"
         python_version: ["3.8", "3.9","3.10"]
         os:
           - ubuntu-20.04
