@@ -46,7 +46,6 @@ def compile_model():
             x = torch.nn.functional.log_softmax(self.fc3(x), dim=1)
             return x
 
-    # Return model
     return Net()
 
 
@@ -166,16 +165,17 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     # Metadata needed for aggregation server side
     metadata = {
+        # num_examples are mandatory
         'num_examples': len(x_train),
         'batch_size': batch_size,
         'epochs': epochs,
         'lr': lr
     }
 
-    # Save JSON metadata file
+    # Save JSON metadata file (mandatory)
     save_metadata(metadata, out_model_path)
 
-    # Save model update
+    # Save model update (mandatory)
     save_parameters(model, out_model_path)
 
 
