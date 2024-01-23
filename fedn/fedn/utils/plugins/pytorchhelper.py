@@ -13,25 +13,30 @@ class Helper(HelperBase):
         super().__init__()
         self.name = "pytorchhelper"
 
-    def increment_average(self, model, model_next, num_examples, total_examples):
+    def increment_average(self, m1, m2, n, N):
         """ Update a weighted incremental average of model weights.
 
-        :param model: Current model weights with keys from torch state_dict.
-        :type model: OrderedDict
-        :param model_next: New model weights with keys from torch state_dict.
-        :type model_next: OrderedDict
-        :param num_examples: Number of examples in new model.
-        :type num_examples: int
-        :param total_examples: Total number of examples.
-        :type total_examples: int
-        :return: Incremental weighted average of model weights.
-        :rtype: OrderedDict
+        :param m1: Current parameters.
+        :type model: list of numpy ndarray
+        :param m2: next parameters.
+        :type model_next: list of numpy ndarray
+        :param n: Number of examples used for updating m2.
+        :type n: int
+        :param N: Total number of examples (accumulated).
+        :type N: int
+        :return: Updated incremental weighted average.
+        :rtype: list of numpy ndarray
         """
-        w = OrderedDict()
-        for name in model.keys():
-            tensorDiff = model_next[name] - model[name]
-            w[name] = model[name] + num_examples*tensorDiff / total_examples
-        return w
+
+        return [np.add(x, n*(y-x))/N for x, y in zip(m1, m2)]
+        # w = np.add(m1, n*(np.array(m2) - np.array(m1)) / N)
+        # return w
+
+        # w = OrderedDict()
+        # for name in model.keys():
+        #    tensorDiff = m1[name] - m2[name]
+        #    w[name] = m1[name] + n*tensorDiff / N
+        # return w
 
     def add(self, m1, m2, a=1.0, b=1.0):
         """ m1*a + m2*b
@@ -43,11 +48,8 @@ class Helper(HelperBase):
         :return: Incremental weighted average of model weights.
         :rtype: OrderedDict
         """
-        w = OrderedDict()
-        for name in m1.keys():
-            tensorSum = a*m1[name] + b*m2[name]
-            w[name] = tensorSum
-        return w
+
+        return [x*a+y*b for x, y in zip(m1, m2)]
 
     def subtract(self, m1, m2, a=1.0, b=1.0):
         """ m1*a - m2*b.
@@ -72,11 +74,7 @@ class Helper(HelperBase):
         :rtype: OrderedDict
         """
 
-        res = OrderedDict()
-        for key, val in m1.items():
-            res[key] = np.divide(val, m2[key])
-
-        return res
+        return [np.divide(x, y) for x, y in zip(m1, m2)]
 
     def multiply(self, m1, m2):
         """ Multiply m1 by m2.
@@ -85,15 +83,11 @@ class Helper(HelperBase):
         :type m1: OrderedDict
         :param m2: New model weights with keys from torch state_dict.
         :type m2: OrderedDict
-        :return: m1.*m2 
+        :return: m1.*m2
         :rtype: OrderedDict
         """
 
-        res = OrderedDict()
-        for key, val in m1.items():
-            res[key] = np.multiply(np.array(val), m2)
-
-        return res
+        return [np.multiply(x, y) for (x, y) in zip(m1, m2)]
 
     def sqrt(self, m1):
         """ Sqrt of m1, element-wise.
@@ -105,11 +99,8 @@ class Helper(HelperBase):
         :return: sqrt(m1)
         :rtype: OrderedDict
         """
-        res = OrderedDict()
-        for key, val in m1.items():
-            res[key] = np.sqrt(np.array(val))
 
-        return res
+        return [np.sqrt(x) for x in m1]
 
     def power(self, m1, a):
         """ m1 raised to the power of m2.
@@ -121,52 +112,50 @@ class Helper(HelperBase):
         :return: m1.^m2
         :rtype: OrderedDict
         """
-        res = OrderedDict()
-        for key, val in m1.items():
-            res[key] = np.power(val, a)
 
-        return res
+        return [np.power(x, a) for x in m1]
 
     def norm(self, m):
-        """Compute the L1-norm of the tensor m. """
+        """Compute the L1 norm of m. """
         n = 0.0
-        for name, val in m.items():
-            n += np.linalg.norm(np.array(val), 1)
-
+        for x in m:
+            n += np.linalg.norm(x, 1)
         return n
 
     def ones(self, m1, a):
-        res = OrderedDict()
-        for key, val in m1.items():
-            res[key] = np.ones(np.shape(val))*a
 
+        res = []
+        for x in m1:
+            res.append(np.ones(np.shape(x))*a)
         return res
 
-    def save(self, model, path=None):
+    def save(self, weights, path=None):
         """ Serialize weights to file. The serialized model must be a single binary object.
 
-        :param model: Weights of model with keys from torch state_dict.
-        :type model: OrderedDict
-        :param path: File path.
-        :type path: str
-        :return: Path to file (generated as tmp file unless path is set).
-        :rtype: str
+        :param weights: List of weights in numpy format.
+        :param path: Path to file.
+        :return: Path to file.
         """
         if not path:
             path = self.get_tmp_path()
-        np.savez_compressed(path, **model)
+
+        weights_dict = {}
+        for i, w in enumerate(weights):
+            weights_dict[str(i)] = w
+
+        np.savez_compressed(path, **weights_dict)
+
         return path
 
-    def load(self, path):
+    def load(self, fh):
         """ Load weights from file or filelike.
 
-        :param path: file path, filehandle, filelike.
-        :type path: str
-        :return: Weights of model with keys from torch state_dict.
-        :rtype: OrderedDict
+        :param fh: file path, filehandle, filelike.
+        :return: List of weights in numpy format.
         """
-        a = np.load(path)
-        weights_np = OrderedDict()
-        for i in a.files:
-            weights_np[i] = a[i]
-        return weights_np
+        a = np.load(fh)
+
+        weights = []
+        for i in range(len(a.files)):
+            weights.append(a[str(i)])
+        return weights

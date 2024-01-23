@@ -85,8 +85,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     weights = model.get_weights()
     helper.save(weights, out_model_path)
 
-    # Metadata needed for aggregation server side
+    # Metadata about local training to be passed on to aggregator
     metadata = {
+        # num_examples are mandatory
         'num_examples': len(x_train),
         'batch_size': batch_size,
         'epochs': epochs,

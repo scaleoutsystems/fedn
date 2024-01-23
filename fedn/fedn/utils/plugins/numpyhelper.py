@@ -11,6 +11,8 @@ class Helper(HelperBase):
     For models that can be serialized as a
     list of numpy ndarrays.
 
+    model has to be on format list of numpy ndarray.
+
     """
 
     def __init__(self):

@@ -123,7 +123,7 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, (1.0-self.beta1))
+            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
         else:
             self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
 
