@@ -1,5 +1,3 @@
-import json
-
 import requests
 
 __all__ = ['APIClient']
