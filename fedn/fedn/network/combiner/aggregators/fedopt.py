@@ -1,7 +1,5 @@
 import math
 
-import numpy as np
-
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
