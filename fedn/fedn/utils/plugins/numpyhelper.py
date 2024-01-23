@@ -1,4 +1,4 @@
-import tempfile
+from collections import OrderedDict
 
 import numpy as np
 
@@ -6,37 +6,40 @@ from .helperbase import HelperBase
 
 
 class Helper(HelperBase):
-    """ FEDn helper class.
-
-    For models that can be serialized as a
-    list of numpy ndarrays.
-
-    model has to be on format list of numpy ndarray.
-
-    """
+    """ FEDn helper class for pytorch models. """
 
     def __init__(self):
         """ Initialize helper. """
         super().__init__()
-        self.name = "numpyhelper"
+        self.name = "pytorchhelper"
 
     def increment_average(self, m1, m2, n, N):
-        """ Update an incremental average.
+        """ Update a weighted incremental average of model weights.
 
-        :param m1: Current model weights.
-        :type m1: numpy ndarray.
-        :param m2: New model weights.
-        :type m2: numpy ndarray.
-        :param n: Number of examples in new model.
+        :param m1: Current parameters.
+        :type model: list of numpy ndarray
+        :param m2: next parameters.
+        :type model_next: list of numpy ndarray
+        :param n: Number of examples used for updating m2.
         :type n: int
-        :param N: Total number of examples
-        :return: Incremental weighted average of model weights.
-        :rtype: :class:`numpy.array`
+        :param N: Total number of examples (accumulated).
+        :type N: int
+        :return: Updated incremental weighted average.
+        :rtype: list of numpy ndarray
         """
-        return np.add(m1, n*(m2 - m1) / N)
+
+        return [np.add(x, n*(y-x))/N for x, y in zip(m1, m2)]
+        # w = np.add(m1, n*(np.array(m2) - np.array(m1)) / N)
+        # return w
+
+        # w = OrderedDict()
+        # for name in model.keys():
+        #    tensorDiff = m1[name] - m2[name]
+        #    w[name] = m1[name] + n*tensorDiff / N
+        # return w
 
     def add(self, m1, m2, a=1.0, b=1.0):
-        """ Add weights.
+        """ m1*a + m2*b
 
         :param model: Current model weights with keys from torch state_dict.
         :type model: OrderedDict
@@ -46,54 +49,113 @@ class Helper(HelperBase):
         :rtype: OrderedDict
         """
 
-        w = a*m1 + b*m2
-        return w
+        return [x*a+y*b for x, y in zip(m1, m2)]
 
     def subtract(self, m1, m2, a=1.0, b=1.0):
-        """ Subtract model weights m2 from m1.
+        """ m1*a - m2*b.
 
-        :param model: Current model weights.
-        :type model: list of numpy arrays.
-        :param model_next: New model weights.
-        :type model_next: list of numpy arrays.
-        :param num_examples: Number of examples in new model.
-        :type num_examples: int
-        :param total_examples: Total number of examples.
-        :type total_examples: int
-        :return: Incremental weighted average of model weights.
-        :rtype: list of numpy arrays.
+        :param m1: Current model weights with keys from torch state_dict.
+        :type m1: OrderedDict
+        :param m2: New model weights with keys from torch state_dict.
+        :type m2: OrderedDict
+        :return: m1*a-m2*b
+        :rtype: OrderedDict
+        """
+        return self.add(m1, m2, a, -b)
+
+    def divide(self, m1, m2):
+        """ Subtract weights.
+
+        :param m1: Current model weights with keys from torch state_dict.
+        :type m1: OrderedDict
+        :param m2: New model weights with keys from torch state_dict.
+        :type m2: OrderedDict
+        :return: m1/m2.
+        :rtype: OrderedDict
         """
 
-        w = a*m1-b*m2
-        return w
+        return [np.divide(x, y) for x, y in zip(m1, m2)]
+
+    def multiply(self, m1, m2):
+        """ Multiply m1 by m2.
+
+        :param m1: Current model weights with keys from torch state_dict.
+        :type m1: OrderedDict
+        :param m2: New model weights with keys from torch state_dict.
+        :type m2: OrderedDict
+        :return: m1.*m2
+        :rtype: OrderedDict
+        """
+
+        return [np.multiply(x, y) for (x, y) in zip(m1, m2)]
+
+    def sqrt(self, m1):
+        """ Sqrt of m1, element-wise.
+
+        :param m1: Current model weights with keys from torch state_dict.
+        :type model: OrderedDict
+        :param model_next: New model weights with keys from torch state_dict.
+        :type model_next: OrderedDict
+        :return: sqrt(m1)
+        :rtype: OrderedDict
+        """
+
+        return [np.sqrt(x) for x in m1]
+
+    def power(self, m1, a):
+        """ m1 raised to the power of m2.
+
+        :param m1: Current model weights with keys from torch state_dict.
+        :type m1: OrderedDict
+        :param m2: New model weights with keys from torch state_dict.
+        :type a: float
+        :return: m1.^m2
+        :rtype: OrderedDict
+        """
+
+        return [np.power(x, a) for x in m1]
 
     def norm(self, m):
-        """ Compute the L2 norm of the weights/model update. """
+        """Compute the L1 norm of m. """
+        n = 0.0
+        for x in m:
+            n += np.linalg.norm(x, 1)
+        return n
 
-        return np.linalg.norm(m)
+    def ones(self, m1, a):
 
-    def save(self, model, path=None):
-        """ Serialize weights/parameters to file.
+        res = []
+        for x in m1:
+            res.append(np.ones(np.shape(x))*a)
+        return res
 
-        :param model: Weights/parameters in numpy array format.
-        :type model: numpy array.
+    def save(self, weights, path=None):
+        """ Serialize weights to file. The serialized model must be a single binary object.
+
+        :param weights: List of weights in numpy format.
         :param path: Path to file.
-        :type path: str
         :return: Path to file.
-        :rtype: str
         """
         if not path:
-            _, path = tempfile.mkstemp()
-        np.savetxt(path, model)
+            path = self.get_tmp_path()
+
+        weights_dict = {}
+        for i, w in enumerate(weights):
+            weights_dict[str(i)] = w
+
+        np.savez_compressed(path, **weights_dict)
+
         return path
 
-    def load(self, path):
-        """ Load weights/parameters from file or filelike.
+    def load(self, fh):
+        """ Load weights from file or filelike.
 
-        :param path: Path to file.
-        :type path: str
-        :return: Weights/parameters in numpy array format.
-        :rtype: :class:`numpy.array`
+        :param fh: file path, filehandle, filelike.
+        :return: List of weights in numpy format.
         """
-        model = np.loadtxt(path)
-        return model
+        a = np.load(fh)
+
+        weights = []
+        for i in range(len(a.files)):
+            weights.append(a[str(i)])
+        return weights

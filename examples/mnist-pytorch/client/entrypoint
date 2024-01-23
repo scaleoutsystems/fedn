@@ -9,7 +9,7 @@ import torch
 
 from fedn.utils.helpers import get_helper, save_metadata, save_metrics
 
-HELPER_MODULE = 'pytorchhelper'
+HELPER_MODULE = 'numpyhelper'
 helper = get_helper(HELPER_MODULE)
 
 NUM_CLASSES = 10

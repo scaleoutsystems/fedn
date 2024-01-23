@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from fedn.utils.helpers import get_helper, save_metadata, save_metrics
 
-HELPER_MODULE = 'kerashelper'
+HELPER_MODULE = 'numpyhelper'
 NUM_CLASSES = 10
 
 
@@ -22,7 +22,7 @@ def _get_data_path():
     return f"/var/data/clients/{number}/mnist.npz"
 
 
-def _compile_model(img_rows=28, img_cols=28):
+def compile_model(img_rows=28, img_cols=28):
     # Set input shape
     input_shape = (img_rows, img_cols, 1)
 
@@ -39,7 +39,7 @@ def _compile_model(img_rows=28, img_cols=28):
     return model
 
 
-def _load_data(data_path, is_train=True):
+def load_data(data_path, is_train=True):
     # Load data
     if data_path is None:
         data = np.load(_get_data_path())
@@ -63,17 +63,17 @@ def _load_data(data_path, is_train=True):
 
 
 def init_seed(out_path='seed.npz'):
-    weights = _compile_model().get_weights()
+    weights = compile_model().get_weights()
     helper = get_helper(HELPER_MODULE)
     helper.save(weights, out_path)
 
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1):
     # Load data
-    x_train, y_train = _load_data(data_path)
+    x_train, y_train = load_data(data_path)
 
     # Load model
-    model = _compile_model()
+    model = compile_model()
     helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
@@ -99,11 +99,11 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
 def validate(in_model_path, out_json_path, data_path=None):
     # Load data
-    x_train, y_train = _load_data(data_path)
-    x_test, y_test = _load_data(data_path, is_train=False)
+    x_train, y_train = load_data(data_path)
+    x_test, y_test = load_data(data_path, is_train=False)
 
     # Load model
-    model = _compile_model()
+    model = compile_model()
     helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
@@ -128,10 +128,10 @@ def validate(in_model_path, out_json_path, data_path=None):
 
 def infer(in_model_path, out_json_path, data_path=None):
     # Using test data for inference but another dataset could be loaded
-    x_test, _ = _load_data(data_path, is_train=False)
+    x_test, _ = load_data(data_path, is_train=False)
 
     # Load model
-    model = _compile_model()
+    model = compile_model()
     helper = get_helper(HELPER_MODULE)
     weights = helper.load(in_model_path)
     model.set_weights(weights)
