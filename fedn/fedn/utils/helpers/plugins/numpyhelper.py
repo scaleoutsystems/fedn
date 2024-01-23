@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from .helperbase import HelperBase
+from fedn.utils.helpers.helperbase import HelperBase
 
 
 class Helper(HelperBase):
@@ -27,7 +27,7 @@ class Helper(HelperBase):
         :rtype: list of numpy ndarray
         """
 
-        return [np.add(x, n*(y-x))/N for x, y in zip(m1, m2)]
+        return [np.add(x, n*(y-x)/N) for x, y in zip(m1, m2)]
 
     def add(self, m1, m2, a=1.0, b=1.0):
         """ m1*a + m2*b

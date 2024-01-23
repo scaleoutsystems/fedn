@@ -9,8 +9,8 @@ class Aggregator(AggregatorBase):
 
     Implmentation following: https://arxiv.org/pdf/2003.00295.pdf
 
-    Aggregate pseudo gradients computed by subtracting the model update
-    from the global model weights from the previous round.
+    Aggregate pseudo gradients computed by subtracting the model 
+    update from the global model weights from the previous round.
 
     :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
@@ -26,7 +26,6 @@ class Aggregator(AggregatorBase):
     """
 
     def __init__(self, storage, server, modelservice, control):
-        """Constructor method"""
 
         super().__init__(storage, server, modelservice, control)
 

@@ -1,7 +1,7 @@
 import importlib
 import json
 
-PLUGIN_PATH = "fedn.utils.plugins.{}"
+HELPER_PLUGIN_PATH = "fedn.utils.helpers.plugins.{}"
 
 
 def get_helper(helper_module_name):
@@ -12,7 +12,7 @@ def get_helper(helper_module_name):
     :return: A helper instance.
     :rtype: class: `fedn.utils.helpers.HelperBase`
     """
-    helper_plugin = PLUGIN_PATH.format(helper_module_name)
+    helper_plugin = HELPER_PLUGIN_PATH.format(helper_module_name)
     helper = importlib.import_module(helper_plugin)
     return helper.Helper()
 
