@@ -26,7 +26,7 @@ class Aggregator(AggregatorBase):
 
         self.name = "fedavg"
 
-    def combine_models(self, helper=None, time_window=180, max_nr_models=100, delete_models=True):
+    def combine_models(self, helper=None, delete_models=True):
         """Aggregate all model updates in the queue by computing an incremental
         weighted average of model parameters.
 
