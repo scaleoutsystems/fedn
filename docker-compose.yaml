@@ -121,9 +121,6 @@ services:
       - 12080:12080
     depends_on:
       - api-server
-    healthcheck:
-      test: [ "/bin/bash" ]
-      start_period: 10s
 
   # Client
   client:
