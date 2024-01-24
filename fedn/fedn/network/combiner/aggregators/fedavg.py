@@ -30,8 +30,8 @@ class Aggregator(AggregatorBase):
         """Aggregate all model updates in the queue by computing an incremental
         weighted average of model parameters.
 
-        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
-        :type helper: class: `fedn.utils.helpers.HelperBase`, optional
+        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional
         :param time_window: The time window for model aggregation, defaults to 180
         :type time_window: int, optional
         :param max_nr_models: The maximum number of updates aggregated, defaults to 100

@@ -73,7 +73,7 @@ A *entrypoint.py* example can look like this:
     import fire
     import torch
 
-    from fedn.utils.helpers import get_helper, save_metadata, save_metrics
+    from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
     HELPER_MODULE = 'pytorchhelper'
     NUM_CLASSES = 10
@@ -298,7 +298,7 @@ For validations it is a requirement that the output is saved in a valid json for
 
    python entrypoint.py validate in_model_path out_json_path <extra-args>
  
-In the code example we use the helper function :py:meth:`fedn.utils.helpers.save_metrics` to save the validation scores as a json file. 
+In the code example we use the helper function :py:meth:`fedn.utils.helpers.helpers.save_metrics` to save the validation scores as a json file. 
 
 The Dahboard in the FEDn UI will plot any scalar metric in this json file, but you can include any type in the file assuming that it is valid json. These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:mod:`fedn.network.api.client`. 
 

@@ -6,7 +6,7 @@ import uuid
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.utils.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper
 
 
 class ModelUpdateError(Exception):
@@ -60,8 +60,8 @@ class RoundController:
     def load_model_update(self, helper, model_id):
         """Load model update in its native format.
 
-        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
-        :type helper: class: `fedn.utils.helpers.HelperBase`
+        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.helpers.HelperBase`
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """

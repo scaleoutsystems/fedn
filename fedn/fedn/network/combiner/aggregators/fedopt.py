@@ -42,8 +42,8 @@ class Aggregator(AggregatorBase):
     def combine_models(self, helper=None, delete_models=True):
         """Compute pseudo gradients usigng model updates in the queue.
 
-        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
-        :type helper: class: `fedn.utils.helpers.HelperBase`, optional
+        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional
         :param time_window: The time window for model aggregation, defaults to 180
         :type time_window: int, optional
         :param max_nr_models: The maximum number of updates aggregated, defaults to 100

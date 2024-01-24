@@ -3,7 +3,8 @@ import unittest
 
 import numpy as np
 
-from fedn.utils.helpers.plugins.numpyhelper import Helper as NumpyHelper
+from fedn.utils.helpers.helpers.plugins.numpyhelper import \
+    Helper as NumpyHelper
 
 
 class TestNumpyHelper(unittest.TestCase):

@@ -27,7 +27,7 @@ from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.utils.dispatcher import Dispatcher
-from fedn.utils.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
