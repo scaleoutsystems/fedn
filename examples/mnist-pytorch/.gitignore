@@ -2,5 +2,6 @@ data
 *.npz
 *.tgz
 *.tar.gz
+*.ipynb
 .mnist-pytorch
 client.yaml
