@@ -95,7 +95,7 @@ class AggregatorBase(ABC):
         :param helper: A helper object.
         :type helper: object
         :return: The model update.
-        :rtype: protobuf
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
         """
         model_update = self.model_updates.get(block=False)
         return model_update
@@ -107,7 +107,7 @@ class AggregatorBase(ABC):
         associate metadata into memory.
 
         :param model_update: The model update.
-        :type model_update: protobuf
+        :type model_update: fedn.network.grpc.fedn.proto.ModelUpdate
         :param helper: A helper object.
         :type helper: fedn.utils.helpers.helperbase.Helper
         :return: A tuple of (parameters, metadata)
