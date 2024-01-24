@@ -14,15 +14,15 @@ class Aggregator(AggregatorBase):
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
+    :type control: class: `fedn.network.combiner.round.RoundHandler`
 
     """
 
-    def __init__(self, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, round_handler):
         """Constructor method"""
 
-        super().__init__(storage, server, modelservice, control)
+        super().__init__(storage, server, modelservice, round_handler)
 
         self.name = "fedavg"
 

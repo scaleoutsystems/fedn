@@ -20,14 +20,14 @@ class Aggregator(AggregatorBase):
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
+    :type control: class: `fedn.network.combiner.round.RoundHandler`
 
     """
 
-    def __init__(self, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, round_handler):
 
-        super().__init__(storage, server, modelservice, control)
+        super().__init__(storage, server, modelservice, round_handler)
 
         self.name = "fedopt"
         self.v = None
@@ -81,7 +81,7 @@ class Aggregator(AggregatorBase):
                 total_examples += metadata['num_examples']
 
                 if nr_aggregated_models == 0:
-                    model_old = self.control.load_model_update(helper, model_update.model_id)
+                    model_old = self.round_handler.load_model_update(helper, model_update.model_id)
                     pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
                     pseudo_gradient_next = helper.subtract(model_next, model_old)

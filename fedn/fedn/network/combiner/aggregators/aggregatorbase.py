@@ -19,18 +19,18 @@ class AggregatorBase(ABC):
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
+    :type control: class: `fedn.network.combiner.round.RoundHandler`
     """
 
     @abstractmethod
-    def __init__(self, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, round_handler):
         """ Initialize the aggregator."""
         self.name = self.__class__.__name__
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        self.control = control
+        self.round_handler = round_handler
         self.model_updates = queue.Queue()
 
     @abstractmethod
@@ -58,7 +58,7 @@ class AggregatorBase(ABC):
         and then puts the update id on the aggregation queue.
         Override in subclass as needed.
 
-        :param model_update: A ModelUpdate message.
+        :param model_update: fedn.network.grpc.fedn.proto.ModelUpdate
         :type model_id: str
         """
         try:
@@ -114,7 +114,7 @@ class AggregatorBase(ABC):
         :rtype: tuple
         """
         model_id = model_update.model_update_id
-        model = self.control.load_model_update(helper, model_id)
+        model = self.round_handler.load_model_update(helper, model_id)
         # Get relevant metadata
         data = json.loads(model_update.meta)['training_metadata']
         config = json.loads(json.loads(model_update.meta)['config'])
@@ -141,8 +141,8 @@ def get_aggregator(aggregator_module_name, storage, server, modelservice, contro
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
+    :type control: class: `fedn.network.combiner.round.RoundHandler`
     :return: An aggregator instance.
     :rtype: class: `fedn.combiner.aggregators.AggregatorBase`
     """

@@ -13,11 +13,11 @@ class ModelUpdateError(Exception):
     pass
 
 
-class RoundController:
-    """ Round controller.
+class RoundHandler:
+    """ Round handler.
 
-    The round controller recieves round configurations from the global controller
-    and coordinates model updates and aggregation, and model validations.
+    The round handler processes requests from the global controller
+    to produce model updates and perform model validations.
 
     :param aggregator_name: The name of the aggregator plugin module.
     :type aggregator_name: str
@@ -30,7 +30,7 @@ class RoundController:
     """
 
     def __init__(self, storage, server, modelservice):
-        """ Initialize the RoundController."""
+        """ Initialize the RoundHandler."""
 
         self.round_configs = queue.Queue()
         self.storage = storage
@@ -58,9 +58,9 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Load model update in its native format.
+        """Load model update with id model_id into its memory representation.
 
-        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
+        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`
         :type helper: class: `fedn.utils.helpers.helpers.HelperBase`
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
