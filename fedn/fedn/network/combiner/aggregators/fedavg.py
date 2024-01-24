@@ -78,7 +78,7 @@ class Aggregator(AggregatorBase):
                 if delete_models:
                     self.modelservice.models.delete(model_update.model_update_id)
                     logger.info(
-                        "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
+                        "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_update.model_update_id))
                 self.model_updates.task_done()
             except Exception as e:
                 logger.error(
