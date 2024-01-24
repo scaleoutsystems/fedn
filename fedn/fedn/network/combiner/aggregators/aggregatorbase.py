@@ -89,23 +89,38 @@ class AggregatorBase(ABC):
             return False
         return True
 
-    def next_model_update(self, helper):
+    def next_model_update(self):
         """ Get the next model update from the queue.
 
         :param helper: A helper object.
         :type helper: object
-        :return: A tuple containing the model update, metadata and model id.
-        :rtype: tuple
+        :return: The model update.
+        :rtype: protobuf
         """
         model_update = self.model_updates.get(block=False)
+        return model_update
+
+    def load_model_update(self, model_update, helper):
+        """ Load the memory representation of the model update.
+
+        Load the model update paramters and the
+        associate metadata into memory.
+
+        :param model_update: The model update.
+        :type model_update: protobuf
+        :param helper: A helper object.
+        :type helper: fedn.utils.helpers.helperbase.Helper
+        :return: A tuple of (parameters, metadata)
+        :rtype: tuple
+        """
         model_id = model_update.model_update_id
-        model_next = self.control.load_model_update(helper, model_id)
+        model = self.control.load_model_update(helper, model_id)
         # Get relevant metadata
         data = json.loads(model_update.meta)['training_metadata']
         config = json.loads(json.loads(model_update.meta)['config'])
         data['round_id'] = config['round_id']
 
-        return model_next, data, model_id, model_update
+        return model, data
 
     def get_state(self):
         """ Get the state of the aggregator's queue, including the number of model updates."""

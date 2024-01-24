@@ -56,9 +56,13 @@ class Aggregator(AggregatorBase):
         while not self.model_updates.empty():
             try:
                 # Get next model from queue
-                model_next, metadata, model_id, model_update = self.next_model_update(helper)
+                model_update = self.next_model_update()
+
+                # Load model parameters and metadata
+                model_next, metadata = self.load_model_update(model_update, helper)
+
                 logger.info(
-                    "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_id, metadata))
+                    "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
                 # Increment total number of examples
                 total_examples += metadata['num_examples']
@@ -72,7 +76,7 @@ class Aggregator(AggregatorBase):
                 nr_aggregated_models += 1
                 # Delete model from storage
                 if delete_models:
-                    self.modelservice.models.delete(model_id)
+                    self.modelservice.models.delete(model_update.model_update_id)
                     logger.info(
                         "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_id))
                 self.model_updates.task_done()
