@@ -1,10 +1,16 @@
+import math
+
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
 class Aggregator(AggregatorBase):
-    """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
-        of parameter updates.
+    """ Federated Optimization (FedOpt) aggregator.
+
+    Implmentation following: https://arxiv.org/pdf/2003.00295.pdf
+
+    Aggregate pseudo gradients computed by subtracting the model
+    update from the global model weights from the previous round.
 
     :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
@@ -20,15 +26,21 @@ class Aggregator(AggregatorBase):
     """
 
     def __init__(self, storage, server, modelservice, round_handler):
-        """Constructor method"""
 
         super().__init__(storage, server, modelservice, round_handler)
 
-        self.name = "fedavg"
+        self.name = "fedopt"
+        self.v = None
+        self.m = None
+
+        # Server side hyperparameters. Note that these may need extensive fine tuning.
+        self.eta = 0.1
+        self.beta1 = 0.9
+        self.beta2 = 0.99
+        self.tau = 1e-4
 
     def combine_models(self, helper=None, delete_models=True):
-        """Aggregate all model updates in the queue by computing an incremental
-        weighted average of model parameters.
+        """Compute pseudo gradients usigng model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional
@@ -58,20 +70,25 @@ class Aggregator(AggregatorBase):
                 # Get next model from queue
                 model_update = self.next_model_update()
 
-                # Load model parameters and metadata
+                # Load model paratmeters and metadata
                 model_next, metadata = self.load_model_update(model_update, helper)
 
                 logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
+                print("***** ", model_update, flush=True)
 
                 # Increment total number of examples
                 total_examples += metadata['num_examples']
 
                 if nr_aggregated_models == 0:
-                    model = model_next
+                    model_old = self.round_handler.load_model_update(helper, model_update.model_id)
+                    pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
-                    model = helper.increment_average(
-                        model, model_next, metadata['num_examples'], total_examples)
+                    pseudo_gradient_next = helper.subtract(model_next, model_old)
+                    pseudo_gradient = helper.increment_average(
+                        pseudo_gradient, pseudo_gradient_next, metadata['num_examples'], total_examples)
+
+                print("NORM PSEUDOGRADIENT: ", helper.norm(pseudo_gradient), flush=True)
 
                 nr_aggregated_models += 1
                 # Delete model from storage
@@ -85,7 +102,36 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
+        model = self.serveropt_adam(helper, pseudo_gradient, model_old)
+
         data['nr_aggregated_models'] = nr_aggregated_models
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data
+
+    def serveropt_adam(self, helper, pseudo_gradient, model_old):
+        """ Server side optimization, FedAdam.
+
+        :param helper: instance of helper class.
+        :type helper: Helper
+        :param pseudo_gradient: The pseudo gradient.
+        :type pseudo_gradient: As defined by helper.
+        :return: new model weights.
+        :rtype: as defined by helper.
+        """
+
+        if not self.v:
+            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+
+        if not self.m:
+            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+        else:
+            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+
+        p = helper.power(pseudo_gradient, 2)
+        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
+        t = helper.divide(self.m, sv)
+
+        model = helper.add(model_old, t, 1.0, self.eta)
+        return model

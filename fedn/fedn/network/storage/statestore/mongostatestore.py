@@ -531,6 +531,7 @@ class MongoStateStore:
         :return: dictionary of model_id: committed_at
         :rtype: dict
         """
+        # TODO Make it so that model order from db is preserved.
         result = self.model.find_one({"key": "model_trail"})
         try:
             if result is not None:

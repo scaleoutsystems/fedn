@@ -114,9 +114,8 @@ class Control(ControlBase):
 
         last_round = int(self.get_latest_round_id())
 
-        # Clear potential stragglers/old model updates at combiners
         for combiner in self.network.get_combiners():
-            combiner.flush_model_update_queue()
+            combiner.set_aggregator(config['aggregator'])
 
         # Execute the rounds in this session
         for round in range(1, int(config["rounds"] + 1)):
@@ -140,6 +139,8 @@ class Control(ControlBase):
                 ),
                 flush=True,
             )
+
+            config["model_id"] = self.statestore.get_latest_model()
 
         # TODO: Report completion of session
         self._state = ReducerState.idle
@@ -166,12 +167,10 @@ class Control(ControlBase):
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
-        round_config["model_id"] = self.statestore.get_latest_model()
-        round_config["helper_type"] = self.statestore.get_helper()
 
         self.set_round_config(round_id, round_config)
 
-        # Get combiners that are able to participate in round, given round_config
+        # Get combiners that are able to participate in the round, given round_config
         participating_combiners = self.get_participating_combiners(round_config)
 
         # Check if the policy to start the round is met

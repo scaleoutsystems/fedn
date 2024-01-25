@@ -16,7 +16,7 @@ from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
-from fedn.network.combiner.round import RoundController
+from fedn.network.combiner.roundhandler import RoundHandler
 from fedn.network.grpc.server import Server
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
@@ -134,10 +134,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.server = Server(self, self.modelservice, grpc_config)
 
         # Set up round controller
-        self.control = RoundController(config['aggregator'], self.repository, self, self.modelservice)
+        self.round_handler = RoundHandler(self.repository, self, self.modelservice)
 
         # Start thread for round controller
-        threading.Thread(target=self.control.run, daemon=True).start()
+        threading.Thread(target=self.round_handler.run, daemon=True).start()
 
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
@@ -385,7 +385,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: True if successful, else False
         """
 
-        q = self.control.aggregator.model_updates
+        q = self.round_handler.aggregator.model_updates
         try:
             with q.mutex:
                 q.queue.clear()
@@ -418,13 +418,37 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         logger.debug("grpc.Combiner.Start: Round config {}".format(config))
 
-        job_id = self.control.push_round_config(config)
+        job_id = self.round_handler.push_round_config(config)
         logger.info("grcp.Combiner.Start: Pushed round config (job_id): {}".format(job_id))
 
         response = fedn.ControlResponse()
         p = response.parameter.add()
         p.key = "job_id"
         p.value = job_id
+
+        return response
+
+    def SetAggregator(self, control: fedn.ControlRequest, context):
+        """ Set the active aggregator.
+
+        :param control: the control request
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the control response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
+        """
+        logger.debug("grpc.Combiner.SetAggregator: Called")
+        for parameter in control.parameter:
+            aggregator = parameter.value
+
+        status = self.round_handler.set_aggregator(aggregator)
+
+        response = fedn.ControlResponse()
+        if status:
+            response.message = 'Success'
+        else:
+            response.message = 'Failed'
 
         return response
 
@@ -699,7 +723,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        self.control.aggregator.on_model_update(request)
+        self.round_handler.aggregator.on_model_update(request)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelUpdate {} from client  {}".format(

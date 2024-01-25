@@ -199,6 +199,7 @@ service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
   rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
+  rpc SetAggregator(ControlRequest) returns (ControlResponse);
 }
 
 service Reducer {

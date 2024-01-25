@@ -3,32 +3,34 @@ import unittest
 
 import numpy as np
 
-from fedn.utils.plugins.pytorchhelper import Helper as PyTorchHelper
+from fedn.utils.helpers.helpers.plugins.numpyhelper import \
+    Helper as NumpyHelper
 
 
-class TestPyTorchHelper(unittest.TestCase):
+class TestNumpyHelper(unittest.TestCase):
     """Test the PyTorchHelper class."""
 
     def setUp(self):
-        self.helper = PyTorchHelper()
+        self.helper = NumpyHelper()
 
     def test_increment_average(self):
-        """Test the increment_average method. The weights are stored as OrderedDicts."""
+        """Test the increment_average method. The weights are stored as list of numpyarray."""
 
         # Model as OrderedDict with keys as torch layers and values as numpy arrays
-        model = {'layer1': np.array([1, 2, 3])}
-        model_next = {'layer1': np.array([4, 5, 6])}
+        model = [np.array([1, 2, 3])]
+        model_next = [np.array([4, 5, 6])]
         a = 10
         W = 20
 
         result = self.helper.increment_average(model, model_next, a, W)
+        print(result)
 
-        # Check OrderedDict values match
-        np.testing.assert_array_equal(result['layer1'], np.array([2.5, 3.5, 4.5]))
+        # Check  values match
+        np.testing.assert_array_equal(result, [np.array([2.5, 3.5, 4.5])])
 
-        # Model as OrderedDict with keys as torch layers and values as lists
-        model = {'layer1': [1, 2, 3]}
-        model_next = {'layer1': [4, 5, 6]}
+        # Model as  with keys as torch layers and values as lists
+        model = [[1, 2, 3]]
+        model_next = [[4, 5, 6]]
         a = 10
         W = 20
 
@@ -41,7 +43,7 @@ class TestPyTorchHelper(unittest.TestCase):
         """Test the save and load methods."""
 
         # Create a model
-        model = {'layer1': np.array([1, 2, 3])}
+        model = [np.array([1, 2, 3])]
 
         # Save the model
         self.helper.save(model, 'test_model')
@@ -53,7 +55,7 @@ class TestPyTorchHelper(unittest.TestCase):
         result = self.helper.load('test_model.npz')
 
         # Check OrderedDict values match
-        np.testing.assert_array_equal(result['layer1'], np.array([1, 2, 3]))
+        np.testing.assert_array_equal(result, [np.array([1, 2, 3])])
 
         # Remove the model file
         os.remove('test_model.npz')

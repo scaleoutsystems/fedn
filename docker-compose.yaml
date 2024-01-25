@@ -119,6 +119,8 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
+    depends_on:
+      - api-server
 
   # Client
   client:
@@ -136,3 +138,6 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
     deploy:
       replicas: 0
+    depends_on:
+      - api-server
+      - combiner

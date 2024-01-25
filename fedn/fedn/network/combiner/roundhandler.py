@@ -6,18 +6,18 @@ import uuid
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.utils.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper
 
 
 class ModelUpdateError(Exception):
     pass
 
 
-class RoundController:
-    """ Round controller.
+class RoundHandler:
+    """ Round handler.
 
-    The round controller recieves round configurations from the global controller
-    and coordinates model updates and aggregation, and model validations.
+    The round handler processes requests from the global controller
+    to produce model updates and perform model validations.
 
     :param aggregator_name: The name of the aggregator plugin module.
     :type aggregator_name: str
@@ -29,14 +29,16 @@ class RoundController:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, aggregator_name, storage, server, modelservice):
-        """ Initialize the RoundController."""
+    def __init__(self, storage, server, modelservice):
+        """ Initialize the RoundHandler."""
 
         self.round_configs = queue.Queue()
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        self.aggregator = get_aggregator(aggregator_name, self.storage, self.server, self.modelservice, self)
+
+    def set_aggregator(self, aggregator):
+        self.aggregator = get_aggregator(aggregator, self.storage, self.server, self.modelservice, self)
 
     def push_round_config(self, round_config):
         """Add a round_config (job description) to the inbox.
@@ -56,10 +58,10 @@ class RoundController:
         return round_config['_job_id']
 
     def load_model_update(self, helper, model_id):
-        """Load model update in its native format.
+        """Load model update with id model_id into its memory representation.
 
-        :param helper: An instance of :class: `fedn.utils.helpers.HelperBase`, ML framework specific helper, defaults to None
-        :type helper: class: `fedn.utils.helpers.HelperBase`
+        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`
+        :type helper: class: `fedn.utils.helpers.helpers.HelperBase`
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """
@@ -141,7 +143,7 @@ class RoundController:
         """
 
         logger.info(
-            "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
+            "ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
         meta['nr_expected_updates'] = len(clients)

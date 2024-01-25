@@ -3,7 +3,7 @@ import uuid
 from abc import ABC, abstractmethod
 from time import sleep
 
-import fedn.utils.helpers
+import fedn.utils.helpers.helpers
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
@@ -98,7 +98,7 @@ class ControlBase(ABC):
         :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
         """
         helper_type = self.statestore.get_helper()
-        helper = fedn.utils.helpers.get_helper(helper_type)
+        helper = fedn.utils.helpers.helpers.get_helper(helper_type)
         if not helper:
             raise MisconfiguredHelper(
                 "Unsupported helper type {}, please configure compute_package.helper !".format(

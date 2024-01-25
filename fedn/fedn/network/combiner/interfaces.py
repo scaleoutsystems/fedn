@@ -187,6 +187,30 @@ class CombinerInterface:
             else:
                 raise
 
+    def set_aggregator(self, aggregator):
+        """ Set the active aggregator module.
+
+        :param aggregator: The name of the aggregator module.
+        :type config: str
+        """
+
+        channel = Channel(self.address, self.port,
+                          self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+
+        request = fedn.ControlRequest()
+        p = request.parameter.add()
+        p.key = "aggregator"
+        p.value = aggregator
+
+        try:
+            control.SetAggregator(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
+
     def submit(self, config):
         """ Submit a compute plan to the combiner.
 
