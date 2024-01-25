@@ -19,8 +19,8 @@ class AggregatorBase(ABC):
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
-    :type control: class: `fedn.network.combiner.round.RoundHandler`
+    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
+    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
     """
 
     @abstractmethod
@@ -141,8 +141,8 @@ def get_aggregator(aggregator_module_name, storage, server, modelservice, contro
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundHandler`
-    :type control: class: `fedn.network.combiner.round.RoundHandler`
+    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
+    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
     :return: An aggregator instance.
     :rtype: class: `fedn.combiner.aggregators.AggregatorBase`
     """

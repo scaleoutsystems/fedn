@@ -143,7 +143,7 @@ class RoundHandler:
         """
 
         logger.info(
-            "ROUNDCONTROL: Initiating training round, participating clients: {}".format(clients))
+            "ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
         meta['nr_expected_updates'] = len(clients)
