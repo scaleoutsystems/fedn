@@ -3,7 +3,7 @@ import json
 import queue
 from abc import ABC, abstractmethod
 
-import fedn.common.net.grpc.fedn_pb2 as fedn
+from fedn.common.log_config import logger
 
 AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
@@ -19,18 +19,18 @@ class AggregatorBase(ABC):
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
+    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
     """
 
     @abstractmethod
-    def __init__(self, storage, server, modelservice, control):
+    def __init__(self, storage, server, modelservice, round_handler):
         """ Initialize the aggregator."""
         self.name = self.__class__.__name__
         self.storage = storage
         self.server = server
         self.modelservice = modelservice
-        self.control = control
+        self.round_handler = round_handler
         self.model_updates = queue.Queue()
 
     @abstractmethod
@@ -53,15 +53,16 @@ class AggregatorBase(ABC):
 
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
-           Performs (optional) pre-processing and then puts the update id
-           on the aggregation queue. Override in subclass as needed.
 
-        :param model_update: A ModelUpdate message.
+        Performs (optional) validation and pre-processing,
+        and then puts the update id on the aggregation queue.
+        Override in subclass as needed.
+
+        :param model_update: fedn.network.grpc.fedn.proto.ModelUpdate
         :type model_id: str
         """
         try:
-            self.server.report_status("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id),
-                                      log_level=fedn.Status.INFO)
+            logger.info("AGGREGATOR({}): callback received model update {}".format(self.name, model_update.model_update_id))
 
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)
@@ -69,10 +70,9 @@ class AggregatorBase(ABC):
                 # Push the model update to the processing queue
                 self.model_updates.put(model_update)
             else:
-                self.server.report_status("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
+                logger.warning("AGGREGATOR({}): Invalid model update, skipping.".format(self.name))
         except Exception as e:
-            self.server.report_status("AGGREGATOR({}): Failed to receive model update! {}".format(self.name, e),
-                                      log_level=fedn.Status.WARNING)
+            logger.error("AGGREGATOR({}): failed to receive model update! {}".format(self.name, e))
             pass
 
     def _validate_model_update(self, model_update):
@@ -83,36 +83,49 @@ class AggregatorBase(ABC):
         :return: True if the model update is valid, False otherwise.
         :rtype: bool
         """
-        # TODO: Validate the metadata to check that it contains all variables assumed by the aggregator.
         data = json.loads(model_update.meta)['training_metadata']
         if 'num_examples' not in data.keys():
-            self.server.report_status("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
+            logger.error("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
             return False
         return True
 
-    def next_model_update(self, helper):
+    def next_model_update(self):
         """ Get the next model update from the queue.
 
         :param helper: A helper object.
         :type helper: object
-        :return: A tuple containing the model update, metadata and model id.
-        :rtype: tuple
+        :return: The model update.
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
         """
         model_update = self.model_updates.get(block=False)
+        return model_update
+
+    def load_model_update(self, model_update, helper):
+        """ Load the memory representation of the model update.
+
+        Load the model update paramters and the
+        associate metadata into memory.
+
+        :param model_update: The model update.
+        :type model_update: fedn.network.grpc.fedn.proto.ModelUpdate
+        :param helper: A helper object.
+        :type helper: fedn.utils.helpers.helperbase.Helper
+        :return: A tuple of (parameters, metadata)
+        :rtype: tuple
+        """
         model_id = model_update.model_update_id
-        model_next = self.control.load_model_update(helper, model_id)
+        model = self.round_handler.load_model_update(helper, model_id)
         # Get relevant metadata
         data = json.loads(model_update.meta)['training_metadata']
         config = json.loads(json.loads(model_update.meta)['config'])
         data['round_id'] = config['round_id']
 
-        return model_next, data, model_id
+        return model, data
 
     def get_state(self):
         """ Get the state of the aggregator's queue, including the number of model updates."""
         state = {
             'queue_len': self.model_updates.qsize()
-
         }
         return state
 
@@ -128,8 +141,8 @@ def get_aggregator(aggregator_module_name, storage, server, modelservice, contro
     :type server: class: `fedn.network.combiner.Combiner`
     :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.round.RoundController`
-    :type control: class: `fedn.network.combiner.round.RoundController`
+    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
+    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
     :return: An aggregator instance.
     :rtype: class: `fedn.combiner.aggregators.AggregatorBase`
     """

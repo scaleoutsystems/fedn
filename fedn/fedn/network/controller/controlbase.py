@@ -3,12 +3,11 @@ import uuid
 from abc import ABC, abstractmethod
 from time import sleep
 
-import fedn.utils.helpers
-from fedn.common.storage.s3.s3repo import S3ModelRepository
-from fedn.common.tracer.mongotracer import MongoTracer
+import fedn.utils.helpers.helpers
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
+from fedn.network.storage.s3.repository import Repository
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -67,7 +66,7 @@ class ControlBase(ABC):
             raise MisconfiguredStorageBackend()
 
         if storage_config["storage_type"] == "S3":
-            self.model_repository = S3ModelRepository(
+            self.model_repository = Repository(
                 storage_config["storage_config"]
             )
         else:
@@ -76,12 +75,6 @@ class ControlBase(ABC):
                 flush=True,
             )
             raise UnsupportedStorageBackend()
-
-        # The tracer is a helper that manages state in the database backend
-        statestore_config = statestore.get_config()
-        self.tracer = MongoTracer(
-            statestore_config["mongo_config"], statestore_config["network_id"]
-        )
 
         if self.statestore.is_inited():
             self._state = ReducerState.idle
@@ -105,7 +98,7 @@ class ControlBase(ABC):
         :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
         """
         helper_type = self.statestore.get_helper()
-        helper = fedn.utils.helpers.get_helper(helper_type)
+        helper = fedn.utils.helpers.helpers.get_helper(helper_type)
         if not helper:
             raise MisconfiguredHelper(
                 "Unsupported helper type {}, please configure compute_package.helper !".format(
@@ -167,7 +160,7 @@ class ControlBase(ABC):
         definition = self.statestore.get_compute_package()
         if definition:
             try:
-                package_name = definition["filename"]
+                package_name = definition["storage_file_name"]
                 return package_name
             except (IndexError, KeyError):
                 print(
@@ -181,7 +174,6 @@ class ControlBase(ABC):
     def set_compute_package(self, filename, path):
         """Persist the configuration for the compute package."""
         self.model_repository.set_compute_package(filename, path)
-        self.statestore.set_compute_package(filename)
 
     def get_compute_package(self, compute_package=""):
         """
@@ -205,13 +197,13 @@ class ControlBase(ABC):
         else:
             session_id = config["session_id"]
 
-        self.tracer.create_session(id=session_id)
-        self.tracer.set_session_config(session_id, config)
+        self.statestore.create_session(id=session_id)
+        self.statestore.set_session_config(session_id, config)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db. """
 
-        self.tracer.create_round(round_data)
+        self.statestore.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
         """ Set round data.
@@ -221,7 +213,7 @@ class ControlBase(ABC):
         :param round_data: The status
         :type status: dict
         """
-        self.tracer.set_round_data(round_id, round_data)
+        self.statestore.set_round_data(round_id, round_data)
 
     def set_round_status(self, round_id, status):
         """ Set the round round stats.
@@ -231,7 +223,7 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        self.tracer.set_round_status(round_id, status)
+        self.statestore.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
         """ Upate round in backend db.
@@ -241,7 +233,7 @@ class ControlBase(ABC):
         :param round_config: The round configuration
         :type round_config: dict
         """
-        self.tracer.set_round_config(round_id, round_config)
+        self.statestore.set_round_config(round_id, round_config)
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.
@@ -301,35 +293,26 @@ class ControlBase(ABC):
         combiners = []
         for combiner in self.network.get_combiners():
             try:
-                combiner_state = combiner.report()
+                # Current gRPC endpoint only returns active clients (both trainers and validators)
+                nr_active_clients = len(combiner.list_active_clients())
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
-                combiner_state = None
+                continue
 
-            if combiner_state is not None:
-                is_participating = self.evaluate_round_participation_policy(
-                    combiner_round_config, combiner_state
-                )
-                if is_participating:
-                    combiners.append((combiner, combiner_round_config))
+            is_participating = self.evaluate_round_participation_policy(
+                combiner_round_config, nr_active_clients
+            )
+            if is_participating:
+                combiners.append((combiner, combiner_round_config))
         return combiners
 
     def evaluate_round_participation_policy(
-        self, compute_plan, combiner_state
+        self, compute_plan, nr_active_clients
     ):
         """Evaluate policy for combiner round-participation.
         A combiner participates if it is responsive and reports enough
         active clients to participate in the round.
         """
-
-        if compute_plan["task"] == "training":
-            nr_active_clients = int(combiner_state["nr_active_trainers"])
-        elif compute_plan["task"] == "validation":
-            nr_active_clients = int(combiner_state["nr_active_validators"])
-        else:
-            print("Invalid task type!", flush=True)
-            return False
-
         if int(compute_plan["clients_required"]) <= nr_active_clients:
             return True
         else:
@@ -374,7 +357,7 @@ class ControlBase(ABC):
         return True
 
     def state(self):
-        """ Get the current state of the controller
+        """ Get the current state of the controller.
 
         :return: The state
         :rype: str

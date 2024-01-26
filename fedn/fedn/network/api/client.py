@@ -38,6 +38,15 @@ class APIClient:
         response = requests.get(self._get_url('get_model_trail'), verify=self.verify)
         return response.json()
 
+    def list_models(self, session_id=None):
+        """ Get all models from the statestore.
+
+        :return: All models.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('list_models'), params={'session_id': session_id}, verify=self.verify)
+        return response.json()
+
     def list_clients(self):
         """ Get all clients from the statestore.
 
@@ -110,12 +119,16 @@ class APIClient:
         response = requests.get(self._get_url(f'get_round?round_id={round_id}'), verify=self.verify)
         return response.json()
 
-    def start_session(self, session_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
+    def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
                       validate=True, helper='kerashelper', min_clients=1, requested_clients=8):
         """ Start a new session.
 
         :param session_id: The session id to start.
         :type session_id: str
+        :param aggregator: The aggregator plugin to use.
+        :type aggregator: str
+        :param model_id: The id of the initial model.
+        :type model_id: str
         :param round_timeout: The round timeout to use in seconds.
         :type round_timeout: int
         :param rounds: The number of rounds to perform.
@@ -137,6 +150,8 @@ class APIClient:
         """
         response = requests.post(self._get_url('start_session'), json={
             'session_id': session_id,
+            'aggregator': aggregator,
+            'model_id': model_id,
             'round_timeout': round_timeout,
             'rounds': rounds,
             'round_buffer_size': round_buffer_size,
@@ -169,7 +184,7 @@ class APIClient:
         response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify)
         return response.json()
 
-    def set_package(self, path, helper):
+    def set_package(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
@@ -180,7 +195,8 @@ class APIClient:
         :rtype: dict
         """
         with open(path, 'rb') as file:
-            response = requests.post(self._get_url('set_package'), files={'file': file}, data={'helper': helper}, verify=self.verify)
+            response = requests.post(self._get_url('set_package'), files={'file': file}, data={
+                                     'helper': helper, 'name': name, 'description': description}, verify=self.verify)
         return response.json()
 
     def get_package(self):
@@ -190,6 +206,15 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url('get_package'), verify=self.verify)
+        return response.json()
+
+    def list_compute_packages(self):
+        """ Get all compute packages from the statestore.
+
+        :return: All compute packages with info.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify)
         return response.json()
 
     def download_package(self, path):

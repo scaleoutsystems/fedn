@@ -1,16 +1,15 @@
-import time
 import uuid
 
 import click
 import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.common.log_config import logger
+from fedn.dashboard.dashboard import Dashboard
+from fedn.dashboard.restservice import decode_auth_token, encode_auth_token
 from fedn.network.clients.client import Client
-from fedn.network.combiner.server import Combiner
-from fedn.network.dashboard.restservice import (decode_auth_token,
-                                                encode_auth_token)
-from fedn.network.reducer import Reducer
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.combiner.combiner import Combiner
+from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 
@@ -102,13 +101,15 @@ def run_cmd(ctx):
 @click.option('-tr', '--trainer', required=False, default=True)
 @click.option('-in', '--init', required=False, default=None,
               help='Set to a filename to (re)init client from file state.')
-@click.option('-l', '--logfile', required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")),
+@click.option('-l', '--logfile', required=False, default=None,
               help='Set logfile for client log to file.')
 @click.option('--heartbeat-interval', required=False, default=2)
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
+@click.option('--verbosity', required=False, default='INFO', type=click.Choice(['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'], case_sensitive=False))
 @click.pass_context
 def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
-               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
+               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat,
+               verbosity):
     """
 
     :param ctx:
@@ -127,6 +128,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :param logfile:
     :param hearbeat_interval
     :param reconnect_after_missed_heartbeat
+    :param verbosity
     :return:
     """
     remote = False if local_package else True
@@ -134,7 +136,7 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
+              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
 
     if init:
         apply_config(config)
@@ -190,10 +192,12 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
     statestore_config = fedn_config['statestore']
     if statestore_config['type'] == 'MongoDB':
         statestore = MongoStateStore(
-            network_id, statestore_config['mongo_config'], fedn_config['storage'])
+            network_id, statestore_config['mongo_config'])
     else:
         print("Unsupported statestore type, exiting. ", flush=True)
         exit(-1)
+
+    statestore.set_storage_backend(fedn_config['storage'])
 
     # Enable JWT token authentication.
     if config['secret_key']:
@@ -229,8 +233,9 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
         print("Failed to set storage config in statestore, exiting.", flush=True)
         exit(-1)
 
-    reducer = Reducer(statestore)
-    reducer.run()
+    dashboard = Dashboard(statestore)
+    dashboard.run()
+    logger.warning("The Dashboard is deprecated and will be removed in a future release.")
 
 
 @run_cmd.command('combiner')
@@ -246,9 +251,8 @@ def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
 @click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
-@click.option('-a', '--aggregator', required=False, default='fedavg', help='Filename of the aggregator module to use.')
 @click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init, aggregator):
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init):
     """
 
     :param ctx:
@@ -264,7 +268,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
               'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-              'init': init, 'aggregator': aggregator}
+              'init': init}
 
     if config['init']:
         apply_config(config)

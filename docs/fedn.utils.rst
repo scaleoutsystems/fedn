@@ -33,10 +33,10 @@ fedn.utils.dispatcher module
    :undoc-members:
    :show-inheritance:
 
-fedn.utils.helpers module
+fedn.utils.helpers.helpers module
 -------------------------
 
-.. automodule:: fedn.utils.helpers
+.. automodule:: fedn.utils.helpers.helpers
    :members:
    :undoc-members:
    :show-inheritance:
