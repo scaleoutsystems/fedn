@@ -568,11 +568,6 @@ class Client:
             updated_model_id = None
             meta = {'status': 'failed', 'error': str(e)}
 
-        # Push model update to combiner server
-        updated_model_id = uuid.uuid4()
-        self.set_model(out_model, str(updated_model_id))
-        meta['upload_model'] = time.time() - tic
-
         self.state = ClientState.idle
 
         return updated_model_id, meta
