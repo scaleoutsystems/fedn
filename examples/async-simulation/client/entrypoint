@@ -1,20 +1,17 @@
 # /bin/python
-import collections
-import math
-import os
 import time
 
 import fire
 import numpy as np
 
-from fedn.utils.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
-HELPER_MODULE = 'numpyarrayhelper'
-ARRAY_SIZE = 1000
+HELPER_MODULE = 'numpyhelper'
+ARRAY_SIZE = 1000000
 
 
-def _save_model(weights, out_path):
-    """ Save model to disk. 
+def save_model(weights, out_path):
+    """ Save model to disk.
 
     :param model: The model to save.
     :type model: torch.nn.Module
@@ -25,7 +22,7 @@ def _save_model(weights, out_path):
     helper.save(weights, out_path)
 
 
-def _load_model(model_path):
+def load_model(model_path):
     """ Load model from disk.
 
     param model_path: The path to load from.
@@ -45,8 +42,8 @@ def init_seed(out_path='seed.npz'):
     :type out_path: str
     """
     # Init and save
-    weights = np.random.rand(1, ARRAY_SIZE)
-    _save_model(weights, out_path)
+    weights = [np.random.rand(1, ARRAY_SIZE)]
+    save_model(weights, out_path)
 
 
 def train(in_model_path, out_model_path):
@@ -55,7 +52,7 @@ def train(in_model_path, out_model_path):
     """
 
     # Load model
-    weights = _load_model(in_model_path)
+    weights = load_model(in_model_path)
 
     # Train
     time.sleep(np.random.randint(4, 15))
@@ -69,7 +66,7 @@ def train(in_model_path, out_model_path):
     save_metadata(metadata, out_model_path)
 
     # Save model update
-    _save_model(weights, out_model_path)
+    save_model(weights, out_model_path)
 
 
 def validate(in_model_path, out_json_path):
@@ -82,7 +79,7 @@ def validate(in_model_path, out_json_path):
     :param data_path: The path to the data file.
     :type data_path: str
     """
-    weights = _load_model(in_model_path)
+    weights = load_model(in_model_path)
 
     # JSON schema
     report = {

@@ -613,12 +613,7 @@ class Client:
             os.unlink(outpath)
 
         except Exception as e:
-<<<<<<< HEAD
-            print("Validation failed with exception {}".format(e), flush=True)
-=======
             logger.warning("Validation failed with exception {}".format(e))
-            raise
->>>>>>> master
             self.state = ClientState.idle
             return None
 

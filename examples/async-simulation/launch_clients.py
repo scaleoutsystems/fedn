@@ -3,9 +3,9 @@ import time
 
 from fedn.network.clients.client import Client
 
-DISCOVER_HOST = '54.208.105.152'
+DISCOVER_HOST = '127.0.0.1'
 DISCOVER_PORT = 8092
-N_CLIENTS = 5
+N_CLIENTS = 1
 
 config = {'discover_host': DISCOVER_HOST, 'discover_port': DISCOVER_PORT, 'token': None, 'name': 'testclient',
           'client_id': 1, 'remote_compute_context': True, 'force_ssl': False, 'dry_run': False, 'secure': False,
@@ -16,7 +16,7 @@ config = {'discover_host': DISCOVER_HOST, 'discover_port': DISCOVER_PORT, 'token
 clients = []
 for i in range(N_CLIENTS):
     config_i = copy.deepcopy(config)
-    config['name'] = 'client-{}'.format(i)
+    config['name'] = 'client{}'.format(i)
     clients.append(Client(config))
 
 time.sleep(120)
