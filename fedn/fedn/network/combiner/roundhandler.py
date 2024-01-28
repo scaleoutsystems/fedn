@@ -334,7 +334,6 @@ class RoundHandler:
         if model is not None:
             helper = get_helper(config['helper_type'])
             a = self.modelservice.serialize_model_to_BytesIO(model, helper)
-            # Send aggregated model to server
             model_id = str(uuid.uuid4())
             self.modelservice.set_model(a, model_id)
             a.close()
@@ -343,6 +342,7 @@ class RoundHandler:
             logger.info(
                 "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
+        self.modelservice.models.delete(config['model_id'])
         return data
 
     def run(self, polling_interval=1.0):

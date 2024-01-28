@@ -328,7 +328,7 @@ class Client:
 
             if retval:
                 if 'checksum' not in config:
-                    logger.warning("Bypassing security validation for local package. Ensure the package source is trusted.")
+                    logger.warning("Bypassing validation of package checksum. Ensure the package source is trusted.")
                 else:
                     checks_out = pr.validate(config['checksum'])
                     if not checks_out:
@@ -567,11 +567,6 @@ class Client:
             logger.error("Could not process training request due to error: {}".format(e))
             updated_model_id = None
             meta = {'status': 'failed', 'error': str(e)}
-
-        # Push model update to combiner server
-        updated_model_id = uuid.uuid4()
-        self.set_model(out_model, str(updated_model_id))
-        meta['upload_model'] = time.time() - tic
 
         self.state = ClientState.idle
 
