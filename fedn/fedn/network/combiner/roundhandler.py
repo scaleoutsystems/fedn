@@ -343,6 +343,7 @@ class RoundHandler:
             logger.info(
                 "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
+        self.modelservice.models.delete(config['model_id'])
         return data
 
     def run(self, polling_interval=1.0):
