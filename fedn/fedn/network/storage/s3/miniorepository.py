@@ -87,12 +87,12 @@ class MINIORepository(RepositoryBase):
                 "Could not list models in bucket {}".format(bucket))
         return objects
 
-    def delete_artifact(self, instance_name, bucket=[]):
+    def delete_artifact(self, instance_name, bucket):
         """ Delete object with name instance_name from buckets.
 
         :param instance_name: The object name
-        :param bucket: List of buckets to delete from
-        :type bucket: list
+        :param bucket: Buckets to delete from
+        :type bucket: str
         """
 
         try:

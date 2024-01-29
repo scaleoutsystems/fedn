@@ -18,8 +18,14 @@ cd fedn/examples/async-simulation
 
 Install FEDn and dependencies (we recommend using a virtual environment):
 
+Standing in the folder 'fedn/fedn'
+
 ```
-pip install -e ../../fedn
+pip install -e .
+```
+
+From examples/async-simulation
+```
 pip install -r requirements.txt
 ```
 

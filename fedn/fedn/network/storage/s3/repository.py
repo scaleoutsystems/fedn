@@ -63,7 +63,7 @@ class Repository:
         :type model_id: str
         """
         try:
-            self.client.delete_artifact(model_id, bucket=[self.model_bucket])
+            self.client.delete_artifact(model_id, bucket=self.model_bucket)
         except Exception:
             logger.error("Failed to delete model {} repository.".format(model_id))
             raise
