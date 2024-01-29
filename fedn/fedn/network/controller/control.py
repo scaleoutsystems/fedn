@@ -356,6 +356,7 @@ class Control(ControlBase):
                     model = load_model_from_BytesIO(data, helper)
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
+                self.model_repository.delete_model(model_id)
 
         return model, meta
 
