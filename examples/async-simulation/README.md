@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 Create the compute package and a seed model that you will be asked to upload in the next step.
 ```
-tar -cvzf package.tgz
+tar -czvf package.tgz client
 ```
 
 ```
@@ -50,4 +50,4 @@ See 'Experiments.pynb' or 'launch_client.py' to set the package and seed model.
 See 'Experiment.ipynb'. 
 
 ## Clean up
-You can clean up by running `docker-compose down`.
+You can clean up by running `docker-compose down -v`.
