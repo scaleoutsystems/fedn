@@ -1,6 +1,5 @@
 import copy
 import datetime
-import io
 import time
 import uuid
 
