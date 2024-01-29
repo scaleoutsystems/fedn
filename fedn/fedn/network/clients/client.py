@@ -404,7 +404,7 @@ class Client:
 
         bt.seek(0, 0)
 
-        result = self.modelStub.Upload(upload_request_generator(bt), metadata=self.metadata)
+        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
 
         return result
 
@@ -531,7 +531,7 @@ class Client:
 
             # Stream model update to combiner server
             updated_model_id = uuid.uuid4()
-            self.stream_model_to_combiner(out_model, str(updated_model_id))
+            self.send_model_to_combiner(out_model, str(updated_model_id))
             meta['upload_model'] = time.time() - tic
 
             # Read the metadata file

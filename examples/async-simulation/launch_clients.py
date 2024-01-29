@@ -38,4 +38,4 @@ for i in range(N_CLIENTS):
 # Disconnect clients after some time
 time.sleep(CLIENTS_AVAILABLE_TIME)
 for client in clients:
-    client._detach()
+    client.detach()

@@ -10,7 +10,7 @@ from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 CHUNK_SIZE = 1024 * 1024
 
 
-def upload_request_generator(mdl):
+def upload_request_generator(mdl, id):
     """Generator function for model upload requests.
 
     :param mdl: The model update object.
@@ -133,7 +133,7 @@ class ModelService(rpc.ModelServiceServicer):
         bt.seek(0, 0)
 
         # TODO: Check result
-        _ = self.Upload(upload_request_generator(bt), self)
+        _ = self.Upload(upload_request_generator(bt, id), self)
 
     # Model Service
     def Upload(self, request_iterator, context):
