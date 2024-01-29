@@ -1,8 +1,9 @@
 ## Examples
-The examples distributed here in this folder are regularly maintained by Scaleout and are part of the continuous integrations tests. 
+The examples distributed here in this folder are maintained by Scaleout. 
 
 ### External examples
-Below we maintain a list of examples provided both by the Scaleout core team and users. They may or may not be tested with the latest release of FEDn, please refer to the README of each specific project/example for detail. If you have a project that you want to include in this list, talk to a core developer in [Discord](https://discord.gg/CCRgjpMsVA).  
+Below we maintain a list of examples provided both by the Scaleout core team and users. They may or may not be tested with the latest release of FEDn, please refer to the README of each specific project/example for detail. 
+If you have a project that you want to include in this list, talk to a core developer in [Discord](https://discord.gg/CCRgjpMsVA).  
 
 - [C++ version of the MNIST example](https://github.com/scaleoutsystems/examples) Also executes in Intel SGX TEE via Gramine.
 - [Human activity recognition use case from the FEDn paper](https://github.com/scaleoutsystems/examples) IoT/cross-device. 
