@@ -10,6 +10,27 @@ from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 CHUNK_SIZE = 1024 * 1024
 
 
+def upload_request_generator(mdl):
+    """Generator function for model upload requests.
+
+    :param mdl: The model update object.
+    :type mdl: BytesIO
+    :return: A model update request.
+    :rtype: fedn.ModelRequest
+    """
+    while True:
+        b = mdl.read(CHUNK_SIZE)
+        if b:
+            result = fedn.ModelRequest(
+                data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
+        else:
+            result = fedn.ModelRequest(
+                id=id, data=None, status=fedn.ModelStatus.OK)
+        yield result
+        if not b:
+            break
+
+
 class ModelService(rpc.ModelServiceServicer):
     """ Service for handling download and upload of models to the server.
 
@@ -110,23 +131,6 @@ class ModelService(rpc.ModelServiceServicer):
             bt = model
 
         bt.seek(0, 0)
-
-        def upload_request_generator(mdl):
-            """
-
-            :param mdl:
-            """
-            while True:
-                b = mdl.read(CHUNK_SIZE)
-                if b:
-                    result = fedn.ModelRequest(
-                        data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
-                else:
-                    result = fedn.ModelRequest(
-                        id=id, data=None, status=fedn.ModelStatus.OK)
-                yield result
-                if not b:
-                    break
 
         # TODO: Check result
         _ = self.Upload(upload_request_generator(bt), self)

@@ -26,7 +26,7 @@ from fedn.common.log_config import (logger, set_log_level_from_string,
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
-from fedn.network.combiner.modelservice import ModelService
+from fedn.network.combiner.modelservice import upload_request_generator
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -58,7 +58,6 @@ class Client:
         self._attached = False
         self._missed_heartbeat = 0
         self.config = config
-        self.modelservice = ModelService()
 
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
@@ -238,7 +237,7 @@ class Client:
         """Disconnect from the combiner."""
         self.channel.close()
 
-    def.detach()(self):
+    def detach(self):
         """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
         if not self._attached:
@@ -360,7 +359,7 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-    def get_model(self, id):
+    def get_model_from_combiner(self, id):
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
 
@@ -384,7 +383,7 @@ class Client:
 
         return data
 
-    def set_model(self, model, id):
+    def send_model_to_combiner(self, model, id):
         """Send a model update to the assigned combiner.
         Uploads the model updated object via a gRPC streaming channel, Upload.
 
@@ -404,27 +403,6 @@ class Client:
             bt = model
 
         bt.seek(0, 0)
-
-        def upload_request_generator(mdl):
-            """Generator function for model upload requests.
-
-            :param mdl: The model update object.
-            :type mdl: BytesIO
-            :return: A model update request.
-            :rtype: fedn.ModelRequest
-            """
-            while True:
-                b = mdl.read(CHUNK_SIZE)
-                if b:
-                    result = fedn.ModelRequest(
-                        data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
-                else:
-                    result = fedn.ModelRequest(
-                        id=id, status=fedn.ModelStatus.OK)
-
-                yield result
-                if not b:
-                    break
 
         result = self.modelStub.Upload(upload_request_generator(bt), metadata=self.metadata)
 
@@ -530,7 +508,7 @@ class Client:
         try:
             meta = {}
             tic = time.time()
-            mdl = self.get_model(str(model_id))
+            mdl = self.get_model_from_combiner(str(model_id))
             meta['fetch_model'] = time.time() - tic
 
             inpath = self.helper.get_tmp_path()
@@ -551,9 +529,9 @@ class Client:
             with open(outpath, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
 
-            # Push model update to combiner server
+            # Stream model update to combiner server
             updated_model_id = uuid.uuid4()
-            self.set_model(out_model, str(updated_model_id))
+            self.stream_model_to_combiner(out_model, str(updated_model_id))
             meta['upload_model'] = time.time() - tic
 
             # Read the metadata file
@@ -594,7 +572,7 @@ class Client:
             f"Processing {cmd} request for model_id {model_id}")
         self.state = ClientState.validating
         try:
-            model = self.get_model(str(model_id))
+            model = self.get_model_from_combiner(str(model_id))
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
