@@ -31,6 +31,67 @@ def upload_request_generator(mdl, id):
             break
 
 
+def model_as_bytesIO(model):
+    if not isinstance(model, BytesIO):
+        bt = BytesIO()
+
+        written_total = 0
+        for d in model.stream(32 * 1024):
+            written = bt.write(d)
+            written_total += written
+    else:
+        bt = model
+
+    bt.seek(0, 0)
+    return bt
+
+
+def get_tmp_path():
+    """ Return a temporary output path compatible with save_model, load_model. """
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+    return path
+
+
+def load_model_from_BytesIO(model_bytesio, helper):
+    """ Load a model from a BytesIO object.
+    :param model_bytesio: A BytesIO object containing the model.
+    :type model_bytesio: :class:`io.BytesIO`
+    :param helper: The helper object for the model.
+    :type helper: :class:`fedn.utils.helperbase.HelperBase`
+    :return: The model object.
+    :rtype: return type of helper.load
+    """
+    path = get_tmp_path()
+    with open(path, 'wb') as fh:
+        fh.write(model_bytesio)
+        fh.flush()
+    model = helper.load(path)
+    os.unlink(path)
+    return model
+
+
+def serialize_model_to_BytesIO(model, helper):
+    """ Serialize a model to a BytesIO object.
+
+    :param model: The model object.
+    :type model: return type of helper.load
+    :param helper: The helper object for the model.
+    :type helper: :class:`fedn.utils.helperbase.HelperBase`
+    :return: A BytesIO object containing the model.
+    :rtype: :class:`io.BytesIO`
+    """
+    outfile_name = helper.save(model)
+
+    a = BytesIO()
+    a.seek(0, 0)
+    with open(outfile_name, 'rb') as f:
+        a.write(f.read())
+    a.seek(0)
+    os.unlink(outfile_name)
+    return a
+
+
 class ModelService(rpc.ModelServiceServicer):
     """ Service for handling download and upload of models to the server.
 
@@ -46,49 +107,6 @@ class ModelService(rpc.ModelServiceServicer):
         :return: True if the model exists, else False.
         """
         return self.temp_model_storage.exist(model_id)
-
-    def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model. """
-        fd, path = tempfile.mkstemp()
-        os.close(fd)
-        return path
-
-    def load_model_from_BytesIO(self, model_bytesio, helper):
-        """ Load a model from a BytesIO object.
-
-        :param model_bytesio: A BytesIO object containing the model.
-        :type model_bytesio: :class:`io.BytesIO`
-        :param helper: The helper object for the model.
-        :type helper: :class:`fedn.utils.helperbase.HelperBase`
-        :return: The model object.
-        :rtype: return type of helper.load
-        """
-        path = self.get_tmp_path()
-        with open(path, 'wb') as fh:
-            fh.write(model_bytesio)
-            fh.flush()
-        model = helper.load(path)
-        os.unlink(path)
-        return model
-
-    def serialize_model_to_BytesIO(self, model, helper):
-        """ Serialize a model to a BytesIO object.
-
-        :param model: The model object.
-        :type model: return type of helper.load
-        :param helper: The helper object for the model.
-        :type helper: :class:`fedn.utils.helperbase.HelperBase`
-        :return: A BytesIO object containing the model.
-        :rtype: :class:`io.BytesIO`
-        """
-        outfile_name = helper.save(model)
-
-        a = BytesIO()
-        a.seek(0, 0)
-        with open(outfile_name, 'rb') as f:
-            a.write(f.read())
-        os.unlink(outfile_name)
-        return a
 
     def get_model(self, id):
         """ Download model with id 'id' from server.
@@ -120,18 +138,7 @@ class ModelService(rpc.ModelServiceServicer):
         :param id: The model id.
         :type id: str
         """
-        if not isinstance(model, BytesIO):
-            bt = BytesIO()
-
-            written_total = 0
-            for d in model.stream(32 * 1024):
-                written = bt.write(d)
-                written_total += written
-        else:
-            bt = model
-
-        bt.seek(0, 0)
-
+        bt = model_as_bytesIO(model)
         # TODO: Check result
         _ = self.Upload(upload_request_generator(bt, id), self)
 

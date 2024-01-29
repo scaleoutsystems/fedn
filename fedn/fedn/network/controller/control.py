@@ -1,12 +1,15 @@
 import copy
 import datetime
+import io
 import time
 import uuid
 
 from tenacity import (retry, retry_if_exception_type, stop_after_delay,
                       wait_random)
 
+from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.combiner.modelservice import load_model_from_BytesIO
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
 
@@ -328,41 +331,29 @@ class Control(ControlBase):
         for combiner in combiners:
             name = combiner['name']
             model_id = combiner['model_id']
-            # TODO: Handle inactive RPC error in get_model and raise specific error
-            print(
-                "REDUCER: Fetching model ({model_id}) from combiner {name}".format(
-                    model_id=model_id, name=name
-                ),
-                flush=True,
-            )
+
+            logger.info("Fetching model ({}) from model repository".format(model_id))
+
             try:
                 tic = time.time()
-                combiner_interface = self.get_combiner(name)
-                data = combiner_interface.get_model(model_id)
+                data = self.model_repository.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
             except Exception as e:
-                print(
-                    "REDUCER: Failed to fetch model from combiner {}: {}".format(
-                        name, e
-                    ),
-                    flush=True,
-                )
+                logger.info("Failed to fetch model from model repository {}: {}".format(name, e))
                 data = None
 
             if data is not None:
                 try:
                     tic = time.time()
                     helper = self.get_helper()
-                    data.seek(0)
-                    model_next = helper.load(data)
+                    model_next = load_model_from_BytesIO(data, helper)
                     meta["time_load_model"] += time.time() - tic
                     tic = time.time()
                     model = helper.increment_average(model, model_next, i, i)
                     meta["time_aggregate_model"] += time.time() - tic
                 except Exception:
                     tic = time.time()
-                    data.seek(0)
-                    model = helper.load(data)
+                    model = load_model_from_BytesIO(data, helper)
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
 

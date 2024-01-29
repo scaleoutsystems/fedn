@@ -58,6 +58,9 @@ class MINIORepository(RepositoryBase):
             return data.read()
         except Exception as e:
             raise Exception("Could not fetch data from bucket, {}".format(e))
+        finally:
+            data.close()
+            data.release_conn()
 
     def get_artifact_stream(self, instance_name, bucket):
 

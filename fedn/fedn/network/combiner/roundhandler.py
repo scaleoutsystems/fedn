@@ -6,6 +6,8 @@ import uuid
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
+from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
+                                                serialize_model_to_BytesIO)
 from fedn.utils.helpers.helpers import get_helper
 
 
@@ -69,7 +71,7 @@ class RoundHandler:
         model_str = self.load_model_update_str(model_id)
         if model_str:
             try:
-                model = self.modelservice.load_model_from_BytesIO(model_str.getbuffer(), helper)
+                model = load_model_from_BytesIO(model_str.getbuffer(), helper)
             except IOError:
                 logger.warning(
                     "AGGREGATOR({}): Failed to load model!".format(self.name))
@@ -320,7 +322,7 @@ class RoundHandler:
         data['config'] = config
         data['round_id'] = config['round_id']
 
-        # Make sure the model to update is available on this combiner.
+        # Download model to update and set in temp storage.
         self.stage_model(config['model_id'])
 
         clients = self._assign_round_clients(self.server.max_clients)
@@ -333,15 +335,18 @@ class RoundHandler:
 
         if model is not None:
             helper = get_helper(config['helper_type'])
-            a = self.modelservice.serialize_model_to_BytesIO(model, helper)
-            model_id = str(uuid.uuid4())
-            self.modelservice.set_model(a, model_id)
+            a = serialize_model_to_BytesIO(model, helper)
+            # a.seek(0)
+            #model_id = str(uuid.uuid4())
+            model_id = self.storage.set_model(a.read(), is_file=False)
+            #self.modelservice.set_model(a, model_id)
             a.close()
             data['model_id'] = model_id
 
             logger.info(
                 "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
+        # Delete temp model
         self.modelservice.temp_model_storage.delete(config['model_id'])
         return data
 
