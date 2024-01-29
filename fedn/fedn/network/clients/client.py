@@ -26,6 +26,7 @@ from fedn.common.log_config import (logger, set_log_level_from_string,
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
+from fedn.network.combiner.modelservice import ModelService
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -57,6 +58,7 @@ class Client:
         self._attached = False
         self._missed_heartbeat = 0
         self.config = config
+        self.modelservice = ModelService()
 
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
@@ -236,7 +238,7 @@ class Client:
         """Disconnect from the combiner."""
         self.channel.close()
 
-    def _detach(self):
+    def.detach()(self):
         """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
         if not self._attached:
@@ -699,7 +701,7 @@ class Client:
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
-            self._detach()
+            self.detach()()
 
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
