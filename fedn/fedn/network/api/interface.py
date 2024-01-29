@@ -1011,7 +1011,7 @@ class API:
         round_buffer_size=-1,
         delete_models=False,
         validate=True,
-        helper="keras",
+        helper="numpyhelper",
         min_clients=1,
         requested_clients=8,
     ):
