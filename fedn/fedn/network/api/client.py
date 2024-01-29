@@ -120,7 +120,7 @@ class APIClient:
         return response.json()
 
     def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
-                      validate=True, helper='numpyhelper', min_clients=1, requested_clients=1):
+                      validate=True, helper='numpyhelper', min_clients=1, requested_clients=8):
         """ Start a new session.
 
         :param session_id: The session id to start.

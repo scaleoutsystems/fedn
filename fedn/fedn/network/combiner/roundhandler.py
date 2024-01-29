@@ -336,10 +336,7 @@ class RoundHandler:
         if model is not None:
             helper = get_helper(config['helper_type'])
             a = serialize_model_to_BytesIO(model, helper)
-            # a.seek(0)
-            #model_id = str(uuid.uuid4())
             model_id = self.storage.set_model(a.read(), is_file=False)
-            #self.modelservice.set_model(a, model_id)
             a.close()
             data['model_id'] = model_id
 
