@@ -790,7 +790,7 @@ discover_port: {discover_port}
                     return redirect(url_for("context"))
 
                 file = request.files["file"]
-                helper_type = request.form.get("helper", "kerashelper")
+                helper_type = request.form.get("helper", "numpyhelper")
                 # if user does not select file, browser also
                 # submit an empty part without filename
                 if file.filename == "":

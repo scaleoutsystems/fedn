@@ -10,13 +10,95 @@ from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 CHUNK_SIZE = 1024 * 1024
 
 
+def upload_request_generator(mdl, id):
+    """Generator function for model upload requests.
+
+    :param mdl: The model update object.
+    :type mdl: BytesIO
+    :return: A model update request.
+    :rtype: fedn.ModelRequest
+    """
+    while True:
+        b = mdl.read(CHUNK_SIZE)
+        if b:
+            result = fedn.ModelRequest(
+                data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
+        else:
+            result = fedn.ModelRequest(
+                id=id, data=None, status=fedn.ModelStatus.OK)
+        yield result
+        if not b:
+            break
+
+
+def model_as_bytesIO(model):
+    if not isinstance(model, BytesIO):
+        bt = BytesIO()
+
+        written_total = 0
+        for d in model.stream(32 * 1024):
+            written = bt.write(d)
+            written_total += written
+    else:
+        bt = model
+
+    bt.seek(0, 0)
+    return bt
+
+
+def get_tmp_path():
+    """ Return a temporary output path compatible with save_model, load_model. """
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+    return path
+
+
+def load_model_from_BytesIO(model_bytesio, helper):
+    """ Load a model from a BytesIO object.
+    :param model_bytesio: A BytesIO object containing the model.
+    :type model_bytesio: :class:`io.BytesIO`
+    :param helper: The helper object for the model.
+    :type helper: :class:`fedn.utils.helperbase.HelperBase`
+    :return: The model object.
+    :rtype: return type of helper.load
+    """
+    path = get_tmp_path()
+    with open(path, 'wb') as fh:
+        fh.write(model_bytesio)
+        fh.flush()
+    model = helper.load(path)
+    os.unlink(path)
+    return model
+
+
+def serialize_model_to_BytesIO(model, helper):
+    """ Serialize a model to a BytesIO object.
+
+    :param model: The model object.
+    :type model: return type of helper.load
+    :param helper: The helper object for the model.
+    :type helper: :class:`fedn.utils.helperbase.HelperBase`
+    :return: A BytesIO object containing the model.
+    :rtype: :class:`io.BytesIO`
+    """
+    outfile_name = helper.save(model)
+
+    a = BytesIO()
+    a.seek(0, 0)
+    with open(outfile_name, 'rb') as f:
+        a.write(f.read())
+    a.seek(0)
+    os.unlink(outfile_name)
+    return a
+
+
 class ModelService(rpc.ModelServiceServicer):
     """ Service for handling download and upload of models to the server.
 
     """
 
     def __init__(self):
-        self.models = TempModelStorage()
+        self.temp_model_storage = TempModelStorage()
 
     def exist(self, model_id):
         """ Check if a model exists on the server.
@@ -24,50 +106,7 @@ class ModelService(rpc.ModelServiceServicer):
         :param model_id: The model id.
         :return: True if the model exists, else False.
         """
-        return self.models.exist(model_id)
-
-    def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model. """
-        fd, path = tempfile.mkstemp()
-        os.close(fd)
-        return path
-
-    def load_model_from_BytesIO(self, model_bytesio, helper):
-        """ Load a model from a BytesIO object.
-
-        :param model_bytesio: A BytesIO object containing the model.
-        :type model_bytesio: :class:`io.BytesIO`
-        :param helper: The helper object for the model.
-        :type helper: :class:`fedn.utils.helperbase.HelperBase`
-        :return: The model object.
-        :rtype: return type of helper.load
-        """
-        path = self.get_tmp_path()
-        with open(path, 'wb') as fh:
-            fh.write(model_bytesio)
-            fh.flush()
-        model = helper.load(path)
-        os.unlink(path)
-        return model
-
-    def serialize_model_to_BytesIO(self, model, helper):
-        """ Serialize a model to a BytesIO object.
-
-        :param model: The model object.
-        :type model: return type of helper.load
-        :param helper: The helper object for the model.
-        :type helper: :class:`fedn.utils.helperbase.HelperBase`
-        :return: A BytesIO object containing the model.
-        :rtype: :class:`io.BytesIO`
-        """
-        outfile_name = helper.save(model)
-
-        a = BytesIO()
-        a.seek(0, 0)
-        with open(outfile_name, 'rb') as f:
-            a.write(f.read())
-        os.unlink(outfile_name)
-        return a
+        return self.temp_model_storage.exist(model_id)
 
     def get_model(self, id):
         """ Download model with id 'id' from server.
@@ -99,37 +138,9 @@ class ModelService(rpc.ModelServiceServicer):
         :param id: The model id.
         :type id: str
         """
-        if not isinstance(model, BytesIO):
-            bt = BytesIO()
-
-            written_total = 0
-            for d in model.stream(32 * 1024):
-                written = bt.write(d)
-                written_total += written
-        else:
-            bt = model
-
-        bt.seek(0, 0)
-
-        def upload_request_generator(mdl):
-            """
-
-            :param mdl:
-            """
-            while True:
-                b = mdl.read(CHUNK_SIZE)
-                if b:
-                    result = fedn.ModelRequest(
-                        data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
-                else:
-                    result = fedn.ModelRequest(
-                        id=id, data=None, status=fedn.ModelStatus.OK)
-                yield result
-                if not b:
-                    break
-
+        bt = model_as_bytesIO(model)
         # TODO: Check result
-        _ = self.Upload(upload_request_generator(bt), self)
+        _ = self.Upload(upload_request_generator(bt, id), self)
 
     # Model Service
     def Upload(self, request_iterator, context):
@@ -146,16 +157,16 @@ class ModelService(rpc.ModelServiceServicer):
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
-                self.models.get_ptr(request.id).write(request.data)
-                self.models.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
+                self.temp_model_storage.get_ptr(request.id).write(request.data)
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                             message="Got model successfully.")
-                # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.models.set_model_metadata(request.id, fedn.ModelStatus.OK)
-                self.models.get_ptr(request.id).flush()
-                self.models.get_ptr(request.id).close()
+                # self.temp_model_storage_metadata.update({request.id: fedn.ModelStatus.OK})
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.OK)
+                self.temp_model_storage.get_ptr(request.id).flush()
+                self.temp_model_storage.get_ptr(request.id).close()
                 return result
 
     def Download(self, request, context):
@@ -170,7 +181,7 @@ class ModelService(rpc.ModelServiceServicer):
         """
         logger.debug("grpc.ModelService.Download: Called")
         try:
-            if self.models.get_model_metadata(request.id) != fedn.ModelStatus.OK:
+            if self.temp_model_storage.get_model_metadata(request.id) != fedn.ModelStatus.OK:
                 logger.error("Error file is not ready")
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:
@@ -178,7 +189,7 @@ class ModelService(rpc.ModelServiceServicer):
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
-            obj = self.models.get(request.id)
+            obj = self.temp_model_storage.get(request.id)
             with obj as f:
                 while True:
                     piece = f.read(CHUNK_SIZE)
