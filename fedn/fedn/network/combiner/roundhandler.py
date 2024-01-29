@@ -89,7 +89,7 @@ class RoundHandler:
         :rtype: class: `io.BytesIO`
         """
         # Try reading model update from local disk/combiner memory
-        model_str = self.modelservice.models.get(model_id)
+        model_str = self.modelservice.temp_model_storage.get(model_id)
         # And if we cannot access that, try downloading from the server
         if model_str is None:
             model_str = self.modelservice.get_model(model_id)
@@ -206,7 +206,7 @@ class RoundHandler:
         """
 
         # If the model is already in memory at the server we do not need to do anything.
-        if self.modelservice.models.exist(model_id):
+        if self.modelservice.temp_model_storage.exist(model_id):
             logger.info("ROUNDCONTROL: Model already exists in memory, skipping model staging.")
             return
         logger.info("ROUNDCONTROL: Model Staging, fetching model from storage...")
@@ -342,7 +342,7 @@ class RoundHandler:
             logger.info(
                 "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
-        self.modelservice.models.delete(config['model_id'])
+        self.modelservice.temp_model_storage.delete(config['model_id'])
         return data
 
     def run(self, polling_interval=1.0):

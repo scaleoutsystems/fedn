@@ -16,7 +16,7 @@ class ModelService(rpc.ModelServiceServicer):
     """
 
     def __init__(self):
-        self.models = TempModelStorage()
+        self.temp_model_storage = TempModelStorage()
 
     def exist(self, model_id):
         """ Check if a model exists on the server.
@@ -24,7 +24,7 @@ class ModelService(rpc.ModelServiceServicer):
         :param model_id: The model id.
         :return: True if the model exists, else False.
         """
-        return self.models.exist(model_id)
+        return self.temp_model_storage.exist(model_id)
 
     def get_tmp_path(self):
         """ Return a temporary output path compatible with save_model, load_model. """
@@ -146,16 +146,16 @@ class ModelService(rpc.ModelServiceServicer):
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
-                self.models.get_ptr(request.id).write(request.data)
-                self.models.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
+                self.temp_model_storage.get_ptr(request.id).write(request.data)
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
                 result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK,
                                             message="Got model successfully.")
-                # self.models_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.models.set_model_metadata(request.id, fedn.ModelStatus.OK)
-                self.models.get_ptr(request.id).flush()
-                self.models.get_ptr(request.id).close()
+                # self.temp_model_storage_metadata.update({request.id: fedn.ModelStatus.OK})
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.OK)
+                self.temp_model_storage.get_ptr(request.id).flush()
+                self.temp_model_storage.get_ptr(request.id).close()
                 return result
 
     def Download(self, request, context):
@@ -170,7 +170,7 @@ class ModelService(rpc.ModelServiceServicer):
         """
         logger.debug("grpc.ModelService.Download: Called")
         try:
-            if self.models.get_model_metadata(request.id) != fedn.ModelStatus.OK:
+            if self.temp_model_storage.get_model_metadata(request.id) != fedn.ModelStatus.OK:
                 logger.error("Error file is not ready")
                 yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
         except Exception:
@@ -178,7 +178,7 @@ class ModelService(rpc.ModelServiceServicer):
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
-            obj = self.models.get(request.id)
+            obj = self.temp_model_storage.get(request.id)
             with obj as f:
                 while True:
                     piece = f.read(CHUNK_SIZE)
