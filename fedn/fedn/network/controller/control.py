@@ -95,7 +95,7 @@ class Control(ControlBase):
             return
 
         if not self.statestore.get_latest_model():
-            logger.info("No model in model chain, please provide a seed model!")
+            logger.warning("No model in model chain, please provide a seed model!")
             return
 
         self._state = ReducerState.instructing
@@ -336,7 +336,7 @@ class Control(ControlBase):
 
         # Check for a model chain
         if not self.statestore.latest_model():
-            logger.info("No model in model chain, please seed the alliance!")
+            logger.warning("No model in model chain, please set seed model.")
 
         # Set reducer in monitoring state
         self.__state = ReducerState.monitoring
@@ -361,7 +361,7 @@ class Control(ControlBase):
 
         # Check for at least one combiner in statestore
         if len(self.network.get_combiners()) < 1:
-            logger.warning("REDUCER: No combiners connected!")
+            logger.warning("No combiners connected!")
             return round_data
 
         # Setup combiner configuration

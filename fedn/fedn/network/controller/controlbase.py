@@ -51,7 +51,7 @@ class ControlBase(ABC):
                 if storage_config:
                     not_ready = False
                 else:
-                    logger.info("Storage backend not configured, waiting...")
+                    logger.warning("Storage backend not configured, waiting...")
                     sleep(5)
                     tries += 1
                     if tries > MAX_TRIES_BACKEND:

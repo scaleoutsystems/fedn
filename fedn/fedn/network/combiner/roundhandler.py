@@ -54,7 +54,7 @@ class RoundHandler:
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
-            logger.warning("Failed to push round config.")
+            logger.error("Failed to push round config.")
             raise
         return round_config['_job_id']
 
@@ -217,11 +217,11 @@ class RoundHandler:
                 if model:
                     break
             except Exception:
-                logger.info("Could not fetch model from storage backend, retrying.")
+                logger.warning("Could not fetch model from storage backend, retrying.")
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    logger.info("Failed to stage model {} from storage backend!".format(model_id))
+                    logger.error("Failed to stage model {} from storage backend!".format(model_id))
                     raise
 
         self.modelservice.set_model(model, model_id)
