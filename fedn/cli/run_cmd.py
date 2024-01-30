@@ -5,8 +5,6 @@ import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
-from fedn.dashboard.dashboard import Dashboard
-from fedn.dashboard.restservice import decode_auth_token, encode_auth_token
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
@@ -145,97 +143,6 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 
     client = Client(config)
     client.run()
-
-
-@run_cmd.command('dashboard')
-@click.option('-h', '--host', required=False)
-@click.option('-p', '--port', required=False, default='8090', show_default=True)
-@click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
-@click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
-@click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8], help='Set service name')
-@click.option('-in', '--init', required=True, default=None,
-              help='Set to a filename to (re)init reducer state from file.')
-@click.pass_context
-def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
-    """ Start the dashboard service.
-
-    :param ctx: Click context.
-    :param discoverhost: Hostname for discovery services (dashboard).
-    :param discoverport: Port for discovery services (dashboard).
-    :param secret_key: Set secret key to enable jwt token authentication.
-    :param local_package: Enable use of local compute package.
-    :param name: Set service name.
-    :param init: Set to a filename to (re)init config state from file.
-    """
-    remote = False if local_package else True
-    config = {'host': host, 'port': port, 'secret_key': secret_key,
-              'name': name, 'remote_compute_package': remote, 'init': init}
-
-    # Read settings from config file
-    try:
-        fedn_config = get_statestore_config_from_file(config['init'])
-    except Exception as e:
-        print('Failed to read config from settings file, exiting.', flush=True)
-        print(e, flush=True)
-        exit(-1)
-
-    if not remote:
-        _ = check_helper_config_file(fedn_config)
-
-    try:
-        network_id = fedn_config['network_id']
-    except KeyError:
-        print("No network_id in config, please specify the control network id.", flush=True)
-        exit(-1)
-
-    # Obtain state from database, in case already initialized (service restart)
-    statestore_config = fedn_config['statestore']
-    if statestore_config['type'] == 'MongoDB':
-        statestore = MongoStateStore(
-            network_id, statestore_config['mongo_config'])
-    else:
-        print("Unsupported statestore type, exiting. ", flush=True)
-        exit(-1)
-
-    statestore.set_storage_backend(fedn_config['storage'])
-
-    # Enable JWT token authentication.
-    if config['secret_key']:
-        # If we already have a valid token in statestore config, use that one.
-        existing_config = statestore.get_reducer()
-        if existing_config:
-            try:
-                existing_config = statestore.get_reducer()
-                current_token = existing_config['token']
-                status = decode_auth_token(current_token, config['secret_key'])
-                if status != 'Success':
-                    token = encode_auth_token(config['secret_key'])
-                    config['token'] = token
-            except Exception:
-                raise
-
-        else:
-            token = encode_auth_token(config['secret_key'])
-            config['token'] = token
-    try:
-        statestore.set_reducer(config)
-    except Exception:
-        print("Failed to set reducer config in statestore, exiting.", flush=True)
-        exit(-1)
-
-    # Configure storage backend.
-    try:
-        statestore.set_storage_backend(fedn_config['storage'])
-    except KeyError:
-        print("storage configuration missing in statestore_config.", flush=True)
-        exit(-1)
-    except Exception:
-        print("Failed to set storage config in statestore, exiting.", flush=True)
-        exit(-1)
-
-    dashboard = Dashboard(statestore)
-    dashboard.run()
-    logger.warning("The Dashboard is deprecated and will be removed in a future release.")
 
 
 @run_cmd.command('combiner')
