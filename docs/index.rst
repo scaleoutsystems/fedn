@@ -7,6 +7,8 @@
    architecture
    deployment
    interfaces
+   aggregators
+   helpers
    tutorial
    faq
    modules
