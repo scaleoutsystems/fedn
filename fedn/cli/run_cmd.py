@@ -31,7 +31,7 @@ def check_helper_config_file(config):
     try:
         helper = control["helper"]
     except KeyError:
-        print("--local-package was used, but no helper was found in --init settings file.", flush=True)
+        logger.error("--local-package was used, but no helper was found in --init settings file.")
         exit(-1)
     return helper
 
@@ -47,7 +47,7 @@ def apply_config(config):
         try:
             settings = dict(yaml.safe_load(file))
         except Exception:
-            print('Failed to read config from settings file, exiting.', flush=True)
+            logger.error('Failed to read config from settings file, exiting.')
             return
 
     for key, val in settings.items():
@@ -77,8 +77,6 @@ def run_cmd(ctx):
 
     :param ctx:
     """
-    # if daemon:
-    #    print('{} NYI should run as daemon...'.format(__file__))
     pass
 
 
