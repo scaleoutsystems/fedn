@@ -10,7 +10,7 @@ have different internal ways to represent model parameters, there is a need to i
 framework how to handle models of a given type. In FEDn, this compatibility layer is the 
 task of Helpers.
 
-A helper is defined by the interface in :py:mod:`fedn.utils.helpers.HelperBase`. 
+A helper is defined by the interface in :py:mod:`fedn.utils.helpers.helperbase.HelperBase`. 
 By implementing a helper plugin, a developer can extend the framework with support for new ML 
 frameworks and numerical operations.  
 
