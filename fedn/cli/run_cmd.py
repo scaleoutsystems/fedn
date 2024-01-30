@@ -7,7 +7,6 @@ from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 from .main import main
 
