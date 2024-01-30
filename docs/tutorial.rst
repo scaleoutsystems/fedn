@@ -308,7 +308,7 @@ For the compute package we need to compress the *client* folder as .tar.gz file.
 
 .. code-block:: bash
 
-    tar -czvf package.tar.gz client
+    tar -czvf package.tgz client
 
 
 This file can then be uploaded to the FEDn network using the FEDn UI or the :py:mod:`fedn.network.api.client`.

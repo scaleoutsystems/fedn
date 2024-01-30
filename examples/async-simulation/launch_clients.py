@@ -2,7 +2,7 @@
 
 If you are running with a local deploy of FEDn
 using docker compose, you need to make sure that clients
-are able to resolver the name "combiner" to 127.0.0.1
+are able to resolve the name "combiner" to 127.0.0.1
 
 One way to accomplish this is to edit your /etc/host,
 adding the line:

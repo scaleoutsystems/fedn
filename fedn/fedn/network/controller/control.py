@@ -338,7 +338,7 @@ class Control(ControlBase):
                 data = self.model_repository.get_model(model_id)
                 meta['time_fetch_model'] += (time.time() - tic)
             except Exception as e:
-                logger.info("Failed to fetch model from model repository {}: {}".format(name, e))
+                logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
                 data = None
 
             if data is not None:
