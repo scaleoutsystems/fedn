@@ -1,8 +1,15 @@
+.. _agg-label:
+
 Aggregators
 ===========
 
 Aggregators handle combinations of model updates received by the combiner into a combiner-level global model. 
 During a training session, the combiners will instantiate an Aggregator and use it to process the incoming model updates from clients.
+
+.. image:: img/aggregators.png
+   :alt: Aggregator overview
+   :width: 100%
+   :align: center
 
 The above figure illustrates the overall flow. When a client completes a model update, the model parameters are streamed to the combiner, and a model update message is sent. The model parameters are written to file on disk, and the model update message is passed to a callback function, on_model_update. The callback function validates the model update, and if successful, puts the update message on an aggregation queue. The model parameters are written to disk at a configurable storage location at the combiner. This is done to avoid exhausting RAM memory at the combiner. As multiple clients send updates, the aggregation queue builds up, and when a certain criteria is met, another method, combine_models, starts processing the queue, aggregating models according to the specifics of the scheme (FedAvg, FedAdam, etc). 
 

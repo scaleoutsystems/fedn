@@ -1,3 +1,5 @@
+.. _helper-label:
+
 Model Serialization/Deserialization - Helpers
 =============================================
 
