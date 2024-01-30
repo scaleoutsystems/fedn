@@ -15,7 +15,7 @@ The compute package
    :width: 100%
    :align: center
 
-The *compute package* is a tar.gz bundle of the code to be executed by each data-provider/client. 
+The *compute package* is a .tgz bundle of the code to be executed by each data-provider/client. 
 This package is uploaded to the *Controller* upon initialization of the FEDN Network (along with the initial model). 
 When a client connects to the network, it downloads and unpacks the package locally and are then ready to 
 participate in training and/or validation. 
@@ -39,7 +39,7 @@ In the examples we have roughly the following file and folder structure:
 | └── docker-compose.yml/Dockerfile
 | 
 
-The "client" folder is the *compute package* which will become a tar.gz bundle of the code to be executed by 
+The "client" folder is the *compute package* which will become a .tgz bundle of the code to be executed by 
 each data-provider/client. The entry points, mentioned above, are defined in the *fedn.yaml*:
 
 .. code-block:: yaml
@@ -306,7 +306,7 @@ The Dahboard in the FEDn UI will plot any scalar metric in this json file, but y
 
 Packaging for distribution
 --------------------------
-For the compute package we need to compress the *client* folder as .tar.gz file. E.g. using:
+For the compute package we need to compress the *client* folder as .tgz file. E.g. using:
 
 .. code-block:: bash
 
@@ -335,7 +335,7 @@ We recommend you to test your code before running the client. For example, you c
     python entrypoint.py validate ../model_update.npz ../validation.json --data_path ../data/mnist.npz
 
 
-Once everything works as expected you can start the federated network, upload the tar.gz compute package and the initial model. 
+Once everything works as expected you can start the federated network, upload the .tgz compute package and the initial model. 
 Finally connect a client to the network:
 
 .. code-block:: bash

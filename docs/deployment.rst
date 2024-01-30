@@ -86,10 +86,10 @@ and update extra_hosts for the reducer (you need to restart the reducer to do so
 4. Attach clients to the FEDn network
 -------------------------------------
 
-You can now choose an example, upload a compute package and an initial model, and attach clients. 
+You can now choose an example, upload a compute package and an initial model, and attach clients (see the quickstart for an example). 
 
 - `Examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`__
 
 .. note:: 
    The clients will also need to be able to resolve each combiner node usign the 'host' argument in the combiner settings file. 
-   There is a template in 'config/extra-hosts-client.yaml.template' that can be modified for this purpose. 
+   There is a template in 'config/extra-hosts-client.yaml.template' that can be modified for this purpose if you use docker-compose for clients. 
