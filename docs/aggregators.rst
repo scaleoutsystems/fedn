@@ -30,8 +30,8 @@ combine_models
 
 This method is responsible for processing the model update queue and in doing so produce an aggregated model. This is the main extension point where the numerical detail of the aggregation scheme is implemented. The best way to understand how to implement this methods is to study the already implemented algorithms: 
 
-:py:mod:`fedn.network.combiner.aggregators.fedavg.Aggregator`
-:py:mod:`fedn.network.combiner.aggregators.fedopt.Aggregator`
+- :py:mod:`fedn.network.combiner.aggregators.fedavg`
+- :py:mod:`fedn.network.combiner.aggregators.fedopt`
 
 To add an aggregator plugin “myaggregator”, the developer implements the interface and places a file called ‘myaggregator.py’ in the folder ‘fedn.network.combiner.aggregators’. 
 
