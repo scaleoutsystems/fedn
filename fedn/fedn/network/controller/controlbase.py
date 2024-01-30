@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from time import sleep
 
 import fedn.utils.helpers.helpers
+from fedn.common.log_config import logger
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
@@ -50,19 +51,13 @@ class ControlBase(ABC):
                 if storage_config:
                     not_ready = False
                 else:
-                    print(
-                        "REDUCER CONTROL: Storage backend not configured, waiting...",
-                        flush=True,
-                    )
+                    logger.warning("Storage backend not configured, waiting...")
                     sleep(5)
                     tries += 1
                     if tries > MAX_TRIES_BACKEND:
                         raise Exception
         except Exception:
-            print(
-                "REDUCER CONTROL: Failed to retrive storage configuration, exiting.",
-                flush=True,
-            )
+            logger.error("Failed to retrive storage configuration, exiting.")
             raise MisconfiguredStorageBackend()
 
         if storage_config["storage_type"] == "S3":
@@ -70,10 +65,7 @@ class ControlBase(ABC):
                 storage_config["storage_config"]
             )
         else:
-            print(
-                "REDUCER CONTROL: Unsupported storage backend, exiting.",
-                flush=True,
-            )
+            logger.error("Unsupported storage backend, exiting.")
             raise UnsupportedStorageBackend()
 
         if self.statestore.is_inited():
@@ -163,10 +155,7 @@ class ControlBase(ABC):
                 package_name = definition["storage_file_name"]
                 return package_name
             except (IndexError, KeyError):
-                print(
-                    "No context filename set for compute context definition",
-                    flush=True,
-                )
+                logger.error("No context filename set for compute context definition")
                 return None
         else:
             return None
@@ -260,24 +249,17 @@ class ControlBase(ABC):
 
         helper = self.get_helper()
         if model is not None:
-            print(
-                "CONTROL: Saving model file temporarily to disk...", flush=True
-            )
+            logger.info("Saving model file temporarily to disk...")
             outfile_name = helper.save(model)
-            print("CONTROL: Uploading model to Minio...", flush=True)
+            logger.info("CONTROL: Uploading model to Minio...")
             model_id = self.model_repository.set_model(
                 outfile_name, is_file=True
             )
 
-            print("CONTROL: Deleting temporary model file...", flush=True)
+            logger.info("CONTROL: Deleting temporary model file...")
             os.unlink(outfile_name)
 
-        print(
-            "CONTROL: Committing model {} to global model trail in statestore...".format(
-                model_id
-            ),
-            flush=True,
-        )
+        logger.info("Committing model {} to global model trail in statestore...".format(model_id))
         self.statestore.set_latest_model(model_id, session_id)
 
     def get_combiner(self, name):
