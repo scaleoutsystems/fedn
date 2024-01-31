@@ -9,11 +9,11 @@ from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
-from fedn.dashboard.plots import Plot
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
+from fedn.utils.plots import Plot
 
 __all__ = ("API",)
 
@@ -167,7 +167,9 @@ class API:
         payload = {}
         id = session_object["session_id"]
         info = session_object["session_config"][0]
+        status = session_object["status"]
         payload[id] = info
+        payload['status'] = status
         return jsonify(payload)
 
     def set_active_compute_package(self, id: str):
