@@ -167,7 +167,9 @@ class API:
         payload = {}
         id = session_object["session_id"]
         info = session_object["session_config"][0]
+        status = session_object["status"]
         payload[id] = info
+        payload['status'] = status
         return jsonify(payload)
 
     def set_active_compute_package(self, id: str):

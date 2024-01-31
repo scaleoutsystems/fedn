@@ -54,8 +54,7 @@ class RoundHandler:
             round_config['_job_id'] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
-            logger.warning(
-                "ROUNDCONTROL: Failed to push round config.")
+            logger.error("Failed to push round config.")
             raise
         return round_config['_job_id']
 
@@ -100,9 +99,7 @@ class RoundHandler:
             while tries < retry:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    logger.warning(
-                        "ROUNDCONTROL: Model download failed. retrying")
-
+                    logger.warning("Model download failed. retrying")
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
 
@@ -170,7 +167,7 @@ class RoundHandler:
 
         try:
             helper = get_helper(config['helper_type'])
-            logger.info("ROUNDCONTROL: Config delete_models_storage: {}".format(config['delete_models_storage']))
+            logger.info("Config delete_models_storage: {}".format(config['delete_models_storage']))
             if config['delete_models_storage'] == 'True':
                 delete_models = True
             else:
@@ -209,9 +206,9 @@ class RoundHandler:
 
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.temp_model_storage.exist(model_id):
-            logger.info("ROUNDCONTROL: Model already exists in memory, skipping model staging.")
+            logger.info("Model already exists in memory, skipping model staging.")
             return
-        logger.info("ROUNDCONTROL: Model Staging, fetching model from storage...")
+        logger.info("Model Staging, fetching model from storage...")
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
@@ -220,12 +217,11 @@ class RoundHandler:
                 if model:
                     break
             except Exception:
-                logger.info("ROUNDCONTROL: Could not fetch model from storage backend, retrying.")
+                logger.warning("Could not fetch model from storage backend, retrying.")
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    logger.info(
-                        "ROUNDCONTROL: Failed to stage model {} from storage backend!".format(model_id))
+                    logger.error("Failed to stage model {} from storage backend!".format(model_id))
                     raise
 
         self.modelservice.set_model(model, model_id)
@@ -246,8 +242,7 @@ class RoundHandler:
         elif type == "trainers":
             clients = self.server.get_active_trainers()
         else:
-            logger.info(
-                "ROUNDCONTROL(ERROR): {} is not a supported type of client".format(type))
+            logger.error("(ERROR): {} is not a supported type of client".format(type))
             raise
 
         # If the number of requested trainers exceeds the number of available, use all available.
@@ -315,8 +310,7 @@ class RoundHandler:
         :rtype: dict
         """
 
-        logger.info(
-            "ROUNDCONTROL: Processing training round,  job_id {}".format(config['_job_id']))
+        logger.info("Processing training round,  job_id {}".format(config['_job_id']))
 
         data = {}
         data['config'] = config
@@ -341,7 +335,7 @@ class RoundHandler:
             data['model_id'] = model_id
 
             logger.info(
-                "ROUNDCONTROL: TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
+                "TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
 
         # Delete temp model
         self.modelservice.temp_model_storage.delete(config['model_id'])
@@ -374,14 +368,12 @@ class RoundHandler:
                         elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
                             self.execute_validation_round(round_config)
                         else:
-                            logger.warning(
-                                "ROUNDCONTROL: Round config contains unkown task type.")
+                            logger.warning("config contains unkown task type.")
                     else:
                         round_meta = {}
                         round_meta['status'] = "Failed"
                         round_meta['reason'] = "Failed to meet client allocation requirements for this round config."
-                        logger.warning(
-                            "ROUNDCONTROL: {0}".format(round_meta['reason']))
+                        logger.warning("{0}".format(round_meta['reason']))
 
                     self.round_configs.task_done()
                 except queue.Empty:

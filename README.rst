@@ -10,31 +10,34 @@
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn is a modular and model agnostic framework for hierarchical
-federated machine learning which scales from pseudo-distributed
-development to real-world production networks in distributed,
-heterogeneous environments. For more details see https://arxiv.org/abs/2103.00148.
+FEDn is a modular and model agnostic framework for
+federated machine learning. FEDn is designed to scale from pseudo-distributed
+development on your laptop to real-world production setups in geographically distributed environments. 
 
 Core Features
 =============
 
 -  **Scalable and resilient.** FEDn is highly scalable and resilient via a tiered 
    architecture where multiple aggregation servers (combiners) form a network to divide up the work to coordinate clients and aggregate models. 
-   Recent benchmarks show high performance both for thousands of clients in a cross-device
-   setting and for large model updates (1GB) in a cross-silo setting. 
-   FEDn has the ability to recover from failure in all critical components.  
-   
+   Benchmarks show high performance both for thousands of clients in a cross-device
+   setting and for large model updates in a cross-silo setting. 
+   FEDn has the ability to recover from failure in all critical components. 
+
+-  **Security**. A key feature is that
+   clients do not have to expose any ingress ports. 
+
+-  **Track events and training progress in real-time**. FEDn tracks events for clients and aggregation servers, logging to MongoDB. This
+   helps developers monitor traning progress in real-time, and to troubleshoot the distributed computation.  
+   Tracking and model validation data can easily be retrieved using the API enabling development of custom dashboards and visualizations. 
+
+-  **Flexible handling of asynchronous clients**. FEDn supports flexible experimentation 
+   with clients coming in and dropping out during training sessions. Extend aggregators to experiment 
+   with different strategies to handle so called stragglers.
+
 -  **ML-framework agnostic**. Model updates are treated as black-box
    computations. This means that it is possible to support any
    ML model type or framework. Support for Keras and PyTorch is
    available out-of-the-box.
-
--  **Security**. A key feature is that
-   clients do not have to expose any ingress ports.
- 
--  **Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
-
-- **UI.** A Flask UI lets users see client model validations in real time, as well as track client training time distributions and key performance metrics for clients and combiners.  
 
 Getting started
 ===============
@@ -55,9 +58,19 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 
    docker-compose up 
 
-Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
+This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. You can verify deployment using these urls: 
 
-Locate into 'examples/mnist-pytorch'.  
+- API Server: localhost:8092
+- Minio: localhost:9000
+- Mongo Express: localhost:8081
+
+Next, we will prepare the client. A key concept in FEDn is the compute package - 
+a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
+The following steps uses the compute package defined in the example project 'examples/mnist-pytorch'.
+
+Locate into 'examples/mnist-pytorch' and familiarize yourself with the project structure. The entrypoints
+are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
+'requirements.txt'. For convenience, we have provided utility scripts to set up a virtual environment.    
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
 
@@ -65,13 +78,13 @@ Start by initializing a virtual enviroment with all of the required dependencies
 
    bin/init_venv.sh
 
-Now create the compute package and a seed model:
+Next create the compute package and a seed model:
 
 .. code-block::
 
    bin/build.sh
 
-Uploade the generated files 'package.tar.gz' and 'seed.npz' in the FEDn UI. 
+Uploade the generated files 'package.tgz' and 'seed.npz' using the API: 
 
 The next step is to configure and attach clients. For this we download data and make data partitions: 
 
@@ -82,7 +95,7 @@ Download the data:
    bin/get_data
 
 
-Split the data in 2 parts for the clients:
+Split the data in 2 partitions:
 
 .. code-block::
 

@@ -9,6 +9,14 @@ fedn.network.combiner.aggregators package
 Submodules
 ----------
 
+fedn.network.combiner.aggregators.aggregator module
+---------------------------------------------------
+
+.. automodule:: fedn.network.combiner.aggregators.aggregator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fedn.network.combiner.aggregators.aggregatorbase module
 -------------------------------------------------------
 
@@ -21,6 +29,14 @@ fedn.network.combiner.aggregators.fedavg module
 -----------------------------------------------
 
 .. automodule:: fedn.network.combiner.aggregators.fedavg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fedn.network.combiner.aggregators.fedopt module
+-----------------------------------------------
+
+.. automodule:: fedn.network.combiner.aggregators.fedopt
    :members:
    :undoc-members:
    :show-inheritance:
