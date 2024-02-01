@@ -45,7 +45,7 @@ Getting started
 
 The best way to get started is to take the quickstart tutorial: 
 
-- `Quickstart PyTorch <https://fedn.readthedocs.io>`__
+- `Quickstart PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
 
 Documentation
 =============
