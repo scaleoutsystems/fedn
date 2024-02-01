@@ -23,7 +23,6 @@ Clone this repository, locate into this directory:
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn/examples/mnist-keras
 
-
 Start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
@@ -121,6 +120,23 @@ To start the network and attach 4 clients:
 .. code-block::
 
    docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
+
+
+Access logs and validation data from MongoDB  
+-----------
+You can access and download event logs and validation data via the API, and you can also as a developer obtain 
+the MongoDB backend data using pymongo or via the MongoExpress interface: 
+
+- http://localhost:8081/db/fedn-network/ 
+
+The credentials are as set in docker-compose.yaml in the root of the repository. 
+
+Access model updates  
+-----------
+
+You can obtain model updates from the 'fedn-models' bucket in Minio: 
+
+- http://localhost:9000
 
 
 Clean up

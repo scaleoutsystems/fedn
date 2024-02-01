@@ -53,6 +53,5 @@ Refer to the notebook to create your own drivers for seeding the federation and 
 
  https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb 
 
-
 ## Clean up
 You can clean up by running `docker-compose down`.
