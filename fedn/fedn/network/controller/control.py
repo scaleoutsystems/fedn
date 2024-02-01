@@ -110,6 +110,7 @@ class Control(ControlBase):
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(config['aggregator'])
 
+        self.set_session_status(config['session_id'], 'Started')
         # Execute the rounds in this session
         for round in range(1, int(config["rounds"] + 1)):
             # Increment the round number
@@ -128,6 +129,7 @@ class Control(ControlBase):
             config["model_id"] = self.statestore.get_latest_model()
 
         # TODO: Report completion of session
+        self.set_session_status(config['session_id'], 'Finished')
         self._state = ReducerState.idle
 
     def round(self, session_config, round_id):

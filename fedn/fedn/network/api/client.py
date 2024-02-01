@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 __all__ = ['APIClient']
@@ -183,6 +185,26 @@ class APIClient:
         """
         response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify)
         return response.json()
+
+    def session_is_finished(self, session_id):
+        """ Check if a session with id session_id has finished.
+
+        :param session_id: The session id to get.
+        :type session_id: str
+        :return: The session as a json object.
+        :rtype: dict
+        """
+        try:
+            status = self.get_session(session_id)['status']
+            if status == 'Finished':
+                return True
+            else:
+                return False
+        except json.JSONDecodeError:
+            # Could happen if the session has not been written to db yet
+            return False
+        except Exception:
+            raise
 
     def set_package(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.

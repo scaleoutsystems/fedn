@@ -189,6 +189,16 @@ class ControlBase(ABC):
         self.statestore.create_session(id=session_id)
         self.statestore.set_session_config(session_id, config)
 
+    def set_session_status(self, session_id, status):
+        """ Set the round round stats.
+
+        :param round_id: The round unique identifier
+        :type round_id: str
+        :param status: The status
+        :type status: str
+        """
+        self.statestore.set_session_status(session_id, status)
+
     def create_round(self, round_data):
         """Initialize a new round in backend db. """
 
