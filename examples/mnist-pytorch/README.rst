@@ -1,5 +1,10 @@
-# MNIST (PyTorch version)
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. The example automates the partitioning of data and deployment of a variable number of clients on a single host. We here assume working experience with containers, Docker and docker-compose. 
+Quickstart Tutorial PyTorch (MNIST)
+-------------
+
+This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
+A normal high-end laptop or a workstation should be able to sustain a few clients. 
+The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
+We here assume working experience with containers, Docker and docker-compose. 
    
 Prerequisites
 -------------
@@ -15,14 +20,14 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 
 .. code-block::
 
-   docker-compose up 
+   docker-compose -f ../../docker-compose.yaml up
 
 This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
 You can verify the deployment using these urls: 
 
 - API Server: http://localhost:8092
 - Minio: http://localhost:9000
-- Mongo Express: localhost:8081
+- Mongo Express: http://localhost:8081
 
 Next, we will prepare the client. A key concept in FEDn is the compute package - 
 a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
@@ -99,14 +104,21 @@ You are now ready to use the API to initialize the system with the compute packa
 - Follow the example in the `Jupyter Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`__
 
 
-### Automate experimentation with several clients:  
+Automate experimentation with several clients:  
+-----------
 
 Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
 To start the network and attach 4 clients: 
 
-```
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
-```
+.. code-block::
+   
+   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
 
-## Clean up
-You can clean up by running `docker-compose down`.
+
+Clean up
+-----------
+You can clean up by running 
+
+.. code-block::
+
+   docker-compose down
