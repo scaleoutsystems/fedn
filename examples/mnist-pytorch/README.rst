@@ -16,7 +16,7 @@ Prerequisites
 Quick start
 -----------
 
-Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
+Clone this repository, locate into this directory and start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
@@ -25,7 +25,7 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
 This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
 You can verify the deployment using these urls: 
 
-- API Server: http://localhost:8092
+- API Server: http://localhost:8092/get_controller_status
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
 
@@ -63,7 +63,7 @@ Split the data in 2 partitions:
 
 .. code-block::
 
-   bin/split_data
+   bin/split_data --n_splits=2
 
 Data partitions will be generated in the folder 'data/clients'.  
 
@@ -111,7 +111,7 @@ Now that you have an understanding of the main components of FEDn, you can use t
 To start the network and attach 4 clients: 
 
 .. code-block::
-   
+
    docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
 
 
