@@ -23,7 +23,6 @@ class HelperBase(ABC):
         """
         pass
 
-
     @abstractmethod
     def save(self, model, path):
         """ Serialize weights to file. The serialized model must be a single binary object.
