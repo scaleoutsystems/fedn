@@ -16,7 +16,15 @@ Prerequisites
 Quick start
 -----------
 
-Clone this repository, locate into this directory and start a pseudo-distributed FEDn network using docker-compose:
+Clone this repository, locate into this directory:
+
+.. code-block::
+
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn/examples/mnist-keras
+
+
+Start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
@@ -59,11 +67,11 @@ Download the data:
    bin/get_data
 
 
-Split the data in 2 partitions:
+Split the data in 10 partitions:
 
 .. code-block::
 
-   bin/split_data --n_splits=2
+   bin/split_data --n_splits=10
 
 Data partitions will be generated in the folder 'data/clients'.  
 
@@ -88,7 +96,7 @@ Now we are ready to connect a clients. First start a client using the data parti
 
 Observe the API Server logs and combiner logs, you should see the client connecting and entering into a state asking for a compute package. 
 
-In a seprate terminal, start a second client using the data partition 'data/clients/2/mnist.pt':
+In a separate terminal, start a second client using the data partition 'data/clients/2/mnist.pt':
 
 .. code-block::
 
