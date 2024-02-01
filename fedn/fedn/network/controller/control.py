@@ -99,9 +99,8 @@ class Control(ControlBase):
             return
 
         self._state = ReducerState.instructing
-        config["committed_at"] = datetime.datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        config["committed_at"] = datetime.datetime.now()
+
         self.create_session(config)
 
         self._state = ReducerState.monitoring
