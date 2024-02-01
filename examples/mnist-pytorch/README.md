@@ -1,69 +1,112 @@
 # MNIST (PyTorch version)
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. A normal high-end laptop or a workstation should be able to sustain a few clients. The example automates the partitioning of data and deployment of a variable number of clients on a single host. We here assume working experience with containers, Docker and docker-compose. 
    
+Prerequisites
+-------------
 
-## Table of Contents
-- [MNIST Example (PyTorch version)](#mnist-example-pytorch-version)
-  - [Table of Contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-  - [Running the example (pseudo-distributed)](#running-the-example-pseudo-distributed)
-  - [Clean up](#clean-up)
+-  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
+-  `Docker <https://docs.docker.com/get-docker>`__
+-  `Docker Compose <https://docs.docker.com/compose/install>`__
 
-## Prerequisites
-- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
-- [Docker](https://docs.docker.com/get-docker)
-- [Docker Compose](https://docs.docker.com/compose/install)
+Quick start
+-----------
 
-## Running the example (pseudo-distributed, single host)
+Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
 
-Clone FEDn and locate into this directory.
-```sh
-git clone https://github.com/scaleoutsystems/fedn.git
-cd fedn/examples/mnist-pytorch
-```
+.. code-block::
 
-### Preparing the environment, the local data, the compute package and seed model
-Start by initializing a virtual enviroment with all of the required dependencies.
-```
-bin/init_venv.sh
-```
+   docker-compose up 
 
-Then, to get the data you can run the following script.
-```
-bin/get_data
-```
+This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
+You can verify the deployment using these urls: 
 
-The next command splits the data in 2 parts for the clients.
-```
-bin/split_data
-```
-> **Note**: run with `--n_splits=N` to split in *N* parts.
+- API Server: http://localhost:8092
+- Minio: http://localhost:9000
+- Mongo Express: localhost:8081
 
-Create the compute package and a seed model that you will be asked to upload in the next step.
-```
-bin/build.sh
-```
-> The files location will be `package/package.tgz` and `seed.npz`.
+Next, we will prepare the client. A key concept in FEDn is the compute package - 
+a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
 
-### Deploy FEDn 
-Now we are ready to deploy FEDn with `docker-compose`.
-```
-docker-compose -f ../../docker-compose.yaml up -d minio mongo mongo-express reducer combiner
-```
+Locate into 'examples/mnist-pytorch' and familiarize yourself with the project structure. The entrypoints
+are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
+'requirements.txt'. For convenience, we have provided utility scripts to set up a virtual environment.    
 
-### Initialize the federated model 
-Now navigate to http://localhost:8090 to see the reducer UI. You will be asked to upload the compute package and the seed model that you created in the previous step. Make sure to choose the "PyTorch" helper.
+Start by initializing a virtual enviroment with all of the required dependencies for this project.
 
-### Attach clients 
-To attach clients to the network, use the docker-compose.override.yaml template to start 2 clients: 
+.. code-block::
+
+   bin/init_venv.sh
+
+Next create the compute package and a seed model:
+
+.. code-block::
+
+   bin/build.sh
+
+You should now have a file 'package.tgz' and 'seed.npz' in the project folder. 
+
+Next we prepare the local dataset. For this we download MNIST data and make data partitions: 
+
+Download the data:
+
+.. code-block::
+
+   bin/get_data
+
+
+Split the data in 2 partitions:
+
+.. code-block::
+
+   bin/split_data
+
+Data partitions will be generated in the folder 'data/clients'.  
+
+FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
+
+.. code-block::
+
+   network_id: fedn-network
+   discover_host: api-server
+   discover_port: 8092
+
+Now we are ready to connect a clients. First start a client using the data partition 'data/clients/1/mnist.pt':
+
+.. code-block::
+
+   docker run \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data/clients/1:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+  --network=fedn_default \
+  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1
+
+Observe the API Server logs and combiner logs, you should see the client connecting and entering into a state asking for a compute package. 
+
+In a seprate terminal, start a second client using the data partition 'data/clients/2/mnist.pt':
+
+.. code-block::
+
+   docker run \
+  -v $PWD/client.yaml:/app/client.yaml \
+  -v $PWD/data/clients/2:/var/data \
+  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+  --network=fedn_default \
+  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client2
+ 
+You are now ready to use the API to initialize the system with the compute package and seed model, and to start federated training. 
+
+- Follow the example in the `Jupyter Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`__
+
+
+### Automate experimentation with several clients:  
+
+Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
+To start the network and attach 4 clients: 
 
 ```
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up client 
+docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
 ```
-> **Note**: run with `--scale client=N` to start *N* clients.
-
-### Run federated training 
-Finally, you can start the experiment from the "control" tab of the UI. 
 
 ## Clean up
 You can clean up by running `docker-compose down`.
