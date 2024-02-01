@@ -100,7 +100,7 @@ class Control(ControlBase):
 
         self._state = ReducerState.instructing
         config["committed_at"] = datetime.datetime.now()
-        
+
         self.create_session(config)
 
         self._state = ReducerState.monitoring
