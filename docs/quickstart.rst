@@ -8,8 +8,12 @@ Clone this repository, locate into it and start a pseudo-distributed FEDn networ
    docker-compose up 
 
 
+This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
+You can verify the deployment using these urls: 
 
-This will start up all neccecary components for a FEDn network, execept for the clients.
+- API Server: http://localhost:8092/get_controller_status
+- Minio: http://localhost:9000
+- Mongo Express: http://localhost:8081
 
 .. warning:: 
    The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
@@ -25,10 +29,12 @@ This will start up all neccecary components for a FEDn network, execept for the 
        $ cd fedn
        $ pip install . 
 
-Next we will create a compute package. The compute package is a tarball of a project. 
-The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
+Next, we will prepare the client. A key concept in FEDn is the compute package - 
+a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
 
-Locate into 'examples/mnist-pytorch'.  
+Locate into 'examples/mnist-pytorch' and familiarize yourself with the project structure. The entrypoints
+are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
+``requirements.txt``. For convenience, we have provided utility scripts to set up a virtual environment.   
 
 Start by initializing a virtual enviroment with all of the required dependencies for this project.
 
@@ -68,14 +74,22 @@ Split the data in 2 parts for the clients:
    bin/split_data
 
 Data partitions will be generated in the folder 'data/clients'.  
-To be able to connect a client to the network, the client need connection information which can be set in a config yaml file (client.yaml):
+FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
 
+.. code-block::
+
+   network_id: fedn-network
+   discover_host: api-server
+   discover_port: 8092
+
+(optional) Use the APIClient to fetch the client configuration and save it to a file:
 .. code:: python
 
    >>> import yaml
    >>> config = client.get_client_config(checksum=True)
    >>> with open("client.yaml", "w") as f:
    >>>    f.write(yaml.dump(config))
+
 Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
 To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
 
@@ -88,7 +102,7 @@ To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and
   --network=fedn_default \
   ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
 
-
+Observe the API Server logs and combiner logs, you should see the client connecting.
 You are now ready to start training the model. In the python enviroment you installed FEDn:
 
 .. code:: python

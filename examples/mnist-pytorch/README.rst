@@ -82,7 +82,8 @@ FEDn relies on a configuration file for the client to connect to the server. Cre
    discover_host: api-server
    discover_port: 8092
 
-Now we are ready to connect a clients. First start a client using the data partition 'data/clients/1/mnist.pt':
+Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
+To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
 
 .. code-block::
 
