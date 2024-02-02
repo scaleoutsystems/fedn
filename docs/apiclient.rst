@@ -18,6 +18,4 @@ To initialize the APIClient, you need to provide the hostname and port of the FE
    from fedn import APIClient
    client = APIClient("localhost", 8092)
 
-For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the example Notebooks: 
-
-- https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb 
+For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the example `Notebooks <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_. 

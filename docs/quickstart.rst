@@ -15,7 +15,7 @@ This will start up all neccecary components for a FEDn network, execept for the 
    The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
 
 .. note::
-    You have the option to programmatically interact with the FEDn network using the Python APIClient, or you can use the Dashboard. In these Note sections we will use the APIClient.
+    To programmatically interact with the FEDn network use the APIClient.
     Install the FEDn via pip:
 
     .. code-block:: bash
@@ -49,7 +49,7 @@ Upload the compute package and seed model to FEDn:
 
    >>> from fedn import APIClient
    >>> client = APIClient(host="localhost", port=8092)
-   >>> client.set_package("package.tgz", helper="pytorchhelper")
+   >>> client.set_package("package.tgz", helper="numpyhelper")
    >>> client.set_initial_model("seed.npz")      
 
 The next step is to configure and attach clients. For this we need to download data and make data partitions: 
@@ -67,7 +67,8 @@ Split the data in 2 parts for the clients:
 
    bin/split_data
 
-Data partitions will be generated in the folder 'data/clients'.  In the python enviroment you installed FEDn:
+Data partitions will be generated in the folder 'data/clients'.  
+To be able to connect a client to the network, the client need connection information which can be set in a config yaml file (client.yaml):
 
 .. code:: python
 
@@ -75,8 +76,8 @@ Data partitions will be generated in the folder 'data/clients'.  In the python e
    >>> config = client.get_client_config(checksum=True)
    >>> with open("client.yaml", "w") as f:
    >>>    f.write(yaml.dump(config))
-
-To connect a client that uses the data partition 'data/clients/1/mnist.pt': 
+Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
+To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
 
 .. code-block::
 
@@ -85,10 +86,8 @@ To connect a client that uses the data partition 'data/clients/1/mnist.pt':
   -v $PWD/data/clients/1:/var/data \
   -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
   --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1 
+  ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
 
-.. note::
-   If you are using the APIClient you must also start the training client via "docker run" command as above.   
 
 You are now ready to start training the model. In the python enviroment you installed FEDn:
 
@@ -105,8 +104,6 @@ You are now ready to start training the model. In the python enviroment you inst
 
 Please see :py:mod:`fedn.network.api` for more details on the APIClient. 
 
-There is also a Jupyter Notebook version of this tutorial including examples of how to fetch and visualize model validations:
-
- - https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb 
+There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_ version of this tutorial including examples of how to fetch and visualize model validations.
 
 To scale up the experiment, refer to the README at 'examples/mnist-pytorch' (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
