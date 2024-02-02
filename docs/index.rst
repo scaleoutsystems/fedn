@@ -9,7 +9,6 @@
    aggregators
    helpers
    tutorial
-   deployment
    faq
    modules
 
