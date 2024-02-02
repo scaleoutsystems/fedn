@@ -1,5 +1,17 @@
-Quick Start
-===========
+Quickstart Tutorial PyTorch (MNIST)
+===================================
+
+This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
+A normal high-end laptop or a workstation should be able to sustain a few clients. 
+The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
+We here assume working experience with containers, Docker and docker-compose. 
+   
+Prerequisites
+-------------
+
+-  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
+-  `Docker <https://docs.docker.com/get-docker>`__
+-  `Docker Compose <https://docs.docker.com/compose/install>`__
 
 Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
 
@@ -32,7 +44,7 @@ You can verify the deployment using these urls:
 Next, we will prepare the client. A key concept in FEDn is the compute package - 
 a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
 
-Locate into 'examples/mnist-pytorch' and familiarize yourself with the project structure. The entrypoints
+Locate into ``examples/mnist-pytorch`` and familiarize yourself with the project structure. The entrypoints
 are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
 ``requirements.txt``. For convenience, we have provided utility scripts to set up a virtual environment.   
 
@@ -74,6 +86,8 @@ Split the data in 2 parts for the clients:
    bin/split_data
 
 Data partitions will be generated in the folder 'data/clients'.  
+
+
 FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
 
 .. code-block::
@@ -83,6 +97,7 @@ FEDn relies on a configuration file for the client to connect to the server. Cre
    discover_port: 8092
 
 (optional) Use the APIClient to fetch the client configuration and save it to a file:
+
 .. code:: python
 
    >>> import yaml
@@ -120,4 +135,38 @@ Please see :py:mod:`fedn.network.api` for more details on the APIClient.
 
 There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_ version of this tutorial including examples of how to fetch and visualize model validations.
 
-To scale up the experiment, refer to the README at 'examples/mnist-pytorch' (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
+Automate and scale up experimentation with several clients  
+----------------------------------------------------------
+Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
+To start the network and attach 4 clients. Standing in ``examples/mnist-pytorch``, run the following docker compose command: 
+
+.. code-block::
+
+   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
+
+
+Access logs and validation data from MongoDB  
+--------------------------------------------
+You can access and download event logs and validation data via the API, and you can also as a developer obtain 
+the MongoDB backend data using pymongo or via the MongoExpress interface: 
+
+- http://localhost:8081/db/fedn-network/ 
+
+The credentials are as set in docker-compose.yaml in the root of the repository. 
+
+Access model updates  
+--------------------
+
+You can obtain model updates from the 'fedn-models' bucket in Minio: 
+
+- http://localhost:9000
+
+
+Clean up
+--------
+You can clean up by running 
+
+.. code-block::
+
+   docker-compose down
+
