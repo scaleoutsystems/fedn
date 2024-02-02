@@ -15,7 +15,7 @@ The compute package
    :width: 100%
    :align: center
 
-The *compute package* is a tar.gz bundle of the code to be executed by each data-provider/client. 
+The *compute package* is a .tgz bundle of the code to be executed by each data-provider/client. 
 This package is uploaded to the *Controller* upon initialization of the FEDN Network (along with the initial model). 
 When a client connects to the network, it downloads and unpacks the package locally and are then ready to 
 participate in training and/or validation. 
@@ -39,7 +39,7 @@ In the examples we have roughly the following file and folder structure:
 | └── docker-compose.yml/Dockerfile
 | 
 
-The "client" folder is the *compute package* which will become a tar.gz bundle of the code to be executed by 
+The "client" folder is the *compute package* which will become a .tgz bundle of the code to be executed by 
 each data-provider/client. The entry points, mentioned above, are defined in the *fedn.yaml*:
 
 .. code-block:: yaml
@@ -77,7 +77,7 @@ A *entrypoint.py* example can look like this:
 
     from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
-    HELPER_MODULE = 'pytorchhelper'
+    HELPER_MODULE = 'numpyhelper'
     NUM_CLASSES = 10
 
     def _compile_model():
@@ -286,9 +286,9 @@ A *entrypoint.py* example can look like this:
         
 
 
-The format of the input and output files (model updates) are dependent on the ML framework used. A helper instance :py:mod:`fedn.utils.plugins.pytorchhelper` is used to handle the serialization and deserialization of the model updates. 
+The format of the input and output files (model updates) are using numpy ndarrays. A helper instance :py:mod:`fedn.utils.helpers.plugins.numpyhelper` is used to handle the serialization and deserialization of the model updates. 
 The first function (_compile_model) is used to define the model architecture and creates an initial model (which is then used by _init_seed). The second function (_load_data) is used to read the data (train and test) from disk.  
-The third function (_save_model) is used to save the model to disk using the pytorch helper module :py:mod:`fedn.utils.plugins.pytorchhelper`. The fourth function (_load_model) is used to load the model from disk, again
+The third function (_save_model) is used to save the model to disk using the numpy helper module :py:mod:`fedn.utils.helpers.plugins.numpyhelper`. The fourth function (_load_model) is used to load the model from disk, again
 using the pytorch helper module. The fifth function (_init_seed) is used to initialize the seed model. The sixth function (_train) is used to train the model, observe the two first arguments which will be set by the FEDn client. 
 The seventh function (_validate) is used to validate the model, again observe the two first arguments which will be set by the FEDn client.
 
@@ -302,18 +302,18 @@ For validations it is a requirement that the output is saved in a valid json for
  
 In the code example we use the helper function :py:meth:`fedn.utils.helpers.helpers.save_metrics` to save the validation scores as a json file. 
 
-The Dahboard in the FEDn UI will plot any scalar metric in this json file, but you can include any type in the file assuming that it is valid json. These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:mod:`fedn.network.api.client`. 
+These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:meth:`fedn.network.api.client.APIClient.list_validations`. 
 
 Packaging for distribution
 --------------------------
-For the compute package we need to compress the *client* folder as .tar.gz file. E.g. using:
+For the compute package we need to compress the *client* folder as .tgz file. E.g. using:
 
 .. code-block:: bash
 
     tar -czvf package.tgz client
 
 
-This file can then be uploaded to the FEDn network using the FEDn UI or the :py:mod:`fedn.network.api.client`.
+This file can then be uploaded to the FEDn network using the :py:meth:`fedn.network.api.client.APIClient.set_package`.
 
 
 More on local data access 
@@ -335,7 +335,7 @@ We recommend you to test your code before running the client. For example, you c
     python entrypoint.py validate ../model_update.npz ../validation.json --data_path ../data/mnist.npz
 
 
-Once everything works as expected you can start the federated network, upload the tar.gz compute package and the initial model. 
+Once everything works as expected you can start the federated network, upload the .tgz compute package and the initial model (use :py:meth:`fedn.network.api.client.APIClient.set_initial_model` for uploading an initial model). 
 Finally connect a client to the network:
 
 .. code-block:: bash
@@ -345,7 +345,7 @@ Finally connect a client to the network:
     -v $PWD/data/clients/1:/var/data \
     -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
     --network=fedn_default \
-    ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1 
+    ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
 
-The container image "ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch" is a pre-built image with the FEDn client and the PyTorch framework installed.
+The container image "ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch" is a pre-built image with the FEDn client and the PyTorch framework installed.
 

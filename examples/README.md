@@ -1,6 +1,8 @@
 ## Examples
 The examples distributed here in this folder are maintained by Scaleout. 
 
+We recommend all new users to start with the [Quickstart Tutorial (PyTorch)](https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch).
+
 ### External examples
 Below we maintain a list of examples provided both by the Scaleout core team and users. They may or may not be tested with the latest release of FEDn, please refer to the README of each specific project/example for detail. 
 If you have a project that you want to include in this list, talk to a core developer in [Discord](https://discord.gg/CCRgjpMsVA).  

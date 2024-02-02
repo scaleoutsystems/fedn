@@ -3,10 +3,9 @@
    :caption: Table of Contents
    
    introduction
-   quickstart
    architecture
-   deployment
-   interfaces
+   quickstart
+   apiclient
    aggregators
    helpers
    tutorial
