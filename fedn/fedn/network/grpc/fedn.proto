@@ -195,17 +195,6 @@ message ControlResponse {
   repeated Parameter parameter = 2;
 }
 
-service Control {
-  rpc Start(ControlRequest) returns (ControlResponse);
-  rpc Stop(ControlRequest) returns (ControlResponse);
-  rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
-  rpc SetAggregator(ControlRequest) returns (ControlResponse);
-}
-
-service Reducer {
-  rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
-}
-
 message ConnectionRequest {
 
 }
@@ -220,24 +209,6 @@ message ConnectionResponse {
   ConnectionStatus status = 1;
 }
 
-service Connector {
-    // Stream endpoint for status updates
-    rpc AllianceStatusStream (ClientAvailableMessage) returns (stream Status);
-
-    // Report endpoint
-    rpc SendStatus (Status) returns (Response);
-//    rpc RegisterClient (ClientAvailableMessage) returns (Response);
-    // List active clients endpoint
-    rpc ListActiveClients (ListClientsRequest) returns (ClientList);
-
-    rpc AcceptingClients (ConnectionRequest) returns (ConnectionResponse);
-
-    // Client messaging to stay engaged.
-    rpc SendHeartbeat (Heartbeat) returns (Response);
-
-    rpc ReassignClient (ReassignRequest) returns (Response);
-    rpc ReconnectClient (ReconnectRequest) returns (Response);
-}
 
 service Combiner {
 
@@ -249,6 +220,30 @@ service Combiner {
 
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
+
+    rpc StartRound(ControlRequest) returns (ControlResponse);
+    rpc StopRound(ControlRequest) returns (ControlResponse);
+    rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
+    rpc SetAggregator(ControlRequest) returns (ControlResponse);
+
+    rpc GetGlobalModel (GetGlobalModelRequest) returns (GetGlobalModelResponse);
+
+        // Stream endpoint for status updates
+    rpc AllianceStatusStream (ClientAvailableMessage) returns (stream Status);
+
+    // Report endpoint
+    rpc SendStatus (Status) returns (Response);
+
+    // List active clients endpoint
+    rpc ListActiveClients (ListClientsRequest) returns (ClientList);
+
+    rpc AcceptingClients (ConnectionRequest) returns (ConnectionResponse);
+
+    // Client messaging to stay engaged.
+    rpc SendHeartbeat (Heartbeat) returns (Response);
+
+    rpc ReassignClient (ReassignRequest) returns (Response);
+    rpc ReconnectClient (ReconnectRequest) returns (Response);
 
 }
 
