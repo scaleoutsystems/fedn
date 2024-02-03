@@ -22,7 +22,6 @@ class Server:
 
         rpc.add_CombinerServicer_to_server(servicer, self.server)
         rpc.add_ModelServiceServicer_to_server(modelservicer, self.server)
-
         health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         if config['secure']:
