@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
-from grpc_health.v1 import health_pb2, health_pb2_grpc
+from grpc_health.v1 import health_pb2
 from grpc_health.v1.health import HealthServicer
 
 import fedn.network.grpc.fedn_pb2 as fedn
