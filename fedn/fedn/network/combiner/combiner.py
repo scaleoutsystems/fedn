@@ -10,6 +10,9 @@ import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 
+from grpc_health.v1 import health_pb2, health_pb2_grpc
+from grpc_health.v1.health import HealthServicer
+
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
@@ -50,7 +53,7 @@ def role_to_proto_role(role):
         return fedn.OTHER
 
 
-class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
+class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer, HealthServicer):
     """ Combiner gRPC server.
 
     :param config: configuration for the combiner
@@ -396,9 +399,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             logger.error("Failed to flush model update queue: %s", str(e))
             return False
 
+    def Check(self, request, context):
+        """ Check the health of the server.
+
+        This is part of the standardized HealthChecking protocol
+        used e.g. by Kuberbetes.
+
+        :param request: the request
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return grpc_health.v1.health_pb2.HealthCheckResponse
+        """
+        return health_pb2.HealthCheckResponse(status=health_pb2.HealthCheckResponse.SERVING)
+
     #####################################################################################################################
 
-    # Control Service
+    # Controller Service
 
     def Start(self, control: fedn.ControlRequest, context):
         """ Start a round of federated learning"

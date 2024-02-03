@@ -13,7 +13,13 @@ COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
 COPY $REQUIREMENTS /app/config/requirements.txt
 
 # Install developer tools (needed for psutil)
-RUN apt-get update && apt-get install -y python3-dev gcc
+RUN apt-get update && apt-get install -y python3-dev gcc wget
+
+# Install grpc health probe checker
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.24 && \
+  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  chmod +x /bin/grpc_health_probe
+
 
 # Create FEDn app directory
 SHELL ["/bin/bash", "-c"]

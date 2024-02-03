@@ -99,6 +99,16 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/grpc_health_probe",
+          "-addr=localhost:12080"
+        ]
+      interval: 2s
+      timeout: 10s
+      retries: 5
     depends_on:
       - api-server
 
@@ -119,5 +129,5 @@ services:
     deploy:
       replicas: 0
     depends_on:
-      - api-server
-      - combiner
+      combiner:
+        condition: service_healthy
