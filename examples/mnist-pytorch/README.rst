@@ -21,7 +21,7 @@ Clone this repository, locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-keras
+   cd fedn/examples/mnist-pytorch
 
 Start a pseudo-distributed FEDn network using docker-compose:
 
