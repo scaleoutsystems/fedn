@@ -38,7 +38,7 @@ You can verify the deployment using these urls:
        
        $ pip install fedn
        # or from source
-       $ cd fedn
+       $ cd fedn/fedn
        $ pip install . 
 
 Next, we will prepare the client. A key concept in FEDn is the compute package - 
@@ -137,8 +137,16 @@ There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/
 
 Automate and scale up experimentation with several clients  
 ----------------------------------------------------------
-Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
-To start the network and attach 4 clients. Standing in ``examples/mnist-pytorch``, run the following docker compose command: 
+You can use the provided docker-compose templates to automate deployment of FEDn and clients. 
+
+Split the dataset in 4 partitions:
+
+.. code-block::
+
+   bin/split_data --num_splits=4 
+
+
+To start 4 clients, standing in ``examples/mnist-pytorch``, run the following docker compose command: 
 
 .. code-block::
 
@@ -170,3 +178,9 @@ You can clean up by running
 
    docker-compose down
 
+Where to go from here? 
+--------
+With you first FEDn federation deployed, we suggest that you take a close look at how a FEDn project is structured
+and how you develop your own compute package:
+
+- Compute package: :ref:`tutorial-label`
