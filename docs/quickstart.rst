@@ -13,12 +13,15 @@ Prerequisites
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
+Launch a pseudo-distributed FEDn Network 
+-------------
+
+
 Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
    docker-compose up 
-
 
 This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
 You can verify the deployment using these urls: 
@@ -30,6 +33,9 @@ You can verify the deployment using these urls:
 .. warning:: 
    The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
 
+Install the FEDn SDK
+-------------
+
 .. note::
     To programmatically interact with the FEDn network use the APIClient.
     Install the FEDn via pip:
@@ -40,6 +46,10 @@ You can verify the deployment using these urls:
        # or from source
        $ cd fedn/fedn
        $ pip install . 
+
+
+Prepare the compute package and seed the FEDn network
+-------------
 
 Next, we will prepare the client. A key concept in FEDn is the compute package - 
 a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
@@ -68,7 +78,10 @@ Upload the compute package and seed model to FEDn:
    >>> from fedn import APIClient
    >>> client = APIClient(host="localhost", port=8092)
    >>> client.set_package("package.tgz", helper="numpyhelper")
-   >>> client.set_initial_model("seed.npz")      
+   >>> client.set_initial_model("seed.npz")
+
+Configure and attach clients
+-------------
 
 The next step is to configure and attach clients. For this we need to download data and make data partitions: 
 
@@ -117,6 +130,10 @@ To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and
   --network=fedn_default \
   ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
 
+
+Start a training session
+-------------
+
 Observe the API Server logs and combiner logs, you should see the client connecting.
 You are now ready to start training the model. In the python enviroment you installed FEDn:
 
@@ -135,7 +152,7 @@ Please see :py:mod:`fedn.network.api` for more details on the APIClient.
 
 There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_ version of this tutorial including examples of how to fetch and visualize model validations.
 
-Automate and scale up experimentation with several clients  
+Automate experimentation with several clients  
 ----------------------------------------------------------
 You can use the provided docker-compose templates to automate deployment of FEDn and clients. 
 
