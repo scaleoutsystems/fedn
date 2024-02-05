@@ -18,18 +18,22 @@ cd fedn/examples/async-simulation
 
 Install FEDn and dependencies (we recommend using a virtual environment):
 
-Standing in the folder 'fedn/fedn'
-
-```
-pip install -e .
+``
+pip install fedn
 ```
 
-From examples/async-simulation
+Or from source, standing in the folder 'fedn/fedn'
+
+```
+pip install .
+```
+
+Standing in examples/async-simulation
 ```
 pip install -r requirements.txt
 ```
 
-Create the compute package and a seed model that you will be asked to upload in the next step.
+Create the compute package and seed model:
 ```
 tar -czvf package.tgz client
 ```
@@ -41,13 +45,10 @@ python client/entrypoint init_seed
 ### Deploy FEDn and two clients
 docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up 
 
-### Initialize the federated model 
-See 'Experiments.pynb' or 'launch_client.py' to set the package and seed model.
-
 > **Note**: run with `--scale client=N` to start *N* clients.
 
-### Run federated training 
-See 'Experiment.ipynb'. 
+### Initialize FEDn and run experiments 
+See 'Experiments.pynb' or 'launch_client.py' to set the package and seed model.
 
 ## Clean up
 You can clean up by running `docker-compose down -v`.
