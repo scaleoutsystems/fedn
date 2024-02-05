@@ -398,7 +398,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     #####################################################################################################################
 
-    # Control Service
+    # Controller Service
 
     def Start(self, control: fedn.ControlRequest, context):
         """ Start a round of federated learning"

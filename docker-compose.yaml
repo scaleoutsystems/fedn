@@ -91,6 +91,7 @@ services:
       context: .
       args:
         BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.24
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -99,6 +100,16 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/grpc_health_probe",
+          "-addr=localhost:12080"
+        ]
+      interval: 2s
+      timeout: 10s
+      retries: 5
     depends_on:
       - api-server
 
@@ -119,5 +130,5 @@ services:
     deploy:
       replicas: 0
     depends_on:
-      - api-server
-      - combiner
+      combiner:
+        condition: service_healthy

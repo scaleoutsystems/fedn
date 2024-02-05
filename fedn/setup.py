@@ -2,13 +2,13 @@ from setuptools import find_packages, setup
 
 setup(
     name='fedn',
-    version='0.7.2',
+    version='0.8.0',
     description="""Scaleout Federated Learning""",
     author='Scaleout Systems AB',
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.7,<3.11',
+    python_requires='>=3.8,<3.11',
     install_requires=[
         "PyYAML>=5.4",
         "requests",
@@ -31,7 +31,8 @@ setup(
         "plotly",
         "pandas",
         "bokeh<3.0.0",
-        "networkx"
+        "networkx",
+        "grpcio-health-checking"
     ],
     license='Apache 2.0',
     zip_safe=False,
@@ -42,7 +43,6 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

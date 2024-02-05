@@ -1,6 +1,11 @@
 Quickstart Tutorial PyTorch (MNIST)
 ===================================
 
+.. note::
+   This tutorial is a quickstart guide to FEDn where the federated learning project has been defined
+   using an already implemented ``compute package``. This turorial is a good starting point for developers, however,
+   head over to :ref:`tutorial-label` when you are ready to define your own federated learning projects.
+
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
