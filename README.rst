@@ -45,7 +45,7 @@ Getting started
 
 The best way to get started is to take the quickstart tutorial: 
 
-- `Quickstart PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
+- `Quickstart PyTorch <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
 
 Documentation
 =============
@@ -57,9 +57,9 @@ You will find more details about the architecture, compute package and how to de
 
 FEDn Studio
 ===============
-Scaleout develops a Django Application, FEDn Studio, that provides a UI, authentication/authorization, client identity management, project-based multitenancy for manging multiple projects, and integration with your MLOps pipelines.
-There are also additional tooling and charts for deployments on Kubernetes including integration with several projects from the cloud native landscape. See  `FEDn Framework <https://www.scaleoutsystems.com/framework>`__ 
-for more information. 
+Scaleout also develops FEDn Studio, a web application that extends the FEDn SDK with a UI, production-grade deployment of the FEDn server side on Kubernetes, user authentication/authorization, client identity/API-token management, and project-based multitenancy for segmenting work and resources into collaboration workspaces. FEDn Studio is available as a fully managed service.  
+There is also additional tooling and charts for self-managed deployment on Kubernetes including integration with several projects from the cloud native landscape. 
+See  `FEDn Framework <https://www.scaleoutsystems.com/framework>`__  for more information. 
 
 
 Making contributions

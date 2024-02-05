@@ -1,6 +1,6 @@
 .. _tutorial-label:
 
-Tutorial: Compute Package
+Compute Package
 ================================================
 
 This tutorial walks you through the design of a *compute package* for a FEDn client. The compute package is a tar.gz bundle of the code to be executed by each data-provider/client.
