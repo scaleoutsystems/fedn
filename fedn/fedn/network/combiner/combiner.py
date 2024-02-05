@@ -50,7 +50,7 @@ def role_to_proto_role(role):
         return fedn.OTHER
 
 
-class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
+class Combiner(rpc.CombinerServicer):
     """ Combiner gRPC server.
 
     :param config: configuration for the combiner
@@ -400,7 +400,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     # Controller Service
 
-    def Start(self, control: fedn.ControlRequest, context):
+    def StartRound(self, control: fedn.ControlRequest, context):
         """ Start a round of federated learning"
 
         :param control: the control request
@@ -475,7 +475,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ##############################################################################
 
-    def Stop(self, control: fedn.ControlRequest, context):
+    def StopRound(self, control: fedn.ControlRequest, context):
         """ TODO: Not yet implemented.
 
         :param control: the control request

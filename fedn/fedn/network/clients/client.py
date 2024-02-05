@@ -222,7 +222,6 @@ class Client:
 
         self.channel = channel
 
-        self.connectorStub = rpc.ConnectorStub(channel)
         self.combinerStub = rpc.CombinerStub(channel)
         self.modelStub = rpc.ModelServiceStub(channel)
 
@@ -693,7 +692,7 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(
                 name=self.name, role=fedn.WORKER))
             try:
-                self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
+                self.combinerStub.SendHeartbeat(heartbeat, metadata=self.metadata)
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
@@ -733,7 +732,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        _ = self.combinerStub.SendStatus(status, metadata=self.metadata)
 
     def run(self):
         """ Run the client. """

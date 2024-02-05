@@ -99,491 +99,6 @@ class ModelService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
-class ControlStub(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def __init__(self, channel):
-        """Constructor.
-
-        Args:
-            channel: A grpc.Channel.
-        """
-        self.Start = channel.unary_unary(
-                '/grpc.Control/Start',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-                )
-        self.Stop = channel.unary_unary(
-                '/grpc.Control/Stop',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-                )
-        self.FlushAggregationQueue = channel.unary_unary(
-                '/grpc.Control/FlushAggregationQueue',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-                )
-        self.SetAggregator = channel.unary_unary(
-                '/grpc.Control/SetAggregator',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-                )
-
-
-class ControlServicer(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def Start(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def Stop(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def FlushAggregationQueue(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SetAggregator(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-
-def add_ControlServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'Start': grpc.unary_unary_rpc_method_handler(
-                    servicer.Start,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
-            ),
-            'Stop': grpc.unary_unary_rpc_method_handler(
-                    servicer.Stop,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
-            ),
-            'FlushAggregationQueue': grpc.unary_unary_rpc_method_handler(
-                    servicer.FlushAggregationQueue,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
-            ),
-            'SetAggregator': grpc.unary_unary_rpc_method_handler(
-                    servicer.SetAggregator,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Control', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
-
-
- # This class is part of an EXPERIMENTAL API.
-class Control(object):
-    """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def Start(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Start',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def Stop(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Stop',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def FlushAggregationQueue(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/FlushAggregationQueue',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SetAggregator(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/SetAggregator',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-
-class ReducerStub(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def __init__(self, channel):
-        """Constructor.
-
-        Args:
-            channel: A grpc.Channel.
-        """
-        self.GetGlobalModel = channel.unary_unary(
-                '/grpc.Reducer/GetGlobalModel',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
-                )
-
-
-class ReducerServicer(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def GetGlobalModel(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-
-def add_ReducerServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'GetGlobalModel': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetGlobalModel,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Reducer', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
-
-
- # This class is part of an EXPERIMENTAL API.
-class Reducer(object):
-    """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def GetGlobalModel(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Reducer/GetGlobalModel',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-
-class ConnectorStub(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def __init__(self, channel):
-        """Constructor.
-
-        Args:
-            channel: A grpc.Channel.
-        """
-        self.AllianceStatusStream = channel.unary_stream(
-                '/grpc.Connector/AllianceStatusStream',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
-                )
-        self.SendStatus = channel.unary_unary(
-                '/grpc.Connector/SendStatus',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-                )
-        self.ListActiveClients = channel.unary_unary(
-                '/grpc.Connector/ListActiveClients',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
-                )
-        self.AcceptingClients = channel.unary_unary(
-                '/grpc.Connector/AcceptingClients',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
-                )
-        self.SendHeartbeat = channel.unary_unary(
-                '/grpc.Connector/SendHeartbeat',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-                )
-        self.ReassignClient = channel.unary_unary(
-                '/grpc.Connector/ReassignClient',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-                )
-        self.ReconnectClient = channel.unary_unary(
-                '/grpc.Connector/ReconnectClient',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-                )
-
-
-class ConnectorServicer(object):
-    """Missing associated documentation comment in .proto file."""
-
-    def AllianceStatusStream(self, request, context):
-        """Stream endpoint for status updates
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SendStatus(self, request, context):
-        """Report endpoint
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ListActiveClients(self, request, context):
-        """rpc RegisterClient (ClientAvailableMessage) returns (Response);
-        List active clients endpoint
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def AcceptingClients(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SendHeartbeat(self, request, context):
-        """Client messaging to stay engaged.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ReassignClient(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ReconnectClient(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-
-def add_ConnectorServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'AllianceStatusStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.AllianceStatusStream,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
-            ),
-            'SendStatus': grpc.unary_unary_rpc_method_handler(
-                    servicer.SendStatus,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
-            ),
-            'ListActiveClients': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListActiveClients,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.SerializeToString,
-            ),
-            'AcceptingClients': grpc.unary_unary_rpc_method_handler(
-                    servicer.AcceptingClients,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.SerializeToString,
-            ),
-            'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
-                    servicer.SendHeartbeat,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
-            ),
-            'ReassignClient': grpc.unary_unary_rpc_method_handler(
-                    servicer.ReassignClient,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
-            ),
-            'ReconnectClient': grpc.unary_unary_rpc_method_handler(
-                    servicer.ReconnectClient,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Connector', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
-
-
- # This class is part of an EXPERIMENTAL API.
-class Connector(object):
-    """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def AllianceStatusStream(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Connector/AllianceStatusStream',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SendStatus(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendStatus',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ListActiveClients(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ListActiveClients',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def AcceptingClients(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/AcceptingClients',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SendHeartbeat(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendHeartbeat',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ReassignClient(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReassignClient',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ReconnectClient(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReconnectClient',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-
 class CombinerStub(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -621,6 +136,66 @@ class CombinerStub(object):
         self.SendModelValidation = channel.unary_unary(
                 '/grpc.Combiner/SendModelValidation',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                )
+        self.StartRound = channel.unary_unary(
+                '/grpc.Combiner/StartRound',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                )
+        self.StopRound = channel.unary_unary(
+                '/grpc.Combiner/StopRound',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                )
+        self.FlushAggregationQueue = channel.unary_unary(
+                '/grpc.Combiner/FlushAggregationQueue',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                )
+        self.SetAggregator = channel.unary_unary(
+                '/grpc.Combiner/SetAggregator',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                )
+        self.GetGlobalModel = channel.unary_unary(
+                '/grpc.Combiner/GetGlobalModel',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
+                )
+        self.AllianceStatusStream = channel.unary_stream(
+                '/grpc.Combiner/AllianceStatusStream',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
+                )
+        self.SendStatus = channel.unary_unary(
+                '/grpc.Combiner/SendStatus',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                )
+        self.ListActiveClients = channel.unary_unary(
+                '/grpc.Combiner/ListActiveClients',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
+                )
+        self.AcceptingClients = channel.unary_unary(
+                '/grpc.Combiner/AcceptingClients',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
+                )
+        self.SendHeartbeat = channel.unary_unary(
+                '/grpc.Combiner/SendHeartbeat',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                )
+        self.ReassignClient = channel.unary_unary(
+                '/grpc.Combiner/ReassignClient',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                )
+        self.ReconnectClient = channel.unary_unary(
+                '/grpc.Combiner/ReconnectClient',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
 
@@ -665,6 +240,82 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StartRound(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StopRound(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FlushAggregationQueue(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SetAggregator(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetGlobalModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AllianceStatusStream(self, request, context):
+        """Stream endpoint for status updates
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendStatus(self, request, context):
+        """Report endpoint
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListActiveClients(self, request, context):
+        """List active clients endpoint
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AcceptingClients(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendHeartbeat(self, request, context):
+        """Client messaging to stay engaged.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReassignClient(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReconnectClient(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -696,6 +347,66 @@ def add_CombinerServicer_to_server(servicer, server):
             'SendModelValidation': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelValidation,
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'StartRound': grpc.unary_unary_rpc_method_handler(
+                    servicer.StartRound,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'StopRound': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopRound,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'FlushAggregationQueue': grpc.unary_unary_rpc_method_handler(
+                    servicer.FlushAggregationQueue,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'SetAggregator': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetAggregator,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'GetGlobalModel': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetGlobalModel,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.SerializeToString,
+            ),
+            'AllianceStatusStream': grpc.unary_stream_rpc_method_handler(
+                    servicer.AllianceStatusStream,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
+            ),
+            'SendStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendStatus,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'ListActiveClients': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListActiveClients,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.SerializeToString,
+            ),
+            'AcceptingClients': grpc.unary_unary_rpc_method_handler(
+                    servicer.AcceptingClients,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.SerializeToString,
+            ),
+            'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendHeartbeat,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'ReassignClient': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReassignClient,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'ReconnectClient': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReconnectClient,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
@@ -806,6 +517,210 @@ class Combiner(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelValidation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StartRound(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/StartRound',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopRound(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/StopRound',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FlushAggregationQueue(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/FlushAggregationQueue',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SetAggregator(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SetAggregator',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetGlobalModel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/GetGlobalModel',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def AllianceStatusStream(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/AllianceStatusStream',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendStatus(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendStatus',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ListActiveClients(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/ListActiveClients',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def AcceptingClients(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/AcceptingClients',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendHeartbeat(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendHeartbeat',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReassignClient(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/ReassignClient',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReconnectClient(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/ReconnectClient',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

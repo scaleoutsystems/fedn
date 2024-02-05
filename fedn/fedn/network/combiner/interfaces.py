@@ -175,7 +175,7 @@ class CombinerInterface:
 
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
+        control = rpc.CombinerStub(channel)
 
         request = fedn.ControlRequest()
 
@@ -196,7 +196,7 @@ class CombinerInterface:
 
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
+        control = rpc.CombinerStub(channel)
 
         request = fedn.ControlRequest()
         p = request.parameter.add()
@@ -221,7 +221,7 @@ class CombinerInterface:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
+        control = rpc.CombinerStub(channel)
         request = fedn.ControlRequest()
         request.command = fedn.Command.START
         for k, v in config.items():
@@ -230,7 +230,7 @@ class CombinerInterface:
             p.value = str(v)
 
         try:
-            response = control.Start(request)
+            response = control.StartRound(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
                 raise CombinerUnavailableError
@@ -272,7 +272,7 @@ class CombinerInterface:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
-        connector = rpc.ConnectorStub(channel)
+        connector = rpc.CombinerStub(channel)
         request = fedn.ConnectionRequest()
 
         try:
@@ -302,7 +302,7 @@ class CombinerInterface:
         """
         channel = Channel(self.address, self.port,
                           self.certificate).get_channel()
-        control = rpc.ConnectorStub(channel)
+        control = rpc.CombinerStub(channel)
         request = fedn.ListClientsRequest()
         request.channel = queue
         try:
