@@ -1011,7 +1011,7 @@ class API:
         rounds=5,
         round_timeout=180,
         round_buffer_size=-1,
-        delete_models=False,
+        delete_models=True,
         validate=True,
         helper="numpyhelper",
         min_clients=1,
