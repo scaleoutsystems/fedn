@@ -370,8 +370,11 @@ class Client:
         """
         data = BytesIO()
         time_start = time.time()
+        request = fedn.ModelRequest(id=id)
+        request.sender.name = self.name
+        request.sender.role = fedn.WORKER
 
-        for part in self.modelStub.Download(fedn.ModelRequest(id=id), metadata=self.metadata):
+        for part in self.modelStub.Download(request, metadata=self.metadata):
 
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -515,6 +518,9 @@ class Client:
             meta = {}
             tic = time.time()
             mdl = self.get_model_from_combiner(str(model_id))
+            if mdl is None:
+                logger.error("Could not retrieve model from combiner. Aborting training request.")
+                return None, None
             meta['fetch_model'] = time.time() - tic
 
             inpath = self.helper.get_tmp_path()
@@ -579,6 +585,9 @@ class Client:
         self.state = ClientState.validating
         try:
             model = self.get_model_from_combiner(str(model_id))
+            if model is None:
+                logger.error("Could not retrieve model from combiner. Aborting validation request.")
+                return None
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:

@@ -179,7 +179,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        logger.debug("grpc.ModelService.Download: Called")
+        logger.info(f'grpc.ModelService.Download: {request.sender.role}:{request.sender.name} requested model {request.id}')
         try:
             status = self.temp_model_storage.get_model_metadata(request.id)
             if status != fedn.ModelStatus.OK:

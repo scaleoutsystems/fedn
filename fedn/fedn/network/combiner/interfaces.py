@@ -1,6 +1,7 @@
 import base64
 import copy
 import json
+import time
 from io import BytesIO
 
 import grpc
@@ -239,7 +240,7 @@ class CombinerInterface:
 
         return response
 
-    def get_model(self, id):
+    def get_model(self, id, timeout=10):
         """ Download a model from the combiner server.
 
         :param id: The model id.
@@ -255,7 +256,13 @@ class CombinerInterface:
         data = BytesIO()
         data.seek(0, 0)
 
-        parts = modelservice.Download(fedn.ModelRequest(id=id))
+        time_start = time.time()
+
+        request = fedn.ModelRequest(id=id)
+        request.sender.name = self.name
+        request.sender.role = fedn.WORKER
+
+        parts = modelservice.Download(request)
         for part in parts:
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -263,6 +270,10 @@ class CombinerInterface:
                 return data
             if part.status == fedn.ModelStatus.FAILED:
                 return None
+            if part.status == fedn.ModelStatus.UNKNOWN:
+                if time.time() - time_start > timeout:
+                    return None
+                continue
 
     def allowing_clients(self):
         """ Check if the combiner is allowing additional client connections.
