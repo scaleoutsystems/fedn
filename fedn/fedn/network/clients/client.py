@@ -359,7 +359,7 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-    def get_model_from_combiner(self, id):
+    def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
 
@@ -369,6 +369,7 @@ class Client:
         :rtype: BytesIO
         """
         data = BytesIO()
+        time_start = time.time()
 
         for part in self.modelStub.Download(fedn.ModelRequest(id=id), metadata=self.metadata):
 
@@ -380,6 +381,11 @@ class Client:
 
             if part.status == fedn.ModelStatus.FAILED:
                 return None
+
+            if part.status == fedn.ModelStatus.UNKNOWN:
+                if time.time() - time_start >= timeout:
+                    return None
+                continue
 
         return data
 

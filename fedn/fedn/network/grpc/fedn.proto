@@ -92,6 +92,7 @@ enum ModelStatus {
   IN_PROGRESS = 1;
   IN_PROGRESS_OK = 2;
   FAILED = 3;
+  UNKNOWN = 4;
 }
 
 message ModelRequest {

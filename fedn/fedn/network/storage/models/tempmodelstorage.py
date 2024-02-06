@@ -59,7 +59,11 @@ class TempModelStorage(ModelStorage):
 
     def get_model_metadata(self, model_id):
 
-        return self.models_metadata[model_id]
+        try:
+            status = self.models_metadata[model_id]
+        except KeyError:
+            status = fedn.ModelStatus.UNKNOWN
+        return status
 
     def set_model_metadata(self, model_id, model_metadata):
 
