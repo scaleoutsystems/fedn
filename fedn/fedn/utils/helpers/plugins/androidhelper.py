@@ -4,7 +4,7 @@ import tempfile
 
 import numpy as np
 
-from .helperbase import HelperBase
+from fedn.utils.helpers.helperbase import HelperBase
 
 
 class Helper(HelperBase):
