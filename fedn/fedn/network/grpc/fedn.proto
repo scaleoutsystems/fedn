@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package grpc;
 
+import "google/protobuf/timestamp.proto";
+
 message Response {
     Client sender = 1;
     string response = 2;
@@ -83,7 +85,7 @@ message ModelValidation {
   string model_id = 3;
   string data = 4;
   string correlation_id = 5;
-  string timestamp = 6;
+  google.protobuf.Timestamp timestamp = 6;
   string meta = 7;
 }
 
