@@ -284,12 +284,11 @@ class Client:
 
         # Start sending heartbeats to the combiner.
         threading.Thread(target=self._send_heartbeat, kwargs={
-                         'update_frequency': config['heartbeat_interval']}, daemon=True).start()
+            'update_frequency': config['heartbeat_interval']}, daemon=True).start()
 
         # Start listening for combiner training and validation messages
-    
         threading.Thread(
-                target=self._listen_to_task_stream, daemon=True).start()
+            target=self._listen_to_task_stream, daemon=True).start()
         self._attached = True
 
         # Start processing the client message inbox
