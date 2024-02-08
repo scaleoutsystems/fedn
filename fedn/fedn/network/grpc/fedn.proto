@@ -37,16 +37,12 @@ message Status {
 
 }
 
-enum Channel {
+enum Queue {
   DEFAULT = 0;
-  MODEL_UPDATE_REQUESTS = 1;
-  MODEL_UPDATES = 2;
-  MODEL_VALIDATION_REQUESTS = 3;
-  MODEL_VALIDATIONS = 4;
-  STATUS = 5; 
+  TASK_QUEUE = 1;
 }
 
-message ModelUpdateRequest {
+message TaskRequest {
   Client sender = 1;
   Client receiver = 2;
   string model_id = 3;
@@ -54,6 +50,8 @@ message ModelUpdateRequest {
   string correlation_id = 5;
   string timestamp = 6;
   string meta = 7;
+  string session_id = 8;
+  StatusType type = 9;
 }
 
 message ModelUpdate {
@@ -64,17 +62,6 @@ message ModelUpdate {
   string correlation_id = 5;
   string timestamp = 6;
   string meta = 7;
-}
-
-message ModelValidationRequest {
-  Client sender = 1;
-  Client receiver = 2;
-  string model_id = 3;
-  string data = 4;
-  string correlation_id = 5;
-  string timestamp = 6; 
-  string meta = 7;
-  bool is_inference = 8;
 }
 
 message ModelValidation {
@@ -139,7 +126,7 @@ message ClientAvailableMessage {
 
 message ListClientsRequest {
   Client sender = 1;
-  Channel channel = 2;
+  Queue channel = 2;
 }
 
 message ClientList {
@@ -243,10 +230,7 @@ service Connector {
 service Combiner {
 
     // Stream endpoints for training/validation pub/sub
-    rpc ModelUpdateRequestStream (ClientAvailableMessage) returns (stream ModelUpdateRequest);
-    rpc ModelUpdateStream (ClientAvailableMessage) returns (stream ModelUpdate);
-    rpc ModelValidationRequestStream (ClientAvailableMessage) returns (stream ModelValidationRequest);
-    rpc ModelValidationStream (ClientAvailableMessage) returns (stream ModelValidation);
+    rpc TaskStream (ClientAvailableMessage) returns (stream TaskRequest);
 
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);

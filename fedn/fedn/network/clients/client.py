@@ -287,12 +287,9 @@ class Client:
                          'update_frequency': config['heartbeat_interval']}, daemon=True).start()
 
         # Start listening for combiner training and validation messages
-        if config['trainer']:
-            threading.Thread(
-                target=self._listen_to_model_update_request_stream, daemon=True).start()
-        if config['validator']:
-            threading.Thread(
-                target=self._listen_to_model_validation_request_stream, daemon=True).start()
+    
+        threading.Thread(
+                target=self._listen_to_task_stream, daemon=True).start()
         self._attached = True
 
         # Start processing the client message inbox
@@ -417,7 +414,7 @@ class Client:
 
         return result
 
-    def _listen_to_model_update_request_stream(self):
+    def _listen_to_task_stream(self):
         """Subscribe to the model update request stream.
 
         :return: None
@@ -432,16 +429,21 @@ class Client:
 
         while self._attached:
             try:
-                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
+                for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
                     if request:
                         logger.debug("Received model update request from combiner: {}.".format(request))
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
                                           type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
-                        logger.info("Received model update request.")
+                        logger.info("Received model update request of type {} for model_id {}".format(request.type, request.model_id))
 
-                        self.inbox.put(('train', request))
+                        if request.type == fedn.StatusType.MODEL_UPDATE and self.config['trainer']:
+                            self.inbox.put(('train', request))
+                        elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config['validator']:
+                            self.inbox.put(('validate', request))
+                        else:
+                            logger.error("Unknown request type: {}".format(request.type))
 
             except grpc.RpcError as e:
                 # Handle gRPC errors
@@ -461,45 +463,6 @@ class Client:
         # Detach if not attached
         if not self._attached:
             return
-
-    def _listen_to_model_validation_request_stream(self):
-        """Subscribe to the model validation request stream.
-
-        :return: None
-        :rtype: None
-        """
-
-        r = fedn.ClientAvailableMessage()
-        r.sender.name = self.name
-        r.sender.role = fedn.WORKER
-        while True:
-            try:
-                for request in self.combinerStub.ModelValidationRequestStream(r, metadata=self.metadata):
-                    # Process validation request
-                    model_id = request.model_id
-                    self._send_status("Received model validation request for model_id {}".format(model_id),
-                                      log_level=fedn.Status.AUDIT, type=fedn.StatusType.MODEL_VALIDATION_REQUEST,
-                                      request=request)
-                    logger.info("Received model validation request for model_id {}".format(model_id))
-                    self.inbox.put(('validate', request))
-
-            except grpc.RpcError as e:
-                # Handle gRPC errors
-                status_code = e.code()
-                if status_code == grpc.StatusCode.UNAVAILABLE:
-                    logger.warning("GRPC server unavailable during model validation request stream. Retrying.")
-                    # Retry after a delay
-                    time.sleep(5)
-                else:
-                    # Log the error and continue
-                    logger.error(f"An error occurred during model validation request stream: {e}")
-
-            except Exception as ex:
-                # Handle other exceptions
-                logger.error(f"An error occurred during model validation request stream: {ex}")
-
-            if not self._attached:
-                return
 
     def _process_training_request(self, model_id):
         """Process a training (model update) request.
@@ -656,7 +619,7 @@ class Client:
                 elif task_type == 'validate':
                     self.state = ClientState.validating
                     metrics = self._process_validation_request(
-                        request.model_id, request.is_inference)
+                        request.model_id, False)
 
                     if metrics is not None:
                         # Send validation
@@ -673,11 +636,7 @@ class Client:
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)
 
-                        # Set status type
-                        if request.is_inference:
-                            status_type = fedn.StatusType.INFERENCE
-                        else:
-                            status_type = fedn.StatusType.MODEL_VALIDATION
+                        status_type = fedn.StatusType.MODEL_VALIDATION
 
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
                                           type=status_type, request=validation)
