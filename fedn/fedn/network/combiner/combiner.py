@@ -611,7 +611,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status = fedn.Status(
             status="Client {} connecting to TaskStream.".format(client.name))
         status.log_level = fedn.Status.INFO
-        status.timestamp = str(datetime.now())
+        status.timestamp.GetCurrentTime()
 
         self.__whoami(status.sender, self)
 

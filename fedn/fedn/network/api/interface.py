@@ -1055,6 +1055,15 @@ class API:
                 {"success": False, "message": "A session is already running."}
             )
 
+        # Check if compute package is set
+        if not self.statestore.get_compute_package():
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No compute package set. Set compute package before starting session.",
+                }
+            )
+
         # Check that initial (seed) model is set
         if not self.statestore.get_initial_model():
             return jsonify(

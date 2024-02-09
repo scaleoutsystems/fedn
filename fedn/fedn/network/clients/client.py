@@ -629,9 +629,9 @@ class Client:
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(request.model_id)
                         validation.data = json.dumps(metrics)
-                        self.str = str(datetime.now())
-                        validation.timestamp = self.str
+                        validation.timestamp.GetCurrentTime()
                         validation.correlation_id = request.correlation_id
+
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)
 
@@ -692,7 +692,7 @@ class Client:
         :type request: fedn.Request
         """
         status = fedn.Status()
-        status.timestamp = str(datetime.now())
+        status.timestamp.GetCurrentTime()
         status.sender.name = self.name
         status.sender.role = fedn.WORKER
         status.log_level = log_level
