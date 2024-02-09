@@ -719,7 +719,7 @@ class Client:
         :type request: fedn.Request
         """
         status = fedn.Status()
-        status.timestamp = str(datetime.now())
+        status.timestamp.GetCurrentTime()
         status.sender.name = self.name
         status.sender.role = fedn.WORKER
         status.log_level = log_level
