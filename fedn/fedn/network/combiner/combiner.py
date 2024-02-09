@@ -169,11 +169,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         """
         # The request to be added to the client queue
-        request = fedn.ModelUpdateRequest()
+        request = fedn.TaskRequest()
         request.model_id = config['model_id']
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
         request.data = json.dumps(config)
+        request.type = fedn.StatusType.MODEL_UPDATE
 
         request.sender.name = self.id
         request.sender.role = fedn.COMBINER
@@ -184,7 +185,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in clients:
             request.receiver.name = client
             request.receiver.role = fedn.WORKER
-            self._put_request_to_client_queue(request, fedn.Channel.MODEL_UPDATE_REQUESTS)
+            self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
         if len(clients) < 20:
             logger.info("Sent model update request for model {} to clients {}".format(
@@ -205,11 +206,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         """
         # The request to be added to the client queue
-        request = fedn.ModelValidationRequest()
+        request = fedn.TaskRequest()
         request.model_id = model_id
-        request.correlation_id = str(uuid.uuid4())  # Obsolete?
+        request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
-        request.is_inference = (config['task'] == 'inference')
+        # request.is_inference = (config['task'] == 'inference')
+        request.type = fedn.StatusType.MODEL_VALIDATION
+
+        request.sender.name = self.id
+        request.sender.role = fedn.COMBINER
 
         if len(clients) == 0:
             clients = self.get_active_validators()
@@ -217,7 +222,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in clients:
             request.receiver.name = client
             request.receiver.role = fedn.WORKER
-            self._put_request_to_client_queue(request, fedn.Channel.MODEL_VALIDATION_REQUESTS)
+            self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
         if len(clients) < 20:
             logger.info("Sent model validation request for model {} to clients {}".format(
@@ -232,7 +237,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the list of active trainers
         :rtype: list
         """
-        trainers = self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+        trainers = self._list_active_clients(fedn.Queue.TASK_QUEUE)
         return trainers
 
     def get_active_validators(self):
@@ -241,7 +246,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the list of active validators
         :rtype: list
         """
-        validators = self._list_active_clients(fedn.Channel.MODEL_VALIDATION_REQUESTS)
+        validators = self._list_active_clients(fedn.Queue.TASK_QUEUE)
         return validators
 
     def nr_active_trainers(self):
@@ -349,7 +354,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         while True:
             time.sleep(timeout)
             # TODO: Also update validation clients
-            self._list_active_clients(fedn.Channel.MODEL_UPDATE_REQUESTS)
+            self._list_active_clients(fedn.Queue.TASK_QUEUE)
 
     def _put_request_to_client_queue(self, request, queue_name):
         """ Get a client specific queue and add a request to it.
@@ -545,7 +550,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         response = fedn.ConnectionResponse()
         active_clients = self._list_active_clients(
-            fedn.Channel.MODEL_UPDATE_REQUESTS)
+            fedn.Queue.TASK_QUEUE)
 
         try:
             requested = int(self.max_clients)
@@ -588,33 +593,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     # Combiner Service
 
-    def ModelUpdateStream(self, update, context):
-        """ Model update stream RPC endpoint. Update status for client is connecting to stream.
-
-        :param update: the update message
-        :type update: :class:`fedn.network.grpc.fedn_pb2.ModelUpdate`
-        :param context: the context
-        :type context: :class:`grpc._server._Context`
-        """
-        client = update.sender
-        status = fedn.Status(
-            status="Client {} connecting to ModelUpdateStream.".format(client.name))
-        status.log_level = fedn.Status.INFO
-        status.sender.name = self.id
-        status.sender.role = role_to_proto_role(self.role)
-
-        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_UPDATES)
-        q = self.__get_queue(client, fedn.Channel.MODEL_UPDATES)
-
-        self._send_status(status)
-
-        while context.is_active():
-            try:
-                yield q.get(timeout=1.0)
-            except queue.Empty:
-                pass
-
-    def ModelUpdateRequestStream(self, response, context):
+    def TaskStream(self, response, context):
         """ A server stream RPC endpoint (Update model). Messages from client stream.
 
         :param response: the response
@@ -627,18 +606,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         metadata = context.invocation_metadata()
         if metadata:
             metadata = dict(metadata)
-            logger.info("grpc.Combiner.ModelUpdateRequestStream: Client connected: {}\n".format(metadata['client']))
+            logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata['client']))
 
         status = fedn.Status(
-            status="Client {} connecting to ModelUpdateRequestStream.".format(client.name))
+            status="Client {} connecting to TaskStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.timestamp.GetCurrentTime()
 
         self.__whoami(status.sender, self)
 
         self._subscribe_client_to_queue(
-            client, fedn.Channel.MODEL_UPDATE_REQUESTS)
-        q = self.__get_queue(client, fedn.Channel.MODEL_UPDATE_REQUESTS)
+            client, fedn.Queue.TASK_QUEUE)
+        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
         self._send_status(status)
 
@@ -656,62 +635,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 pass
             except Exception as e:
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
-
-    def ModelValidationStream(self, update, context):
-        """ Model validation stream RPC endpoint. Update status for client is connecting to stream.
-
-        :param update: the update message
-        :type update: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
-        :param context: the context
-        :type context: :class:`grpc._server._Context`
-        """
-        client = update.sender
-        status = fedn.Status(
-            status="Client {} connecting to ModelValidationStream.".format(client.name))
-        status.log_level = fedn.Status.INFO
-
-        status.sender.name = self.id
-        status.sender.role = role_to_proto_role(self.role)
-
-        self._subscribe_client_to_queue(client, fedn.Channel.MODEL_VALIDATIONS)
-        q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATIONS)
-
-        self._send_status(status)
-
-        while context.is_active():
-            try:
-                yield q.get(timeout=1.0)
-            except queue.Empty:
-                pass
-
-    def ModelValidationRequestStream(self, response, context):
-        """ A server stream RPC endpoint (Validation). Messages from client stream.
-
-        :param response: the response
-        :type response: :class:`fedn.network.grpc.fedn_pb2.ModelValidationRequest`
-        :param context: the context
-        :type context: :class:`grpc._server._Context`
-        """
-
-        client = response.sender
-        status = fedn.Status(
-            status="Client {} connecting to ModelValidationRequestStream.".format(client.name))
-        status.log_level = fedn.Status.INFO
-        status.sender.name = self.id
-        status.sender.role = role_to_proto_role(self.role)
-        status.timestamp.GetCurrentTime()
-
-        self._subscribe_client_to_queue(
-            client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
-        q = self.__get_queue(client, fedn.Channel.MODEL_VALIDATION_REQUESTS)
-
-        self._send_status(status)
-
-        while context.is_active():
-            try:
-                yield q.get(timeout=1.0)
-            except queue.Empty:
-                pass
 
     def SendModelUpdate(self, request, context):
         """ Send a model update response.

@@ -593,25 +593,10 @@ class CombinerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.ModelUpdateRequestStream = channel.unary_stream(
-                '/grpc.Combiner/ModelUpdateRequestStream',
+        self.TaskStream = channel.unary_stream(
+                '/grpc.Combiner/TaskStream',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdateRequest.FromString,
-                )
-        self.ModelUpdateStream = channel.unary_stream(
-                '/grpc.Combiner/ModelUpdateStream',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdate.FromString,
-                )
-        self.ModelValidationRequestStream = channel.unary_stream(
-                '/grpc.Combiner/ModelValidationRequestStream',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidationRequest.FromString,
-                )
-        self.ModelValidationStream = channel.unary_stream(
-                '/grpc.Combiner/ModelValidationStream',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
                 )
         self.SendModelUpdate = channel.unary_unary(
                 '/grpc.Combiner/SendModelUpdate',
@@ -628,27 +613,9 @@ class CombinerStub(object):
 class CombinerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def ModelUpdateRequestStream(self, request, context):
+    def TaskStream(self, request, context):
         """Stream endpoints for training/validation pub/sub
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModelUpdateStream(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModelValidationRequestStream(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def ModelValidationStream(self, request, context):
-        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -668,25 +635,10 @@ class CombinerServicer(object):
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'ModelUpdateRequestStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.ModelUpdateRequestStream,
+            'TaskStream': grpc.unary_stream_rpc_method_handler(
+                    servicer.TaskStream,
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdateRequest.SerializeToString,
-            ),
-            'ModelUpdateStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.ModelUpdateStream,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
-            ),
-            'ModelValidationRequestStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.ModelValidationRequestStream,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidationRequest.SerializeToString,
-            ),
-            'ModelValidationStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.ModelValidationStream,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.TaskRequest.SerializeToString,
             ),
             'SendModelUpdate': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelUpdate,
@@ -709,7 +661,7 @@ class Combiner(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def ModelUpdateRequestStream(request,
+    def TaskStream(request,
             target,
             options=(),
             channel_credentials=None,
@@ -719,60 +671,9 @@ class Combiner(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelUpdateRequestStream',
+        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/TaskStream',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdateRequest.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ModelUpdateStream(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelUpdateStream',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdate.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ModelValidationRequestStream(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelValidationRequestStream',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidationRequest.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ModelValidationStream(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/ModelValidationStream',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

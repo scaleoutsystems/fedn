@@ -16,7 +16,7 @@ setup(
         "minio",
         "python-slugify",
         "grpcio~=1.57.0",
-        "grpcio-tools",
+        "grpcio-tools~=1.57.0",
         "numpy>=1.21.6",
         "protobuf",
         "pymongo",
@@ -32,7 +32,7 @@ setup(
         "pandas",
         "bokeh<3.0.0",
         "networkx",
-        "grpcio-health-checking"
+        "grpcio-health-checking~=1.57.0"
     ],
     license='Apache 2.0',
     zip_safe=False,
