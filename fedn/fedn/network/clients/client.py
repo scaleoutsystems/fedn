@@ -652,9 +652,9 @@ class Client:
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(request.model_id)
                         validation.data = json.dumps(metrics)
-                        self.str = str(datetime.now())
-                        validation.timestamp = self.str
+                        validation.timestamp.GetCurrentTime()
                         validation.correlation_id = request.correlation_id
+
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)
 
