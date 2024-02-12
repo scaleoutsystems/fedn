@@ -175,6 +175,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         request.timestamp = str(datetime.now())
         request.data = json.dumps(config)
         request.type = fedn.StatusType.MODEL_UPDATE
+        request.session_id = config['session_id']
 
         request.sender.name = self.id
         request.sender.role = fedn.COMBINER

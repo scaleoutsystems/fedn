@@ -36,6 +36,7 @@ message Status {
     google.protobuf.Timestamp timestamp = 6;
     StatusType type = 7;
     string extra = 8;
+    string session_id = 9;
 
 }
 
