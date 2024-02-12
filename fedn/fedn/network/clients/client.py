@@ -635,6 +635,7 @@ class Client:
                         validation.data = json.dumps(metrics)
                         validation.timestamp.GetCurrentTime()
                         validation.correlation_id = request.correlation_id
+                        validation.session_id = request.session_id
 
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)

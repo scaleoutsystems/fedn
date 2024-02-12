@@ -216,6 +216,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         request.sender.name = self.id
         request.sender.role = fedn.COMBINER
+        request.session_id = config["session_id"]
 
         if len(clients) == 0:
             clients = self.get_active_validators()
