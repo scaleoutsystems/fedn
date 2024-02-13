@@ -1,23 +1,40 @@
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
-from .shared import api_version
+from fedn.network.storage.statestore.repositories.status_repository import \
+    StatusRepository
 
-statuses = [
-    {"id": 1, "status": "ok"},
-    {"id": 2, "status": "not ok"},
-]
-
+from .shared import api_version, mdb
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
+
+status_repository = StatusRepository(mdb, "control.status")
 
 
 @bp.route("/", methods=["GET"])
 def get_statuses():
-    return jsonify(statuses), 200
+    try:
+        statuses = status_repository.list()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    response = []
+    for status in statuses:
+        response.append(status.__dict__)
+
+    return jsonify(response), 200
 
 
-@bp.route("/<int:status_id>", methods=["GET"])
-def get_status(status_id):
-    status = [status for status in statuses if status["id"] == status_id]
-    return jsonify(status), 200
+@bp.route("/<string:id>", methods=["GET"])
+def get_status(id: str):
+    try:
+        skip_typing = request.headers.get("Skip-Typing", "false")
+
+        use_typing = False if skip_typing.lower() == "true" else True
+        status = status_repository.get(id, use_typing=use_typing)
+
+        result = status.__dict__ if use_typing else status
+
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
