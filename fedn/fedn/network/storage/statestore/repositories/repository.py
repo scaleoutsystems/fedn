@@ -27,7 +27,7 @@ class Repository(Generic[T]):
 
         return from_document(document) if not use_typing else document
 
-    def put(self, id: str, item: T) -> bool:
+    def update(self, id: str, item: T) -> bool:
         pass
 
     def add(self, item: T) -> bool:

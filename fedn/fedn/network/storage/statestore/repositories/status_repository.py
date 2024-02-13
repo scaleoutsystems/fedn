@@ -19,7 +19,7 @@ class Status:
         self.sender = sender
 
     def from_dict(data: dict) -> 'Status':
-
+        sender = None
         if 'sender' in data:
             if 'role' in data['sender'] and 'name' in data['sender']:
                 sender = data['sender']
@@ -33,7 +33,7 @@ class Status:
             correlation_id=data['correlationId'] if 'correlationId' in data else None,
             type=data['type'] if 'type' in data else None,
             extra=data['extra'] if 'extra' in data else None,
-            sender=sender if sender is not None else None
+            sender=sender
         )
 
 
@@ -45,17 +45,14 @@ class StatusRepository(Repository[Status]):
         response = super().get(id, use_typing=use_typing)
         return Status.from_dict(response) if use_typing else response
 
-    def put(self, id: str, item: Status) -> bool:
-        self.client[self.collection].replace_one({'_id': id}, item.to_dict(), upsert=True)
-        return True
+    def update(self, id: str, item: Status) -> bool:
+        raise NotImplementedError("Update not implemented for StatusRepository")
 
     def add(self, item: Status) -> bool:
-        self.client[self.collection].insert_one(item.to_dict())
-        return True
+        raise NotImplementedError("Add not implemented for StatusRepository")
 
     def delete(self, id: str) -> bool:
-        self.client[self.collection].delete_one({'_id': id})
-        return True
+        raise NotImplementedError("Delete not implemented for StatusRepository")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Status]]:
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
