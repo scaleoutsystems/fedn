@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from v1.status_routes import bp as status_bp
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
@@ -16,6 +17,7 @@ statestore.set_storage_backend(modelstorage_config)
 control = Control(statestore=statestore)
 api = API(statestore, control)
 app = Flask(__name__)
+app.register_blueprint(status_bp)
 
 
 @app.route("/get_model_trail", methods=["GET"])
