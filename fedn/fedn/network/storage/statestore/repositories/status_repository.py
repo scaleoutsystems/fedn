@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import Dict, List
 
-from bson import ObjectId
+import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
@@ -57,6 +57,9 @@ class StatusRepository(Repository[Status]):
         self.client[self.collection].delete_one({'_id': id})
         return True
 
-    def list(self) -> List[Status]:
-        response = super().list()
-        return [Status.from_dict(item) for item in response]
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Status]]:
+        response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
+
+        result = [Status.from_dict(item) for item in response['result']] if use_typing else response['result']
+
+        return {'count': response['count'], 'result': result}

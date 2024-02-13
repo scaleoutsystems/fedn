@@ -1,5 +1,6 @@
-from typing import Generic, List, TypeVar
+from typing import Dict, Generic, List, TypeVar
 
+import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
@@ -35,5 +36,17 @@ class Repository(Generic[T]):
     def delete(self, id: str) -> bool:
         pass
 
-    def list(self, use_typing: bool = False) -> List[T]:
-        pass
+    def list(self, limit: int | None, skip: int | None, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[T]]:
+        if None in [limit, skip]:
+            cursor = self.database[self.collection].find(kwargs).sort(sort_key, sort_order)
+        else:
+            cursor = self.database[self.collection].find(kwargs).sort(sort_key, sort_order).skip(skip).limit(limit)
+
+        count = self.database[self.collection].count_documents(kwargs)
+
+        result = [document for document in cursor] if use_typing else [from_document(document) for document in cursor]
+
+        return {
+            "count": count,
+            "result": result
+        }
