@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.repositories.package_repository import \
     PackageRepository
 
-from .shared import api_version, get_typed_list_headers, mdb
+from .shared import api_version, get_typed_list_headers, get_use_typing, mdb
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -34,9 +34,10 @@ def get_packages():
 @bp.route("/<string:id>", methods=["GET"])
 def get_package(id: str):
     try:
-        package = package_repository.get(id, use_typing=True)
+        use_typing: bool = get_use_typing(request.headers)
+        package = package_repository.get(id, use_typing=use_typing)
 
-        response = package.__dict__
+        response = package.__dict__ if use_typing else package
 
         return jsonify(response), 200
     except Exception as e:
@@ -46,8 +47,9 @@ def get_package(id: str):
 @bp.route("/active", methods=["GET"])
 def get_active_package():
     try:
-        package = package_repository.get_active()
-        response = package.__dict__
+        use_typing: bool = get_use_typing(request.headers)
+        package = package_repository.get_active(use_typing=use_typing)
+        response = package.__dict__ if use_typing else package
 
         return jsonify(response), 200
     except Exception as e:

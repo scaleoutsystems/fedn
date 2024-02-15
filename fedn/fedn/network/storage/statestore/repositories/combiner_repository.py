@@ -6,6 +6,8 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
+from .shared import from_document
+
 
 class Combiner:
     def __init__(self, id: str, name: str, address: str, certificate: str | None, config: dict, fqdn: str | None, ip: str, key: str | None, parent: dict, port: int, status: str, updated_at: str):
@@ -53,7 +55,7 @@ class CombinerRepository(Repository[Combiner]):
         if document is None:
             raise KeyError(f"Entity with (id | name) {id} not found")
 
-        return Combiner.from_dict(document) if use_typing else document
+        return Combiner.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerRepository")

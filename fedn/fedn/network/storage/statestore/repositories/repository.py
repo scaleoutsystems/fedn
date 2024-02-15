@@ -4,13 +4,9 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
+from .shared import from_document
+
 T = TypeVar('T')
-
-
-def from_document(document: dict) -> dict:
-    document['id'] = str(document['_id'])
-    del document['_id']
-    return document
 
 
 class Repository(Generic[T]):

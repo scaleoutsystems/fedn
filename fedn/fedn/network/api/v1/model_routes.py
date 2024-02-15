@@ -34,9 +34,9 @@ def get_models():
 @bp.route("/<string:id>", methods=["GET"])
 def get_model(id: str):
     try:
-        model = model_repository.get(id, use_typing=True)
+        model = model_repository.get(id, use_typing=False)
 
-        response = model.__dict__
+        response = model
 
         return jsonify(response), 200
     except Exception as e:

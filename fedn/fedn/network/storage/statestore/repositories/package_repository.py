@@ -6,6 +6,8 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
+from .shared import from_document
+
 
 class Package:
     def __init__(self, id: str, key: str, committed_at: datetime, description: str, file_name: str, helper: str, name: str, storage_file_name: str, active: bool = False):
@@ -48,13 +50,16 @@ class PackageRepository(Repository[Package]):
         if document is None:
             raise KeyError(f"Entity with id {id} not found")
 
+        if not use_typing:
+            return from_document(document)
+
         response_active = self.database[self.collection].find_one({'key': 'active'})
 
         return Package.from_dict(document, response_active)
 
-    def get_active(self) -> Package:
+    def get_active(self, use_typing: bool = False) -> Package:
         response = self.database[self.collection].find_one({'key': 'active'})
-        return Package.from_dict(response, response)
+        return Package.from_dict(response, response) if use_typing else from_document(response)
 
     def update(self, id: str, item: Package) -> bool:
         raise NotImplementedError("Update not implemented for PackageRepository")

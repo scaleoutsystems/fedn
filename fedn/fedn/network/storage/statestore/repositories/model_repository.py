@@ -7,6 +7,8 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
+from .shared import from_document
+
 
 class Model:
     def __init__(self, id: str, key: str, model: str, parent_model: str, session_id: str, committed_at: datetime):
@@ -45,7 +47,7 @@ class ModelRepository(Repository[Model]):
         if document is None:
             raise KeyError(f"Entity with (id | model) {id} not found")
 
-        return Model.from_dict(document) if use_typing else document
+        return Model.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Model) -> bool:
         raise NotImplementedError("Update not implemented for ModelRepository")
