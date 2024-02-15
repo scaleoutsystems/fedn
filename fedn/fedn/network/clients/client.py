@@ -434,7 +434,7 @@ class Client:
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
+                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request, sesssion_id=request.session_id)
                         logger.info("Received model update request of type {} for model_id {}".format(request.type, request.model_id))
 
                         if request.type == fedn.StatusType.MODEL_UPDATE and self.config['trainer']:
@@ -463,17 +463,19 @@ class Client:
         if not self._attached:
             return
 
-    def _process_training_request(self, model_id):
+    def _process_training_request(self, model_id: str, session_id: str = None):
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
         :type model_id: str
+        :param session_id: The id of the current session
+        :type session_id: str
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
 
         self._send_status(
-            "\t Starting processing of training request for model_id {}".format(model_id))
+            "\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
         self.state = ClientState.training
 
         try:
@@ -526,13 +528,15 @@ class Client:
 
         return updated_model_id, meta
 
-    def _process_validation_request(self, model_id, is_inference):
+    def _process_validation_request(self, model_id: str, is_inference: bool, session_id: str = None):
         """Process a validation request.
 
         :param model_id: The model id of the model to be validated.
         :type model_id: str
         :param is_inference: True if the validation is an inference request, False if it is a validation request.
         :type is_inference: bool
+        :param session_id: The id of the current session.
+        :type session_id: str
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
@@ -543,7 +547,7 @@ class Client:
             cmd = 'validate'
 
         self._send_status(
-            f"Processing {cmd} request for model_id {model_id}")
+            f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
         self.state = ClientState.validating
         try:
             model = self.get_model_from_combiner(str(model_id))
@@ -586,7 +590,7 @@ class Client:
                     tic = time.time()
                     self.state = ClientState.training
                     model_id, meta = self._process_training_request(
-                        request.model_id)
+                        request.model_id, session_id=request.session_id)
                     processing_time = time.time()-tic
                     meta['processing_time'] = processing_time
                     meta['config'] = request.data
@@ -606,19 +610,19 @@ class Client:
                         # TODO: Check responses
                         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE, request=update)
+                                          type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
 
                     else:
                         self._send_status("Client {} failed to complete model update.",
                                           log_level=fedn.Status.WARNING,
-                                          request=request)
+                                          request=request, sesssion_id=request.session_id)
                     self.state = ClientState.idle
                     self.inbox.task_done()
 
                 elif task_type == 'validate':
                     self.state = ClientState.validating
                     metrics = self._process_validation_request(
-                        request.model_id, False)
+                        request.model_id, False, request.session_id)
 
                     if metrics is not None:
                         # Send validation
@@ -631,6 +635,7 @@ class Client:
                         validation.data = json.dumps(metrics)
                         validation.timestamp.GetCurrentTime()
                         validation.correlation_id = request.correlation_id
+                        validation.session_id = request.session_id
 
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)
@@ -638,10 +643,10 @@ class Client:
                         status_type = fedn.StatusType.MODEL_VALIDATION
 
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                          type=status_type, request=validation)
+                                          type=status_type, request=validation, sesssion_id=request.session_id)
                     else:
                         self._send_status("Client {} failed to complete model validation.".format(self.name),
-                                          log_level=fedn.Status.WARNING, request=request)
+                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
 
                     self.state = ClientState.idle
                     self.inbox.task_done()
@@ -679,7 +684,7 @@ class Client:
             if not self._attached:
                 return
 
-    def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
+    def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
         """Send status message.
 
         :param msg: The message to send.
@@ -697,6 +702,7 @@ class Client:
         status.sender.role = fedn.WORKER
         status.log_level = log_level
         status.status = str(msg)
+        status.session_id = sesssion_id
         if type is not None:
             status.type = type
 
