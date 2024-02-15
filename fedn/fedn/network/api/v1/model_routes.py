@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.repositories.model_repository import \
     ModelRepository
 
-from .shared import api_version, get_typed_list_headers, mdb
+from .shared import api_version, get_limit, get_typed_list_headers, mdb
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -37,6 +37,20 @@ def get_model(id: str):
         model = model_repository.get(id, use_typing=False)
 
         response = model
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@bp.route("/<string:id>/descendants", methods=["GET"])
+def get_descendants(id: str):
+    try:
+        limit = get_limit(request.headers)
+
+        descendants = model_repository.list_descendants(id, limit, use_typing=False)
+
+        response = descendants
 
         return jsonify(response), 200
     except Exception as e:

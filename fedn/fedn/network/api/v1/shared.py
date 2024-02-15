@@ -24,23 +24,27 @@ def get_use_typing(headers: object) -> bool:
     return False if skip_typing.lower() == "true" else True
 
 
+def get_limit(headers: object) -> int:
+    limit: str | None = headers.get("X-Limit")
+    if is_positive_integer(limit):
+        return int(limit)
+    return 0
+
+
+def get_skip(headers: object) -> int:
+    skip: str | None = headers.get("X-Skip")
+    if is_positive_integer(skip):
+        return int(skip)
+    return 0
+
+
 def get_typed_list_headers(headers: object) -> Tuple[int | None, int | None, str | None, int, bool]:
     sort_key: str | None = headers.get("X-Sort-Key")
     sort_order: str | None = headers.get("X-Sort-Order")
-    limit: str | None = headers.get("X-Limit")
-    skip: str | None = headers.get("X-Skip")
 
+    limit: int = get_limit(headers)
+    skip: int = get_skip(headers)
     use_typing: bool = get_use_typing(headers)
-
-    if is_positive_integer(limit):
-        limit = int(limit)
-    else:
-        limit = 0
-
-    if is_positive_integer(skip):
-        skip = int(skip)
-    else:
-        skip = 0
 
     if sort_order is not None:
         sort_order = pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
