@@ -55,3 +55,17 @@ def get_descendants(id: str):
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 404
+
+
+@bp.route("/<string:id>/ancestors", methods=["GET"])
+def get_ancestors(id: str):
+    try:
+        limit = get_limit(request.headers)
+
+        ancestors = model_repository.list_ancestors(id, limit, use_typing=False)
+
+        response = ancestors
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404

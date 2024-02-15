@@ -78,7 +78,11 @@ class ModelRepository(Repository[Model]):
             kwargs['model'] = id
 
         model: object = self.database[self.collection].find_one(kwargs)
-        current_model_id: str = model["model"] if model is not None else None
+
+        if model is None:
+            raise KeyError(f"Entity with (id | model) {id} not found")
+
+        current_model_id: str = model["model"]
         result: list = []
 
         for _ in range(limit):
@@ -93,5 +97,34 @@ class ModelRepository(Repository[Model]):
                 current_model_id = model["model"]
 
         result.reverse()
+
+        return result
+
+    def list_ancestors(self, id: str, limit: int, use_typing: bool = False) -> List[Model]:
+        kwargs = {"key": "models"}
+        if ObjectId.is_valid(id):
+            id_obj = ObjectId(id)
+            kwargs['_id'] = id_obj
+        else:
+            kwargs['model'] = id
+
+        model: object = self.database[self.collection].find_one(kwargs)
+
+        if model is None:
+            raise KeyError(f"Entity with (id | model) {id} not found")
+
+        current_model_id: str = model["model"]
+        result: list = []
+
+        for _ in range(limit):
+            if current_model_id is None:
+                break
+
+            model = self.database[self.collection].find_one({"key": "models", "model": current_model_id})
+
+            if model is not None:
+                formatted_model: Model | dict = Model.from_dict(model) if use_typing else from_document(model)
+                result.append(formatted_model)
+                current_model_id = model["parent_model"]
 
         return result
