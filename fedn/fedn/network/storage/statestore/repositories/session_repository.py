@@ -37,7 +37,7 @@ class SessionRepository(Repository[Session]):
         if document is None:
             raise KeyError(f"Entity with (id | session_id) {id} not found")
 
-        return Session.from_dict(document)
+        return Session.from_dict(document) if use_typing else document
 
     def update(self, id: str, item: Session) -> bool:
         raise NotImplementedError("Update not implemented for SessionRepository")

@@ -35,8 +35,8 @@ def get_combiners():
 @bp.route("/<string:id>", methods=["GET"])
 def get_combiner(id: str):
     try:
-        combiner = combiner_repository.get(id, use_typing=False)
-        response = combiner
+        combiner = combiner_repository.get(id, use_typing=True)
+        response = combiner.__dict__
 
         return jsonify(response), 200
     except Exception as e:

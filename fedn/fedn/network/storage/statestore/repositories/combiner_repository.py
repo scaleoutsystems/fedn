@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 import pymongo
+from bson import ObjectId
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
@@ -43,8 +44,16 @@ class CombinerRepository(Repository[Combiner]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Combiner:
-        response = super().get(id, use_typing=use_typing)
-        return Combiner.from_dict(response) if use_typing else response
+        if ObjectId.is_valid(id):
+            id_obj = ObjectId(id)
+            document = self.database[self.collection].find_one({'_id': id_obj})
+        else:
+            document = self.database[self.collection].find_one({'name': id})
+
+        if document is None:
+            raise KeyError(f"Entity with (id | name) {id} not found")
+
+        return Combiner.from_dict(document) if use_typing else document
 
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerRepository")
