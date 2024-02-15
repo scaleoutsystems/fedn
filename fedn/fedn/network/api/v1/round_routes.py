@@ -1,29 +1,29 @@
 
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.combiner_repository import \
-    CombinerRepository
+from fedn.network.storage.statestore.repositories.round_repository import \
+    RoundRepository
 
 from .shared import api_version, get_typed_list_headers, mdb
 
-bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
+bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
-combiner_repository = CombinerRepository(mdb, "network.combiners")
+round_repository = RoundRepository(mdb, "control.rounds")
 
 
 @bp.route("/", methods=["GET"])
-def get_combiners():
+def get_rounds():
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        rounds = round_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
-        result = combiners["result"]
+        result = rounds["result"]
 
         response = {
-            "count": combiners["count"],
+            "count": rounds["count"],
             "result": result
         }
 
@@ -33,10 +33,10 @@ def get_combiners():
 
 
 @bp.route("/<string:id>", methods=["GET"])
-def get_combiner(id: str):
+def get_round(id: str):
     try:
-        combiner = combiner_repository.get(id, use_typing=False)
-        response = combiner
+        round = round_repository.get(id, use_typing=False)
+        response = round
 
         return jsonify(response), 200
     except Exception as e:

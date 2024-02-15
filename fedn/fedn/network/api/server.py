@@ -3,6 +3,7 @@ from v1.client_routes import bp as client_bp
 from v1.combiner_routes import bp as combiner_bp
 from v1.model_routes import bp as model_bp
 from v1.package_routes import bp as package_bp
+from v1.round_routes import bp as round_bp
 from v1.session_routes import bp as session_bp
 from v1.status_routes import bp as status_bp
 from v1.validation_routes import bp as validation_bp
@@ -30,6 +31,7 @@ app.register_blueprint(client_bp)
 app.register_blueprint(package_bp)
 app.register_blueprint(session_bp)
 app.register_blueprint(combiner_bp)
+app.register_blueprint(round_bp)
 
 
 @app.route("/get_model_trail", methods=["GET"])
