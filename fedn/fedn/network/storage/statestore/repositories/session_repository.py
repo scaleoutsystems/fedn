@@ -6,6 +6,8 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
+from .shared import from_document
+
 
 class Session:
     def __init__(self, id: str, session_id: str, status: str, session_config: dict = None):
@@ -37,7 +39,7 @@ class SessionRepository(Repository[Session]):
         if document is None:
             raise KeyError(f"Entity with (id | session_id) {id} not found")
 
-        return Session.from_dict(document) if use_typing else document
+        return Session.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Session) -> bool:
         raise NotImplementedError("Update not implemented for SessionRepository")
