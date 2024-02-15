@@ -14,13 +14,13 @@ combiner_repository = CombinerRepository(mdb, "network.combiners")
 @bp.route("/", methods=["GET"])
 def get_combiners():
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
-        result = [combiner.__dict__ for combiner in combiners["result"]] if use_typing else combiners["result"]
+        result = combiners["result"]
 
         response = {
             "count": combiners["count"],
@@ -35,9 +35,8 @@ def get_combiners():
 @bp.route("/<string:id>", methods=["GET"])
 def get_combiner(id: str):
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        combiner = combiner_repository.get(id, use_typing=use_typing)
-        response = combiner.__dict__ if use_typing else combiner
+        combiner = combiner_repository.get(id, use_typing=False)
+        response = combiner
 
         return jsonify(response), 200
     except Exception as e:
