@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict, List
 
 import pymongo
+from bson import ObjectId
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
@@ -32,8 +33,20 @@ class ModelRepository(Repository[Model]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Model:
-        response = super().get(id, use_typing=use_typing)
-        return Model.from_dict(response) if use_typing else response
+
+        kwargs = {"key": "models"}
+        if ObjectId.is_valid(id):
+            id_obj = ObjectId(id)
+            kwargs['_id'] = id_obj
+        else:
+            kwargs['model'] = id
+
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise KeyError(f"Entity with (id | model) {id} not found")
+
+        return Model.from_dict(document)
 
     def update(self, id: str, item: Model) -> bool:
         raise NotImplementedError("Update not implemented for ModelRepository")

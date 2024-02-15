@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.repositories.model_repository import \
     ModelRepository
 
-from .shared import api_version, get_typed_list_headers, get_use_typing, mdb
+from .shared import api_version, get_typed_list_headers, mdb
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -14,12 +14,12 @@ model_repository = ModelRepository(mdb, "control.model")
 @bp.route("/", methods=["GET"])
 def get_models():
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        models = model_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
-        result = [model.__dict__ for model in models["result"]] if use_typing else models["result"]
+        result = models["result"]
 
         response = {
             "count": models["count"],
@@ -34,10 +34,9 @@ def get_models():
 @bp.route("/<string:id>", methods=["GET"])
 def get_model(id: str):
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        model = model_repository.get(id, use_typing=use_typing)
+        model = model_repository.get(id)
 
-        response = model.__dict__ if use_typing else model
+        response = model.__dict__
 
         return jsonify(response), 200
     except Exception as e:
