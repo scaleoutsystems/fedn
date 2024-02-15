@@ -34,7 +34,7 @@ def get_models():
 @bp.route("/<string:id>", methods=["GET"])
 def get_model(id: str):
     try:
-        model = model_repository.get(id)
+        model = model_repository.get(id, use_typing=True)
 
         response = model.__dict__
 

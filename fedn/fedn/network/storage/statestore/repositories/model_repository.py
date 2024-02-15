@@ -33,7 +33,6 @@ class ModelRepository(Repository[Model]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Model:
-
         kwargs = {"key": "models"}
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
@@ -46,7 +45,7 @@ class ModelRepository(Repository[Model]):
         if document is None:
             raise KeyError(f"Entity with (id | model) {id} not found")
 
-        return Model.from_dict(document)
+        return Model.from_dict(document) if use_typing else document
 
     def update(self, id: str, item: Model) -> bool:
         raise NotImplementedError("Update not implemented for ModelRepository")
