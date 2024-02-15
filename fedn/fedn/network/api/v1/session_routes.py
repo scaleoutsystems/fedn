@@ -34,7 +34,7 @@ def get_sessions():
 @bp.route("/<string:id>", methods=["GET"])
 def get_session(id: str):
     try:
-        session = session_repository.get(id)
+        session = session_repository.get(id, use_typing=True)
         response = session.__dict__
 
         return jsonify(response), 200

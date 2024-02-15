@@ -7,7 +7,7 @@ from fedn.network.storage.statestore.repositories.repository import Repository
 
 
 class Status:
-    def __init__(self, id: str, status: str, timestamp: str, log_level: str, data: str, correlation_id: str, type: str, extra: str, sender: dict = None):
+    def __init__(self, id: str, status: str, timestamp: str, log_level: str, data: str, correlation_id: str, type: str, extra: str, session_id: str, sender: dict = None):
         self.id = id
         self.status = status
         self.timestamp = timestamp
@@ -16,14 +16,10 @@ class Status:
         self.correlation_id = correlation_id
         self.type = type
         self.extra = extra
+        self.session_id = session_id
         self.sender = sender
 
     def from_dict(data: dict) -> 'Status':
-        sender = None
-        if 'sender' in data:
-            if 'role' in data['sender'] and 'name' in data['sender']:
-                sender = data['sender']
-
         return Status(
             id=str(data['_id']),
             status=data['status'] if 'status' in data else None,
@@ -33,7 +29,8 @@ class Status:
             correlation_id=data['correlationId'] if 'correlationId' in data else None,
             type=data['type'] if 'type' in data else None,
             extra=data['extra'] if 'extra' in data else None,
-            sender=sender
+            session_id=data['sessionId'] if 'sessionId' in data else None,
+            sender=data['sender'] if 'sender' in data else None
         )
 
 

@@ -15,18 +15,10 @@ class Validation:
         self.timestamp = timestamp
         self.session_id = session_id
         self.meta = meta
+        self.sender = sender
+        self.receiver = receiver
 
     def from_dict(data: dict) -> 'Validation':
-        sender = None
-        if 'sender' in data:
-            if 'role' in data['sender'] and 'name' in data['sender']:
-                sender = data['sender']
-
-        receiver = None
-        if 'receiver' in data:
-            if 'role' in data['receiver'] and 'name' in data['receiver']:
-                receiver = data['receiver']
-
         return Validation(
             id=str(data['_id']),
             model_id=data['modelId'] if 'modelId' in data else None,
@@ -35,8 +27,8 @@ class Validation:
             timestamp=data['timestamp'] if 'timestamp' in data else None,
             session_id=data['sessionId'] if 'sessionId' in data else None,
             meta=data['meta'] if 'meta' in data else None,
-            sender=sender,
-            receiver=receiver
+            sender=data['sender'] if 'sender' in data else None,
+            receiver=data['receiver'] if 'receiver' in data else None
         )
 
 
