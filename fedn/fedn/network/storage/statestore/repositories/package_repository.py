@@ -48,7 +48,9 @@ class PackageRepository(Repository[Package]):
         if document is None:
             raise KeyError(f"Entity with id {id} not found")
 
-        return Package.from_dict(document)
+        response_active = self.database[self.collection].find_one({'key': 'active'})
+
+        return Package.from_dict(document, response_active)
 
     def get_active(self) -> Package:
         response = self.database[self.collection].find_one({'key': 'active'})
