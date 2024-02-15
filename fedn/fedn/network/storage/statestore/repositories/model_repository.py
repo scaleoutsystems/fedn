@@ -25,7 +25,7 @@ class Model:
             session_id=data['session_id'] if 'session_id' in data else None,
             committed_at=data['committed_at'] if 'committed_at' in data else None
         )
-    
+
 
 class ModelRepository(Repository[Model]):
     def __init__(self, database: Database, collection: str):

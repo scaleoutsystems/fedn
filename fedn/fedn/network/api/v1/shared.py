@@ -35,12 +35,12 @@ def get_typed_list_headers(headers: object) -> Tuple[int | None, int | None, str
     if is_positive_integer(limit):
         limit = int(limit)
     else:
-        limit = None
+        limit = 0
 
     if is_positive_integer(skip):
         skip = int(skip)
     else:
-        skip = None
+        skip = 0
 
     if sort_order is not None:
         sort_order = pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
