@@ -33,7 +33,7 @@ def get_clients():
 
 
 @bp.route("/list", methods=["POST"])
-def clients():
+def list_clients():
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)

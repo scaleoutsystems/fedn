@@ -34,7 +34,7 @@ def get_combiners():
 
 
 @bp.route("/list", methods=["POST"])
-def combiners():
+def list_combiners():
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
 

@@ -128,3 +128,7 @@ class ModelRepository(Repository[Model]):
                 current_model_id = model["parent_model"]
 
         return result
+
+    def count(self, **kwargs) -> int:
+        kwargs['key'] = "models"
+        return super().count(**kwargs)

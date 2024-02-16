@@ -4,7 +4,8 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.repositories.model_repository import \
     ModelRepository
 
-from .shared import api_version, get_limit, get_typed_list_headers, mdb
+from .shared import (api_version, get_limit, get_post_data_to_kwargs,
+                     get_typed_list_headers, mdb)
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -29,6 +30,48 @@ def get_models():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/list", methods=["POST"])
+def list_models():
+    try:
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        kwargs = get_post_data_to_kwargs(request)
+
+        models = model_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+
+        result = models["result"]
+
+        response = {
+            "count": models["count"],
+            "result": result
+        }
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/count", methods=["GET"])
+def get_models_count():
+    try:
+        kwargs = request.args.to_dict()
+        count = model_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@bp.route("/count", methods=["POST"])
+def models_count():
+    try:
+        kwargs = get_post_data_to_kwargs(request)
+        count = model_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
 
 
 @bp.route("/<string:id>", methods=["GET"])
