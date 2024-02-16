@@ -43,3 +43,6 @@ class Repository(Generic[T]):
             "count": count,
             "result": result
         }
+
+    def count(self, **kwargs) -> int:
+        return self.database[self.collection].count_documents(kwargs)

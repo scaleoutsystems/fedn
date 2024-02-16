@@ -57,3 +57,6 @@ class ClientRepository(Repository[Client]):
             "count": response["count"],
             "result": result
         }
+
+    def count(self, **kwargs) -> int:
+        return super().count(**kwargs)

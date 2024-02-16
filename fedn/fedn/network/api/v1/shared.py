@@ -52,3 +52,19 @@ def get_typed_list_headers(headers: object) -> Tuple[int | None, int | None, str
         sort_order = pymongo.DESCENDING
 
     return limit, skip, sort_key, sort_order, use_typing
+
+
+def get_post_data_to_kwargs(request: object) -> dict:
+    request_data = request.form.to_dict()
+
+    if not request_data:
+        request_data = request.json
+
+    kwargs = {}
+    for key, value in request_data.items():
+        if "," in value:
+            kwargs[key] = {"$in": value.split(",")}
+        else:
+            kwargs[key] = value
+
+    return kwargs
