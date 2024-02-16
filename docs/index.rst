@@ -4,6 +4,7 @@
    
    introduction
    quickstart
+   distributed
    apiclient
    tutorial
    architecture
