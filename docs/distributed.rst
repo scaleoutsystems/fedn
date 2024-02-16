@@ -7,9 +7,11 @@ and compute package.
 
 .. note::
    For deployment over a public network, ensure you have:
+   
    - A public IP address
    - Forwarded the necessary ports
    - Implemented necessary security precautions
+
    Then, follow these steps but substitute the local IP address with your public IP.
    
 Prerequisites
