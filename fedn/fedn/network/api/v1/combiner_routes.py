@@ -4,7 +4,8 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.repositories.combiner_repository import \
     CombinerRepository
 
-from .shared import api_version, get_typed_list_headers, mdb
+from .shared import (api_version, get_post_data_to_kwargs,
+                     get_typed_list_headers, mdb)
 
 bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
 
@@ -30,6 +31,49 @@ def get_combiners():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/list", methods=["POST"])
+def combiners():
+    try:
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+
+        kwargs = get_post_data_to_kwargs(request)
+
+        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+
+        result = combiners["result"]
+
+        response = {
+            "count": combiners["count"],
+            "result": result
+        }
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/count", methods=["GET"])
+def get_combiners_count():
+    try:
+        kwargs = request.args.to_dict()
+        count = combiner_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@bp.route("/count", methods=["POST"])
+def combiners_count():
+    try:
+        kwargs = get_post_data_to_kwargs(request)
+        count = combiner_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
 
 
 @bp.route("/<string:id>", methods=["GET"])

@@ -35,8 +35,8 @@ def get_clients():
 @bp.route("/list", methods=["POST"])
 def clients():
     try:
-        kwargs = get_post_data_to_kwargs(request)
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        kwargs = get_post_data_to_kwargs(request)
         clients = client_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = clients["result"]
