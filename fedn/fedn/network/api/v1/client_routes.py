@@ -51,21 +51,10 @@ def list_clients():
         return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/count", methods=["GET"])
-def get_clients_count():
-    try:
-        kwargs = request.args.to_dict()
-        count = client_repository.count(**kwargs)
-        response = count
-        return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 404
-
-
-@bp.route("/count", methods=["POST"])
+@bp.route("/count", methods=["GET", "POST"])
 def clients_count():
     try:
-        kwargs = get_post_data_to_kwargs(request)
+        kwargs = request.args.to_dict() if request.method == "GET" else get_post_data_to_kwargs(request)
         count = client_repository.count(**kwargs)
         response = count
         return jsonify(response), 200

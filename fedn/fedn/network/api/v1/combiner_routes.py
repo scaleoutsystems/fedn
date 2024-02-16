@@ -54,21 +54,10 @@ def list_combiners():
         return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/count", methods=["GET"])
-def get_combiners_count():
-    try:
-        kwargs = request.args.to_dict()
-        count = combiner_repository.count(**kwargs)
-        response = count
-        return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 404
-
-
-@bp.route("/count", methods=["POST"])
+@bp.route("/count", methods=["GET", "POST"])
 def combiners_count():
     try:
-        kwargs = get_post_data_to_kwargs(request)
+        kwargs = request.args.to_dict() if request.method == "GET" else get_post_data_to_kwargs(request)
         count = combiner_repository.count(**kwargs)
         response = count
         return jsonify(response), 200

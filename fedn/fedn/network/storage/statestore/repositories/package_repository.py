@@ -83,3 +83,7 @@ class PackageRepository(Repository[Package]):
             "count": response["count"],
             "result": result
         }
+
+    def count(self, **kwargs) -> int:
+        kwargs["key"] = "package_trail"
+        return super().count(**kwargs)
