@@ -113,7 +113,7 @@ class ModelRepository(Repository[Model]):
         if model is None:
             raise KeyError(f"Entity with (id | model) {id} not found")
 
-        current_model_id: str = model["model"]
+        current_model_id: str = model["parent_model"]
         result: list = []
 
         for _ in range(limit):
