@@ -14,6 +14,50 @@ client_repository = ClientRepository(mdb, "network.clients")
 
 @bp.route("/", methods=["GET"])
 def get_clients():
+    """
+    Get clients.
+
+    Retrieves a list of clients based on the provided parameters.
+    By specifying a parameter in the url, you can filter the clients based on that parameter,
+    and the response will contain only the clients that match the filter.
+
+    Url Parameters:
+        - name (str)
+        - combiner (str)
+        - combiner_preferred (str)
+        - ip (str)
+        - status (str)
+        - updated_at (str)
+
+        Example:
+        /api/v1/clients?name=client1&combiner=combiner1
+
+    Headers:
+        - X-Limit (int): The maximum number of clients to retrieve.
+        - X-Skip (int): The number of clients to skip.
+        - X-Sort-Key (str): The key to sort the clients by.
+        - X-Sort-Order (str): The order to sort the clients in ('asc' or 'desc').
+
+    Returns:
+        A JSON response containing the list of clients and the total count.
+
+        Parameters:
+        - count (int): The total count of clients.
+        - result (list): The list of clients.
+
+        Result parameters:
+        - id (str): The ID of the client.
+        - name (str): The name of the client.
+        - combiner (str): The combiner that the client has connected to.
+        - combiner_preferred (bool | str): Combiner name if provided else False.
+        - ip (str): The ip of the client.
+        - status (str): The status of the client.
+        - updated_at (str): The date and time the client was last updated.
+        - last_seen (str): The date and time (containing timezone) the client was last seen.
+
+    Raises:
+        500 (Internal Server Error): If an exception occurs during the retrieval process.
+    """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
@@ -34,6 +78,55 @@ def get_clients():
 
 @bp.route("/list", methods=["POST"])
 def list_clients():
+    """
+    List clients.
+
+    Retrieves a list of clients based on the provided parameters.
+    Works much like the GET /clients endpoint, but allows for more complex queries.
+    By specifying a parameter in the request body, you can filter the clients based on that parameter,
+    and the response will contain only the clients that match the filter. If the parameter value contains a comma,
+    the filter will be an "in" query, meaning that the clients will be returned if the specified field contains any of the values in the parameter.
+
+    Form Data or JSON Input:
+        - name (str)
+        - combiner (str)
+        - combiner_preferred (str)
+        - ip (str)
+        - status (str)
+        - updated_at (str)
+
+        Example:
+        {
+            "name": "client1,client2",
+            "combiner": "combiner1"
+        }
+
+    Headers:
+        - X-Limit (int): The maximum number of clients to retrieve.
+        - X-Skip (int): The number of clients to skip.
+        - X-Sort-Key (str): The key to sort the clients by.
+        - X-Sort-Order (str): The order to sort the clients in ('asc' or 'desc').
+
+    Returns:
+        A JSON response containing the list of clients and the total count.
+
+        Parameters:
+        - count (int): The total count of clients.
+        - result (list): The list of clients.
+
+        Result parameters:
+        - id (str): The ID of the client.
+        - name (str): The name of the client.
+        - combiner (str): The combiner that the client has connected to.
+        - combiner_preferred (bool | str): Combiner name if provided else False.
+        - ip (str): The ip of the client.
+        - status (str): The status of the client.
+        - updated_at (str): The date and time the client was last updated.
+        - last_seen (str): The date and time (containing timezone) the client was last seen.
+
+    Raises:
+        500 (Internal Server Error): If an exception occurs during the retrieval process.
+    """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
