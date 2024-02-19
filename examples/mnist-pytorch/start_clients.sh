@@ -39,7 +39,7 @@ fi
 if [ "$malignant_client_count" -gt 0 ]; then
     for i in $(seq 1 "$malignant_client_count"); do
         client_number=$((benign_client_count + i))
-        echo "Starting malignant_client_count$i"
+        echo "Starting malignant_client$i"
         docker run -d \
         -v $PWD/client.yaml:/app/client.yaml \
         -v $PWD/data/clients/$client_number:/var/data \
