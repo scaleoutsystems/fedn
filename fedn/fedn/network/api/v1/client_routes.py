@@ -14,49 +14,102 @@ client_repository = ClientRepository(mdb, "network.clients")
 
 @bp.route("/", methods=["GET"])
 def get_clients():
-    """
-    Get clients.
-
+    """Get clients
     Retrieves a list of clients based on the provided parameters.
     By specifying a parameter in the url, you can filter the clients based on that parameter,
     and the response will contain only the clients that match the filter.
-
-    Url Parameters:
-        - name (str)
-        - combiner (str)
-        - combiner_preferred (str)
-        - ip (str)
-        - status (str)
-        - updated_at (str)
-
-        Example:
-        /api/v1/clients?name=client1&combiner=combiner1
-
-    Headers:
-        - X-Limit (int): The maximum number of clients to retrieve.
-        - X-Skip (int): The number of clients to skip.
-        - X-Sort-Key (str): The key to sort the clients by.
-        - X-Sort-Order (str): The order to sort the clients in ('asc' or 'desc').
-
-    Returns:
-        A JSON response containing the list of clients and the total count.
-
-        Parameters:
-        - count (int): The total count of clients.
-        - result (list): The list of clients.
-
-        Result parameters:
-        - id (str): The ID of the client.
-        - name (str): The name of the client.
-        - combiner (str): The combiner that the client has connected to.
-        - combiner_preferred (bool | str): Combiner name if provided else False.
-        - ip (str): The ip of the client.
-        - status (str): The status of the client.
-        - updated_at (str): The date and time the client was last updated.
-        - last_seen (str): The date and time (containing timezone) the client was last seen.
-
-    Raises:
-        500 (Internal Server Error): If an exception occurs during the retrieval process.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: name
+        in: query
+        required: false
+        type: string
+        description: The name of the client
+      - name: combiner
+        in: query
+        required: false
+        type: string
+        description: The combiner (id) that the client has connected to
+      - name: combiner_preferred
+        in: query
+        required: false
+        type: string
+        description: The combiner (id) that the client has preferred to connect to
+      - name: ip
+        in: query
+        required: false
+        type: string
+        description: The ip of the client
+      - name: status
+        in: query
+        required: false
+        type: string
+        description: The status of the client
+      - name: updated_at
+        in: query
+        required: false
+        type: string
+        description: The date and time the client was last updated
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of clients to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of clients to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the clients by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the clients in ('asc' or 'desc')
+    definitions:
+      Client:
+        type: object
+        properties:
+          name:
+            type: string
+          combiner:
+            type: string
+          combiner_preferred:
+            type: string
+            description: The combiner (id) that the client has preferred to connect or false (boolean) if the client has no preferred combiner
+          ip:
+            type: string
+          status:
+            type: string
+          updated_at:
+            type: string
+          last_seen:
+            type: string
+    responses:
+      200:
+        description: A list of clients and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Client'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                error:
+                    type: string
     """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
@@ -78,54 +131,53 @@ def get_clients():
 
 @bp.route("/list", methods=["POST"])
 def list_clients():
-    """
-    List clients.
-
+    """List clients
     Retrieves a list of clients based on the provided parameters.
     Works much like the GET /clients endpoint, but allows for more complex queries.
     By specifying a parameter in the request body, you can filter the clients based on that parameter,
     and the response will contain only the clients that match the filter. If the parameter value contains a comma,
     the filter will be an "in" query, meaning that the clients will be returned if the specified field contains any of the values in the parameter.
-
-    Form Data or JSON Input:
-        - name (str)
-        - combiner (str)
-        - combiner_preferred (str)
-        - ip (str)
-        - status (str)
-        - updated_at (str)
-
-        Example:
-        {
-            "name": "client1,client2",
-            "combiner": "combiner1"
-        }
-
-    Headers:
-        - X-Limit (int): The maximum number of clients to retrieve.
-        - X-Skip (int): The number of clients to skip.
-        - X-Sort-Key (str): The key to sort the clients by.
-        - X-Sort-Order (str): The order to sort the clients in ('asc' or 'desc').
-
-    Returns:
-        A JSON response containing the list of clients and the total count.
-
-        Parameters:
-        - count (int): The total count of clients.
-        - result (list): The list of clients.
-
-        Result parameters:
-        - id (str): The ID of the client.
-        - name (str): The name of the client.
-        - combiner (str): The combiner that the client has connected to.
-        - combiner_preferred (bool | str): Combiner name if provided else False.
-        - ip (str): The ip of the client.
-        - status (str): The status of the client.
-        - updated_at (str): The date and time the client was last updated.
-        - last_seen (str): The date and time (containing timezone) the client was last seen.
-
-    Raises:
-        500 (Internal Server Error): If an exception occurs during the retrieval process.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client
+        in: body
+        required: false
+        type: object
+        description: Object containing the parameters to filter the clients by
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            combiner:
+              type: string
+            ip:
+              type: string
+            status:
+              type: string
+            updated_at:
+              type: string
+    responses:
+      200:
+        description: A list of clients and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Client'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                error:
+                    type: string
     """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
@@ -144,38 +196,111 @@ def list_clients():
         return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/count", methods=["GET", "POST"])
-def clients_count():
-    """Example endpoint returning a list of colors by palette
-    This is using docstrings for specifications.
+@bp.route("/count", methods=["GET"])
+def get_clients_count():
+    """Clients count
+    Retrieves the total number of clients based on the provided parameters.
     ---
+    tags:
+        - Clients
     parameters:
-      - name: palette
-        in: path
+      - name: name
+        in: query
+        required: false
         type: string
-        enum: ['all', 'rgb', 'cmyk']
-        required: true
-        default: all
-    definitions:
-      Palette:
-        type: object
-        properties:
-          palette_name:
-            type: array
-            items:
-              $ref: '#/definitions/Color'
-      Color:
+        description: The name of the client
+      - name: combiner
+        in: query
+        required: false
         type: string
+        description: The combiner (id) that the client has connected to
+      - name: combiner_preferred
+        in: query
+        required: false
+        type: string
+        description: The combiner (id) that the client has preferred to connect to
+      - name: ip
+        in: query
+        required: false
+        type: string
+        description: The ip of the client
+      - name: status
+        in: query
+        required: false
+        type: string
+        description: The status of the client
+      - name: updated_at
+        in: query
+        required: false
+        type: string
+        description: The date and time the client was last updated
     responses:
       200:
-        description: A list of colors (may be filtered by palette)
+        description: A list of clients and the total count.
         schema:
-          $ref: '#/definitions/Palette'
-        examples:
-          rgb: ['red', 'green', 'blue']
+            type: integer
+      404:
+        description: The client was not found
+        schema:
+            type: object
+            properties:
+                error:
+                    type: string
     """
     try:
-        kwargs = request.args.to_dict() if request.method == "GET" else get_post_data_to_kwargs(request)
+        kwargs = request.args.to_dict()
+        count = client_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@bp.route("/count", methods=["POST"])
+def clients_count():
+    """Clients count
+    Retrieves the total number of clients based on the provided parameters.
+    Works much like the GET /clients/count endpoint, but allows for more complex queries.
+    By specifying a parameter in the request body, you can filter the clients based on that parameter,
+    and the response will contain only the clients that match the filter. If the parameter value contains a comma,
+    the filter will be an "in" query, meaning that the clients will be returned if the specified field contains any of the values in the parameter.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client
+        in: body
+        required: false
+        type: object
+        description: Object containing the parameters to filter the clients by
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            combiner:
+              type: string
+            ip:
+              type: string
+            status:
+              type: string
+            updated_at:
+              type: string
+    responses:
+      200:
+        description: A list of clients and the total count.
+        schema:
+            type: integer
+      404:
+        description: The client was not found
+        schema:
+            type: object
+            properties:
+                error:
+                    type: string
+    """
+    try:
+        kwargs = get_post_data_to_kwargs(request)
         count = client_repository.count(**kwargs)
         response = count
         return jsonify(response), 200
@@ -185,6 +310,30 @@ def clients_count():
 
 @bp.route("/<string:id>", methods=["GET"])
 def get_client(id: str):
+    """Get client
+    Retrieves a client based on the provided id.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the client
+    responses:
+        200:
+            description: A client object
+            schema:
+                $ref: '#/definitions/Client'
+        404:
+            description: The client was not found
+            schema:
+                type: object
+                properties:
+                    error:
+                        type: string
+    """
     try:
         client = client_repository.get(id, use_typing=False)
 
