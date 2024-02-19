@@ -159,6 +159,26 @@ def list_clients():
               type: string
             updated_at:
               type: string
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of clients to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of clients to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the clients by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the clients in ('asc' or 'desc')
     responses:
       200:
         description: A list of clients and the total count.
