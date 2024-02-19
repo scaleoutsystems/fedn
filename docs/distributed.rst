@@ -92,7 +92,12 @@ build a custom Docker image:
 Configuring and Attaching Clients
 -------------
 
-The next step is to configure and attach clients. For this we need to download data and make data partitions: 
+The next step is to configure and attach clients. Begin with navigating to ``examples/mnist-pytorch`` and 
+execute the initializion script:
+
+.. code-block:: python
+
+   bin/init_venv.sh
 
 Download the data:
 
@@ -119,10 +124,8 @@ the follwing content:
    discover_port: 8092
 
 
-Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
-To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to 
-the network, run the following docker command (make sure to swap host local ip to the one you noted earlier from your 
-host machine and the custom image name):
+Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder and connect the client to 
+the network. Note that we are routing `api-server` and `combiner` to our hosts local ip adress:
 
 .. code-block::
 
