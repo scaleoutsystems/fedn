@@ -1,3 +1,4 @@
+from flasgger import Swagger
 from flask import Flask, jsonify, request
 from v1.client_routes import bp as client_bp
 from v1.combiner_routes import bp as combiner_bp
@@ -32,6 +33,8 @@ app.register_blueprint(package_bp)
 app.register_blueprint(session_bp)
 app.register_blueprint(combiner_bp)
 app.register_blueprint(round_bp)
+
+swagger = Swagger(app)
 
 
 @app.route("/get_model_trail", methods=["GET"])
