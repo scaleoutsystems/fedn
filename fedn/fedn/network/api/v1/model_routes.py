@@ -359,6 +359,12 @@ def get_descendants(id: str):
         required: true
         type: string
         description: The id or model property of the model
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of models to retrieve (defaults to 10)
+        default: 10
     responses:
         200:
             description: The model
@@ -382,7 +388,7 @@ def get_descendants(id: str):
     try:
         limit = get_limit(request.headers)
 
-        descendants = model_repository.list_descendants(id, limit, use_typing=False)
+        descendants = model_repository.list_descendants(id, limit or 10, use_typing=False)
 
         response = descendants
 
@@ -406,6 +412,12 @@ def get_ancestors(id: str):
         required: true
         type: string
         description: The id or model property of the model
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of models to retrieve (defaults to 10)
+        default: 10
     responses:
         200:
             description: The model
@@ -429,7 +441,7 @@ def get_ancestors(id: str):
     try:
         limit = get_limit(request.headers)
 
-        ancestors = model_repository.list_ancestors(id, limit, use_typing=False)
+        ancestors = model_repository.list_ancestors(id, limit or 10, use_typing=False)
 
         response = ancestors
 
