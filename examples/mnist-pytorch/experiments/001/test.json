@@ -1,0 +1,40 @@
+{
+    "65d48c9b7613a25adef6d148": {
+        "data": {
+            "training_loss": 1.4829061031341553,
+            "training_accuracy": 0.7531999945640564,
+            "test_loss": 1.392546534538269,
+            "test_accuracy": 0.8059999942779541
+        },
+        "meta": "",
+        "model_id": "65c4c90e-5619-4012-886e-5549016bce6c",
+        "receiver": {
+            "name": "combiner",
+            "role": "COMBINER"
+        },
+        "sender": {
+            "name": "malignant_client1",
+            "role": "WORKER"
+        },
+        "timestamp": "2024-02-20T11: 27: 23.533725Z"
+    },
+    "65d48c9b7613a25adef6d149": {
+        "data": {
+            "training_loss": 1.482998013496399,
+            "training_accuracy": 0.7504000067710876,
+            "test_loss": 1.570511817932129,
+            "test_accuracy": 0.6919999718666077
+        },
+        "meta": "",
+        "model_id": "65c4c90e-5619-4012-886e-5549016bce6c",
+        "receiver": {
+            "name": "combiner",
+            "role": "COMBINER"
+        },
+        "sender": {
+            "name": "benign_client1",
+            "role": "WORKER"
+        },
+        "timestamp": "2024-02-20T11: 27: 23.534433Z"
+    }
+}
