@@ -1,8 +1,8 @@
-
 from flask import Blueprint, jsonify, request
 
 from fedn.network.storage.statestore.repositories.combiner_repository import \
     CombinerRepository
+from fedn.network.storage.statestore.repositories.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
@@ -84,7 +84,7 @@ def get_combiners():
             format: date-time
     responses:
       200:
-        description: A list of clients and the total count.
+        description: A list of combiners and the total count.
         schema:
             type: object
             properties:
@@ -99,7 +99,7 @@ def get_combiners():
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -118,7 +118,7 @@ def get_combiners():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -167,35 +167,9 @@ def list_combiners():
         required: false
         type: string
         description: The order to sort the combiners in ('asc' or 'desc')
-    definitions:
-      Combiner:
-        type: object
-        properties:
-          id:
-            type: string
-          name:
-            type: string
-          address:
-            type: string
-          config:
-            type: object
-          fqdn:
-            type: string
-            description: Fully Qualified Domain Name (FQDN)
-          ip:
-            type: string
-          key:
-            type: string
-          parent:
-            type: object
-          port:
-            type: integer
-          updated_at:
-            type: string
-            format: date-time
     responses:
       200:
-        description: A list of clients and the total count.
+        description: A list of combiners and the total count.
         schema:
             type: object
             properties:
@@ -210,7 +184,7 @@ def list_combiners():
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -229,7 +203,7 @@ def list_combiners():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -266,7 +240,7 @@ def get_combiners_count():
             schema:
                 type: object
                 properties:
-                    error:
+                    message:
                         type: string
     """
     try:
@@ -275,7 +249,7 @@ def get_combiners_count():
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -314,7 +288,7 @@ def combiners_count():
             schema:
                 type: object
                 properties:
-                    error:
+                    message:
                         type: string
     """
     try:
@@ -323,7 +297,7 @@ def combiners_count():
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -351,11 +325,20 @@ def get_combiner(id: str):
                 properties:
                     error:
                         type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
     """
     try:
         combiner = combiner_repository.get(id, use_typing=False)
         response = combiner
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500

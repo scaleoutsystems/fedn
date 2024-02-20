@@ -4,7 +4,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from .shared import from_document
+from .shared import EntityNotFound, from_document
 
 T = TypeVar('T')
 
@@ -19,7 +19,7 @@ class Repository(Generic[T]):
         document = self.database[self.collection].find_one({'_id': id_obj})
 
         if document is None:
-            raise KeyError(f"Entity with id {id} not found")
+            raise EntityNotFound(f"Entity with id {id} not found")
 
         return from_document(document) if not use_typing else document
 

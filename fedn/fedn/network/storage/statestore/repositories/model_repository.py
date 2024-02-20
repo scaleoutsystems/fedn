@@ -7,7 +7,7 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
-from .shared import from_document
+from .shared import EntityNotFound, from_document
 
 
 class Model:
@@ -45,7 +45,7 @@ class ModelRepository(Repository[Model]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise KeyError(f"Entity with (id | model) {id} not found")
+            raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         return Model.from_dict(document) if use_typing else from_document(document)
 
@@ -80,7 +80,7 @@ class ModelRepository(Repository[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise KeyError(f"Entity with (id | model) {id} not found")
+            raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         current_model_id: str = model["model"]
         result: list = []
@@ -111,7 +111,7 @@ class ModelRepository(Repository[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise KeyError(f"Entity with (id | model) {id} not found")
+            raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         current_model_id: str = model["parent_model"]
         result: list = []

@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.storage.statestore.repositories.client_repository import \
     ClientRepository
+from fedn.network.storage.statestore.repositories.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
@@ -108,7 +109,7 @@ def get_clients():
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -126,7 +127,7 @@ def get_clients():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -196,7 +197,7 @@ def list_clients():
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -213,7 +214,7 @@ def list_clients():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -259,12 +260,12 @@ def get_clients_count():
         description: A list of clients and the total count.
         schema:
             type: integer
-      404:
-        description: The client was not found
+      500:
+        description: An error occurred
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -273,7 +274,7 @@ def get_clients_count():
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 404
 
 
 @bp.route("/count", methods=["POST"])
@@ -311,12 +312,12 @@ def clients_count():
         description: A list of clients and the total count.
         schema:
             type: integer
-      404:
-        description: The client was not found
+      500:
+        description: An error occurred
         schema:
             type: object
             properties:
-                error:
+                message:
                     type: string
     """
     try:
@@ -325,7 +326,7 @@ def clients_count():
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 404
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -351,7 +352,14 @@ def get_client(id: str):
             schema:
                 type: object
                 properties:
-                    error:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
                         type: string
     """
     try:
@@ -360,5 +368,7 @@ def get_client(id: str):
         response = client
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500
