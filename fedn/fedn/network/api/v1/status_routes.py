@@ -94,6 +94,11 @@ def get_statuses():
             type: string
           sender:
             type: object
+            properties:
+                name:
+                    type: string
+                role:
+                    type: string
           log_level:
             type: object
     responses:
@@ -193,31 +198,6 @@ def list_statuses():
         required: false
         type: string
         description: The order to sort the statuses in ('asc' or 'desc')
-    definitions:
-      Status:
-        type: object
-        properties:
-          id:
-            type: string
-          status:
-            type: string
-          session_id:
-            type: string
-          timestamp:
-            type: object
-            format: date-time
-          type:
-            type: string
-          data:
-            type: string
-          correlation_id:
-            type: string
-          extra:
-            type: string
-          sender:
-            type: object
-          log_level:
-            type: object
     responses:
       200:
         description: A list of statuses and the total count.
