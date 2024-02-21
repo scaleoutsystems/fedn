@@ -10,7 +10,21 @@ from .shared import EntityNotFound, from_document
 
 
 class Combiner:
-    def __init__(self, id: str, name: str, address: str, certificate: str | None, config: dict, fqdn: str | None, ip: str, key: str | None, parent: dict, port: int, status: str, updated_at: str):
+    def __init__(
+            self,
+            id: str,
+            name: str,
+            address: str,
+            certificate: str,
+            config: dict,
+            fqdn: str,
+            ip: str,
+            key: str,
+            parent: dict,
+            port: int,
+            status: str,
+            updated_at: str
+    ):
         self.id = id
         self.name = name
         self.address = address

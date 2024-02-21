@@ -92,9 +92,11 @@ class ModelRepository(Repository[Model]):
             model: str = self.database[self.collection].find_one({"key": "models", "parent_model": current_model_id})
 
             if model is not None:
-                formatted_model: Model | dict = Model.from_dict(model) if use_typing else from_document(model)
+                formatted_model = Model.from_dict(model) if use_typing else from_document(model)
                 result.append(formatted_model)
                 current_model_id = model["model"]
+            else:
+                break
 
         result.reverse()
 
@@ -123,9 +125,11 @@ class ModelRepository(Repository[Model]):
             model = self.database[self.collection].find_one({"key": "models", "model": current_model_id})
 
             if model is not None:
-                formatted_model: Model | dict = Model.from_dict(model) if use_typing else from_document(model)
+                formatted_model = Model.from_dict(model) if use_typing else from_document(model)
                 result.append(formatted_model)
                 current_model_id = model["parent_model"]
+            else:
+                break
 
         return result
 

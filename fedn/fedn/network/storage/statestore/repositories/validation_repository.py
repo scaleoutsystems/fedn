@@ -7,7 +7,18 @@ from fedn.network.storage.statestore.repositories.repository import Repository
 
 
 class Validation:
-    def __init__(self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, session_id: str, meta: str, sender: dict = None, receiver: dict = None):
+    def __init__(
+            self,
+            id: str,
+            model_id: str,
+            data: str,
+            correlation_id: str,
+            timestamp: str,
+            session_id: str,
+            meta: str,
+            sender: dict = None,
+            receiver: dict = None
+    ):
         self.id = id
         self.model_id = model_id
         self.data = data

@@ -32,7 +32,7 @@ class Repository(Generic[T]):
     def delete(self, id: str) -> bool:
         pass
 
-    def list(self, limit: int | None, skip: int | None, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[T]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[T]]:
         cursor = self.database[self.collection].find(kwargs).sort(sort_key, sort_order).skip(skip or 0).limit(limit or 0)
 
         count = self.database[self.collection].count_documents(kwargs)

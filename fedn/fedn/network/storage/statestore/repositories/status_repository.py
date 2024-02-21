@@ -7,7 +7,19 @@ from fedn.network.storage.statestore.repositories.repository import Repository
 
 
 class Status:
-    def __init__(self, id: str, status: str, timestamp: str, log_level: str, data: str, correlation_id: str, type: str, extra: str, session_id: str, sender: dict = None):
+    def __init__(
+            self,
+            id: str,
+            status: str,
+            timestamp: str,
+            log_level: str,
+            data: str,
+            correlation_id: str,
+            type: str,
+            extra: str,
+            session_id: str,
+            sender: dict = None
+    ):
         self.id = id
         self.status = status
         self.timestamp = timestamp

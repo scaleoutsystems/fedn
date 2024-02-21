@@ -10,7 +10,18 @@ from .shared import EntityNotFound, from_document
 
 
 class Package:
-    def __init__(self, id: str, key: str, committed_at: datetime, description: str, file_name: str, helper: str, name: str, storage_file_name: str, active: bool = False):
+    def __init__(
+            self,
+            id: str,
+            key: str,
+            committed_at: datetime,
+            description: str,
+            file_name: str,
+            helper: str,
+            name: str,
+            storage_file_name: str,
+            active: bool = False
+    ):
         self.key = key
         self.committed_at = committed_at
         self.description = description
