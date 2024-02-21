@@ -6,7 +6,7 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.repositories.repository import Repository
 
-from .shared import from_document
+from .shared import EntityNotFound, from_document
 
 
 class Session:
@@ -37,7 +37,7 @@ class SessionRepository(Repository[Session]):
             document = self.database[self.collection].find_one({'session_id': id})
 
         if document is None:
-            raise KeyError(f"Entity with (id | session_id) {id} not found")
+            raise EntityNotFound(f"Entity with (id | session_id) {id} not found")
 
         return Session.from_dict(document) if use_typing else from_document(document)
 

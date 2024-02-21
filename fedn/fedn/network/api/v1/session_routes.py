@@ -1,8 +1,8 @@
-
 from flask import Blueprint, jsonify, request
 
 from fedn.network.storage.statestore.repositories.session_repository import \
     SessionRepository
+from fedn.network.storage.statestore.repositories.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
@@ -303,5 +303,7 @@ def get_session(id: str):
         response = session
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
     except Exception as e:
         return jsonify({"message": str(e)}), 500
