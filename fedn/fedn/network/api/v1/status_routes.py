@@ -1,6 +1,6 @@
-
 from flask import Blueprint, jsonify, request
 
+from fedn.network.storage.statestore.repositories.shared import EntityNotFound
 from fedn.network.storage.statestore.repositories.status_repository import \
     StatusRepository
 
@@ -14,6 +14,108 @@ status_repository = StatusRepository(mdb, "control.status")
 
 @bp.route("/", methods=["GET"])
 def get_statuses():
+    """Get statuses
+    Retrieves a list of statuses based on the provided parameters.
+    By specifying a parameter in the url, you can filter the statuses based on that parameter,
+    and the response will contain only the statuses that match the filter.
+    ---
+    tags:
+        - Statuses
+    parameters:
+      - name: type
+        in: query
+        required: false
+        type: string
+        description: Type of the status
+      - name: sender.name
+        in: query
+        required: false
+        type: string
+        description: Name of the sender
+      - name: sender.role
+        in: query
+        required: false
+        type: string
+        description: Role of the sender
+      - name: session_id
+        in: query
+        required: false
+        type: string
+      - name: log_level
+        in: query
+        required: false
+        type: string
+        description: Log level of the status
+      - name: correlation_id
+        in: query
+        required: false
+        type: string
+        description: Correlation id of the status
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of statuses to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of statuses to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the statuses by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the statuses in ('asc' or 'desc')
+    definitions:
+      Status:
+        type: object
+        properties:
+          id:
+            type: string
+          status:
+            type: string
+          session_id:
+            type: string
+          timestamp:
+            type: object
+            format: date-time
+          type:
+            type: string
+          data:
+            type: string
+          correlation_id:
+            type: string
+          extra:
+            type: string
+          sender:
+            type: object
+          log_level:
+            type: object
+    responses:
+      200:
+        description: A list of statuses and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Session'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
     try:
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
@@ -29,11 +131,113 @@ def get_statuses():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
 def list_statuses():
+    """Get statuses
+    Retrieves a list of statuses based on the provided parameters.
+    Works much like the GET statuses method, but allows for a more complex query.
+    By specifying a parameter in the body, you can filter the statuses based on that parameter,
+    and the response will contain only the statuses that match the filter. If the parameter value contains a comma,
+    the filter will be an "in" query, meaning that the statuses will be returned if the specified field contains any of the values in the parameter.
+    ---
+    tags:
+        - Statuses
+    parameters:
+      - name: status
+        in: body
+        required: false
+        schema:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: Type of the status
+                sender.name:
+                    type: string
+                    description: Name of the sender
+                sender.role:
+                    required: false
+                    type: string
+                    description: Role of the sender
+                session_id:
+                    required: false
+                    type: string
+                log_level:
+                    required: false
+                    type: string
+                    description: Log level of the status
+                correlation_id:
+                    required: false
+                    type: string
+                    description: Correlation id of the status
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of statuses to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of statuses to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the statuses by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the statuses in ('asc' or 'desc')
+    definitions:
+      Status:
+        type: object
+        properties:
+          id:
+            type: string
+          status:
+            type: string
+          session_id:
+            type: string
+          timestamp:
+            type: object
+            format: date-time
+          type:
+            type: string
+          data:
+            type: string
+          correlation_id:
+            type: string
+          extra:
+            type: string
+          sender:
+            type: object
+          log_level:
+            type: object
+    responses:
+      200:
+        description: A list of statuses and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Session'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
     try:
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
@@ -49,22 +253,164 @@ def list_statuses():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
-@bp.route("/count", methods=["GET", "POST"])
-def statuses_count():
+@bp.route("/count", methods=["GET"])
+def get_statuses_count():
+    """Statuses count
+    Retrieves the count of statuses based on the provided parameters.
+    By specifying a parameter in the url, you can filter the statuses based on that parameter,
+    and the response will contain only the count of statuses that match the filter.
+    ---
+    tags:
+        - Statuses
+    parameters:
+      - name: type
+        in: query
+        required: false
+        type: string
+        description: Type of the status
+      - name: sender.name
+        in: query
+        required: false
+        type: string
+        description: Name of the sender
+      - name: sender.role
+        in: query
+        required: false
+        type: string
+        description: Role of the sender
+      - name: session_id
+        in: query
+        required: false
+        type: string
+      - name: log_level
+        in: query
+        required: false
+        type: string
+        description: Log level of the status
+      - name: correlation_id
+        in: query
+        required: false
+        type: string
+        description: Correlation id of the status
+    responses:
+        200:
+            description: The count of statuses
+            schema:
+                type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
     try:
-        kwargs = request.args.to_dict() if request.method == "GET" else get_post_data_to_kwargs(request)
+        kwargs = request.args.to_dict()
         count = status_repository.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/count", methods=["POST"])
+def statuses_count():
+    """Statuses count
+    Retrieves the count of statuses based on the provided parameters.
+    Works much like the GET /statuses/count endpoint, but allows for more complex queries.
+    By specifying a parameter in the request body, you can filter the statuses based on that parameter,
+    if the parameter value contains a comma, the filter will be an "in" query, meaning that the statuses
+    will be returned if the specified field contains any of the values in the parameter.
+    ---
+    tags:
+        - Statuses
+    parameters:
+      - name: status
+        in: body
+        required: false
+        schema:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: Type of the status
+                sender.name:
+                    type: string
+                    description: Name of the sender
+                sender.role:
+                    required: false
+                    type: string
+                    description: Role of the sender
+                session_id:
+                    required: false
+                    type: string
+                log_level:
+                    required: false
+                    type: string
+                    description: Log level of the status
+                correlation_id:
+                    required: false
+                    type: string
+                    description: Correlation id of the status
+    responses:
+        200:
+            description: The count of statuses
+            schema:
+                type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        kwargs = get_post_data_to_kwargs(request)
+        count = status_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
 def get_status(id: str):
+    """Get status
+    Retrieves a status based on the provided id.
+    ---
+    tags:
+        - Statuses
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the status
+    responses:
+        200:
+            description: The status
+            schema:
+                $ref: '#/definitions/Status'
+        404:
+            description: The status was not found
+            schema:
+                type: object
+                properties:
+                    error:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
     try:
         use_typing: bool = get_use_typing(request.headers)
         status = status_repository.get(id, use_typing=use_typing)
@@ -72,5 +418,7 @@ def get_status(id: str):
         response = status.__dict__ if use_typing else status
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500
