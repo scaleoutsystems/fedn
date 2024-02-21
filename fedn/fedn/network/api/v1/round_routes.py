@@ -234,8 +234,10 @@ def get_rounds_count():
 def rounds_count():
     """Rounds count
     Retrieves the count of rounds based on the provided parameters.
-    By specifying a parameter in the url, you can filter the rounds based on that parameter,
-    and the response will contain only the count of rounds that match the filter.
+    Works much like the GET /rounds/count endpoint, but allows for more complex queries.
+    By specifying a parameter in the request body, you can filter the rounds based on that parameter,
+    if the parameter value contains a comma, the filter will be an "in" query, meaning that the rounds
+    will be returned if the specified field contains any of the values in the parameter.
     ---
     tags:
         - Rounds
