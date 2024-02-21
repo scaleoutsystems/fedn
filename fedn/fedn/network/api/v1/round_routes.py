@@ -1,8 +1,8 @@
-
 from flask import Blueprint, jsonify, request
 
 from fedn.network.storage.statestore.repositories.round_repository import \
     RoundRepository
+from fedn.network.storage.statestore.repositories.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
@@ -14,6 +14,82 @@ round_repository = RoundRepository(mdb, "control.rounds")
 
 @bp.route("/", methods=["GET"])
 def get_rounds():
+    """Get rounds
+    Retrieves a list of rounds based on the provided parameters.
+    By specifying a parameter in the url, you can filter the rounds based on that parameter,
+    and the response will contain only the rounds that match the filter.
+    ---
+    tags:
+        - Rounds
+    parameters:
+      - name: status
+        in: query
+        required: false
+        type: string
+        description: Status of the round
+      - name: round_id
+        in: query
+        required: false
+        type: string
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of rounds to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of rounds to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the rounds by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the rounds in ('asc' or 'desc')
+    definitions:
+      Round:
+        type: object
+        properties:
+          id:
+            type: string
+          status:
+            type: string
+          round_id:
+            type: string
+          round_config:
+            type: object
+          round_data:
+            type: object
+          combiners:
+            type: array
+            description: List of combiner objects used for the round
+            items:
+              type: object
+    responses:
+      200:
+        description: A list of rounds and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Round'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
 
@@ -30,11 +106,71 @@ def get_rounds():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
 def list_rounds():
+    """List rounds
+    Retrieves a list of rounds based on the provided parameters.
+    Works much like the GET /rounds endpoint, but allows for more complex queries.
+    By specifying a parameter in the request body, you can filter the rounds based on that parameter,
+    and the response will contain only the rounds that match the filter. If the parameter value contains a comma,
+    the filter will be an "in" query, meaning that the rounds will be returned if the specified field contains any of the values in the parameter.
+    ---
+    tags:
+      - Rounds
+    parameters:
+      - name: round
+        in: body
+        required: false
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            round_id:
+              type: string
+      - name: X-Limit
+        in: header
+        required: false
+        type: integer
+        description: The maximum number of rounds to retrieve
+      - name: X-Skip
+        in: header
+        required: false
+        type: integer
+        description: The number of rounds to skip
+      - name: X-Sort-Key
+        in: header
+        required: false
+        type: string
+        description: The key to sort the rounds by
+      - name: X-Sort-Order
+        in: header
+        required: false
+        type: string
+        description: The order to sort the rounds in ('asc' or 'desc')
+    responses:
+      200:
+        description: A list of rounds and the total count.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+                result:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Round'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
 
@@ -51,26 +187,130 @@ def list_rounds():
 
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
 
 
-@bp.route("/count", methods=["GET", "POST"])
-def rounds_count():
+@bp.route("/count", methods=["GET"])
+def get_rounds_count():
+    """Rounds count
+    Retrieves the count of rounds based on the provided parameters.
+    By specifying a parameter in the url, you can filter the rounds based on that parameter,
+    and the response will contain only the count of rounds that match the filter.
+    ---
+    tags:
+        - Rounds
+    parameters:
+      - name: round_id
+        in: query
+        required: false
+        type: string
+      - name: status
+        in: query
+        required: false
+        type: string
+    responses:
+        200:
+            description: The count of rounds
+            schema:
+                type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
     try:
-        kwargs = request.args.to_dict() if request.method == "GET" else get_post_data_to_kwargs(request)
+        kwargs = request.args.to_dict()
         count = round_repository.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/count", methods=["POST"])
+def rounds_count():
+    """Rounds count
+    Retrieves the count of rounds based on the provided parameters.
+    By specifying a parameter in the url, you can filter the rounds based on that parameter,
+    and the response will contain only the count of rounds that match the filter.
+    ---
+    tags:
+        - Rounds
+    parameters:
+      - name: round
+        in: body
+        required: false
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            round_id:
+              type: string
+    responses:
+        200:
+            description: The count of rounds
+            schema:
+                type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        kwargs = get_post_data_to_kwargs(request)
+        count = round_repository.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
 def get_round(id: str):
+    """Get round
+    Retrieves a round based on the provided id.
+    ---
+    tags:
+        - Rounds
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the round
+    responses:
+        200:
+            description: The round
+            schema:
+                $ref: '#/definitions/Round'
+        404:
+            description: The round was not found
+            schema:
+                type: object
+                properties:
+                    error:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
     try:
         round = round_repository.get(id, use_typing=False)
         response = round
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 404
+        return jsonify({"message": str(e)}), 500
