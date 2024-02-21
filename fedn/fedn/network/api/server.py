@@ -34,7 +34,16 @@ app.register_blueprint(session_bp)
 app.register_blueprint(combiner_bp)
 app.register_blueprint(round_bp)
 
-swagger = Swagger(app)
+template = {
+  "swagger": "2.0",
+  "info": {
+    "title": "FEDn API",
+    "description": "API for the FEDn network.",
+    "version": "0.0.1"
+  }
+}
+
+swagger = Swagger(app, template=template)
 
 
 @app.route("/get_model_trail", methods=["GET"])
