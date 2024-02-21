@@ -60,6 +60,14 @@ class CombinerRepository(Repository[Combiner]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Combiner:
+        """Get an entity by id
+        param id: The id of the entity
+            type: str
+            description: The id of the entity, can be either the id or the name (property)
+        param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
+        return: The entity
+        """
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
             document = self.database[self.collection].find_one({'_id': id_obj})
@@ -81,6 +89,22 @@ class CombinerRepository(Repository[Combiner]):
         raise NotImplementedError("Delete not implemented for CombinerRepository")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Combiner]]:
+        """List entities
+        param limit: The maximum number of entities to return
+            type: int
+        param skip: The number of entities to skip
+            type: int
+        param sort_key: The key to sort by
+            type: str
+        param sort_order: The order to sort by
+            type: pymongo.DESCENDING | pymongo.ASCENDING
+        param use_typing: Whether to return the entities as typed objects or as dicts
+            type: bool
+        param kwargs: Additional query parameters
+            type: dict
+            example: {"key": "models"}
+        return: A dictionary with the count and the result
+        """
         response = super().list(limit, skip, sort_key or "updated_at", sort_order, use_typing=use_typing, **kwargs)
 
         result = [Combiner.from_dict(item) for item in response['result']] if use_typing else response['result']

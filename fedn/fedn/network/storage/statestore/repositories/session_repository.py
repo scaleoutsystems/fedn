@@ -30,6 +30,14 @@ class SessionRepository(Repository[Session]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Session:
+        """Get an entity by id
+        param id: The id of the entity
+            type: str
+            description: The id of the entity, can be either the id or the session_id (property)
+        param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
+        return: The entity
+        """
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
             document = self.database[self.collection].find_one({'_id': id_obj})
@@ -51,6 +59,27 @@ class SessionRepository(Repository[Session]):
         raise NotImplementedError("Delete not implemented for SessionRepository")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Session]]:
+        """List entities
+        param limit: The maximum number of entities to return
+            type: int
+            description: The maximum number of entities to return
+        param skip: The number of entities to skip
+            type: int
+            description: The number of entities to skip
+        param sort_key: The key to sort by
+            type: str
+            description: The key to sort by
+        param sort_order: The order to sort by
+            type: pymongo.DESCENDING
+            description: The order to sort by
+        param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
+            description: Whether to return the entities as typed objects or as dicts.
+        param kwargs: Additional query parameters
+            type: dict
+            description: Additional query parameters
+        return: The entities
+        """
         response = super().list(limit, skip, sort_key or "session_id", sort_order, use_typing=use_typing, **kwargs)
 
         result = [Session.from_dict(item) for item in response['result']] if use_typing else response['result']

@@ -56,6 +56,16 @@ class PackageRepository(Repository[Package]):
         super().__init__(database, collection)
 
     def get(self, id: str, use_typing: bool = False) -> Package:
+        """Get an entity by id
+        param id: The id of the entity
+            type: str
+            description: The id of the entity, can be either the id or the model (property)
+        param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
+            description: Whether to return the entities as typed objects or as dicts.
+            If True, and active property will be set based on the active package.
+        return: The entity
+        """
         document = self.database[self.collection].find_one({'id': id})
 
         if document is None:
@@ -69,6 +79,11 @@ class PackageRepository(Repository[Package]):
         return Package.from_dict(document, response_active)
 
     def get_active(self, use_typing: bool = False) -> Package:
+        """Get the active entity
+        param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
+        return: The entity
+        """
         response = self.database[self.collection].find_one({'key': 'active'})
 
         if response is None:
@@ -86,6 +101,24 @@ class PackageRepository(Repository[Package]):
         raise NotImplementedError("Delete not implemented for PackageRepository")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Package]]:
+        """List entities
+        param limit: The maximum number of entities to return
+            type: int
+        param skip: The number of entities to skip
+            type: int
+        param sort_key: The key to sort by
+            type: str
+        param sort_order: The order to sort by
+            type: pymongo.DESCENDING | pymongo.ASCENDING
+        param use_typing: Whether to return the entities as typed objects or as dicts
+            type: bool
+            description: Whether to return the entities as typed objects or as dicts.
+            If True, and active property will be set based on the active package.
+        param kwargs: Additional query parameters
+            type: dict
+            example: {"key": "models"}
+        return: A dictionary with the count and the result
+        """
         kwargs["key"] = "package_trail"
 
         response = super().list(limit, skip, sort_key or "committed_at", sort_order, use_typing=True, **kwargs)

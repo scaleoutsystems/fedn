@@ -19,6 +19,7 @@ class Repository(Generic[T]):
         param id: The id of the entity
             type: str
         param use_typing: Whether to return the entity as a typed object or as a dict
+            type: bool
         return: The entity
         """
         id_obj = ObjectId(id)
@@ -67,4 +68,10 @@ class Repository(Generic[T]):
         }
 
     def count(self, **kwargs) -> int:
+        """Count entities
+        param kwargs: Additional query parameters
+            type: dict
+            example: {"key": "models"}
+        return: The count (int)
+        """
         return self.database[self.collection].count_documents(kwargs)
