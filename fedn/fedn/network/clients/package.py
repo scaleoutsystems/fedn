@@ -9,7 +9,6 @@ from distutils.dir_util import copy_tree
 
 import requests
 import yaml
-
 from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
@@ -47,7 +46,7 @@ class PackageRuntime:
         :return: True if download was successful, None otherwise
         :rtype: bool
         """
-        # for https we assume a an ingress handles permanent redirect (308)
+        # for https we assume an ingress handles permanent redirect (308)
         if force_ssl:
             scheme = "https"
         else:
@@ -59,10 +58,6 @@ class PackageRuntime:
         if name:
             logger.debug("Downloading package with name: {}.".format(name))
             path = path + "?name={}".format(name)
-        # else:
-        #     logger.critical("No name set for compute package.")
-        #     logger.debug("Name: {}.".format(name))
-        #     logger.debug("Path: {}".format(path))
 
         with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
             if 200 <= r.status_code < 204:
@@ -120,7 +115,7 @@ class PackageRuntime:
         else:
             return False
 
-    def unpack(self):
+    def unpack(self, trust_package=False):
         """ Unpack the compute package
 
         :return: True if unpacking was successful, False otherwise
@@ -149,9 +144,40 @@ class PackageRuntime:
             os.chdir(self.dir)
 
             if f:
+                if not trust_package:
+                    print("Package is not trusted. Verifying contents...")
+
+                    # Open the tar file to check its contents
+                    with tarfile.open(f, 'r') as tar:
+                        # Get the size of the tar archive
+                        tar_size = os.path.getsize(f)
+                        print("Size of the package: {} bytes".format(tar_size))
+
+                        # Get the number of files
+                        num_files = len(tar.getmembers())
+                        print("Number of files in the package: {}".format(num_files))
+
+                        # List the files
+                        print("List of files in the package:")
+                        for member in tar.getmembers():
+                            print(member.name)
+
+                    # Ask for user confirmation to proceed
+                    if input("Type 'y' to extract the package: ").lower() != 'y':
+                        logger.critical("Extraction aborted.")
+                        return False
+
                 f.extractall()
                 logger.info("Successfully extracted compute package content in {}".format(self.dir))
-                return True
+
+                # Ask for user confirmation to proceed after inspection
+                if not trust_package and input("Please inspect the contents of the package before proceeding. Proceed? (Type 'y' to continue): ").lower() != 'y':
+                    logger.critical("Operation aborted.")
+                    return False
+
+            # Rest of the code
+            logger.info("Successfully extracted compute package content in {}".format(self.dir))
+            return True
         except Exception:
             logger.error("Error extracting files.")
             return False

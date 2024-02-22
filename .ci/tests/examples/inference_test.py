@@ -31,5 +31,5 @@ if __name__ == '__main__':
 
     # Wait for successful rounds
     succeded = _wait_n_rounds(client['fedn-test-network']['control']['status'])
-    assert(succeded == N_CLIENTS)  # check that all rounds succeeded
+    assert (succeded == N_CLIENTS)  # check that all rounds succeeded
     _eprint(f'Succeded inference clients: {succeded}. Test passed.')
