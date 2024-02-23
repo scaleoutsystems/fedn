@@ -26,7 +26,7 @@ class APIClient:
         self.verify = verify
         self.header = {}
         # Check if auth token is set by environment variable
-        env_token = os.environ("FEDN_AUTH_TOKEN", False)
+        env_token = os.environ.get("FEDN_AUTH_TOKEN", False)
         if env_token:
             self.header = {"Authorization": "Token {}".format(token)}
         # Override potential env variable if token is passed as argument.
