@@ -3,9 +3,6 @@ import os
 
 import requests
 
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
-
 __all__ = ['APIClient']
 
 
@@ -35,7 +32,6 @@ class APIClient:
         # Override potential env variable if token is passed as argument.
         if token:
             self.header = {"Authorization": "Token {}".format(token)}
-        set_log_level_from_string(verbosity)
 
     def _get_url(self, endpoint):
         if self.secure:
