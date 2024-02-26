@@ -64,7 +64,22 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
+      # Statestore
+      - STATESTORE_HOST=mongo
+      - STATESTORE_PORT=6534
+      - STATESTORE_USER=fedn_admin
+      - STATESTORE_PASSWORD=password
+      # will be overriden by env vars above
       - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
+      # Modelstorage
+      - MODELSTORAGE_HOST=minio
+      - MODELSTORAGE_PORT=9000
+      - MODELSTORAGE_ACCESS_KEY=fedn_admin
+      - MODELSTORAGE_SECRET_KEY=password
+      - MODELSTORAGE_BUCKET=fedn-models
+      - MODELSTORAGE_CONTEXT_BUCKET=fedn-context
+      - MODELSTORAGE_SECURE_MODE=False
+      # will be overriden by env vars above
       - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml
     build:
       context: .

@@ -5,6 +5,17 @@ import yaml
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
+def get_env(key, default=None):
+    """ Get environment variable.
+
+    :param key: The environment variable key.
+    :type key: str
+    :param default: The default value if the environment variable is not set (optional).
+    :type default: str
+    :return: The environment variable value.
+    :rtype: str
+    """
+    return os.environ.get(key, default)
 
 def get_environment_config():
     """ Get the configuration from environment variables.
@@ -27,8 +38,22 @@ def get_statestore_config(file=None):
     :rtype: dict
     """
     if file is None:
-        get_environment_config()
-        file = STATESTORE_CONFIG
+        # check if environment variables are set
+        host = get_env("STATESTORE_HOST", "mongo")
+        if host is not None:
+            return {
+                "type": "MongoDB",
+                "mongo_config": {
+                    "host": host,
+                    "port": int(get_env("STATESTORE_PORT", 6534)),
+                    "username": get_env("STATESTORE_USER", "fedn_admin"),
+                    "password": get_env("STATESTORE_PASSWORD"),
+                }
+            }
+        else:
+            # else use the default file
+            get_environment_config()
+            file = STATESTORE_CONFIG
     with open(file, 'r') as config_file:
         try:
             settings = dict(yaml.safe_load(config_file))
@@ -46,8 +71,25 @@ def get_modelstorage_config(file=None):
     :rtype: dict
     """
     if file is None:
-        get_environment_config()
-        file = MODELSTORAGE_CONFIG
+        # check if environment variables are set
+        host = get_env("MODELSTORAGE_HOST", "minio")
+        if host is not None:
+            return {
+                "storage_type": "S3",
+                "storage_config": {
+                    "storage_hostname": host,
+                    "storage_port": int(get_env("MODELSTORAGE_PORT", 9000)),
+                    "storage_access_key": get_env("MODELSTORAGE_ACCESS_KEY"),
+                    "storage_secret_key": get_env("MODELSTORAGE_SECRET_KEY"),
+                    "storage_bucket": get_env("MODELSTORAGE_BUCKET", "fedn-models"),
+                    "context_bucket": get_env("MODELSTORAGE_CONTEXT_BUCKET", "fedn-context"),
+                    "storage_secure_mode": bool(get_env("MODELSTORAGE_SECURE_MODE", False)),
+                }
+            }
+        else:
+            # else use the default file
+            get_environment_config()
+            file = MODELSTORAGE_CONFIG
     with open(file, 'r') as config_file:
         try:
             settings = dict(yaml.safe_load(config_file))
@@ -65,8 +107,14 @@ def get_network_config(file=None):
     :rtype: str
     """
     if file is None:
-        get_environment_config()
-        file = STATESTORE_CONFIG
+        # check if environment variables are set
+        network_id = get_env("NETWORK_ID", "fedn-network")
+        if network_id is not None:
+            return network_id
+        else:
+            # else use the default file
+            get_environment_config()
+            file = STATESTORE_CONFIG
     with open(file, 'r') as config_file:
         try:
             settings = dict(yaml.safe_load(config_file))
