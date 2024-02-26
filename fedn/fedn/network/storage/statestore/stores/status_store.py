@@ -3,7 +3,7 @@ from typing import Dict, List
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 
 class Status:
@@ -46,7 +46,7 @@ class Status:
         )
 
 
-class StatusRepository(Repository[Status]):
+class StatusStore(Store[Status]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 

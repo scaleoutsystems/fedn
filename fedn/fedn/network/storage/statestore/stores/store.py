@@ -9,7 +9,7 @@ from .shared import EntityNotFound, from_document
 T = TypeVar('T')
 
 
-class Repository(Generic[T]):
+class Store(Generic[T]):
     def __init__(self, database: Database, collection: str):
         self.database = database
         self.collection = collection

@@ -1,15 +1,15 @@
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.shared import EntityNotFound
-from fedn.network.storage.statestore.repositories.validation_repository import \
-    ValidationRepository
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.validation_store import \
+    ValidationStore
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, get_use_typing, mdb)
 
 bp = Blueprint("validation", __name__, url_prefix=f"/api/{api_version}/validations")
 
-validation_repository = ValidationRepository(mdb, "control.validations")
+validation_repository = ValidationStore(mdb, "control.validations")
 
 
 @bp.route("/", methods=["GET"])

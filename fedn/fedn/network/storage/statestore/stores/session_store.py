@@ -4,7 +4,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 from .shared import EntityNotFound, from_document
 
@@ -25,7 +25,7 @@ class Session:
         )
 
 
-class SessionRepository(Repository[Session]):
+class SessionStore(Store[Session]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 

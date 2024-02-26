@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.round_repository import \
-    RoundRepository
-from fedn.network.storage.statestore.repositories.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
-round_repository = RoundRepository(mdb, "control.rounds")
+round_repository = RoundStore(mdb, "control.rounds")
 
 
 @bp.route("/", methods=["GET"])

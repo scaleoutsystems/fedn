@@ -3,7 +3,7 @@ from typing import Dict, List
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 
 class Round:
@@ -26,7 +26,7 @@ class Round:
         )
 
 
-class RoundRepository(Repository[Round]):
+class RoundStore(Store[Round]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 

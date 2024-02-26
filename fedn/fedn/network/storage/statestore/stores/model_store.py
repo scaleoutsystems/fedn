@@ -5,7 +5,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 from .shared import EntityNotFound, from_document
 
@@ -30,7 +30,7 @@ class Model:
         )
 
 
-class ModelRepository(Repository[Model]):
+class ModelStore(Store[Model]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 

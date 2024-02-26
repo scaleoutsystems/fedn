@@ -1,16 +1,15 @@
 
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.client_repository import \
-    ClientRepository
-from fedn.network.storage.statestore.repositories.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
-client_repository = ClientRepository(mdb, "network.clients")
+client_repository = ClientStore(mdb, "network.clients")
 
 
 @bp.route("/", methods=["GET"])

@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.session_repository import \
-    SessionRepository
-from fedn.network.storage.statestore.repositories.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
-session_repository = SessionRepository(mdb, "control.sessions")
+session_repository = SessionStore(mdb, "control.sessions")
 
 
 @bp.route("/", methods=["GET"])

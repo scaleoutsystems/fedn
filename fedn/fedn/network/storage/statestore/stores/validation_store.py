@@ -3,7 +3,7 @@ from typing import Dict, List
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 
 class Validation:
@@ -43,7 +43,7 @@ class Validation:
         )
 
 
-class ValidationRepository(Repository[Validation]):
+class ValidationStore(Store[Validation]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 

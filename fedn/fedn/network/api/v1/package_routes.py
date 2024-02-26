@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify, request
 
-from fedn.network.storage.statestore.repositories.package_repository import \
-    PackageRepository
-from fedn.network.storage.statestore.repositories.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.package_store import PackageStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 from .shared import (api_version, get_post_data_to_kwargs,
                      get_typed_list_headers, get_use_typing, mdb)
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
-package_repository = PackageRepository(mdb, "control.package")
+package_repository = PackageStore(mdb, "control.package")
 
 
 @bp.route("/", methods=["GET"])

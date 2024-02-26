@@ -4,7 +4,7 @@ from typing import Dict, List
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.repositories.repository import Repository
+from fedn.network.storage.statestore.stores.store import Store
 
 from .shared import EntityNotFound, from_document
 
@@ -51,7 +51,7 @@ class Package:
         )
 
 
-class PackageRepository(Repository[Package]):
+class PackageStore(Store[Package]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
