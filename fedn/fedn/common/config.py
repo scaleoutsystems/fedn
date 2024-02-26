@@ -5,6 +5,7 @@ import yaml
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
+
 def get_env(key, default=None):
     """ Get environment variable.
 
@@ -16,6 +17,7 @@ def get_env(key, default=None):
     :rtype: str
     """
     return os.environ.get(key, default)
+
 
 def get_environment_config():
     """ Get the configuration from environment variables.
