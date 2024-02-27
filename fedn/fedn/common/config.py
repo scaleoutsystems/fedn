@@ -18,6 +18,7 @@ def get_env(key, default=None):
     """
     return os.environ.get(key, default)
 
+
 def get_boolean_env(key, default=False):
     """ Get environment variable as boolean.
 
@@ -51,6 +52,7 @@ def get_environment_config():
     CONTROLLER_CONFIG = os.environ.get('FEDN_CONTROLLER_CONFIG',
                                        '/workspaces/fedn/config/settings-controller.yaml.template')
 
+
 def read_config_file(file):
     """ Read a yaml configuration file.
 
@@ -65,6 +67,7 @@ def read_config_file(file):
         except yaml.YAMLError as e:
             raise (e)
     return config
+
 
 def get_statestore_config(file=None):
     """ Get the statestore configuration.
@@ -172,6 +175,7 @@ def get_controller_config(file=None):
             file = CONTROLLER_CONFIG
     settings = read_config_file(file)
     return settings["controller"]
+
 
 def get_combiner_config(file=None):
     """ Get the combiner configuration.
