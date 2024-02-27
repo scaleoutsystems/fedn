@@ -18,6 +18,21 @@ def get_env(key, default=None):
     """
     return os.environ.get(key, default)
 
+def get_boolean_env(key, default=False):
+    """ Get environment variable as boolean.
+
+    :param key: The environment variable key.
+    :type key: str
+    :param default: The default value if the environment variable is not set (optional).
+    :type default: bool
+    :return: The environment variable value.
+    :rtype: bool
+    """
+    value = os.environ.get(key, default)
+    if isinstance(value, str):
+        return value.lower() in ['true', '1']
+    return value
+
 
 def get_environment_config():
     """ Get the configuration from environment variables.
@@ -85,7 +100,7 @@ def get_modelstorage_config(file=None):
                     "storage_secret_key": get_env("MODELSTORAGE_SECRET_KEY"),
                     "storage_bucket": get_env("MODELSTORAGE_BUCKET", "fedn-models"),
                     "context_bucket": get_env("MODELSTORAGE_CONTEXT_BUCKET", "fedn-context"),
-                    "storage_secure_mode": bool(get_env("MODELSTORAGE_SECURE_MODE", False)),
+                    "storage_secure_mode": get_boolean_env("MODELSTORAGE_SECURE_MODE", False),
                 }
             }
         else:
