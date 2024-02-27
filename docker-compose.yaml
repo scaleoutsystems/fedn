@@ -64,23 +64,28 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
+      # Controller
+      - FEDN_CONTROLLER_HOST=api-server
+      - FEDN_CONTROLLER_PORT=8092
+      - FEDN_CONTROLLER_DEBUG=True
+      - FEDN_CONTROLLER_CONFIG=/app/config/settings-controller.yaml
       # Statestore
-      - STATESTORE_HOST=mongo
-      - STATESTORE_PORT=6534
-      - STATESTORE_USER=fedn_admin
-      - STATESTORE_PASSWORD=password
+      - FEDN_STATESTORE_HOST=mongo
+      - FEDN_STATESTORE_PORT=6534
+      - FEDN_STATESTORE_USER=fedn_admin
+      - FEDN_STATESTORE_PASSWORD=password
       # will be overriden by env vars above
-      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
+      - FEDN_STATESTORE_CONFIG=/app/config/settings-controller.yaml
       # Modelstorage
-      - MODELSTORAGE_HOST=minio
-      - MODELSTORAGE_PORT=9000
-      - MODELSTORAGE_ACCESS_KEY=fedn_admin
-      - MODELSTORAGE_SECRET_KEY=password
-      - MODELSTORAGE_BUCKET=fedn-models
-      - MODELSTORAGE_CONTEXT_BUCKET=fedn-context
-      - MODELSTORAGE_SECURE_MODE=False
+      - FEDN_MODELSTORAGE_HOST=minio
+      - FEDN_MODELSTORAGE_PORT=9000
+      - FEDN_MODELSTORAGE_ACCESS_KEY=fedn_admin
+      - FEDN_MODELSTORAGE_SECRET_KEY=password
+      - FEDN_MODELSTORAGE_BUCKET=fedn-models
+      - FEDN_MODELSTORAGE_CONTEXT_BUCKET=fedn-context
+      - FEDN_MODELSTORAGE_SECURE_MODE=False
       # will be overriden by env vars above
-      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml
+      - FEDN_MODELSTORAGE_CONFIG=/app/config/settings-controller.yaml
     build:
       context: .
       args:
@@ -110,9 +115,10 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/config:/app/config
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml.template"
     ports:
       - 12080:12080
     healthcheck:
@@ -139,9 +145,10 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/config:/app/config
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml.template"
     deploy:
       replicas: 0
     depends_on:
