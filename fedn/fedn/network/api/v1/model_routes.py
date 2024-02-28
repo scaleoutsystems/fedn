@@ -1,10 +1,14 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.v1.shared import (
+    api_version,
+    get_limit,
+    get_post_data_to_kwargs,
+    get_typed_list_headers,
+    mdb,
+)
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-
-from fedn.network.api.v1.shared import (api_version, get_limit, get_post_data_to_kwargs,
-                     get_typed_list_headers, mdb)
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -100,14 +104,13 @@ def get_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        models = model_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = models["result"]
 
-        response = {
-            "count": models["count"],
-            "result": result
-        }
+        response = {"count": models["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -187,14 +190,13 @@ def list_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        models = model_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = models["result"]
 
-        response = {
-            "count": models["count"],
-            "result": result
-        }
+        response = {"count": models["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:

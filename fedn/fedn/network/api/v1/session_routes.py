@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.v1.shared import (
+    api_version,
+    get_post_data_to_kwargs,
+    get_typed_list_headers,
+    mdb,
+)
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                     get_typed_list_headers, mdb)
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -86,14 +89,13 @@ def get_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        sessions = session_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = sessions["result"]
 
-        response = {
-            "count": sessions["count"],
-            "result": result
-        }
+        response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -166,14 +168,13 @@ def list_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        sessions = session_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = sessions["result"]
 
-        response = {
-            "count": sessions["count"],
-            "result": result
-        }
+        response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:

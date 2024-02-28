@@ -1,10 +1,14 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.v1.shared import (
+    api_version,
+    get_post_data_to_kwargs,
+    get_typed_list_headers,
+    get_use_typing,
+    mdb,
+)
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
-
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                     get_typed_list_headers, get_use_typing, mdb)
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
 
@@ -121,17 +125,22 @@ def get_statuses():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(
+            request.headers
+        )
         kwargs = request.args.to_dict()
 
-        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        statuses = status_store.list(
+            limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs
+        )
 
-        result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
+        result = (
+            [status.__dict__ for status in statuses["result"]]
+            if use_typing
+            else statuses["result"]
+        )
 
-        response = {
-            "count": statuses["count"],
-            "result": result
-        }
+        response = {"count": statuses["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -218,17 +227,22 @@ def list_statuses():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(
+            request.headers
+        )
         kwargs = get_post_data_to_kwargs(request)
 
-        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        statuses = status_store.list(
+            limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs
+        )
 
-        result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
+        result = (
+            [status.__dict__ for status in statuses["result"]]
+            if use_typing
+            else statuses["result"]
+        )
 
-        response = {
-            "count": statuses["count"],
-            "result": result
-        }
+        response = {"count": statuses["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:

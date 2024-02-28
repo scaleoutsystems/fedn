@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.v1.shared import (
+    api_version,
+    get_post_data_to_kwargs,
+    get_typed_list_headers,
+    mdb,
+)
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                     get_typed_list_headers, mdb)
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
@@ -94,14 +97,13 @@ def get_rounds():
 
         kwargs = request.args.to_dict()
 
-        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        rounds = round_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = rounds["result"]
 
-        response = {
-            "count": rounds["count"],
-            "result": result
-        }
+        response = {"count": rounds["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -175,14 +177,13 @@ def list_rounds():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        rounds = round_store.list(
+            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
+        )
 
         result = rounds["result"]
 
-        response = {
-            "count": rounds["count"],
-            "result": result
-        }
+        response = {"count": rounds["count"], "result": result}
 
         return jsonify(response), 200
     except Exception as e:

@@ -38,7 +38,9 @@ def get_skip(headers: object) -> int:
     return 0
 
 
-def get_typed_list_headers(headers: object) -> Tuple[int | None, int | None, str | None, int, bool]:
+def get_typed_list_headers(
+    headers: object,
+) -> Tuple[int | None, int | None, str | None, int, bool]:
     sort_key: str | None = headers.get("X-Sort-Key")
     sort_order: str | None = headers.get("X-Sort-Order")
 
@@ -47,7 +49,9 @@ def get_typed_list_headers(headers: object) -> Tuple[int | None, int | None, str
     use_typing: bool = get_use_typing(headers)
 
     if sort_order is not None:
-        sort_order = pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
+        sort_order = (
+            pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
+        )
     else:
         sort_order = pymongo.DESCENDING
 
