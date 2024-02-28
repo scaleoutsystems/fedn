@@ -1,4 +1,3 @@
-
 from flask import Blueprint, jsonify, request
 
 from fedn.network.storage.statestore.stores.model_store import ModelStore
