@@ -1,11 +1,8 @@
+from flasgger import Swagger
 from flask import Flask, jsonify, request
 
-from fedn.common.config import (
-    get_controller_config,
-    get_modelstorage_config,
-    get_network_config,
-    get_statestore_config,
-)
+from fedn.common.config import (get_controller_config, get_modelstorage_config,
+                                get_network_config, get_statestore_config)
 from fedn.network.api.interface import API
 from fedn.network.api.v1.client_routes import bp as client_bp
 from fedn.network.api.v1.combiner_routes import bp as combiner_bp
@@ -34,6 +31,17 @@ app.register_blueprint(package_bp)
 app.register_blueprint(session_bp)
 app.register_blueprint(combiner_bp)
 app.register_blueprint(round_bp)
+
+template = {
+  "swagger": "2.0",
+  "info": {
+    "title": "FEDn API",
+    "description": "API for the FEDn network.",
+    "version": "0.0.1"
+  }
+}
+
+swagger = Swagger(app, template=template)
 
 
 @app.route("/get_model_trail", methods=["GET"])

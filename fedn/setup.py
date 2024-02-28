@@ -33,6 +33,7 @@ setup(
         "bokeh<3.0.0",
         "networkx",
         "grpcio-health-checking~=1.57.0",
+        "flasgger==0.9.5"
     ],
     license='Apache 2.0',
     zip_safe=False,
