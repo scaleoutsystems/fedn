@@ -23,13 +23,6 @@ docker-compose \
     -f docker-compose.override.yaml \
     up -d --build api-server combiner
 
-sleep 10
-
-docker-compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    up -d --build client
-
 >&2 echo "Wait for reducer to start"
 ".$example/bin/python" ../../.ci/tests/examples/wait_for.py reducer
 
