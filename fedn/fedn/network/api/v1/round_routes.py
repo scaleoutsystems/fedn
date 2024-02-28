@@ -8,7 +8,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
-round_repository = RoundStore(mdb, "control.rounds")
+round_store = RoundStore(mdb, "control.rounds")
 
 
 @bp.route("/", methods=["GET"])
@@ -94,7 +94,7 @@ def get_rounds():
 
         kwargs = request.args.to_dict()
 
-        rounds = round_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = rounds["result"]
 
@@ -175,7 +175,7 @@ def list_rounds():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        rounds = round_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = rounds["result"]
 
@@ -222,7 +222,7 @@ def get_rounds_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = round_repository.count(**kwargs)
+        count = round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -266,7 +266,7 @@ def rounds_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = round_repository.count(**kwargs)
+        count = round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -307,7 +307,7 @@ def get_round(id: str):
                         type: string
     """
     try:
-        round = round_repository.get(id, use_typing=False)
+        round = round_store.get(id, use_typing=False)
         response = round
 
         return jsonify(response), 200

@@ -8,7 +8,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
-session_repository = SessionStore(mdb, "control.sessions")
+session_store = SessionStore(mdb, "control.sessions")
 
 
 @bp.route("/", methods=["GET"])
@@ -86,7 +86,7 @@ def get_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = sessions["result"]
 
@@ -166,7 +166,7 @@ def list_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = sessions["result"]
 
@@ -213,7 +213,7 @@ def get_sessions_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = session_repository.count(**kwargs)
+        count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -257,7 +257,7 @@ def sessions_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = session_repository.count(**kwargs)
+        count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -298,7 +298,7 @@ def get_session(id: str):
                         type: string
     """
     try:
-        session = session_repository.get(id, use_typing=False)
+        session = session_store.get(id, use_typing=False)
         response = session
 
         return jsonify(response), 200

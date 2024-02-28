@@ -9,7 +9,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
-client_repository = ClientStore(mdb, "network.clients")
+client_store = ClientStore(mdb, "network.clients")
 
 
 @bp.route("/", methods=["GET"])
@@ -115,7 +115,7 @@ def get_clients():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        clients = client_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = clients["result"]
 
@@ -202,7 +202,7 @@ def list_clients():
     try:
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        clients = client_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = clients["result"]
 
@@ -269,7 +269,7 @@ def get_clients_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = client_repository.count(**kwargs)
+        count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -321,7 +321,7 @@ def clients_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = client_repository.count(**kwargs)
+        count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -362,7 +362,7 @@ def get_client(id: str):
                         type: string
     """
     try:
-        client = client_repository.get(id, use_typing=False)
+        client = client_store.get(id, use_typing=False)
 
         response = client
 

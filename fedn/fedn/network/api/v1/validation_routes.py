@@ -9,7 +9,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("validation", __name__, url_prefix=f"/api/{api_version}/validations")
 
-validation_repository = ValidationStore(mdb, "control.validations")
+validation_store = ValidationStore(mdb, "control.validations")
 
 
 @bp.route("/", methods=["GET"])
@@ -132,7 +132,7 @@ def get_validations():
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        validations = validation_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
         result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
 
@@ -232,7 +232,7 @@ def list_validations():
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        validations = validation_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
         result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
 
@@ -304,7 +304,7 @@ def get_validations_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = validation_repository.count(**kwargs)
+        count = validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -368,7 +368,7 @@ def validations_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = validation_repository.count(**kwargs)
+        count = validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -410,7 +410,7 @@ def get_validation(id: str):
     """
     try:
         use_typing: bool = get_use_typing(request.headers)
-        validation = validation_repository.get(id, use_typing=use_typing)
+        validation = validation_store.get(id, use_typing=use_typing)
 
         response = validation.__dict__ if use_typing else validation
 

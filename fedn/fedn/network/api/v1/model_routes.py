@@ -9,7 +9,7 @@ from .shared import (api_version, get_limit, get_post_data_to_kwargs,
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
-model_repository = ModelStore(mdb, "control.model")
+model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/", methods=["GET"])
@@ -101,7 +101,7 @@ def get_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = models["result"]
 
@@ -188,7 +188,7 @@ def list_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = models["result"]
 
@@ -242,7 +242,7 @@ def get_models_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = model_repository.count(**kwargs)
+        count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -293,7 +293,7 @@ def models_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = model_repository.count(**kwargs)
+        count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -334,7 +334,7 @@ def get_model(id: str):
                         type: string
     """
     try:
-        model = model_repository.get(id, use_typing=False)
+        model = model_store.get(id, use_typing=False)
 
         response = model
 
@@ -387,7 +387,7 @@ def get_descendants(id: str):
     try:
         limit = get_limit(request.headers)
 
-        descendants = model_repository.list_descendants(id, limit or 10, use_typing=False)
+        descendants = model_store.list_descendants(id, limit or 10, use_typing=False)
 
         response = descendants
 
@@ -440,7 +440,7 @@ def get_ancestors(id: str):
     try:
         limit = get_limit(request.headers)
 
-        ancestors = model_repository.list_ancestors(id, limit or 10, use_typing=False)
+        ancestors = model_store.list_ancestors(id, limit or 10, use_typing=False)
 
         response = ancestors
 

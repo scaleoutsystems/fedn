@@ -8,7 +8,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
 
-status_repository = StatusStore(mdb, "control.status")
+status_store = StatusStore(mdb, "control.status")
 
 
 @bp.route("/", methods=["GET"])
@@ -124,7 +124,7 @@ def get_statuses():
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        statuses = status_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
         result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
 
@@ -221,7 +221,7 @@ def list_statuses():
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        statuses = status_repository.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
         result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
 
@@ -289,7 +289,7 @@ def get_statuses_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = status_repository.count(**kwargs)
+        count = status_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -350,7 +350,7 @@ def statuses_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = status_repository.count(**kwargs)
+        count = status_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -392,7 +392,7 @@ def get_status(id: str):
     """
     try:
         use_typing: bool = get_use_typing(request.headers)
-        status = status_repository.get(id, use_typing=use_typing)
+        status = status_store.get(id, use_typing=use_typing)
 
         response = status.__dict__ if use_typing else status
 

@@ -8,7 +8,7 @@ from .shared import (api_version, get_post_data_to_kwargs,
 
 bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
 
-combiner_repository = CombinerStore(mdb, "network.combiners")
+combiner_store = CombinerStore(mdb, "network.combiners")
 
 
 @bp.route("/", methods=["GET"])
@@ -106,7 +106,7 @@ def get_combiners():
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = combiners["result"]
 
@@ -191,7 +191,7 @@ def list_combiners():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        combiners = combiner_repository.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = combiners["result"]
 
@@ -244,7 +244,7 @@ def get_combiners_count():
     """
     try:
         kwargs = request.args.to_dict()
-        count = combiner_repository.count(**kwargs)
+        count = combiner_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -292,7 +292,7 @@ def combiners_count():
     """
     try:
         kwargs = get_post_data_to_kwargs(request)
-        count = combiner_repository.count(**kwargs)
+        count = combiner_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -333,7 +333,7 @@ def get_combiner(id: str):
                         type: string
     """
     try:
-        combiner = combiner_repository.get(id, use_typing=False)
+        combiner = combiner_store.get(id, use_typing=False)
         response = combiner
 
         return jsonify(response), 200
