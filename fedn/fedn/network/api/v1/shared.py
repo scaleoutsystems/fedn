@@ -25,7 +25,7 @@ def get_use_typing(headers: object) -> bool:
 
 
 def get_limit(headers: object) -> int:
-    limit: str | None = headers.get("X-Limit")
+    limit: str = headers.get("X-Limit")
     if is_positive_integer(limit):
         return int(limit)
     return 0
@@ -40,9 +40,9 @@ def get_skip(headers: object) -> int:
 
 def get_typed_list_headers(
     headers: object,
-) -> Tuple[int | None, int | None, str | None, int, bool]:
-    sort_key: str | None = headers.get("X-Sort-Key")
-    sort_order: str | None = headers.get("X-Sort-Order")
+) -> Tuple[int, int, str, int, bool]:
+    sort_key: str = headers.get("X-Sort-Key")
+    sort_order: str = headers.get("X-Sort-Order")
 
     limit: int = get_limit(headers)
     skip: int = get_skip(headers)
