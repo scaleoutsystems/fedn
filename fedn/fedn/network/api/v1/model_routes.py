@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
-from .shared import (api_version, get_limit, get_post_data_to_kwargs,
+from fedn.network.api.v1.shared import (api_version, get_limit, get_post_data_to_kwargs,
                      get_typed_list_headers, mdb)
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
