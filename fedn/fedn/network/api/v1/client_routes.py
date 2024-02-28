@@ -1,13 +1,15 @@
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
-# from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
-from .shared import (api_version)
+from .shared import (api_version, get_post_data_to_kwargs,
+                     get_typed_list_headers, mdb)
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
-# client_store = ClientStore(mdb, "network.clients")
+client_store = ClientStore(mdb, "network.clients")
 
 
 @bp.route("/", methods=["GET"])
@@ -109,7 +111,22 @@ def get_clients():
                 message:
                     type: string
     """
-    return jsonify({"msg": "hej"}), 200
+    try:
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        kwargs = request.args.to_dict()
+
+        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
+
+        result = clients["result"]
+
+        response = {
+            "count": clients["count"],
+            "result": result
+        }
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -182,8 +199,21 @@ def list_clients():
                 message:
                     type: string
     """
-    return jsonify({"msg": "hej"}), 200
+    try:
+        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        kwargs = get_post_data_to_kwargs(request)
+        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
+        result = clients["result"]
+
+        response = {
+            "count": clients["count"],
+            "result": result
+        }
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -237,8 +267,13 @@ def get_clients_count():
                 message:
                     type: string
     """
-    return jsonify({"msg": "hej"}), 200
-
+    try:
+        kwargs = request.args.to_dict()
+        count = client_store.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 404
 
 
 @bp.route("/count", methods=["POST"])
@@ -284,8 +319,13 @@ def clients_count():
                 message:
                     type: string
     """
-    return jsonify({"msg": "hej"}), 200
-  
+    try:
+        kwargs = get_post_data_to_kwargs(request)
+        count = client_store.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 404
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -321,4 +361,13 @@ def get_client(id: str):
                     message:
                         type: string
     """
-    return jsonify({"msg": "hej"}), 200
+    try:
+        client = client_store.get(id, use_typing=False)
+
+        response = client
+
+        return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
