@@ -24,7 +24,7 @@ def _get_flower_client():
     # Set sys.argv to mimic command-line input required by flower_client.py
     sys.argv = ["flower_client.py", "--node-id", _get_node_id()]
     # Import flower client
-    import flwr_client
+    import flwr_client  # noqa
 
     sys.argv = original_argv
     flower_client = flwr_client.FlowerClient()

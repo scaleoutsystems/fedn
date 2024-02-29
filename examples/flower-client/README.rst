@@ -13,13 +13,14 @@ See `https://fedn.readthedocs.io/en/stable/quickstart.html` for general run deta
 that the flower client handles data distribution programatically, so data related steps can be 
 omitted. To run this example after initializing fedn with the `seed.npz` and `package` that 
 can be generated through `bin/build`, continue with building a docker image containing the flower 
-dependencies:
+dependencies. From the repository root execute:
 
 .. code-block::
 
    docker build --build-arg REQUIREMENTS=examples/flower-client/requirements.txt -t flower-client .
 
-In separate terminals, start clients and inject the `CLIENT_NUMBER` dependency, for example for client1:
+In separate terminals, navigate to this folder, start clients and inject the `CLIENT_NUMBER` 
+dependency, for example for client1:
 
 .. code-block::
 
