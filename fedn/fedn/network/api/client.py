@@ -29,11 +29,10 @@ class APIClient:
         # "Token" is the default auth scheme.
         if not auth_scheme:
             auth_scheme = os.environ.get("FEDN_AUTH_SCHEME", "Token")
-        # Check if auth token is set by environment variable
-        env_token = os.environ.get("FEDN_AUTH_TOKEN", False)
-        if env_token:
-            self.header = {"Authorization": f"{auth_scheme} {env_token}"}
         # Override potential env variable if token is passed as argument.
+        if not token:
+            token = os.environ.get("FEDN_AUTH_TOKEN", False)
+        
         if token:
             self.header = {"Authorization": f"{auth_scheme} {token}"}
 
