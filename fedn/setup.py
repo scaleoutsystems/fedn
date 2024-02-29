@@ -26,7 +26,7 @@ setup(
         "pyopenssl",
         "ttictoc",
         "psutil",
-        "click==8.0.1",
+        "click==8.1.7",
         "jinja2",
         "plotly",
         "pandas",
