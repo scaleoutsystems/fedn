@@ -92,13 +92,13 @@ class PackageStore(Store[Package]):
         return Package.from_dict(response, response) if use_typing else from_document(response)
 
     def update(self, id: str, item: Package) -> bool:
-        raise NotImplementedError("Update not implemented for PackageRepository")
+        raise NotImplementedError("Update not implemented for PackageStore")
 
     def add(self, item: Package) -> bool:
-        raise NotImplementedError("Add not implemented for PackageRepository")
+        raise NotImplementedError("Add not implemented for PackageStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for PackageRepository")
+        raise NotImplementedError("Delete not implemented for PackageStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Package]]:
         """List entities

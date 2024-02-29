@@ -50,13 +50,13 @@ class SessionStore(Store[Session]):
         return Session.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Session) -> bool:
-        raise NotImplementedError("Update not implemented for SessionRepository")
+        raise NotImplementedError("Update not implemented for SessionStore")
 
     def add(self, item: Session) -> bool:
-        raise NotImplementedError("Add not implemented for SessionRepository")
+        raise NotImplementedError("Add not implemented for SessionStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for SessionRepository")
+        raise NotImplementedError("Delete not implemented for SessionStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Session]]:
         """List entities

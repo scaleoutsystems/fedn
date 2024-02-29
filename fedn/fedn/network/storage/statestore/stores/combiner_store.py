@@ -80,13 +80,13 @@ class CombinerStore(Store[Combiner]):
         return Combiner.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Combiner) -> bool:
-        raise NotImplementedError("Update not implemented for CombinerRepository")
+        raise NotImplementedError("Update not implemented for CombinerStore")
 
     def add(self, item: Combiner) -> bool:
-        raise NotImplementedError("Add not implemented for CombinerRepository")
+        raise NotImplementedError("Add not implemented for CombinerStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for CombinerRepository")
+        raise NotImplementedError("Delete not implemented for CombinerStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Combiner]]:
         """List entities

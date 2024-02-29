@@ -60,13 +60,13 @@ class ValidationStore(Store[Validation]):
         return Validation.from_dict(response) if use_typing else response
 
     def update(self, id: str, item: Validation) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationRepository")
+        raise NotImplementedError("Update not implemented for ValidationStore")
 
     def add(self, item: Validation) -> bool:
-        raise NotImplementedError("Add not implemented for ValidationRepository")
+        raise NotImplementedError("Add not implemented for ValidationStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ValidationRepository")
+        raise NotImplementedError("Delete not implemented for ValidationStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Validation]]:
         """List entities

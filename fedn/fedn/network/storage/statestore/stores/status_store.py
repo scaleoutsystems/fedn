@@ -63,13 +63,13 @@ class StatusStore(Store[Status]):
         return Status.from_dict(response) if use_typing else response
 
     def update(self, id: str, item: Status) -> bool:
-        raise NotImplementedError("Update not implemented for StatusRepository")
+        raise NotImplementedError("Update not implemented for StatusStore")
 
     def add(self, item: Status) -> bool:
-        raise NotImplementedError("Add not implemented for StatusRepository")
+        raise NotImplementedError("Add not implemented for StatusStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for StatusRepository")
+        raise NotImplementedError("Delete not implemented for StatusStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Status]]:
         """List entities

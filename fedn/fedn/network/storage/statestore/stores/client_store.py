@@ -47,13 +47,13 @@ class ClientStore(Store[Client]):
         return Client.from_dict(response) if use_typing else response
 
     def update(self, id: str, item: Client) -> bool:
-        raise NotImplementedError("Update not implemented for ClientRepository")
+        raise NotImplementedError("Update not implemented for ClientStore")
 
     def add(self, item: Client) -> bool:
-        raise NotImplementedError("Add not implemented for ClientRepository")
+        raise NotImplementedError("Add not implemented for ClientStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ClientRepository")
+        raise NotImplementedError("Delete not implemented for ClientStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Client]]:
         """List entities

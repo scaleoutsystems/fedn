@@ -58,13 +58,13 @@ class ModelStore(Store[Model]):
         return Model.from_dict(document) if use_typing else from_document(document)
 
     def update(self, id: str, item: Model) -> bool:
-        raise NotImplementedError("Update not implemented for ModelRepository")
+        raise NotImplementedError("Update not implemented for ModelStore")
 
     def add(self, item: Model) -> bool:
-        raise NotImplementedError("Add not implemented for ModelRepository")
+        raise NotImplementedError("Add not implemented for ModelStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ModelRepository")
+        raise NotImplementedError("Delete not implemented for ModelStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Model]]:
         """List entities

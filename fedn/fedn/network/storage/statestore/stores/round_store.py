@@ -42,13 +42,13 @@ class RoundStore(Store[Round]):
         return Round.from_dict(response) if use_typing else response
 
     def update(self, id: str, item: Round) -> bool:
-        raise NotImplementedError("Update not implemented for RoundRepository")
+        raise NotImplementedError("Update not implemented for RoundStore")
 
     def add(self, item: Round) -> bool:
-        raise NotImplementedError("Add not implemented for RoundRepository")
+        raise NotImplementedError("Add not implemented for RoundStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for RoundRepository")
+        raise NotImplementedError("Delete not implemented for RoundStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Round]]:
         """List entities
