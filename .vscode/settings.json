@@ -1,7 +1,7 @@
 {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit"
+        "source.organizeImports": true
     },
     "python.linting.enabled": true,
     "python.linting.flake8Enabled": true,
