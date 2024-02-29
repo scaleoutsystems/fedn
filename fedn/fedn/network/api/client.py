@@ -19,19 +19,23 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port=None, secure=False, verify=False, token=None, verbosity="INFO"):
+    def __init__(self, host, port=None, secure=False, verify=False, token=None, auth_scheme=None):
         self.host = host
         self.port = port
         self.secure = secure
         self.verify = verify
         self.header = {}
+        # Auth scheme passed as argument overrides environment variable.
+        # "Token" is the default auth scheme.
+        if not auth_scheme:
+            auth_scheme = os.environ.get("FEDN_AUTH_SCHEME", "Token")
         # Check if auth token is set by environment variable
         env_token = os.environ.get("FEDN_AUTH_TOKEN", False)
         if env_token:
-            self.header = {"Authorization": "Token {}".format(token)}
+            self.header = {"Authorization": f"{auth_scheme} {env_token}"}
         # Override potential env variable if token is passed as argument.
         if token:
-            self.header = {"Authorization": "Token {}".format(token)}
+            self.header = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
         if self.secure:
