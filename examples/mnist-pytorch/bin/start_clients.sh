@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Check if an argument is provided
-if [ "$#" -eq 0 ]; then
+# Check if three arguments are provided
+if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <benign_client_count> <malicious_client_count> <combiner_ip>"
     exit 1
 fi
