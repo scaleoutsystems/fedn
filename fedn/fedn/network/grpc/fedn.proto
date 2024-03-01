@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package grpc;
+package fedn;
 
 import "google/protobuf/timestamp.proto";
 
@@ -49,6 +49,7 @@ message TaskRequest {
   Client sender = 1;
   Client receiver = 2;
   string model_id = 3;
+  // data is round_config when type is MODEL_UPDATE
   string data = 4;
   string correlation_id = 5;
   string timestamp = 6;
@@ -65,6 +66,7 @@ message ModelUpdate {
   string correlation_id = 5;
   string timestamp = 6;
   string meta = 7;
+  string config = 8;
 }
 
 message ModelValidation {

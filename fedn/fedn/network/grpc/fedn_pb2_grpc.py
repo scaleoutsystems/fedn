@@ -15,12 +15,12 @@ class ModelServiceStub(object):
             channel: A grpc.Channel.
         """
         self.Upload = channel.stream_unary(
-                '/grpc.ModelService/Upload',
+                '/fedn.ModelService/Upload',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 )
         self.Download = channel.unary_stream(
-                '/grpc.ModelService/Download',
+                '/fedn.ModelService/Download',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 )
@@ -56,7 +56,7 @@ def add_ModelServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.ModelService', rpc_method_handlers)
+            'fedn.ModelService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -75,7 +75,7 @@ class ModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/grpc.ModelService/Upload',
+        return grpc.experimental.stream_unary(request_iterator, target, '/fedn.ModelService/Upload',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options, channel_credentials,
@@ -92,7 +92,7 @@ class ModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.ModelService/Download',
+        return grpc.experimental.unary_stream(request, target, '/fedn.ModelService/Download',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options, channel_credentials,
@@ -109,22 +109,22 @@ class ControlStub(object):
             channel: A grpc.Channel.
         """
         self.Start = channel.unary_unary(
-                '/grpc.Control/Start',
+                '/fedn.Control/Start',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
         self.Stop = channel.unary_unary(
-                '/grpc.Control/Stop',
+                '/fedn.Control/Stop',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
         self.FlushAggregationQueue = channel.unary_unary(
-                '/grpc.Control/FlushAggregationQueue',
+                '/fedn.Control/FlushAggregationQueue',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
         self.SetAggregator = channel.unary_unary(
-                '/grpc.Control/SetAggregator',
+                '/fedn.Control/SetAggregator',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
@@ -182,7 +182,7 @@ def add_ControlServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Control', rpc_method_handlers)
+            'fedn.Control', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -201,7 +201,7 @@ class Control(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Start',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/Start',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -218,7 +218,7 @@ class Control(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/Stop',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/Stop',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -235,7 +235,7 @@ class Control(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/FlushAggregationQueue',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/FlushAggregationQueue',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -252,7 +252,7 @@ class Control(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Control/SetAggregator',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/SetAggregator',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -269,7 +269,7 @@ class ReducerStub(object):
             channel: A grpc.Channel.
         """
         self.GetGlobalModel = channel.unary_unary(
-                '/grpc.Reducer/GetGlobalModel',
+                '/fedn.Reducer/GetGlobalModel',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
                 )
@@ -294,7 +294,7 @@ def add_ReducerServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Reducer', rpc_method_handlers)
+            'fedn.Reducer', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -313,7 +313,7 @@ class Reducer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Reducer/GetGlobalModel',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Reducer/GetGlobalModel',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
             options, channel_credentials,
@@ -330,37 +330,37 @@ class ConnectorStub(object):
             channel: A grpc.Channel.
         """
         self.AllianceStatusStream = channel.unary_stream(
-                '/grpc.Connector/AllianceStatusStream',
+                '/fedn.Connector/AllianceStatusStream',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
                 )
         self.SendStatus = channel.unary_unary(
-                '/grpc.Connector/SendStatus',
+                '/fedn.Connector/SendStatus',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
         self.ListActiveClients = channel.unary_unary(
-                '/grpc.Connector/ListActiveClients',
+                '/fedn.Connector/ListActiveClients',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
                 )
         self.AcceptingClients = channel.unary_unary(
-                '/grpc.Connector/AcceptingClients',
+                '/fedn.Connector/AcceptingClients',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
                 )
         self.SendHeartbeat = channel.unary_unary(
-                '/grpc.Connector/SendHeartbeat',
+                '/fedn.Connector/SendHeartbeat',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
         self.ReassignClient = channel.unary_unary(
-                '/grpc.Connector/ReassignClient',
+                '/fedn.Connector/ReassignClient',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
         self.ReconnectClient = channel.unary_unary(
-                '/grpc.Connector/ReconnectClient',
+                '/fedn.Connector/ReconnectClient',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
@@ -456,7 +456,7 @@ def add_ConnectorServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Connector', rpc_method_handlers)
+            'fedn.Connector', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -475,7 +475,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Connector/AllianceStatusStream',
+        return grpc.experimental.unary_stream(request, target, '/fedn.Connector/AllianceStatusStream',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.FromString,
             options, channel_credentials,
@@ -492,7 +492,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendStatus',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/SendStatus',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
@@ -509,7 +509,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ListActiveClients',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/ListActiveClients',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
             options, channel_credentials,
@@ -526,7 +526,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/AcceptingClients',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/AcceptingClients',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
             options, channel_credentials,
@@ -543,7 +543,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/SendHeartbeat',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/SendHeartbeat',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
@@ -560,7 +560,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReassignClient',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/ReassignClient',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
@@ -577,7 +577,7 @@ class Connector(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Connector/ReconnectClient',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Connector/ReconnectClient',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
@@ -594,17 +594,17 @@ class CombinerStub(object):
             channel: A grpc.Channel.
         """
         self.TaskStream = channel.unary_stream(
-                '/grpc.Combiner/TaskStream',
+                '/fedn.Combiner/TaskStream',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
                 )
         self.SendModelUpdate = channel.unary_unary(
-                '/grpc.Combiner/SendModelUpdate',
+                '/fedn.Combiner/SendModelUpdate',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
         self.SendModelValidation = channel.unary_unary(
-                '/grpc.Combiner/SendModelValidation',
+                '/fedn.Combiner/SendModelValidation',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
@@ -652,7 +652,7 @@ def add_CombinerServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'grpc.Combiner', rpc_method_handlers)
+            'fedn.Combiner', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -671,7 +671,7 @@ class Combiner(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/grpc.Combiner/TaskStream',
+        return grpc.experimental.unary_stream(request, target, '/fedn.Combiner/TaskStream',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
             options, channel_credentials,
@@ -688,7 +688,7 @@ class Combiner(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelUpdate',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelUpdate',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
@@ -705,7 +705,7 @@ class Combiner(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/grpc.Combiner/SendModelValidation',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelValidation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
