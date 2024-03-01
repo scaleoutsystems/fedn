@@ -6,14 +6,18 @@ Q: How do I remove/replace the compute package?
 
 We do not provide an out-of-the box way to clear the compute package for a model that has been intitialized. 
 This is a security constraint enforced to not allow for arbitrary code package replacement in an already configured federation. 
-Once the federated model has been initilized and seeded it should be seeen as immutable. However, during development of a new model
-it will be necessary to reinitialize. Then you can follow this procedure: 
+However, during development of a new model it will be necessary to reinitialize.  
 
-  1. Kill the reducer, all combiners and all clients. 
-  2. Clear the database: Navigate to http://localhost:8081 and delete the entire "fedn-test-network" collection. 
-  3. Start the reducer, combiner and reattach the clients. 
+  1. Set a new compute package using the API: 
 
-There are also additional ways to enable interative development by bypassing the need to use/upload a compute package.  
+    .. code:: python
+
+        >>> from fedn import APIClient
+        >>> client = APIClient(host="localhost", port=8092)
+        >>> client.set_package("package.tgz", helper="numpyhelper")
+        >>> client.set_initial_model("seed.npz")      
+
+   2. Restart the clients. 
 
 Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package
 ------------------------------------------------------------------------------------------------------------
@@ -30,59 +34,55 @@ Note that in production federations this options should in most cases be disallo
 Q: How can other aggregation algorithms can be defined?
 -------------------------------------------------------
 
-Yes. An advanced user can implement/extend the aggregation routine at the combiner level by modifying or replacing the following class:  
-https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/aggregator/fedavg.py 
+There is a plugin interface for extending the framework with new aggregators. See 
 
-There is an abstract base class, 'AggregatorBase' in 'aggregator.py', for your reference. 
+:ref:`agg-label`
 
-In a future release, we plan to extend the aggregation API to make this process more standardized and configurable at runtime. 
 
 Q: What is needed to include other ML frameworks in FEDn like sklearn, xgboost, etc.?
 -------------------------------------------------------------------------------------
 
-FEDn has a black-box model for the model update by clients. What is assumed in the framework are entrypoints/binaries "train.py" and "validate.py" that operate in a SISO fashion: 
+You need to make sure that FEDn knows how to serialize and deseralize the model object into paramters. If you can 
+serialize to a list of numpy ndarrays in your compute package entrypoint (see the Quickstart Tutorial code), you 
+can use the built in "numpyhelper". If this is not possible, you can extend the framework with a custom helper, 
+see the section about model marshaling: 
 
-.. code-block:: bash
-
-    $ ./train.py model_update_in model_update_out
-
-and
-
-.. code-block:: bash
-
-    $ ./validate.py model_update_in validation.json 
-
-These are defined in the client, and are part of the compute package. To support a yet unseen framework or model type, the user needs to implement a helper class that handles serialization and deserialization of the input and output, as well as the aggregation that happens in the combiner. See the following files for examples: 
-
-https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/helpers.py
-https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/kerashelper.py 
-https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/utils/pytorchhelper.py
-
-Naturally, the model needs to be of a type where it makes sense to perform aggregation of model parameters in FedAvg or variants thereof. 
-
-Q: How can I configure the round participation policy: 
-------------------------------------------------------
-
-In the main control implementation https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py you can modify or replace the instance variables "self.client_allocation_policy" with your own implementation to modify the client assignment behavior (see also the methods "client_allocation_policy_first_available" and "client_allocation_policy_least_packed"). In a future release, we plan to make this runtime configurable. 
-
-Q: How can I configure the round validity policy: 
--------------------------------------------------
-
-In the main control implementation https://github.com/scaleoutsystems/fedn/blob/master/fedn/fedn/clients/reducer/control.py you can modify or replace the wiwmethod "check_round_validity_policy". As we expand with more implementations of this policy, we plan to make it runtime configurable. 
+:ref:`helper-label`
 
 Q: Can I start a client listening only to training requests or only on validation requests?:
 --------------------------------------------------------------------------------------------
 
-Yes! From FEDn 0.3.0 there is an option to toggle which message streams a client subscibes to. For example, to start a pure validation client: 
+Yes! You can toggle which message streams a client subscibes to when starting the client. For example, to start a pure validation client: 
 
 .. code-block:: bash
 
     fedn run client --trainer=False -in client.yaml 
 
 
-Q: Do you plan to support additional privacy-preserving mechanisms and frameworks? 
+Q: How do you approach the question of output privacy? 
 ----------------------------------------------------------------------------------
 
-Yes. We plan to add addtional security mechanisms, such as differential privacy and multiparty computation (between client-combiner or for the reduce protocol). Please let us know what you need in your projects to help us prioritize development.   
+We take security in (federated) machine learning very seriously. Federated learning is a foundational technology that impoves input privacy 
+in machine learning by allowing datasets to stay local and private, and not copied to a server. FEDn is designed to provide an industry grade
+implementation of the core communication and aggregration layers of federated learning, as well as configurable modules for traceability, logging
+etc, to allow the developer balance between privacy and auditability. With `FEDn Studio <https://scaleoutsystems.com/framework>`__ we add 
+functionality for user authentication, authorization, and federated client identity management. As such, The FEDn Framework provides
+a comprehensive software suite for implemeting secure federated learning following industry best-practices.     
 
+Going beyond input privacy, there are several additional considerations relating to output privacy and potential attacks on (federated) machine learning systems. For an
+introduction to the topic, see this blog post: 
 
+- `Output Privacy and Federated Machine Learning <https://www.scaleoutsystems.com/post/output-privacy-and-federated-machine-learning>`__
+
+Striking the appropriate balance between system complexity and secturity becomes a use-case dependent endeavor, and we are happy to 
+engage in detailed conversations about this. As an example, one might consider layering differential privacy on top of the aggregation 
+to protect against a honest-but-curious server, at the price of a loss of accuracy for the global model. Depending on the privacy requirements, 
+the model type, the amount of data, the number of local updates possible during training etc, this may or may not be necessary. 
+
+We are engaged in several cybersecurity projects focused on federated machine learning, do not hesitate to reach out to discuss further
+with the Scaleout team.  
+
+- `LEAKPRO: Leakage Profiling and Risk Oversight for Machine Learning Models <https://www.vinnova.se/en/p/leakpro-leakage-profiling-and-risk-oversight-for-machine-learning-models/>`__
+- `Validating a System Development Kit for edge federated learning <https://www.vinnova.se/en/p/validating-a-system-development-kit-for-edge-federated-learning/>`__
+- `Truseted Execution Environments for Federated Learning: <https://www.vinnova.se/en/p/trusted-execution-environments-for-federated-learning/>`__
+- `Robust IoT Security: Intrusion Detection Leveraging Contributions from Multiple Systems <https://www.vinnova.se/en/p/robust-iot-security-intrusion-detection-leveraging-contributions-from-multiple-systems/>`__

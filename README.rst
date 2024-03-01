@@ -10,102 +10,42 @@
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn is a modular and model agnostic framework for hierarchical
-federated machine learning which scales from pseudo-distributed
-development to real-world production networks in distributed,
-heterogeneous environments. For more details see https://arxiv.org/abs/2103.00148.
+FEDn is a modular and model agnostic framework for
+federated machine learning. FEDn is designed to scale from pseudo-distributed
+development on your laptop to real-world production setups in geographically distributed environments. 
 
 Core Features
 =============
 
--  **Scalable and resilient.** FEDn is highly scalable and resilient via a tiered 
-   architecture where multiple aggregation servers (combiners) form a network to divide up the work to coordinate clients and aggregate models. 
-   Recent benchmarks show high performance both for thousands of clients in a cross-device
-   setting and for large model updates (1GB) in a cross-silo setting. 
-   FEDn has the ability to recover from failure in all critical components.  
-   
+-  **Scalable and resilient.** FEDn is scalable and resilient via a tiered 
+   architecture where multiple aggregation servers (combiners) divide up the work to coordinate clients and aggregate models. 
+   Benchmarks show high performance both for thousands of clients in a cross-device
+   setting and for large model updates in a cross-silo setting. 
+   FEDn has the ability to recover from failure in all critical components. 
+
+-  **Security**. FEDn is built using secure industry standard communication protocols (gRPC). A key feature is that
+   clients do not have to expose any ingress ports. 
+
+-  **Track events and training progress in real-time**. FEDn tracks events for clients and aggregation servers, logging to MongoDB. This
+   helps developers monitor traning progress in real-time, and to troubleshoot the distributed computation.  
+   Tracking and model validation data can easily be retrieved using the API enabling development of custom dashboards and visualizations. 
+
+-  **Flexible handling of asynchronous clients**. FEDn supports flexible experimentation 
+   with clients coming in and dropping out during training sessions. Extend aggregators to experiment 
+   with different strategies to handle so called stragglers.
+
 -  **ML-framework agnostic**. Model updates are treated as black-box
    computations. This means that it is possible to support any
    ML model type or framework. Support for Keras and PyTorch is
    available out-of-the-box.
 
--  **Security**. A key feature is that
-   clients do not have to expose any ingress ports.
- 
--  **Track events and training progress**. FEDn logs events in the federation and tracks both training and validation progress in real time. Data is logged as JSON to MongoDB and a user can easily make custom dashboards and visualizations. 
-
-- **UI.** A Flask UI lets users see client model validations in real time, as well as track client training time distributions and key performance metrics for clients and combiners.  
 
 Getting started
 ===============
 
-Prerequisites
--------------
+The best way to get started is to take the quickstart tutorial: 
 
--  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
--  `Docker <https://docs.docker.com/get-docker>`__
--  `Docker Compose <https://docs.docker.com/compose/install>`__
-
-Quick start
------------
-
-Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
-
-.. code-block::
-
-   docker-compose up 
-
-Navigate to http://localhost:8090. You should see the FEDn UI, asking you to upload a compute package. The compute package is a tarball of a project.  The project in turn implements the entrypoints used by clients to compute model updates and to validate a model.  
-
-Locate into 'examples/mnist-pytorch'.  
-
-Start by initializing a virtual enviroment with all of the required dependencies for this project.
-
-.. code-block::
-
-   bin/init_venv.sh
-
-Now create the compute package and a seed model:
-
-.. code-block::
-
-   bin/build.sh
-
-Uploade the generated files 'package.tar.gz' and 'seed.npz' in the FEDn UI. 
-
-The next step is to configure and attach clients. For this we download data and make data partitions: 
-
-Download the data:
-
-.. code-block::
-
-   bin/get_data
-
-
-Split the data in 2 parts for the clients:
-
-.. code-block::
-
-   bin/split_data
-
-Data partitions will be generated in the folder 'data/clients'.  
-
-Now navigate to http://localhost:8090/network and download the client config file. Place it in the example working directory.  
-
-To connect a client that uses the data partition 'data/clients/1/mnist.pt': 
-
-.. code-block::
-
-   docker run \
-  -v $PWD/client.yaml:/app/client.yaml \
-  -v $PWD/data/clients/1:/var/data \
-  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-  --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1 
-
-You are now ready to start training the model at http://localhost:8090/control.
-
-To scale up the experiment, refer to the README at 'examples/mnist-pytorch' (or the corresponding Keras version), where we explain how to use docker-compose to automate deployment of several clients.  
+- `Quickstart PyTorch <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
 
 Documentation
 =============
@@ -113,6 +53,13 @@ You will find more details about the architecture, compute package and how to de
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 -  `Paper <https://arxiv.org/abs/2103.00148>`__
+
+
+FEDn Studio
+===============
+Scaleout also develops FEDn Studio, a web application that extends the FEDn SDK with a UI, production-grade deployment of the FEDn server side on Kubernetes, user authentication/authorization, client identity/API-token management, and project-based multitenancy for segmenting work and resources into collaboration workspaces. FEDn Studio is available as a fully managed service.  
+There is also additional tooling and charts for self-managed deployment on Kubernetes including integration with several projects from the cloud native landscape. 
+See  `FEDn Framework <https://www.scaleoutsystems.com/framework>`__  for more information. 
 
 
 Making contributions

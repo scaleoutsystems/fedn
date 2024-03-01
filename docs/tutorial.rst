@@ -1,4 +1,6 @@
-Tutorial: Compute Package
+.. _tutorial-label:
+
+Compute Package
 ================================================
 
 This tutorial walks you through the design of a *compute package* for a FEDn client. The compute package is a tar.gz bundle of the code to be executed by each data-provider/client.
@@ -13,7 +15,7 @@ The compute package
    :width: 100%
    :align: center
 
-The *compute package* is a tar.gz bundle of the code to be executed by each data-provider/client. 
+The *compute package* is a .tgz bundle of the code to be executed by each data-provider/client. 
 This package is uploaded to the *Controller* upon initialization of the FEDN Network (along with the initial model). 
 When a client connects to the network, it downloads and unpacks the package locally and are then ready to 
 participate in training and/or validation. 
@@ -37,7 +39,7 @@ In the examples we have roughly the following file and folder structure:
 | └── docker-compose.yml/Dockerfile
 | 
 
-The "client" folder is the *compute package* which will become a tar.gz bundle of the code to be executed by 
+The "client" folder is the *compute package* which will become a .tgz bundle of the code to be executed by 
 each data-provider/client. The entry points, mentioned above, are defined in the *fedn.yaml*:
 
 .. code-block:: yaml
@@ -73,12 +75,26 @@ A *entrypoint.py* example can look like this:
     import fire
     import torch
 
-    from fedn.utils.helpers import get_helper, save_metadata, save_metrics
+    from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
-    HELPER_MODULE = 'pytorchhelper'
+    HELPER_MODULE = 'numpyhelper'
+    helper = get_helper(HELPER_MODULE)
+
     NUM_CLASSES = 10
 
-    def _compile_model():
+
+    def _get_data_path():
+        """ For test automation using docker-compose. """
+        # Figure out FEDn client number from container name
+        client = docker.from_env()
+        container = client.containers.get(os.environ['HOSTNAME'])
+        number = container.name[-1]
+
+        # Return data path
+        return f"/var/data/clients/{number}/mnist.pt"
+
+
+    def compile_model():
         """ Compile the pytorch model.
 
         :return: The compiled model.
@@ -98,12 +114,11 @@ A *entrypoint.py* example can look like this:
                 x = torch.nn.functional.log_softmax(self.fc3(x), dim=1)
                 return x
 
-        # Return model
         return Net()
 
 
-    def _load_data(data_path, is_train=True):
-        """ Load data from disk. 
+    def load_data(data_path, is_train=True):
+        """ Load data from disk.
 
         :param data_path: Path to data file.
         :type data_path: str
@@ -130,54 +145,52 @@ A *entrypoint.py* example can look like this:
         return X, y
 
 
-    def _save_model(model, out_path):
-        """ Save model to disk. 
+    def save_parameters(model, out_path):
+        """ Save model paramters to file.
 
-        :param model: The model to save.
+        :param model: The model to serialize.
         :type model: torch.nn.Module
         :param out_path: The path to save to.
         :type out_path: str
         """
-        weights = model.state_dict()
-        weights_np = collections.OrderedDict()
-        for w in weights:
-            weights_np[w] = weights[w].cpu().detach().numpy()
-        helper = get_helper(HELPER_MODULE)
-        helper.save(weights, out_path)
+        parameters_np = [val.cpu().numpy() for _, val in model.state_dict().items()]
+        helper.save(parameters_np, out_path)
 
 
-    def _load_model(model_path):
-        """ Load model from disk.
+    def load_parameters(model_path):
+        """ Load model parameters from file and populate model.
 
         param model_path: The path to load from.
         :type model_path: str
         :return: The loaded model.
         :rtype: torch.nn.Module
         """
-        helper = get_helper(HELPER_MODULE)
-        weights_np = helper.load(model_path)
-        weights = collections.OrderedDict()
-        for w in weights_np:
-            weights[w] = torch.tensor(weights_np[w])
-        model = _compile_model()
-        model.load_state_dict(weights)
-        model.eval()
+        model = compile_model()
+        parameters_np = helper.load(model_path)
+
+        params_dict = zip(model.state_dict().keys(), parameters_np)
+        state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
+        model.load_state_dict(state_dict, strict=True)
         return model
 
 
     def init_seed(out_path='seed.npz'):
-        """ Initialize seed model.
+        """ Initialize seed model and save it to file.
 
         :param out_path: The path to save the seed model to.
         :type out_path: str
         """
         # Init and save
-        model = _compile_model()
-        _save_model(model, out_path)
+        model = compile_model()
+        save_parameters(model, out_path)
 
 
     def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
-        """ Train model.
+        """ Complete a model update.
+
+        Load model paramters from in_model_path (managed by the FEDn client),
+        perform a model update, and write updated paramters
+        to out_model_path (picked up by the FEDn client).
 
         :param in_model_path: The path to the input model.
         :type in_model_path: str
@@ -193,10 +206,10 @@ A *entrypoint.py* example can look like this:
         :type lr: float
         """
         # Load data
-        x_train, y_train = _load_data(data_path)
+        x_train, y_train = load_data(data_path)
 
-        # Load model
-        model = _load_model(in_model_path)
+        # Load parmeters and initialize model
+        model = load_parameters(in_model_path)
 
         # Train
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -220,17 +233,18 @@ A *entrypoint.py* example can look like this:
 
         # Metadata needed for aggregation server side
         metadata = {
+            # num_examples are mandatory
             'num_examples': len(x_train),
             'batch_size': batch_size,
             'epochs': epochs,
             'lr': lr
         }
 
-        # Save JSON metadata file
+        # Save JSON metadata file (mandatory)
         save_metadata(metadata, out_model_path)
 
-        # Save model update
-        _save_model(model, out_model_path)
+        # Save model update (mandatory)
+        save_parameters(model, out_model_path)
 
 
     def validate(in_model_path, out_json_path, data_path=None):
@@ -244,11 +258,12 @@ A *entrypoint.py* example can look like this:
         :type data_path: str
         """
         # Load data
-        x_train, y_train = _load_data(data_path)
-        x_test, y_test = _load_data(data_path, is_train=False)
+        x_train, y_train = load_data(data_path)
+        x_test, y_test = load_data(data_path, is_train=False)
 
         # Load model
-        model = _load_model(in_model_path)
+        model = load_parameters(in_model_path)
+        model.eval()
 
         # Evaluate
         criterion = torch.nn.NLLLoss()
@@ -279,14 +294,13 @@ A *entrypoint.py* example can look like this:
             'init_seed': init_seed,
             'train': train,
             'validate': validate,
-            # '_get_data_path': _get_data_path,  # for testing
         })
         
 
 
-The format of the input and output files (model updates) are dependent on the ML framework used. A helper instance :py:mod:`fedn.utils.plugins.pytorchhelper` is used to handle the serialization and deserialization of the model updates. 
+The format of the input and output files (model updates) are using numpy ndarrays. A helper instance :py:mod:`fedn.utils.helpers.plugins.numpyhelper` is used to handle the serialization and deserialization of the model updates. 
 The first function (_compile_model) is used to define the model architecture and creates an initial model (which is then used by _init_seed). The second function (_load_data) is used to read the data (train and test) from disk.  
-The third function (_save_model) is used to save the model to disk using the pytorch helper module :py:mod:`fedn.utils.plugins.pytorchhelper`. The fourth function (_load_model) is used to load the model from disk, again
+The third function (_save_model) is used to save the model to disk using the numpy helper module :py:mod:`fedn.utils.helpers.plugins.numpyhelper`. The fourth function (_load_model) is used to load the model from disk, again
 using the pytorch helper module. The fifth function (_init_seed) is used to initialize the seed model. The sixth function (_train) is used to train the model, observe the two first arguments which will be set by the FEDn client. 
 The seventh function (_validate) is used to validate the model, again observe the two first arguments which will be set by the FEDn client.
 
@@ -298,20 +312,20 @@ For validations it is a requirement that the output is saved in a valid json for
 
    python entrypoint.py validate in_model_path out_json_path <extra-args>
  
-In the code example we use the helper function :py:meth:`fedn.utils.helpers.save_metrics` to save the validation scores as a json file. 
+In the code example we use the helper function :py:meth:`fedn.utils.helpers.helpers.save_metrics` to save the validation scores as a json file. 
 
-The Dahboard in the FEDn UI will plot any scalar metric in this json file, but you can include any type in the file assuming that it is valid json. These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:mod:`fedn.network.api.client`. 
+These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:meth:`fedn.network.api.client.APIClient.list_validations`. 
 
 Packaging for distribution
 --------------------------
-For the compute package we need to compress the *client* folder as .tar.gz file. E.g. using:
+For the compute package we need to compress the *client* folder as .tgz file. E.g. using:
 
 .. code-block:: bash
 
-    tar -czvf package.tar.gz client
+    tar -czvf package.tgz client
 
 
-This file can then be uploaded to the FEDn network using the FEDn UI or the :py:mod:`fedn.network.api.client`.
+This file can then be uploaded to the FEDn network using the :py:meth:`fedn.network.api.client.APIClient.set_package`.
 
 
 More on local data access 
@@ -333,7 +347,7 @@ We recommend you to test your code before running the client. For example, you c
     python entrypoint.py validate ../model_update.npz ../validation.json --data_path ../data/mnist.npz
 
 
-Once everything works as expected you can start the federated network, upload the tar.gz compute package and the initial model. 
+Once everything works as expected you can start the federated network, upload the .tgz compute package and the initial model (use :py:meth:`fedn.network.api.client.APIClient.set_initial_model` for uploading an initial model). 
 Finally connect a client to the network:
 
 .. code-block:: bash
@@ -343,7 +357,7 @@ Finally connect a client to the network:
     -v $PWD/data/clients/1:/var/data \
     -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
     --network=fedn_default \
-    ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1 
+    ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
 
-The container image "ghcr.io/scaleoutsystems/fedn/fedn:develop-mnist-pytorch" is a pre-built image with the FEDn client and the PyTorch framework installed.
+The container image "ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch" is a pre-built image with the FEDn client and the PyTorch framework installed.
 

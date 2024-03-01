@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         to_test:
-          - "mnist-keras kerashelper"
-          - "mnist-pytorch pytorchhelper"
+          - "mnist-keras numpyhelper"
+          - "mnist-pytorch numpyhelper"
         python_version: ["3.8", "3.9","3.10"]
         os:
           - ubuntu-20.04
@@ -38,9 +38,9 @@ jobs:
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
 
-      - name: run ${{ matrix.to_test }} inference
-        run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
-        if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
+      # - name: run ${{ matrix.to_test }} inference
+      #   run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
+      #   if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
       - name: print logs
         if: failure()

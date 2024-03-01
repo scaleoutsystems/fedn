@@ -27,8 +27,9 @@ from fedn.common.log_config import (add_trace, enable_tracing, get_tracer,
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
+from fedn.network.combiner.modelservice import upload_request_generator
 from fedn.utils.dispatcher import Dispatcher
-from fedn.utils.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
@@ -332,15 +333,11 @@ class Client:
 
         # Start sending heartbeats to the combiner.
         threading.Thread(target=self._send_heartbeat, kwargs={
-                         'update_frequency': config['heartbeat_interval']}, daemon=True).start()
+            'update_frequency': config['heartbeat_interval']}, daemon=True).start()
 
         # Start listening for combiner training and validation messages
-        if config['trainer']:
-            threading.Thread(
-                target=self._listen_to_model_update_request_stream, daemon=True).start()
-        if config['validator']:
-            threading.Thread(
-                target=self._listen_to_model_validation_request_stream, daemon=True).start()
+        threading.Thread(
+            target=self._listen_to_task_stream, daemon=True).start()
         self._attached = True
 
         # Start processing the client message inbox
@@ -378,7 +375,7 @@ class Client:
 
             if retval:
                 if 'checksum' not in config:
-                    logger.warning("Bypassing security validation for local package. Ensure the package source is trusted.")
+                    logger.warning("Bypassing validation of package checksum. Ensure the package source is trusted.")
                 else:
                     checks_out = pr.validate(config['checksum'])
                     if not checks_out:
@@ -408,8 +405,7 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
 
-    @add_trace()
-    def get_model(self, id):
+    def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
 
@@ -419,8 +415,12 @@ class Client:
         :rtype: BytesIO
         """
         data = BytesIO()
+        time_start = time.time()
+        request = fedn.ModelRequest(id=id)
+        request.sender.name = self.name
+        request.sender.role = fedn.WORKER
 
-        for part in self.modelStub.Download(fedn.ModelRequest(id=id), metadata=self.metadata):
+        for part in self.modelStub.Download(request, metadata=self.metadata):
 
             if part.status == fedn.ModelStatus.IN_PROGRESS:
                 data.write(part.data)
@@ -431,10 +431,14 @@ class Client:
             if part.status == fedn.ModelStatus.FAILED:
                 return None
 
+            if part.status == fedn.ModelStatus.UNKNOWN:
+                if time.time() - time_start >= timeout:
+                    return None
+                continue
+
         return data
 
-    @add_trace()
-    def set_model(self, model, id):
+    def send_model_to_combiner(self, model, id):
         """Send a model update to the assigned combiner.
         Uploads the model updated object via a gRPC streaming channel, Upload.
 
@@ -455,33 +459,11 @@ class Client:
 
         bt.seek(0, 0)
 
-        def upload_request_generator(mdl):
-            """Generator function for model upload requests.
-
-            :param mdl: The model update object.
-            :type mdl: BytesIO
-            :return: A model update request.
-            :rtype: fedn.ModelRequest
-            """
-            while True:
-                b = mdl.read(CHUNK_SIZE)
-                if b:
-                    result = fedn.ModelRequest(
-                        data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
-                else:
-                    result = fedn.ModelRequest(
-                        id=id, status=fedn.ModelStatus.OK)
-
-                yield result
-                if not b:
-                    break
-
-        result = self.modelStub.Upload(upload_request_generator(bt), metadata=self.metadata)
+        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
 
         return result
 
-    @add_trace()
-    def _listen_to_model_update_request_stream(self):
+    def _listen_to_task_stream(self):
         """Subscribe to the model update request stream.
 
         :return: None
@@ -494,78 +476,65 @@ class Client:
         # Add client to metadata
         self._add_grpc_metadata('client', self.name)
 
-        while True:
+        while self._attached:
             try:
-                for request in self.combinerStub.ModelUpdateRequestStream(r, metadata=self.metadata):
+                for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
+                    if request:
+                        logger.debug("Received model update request from combiner: {}.".format(request))
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
                         self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request)
+                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request, sesssion_id=request.session_id)
+                        logger.info("Received model update request of type {} for model_id {}".format(request.type, request.model_id))
 
-                        self.inbox.put(('train', request))
+                        if request.type == fedn.StatusType.MODEL_UPDATE and self.config['trainer']:
+                            self.inbox.put(('train', request))
+                        elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config['validator']:
+                            self.inbox.put(('validate', request))
+                        else:
+                            logger.error("Unknown request type: {}".format(request.type))
 
-                    if not self._attached:
-                        return
             except grpc.RpcError as e:
-                _ = e.code()
-            except grpc.RpcError:
-                # TODO: make configurable
-                timeout = 5
-                time.sleep(timeout)
-            except Exception:
-                raise
+                # Handle gRPC errors
+                status_code = e.code()
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.warning("GRPC server unavailable during model update request stream. Retrying.")
+                    # Retry after a delay
+                    time.sleep(5)
+                else:
+                    # Log the error and continue
+                    logger.error(f"An error occurred during model update request stream: {e}")
 
-            if not self._attached:
-                return
+            except Exception as ex:
+                # Handle other exceptions
+                logger.error(f"An error occurred during model update request stream: {ex}")
 
-    @add_trace()
-    def _listen_to_model_validation_request_stream(self):
-        """Subscribe to the model validation request stream.
+        # Detach if not attached
+        if not self._attached:
+            return
 
-        :return: None
-        :rtype: None
-        """
-
-        r = fedn.ClientAvailableMessage()
-        r.sender.name = self.name
-        r.sender.role = fedn.WORKER
-        while True:
-            try:
-                for request in self.combinerStub.ModelValidationRequestStream(r, metadata=self.metadata):
-                    # Process validation request
-                    _ = request.model_id
-                    self._send_status("Recieved model validation request.", log_level=fedn.Status.AUDIT,
-                                      type=fedn.StatusType.MODEL_VALIDATION_REQUEST, request=request)
-                    self.inbox.put(('validate', request))
-
-            except grpc.RpcError:
-                # TODO: make configurable
-                timeout = 5
-                time.sleep(timeout)
-            except Exception:
-                raise
-
-            if not self._attached:
-                return
-
-    @add_trace()
-    def _process_training_request(self, model_id):
+    def _process_training_request(self, model_id: str, session_id: str = None):
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
         :type model_id: str
+        :param session_id: The id of the current session
+        :type session_id: str
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
 
         self._send_status(
-            "\t Starting processing of training request for model_id {}".format(model_id))
+            "\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
         self.state = ClientState.training
 
         try:
             meta = {}
             tic = time.time()
-            mdl = self.get_model(str(model_id))
+            mdl = self.get_model_from_combiner(str(model_id))
+            if mdl is None:
+                logger.error("Could not retrieve model from combiner. Aborting training request.")
+                return None, None
             meta['fetch_model'] = time.time() - tic
 
             inpath = self.helper.get_tmp_path()
@@ -586,9 +555,9 @@ class Client:
             with open(outpath, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
 
-            # Push model update to combiner server
+            # Stream model update to combiner server
             updated_model_id = uuid.uuid4()
-            self.set_model(out_model, str(updated_model_id))
+            self.send_model_to_combiner(out_model, str(updated_model_id))
             meta['upload_model'] = time.time() - tic
 
             # Read the metadata file
@@ -605,23 +574,19 @@ class Client:
             updated_model_id = None
             meta = {'status': 'failed', 'error': str(e)}
 
-        # Push model update to combiner server
-        updated_model_id = uuid.uuid4()
-        self.set_model(out_model, str(updated_model_id))
-        meta['upload_model'] = time.time() - tic
-
         self.state = ClientState.idle
 
         return updated_model_id, meta
 
-    @add_trace()
-    def _process_validation_request(self, model_id, is_inference):
+    def _process_validation_request(self, model_id: str, is_inference: bool, session_id: str = None):
         """Process a validation request.
 
         :param model_id: The model id of the model to be validated.
         :type model_id: str
         :param is_inference: True if the validation is an inference request, False if it is a validation request.
         :type is_inference: bool
+        :param session_id: The id of the current session.
+        :type session_id: str
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
@@ -632,10 +597,13 @@ class Client:
             cmd = 'validate'
 
         self._send_status(
-            f"Processing {cmd} request for model_id {model_id}")
+            f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
         self.state = ClientState.validating
         try:
-            model = self.get_model(str(model_id))
+            model = self.get_model_from_combiner(str(model_id))
+            if model is None:
+                logger.error("Could not retrieve model from combiner. Aborting validation request.")
+                return None
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
@@ -652,7 +620,6 @@ class Client:
 
         except Exception as e:
             logger.warning("Validation failed with exception {}".format(e))
-            raise
             self.state = ClientState.idle
             return None
 
@@ -674,10 +641,12 @@ class Client:
                     tic = time.time()
                     self.state = ClientState.training
                     model_id, meta = self._process_training_request(
-                        request.model_id)
-                    processing_time = time.time()-tic
-                    meta['processing_time'] = processing_time
-                    meta['config'] = request.data
+                        request.model_id, session_id=request.session_id)
+
+                    if meta is not None:
+                        processing_time = time.time()-tic
+                        meta['processing_time'] = processing_time
+                        meta['config'] = request.data
 
                     if model_id is not None:
                         # Send model update to combiner
@@ -694,19 +663,19 @@ class Client:
                         # TODO: Check responses
                         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                         self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE, request=update)
+                                          type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
 
                     else:
                         self._send_status("Client {} failed to complete model update.",
                                           log_level=fedn.Status.WARNING,
-                                          request=request)
+                                          request=request, sesssion_id=request.session_id)
                     self.state = ClientState.idle
                     self.inbox.task_done()
 
                 elif task_type == 'validate':
                     self.state = ClientState.validating
                     metrics = self._process_validation_request(
-                        request.model_id, request.is_inference)
+                        request.model_id, False, request.session_id)
 
                     if metrics is not None:
                         # Send validation
@@ -717,23 +686,20 @@ class Client:
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(request.model_id)
                         validation.data = json.dumps(metrics)
-                        self.str = str(datetime.now())
-                        validation.timestamp = self.str
+                        validation.timestamp.GetCurrentTime()
                         validation.correlation_id = request.correlation_id
+                        validation.session_id = request.session_id
+
                         _ = self.combinerStub.SendModelValidation(
                             validation, metadata=self.metadata)
 
-                        # Set status type
-                        if request.is_inference:
-                            status_type = fedn.StatusType.INFERENCE
-                        else:
-                            status_type = fedn.StatusType.MODEL_VALIDATION
+                        status_type = fedn.StatusType.MODEL_VALIDATION
 
                         self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                          type=status_type, request=validation)
+                                          type=status_type, request=validation, sesssion_id=request.session_id)
                     else:
                         self._send_status("Client {} failed to complete model validation.".format(self.name),
-                                          log_level=fedn.Status.WARNING, request=request)
+                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
 
                     self.state = ClientState.idle
                     self.inbox.task_done()
@@ -745,7 +711,7 @@ class Client:
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
-            self._detach()
+            self.detach()()
 
     @add_trace()
     def _send_heartbeat(self, update_frequency=2.0):
@@ -773,8 +739,7 @@ class Client:
             if not self._attached:
                 return
 
-    @add_trace()
-    def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None):
+    def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
         """Send status message.
 
         :param msg: The message to send.
@@ -787,11 +752,12 @@ class Client:
         :type request: fedn.Request
         """
         status = fedn.Status()
-        status.timestamp = str(datetime.now())
+        status.timestamp.GetCurrentTime()
         status.sender.name = self.name
         status.sender.role = fedn.WORKER
         status.log_level = log_level
         status.status = str(msg)
+        status.session_id = sesssion_id
         if type is not None:
             status.type = type
 

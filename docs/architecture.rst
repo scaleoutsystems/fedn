@@ -51,13 +51,6 @@ Notes on aggregating algorithms
 FEDn is designed to allow customization of the FedML algorithm, following a specified pattern, or programming model. 
 Model aggregation happens on two levels in the network. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. 
 Then, a configurable aggregation protocol on the *Controller* level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, 
-many different possible outcomes can be achieved. Good starting configurations are provided out-of-the-box to help the user get started. See API reference for more details. 
-
-Hierarchical Federated Averaging
-................................
-
-The currently implemented default scheme uses a local SGD strategy on the Combiner level aggregation and a simple average of models on the reducer level. 
-This results in a highly horizontally scalable FedAvg scheme. The strategy works well with most artificial neural network (ANNs) models, 
-and can in general be applied to models where it is possible and makes sense to form mean values of model parameters (for example SVMs).
+many different possible outcomes can be achieved. Good starting configurations are provided out-of-the-box to help the user get started. See :ref:`agg-label` and API reference for more details.
 
 

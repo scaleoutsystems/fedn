@@ -4,10 +4,11 @@
    
    introduction
    quickstart
-   architecture
-   deployment
-   interfaces
+   apiclient
    tutorial
+   architecture
+   aggregators
+   helpers
    faq
    modules
 

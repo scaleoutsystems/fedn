@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from fedn.utils.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 
 class TestHelpers(unittest.TestCase):

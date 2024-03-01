@@ -34,7 +34,7 @@ services:
       - 9001:9001
 
   mongo:
-    image: mongo:5.0.2
+    image: mongo:7.0
     restart: always
     environment:
       - MONGO_INITDB_ROOT_USERNAME=fedn_admin
@@ -57,26 +57,6 @@ services:
       - ME_CONFIG_BASICAUTH_PASSWORD=password
     ports:
       - 8081:8081
-
-  dashboard:
-    environment:
-      - GET_HOSTS_FROM=dns
-      - USER=test
-      - PROJECT=project
-      - FLASK_DEBUG=1
-      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
-    build:
-      context: .
-      args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
-    working_dir: /app
-    volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run dashboard -n reducer --init=config/settings-reducer.yaml"
-    ports:
-      - 8090:8090
 
   api-server:
     environment:
@@ -111,6 +91,7 @@ services:
       context: .
       args:
         BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.24
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -119,6 +100,18 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/grpc_health_probe",
+          "-addr=localhost:12080"
+        ]
+      interval: 2s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - api-server
 
   # Client
   client:
@@ -136,3 +129,6 @@ services:
       - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
     deploy:
       replicas: 0
+    depends_on:
+      combiner:
+        condition: service_healthy
