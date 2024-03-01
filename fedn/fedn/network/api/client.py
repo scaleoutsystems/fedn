@@ -32,7 +32,7 @@ class APIClient:
         # Override potential env variable if token is passed as argument.
         if not token:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
-        
+
         if token:
             self.header = {"Authorization": f"{auth_scheme} {token}"}
 
