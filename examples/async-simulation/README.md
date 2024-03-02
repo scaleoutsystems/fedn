@@ -1,5 +1,5 @@
 # ASYNC SIMULATION 
-This example is intended as a test for asynchronous clients.     
+This example is intended as a tool to experiment with asynchronous client workflows.     
 
 ## Prerequisites
 - [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
@@ -42,12 +42,20 @@ tar -czvf package.tgz client
 python client/entrypoint init_seed
 ```
 
-### Deploy FEDn and two clients
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up 
+### Running a simulation
 
-> **Note**: run with `--scale client=N` to start *N* clients.
+Deploy FEDn on localhost. From the FEDn root directory: 
 
-### Initialize FEDn and run experiments 
+```
+docker-compose up 
+```
+
+Initialize FEDn with the compute package and seed model
+
+```
+python init_fedn.py
+```
+
 See 'Experiments.pynb' or 'launch_client.py' to set the package and seed model.
 
 ## Clean up
