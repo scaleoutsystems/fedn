@@ -1,4 +1,3 @@
-from flasgger import Swagger
 from flask import Flask, jsonify, request
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
@@ -31,17 +30,6 @@ app.register_blueprint(package_bp)
 app.register_blueprint(session_bp)
 app.register_blueprint(combiner_bp)
 app.register_blueprint(round_bp)
-
-template = {
-  "swagger": "2.0",
-  "info": {
-    "title": "FEDn API",
-    "description": "API for the FEDn network.",
-    "version": "0.0.1"
-  }
-}
-
-swagger = Swagger(app, template=template)
 
 
 @app.route("/get_model_trail", methods=["GET"])
@@ -502,8 +490,14 @@ def get_plot_data():
     return response
 
 
-if __name__ == "__main__":
-    config = get_controller_config()
+def start_api(config: dict = None):
+    if config is None:
+        config = get_controller_config()
+
     port = config["port"]
     debug = config["debug"]
     app.run(debug=debug, port=port, host="0.0.0.0")
+
+
+if __name__ == "__main__":
+    start_api()
