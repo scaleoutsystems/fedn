@@ -179,3 +179,33 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     combiner = Combiner(config)
     combiner.run()
+
+
+@run_cmd.command('controller')
+@click.option('-h', '--host', required=False, default="api-server", help='Set hostname.')
+@click.option('-i', '--port', required=False, default=8092, help='Set port.')
+@click.option('--debug', required=False, default=False, help='Set debug.')
+@click.option('-in', '--init', required=False, default=None,
+              help='Path to configuration file to (re)init controller.')
+@click.pass_context
+def controller_cmd(ctx, host, port, debug, init):
+    """
+
+    :param ctx:
+    :param host:
+        type: str
+    :param port:
+        type: int
+    :param debug:
+        type: bool
+    :param init:
+        type: str (path to file with configuration settings for controller)
+    """
+    config = {'host': host, 'port': port, 'debug': debug, 'init': init}
+
+    if config['init']:
+        apply_config(config)
+
+    from fedn.network.api.server import start_api
+
+    start_api(config)
