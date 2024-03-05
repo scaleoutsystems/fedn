@@ -591,9 +591,11 @@ class Client:
                     self.state = ClientState.training
                     model_id, meta = self._process_training_request(
                         request.model_id, session_id=request.session_id)
-                    processing_time = time.time()-tic
-                    meta['processing_time'] = processing_time
-                    meta['config'] = request.data
+
+                    if meta is not None:
+                        processing_time = time.time()-tic
+                        meta['processing_time'] = processing_time
+                        meta['config'] = request.data
 
                     if model_id is not None:
                         # Send model update to combiner

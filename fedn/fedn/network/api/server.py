@@ -1,21 +1,47 @@
+from flasgger import Swagger
 from flask import Flask, jsonify, request
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
 from fedn.network.api.interface import API
+from fedn.network.api.v1.client_routes import bp as client_bp
+from fedn.network.api.v1.combiner_routes import bp as combiner_bp
+from fedn.network.api.v1.model_routes import bp as model_bp
+from fedn.network.api.v1.package_routes import bp as package_bp
+from fedn.network.api.v1.round_routes import bp as round_bp
+from fedn.network.api.v1.session_routes import bp as session_bp
+from fedn.network.api.v1.status_routes import bp as status_bp
+from fedn.network.api.v1.validation_routes import bp as validation_bp
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 statestore_config = get_statestore_config()
 network_id = get_network_config()
 modelstorage_config = get_modelstorage_config()
-statestore = MongoStateStore(
-    network_id, statestore_config["mongo_config"]
-)
+statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
 statestore.set_storage_backend(modelstorage_config)
 control = Control(statestore=statestore)
 api = API(statestore, control)
 app = Flask(__name__)
+app.register_blueprint(client_bp)
+app.register_blueprint(status_bp)
+app.register_blueprint(model_bp)
+app.register_blueprint(validation_bp)
+app.register_blueprint(package_bp)
+app.register_blueprint(session_bp)
+app.register_blueprint(combiner_bp)
+app.register_blueprint(round_bp)
+
+template = {
+  "swagger": "2.0",
+  "info": {
+    "title": "FEDn API",
+    "description": "API for the FEDn network.",
+    "version": "0.0.1"
+  }
+}
+
+swagger = Swagger(app, template=template)
 
 
 @app.route("/get_model_trail", methods=["GET"])
@@ -264,7 +290,9 @@ def set_package():
         file = request.files["file"]
     except KeyError:
         return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_compute_package(file=file, helper_type=helper_type, name=name, description=description)
+    return api.set_compute_package(
+        file=file, helper_type=helper_type, name=name, description=description
+    )
 
 
 @app.route("/get_package", methods=["GET"])
@@ -288,9 +316,7 @@ def list_compute_packages():
     include_active = request.args.get("include_active", None)
 
     return api.list_compute_packages(
-        limit=limit,
-        skip=skip,
-        include_active=include_active
+        limit=limit, skip=skip, include_active=include_active
     )
 
 
@@ -322,20 +348,21 @@ def get_latest_model():
 @app.route("/set_current_model", methods=["PUT"])
 def set_current_model():
     """Set the initial model in the statestore and upload to model repository.
-          Usage with curl:
-          curl -k -X PUT
-              -F id=<model-id>
-              http://localhost:8092/set_current_model
+        Usage with curl:
+        curl -k -X PUT
+            -F id=<model-id>
+            http://localhost:8092/set_current_model
 
-      param: id: The model id to set.
-      type: id: str
-      return: boolean.
-      rtype: json
-      """
+    param: id: The model id to set.
+    type: id: str
+    return: boolean.
+    rtype: json
+    """
     id = request.args.get("id", None)
     if id is None:
         return jsonify({"success": False, "message": "Missing model id."}), 400
     return api.set_current_model(id)
+
 
 # Get initial model endpoint
 
