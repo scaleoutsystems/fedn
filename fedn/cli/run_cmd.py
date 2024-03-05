@@ -161,14 +161,23 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     :param ctx:
     :param discoverhost:
+        type: str
     :param discoverport:
+        type: int
     :param token:
+        type: str
     :param name:
+        type: str
     :param hostname:
+        type: str
     :param port:
+        type: int
     :param secure:
+        type: bool
     :param max_clients:
+        type: int
     :param init:
+        type: str (path to file with configuration settings for combiner)
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
               'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
@@ -176,6 +185,8 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     if config['init']:
         apply_config(config)
+
+    click.echo(f"Starting combiner on {host}:{port}")
 
     combiner = Combiner(config)
     combiner.run()
@@ -205,6 +216,8 @@ def controller_cmd(ctx, host, port, debug, init):
 
     if config['init']:
         apply_config(config)
+
+    click.echo(f"Starting API server on {host}:{port}")
 
     from fedn.network.api.server import start_api
 

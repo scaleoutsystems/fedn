@@ -16,8 +16,6 @@ fedn_config = {
     "statestore": {
         "type": "MongoDB",
         "mongo_config": {
-            # "username": "admin",
-            # "password": "password",
             "host": "localhost",
             "port": 27017
         }
