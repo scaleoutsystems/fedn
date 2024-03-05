@@ -77,8 +77,9 @@ class Client:
         if not match:
             raise ValueError('Unallowed character in client name. Allowed characters: a-z, A-Z, 0-9, _, -.')
 
+        # Folder where the client will store downloaded compute package and logs
         self.name = config['name']
-        dirname = time.strftime("%Y%m%d-%H%M%S")
+        dirname = self.name+"-"+time.strftime("%Y%m%d-%H%M%S")
         self.run_path = os.path.join(os.getcwd(), dirname)
         os.mkdir(self.run_path)
 
@@ -89,8 +90,9 @@ class Client:
 
         # Attach to the FEDn network (get combiner)
         client_config = self._attach()
-
+        print(client_config, flush=True)
         self._initialize_dispatcher(config)
+        print(config, flush=True)
 
         self._initialize_helper(client_config)
         if not self.helper:
@@ -255,6 +257,7 @@ class Client:
             return None
 
         client_config = self._assign()
+        print(client_config, flush=True)
         self._connect(client_config)
 
         if client_config:
@@ -336,7 +339,7 @@ class Client:
                         logger.critical("Validation of local package failed. Client terminating.")
                         self.error_state = True
                         return
-
+            time.sleep(3)
             if retval:
                 pr.unpack()
 

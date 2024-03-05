@@ -22,14 +22,15 @@ import time
 import uuid
 from multiprocessing import Pool, Process
 
-from fedn import APIClient
+import numpy as np
+
 from fedn.network.clients.client import Client
 
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 1,
-    'CLIENTS_ONLINE_FOR_SECONDS': 120
+    'N_CLIENTS': 15,
+    'CLIENTS_ONLINE_FOR_SECONDS': 10
 }
 
 
