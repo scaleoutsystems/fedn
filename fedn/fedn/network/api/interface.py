@@ -1011,7 +1011,7 @@ class API:
         rounds=5,
         round_timeout=180,
         round_buffer_size=-1,
-        delete_models=False,
+        delete_models=True,
         validate=True,
         helper="numpyhelper",
         min_clients=1,
@@ -1053,6 +1053,15 @@ class API:
         if self.control.state() == ReducerState.monitoring:
             return jsonify(
                 {"success": False, "message": "A session is already running."}
+            )
+
+        # Check if compute package is set
+        if not self.statestore.get_compute_package():
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No compute package set. Set compute package before starting session.",
+                }
             )
 
         # Check that initial (seed) model is set

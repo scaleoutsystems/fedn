@@ -3,12 +3,12 @@
    :caption: Table of Contents
    
    introduction
-   architecture
    quickstart
    apiclient
+   tutorial
+   architecture
    aggregators
    helpers
-   tutorial
    faq
    modules
 

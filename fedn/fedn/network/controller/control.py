@@ -154,6 +154,7 @@ class Control(ControlBase):
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
+        round_config["session_id"] = session_config["session_id"]
 
         self.set_round_config(round_id, round_config)
 

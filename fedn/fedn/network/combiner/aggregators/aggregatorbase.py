@@ -116,11 +116,17 @@ class AggregatorBase(ABC):
         model_id = model_update.model_update_id
         model = self.round_handler.load_model_update(helper, model_id)
         # Get relevant metadata
-        data = json.loads(model_update.meta)['training_metadata']
-        config = json.loads(json.loads(model_update.meta)['config'])
-        data['round_id'] = config['round_id']
+        metadata = json.loads(model_update.meta)
+        if 'config' in metadata.keys():
+            # Used in Python client
+            config = json.loads(metadata['config'])
+        else:
+            # Used in C++ client
+            config = json.loads(model_update.config)
+        training_metadata = metadata['training_metadata']
+        training_metadata['round_id'] = config['round_id']
 
-        return model, data
+        return model, training_metadata
 
     def get_state(self):
         """ Get the state of the aggregator's queue, including the number of model updates."""

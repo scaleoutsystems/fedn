@@ -179,17 +179,20 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        logger.debug("grpc.ModelService.Download: Called")
+        logger.info(f'grpc.ModelService.Download: {request.sender.role}:{request.sender.name} requested model {request.id}')
         try:
-            if self.temp_model_storage.get_model_metadata(request.id) != fedn.ModelStatus.OK:
-                logger.error("Error file is not ready")
-                yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
+            status = self.temp_model_storage.get_model_metadata(request.id)
+            if status != fedn.ModelStatus.OK:
+                logger.error(f'model file is not ready: {request.id}, status: {status}')
+                yield fedn.ModelResponse(id=request.id, data=None, status=status)
         except Exception:
             logger.error("Error file does not exist: {}".format(request.id))
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
             obj = self.temp_model_storage.get(request.id)
+            if obj is None:
+                raise Exception(f'File not found: {request.id}')
             with obj as f:
                 while True:
                     piece = f.read(CHUNK_SIZE)
@@ -199,3 +202,4 @@ class ModelService(rpc.ModelServiceServicer):
                     yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
             logger.error("Downloading went wrong: {} {}".format(request.id, e))
+            yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
