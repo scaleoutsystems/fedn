@@ -3,7 +3,7 @@
    :caption: Table of Contents
    
    introduction
-   quickstart
+   start
    apiclient
    tutorial
    architecture
