@@ -182,3 +182,6 @@ config/settings-combiner.yaml
 
 # CI
 client.yaml
+
+# VS Code
+.vscode/

@@ -117,7 +117,7 @@ def init_seed(out_path='seed.npz'):
     save_parameters(model, out_path)
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
+def train(in_model_path, out_model_path, data_path=None, malicious=False, batch_size=32, epochs=1, lr=0.01):
     """ Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -157,6 +157,16 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
             outputs = model(batch_x)
             loss = criterion(outputs, batch_y)
             loss.backward()
+
+            # Add a basic inflation attack for script testing
+            if malicious:
+                ### Gradient inflation attack ###
+                inflation_factor = 10  # Can be adjusted
+                for param in model.parameters():
+                    if param.grad is not None:
+                        param.grad *= inflation_factor
+            ### End of inflation attack code ###
+            
             optimizer.step()
             # Log
             if b % 100 == 0:
