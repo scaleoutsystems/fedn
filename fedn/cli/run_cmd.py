@@ -69,14 +69,15 @@ def validate_client_config(config):
         raise InvalidClientConfig("Could not load config from file. Check config")
 
 
-@main.group('run')
+@main.group('run', invoke_without_command=True)
 @click.pass_context
 def run_cmd(ctx):
     """
 
     :param ctx:
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        click.echo('Running FEDn...')
 
 
 @run_cmd.command('client')
@@ -193,7 +194,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
 
 @run_cmd.command('controller')
-@click.option('-h', '--host', required=False, default="api-server", help='Set hostname.')
+@click.option('-h', '--host', required=False, default="localhost", help='Set hostname.')
 @click.option('-i', '--port', required=False, default=8092, help='Set port.')
 @click.option('--debug', required=False, default=False, help='Set debug.')
 @click.option('-in', '--init', required=False, default=None,
