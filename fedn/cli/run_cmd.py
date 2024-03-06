@@ -1,3 +1,4 @@
+import threading
 import uuid
 
 import click
@@ -9,6 +10,26 @@ from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 
 from .main import main
+
+CONTROLLER_DEFAULTS = {
+    'host': 'localhost',
+    'port': 8092,
+    'debug': False
+}
+
+COMBINER_DEFAULTS = {
+    'discover_host': 'localhost',
+    'discover_port': 8092,
+    'host': 'localhost',
+    'port': 12080,
+    "name": "combiner",
+    "max_clients": 30
+}
+
+CLIENT_DEFAULTS = {
+    'discover_host': 'localhost',
+    'discover_port': 8092,
+}
 
 
 def get_statestore_config_from_file(init):
@@ -78,11 +99,31 @@ def run_cmd(ctx):
     """
     if ctx.invoked_subcommand is None:
         click.echo('Running FEDn...')
+        config: dict = {'host': CONTROLLER_DEFAULTS['host'], 'port': CONTROLLER_DEFAULTS['port'], 'debug': CONTROLLER_DEFAULTS['debug']}
+        click.echo(f"Starting API server on {config['host']}:{config['port']}")
+
+        from fedn.network.api.server import start_api
+
+        thread_api = threading.Thread(target=start_api, args=(config,))
+        thread_api.start()
+
+        config = {'discover_host': COMBINER_DEFAULTS['discover_host'], 'discover_port': COMBINER_DEFAULTS['port'], 'token': None, 'host': COMBINER_DEFAULTS['host'],
+              'port': COMBINER_DEFAULTS['port'], 'fqdn': None, 'name': COMBINER_DEFAULTS['name'], 'secure': False, 'verify': False, 'max_clients': COMBINER_DEFAULTS['max_clients'],
+              'init': None}
+
+        click.echo(f"Starting combiner on {config['host']}:{config['port']}")
+
+        combiner = Combiner(config)
+        thread_combiner = threading.Thread(target=combiner.run)
+        thread_combiner.start()
+
+        thread_api.join()
+        thread_combiner.join()
 
 
 @run_cmd.command('client')
-@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services(reducer).')
-@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
+@click.option('-d', '--discoverhost', default=CLIENT_DEFAULTS['discover_host'], required=False, help='Hostname for discovery services(reducer).')
+@click.option('-p', '--discoverport', default=CLIENT_DEFAULTS['discover_port'], required=False, help='Port for discovery services (reducer).')
 @click.option('--token', required=False, help='Set token provided by reducer if enabled')
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
@@ -144,16 +185,16 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
 
 
 @run_cmd.command('combiner')
-@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services (reducer).')
-@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
+@click.option('-d', '--discoverhost', required=False, default=COMBINER_DEFAULTS['discover_host'], help='Hostname for discovery services (reducer).')
+@click.option('-p', '--discoverport', required=False, default=COMBINER_DEFAULTS['discover_port'], help='Port for discovery services (reducer).')
 @click.option('-t', '--token', required=False, help='Set token provided by reducer if enabled')
-@click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8], help='Set name for combiner.')
-@click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
-@click.option('-i', '--port', required=False, default=12080, help='Set port.')
+@click.option('-n', '--name', required=False, default=COMBINER_DEFAULTS["name"] + str(uuid.uuid4())[:8], help='Set name for combiner.')
+@click.option('-h', '--host', required=False, default=COMBINER_DEFAULTS['host'], help='Set hostname.')
+@click.option('-i', '--port', required=False, default=COMBINER_DEFAULTS['port'], help='Set port.')
 @click.option('-f', '--fqdn', required=False, default=None, help='Set fully qualified domain name')
 @click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
 @click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST discovery service (reducer)')
-@click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
+@click.option('-c', '--max_clients', required=False, default=COMBINER_DEFAULTS["max_clients"], help='The maximal number of client connections allowed.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init combiner.')
 @click.pass_context
@@ -194,9 +235,9 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
 
 @run_cmd.command('controller')
-@click.option('-h', '--host', required=False, default="localhost", help='Set hostname.')
-@click.option('-i', '--port', required=False, default=8092, help='Set port.')
-@click.option('--debug', required=False, default=False, help='Set debug.')
+@click.option('-h', '--host', required=False, default=CONTROLLER_DEFAULTS['host'], help='Set hostname.')
+@click.option('-i', '--port', required=False, default=CONTROLLER_DEFAULTS['port'], help='Set port.')
+@click.option('--debug', required=False, default=CONTROLLER_DEFAULTS['debug'], help='Set debug.')
 @click.option('-in', '--init', required=False, default=None,
               help='Path to configuration file to (re)init controller.')
 @click.pass_context
