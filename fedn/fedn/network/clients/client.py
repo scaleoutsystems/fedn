@@ -18,6 +18,7 @@ import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
 from OpenSSL import SSL
+from tenacity import retry, stop_after_attempt
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
@@ -90,9 +91,7 @@ class Client:
 
         # Attach to the FEDn network (get combiner)
         client_config = self._attach()
-        print(client_config, flush=True)
         self._initialize_dispatcher(config)
-        print(config, flush=True)
 
         self._initialize_helper(client_config)
         if not self.helper:
@@ -257,7 +256,6 @@ class Client:
             return None
 
         client_config = self._assign()
-        print(client_config, flush=True)
         self._connect(client_config)
 
         if client_config:
@@ -297,6 +295,10 @@ class Client:
         # Start processing the client message inbox
         threading.Thread(target=self.process_request, daemon=True).start()
 
+    @retry(stop=stop_after_attempt(3))
+    def untar_package(self, package_runtime):
+        package_runtime.unpack()
+
     def _initialize_dispatcher(self, config):
         """ Initialize the dispatcher for the client.
 
@@ -335,9 +337,10 @@ class Client:
                         logger.critical("Validation of local package failed. Client terminating.")
                         self.error_state = True
                         return
-            time.sleep(3)
+
             if retval:
-                pr.unpack()
+                self.untar_package(pr)
+                # pr.unpack()
 
             self.dispatcher = pr.dispatcher(self.run_path)
             try:
