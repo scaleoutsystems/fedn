@@ -29,7 +29,7 @@ from fedn.network.clients.client import Client
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 10,
+    'N_CLIENTS': 15,
     'CLIENTS_ONLINE_FOR_SECONDS': 10
 }
 
