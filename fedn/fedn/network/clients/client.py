@@ -21,8 +21,8 @@ from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (  # add_trace, enable_tracing, get_tracer,
-    log_remote, logger, set_log_level_from_string, set_log_stream)
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
