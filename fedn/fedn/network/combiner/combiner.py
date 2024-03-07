@@ -562,7 +562,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 return response
 
         except Exception as e:
-            logger.error("Combiner not properly configured! {}".format(e), flush=True)
+            logger.error("Combiner not properly configured! {}".format(e))
             raise
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER

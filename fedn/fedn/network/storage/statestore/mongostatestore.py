@@ -279,7 +279,7 @@ class MongoStateStore:
 
                 return True
         except Exception as e:
-            logger.error("ERROR: {}".format(e), flush=True)
+            logger.error("ERROR: {}".format(e))
 
         return False
 

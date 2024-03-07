@@ -84,7 +84,7 @@ class ConnectorClient:
                                    allow_redirects=True,
                                    headers={'Authorization': 'Token {}'.format(self.token)})
         except Exception as e:
-            logger.debug('***** {}'.format(e), flush=True)
+            logger.debug('***** {}'.format(e))
             return Status.Unassigned, {}
 
         if retval.status_code == 400:

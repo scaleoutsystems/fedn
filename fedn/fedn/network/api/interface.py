@@ -656,7 +656,7 @@ class API:
             "certificate": cert,
             "helper_type": self.control.statestore.get_helper(),
         }
-        logger.info(f"Seding payload: {payload}")
+        logger.info(f"Sending payload: {payload}")
 
         return jsonify(payload)
 
