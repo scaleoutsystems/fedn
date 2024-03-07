@@ -9,8 +9,14 @@ from .shared import API_VERSION, CONTROLLER_DEFAULTS
 
 def print_response(response, entity_name: str):
     """
+    Prints the api response to the cli.
     :param response:
-    :return:
+        type: array
+        description: list of entities
+    :param entity_name:
+        type: string
+        description: name of entity
+    return: None
     """
     if response.status_code == 200:
         json_data = response.json()
