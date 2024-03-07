@@ -9,6 +9,7 @@ from flask import jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -274,7 +275,7 @@ class API:
                 name = package_objects["storage_file_name"]
             except KeyError as e:
                 message = "No compute package found. Key error."
-                print(e)
+                logger.debug(e)
                 return None, message
             return name, "success"
 
@@ -655,7 +656,7 @@ class API:
             "certificate": cert,
             "helper_type": self.control.statestore.get_helper(),
         }
-        print("Seding payload: ", payload, flush=True)
+        logger.info(f"Seding payload: {payload}")
 
         return jsonify(payload)
 
@@ -687,7 +688,7 @@ class API:
             model = helper.load(object)
             self.control.commit(file.filename, model)
         except Exception as e:
-            print(e, flush=True)
+            logger.debug(e)
             return jsonify({"success": False, "message": e})
 
         return jsonify(
@@ -967,7 +968,7 @@ class API:
         except Exception as e:
             valid_metrics = None
             box_plot = None
-            print(e, flush=True)
+            logger.debug(e)
 
         result = {
             "valid_metrics": valid_metrics,
@@ -1081,7 +1082,7 @@ class API:
                 clients_available = clients_available + int(nr_active_clients)
             except CombinerUnavailableError as e:
                 # TODO: Handle unavailable combiner, stop session or continue?
-                print("COMBINER UNAVAILABLE: {}".format(e), flush=True)
+                logger.error("COMBINER UNAVAILABLE: {}".format(e))
                 continue
 
         if clients_available < min_clients:

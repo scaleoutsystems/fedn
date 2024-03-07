@@ -84,32 +84,15 @@ class Client:
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
 
-        # if config.get('telemetry', False):
-        #     logger.debug("Telemetry enabled.")
-        #     log_remote()
-        #     enable_tracing()
-        #     proj = config['discover_host'].split('/')[1]
-        #     self.trace_attribs = [["project", proj], ["client_name", config["name"]]]
-        #     system_info, gpu_info = get_system_info()
-        #     print(system_info)
-        #     with get_tracer().start_as_current_span("TelemetryInit") as span:
-        #         for key, value in system_info.items():
-        #             span.set_attribute(key, value)
-        #         print(gpu_info)
-        #         for attrib in gpu_info:
-        #             span.set_attribute(attrib[0], attrib[1])
-        #         for attrib in self.trace_attribs:
-        #             span.set_attribute(attrib[0], attrib[1])
-
         self.connector = ConnectorClient(host=config['discover_host'],
-                                        port=config['discover_port'],
-                                        token=config['token'],
-                                        name=config['name'],
-                                        remote_package=config['remote_compute_context'],
-                                        force_ssl=config['force_ssl'],
-                                        verify=config['verify'],
-                                        combiner=config['preferred_combiner'],
-                                        id=config['client_id'])
+                                         port=config['discover_port'],
+                                         token=config['token'],
+                                         name=config['name'],
+                                         remote_package=config['remote_compute_context'],
+                                         force_ssl=config['force_ssl'],
+                                         verify=config['verify'],
+                                         combiner=config['preferred_combiner'],
+                                         id=config['client_id'])
 
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config['name'])

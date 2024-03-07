@@ -75,7 +75,7 @@ class Aggregator(AggregatorBase):
 
                 logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
-                print("***** ", model_update, flush=True)
+                logger.info("***** {}".format(model_update))
 
                 # Increment total number of examples
                 total_examples += metadata['num_examples']
@@ -88,7 +88,7 @@ class Aggregator(AggregatorBase):
                     pseudo_gradient = helper.increment_average(
                         pseudo_gradient, pseudo_gradient_next, metadata['num_examples'], total_examples)
 
-                print("NORM PSEUDOGRADIENT: ", helper.norm(pseudo_gradient), flush=True)
+                logger.info("NORM PSEUDOGRADIENT: {}".format(helper.norm(pseudo_gradient)))
 
                 nr_aggregated_models += 1
                 # Delete model from storage

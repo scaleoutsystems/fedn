@@ -5,6 +5,7 @@ from datetime import datetime
 import pymongo
 from google.protobuf.json_format import MessageToDict
 
+from fedn.common.log_config import logger
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
 
@@ -48,7 +49,7 @@ class MongoStateStore:
 
             self.__inited = True
         except Exception as e:
-            print("FAILED TO CONNECT TO MONGODB, {}".format(e), flush=True)
+            logger.error("FAILED TO CONNECT TO MONGODB, {}".format(e))
             self.state = None
             self.model = None
             self.control = None
@@ -124,7 +125,7 @@ class MongoStateStore:
                 True,
             )
         else:
-            print(
+            logger.info(
                 "Not updating state, already in {}".format(
                     ReducerStateToString(state)
                 )
@@ -278,7 +279,7 @@ class MongoStateStore:
 
                 return True
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error("ERROR: {}".format(e), flush=True)
 
         return False
 
@@ -349,7 +350,7 @@ class MongoStateStore:
             )
 
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error("ERROR: {}".format(e))
             return False
 
         return True
@@ -400,7 +401,7 @@ class MongoStateStore:
             ret = self.control.package.find_one(find, projection)
             return ret
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error("ERROR: {}".format(e))
             return None
 
     def list_compute_packages(self, limit: int = None, skip: int = None, sort_key="committed_at", sort_order=pymongo.DESCENDING):
@@ -433,7 +434,7 @@ class MongoStateStore:
             count = self.control.package.count_documents(find_option)
 
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error("ERROR: {}".format(e))
             return None
 
         return {
@@ -780,9 +781,8 @@ class MongoStateStore:
         try:
             self.combiners.delete_one({"name": combiner})
         except Exception:
-            print(
-                "WARNING, failed to delete combiner: {}".format(combiner),
-                flush=True,
+            logger.error(
+                "Failed to delete combiner: {}".format(combiner),
             )
 
     def set_client(self, client_data):
@@ -843,7 +843,7 @@ class MongoStateStore:
             count = self.clients.count_documents(find)
 
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error("{}".format(e))
 
         return {
             "result": result,
@@ -879,7 +879,7 @@ class MongoStateStore:
             result = self.clients.aggregate(pipeline)
 
         except Exception as e:
-            print("ERROR: {}".format(e), flush=True)
+            logger.error(e)
 
         return result
 

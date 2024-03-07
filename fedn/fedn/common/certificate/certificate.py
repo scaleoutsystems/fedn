@@ -5,6 +5,8 @@ import uuid
 
 from OpenSSL import crypto
 
+from fedn.common.log_config import logger
+
 
 class Certificate:
     """
@@ -20,9 +22,9 @@ class Certificate:
         try:
             os.makedirs(cwd)
         except OSError:
-            print("Directory exists, will store all cert and keys here.")
+            logger.info("Directory exists, will store all cert and keys here.")
         else:
-            print(
+            logger.info(
                 "Successfully created the directory to store cert and keys in {}".format(cwd))
 
         self.key_path = os.path.join(cwd, key_name)

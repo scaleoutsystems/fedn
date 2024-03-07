@@ -121,8 +121,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'certificate': cert,
                        'key': key}
 
-        print(announce_config, flush=True)
-
         # Set up model repository
         self.repository = Repository(
             announce_config['storage']['storage_config'])
