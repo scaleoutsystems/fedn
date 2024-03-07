@@ -67,7 +67,7 @@ class CustomHTTPHandler(logging.handlers.HTTPHandler):
 
 
 # Remote logging can only be configured via environment variables for now.
-REMOTE_LOG_SERVER = os.environ.get('FEDN_REMOTE_LOG_URL', False)
+REMOTE_LOG_SERVER = os.environ.get('FEDN_REMOTE_LOG_SERVER', False)
 REMOTE_LOG_PATH = os.environ.get('FEDN_REMOTE_LOG_PATH', False)
 REMOTE_LOG_LEVEL = os.environ.get('FEDN_REMOTE_LOG_LEVEL', 'INFO')
 
