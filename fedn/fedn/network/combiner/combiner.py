@@ -12,8 +12,8 @@ from enum import Enum
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import (logger, periodic_function,
+                                    set_log_level_from_string, set_log_stream)
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundHandler
@@ -62,6 +62,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
+        periodic_function()
 
         # Client queues
         self.clients = {}
