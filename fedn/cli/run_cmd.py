@@ -88,7 +88,7 @@ def run_cmd(ctx):
         thread_api = threading.Thread(target=start_api, args=(config,))
         thread_api.start()
 
-        config = {'discover_host': COMBINER_DEFAULTS['discover_host'], 'discover_port': COMBINER_DEFAULTS['port'], 'token': None, 'host': COMBINER_DEFAULTS['host'],
+        config = {'discover_host': COMBINER_DEFAULTS['discover_host'], 'discover_port': COMBINER_DEFAULTS['discover_port'], 'token': None, 'host': COMBINER_DEFAULTS['host'],
               'port': COMBINER_DEFAULTS['port'], 'fqdn': None, 'name': COMBINER_DEFAULTS['name'], 'secure': False, 'verify': False, 'max_clients': COMBINER_DEFAULTS['max_clients'],
               'init': None}
 
