@@ -2,5 +2,4 @@ data
 *.npz
 *.tgz
 *.tar.gz
-.async-simulation
 client.yaml

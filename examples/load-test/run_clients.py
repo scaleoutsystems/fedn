@@ -20,8 +20,7 @@ from fedn.network.clients.client import Client
 
 DISCOVER_HOST = '127.0.0.1'
 DISCOVER_PORT = 8092
-N_CLIENTS = 5
-CLIENTS_AVAILABLE_TIME = 120
+N_CLIENTS = 3
 
 config = {'discover_host': DISCOVER_HOST, 'discover_port': DISCOVER_PORT, 'token': None, 'name': 'testclient',
           'client_id': 1, 'remote_compute_context': True, 'force_ssl': False, 'dry_run': False, 'secure': False,
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     while not client.session_is_finished(session_config_fedavg['session_id']):
         time.sleep(1)
 
-    # Disconnect clients
-    time.sleep(CLIENTS_AVAILABLE_TIME)
+    print("Session ID: ", session_config_fedavg['session_id'])
+
     for client in clients:
         client.detach()
