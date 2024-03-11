@@ -90,15 +90,15 @@ class Client:
         self.inbox = queue.Queue()
 
         # Attach to the FEDn network (get combiner)
-        client_config = self.assign()
-        self.connect(client_config)
+        combiner_config = self.assign()
+        self.connect(combiner_config)
 
         self._initialize_dispatcher(config)
 
-        self._initialize_helper(client_config)
+        self._initialize_helper(combiner_config)
         if not self.helper:
             logger.warning("Failed to retrieve helper class settings: {}".format(
-                client_config))
+                combiner_config))
 
         self._subscribe_to_combiner(config)
 
@@ -119,7 +119,7 @@ class Client:
                 time.sleep(5)
                 continue
             if status == Status.Assigned:
-                client_config = response
+                combiner_config = response
                 break
             if status == Status.UnAuthorized:
                 logger.critical(response)
@@ -130,8 +130,8 @@ class Client:
             time.sleep(5)
 
         logger.info("Assignment successfully received.")
-        logger.info("Received combiner configuration: {}".format(client_config))
-        return client_config
+        logger.info("Received combiner configuration: {}".format(combiner_config))
+        return combiner_config
 
     def _add_grpc_metadata(self, key, value):
         """Add metadata for gRPC calls.
@@ -169,36 +169,36 @@ class Client:
         cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
         return cert
 
-    def connect(self, client_config):
-        """Connect to assigned combiner.
+    def connect(self, combiner_config):
+        """Connect to combiner.
 
-        :param client_config: A configuration dictionary containing connection information for
+        :param combiner_config: A configuration dictionary containing connection information for
         the combiner.
-        :type client_config: dict
+        :type combiner_config: dict
         """
 
         if self._connected:
             logger.info("Client is already attached. ")
             return None
 
-        # TODO use the client_config['certificate'] for setting up secure comms'
-        host = client_config['host']
+        # TODO use the combiner_config['certificate'] for setting up secure comms'
+        host = combiner_config['host']
         # Add host to gRPC metadata
         self._add_grpc_metadata('grpc-server', host)
         logger.info("Client using metadata: {}.".format(self.metadata))
-        port = client_config['port']
+        port = combiner_config['port']
         secure = False
-        if client_config['fqdn'] is not None:
-            host = client_config['fqdn']
+        if combiner_config['fqdn'] is not None:
+            host = combiner_config['fqdn']
             # assuming https if fqdn is used
             port = 443
         logger.info(f"Initiating connection to combiner host at: {host}:{port}")
 
-        if client_config['certificate']:
+        if combiner_config['certificate']:
             logger.info("Utilizing CA certificate for GRPC channel authentication.")
             secure = True
             cert = base64.b64decode(
-                client_config['certificate'])  # .decode('utf-8')
+                combiner_config['certificate'])  # .decode('utf-8')
             credentials = grpc.ssl_channel_credentials(root_certificates=cert)
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
@@ -238,30 +238,31 @@ class Client:
                                                                              port))
 
         logger.info("Using {} compute package.".format(
-            client_config["package"]))
+            combiner_config["package"]))
 
         self._connected = True
 
     def disconnect(self):
         """Disconnect from the combiner."""
         if not self._connected:
-            logger.info("Client is not attached.")
+            logger.info("Client is not connected.")
 
         self.channel.close()
         self._connected = False
+        logger.info("Client {} disconnected.".format(self.name))
 
-    def _initialize_helper(self, client_config):
+    def _initialize_helper(self, combiner_config):
         """Initialize the helper class for the client.
 
-        :param client_config: A configuration dictionary containing connection information for
+        :param combiner_config: A configuration dictionary containing connection information for
         | the discovery service (controller) and settings governing e.g.
         | client-combiner assignment behavior.
-        :type client_config: dict
+        :type combiner_config: dict
         :return:
         """
 
-        if 'helper_type' in client_config.keys():
-            self.helper = get_helper(client_config['helper_type'])
+        if 'helper_type' in combiner_config.keys():
+            self.helper = get_helper(combiner_config['helper_type'])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
@@ -604,12 +605,15 @@ class Client:
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
 
-                        # TODO: Check responses
-                        _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
-
-                        self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
-                                         type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
-
+                        try:
+                            _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
+                            self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
+                                             type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
+                        except grpc.RpcError as e:
+                            status_code = e.code()
+                            logger.warning("GRPC error, {}.".format(
+                                status_code.name))
+                            logger.debug(e)
                     else:
                         self.send_status("Client {} failed to complete model update.",
                                          log_level=fedn.Status.WARNING,
@@ -636,13 +640,18 @@ class Client:
                         validation.correlation_id = request.correlation_id
                         validation.session_id = request.session_id
 
-                        _ = self.combinerStub.SendModelValidation(
-                            validation, metadata=self.metadata)
+                        try:
+                            _ = self.combinerStub.SendModelValidation(
+                                validation, metadata=self.metadata)
 
-                        status_type = fedn.StatusType.MODEL_VALIDATION
-
-                        self.send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                         type=status_type, request=validation, sesssion_id=request.session_id)
+                            status_type = fedn.StatusType.MODEL_VALIDATION
+                            self.send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
+                                             type=status_type, request=validation, sesssion_id=request.session_id)
+                        except grpc.RpcError as e:
+                            status_code = e.code()
+                            logger.warning("GRPC error, {}.".format(
+                                status_code.name))
+                            logger.debug(e)
                     else:
                         self.send_status("Client {} failed to complete model validation.".format(self.name),
                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
@@ -656,7 +665,7 @@ class Client:
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
-            self.detach()()
+            self.disconnect()
 
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.

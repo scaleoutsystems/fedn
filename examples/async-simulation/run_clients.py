@@ -29,8 +29,8 @@ from fedn.network.clients.client import Client
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 2,
-    'N_CYCLES': 3,
+    'N_CLIENTS': 4,
+    'N_CYCLES': 2,
     'CLIENTS_MEAN_DELAY': 10,
     'CLIENTS_ONLINE_FOR_SECONDS': 20
 }
@@ -63,7 +63,7 @@ def run_client(online_for=120, name='client'):
         time.sleep(t_start)
         fl_client = Client(conf)
         time.sleep(online_for)
-        fl_client.detach()
+        fl_client.disconnect()
 
 
 if __name__ == '__main__':
