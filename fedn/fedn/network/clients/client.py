@@ -33,9 +33,6 @@ from fedn.utils.helpers.helpers import get_helper
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
-import os
-import socket
-
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
@@ -579,7 +576,6 @@ class Client:
         self.state = ClientState.idle
         return validation
 
-    
     def process_request(self):
         """Process training and validation tasks. """
         while True:
@@ -659,14 +655,12 @@ class Client:
             except queue.Empty:
                 pass
 
-    
     def _handle_combiner_failure(self):
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
             self.detach()()
 
-    
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
 
@@ -722,7 +716,6 @@ class Client:
                                                    status.status))
         _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
-    
     def run(self):
         """ Run the client. """
         try:

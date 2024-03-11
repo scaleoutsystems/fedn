@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import os
-from functools import wraps
 
 import requests
 import urllib3
@@ -39,7 +38,7 @@ class CustomHTTPHandler(logging.handlers.HTTPHandler):
         # record.apptype = self.apptype
 
         # Convert log record to json format
-        
+
         log_entry = self.mapLogRecord(record)
 
         log_entry = {
