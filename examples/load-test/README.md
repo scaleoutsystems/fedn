@@ -40,17 +40,14 @@ tar -czvf package.tgz client
 python client/entrypoint init_seed
 ```
 
-### Deploy FEDn and two clients
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up 
-
-### Initialize the FEDn network 
+### Initialize the FEDn network and run an experiment
 Edit 'init_fedn.py' to configure the FEDn host (controller) to connect to, then
 ```
 python init_fedn.py
 ```
 
-Launch clients
-> **Note**: run with `--scale client=N` to start *N* clients.
+Launch clients and run a training session/experiment:
 
-## Clean up
-You can clean up by running `docker-compose down -v`.
+```
+python run_clients.py
+```

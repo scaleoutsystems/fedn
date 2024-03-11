@@ -50,8 +50,8 @@ if __name__ == '__main__':
     }
 
     result_fedavg = client.start_session(**session_config_fedavg)
-    while not client.session_is_finished(session_id):
-        time.sleep(2)
+    while not client.session_is_finished(session_config_fedavg['session_id']):
+        time.sleep(1)
 
     # Disconnect clients
     time.sleep(CLIENTS_AVAILABLE_TIME)
