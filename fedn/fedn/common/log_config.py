@@ -26,19 +26,13 @@ handler.setFormatter(formatter)
 
 
 class CustomHTTPHandler(logging.handlers.HTTPHandler):
-    def __init__(self, host, url, method='POST', credentials=None, projectname='', apptype=''):
+    def __init__(self, host, url, method='POST', token=None, projectname='', apptype=''):
         super().__init__(host, url, method)
-        self.credentials = credentials  # Basic auth (username, password)
+        self.token = token
         self.projectname = projectname
         self.apptype = apptype
 
     def emit(self, record):
-        # Customize the log record, for example, by adding metadata
-        # record.projectname = self.projectname
-        # record.apptype = self.apptype
-
-        # Convert log record to json format
-
         log_entry = self.mapLogRecord(record)
 
         log_entry = {
@@ -52,17 +46,14 @@ class CustomHTTPHandler(logging.handlers.HTTPHandler):
         headers = {
             'Content-type': 'application/json',
         }
-        if self.credentials:
-            # import base64
-            # auth = base64.b64encode(f"{self.credentials[0]}:{self.credentials[1]}".encode('utf-8')).decode('utf-8')
-            # headers['Authorization'] = f'Basic {auth}'
-            headers['Authorization'] = f"Token {self.credentials[1]}"
-        # Use http.client or requests to send the log data
+        if self.token:
+            remote_token_protocol = os.environ.get('FEDN_REMOTE_LOG_TOKEN_PROTOCOL', "Token")
+            headers['Authorization'] = f"{remote_token_protocol} {self.token}"
         if self.method.lower() == 'post':
             requests.post(self.host+self.url, json=log_entry, headers=headers)
         else:
-            # Implement other methods if needed, e.g., GET
-            pass
+            # No other methods implemented.
+            return
 
 
 # Remote logging can only be configured via environment variables for now.
@@ -72,17 +63,13 @@ REMOTE_LOG_LEVEL = os.environ.get('FEDN_REMOTE_LOG_LEVEL', 'INFO')
 
 if REMOTE_LOG_SERVER:
     rloglevel = log_levels.get(REMOTE_LOG_LEVEL, logging.INFO)
-    remote_username = os.environ.get('FEDN_REMOTE_LOG_USERNAME', False)
-    remote_password = os.environ.get('FEDN_REMOTE_LOG_PASSWORD', False)
-    if remote_username and remote_password:
-        credentials = (remote_username, remote_password)
-    else:
-        credentials = None
+    remote_token = os.environ.get('FEDN_REMOTE_LOG_TOKEN', None)
+    
     http_handler = CustomHTTPHandler(
         host=REMOTE_LOG_SERVER,
         url=REMOTE_LOG_PATH,
         method='POST',
-        credentials=credentials,
+        token=remote_token,
         projectname='test-project',
         apptype='client'
     )
