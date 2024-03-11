@@ -1,6 +1,7 @@
 import collections
 import copy
 import json
+import time
 import uuid
 
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ client = APIClient(DISCOVER_HOST, DISCOVER_PORT)
 
 if __name__ == '__main__':
 
-    session_config_fedavg = {
+    session_config = {
         "helper": "numpyhelper",
         "session_id": str(uuid.uuid4()),
         "aggregator": "fedavg",
@@ -23,4 +24,7 @@ if __name__ == '__main__':
         "rounds": 5,
     }
 
-    result_fedavg = client.start_session(**session_config_fedavg)
+    result = client.start_session(**session_config)
+
+    while not client.session_is_finished(session_config['session_id']):
+        time.sleep(2)

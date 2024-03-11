@@ -29,10 +29,10 @@ from fedn.network.clients.client import Client
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 1,
-    'N_CYCLES': 2,
+    'N_CLIENTS': 2,
+    'N_CYCLES': 3,
     'CLIENTS_MEAN_DELAY': 10,
-    'CLIENTS_ONLINE_FOR_SECONDS': 10
+    'CLIENTS_ONLINE_FOR_SECONDS': 20
 }
 
 client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': settings['DISCOVER_PORT'], 'token': None, 'name': 'testclient',
@@ -42,7 +42,7 @@ client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': se
                  'reconnect_after_missed_heartbeat': 30}
 
 
-def run_client(mean_delay, online_for=120, name='client'):
+def run_client(online_for=120, name='client'):
     """ Simulates a client that starts and stops
     at random intervals.
 

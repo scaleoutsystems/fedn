@@ -56,7 +56,7 @@ class Client:
         """Initialize the client."""
         self.state = None
         self.error_state = False
-        self._attached = False
+        self._connected = False
         self._missed_heartbeat = 0
         self.config = config
 
@@ -90,7 +90,9 @@ class Client:
         self.inbox = queue.Queue()
 
         # Attach to the FEDn network (get combiner)
-        client_config = self._attach()
+        client_config = self.assign()
+        self.connect(client_config)
+
         self._initialize_dispatcher(config)
 
         self._initialize_helper(client_config)
@@ -102,7 +104,7 @@ class Client:
 
         self.state = ClientState.idle
 
-    def _assign(self):
+    def assign(self):
         """Contacts the controller and asks for combiner assignment.
 
         :return: A configuration dictionary containing connection information for combiner.
@@ -167,13 +169,17 @@ class Client:
         cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
         return cert
 
-    def _connect(self, client_config):
+    def connect(self, client_config):
         """Connect to assigned combiner.
 
         :param client_config: A configuration dictionary containing connection information for
         the combiner.
         :type client_config: dict
         """
+
+        if self._connected:
+            logger.info("Client is already attached. ")
+            return None
 
         # TODO use the client_config['certificate'] for setting up secure comms'
         host = client_config['host']
@@ -234,33 +240,15 @@ class Client:
         logger.info("Using {} compute package.".format(
             client_config["package"]))
 
-    def _disconnect(self):
-        """Disconnect from the combiner."""
-        self.channel.close()
+        self._connected = True
 
-    def detach(self):
-        """Detach from the FEDn network (disconnect from combiner)"""
-        # Setting _attached to False will make all processing threads return
-        if not self._attached:
+    def disconnect(self):
+        """Disconnect from the combiner."""
+        if not self._connected:
             logger.info("Client is not attached.")
 
-        self._attached = False
-        # Close gRPC connection to combiner
-        self._disconnect()
-
-    def _attach(self):
-        """Attach to the FEDn network (connect to combiner)"""
-        # Ask controller for a combiner and connect to that combiner.
-        if self._attached:
-            logger.info("Client is already attached. ")
-            return None
-
-        client_config = self._assign()
-        self._connect(client_config)
-
-        if client_config:
-            self._attached = True
-        return client_config
+        self.channel.close()
+        self._connected = False
 
     def _initialize_helper(self, client_config):
         """Initialize the helper class for the client.
@@ -290,7 +278,7 @@ class Client:
         # Start listening for combiner training and validation messages
         threading.Thread(
             target=self._listen_to_task_stream, daemon=True).start()
-        self._attached = True
+        self._connected = True
 
         # Start processing the client message inbox
         threading.Thread(target=self.process_request, daemon=True).start()
@@ -432,15 +420,15 @@ class Client:
         # Add client to metadata
         self._add_grpc_metadata('client', self.name)
 
-        while self._attached:
+        while self._connected:
             try:
                 for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
                     if request:
                         logger.debug("Received model update request from combiner: {}.".format(request))
                     if request.sender.role == fedn.COMBINER:
                         # Process training request
-                        self._send_status("Received model update request.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request, sesssion_id=request.session_id)
+                        self.send_status("Received model update request.", log_level=fedn.Status.AUDIT,
+                                         type=fedn.StatusType.MODEL_UPDATE_REQUEST, request=request, sesssion_id=request.session_id)
                         logger.info("Received model update request of type {} for model_id {}".format(request.type, request.model_id))
 
                         if request.type == fedn.StatusType.MODEL_UPDATE and self.config['trainer']:
@@ -466,7 +454,7 @@ class Client:
                 logger.error(f"An error occurred during model update request stream: {ex}")
 
         # Detach if not attached
-        if not self._attached:
+        if not self._connected:
             return
 
     def _process_training_request(self, model_id: str, session_id: str = None):
@@ -480,7 +468,7 @@ class Client:
         :rtype: tuple
         """
 
-        self._send_status(
+        self.send_status(
             "\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
         self.state = ClientState.training
 
@@ -552,7 +540,7 @@ class Client:
         else:
             cmd = 'validate'
 
-        self._send_status(
+        self.send_status(
             f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
         self.state = ClientState.validating
         try:
@@ -586,7 +574,7 @@ class Client:
         """Process training and validation tasks. """
         while True:
 
-            if not self._attached:
+            if not self._connected:
                 return
 
             try:
@@ -617,13 +605,13 @@ class Client:
                         update.meta = json.dumps(meta)
                         # TODO: Check responses
                         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
-                        self._send_status("Model update completed.", log_level=fedn.Status.AUDIT,
-                                          type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
+                        self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
+                                         type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
 
                     else:
-                        self._send_status("Client {} failed to complete model update.",
-                                          log_level=fedn.Status.WARNING,
-                                          request=request, sesssion_id=request.session_id)
+                        self.send_status("Client {} failed to complete model update.",
+                                         log_level=fedn.Status.WARNING,
+                                         request=request, sesssion_id=request.session_id)
                     self.state = ClientState.idle
                     self.inbox.task_done()
 
@@ -650,11 +638,11 @@ class Client:
 
                         status_type = fedn.StatusType.MODEL_VALIDATION
 
-                        self._send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
-                                          type=status_type, request=validation, sesssion_id=request.session_id)
+                        self.send_status("Model validation completed.", log_level=fedn.Status.AUDIT,
+                                         type=status_type, request=validation, sesssion_id=request.session_id)
                     else:
-                        self._send_status("Client {} failed to complete model validation.".format(self.name),
-                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
+                        self.send_status("Client {} failed to complete model validation.".format(self.name),
+                                         log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
 
                     self.state = ClientState.idle
                     self.inbox.task_done()
@@ -689,10 +677,10 @@ class Client:
                 self._handle_combiner_failure()
 
             time.sleep(update_frequency)
-            if not self._attached:
+            if not self._connected:
                 return
 
-    def _send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
+    def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
         """Send status message.
 
         :param msg: The message to send.
@@ -720,6 +708,7 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
+
         _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
     def run(self):
@@ -734,10 +723,10 @@ class Client:
                     cnt = 1
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
-                if not self._attached:
+                if not self._connected:
                     logger.info("Detached from combiner.")
                     # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s
-                    self._attach()
+                    self.attach()
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:
                     return

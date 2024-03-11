@@ -56,7 +56,3 @@ Initialize FEDn with the compute package and seed model
 python init_fedn.py
 ```
 
-See 'Experiments.pynb' or 'launch_client.py' to set the package and seed model.
-
-## Clean up
-You can clean up by running `docker-compose down -v`.

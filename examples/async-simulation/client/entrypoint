@@ -7,7 +7,7 @@ import numpy as np
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = 'numpyhelper'
-ARRAY_SIZE = 100000
+ARRAY_SIZE = 10000
 
 
 def save_model(weights, out_path):
@@ -56,7 +56,7 @@ def train(in_model_path, out_model_path):
 
     # Train
     new_weights = np.random.rand(1, ARRAY_SIZE)
-    time.sleep(np.random.randint(4, 15))
+    time.sleep(np.random.randint(5, 15))
 
     # Metadata needed for aggregation server side
     metadata = {
