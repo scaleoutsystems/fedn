@@ -603,8 +603,10 @@ class Client:
                         update.timestamp = str(datetime.now())
                         update.correlation_id = request.correlation_id
                         update.meta = json.dumps(meta)
+
                         # TODO: Check responses
                         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
+
                         self.send_status("Model update completed.", log_level=fedn.Status.AUDIT,
                                          type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
 
@@ -612,6 +614,7 @@ class Client:
                         self.send_status("Client {} failed to complete model update.",
                                          log_level=fedn.Status.WARNING,
                                          request=request, sesssion_id=request.session_id)
+
                     self.state = ClientState.idle
                     self.inbox.task_done()
 
@@ -678,6 +681,7 @@ class Client:
 
             time.sleep(update_frequency)
             if not self._connected:
+                logger.info("SendStatus: Client disconnected.")
                 return
 
     def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
@@ -692,6 +696,11 @@ class Client:
         :param request: The request message.
         :type request: fedn.Request
         """
+
+        if not self._connected:
+            logger.info("SendStatus: Client disconnected.")
+            return
+
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
         status.sender.name = self.name
@@ -708,8 +717,14 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-
-        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        try:
+            _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        except grpc.RpcError as e:
+            status_code = e.code()
+            logger.warning("SendStatus: GRPC error, {}.".format(
+                status_code.name))
+            logger.debug(e)
+            pass
 
     def run(self):
         """ Run the client. """
