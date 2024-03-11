@@ -29,10 +29,11 @@ from fedn.network.clients.client import Client
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 15,
+    'N_CLIENTS': 1,
+    'N_CYCLES': 2,
+    'CLIENTS_MEAN_DELAY': 10,
     'CLIENTS_ONLINE_FOR_SECONDS': 10
 }
-
 
 client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': settings['DISCOVER_PORT'], 'token': None, 'name': 'testclient',
                  'client_id': 1, 'remote_compute_context': True, 'force_ssl': False, 'dry_run': False, 'secure': False,
@@ -41,20 +42,33 @@ client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': se
                  'reconnect_after_missed_heartbeat': 30}
 
 
-def run_client(online_for=120, name='client'):
-    """ Start a client and stop it after
-    online_for seconds.
+def run_client(mean_delay, online_for=120, name='client'):
+    """ Simulates a client that starts and stops
+    at random intervals.
+
+    The client will start after a radom time 'mean_delay',
+    stay online for 'online_for' seconds (deterministic),
+    then disconnect.
+
+    This is repeated for N_CYCLES.
 
     """
+
     conf = copy.deepcopy(client_config)
     conf['name'] = name
-    fl_client = Client(conf)
-    time.sleep(online_for)
-    fl_client.detach()
+
+    for i in range(settings['N_CYCLES']):
+        # Sample a delay until the client starts
+        t_start = np.random.randint(5, 10)
+        time.sleep(t_start)
+        fl_client = Client(conf)
+        time.sleep(online_for)
+        fl_client.detach()
 
 
 if __name__ == '__main__':
 
+    # We start N_CLIENTS independent client processes
     processes = []
     for i in range(settings['N_CLIENTS']):
         p = Process(target=run_client, args=(settings['CLIENTS_ONLINE_FOR_SECONDS'], 'client{}'.format(i),))
