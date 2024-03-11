@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_limit,
                                         get_post_data_to_kwargs,
                                         get_typed_list_headers, mdb)
@@ -12,6 +13,7 @@ model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_models():
     """Get models
     Retrieves a list of models based on the provided parameters.
@@ -114,6 +116,7 @@ def get_models():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_models():
     """List models
     Retrieves a list of models based on the provided parameters.
@@ -200,6 +203,7 @@ def list_models():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_models_count():
     """Models count
     Retrieves the count of models based on the provided parameters.
@@ -247,6 +251,7 @@ def get_models_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def models_count():
     """Models count
     Retrieves the count of models based on the provided parameters.
@@ -298,6 +303,7 @@ def models_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_model(id: str):
     """Get model
     Retrieves a model based on the provided id.
@@ -343,6 +349,7 @@ def get_model(id: str):
 
 
 @bp.route("/<string:id>/descendants", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_descendants(id: str):
     """Get model descendants
     Retrieves a list of model descendants of the provided model id/model property.
@@ -396,6 +403,7 @@ def get_descendants(id: str):
 
 
 @bp.route("/<string:id>/ancestors", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_ancestors(id: str):
     """Get model ancestors
     Retrieves a list of model ancestors of the provided model id/model property.

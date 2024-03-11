@@ -28,7 +28,7 @@ class APIClient:
         # Auth scheme passed as argument overrides environment variable.
         # "Token" is the default auth scheme.
         if not auth_scheme:
-            auth_scheme = os.environ.get("FEDN_AUTH_SCHEME", "Token")
+            auth_scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
         # Override potential env variable if token is passed as argument.
         if not token:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
