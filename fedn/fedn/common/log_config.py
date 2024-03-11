@@ -25,7 +25,7 @@ formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt
 handler.setFormatter(formatter)
 
 
-class CustomHTTPHandler(logging.handlers.HTTPHandler):
+class StudioHTTPHandler(logging.handlers.HTTPHandler):
     def __init__(self, host, url, method='POST', token=None, projectname='', apptype=''):
         super().__init__(host, url, method)
         self.token = token
@@ -65,7 +65,7 @@ if REMOTE_LOG_SERVER:
     rloglevel = log_levels.get(REMOTE_LOG_LEVEL, logging.INFO)
     remote_token = os.environ.get('FEDN_REMOTE_LOG_TOKEN', None)
     
-    http_handler = CustomHTTPHandler(
+    http_handler = StudioHTTPHandler(
         host=REMOTE_LOG_SERVER,
         url=REMOTE_LOG_PATH,
         method='POST',
