@@ -35,15 +35,6 @@ setup(
         "grpcio-health-checking~=1.57.0",
         "flasgger==0.9.5"
     ],
-    extras_require={
-        'telemetry': [
-            "GPUtil",
-            "opentelemetry-exporter-jaeger",
-            "opentelemetry-instrumentation",
-            "opentelemetry-sdk",
-            "opentelemetry-api"
-        ]
-    },
     license='Apache 2.0',
     zip_safe=False,
     entry_points={
