@@ -10,7 +10,7 @@ FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_KEY', False)
 FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_VALUE', False)
 FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
 
-# Fuction to check additional claims in the token
+
 def check_role_claims(payload, role):
     if FEDN_JWT_CUSTOM_CLAIM_KEY and FEDN_JWT_CUSTOM_CLAIM_VALUE:
         if payload[FEDN_JWT_CUSTOM_CLAIM_KEY] != FEDN_JWT_CUSTOM_CLAIM_VALUE:
@@ -19,21 +19,22 @@ def check_role_claims(payload, role):
         return False
     if payload['role'] != role:
         return False
-    
+
     return True
 
-# Fuction to check additional cliams in the token
+
 def check_custom_claims(payload):
     if FEDN_JWT_CUSTOM_CLAIM_KEY and FEDN_JWT_CUSTOM_CLAIM_VALUE:
         if payload[FEDN_JWT_CUSTOM_CLAIM_KEY] != FEDN_JWT_CUSTOM_CLAIM_VALUE:
             return False
     return True
 
-# Define the authentication decorator, with role as an argument
+
 def jwt_auth_required(role=None):
     def actual_decorator(func):
         if not SECRET_KEY:
             return func
+
         @wraps(func)
         def decorated(*args, **kwargs):
             token = request.headers.get('Authorization')

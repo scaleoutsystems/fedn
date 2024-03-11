@@ -34,12 +34,12 @@ app.register_blueprint(combiner_bp)
 app.register_blueprint(round_bp)
 
 template = {
-  "swagger": "2.0",
-  "info": {
-    "title": "FEDn API",
-    "description": "API for the FEDn network.",
-    "version": "0.0.1"
-  }
+    "swagger": "2.0",
+    "info": {
+        "title": "FEDn API",
+        "description": "API for the FEDn network.",
+        "version": "0.0.1"
+    }
 }
 
 swagger = Swagger(app, template=template)
