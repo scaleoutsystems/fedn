@@ -3,38 +3,24 @@ import os
 import sys
 
 import fire
+from client_app_adapter import FlwrClientAppAdapter
+from flwr_client import app
 
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)
 
-NUM_CLASSES = 10
+flwr_adapter = FlwrClientAppAdapter(app)
 
 
 def _get_node_id():
     # Figure out FEDn client number from container name
     number = os.environ.get("CLIENT_NUMBER", "0")
-    return number
+    return int(number)
 
 
-def _get_flower_client():
-    """Instanziates flower client."""
-    original_argv = sys.argv
-    # Set sys.argv to mimic command-line input required by flower_client.py
-    sys.argv = ["flower_client.py", "--node-id", _get_node_id()]
-    # Import flower client
-    import flwr_client  # noqa
-
-    sys.argv = original_argv
-    flower_client = flwr_client.FlowerClient()
-    return flwr_client, flower_client
-
-
-flwr_client, flower_client = _get_flower_client()
-
-
-def save_parameters(out_path):
+def save_parameters(out_path, parameters_np):
     """Save model paramters to file.
 
     :param model: The model to serialize.
@@ -42,7 +28,6 @@ def save_parameters(out_path):
     :param out_path: The path to save to.
     :type out_path: str
     """
-    parameters_np = flower_client.get_parameters({})
     helper.save(parameters_np, out_path)
 
 
@@ -53,7 +38,8 @@ def init_seed(out_path="seed.npz"):
     :type out_path: str
     """
     # Init and save
-    save_parameters(out_path)
+    parameters_np = flwr_adapter.init_parameters()
+    save_parameters(out_path, parameters_np)
 
 
 def train(in_model_path, out_model_path):
@@ -71,7 +57,9 @@ def train(in_model_path, out_model_path):
     parameters_np = helper.load(in_model_path)
 
     # Train on flower client
-    _, num_examples, _ = flower_client.fit(parameters_np, {})
+    params, num_examples = flwr_adapter.train(
+        parameters=parameters_np, partition_id=_get_node_id()
+    )
 
     # Metadata needed for aggregation server side
     metadata = {
@@ -83,7 +71,7 @@ def train(in_model_path, out_model_path):
     save_metadata(metadata, out_model_path)
 
     # Save model update (mandatory)
-    save_parameters(out_model_path)
+    save_parameters(out_model_path, params)
 
 
 def validate(in_model_path, out_json_path, data_path=None):
@@ -98,8 +86,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     """
     parameters_np = helper.load(in_model_path)
 
-    loss, _, accuracy = flower_client.evaluate(parameters_np, {})
-    accuracy = accuracy["accuracy"]
+    loss, accuracy = flwr_adapter.evaluate(parameters_np, partition_id=_get_node_id())
 
     # JSON schema
     report = {

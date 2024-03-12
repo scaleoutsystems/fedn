@@ -1,6 +1,5 @@
-torch==1.13.1
-torchvision==0.14.1
 fire==0.3.1
-docker==6.1.1
-flwr==1.7.0
-flwr_datasets==0.0.2
+flwr-nightly[simulation]==1.8.0.dev20240309
+flwr-datasets[vision]==0.0.2
+torch==2.2.1
+torchvision==0.17.1

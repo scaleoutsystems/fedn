@@ -1,9 +1,9 @@
 Using Flower clients in FEDn
 -------------
 
-Example of how a Flower client can be used in FEDn. Flowers quickstart-pytorch example is 
-used in this example (see `flwr_client.py``). Study the `client/entrypoint` file for 
-details of the implementation.
+Example using an adapter for the Flower ClientApp abstraction to run Flower Clients in FEDn. 
+See `flwr_client.py` and `flwr_task.py` for Flower client code. Adapter and workflow in 
+`entrypoint` and `client_app_adapter.py`.
    
 
 Run details
