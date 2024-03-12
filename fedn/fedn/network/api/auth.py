@@ -10,6 +10,7 @@ FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_KEY', False)
 FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_VALUE', False)
 FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
 FEDN_AUTH_WHITELIST_URL_PREFIX = os.environ.get('FEDN_AUTH_WHITELIST_URL_PREFIX', False)
+FEDN_JWT_ALGORITHM = os.environ.get('FEDN_JWT_ALGORITHM', 'HS256')
 
 
 def check_role_claims(payload, role):
@@ -54,7 +55,7 @@ def jwt_auth_required(role=None):
                 return jsonify({'message': 'Missing token'}), 401
 
             try:
-                payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[FEDN_JWT_ALGORITHM])
                 if not check_role_claims(payload, role):
                     return jsonify({'message': 'Invalid token'}), 401
                 if not check_custom_claims(payload):
