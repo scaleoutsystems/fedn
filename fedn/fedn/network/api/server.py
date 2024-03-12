@@ -1,18 +1,12 @@
 from flasgger import Swagger
 from flask import Flask, jsonify, request
+import os
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
-from fedn.network.api.v1.client_routes import bp as client_bp
-from fedn.network.api.v1.combiner_routes import bp as combiner_bp
-from fedn.network.api.v1.model_routes import bp as model_bp
-from fedn.network.api.v1.package_routes import bp as package_bp
-from fedn.network.api.v1.round_routes import bp as round_bp
-from fedn.network.api.v1.session_routes import bp as session_bp
-from fedn.network.api.v1.status_routes import bp as status_bp
-from fedn.network.api.v1.validation_routes import bp as validation_bp
+from fedn.network.api.v1 import _routes
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
@@ -22,16 +16,16 @@ modelstorage_config = get_modelstorage_config()
 statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
 statestore.set_storage_backend(modelstorage_config)
 control = Control(statestore=statestore)
+
+custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
 app = Flask(__name__)
-app.register_blueprint(client_bp)
-app.register_blueprint(status_bp)
-app.register_blueprint(model_bp)
-app.register_blueprint(validation_bp)
-app.register_blueprint(package_bp)
-app.register_blueprint(session_bp)
-app.register_blueprint(combiner_bp)
-app.register_blueprint(round_bp)
+for bp in _routes:
+    app.register_blueprint(bp)
+    if custom_url_prefix:
+        app.register_blueprint(bp, 
+                               name=f"{bp.name}_custom",
+                               url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
 
 template = {
     "swagger": "2.0",

@@ -9,6 +9,7 @@ SECRET_KEY = os.environ.get('FEDN_JWT_SECRET_KEY', False)
 FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_KEY', False)
 FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_VALUE', False)
 FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
+FEDN_AUTH_WHITELIST_URL_PREFIX = os.environ.get('FEDN_AUTH_WHITELIST_URL_PREFIX', False)
 
 
 def check_role_claims(payload, role):
@@ -29,6 +30,11 @@ def check_custom_claims(payload):
             return False
     return True
 
+def if_whitelisted_url_prefix(path):
+    if FEDN_AUTH_WHITELIST_URL_PREFIX and path.startswith(FEDN_AUTH_WHITELIST_URL_PREFIX):
+        return True
+    else:
+        return False
 
 def jwt_auth_required(role=None):
     def actual_decorator(func):
@@ -37,6 +43,8 @@ def jwt_auth_required(role=None):
 
         @wraps(func)
         def decorated(*args, **kwargs):
+            if if_whitelisted_url_prefix(request.path):
+                return func(*args, **kwargs)
             token = request.headers.get('Authorization')
             # Get token from the header Bearer
             if token and token.startswith(FEDN_AUTH_SCHEME):
