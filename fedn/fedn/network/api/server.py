@@ -1,6 +1,7 @@
+import os
+
 from flasgger import Swagger
 from flask import Flask, jsonify, request
-import os
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
@@ -596,7 +597,7 @@ def get_plot_data():
 
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_plot_data", view_func=get_plot_data, methods=["GET"])
-    
+
 if __name__ == "__main__":
     config = get_controller_config()
     port = config["port"]
