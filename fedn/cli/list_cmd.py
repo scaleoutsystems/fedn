@@ -75,7 +75,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
         response = requests.get(url, headers=headers)
         print_response(response, 'clients')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -109,7 +109,7 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
         response = requests.get(url, headers=headers)
         print_response(response, 'combiners')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -143,7 +143,7 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, n_m
         response = requests.get(url, headers=headers)
         print_response(response, 'models')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -177,7 +177,7 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
         response = requests.get(url, headers=headers)
         print_response(response, 'packages')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -211,7 +211,7 @@ def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, n_m
         response = requests.get(url, headers=headers)
         print_response(response, 'rounds')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -245,7 +245,7 @@ def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n
         response = requests.get(url, headers=headers)
         print_response(response, 'sessions')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -279,7 +279,7 @@ def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, n
         response = requests.get(url, headers=headers)
         print_response(response, 'statuses')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
 
 
 @click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
@@ -313,4 +313,4 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
         response = requests.get(url, headers=headers)
         print_response(response, 'validations')
     except requests.exceptions.ConnectionError:
-        click.echo(f'Error: Could not connect to {host}:{port}')
+        click.echo(f'Error: Could not connect to {url}')
