@@ -1,11 +1,11 @@
 from typing import Tuple
 
 from flwr.client import ClientApp
-from flwr.common import (Context, EvaluateIns, FitIns, Message, MessageType, 
-                         Metadata, NDArrays, ndarrays_to_parameters, 
+from flwr.common import (Context, EvaluateIns, FitIns, Message, MessageType,
+                         Metadata, NDArrays, ndarrays_to_parameters,
                          parameters_to_ndarrays)
-from flwr.common.recordset_compat import (evaluateins_to_recordset, 
-                                          fitins_to_recordset, 
+from flwr.common.recordset_compat import (evaluateins_to_recordset,
+                                          fitins_to_recordset,
                                           recordset_to_evaluateres,
                                           recordset_to_fitres)
 from flwr_task import Net, get_weights

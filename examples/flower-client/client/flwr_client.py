@@ -1,8 +1,8 @@
 """Flower client code using the ClientApp abstraction. Inspired from https://github.com/adap/flower/tree/main/examples/app-pytorch."""
 
 from flwr.client import ClientApp, NumPyClient
-from flwr_task import DEVICE, Net, get_weights, load_data, set_weights, test, train
-
+from flwr_task import (DEVICE, Net, get_weights, load_data, set_weights, test,
+                       train)
 
 # Define FlowerClient and client_fn
 class FlowerClient(NumPyClient):
