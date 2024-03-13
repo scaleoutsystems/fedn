@@ -106,8 +106,9 @@ class ConnectorCombiner:
             "port": self.myport,
             "secure_grpc": self.secure
         }
+        url_prefix = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
         try:
-            retval = requests.post(self.connect_string + '/add_combiner', json=payload,
+            retval = requests.post(self.connect_string + url_prefix + '/add_combiner', json=payload,
                                    verify=self.verify,
                                    headers={'Authorization': f'{self.token_scheme} {self.token}'})
         except Exception:
