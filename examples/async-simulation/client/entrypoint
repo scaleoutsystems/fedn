@@ -3,6 +3,10 @@ import time
 
 import fire
 import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
 
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
@@ -10,7 +14,16 @@ HELPER_MODULE = 'numpyhelper'
 ARRAY_SIZE = 10000
 
 
-def save_model(weights, out_path):
+def compile_model():
+    clf = MLPClassifier(hidden_layer_sizes=(5, 2), activation='relu')
+    # This is needed to initialize some state variables needed to make predictions
+    # We will overwrite weights and biases during FL training
+    X_train, y_train, _, _ = make_data(n=10)
+    clf.fit(X_train, y_train)
+    return clf
+
+
+def save_parameters(model, out_path):
     """ Save model to disk.
 
     :param model: The model to save.
@@ -19,10 +32,12 @@ def save_model(weights, out_path):
     :type out_path: str
     """
     helper = get_helper(HELPER_MODULE)
-    helper.save(weights, out_path)
+    parameters = model.coefs_ + model.intercepts_
+
+    helper.save(parameters, out_path)
 
 
-def load_model(model_path):
+def load_parameters(model_path):
     """ Load model from disk.
 
     param model_path: The path to load from.
@@ -31,8 +46,9 @@ def load_model(model_path):
     :rtype: torch.nn.Module
     """
     helper = get_helper(HELPER_MODULE)
-    weights = helper.load(model_path)
-    return weights
+    parameters = helper.load(model_path)
+
+    return parameters
 
 
 def init_seed(out_path='seed.npz'):
@@ -42,8 +58,17 @@ def init_seed(out_path='seed.npz'):
     :type out_path: str
     """
     # Init and save
-    weights = [np.random.rand(1, ARRAY_SIZE)]
-    save_model(weights, out_path)
+    model = compile_model()
+    save_parameters(model, out_path)
+
+
+def make_data(n=100):
+    X, y = make_classification(n_samples=1000, n_features=4, random_state=42)
+    ind = np.random.choice(n-1, n)
+    X = X[ind, :]
+    y = y[ind]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    return X_train, y_train, X_test, y_test
 
 
 def train(in_model_path, out_model_path):
@@ -52,22 +77,26 @@ def train(in_model_path, out_model_path):
     """
 
     # Load model
-    _ = load_model(in_model_path)
+    parameters = load_parameters(in_model_path)
+    model = compile_model()
+    n = len(parameters)//2
+    model.coefs_ = parameters[:n]
+    model.intercepts_ = parameters[n:]
 
     # Train
-    new_weights = np.random.rand(1, ARRAY_SIZE)
-    time.sleep(np.random.randint(5, 15))
+    X_train, y_train, _, _ = make_data()
+    model.fit(X_train, y_train)
 
     # Metadata needed for aggregation server side
     metadata = {
-        'num_examples': ARRAY_SIZE,
+        'num_examples': len(X_train),
     }
 
     # Save JSON metadata file
     save_metadata(metadata, out_model_path)
 
     # Save model update
-    save_model(new_weights, out_model_path)
+    save_parameters(model, out_model_path)
 
 
 def validate(in_model_path, out_json_path):
@@ -80,11 +109,17 @@ def validate(in_model_path, out_json_path):
     :param data_path: The path to the data file.
     :type data_path: str
     """
-    weights = load_model(in_model_path)
+    parameters = load_parameters(in_model_path)
+    model = compile_model()
+    n = len(parameters)//2
+    model.coefs_ = parameters[:n]
+    model.intercepts_ = parameters[n:]
+
+    X_train, y_train, X_test, y_test = make_data()
 
     # JSON schema
     report = {
-        "mean": np.mean(weights),
+        "accuracy_score": accuracy_score(y_test, model.predict(X_test)),
     }
 
     # Save JSON

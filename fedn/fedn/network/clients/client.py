@@ -614,6 +614,8 @@ class Client:
                             logger.warning("GRPC error, {}.".format(
                                 status_code.name))
                             logger.debug(e)
+                        except ValueError as e:
+                            logger.warning("GRPC error, RPC channel closed.".format(e))
                     else:
                         self.send_status("Client {} failed to complete model update.",
                                          log_level=fedn.Status.WARNING,
@@ -652,6 +654,8 @@ class Client:
                             logger.warning("GRPC error, {}.".format(
                                 status_code.name))
                             logger.debug(e)
+                        except ValueError as e:
+                            logger.warning("GRPC error, RPC channel closed.".format(e))
                     else:
                         self.send_status("Client {} failed to complete model validation.".format(self.name),
                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
