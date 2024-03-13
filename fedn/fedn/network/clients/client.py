@@ -611,11 +611,12 @@ class Client:
                                              type=fedn.StatusType.MODEL_UPDATE, request=update, sesssion_id=request.session_id)
                         except grpc.RpcError as e:
                             status_code = e.code()
-                            logger.warning("GRPC error, {}.".format(
+                            logger.error("GRPC error, {}.".format(
                                 status_code.name))
                             logger.debug(e)
                         except ValueError as e:
-                            logger.warning("GRPC error, RPC channel closed.".format(e))
+                            logger.error("GRPC error, RPC channel closed. {}".format(e))
+                            logger.debug(e)
                     else:
                         self.send_status("Client {} failed to complete model update.",
                                          log_level=fedn.Status.WARNING,
@@ -651,11 +652,12 @@ class Client:
                                              type=status_type, request=validation, sesssion_id=request.session_id)
                         except grpc.RpcError as e:
                             status_code = e.code()
-                            logger.warning("GRPC error, {}.".format(
+                            logger.error("GRPC error, {}.".format(
                                 status_code.name))
                             logger.debug(e)
                         except ValueError as e:
-                            logger.warning("GRPC error, RPC channel closed.".format(e))
+                            logger.error("GRPC error, RPC channel closed. {}".format(e))
+                            logger.debug(e)
                     else:
                         self.send_status("Client {} failed to complete model validation.".format(self.name),
                                          log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id)
