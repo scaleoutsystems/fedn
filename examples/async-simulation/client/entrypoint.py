@@ -1,6 +1,4 @@
 # /bin/python
-import time
-
 import fire
 import numpy as np
 from sklearn.datasets import make_classification
@@ -14,8 +12,8 @@ HELPER_MODULE = 'numpyhelper'
 ARRAY_SIZE = 10000
 
 
-def compile_model():
-    clf = MLPClassifier(hidden_layer_sizes=(5, 2), activation='relu')
+def compile_model(max_iter=10):
+    clf = MLPClassifier(max_iter=max_iter)
     # This is needed to initialize some state variables needed to make predictions
     # We will overwrite weights and biases during FL training
     X_train, y_train, _, _ = make_data(n=10)
@@ -63,7 +61,8 @@ def init_seed(out_path='seed.npz'):
 
 
 def make_data(n=100):
-    X, y = make_classification(n_samples=1000, n_features=4, random_state=42)
+    """ Generate / simulate n data points. """
+    X, y = make_classification(n_samples=10000, n_features=4, random_state=42)
     ind = np.random.choice(n-1, n)
     X = X[ind, :]
     y = y[ind]

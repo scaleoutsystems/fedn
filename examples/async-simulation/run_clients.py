@@ -29,9 +29,9 @@ from fedn.network.clients.client import Client
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
-    'N_CLIENTS': 4,
+    'N_CLIENTS': 8,
     'N_CYCLES': 2,
-    'CLIENTS_MEAN_DELAY': 10,
+    'CLIENTS_MAX_DELAY': 5,
     'CLIENTS_ONLINE_FOR_SECONDS': 20
 }
 
@@ -59,7 +59,7 @@ def run_client(online_for=120, name='client'):
 
     for i in range(settings['N_CYCLES']):
         # Sample a delay until the client starts
-        t_start = np.random.randint(5, 10)
+        t_start = np.random.randint(0, settings['CLIENTS_MAX_DELAY'])
         time.sleep(t_start)
         fl_client = Client(conf)
         time.sleep(online_for)

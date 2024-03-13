@@ -21,10 +21,16 @@ if __name__ == '__main__':
         "session_id": str(uuid.uuid4()),
         "aggregator": "fedavg",
         "round_timeout": 10,
-        "rounds": 5,
+        "rounds": 10,
+        "validate": False,
     }
 
-    result = client.start_session(**session_config)
+    session = client.start_session(**session_config)
+    if session['success'] is False:
+        print(session['message'])
+        exit(0)
+
+    print("Started session: {}".format(session))
 
     while not client.session_is_finished(session_config['session_id']):
         time.sleep(2)

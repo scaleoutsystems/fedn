@@ -217,6 +217,8 @@ class APIClient:
         except json.JSONDecodeError:
             # Could happen if the session has not been written to db yet
             return False
+        except KeyError:
+            return False
         except Exception:
             raise
 
