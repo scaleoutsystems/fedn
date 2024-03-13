@@ -79,7 +79,7 @@ class ConnectorClient:
             retval = None
             payload = {'client_id': self.name, 'preferred_combiner': self.preferred_combiner}
             url_prefix = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
-            auth_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
+            auth_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Token')
             retval = requests.post(self.connect_string + url_prefix + '/add_client',
                                    json=payload,
                                    verify=self.verify,
