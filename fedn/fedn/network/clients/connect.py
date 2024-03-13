@@ -79,11 +79,12 @@ class ConnectorClient:
             retval = None
             payload = {'client_id': self.name, 'preferred_combiner': self.preferred_combiner}
             url_prefix = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
+            auth_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
             retval = requests.post(self.connect_string + url_prefix + '/add_client',
                                    json=payload,
                                    verify=self.verify,
                                    allow_redirects=True,
-                                   headers={'Authorization': 'Token {}'.format(self.token)})
+                                   headers={'Authorization': f"{auth_scheme} {self.token}"})
         except Exception as e:
             print('***** {}'.format(e), flush=True)
             return Status.Unassigned, {}

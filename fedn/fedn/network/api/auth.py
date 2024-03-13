@@ -14,9 +14,6 @@ FEDN_JWT_ALGORITHM = os.environ.get('FEDN_JWT_ALGORITHM', 'HS256')
 
 
 def check_role_claims(payload, role):
-    if FEDN_JWT_CUSTOM_CLAIM_KEY and FEDN_JWT_CUSTOM_CLAIM_VALUE:
-        if payload[FEDN_JWT_CUSTOM_CLAIM_KEY] != FEDN_JWT_CUSTOM_CLAIM_VALUE:
-            return False
     if 'role' not in payload:
         return False
     if payload['role'] != role:
@@ -47,13 +44,15 @@ def jwt_auth_required(role=None):
             if if_whitelisted_url_prefix(request.path):
                 return func(*args, **kwargs)
             token = request.headers.get('Authorization')
-            # Get token from the header Bearer
-            if token and token.startswith(FEDN_AUTH_SCHEME):
-                token = token.split(' ')[1]
-
             if not token:
                 return jsonify({'message': 'Missing token'}), 401
-
+            # Get token from the header Bearer
+            if token.startswith(FEDN_AUTH_SCHEME):
+                token = token.split(' ')[1]
+            else:
+                return jsonify({'message': 
+                                f'Invalid token scheme, expected {FEDN_AUTH_SCHEME}'
+                                }), 401
             try:
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[FEDN_JWT_ALGORITHM])
                 if not check_role_claims(payload, role):
