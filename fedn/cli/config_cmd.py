@@ -1,8 +1,17 @@
 import os
+import sys
 
 import click
 
 from .main import main
+
+envs = [
+    "FEDN_PROTOCOL",
+    "FEDN_HOST",
+    "FEDN_PORT",
+    "FEDN_TOKEN",
+    "FEDN_AUTH_SCHEME"
+]
 
 
 @main.group('config', invoke_without_command=True)
@@ -12,23 +21,16 @@ def config_cmd(ctx):
     :param ctx:
     """
     if ctx.invoked_subcommand is None:
-        _protocol = os.environ.get('FEDN_PROTOCOL')
-        _host = os.environ.get('FEDN_HOST')
-        _port = os.environ.get('FEDN_PORT')
-        _token = os.environ.get("FEDN_TOKEN")
-        _scheme = os.environ.get("FEDN_AUTH_SCHEME")
-
         click.echo('\n--- FEDn Cli Configuration ---\n')
         click.echo('Current configuration:\n')
 
-        click.echo(f'FEDN_PROTOCOL: {_protocol or "Not set"}')
-        click.echo(f'FEDN_HOST: {_host or "Not set"}')
-        click.echo(f'FEDN_PORT: {_port or "Not set"}')
-        click.echo(f'FEDN_TOKEN: {_token or "Not set"}')
-        click.echo(f'FEDN_AUTH_SCHEME: {_scheme or "Not set"}\n')
+        for env in envs:
+            value = os.environ.get(env)
+            click.echo(f'{env}: {value or "Not set"}')
+        click.echo('\n')
 
 
-@config_cmd.command('set')
+@config_cmd.command('generate')
 @click.option('--protocol', prompt="Protocol", default=lambda: os.environ.get("FEDN_PROTOCOL", ""))
 @click.option('--host', prompt="Host", default=lambda: os.environ.get("FEDN_HOST", ""))
 @click.option('--port', prompt="Port", default=lambda: os.environ.get("FEDN_PORT", ""))
@@ -39,22 +41,22 @@ def set_config(protocol: str, host: str, port: int, token: str, scheme: str):
     - Get configuration script from user input that can be used to set environment variables.
     return: None
     """
-    click.echo("\n-------------------\n")
+    click.echo('\n--- FEDn Cli Configuration ---\n')
+    click.echo("Paste the following and run in your terminal\n")
+    click.echo("-------------------\n")
 
-    if protocol:
-        click.echo(f"\nexport FEDN_PROTOCOL={protocol}")
+    os_name = sys.platform
 
-    if host:
-        click.echo(f"export FEDN_HOST={host}")
+    prefix = "export" if os_name != 'win32' else "set"
+    values = [protocol, host, port, token, scheme]
 
-    if port:
-        click.echo(f"export FEDN_PORT={port}")
+    for i in range(len(envs)):
+        env = envs[i]
+        current_value = os.environ.get(env)
+        new_value = values[i]
 
-    if token:
-        click.echo(f"export FEDN_TOKEN={token}")
-
-    if scheme:
-        click.echo(f"export FEDN_AUTH_SCHEME={scheme}")
+        if new_value and new_value != current_value:
+            click.echo(f"{prefix} {envs[i]}={values[i]};")
 
 
 @config_cmd.command('clear')
@@ -63,9 +65,16 @@ def clear_config():
     - Get configuration script from user input that can be used to remove environment variables.
     return: None
     """
-    click.echo("\n-------------------\n")
-    click.echo("unset FEDN_PROTOCOL")
-    click.echo("unset FEDN_HOST")
-    click.echo("unset FEDN_PORT")
-    click.echo("unset FEDN_TOKEN")
-    click.echo("unset FEDN_AUTH_SCHEME")
+    click.echo('\n--- FEDn Cli Configuration ---\n')
+    click.echo("Paste the following and run in your terminal\n")
+    click.echo("-------------------\n")
+
+    os_name = sys.platform
+
+    if os_name == 'win32':
+
+        for env in envs:
+            click.echo(f"set {env}=;")
+    else:
+        for env in envs:
+            click.echo(f"unset {env};")
