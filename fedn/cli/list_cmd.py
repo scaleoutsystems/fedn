@@ -39,7 +39,7 @@ def print_response(response, entity_name: str):
 @click.pass_context
 def list_cmd(ctx):
     """
-    :param ctx:
+    - List entities from the api.
     """
     pass
 

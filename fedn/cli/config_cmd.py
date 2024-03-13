@@ -18,7 +18,7 @@ envs = [
 @click.pass_context
 def config_cmd(ctx):
     """
-    :param ctx:
+    - Configuration commands for the FEDn CLI.
     """
     if ctx.invoked_subcommand is None:
         click.echo('\n--- FEDn Cli Configuration ---\n')
@@ -72,7 +72,6 @@ def clear_config():
     os_name = sys.platform
 
     if os_name == 'win32':
-
         for env in envs:
             click.echo(f"set {env}=;")
     else:

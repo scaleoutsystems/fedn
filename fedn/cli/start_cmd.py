@@ -11,7 +11,7 @@ from .shared import API_VERSION, CONTROLLER_DEFAULTS
 @click.pass_context
 def start_cmd(ctx):
     """
-    :param ctx:
+    - Issue commands to the network.
     """
     pass
 

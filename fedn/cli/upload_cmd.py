@@ -11,7 +11,7 @@ from .shared import CONTROLLER_DEFAULTS, get_token
 @click.pass_context
 def upload_cmd(ctx):
     """
-    :param ctx:
+    - Commands used to upload files to the controller.
     """
     pass
 

@@ -75,8 +75,7 @@ def validate_client_config(config):
 @click.pass_context
 def run_cmd(ctx):
     """
-
-    :param ctx:
+    - Run FEDn apps (client, combiner, controller).
     """
     if ctx.invoked_subcommand is None:
         click.echo('Running FEDn...')
