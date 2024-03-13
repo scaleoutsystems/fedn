@@ -4,7 +4,7 @@ import click
 import requests
 
 from .main import main
-from .shared import API_VERSION, CONTROLLER_DEFAULTS, get_api_url, get_token
+from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token
 
 
 def print_response(response, entity_name: str):

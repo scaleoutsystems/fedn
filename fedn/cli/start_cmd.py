@@ -4,7 +4,7 @@ import click
 import requests
 
 from .main import main
-from .shared import API_VERSION, CONTROLLER_DEFAULTS
+from .shared import CONTROLLER_DEFAULTS
 
 
 @main.group('start')
