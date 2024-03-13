@@ -1,5 +1,6 @@
 import os
 import uuid
+from io import BytesIO
 
 
 class LocalFileSystemModelRepository:
@@ -22,7 +23,9 @@ class LocalFileSystemModelRepository:
     def get_model_stream(self, model_id):
         model_path = self.get_model_path(model_id)
         if os.path.exists(model_path):
-            return open(model_path, 'rb')
+            with open(model_path, 'rb') as file:
+                byte_io = BytesIO(file.read())
+                return byte_io
         else:
             raise FileNotFoundError(f"Model with ID {model_id} not found.")
 

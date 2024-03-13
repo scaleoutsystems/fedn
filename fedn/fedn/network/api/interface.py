@@ -390,18 +390,18 @@ class API:
             mutex.acquire()
             # TODO: make configurable, perhaps in config.py or package.py
             return send_from_directory(
-                "/app/client/package/", name, as_attachment=True
+                self.local_path, name, as_attachment=True
             )
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = os.path.join(self.local_path, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
                 return send_from_directory(
-                    "/app/client/package/", name, as_attachment=True
+                    self.local_path, name, as_attachment=True
                 )
             except Exception:
                 raise
