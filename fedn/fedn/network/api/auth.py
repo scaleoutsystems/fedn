@@ -28,11 +28,13 @@ def check_custom_claims(payload):
             return False
     return True
 
+
 def if_whitelisted_url_prefix(path):
     if FEDN_AUTH_WHITELIST_URL_PREFIX and path.startswith(FEDN_AUTH_WHITELIST_URL_PREFIX):
         return True
     else:
         return False
+
 
 def jwt_auth_required(role=None):
     def actual_decorator(func):
@@ -50,7 +52,7 @@ def jwt_auth_required(role=None):
             if token.startswith(FEDN_AUTH_SCHEME):
                 token = token.split(' ')[1]
             else:
-                return jsonify({'message': 
+                return jsonify({'message':
                                 f'Invalid token scheme, expected {FEDN_AUTH_SCHEME}'
                                 }), 401
             try:
