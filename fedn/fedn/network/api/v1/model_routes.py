@@ -510,6 +510,7 @@ def download(id: str):
 def get_parameters(id: str):
     """Download
     Downloads parameters of the model of the provided id.
+    Please not that this endpoint is only available for models that have been stored as numpy arrays.
     ---
     tags:
         - Models
