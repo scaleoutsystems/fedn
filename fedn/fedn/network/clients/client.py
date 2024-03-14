@@ -178,6 +178,9 @@ class Client:
         host = client_config['host']
         # Add host to gRPC metadata
         self._add_grpc_metadata('grpc-server', host)
+        auth_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Token')
+        if self.config['token']:
+            self._add_grpc_metadata('authorization', f"{auth_scheme} {self.config['token']}")
         logger.info("Client using metadata: {}.".format(self.metadata))
         port = client_config['port']
         secure = False

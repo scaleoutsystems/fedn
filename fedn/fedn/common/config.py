@@ -5,6 +5,9 @@ import yaml
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
+FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Token')
+FEDN_CUSTOM_URL_PREFIX = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
+
 
 def get_environment_config():
     """ Get the configuration from environment variables.
