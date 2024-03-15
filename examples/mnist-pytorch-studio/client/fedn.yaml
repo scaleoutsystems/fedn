@@ -1,0 +1,5 @@
+entry_points:
+  train:
+    command: python3 train.py
+  validate:
+    command: python3 validate.py
