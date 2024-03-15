@@ -411,7 +411,8 @@ def get_client_config():
     return: The client configuration as a json object.
     rtype: json
     """
-    checksum = request.args.get("checksum", True)
+    checksum_arg = request.args.get("checksum", "true")
+    checksum = checksum_arg.lower() != "false"
     return api.get_client_config(checksum)
 
 

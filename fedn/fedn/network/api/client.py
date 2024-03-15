@@ -148,7 +148,11 @@ class APIClient:
         :return: The client configuration.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
+        _params = {
+            'checksum': "true" if checksum else "false"
+        }
+
+        response = requests.get(self._get_url('get_client_config'), params=_params, verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -440,8 +444,17 @@ class APIClient:
         status = self.get_session_status(id)
         return status and status.lower() == "finished"
 
-    def start_session(self, id: str = None, aggregator: str = 'fedavg', model_id:  str = None, round_timeout: int = 180, rounds: int = 5, round_buffer_size: int = -1, delete_models: bool = True,
-                      validate: bool = True, helper: str = 'numpyhelper', min_clients: int = 1, requested_clients: int = 8):
+    def start_session(
+            self,
+            id: str = None,
+            aggregator: str = 'fedavg',
+            model_id:  str = None,
+            round_timeout: int = 180,
+            rounds: int = 5,
+            round_buffer_size: int = -1,
+            delete_models: bool = True,
+            validate: bool = True, helper: str = 'numpyhelper', min_clients: int = 1, requested_clients: int = 8
+    ):
         """ Start a new session.
 
         :param id: The session id to start.
