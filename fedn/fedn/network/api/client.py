@@ -340,19 +340,7 @@ class APIClient:
         status = self.get_session_status(id)
         return status and status.lower() == "finished"
 
-    def get_client_config(self, checksum=True):
-        """ Get the controller configuration. Optionally include the checksum.
-        The config is used for clients to connect to the controller and ask for combiner assignment.
-
-        :param checksum: Whether to include the checksum of the package.
-        :type checksum: bool
-        :return: The client configuration.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
-        return response.json()
-
-
+    # --- Packages --- #
 
     def set_package(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
@@ -375,19 +363,30 @@ class APIClient:
         :return: The compute package with info.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_package'), verify=self.verify, headers=self.headers)
-        return response.json()
+        response = requests.get(self._get_url_api_v1('packages/active'), verify=self.verify, headers=self.headers)
 
-    def list_compute_packages(self):
+        _json = response.json()
+
+        return _json
+
+    def list_compute_packages(self, n_max: int = None):
         """ Get all compute packages from the statestore.
 
         :return: All compute packages with info.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify, headers=self.headers)
-        return response.json()
+        _headers = self.headers.copy()
 
-    def download_package(self, path):
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1('packages'), verify=self.verify, headers=_headers)
+        
+        _json = response.json()
+
+        return _json
+
+    def download_package(self, path: str):
         """ Download the compute package.
 
         :param path: The path to download the compute package to.
@@ -411,6 +410,20 @@ class APIClient:
         """
         response = requests.get(self._get_url('get_package_checksum'), verify=self.verify, headers=self.headers)
         return response.json()
+
+    def get_client_config(self, checksum=True):
+        """ Get the controller configuration. Optionally include the checksum.
+        The config is used for clients to connect to the controller and ask for combiner assignment.
+
+        :param checksum: Whether to include the checksum of the package.
+        :type checksum: bool
+        :return: The client configuration.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
+        return response.json()
+
+    # --- Controller --- #
 
     def get_controller_status(self):
         """ Get the status of the controller.
