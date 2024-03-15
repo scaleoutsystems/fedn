@@ -1,14 +1,24 @@
-from flask import Blueprint, jsonify, request
+import io
+
+import numpy as np
+from flask import Blueprint, jsonify, request, send_file
 
 from fedn.network.api.v1.shared import (api_version, get_limit,
                                         get_post_data_to_kwargs,
-                                        get_typed_list_headers, mdb)
+                                        get_typed_list_headers, mdb,
+                                        modelstorage_config)
+from fedn.network.storage.s3.base import RepositoryBase
+from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
 model_store = ModelStore(mdb, "control.model")
+repository: RepositoryBase = None
+
+if modelstorage_config["storage_type"] == "S3":
+    repository = MINIORepository(modelstorage_config["storage_config"])
 
 
 @bp.route("/", methods=["GET"])
@@ -442,6 +452,120 @@ def get_ancestors(id: str):
         response = ancestors
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/<string:id>/download", methods=["GET"])
+def download(id: str):
+    """Download
+    Downloads the model file of the provided id.
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id or model property of the model
+    responses:
+        200:
+            type: file
+            description: The model file
+        404:
+            description: The model was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        if repository is not None:
+            model = model_store.get(id, use_typing=False)
+            model_id = model["model"]
+
+            file = repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+
+            return send_file(file, as_attachment=True, download_name=model_id)
+        else:
+            return jsonify({"message": "No model storage configured"}), 500
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/<string:id>/parameters", methods=["GET"])
+def get_parameters(id: str):
+    """Download
+    Downloads parameters of the model of the provided id.
+    Please not that this endpoint is only available for models that have been stored as numpy arrays.
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id or model property of the model
+    responses:
+        200:
+            description: The model parameters
+            schema:
+                type: object
+                properties:
+                    parameters:
+                        type: object (array of arrays)
+        404:
+            description: The model was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        if repository is not None:
+            model = model_store.get(id, use_typing=False)
+            model_id = model["model"]
+
+            file = repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+
+            file_bytes = io.BytesIO()
+            for chunk in file.stream(32 * 1024):
+                file_bytes.write(chunk)
+            file_bytes.seek(0)  # Reset the pointer to the beginning of the byte array
+
+            a = np.load(file_bytes)
+
+            weights = []
+            for i in range(len(a.files)):
+                weights.append(a[str(i)].tolist())
+
+            response = {"weights": weights}
+
+            return jsonify(response), 200
+        else:
+            return jsonify({"message": "No model storage configured"}), 500
     except EntityNotFound as e:
         return jsonify({"message": str(e)}), 404
     except Exception as e:
