@@ -54,7 +54,7 @@ class APIClient:
 
         :param id: The client id to get.
         :type id: str
-        :return: The client info.
+        :return: Client.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'clients/{id}'), verify=self.verify, headers=self.headers)
@@ -64,9 +64,11 @@ class APIClient:
         return _json
 
     def get_clients(self, n_max: int = None):
-        """ Get all clients from the statestore.
+        """ Get clients from the statestore.
 
-        return: All clients.
+        :param n_max: The maximum number of clients to get (If none all will be fetched).
+        :type n_max: int
+        return: Clients.
         rtype: dict
         """
         _headers = self.headers.copy()
@@ -80,12 +82,33 @@ class APIClient:
 
         return _json
 
+    def get_client_config(self, checksum=True):
+        """ Get client config from controller. Optionally include the checksum.
+        The config is used for clients to connect to the controller and ask for combiner assignment.
+
+        :param checksum: Whether to include the checksum of the package.
+        :type checksum: bool
+        :return: The client configuration.
+        :rtype: dict
+        """
+        _params = {
+            'checksum': "true" if checksum else "false"
+        }
+
+        response = requests.get(self._get_url('get_client_config'), params=_params, verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     def get_active_clients(self, combiner_id: str = None, n_max: int = None):
-        """ Get all active clients from the statestore.
+        """ Get active clients from the statestore.
 
         :param combiner_id: The combiner id to get active clients for.
         :type combiner_id: str
-        :return: All active clients.
+        :param n_max: The maximum number of clients to get (If none all will be fetched).
+        :type n_max: int
+        :return: Active clients.
         :rtype: dict
         """
         _params = {"status": "online"}
@@ -111,7 +134,7 @@ class APIClient:
 
         :param id: The combiner id to get.
         :type id: str
-        :return: The combiner info.
+        :return: Combiner.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'combiners/{id}'), verify=self.verify, headers=self.headers)
@@ -121,9 +144,11 @@ class APIClient:
         return _json
 
     def get_combiners(self, n_max: int = None):
-        """ Get all combiners in the network.
+        """ Get combiners in the network.
 
-        :return: All combiners with info.
+        :param n_max: The maximum number of combiners to get (If none all will be fetched).
+        :type n_max: int
+        :return: Combiners.
         :rtype: dict
         """
         _headers = self.headers.copy()
@@ -137,26 +162,7 @@ class APIClient:
 
         return _json
 
-    # --- Controller --- #
-
-    def get_controller_config(self, checksum=True):
-        """ Get the controller configuration. Optionally include the checksum.
-        The config is used for clients to connect to the controller and ask for combiner assignment.
-
-        :param checksum: Whether to include the checksum of the package.
-        :type checksum: bool
-        :return: The client configuration.
-        :rtype: dict
-        """
-        _params = {
-            'checksum': "true" if checksum else "false"
-        }
-
-        response = requests.get(self._get_url('get_client_config'), params=_params, verify=self.verify, headers=self.headers)
-
-        _json = response.json()
-
-        return _json
+    # --- Controllers --- #
 
     def get_controller_status(self):
         """ Get the status of the controller.
@@ -175,9 +181,9 @@ class APIClient:
     def get_model(self, id: str):
         """ Get a model from the statestore.
 
-        :param id: The model id to get.
+        :param id: The id (or model property) of the model to get.
         :type id: str
-        :return: The model info.
+        :return: Model.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'models/{id}'), verify=self.verify, headers=self.headers)
@@ -187,8 +193,12 @@ class APIClient:
         return _json
 
     def get_models(self, session_id: str = None, n_max: int = None):
-        """ Get all models from the statestore.
+        """ Get models from the statestore.
 
+        :param session_id: The session id to get models for. (optional)
+        :type session_id: str
+        :param n_max: The maximum number of models to get (If none all will be fetched).
+        :type n_max: int
         :return: All models.
         :rtype: dict
         """
@@ -211,7 +221,7 @@ class APIClient:
     def get_active_model(self):
         """ Get the latest model from the statestore.
 
-        :return: The latest model id.
+        :return: The latest model.
         :rtype: dict
         """
         _headers = self.headers.copy()
@@ -228,7 +238,7 @@ class APIClient:
     def get_model_parameters(self, id: str):
         """ Get the parameters of a model.
 
-        :param id: The model id to get parameters for.
+        :param id: The id (or model property) of the model to get parameters for.
         :type id: str
         :return: The parameters of the model.
         :rtype: dict
@@ -242,7 +252,11 @@ class APIClient:
     def get_model_trail(self, id: str = None, n_max: int = None):
         """ Get the model trail.
 
-        :return: The model trail as dict including commit timestamp.
+        :param id: The id (or model property) of the model to start the trail from. (optional)
+        :type id: str
+        :param n_max: The maximum number of models to get (If none all will be fetched).
+        :type n_max: int
+        :return: List of models.
         :rtype: dict
         """
         if not id:
@@ -265,7 +279,7 @@ class APIClient:
     def download_model(self, id: str, path: str):
         """ Download the model with id id.
 
-        :param id: The model id to download.
+        :param id: The id (or model property) of the model to download.
         :type id: str
         :param path: The path to download the model to.
         :type path: str
