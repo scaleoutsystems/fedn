@@ -155,13 +155,46 @@ class APIClient:
 
         if combiner_id:
             _params['combiner'] = combiner_id
-        
+
         _headers = self.headers.copy()
 
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('clients'), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+    
+    # --- Combiners --- #
+
+    def list_combiners(self, n_max: int = None):
+        """ Get all combiners in the network.
+
+        :return: All combiners with info.
+        :rtype: dict
+        """
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+        
+        response = requests.get(self._get_url_api_v1('combiners'), verify=self.verify, headers=_headers)
+        
+        _json = response.json()
+
+        return _json
+
+    def get_combiner(self, id: str):
+        """ Get a combiner from the statestore.
+
+        :param id: The combiner id to get.
+        :type id: str
+        :return: The combiner info.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1(f'combiners/{id}'), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -179,25 +212,6 @@ class APIClient:
         response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
         return response.json()
 
-    def list_combiners(self):
-        """ Get all combiners in the network.
-
-        :return: All combiners with info.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('list_combiners'), verify=self.verify, headers=self.headers)
-        return response.json()
-
-    def get_combiner(self, combiner_id):
-        """ Get a combiner from the statestore.
-
-        :param combiner_id: The combiner id to get.
-        :type combiner_id: str
-        :return: The combiner info.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url(f'get_combiner?combiner={combiner_id}'), verify=self.verify, headers=self.headers)
-        return response.json()
 
     def list_rounds(self):
         """ Get all rounds from the statestore.
