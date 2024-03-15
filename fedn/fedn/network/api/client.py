@@ -165,7 +165,7 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url('get_controller_status'), verify=self.verify, headers=self.headers)
-        
+
         _json = response.json()
 
         return _json
@@ -225,6 +225,20 @@ class APIClient:
 
         return _json
 
+    def get_model_parameters(self, id: str):
+        """ Get the parameters of a model.
+
+        :param id: The model id to get parameters for.
+        :type id: str
+        :return: The parameters of the model.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1(f'models/{id}/parameters'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     def get_model_trail(self, id: str = None, n_max: int = None):
         """ Get the model trail.
 
@@ -247,6 +261,26 @@ class APIClient:
         _json = response.json()
 
         return _json
+
+    def download_model(self, id: str, path: str):
+        """ Download the model with id id.
+
+        :param id: The model id to download.
+        :type id: str
+        :param path: The path to download the model to.
+        :type path: str
+        :return: Message with success or failure.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1(f'models/{id}/download'), verify=self.verify, headers=self.headers)
+
+        if response.status_code == 200:
+
+            with open(path, 'wb') as file:
+                file.write(response.content)
+            return {'success': True, 'message': 'Model downloaded successfully.'}
+        else:
+            return {'success': False, 'message': 'Failed to download model.'}
 
     def set_model(self, path):
         """ Set the initial model in the statestore and upload to model repository.
