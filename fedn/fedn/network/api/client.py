@@ -24,7 +24,7 @@ class APIClient:
         self.port = port
         self.secure = secure
         self.verify = verify
-        self.header = {}
+        self.headers = {}
         # Auth scheme passed as argument overrides environment variable.
         # "Token" is the default auth scheme.
         if not auth_scheme:
@@ -34,7 +34,7 @@ class APIClient:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
 
         if token:
-            self.header = {"Authorization": f"{auth_scheme} {token}"}
+            self.headers = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
         if self.secure:
@@ -45,14 +45,52 @@ class APIClient:
             return f'{protocol}://{self.host}:{self.port}/{endpoint}'
         return f'{protocol}://{self.host}/{endpoint}'
 
-    def get_model_trail(self):
+    def _get_url_api_v1(self, endpoint):
+        return self._get_url(f'api/v1/{endpoint}')
+
+    # --- Models --- #
+    def get_latest_model(self):
+        """ Get the latest model from the statestore.
+
+        :return: The latest model id.
+        :rtype: dict
+        """
+        _headers = self.headers.copy()
+        _headers['X-Limit'] = "1"
+
+        response = requests.get(self._get_url_api_v1('models'), verify=self.verify, headers=_headers)
+        _json = response.json()
+
+        if "result" in _json and len(_json["result"]) > 0:
+            return _json["result"][0]
+
+        return _json
+
+    def get_model_trail(self, id: str = None, n_max: int = 100):
         """ Get the model trail.
 
         :return: The model trail as dict including commit timestamp.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_model_trail'), verify=self.verify, headers=self.header)
-        return response.json()
+        if not id:
+            model = self.get_latest_model()
+            if "id" in model:
+                id = model["id"]
+            else:
+                return model
+
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=self.headers)
+        _json = response.json()
+
+        if "result" in _json:
+            return _json["result"]
+
+        return _json
 
     def list_models(self, session_id=None):
         """ Get all models from the statestore.
@@ -60,7 +98,7 @@ class APIClient:
         :return: All models.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_models'), params={'session_id': session_id}, verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_models'), params={'session_id': session_id}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def list_clients(self):
@@ -69,7 +107,7 @@ class APIClient:
         return: All clients.
         rtype: dict
         """
-        response = requests.get(self._get_url('list_clients'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_clients'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_active_clients(self, combiner_id):
@@ -80,7 +118,7 @@ class APIClient:
         :return: All active clients.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_active_clients'), params={'combiner': combiner_id}, verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_active_clients'), params={'combiner': combiner_id}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_client_config(self, checksum=True):
@@ -92,7 +130,7 @@ class APIClient:
         :return: The client configuration.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def list_combiners(self):
@@ -101,7 +139,7 @@ class APIClient:
         :return: All combiners with info.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_combiners'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_combiners'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_combiner(self, combiner_id):
@@ -112,7 +150,7 @@ class APIClient:
         :return: The combiner info.
         :rtype: dict
         """
-        response = requests.get(self._get_url(f'get_combiner?combiner={combiner_id}'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url(f'get_combiner?combiner={combiner_id}'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def list_rounds(self):
@@ -121,7 +159,7 @@ class APIClient:
         :return: All rounds with config and metrics.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_rounds'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_rounds'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_round(self, round_id):
@@ -132,7 +170,7 @@ class APIClient:
         :return: The round config and metrics.
         :rtype: dict
         """
-        response = requests.get(self._get_url(f'get_round?round_id={round_id}'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url(f'get_round?round_id={round_id}'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
@@ -176,7 +214,7 @@ class APIClient:
             'helper': helper,
             'min_clients': min_clients,
             'requested_clients': requested_clients
-        }, verify=self.verify, headers=self.header
+        }, verify=self.verify, headers=self.headers
         )
         return response.json()
 
@@ -186,7 +224,7 @@ class APIClient:
         :return: All sessions in dict.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_sessions'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_sessions'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_session(self, session_id):
@@ -197,7 +235,7 @@ class APIClient:
         :return: The session as a json object.
         :rtype: dict
         """
-        response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify, headers=self.header)
+        response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify, headers=self.headers)
         return response.json()
 
     def session_is_finished(self, session_id):
@@ -232,7 +270,7 @@ class APIClient:
         """
         with open(path, 'rb') as file:
             response = requests.post(self._get_url('set_package'), files={'file': file}, data={
-                                     'helper': helper, 'name': name, 'description': description}, verify=self.verify, headers=self.header)
+                                     'helper': helper, 'name': name, 'description': description}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_package(self):
@@ -241,7 +279,7 @@ class APIClient:
         :return: The compute package with info.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_package'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_package'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def list_compute_packages(self):
@@ -250,7 +288,7 @@ class APIClient:
         :return: All compute packages with info.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_compute_packages'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def download_package(self, path):
@@ -261,7 +299,7 @@ class APIClient:
         :return: Message with success or failure.
         :rtype: dict
         """
-        response = requests.get(self._get_url('download_package'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('download_package'), verify=self.verify, headers=self.headers)
         if response.status_code == 200:
             with open(path, 'wb') as file:
                 file.write(response.content)
@@ -275,16 +313,7 @@ class APIClient:
         :return: The checksum.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_package_checksum'), verify=self.verify, headers=self.header)
-        return response.json()
-
-    def get_latest_model(self):
-        """ Get the latest model from the statestore.
-
-        :return: The latest model id.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('get_latest_model'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_package_checksum'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_initial_model(self):
@@ -293,7 +322,7 @@ class APIClient:
         :return: The initial model id.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_initial_model'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_initial_model'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def set_initial_model(self, path):
@@ -305,7 +334,7 @@ class APIClient:
         :rtype: dict
         """
         with open(path, 'rb') as file:
-            response = requests.post(self._get_url('set_initial_model'), files={'file': file}, verify=self.verify, headers=self.header)
+            response = requests.post(self._get_url('set_initial_model'), files={'file': file}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_controller_status(self):
@@ -314,7 +343,7 @@ class APIClient:
         :return: The status of the controller.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_controller_status'), verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_controller_status'), verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_events(self, **kwargs):
@@ -323,7 +352,7 @@ class APIClient:
         :return: The events in dict
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_events'), params=kwargs, verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('get_events'), params=kwargs, verify=self.verify, headers=self.headers)
         return response.json()
 
     def list_validations(self, **kwargs):
@@ -332,5 +361,5 @@ class APIClient:
         :return: All validations in dict.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_validations'), params=kwargs, verify=self.verify, headers=self.header)
+        response = requests.get(self._get_url('list_validations'), params=kwargs, verify=self.verify, headers=self.headers)
         return response.json()
