@@ -3,11 +3,13 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.common.config import get_network_config, get_statestore_config
+from fedn.common.config import (get_modelstorage_config, get_network_config,
+                                get_statestore_config)
 
 api_version = "v1"
 
 statestore_config = get_statestore_config()
+modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
 
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
