@@ -228,30 +228,19 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'rounds/{id}'), verify=self.verify, headers=self.headers)
-        
+
         _json = response.json()
 
         return _json
 
-    def get_client_config(self, checksum=True):
-        """ Get the controller configuration. Optionally include the checksum.
-        The config is used for clients to connect to the controller and ask for combiner assignment.
+    # --- Sessions --- #
 
-        :param checksum: Whether to include the checksum of the package.
-        :type checksum: bool
-        :return: The client configuration.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
-        return response.json()
-
-
-    def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
-                      validate=True, helper='numpyhelper', min_clients=1, requested_clients=8):
+    def start_session(self, id: str = None, aggregator: str = 'fedavg', model_id:  str = None, round_timeout: int = 180, rounds: int = 5, round_buffer_size: int = -1, delete_models: bool = True,
+                      validate: bool = True, helper: str = 'numpyhelper', min_clients: int = 1, requested_clients: int = 8):
         """ Start a new session.
 
-        :param session_id: The session id to start.
-        :type session_id: str
+        :param id: The session id to start.
+        :type id: str
         :param aggregator: The aggregator plugin to use.
         :type aggregator: str
         :param model_id: The id of the initial model.
@@ -276,7 +265,7 @@ class APIClient:
         :rtype: dict
         """
         response = requests.post(self._get_url('start_session'), json={
-            'session_id': session_id,
+            'id': id,
             'aggregator': aggregator,
             'model_id': model_id,
             'round_timeout': round_timeout,
@@ -287,49 +276,83 @@ class APIClient:
             'helper': helper,
             'min_clients': min_clients,
             'requested_clients': requested_clients
-        }, verify=self.verify, headers=self.headers
-        )
-        return response.json()
+        }, verify=self.verify, headers=self.headers)
 
-    def list_sessions(self):
+        _json = response.json()
+
+        return _json
+
+    def list_sessions(self, n_max: int = None):
         """ Get all sessions from the statestore.
 
         :return: All sessions in dict.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_sessions'), verify=self.verify, headers=self.headers)
-        return response.json()
+        _headers = self.headers.copy()
 
-    def get_session(self, session_id):
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+        
+        response = requests.get(self._get_url_api_v1('sessions'), verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_session(self, id: str):
         """ Get a session from the statestore.
 
-        :param session_id: The session id to get.
-        :type session_id: str
+        :param id: The session id to get.
+        :type id: str
         :return: The session as a json object.
         :rtype: dict
         """
-        response = requests.get(self._get_url(f'get_session?session_id={session_id}'), self.verify, headers=self.headers)
+
+        response = requests.get(self._get_url_api_v1(f'sessions/{id}'), self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_session_status(self, id: str):
+        """ Check if a session with id id has finished.
+
+        :param id: The session id to get.
+        :type id: str
+        :return: The session as a json object.
+        :rtype: dict
+        """
+        session = self.get_session(id)
+        
+        if session and "status" in session:
+            return session["status"]
+
+        return "Could not retrieve session status."
+
+    def session_is_finished(self, id: str):
+        """ Check if a session with id id has finished.
+
+        :param id: The session id to get.
+        :type id: str
+        :return: The session as a json object.
+        :rtype: dict
+        """
+        status = self.get_session_status(id)
+        return status and status.lower() == "finished"
+
+    def get_client_config(self, checksum=True):
+        """ Get the controller configuration. Optionally include the checksum.
+        The config is used for clients to connect to the controller and ask for combiner assignment.
+
+        :param checksum: Whether to include the checksum of the package.
+        :type checksum: bool
+        :return: The client configuration.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
         return response.json()
 
-    def session_is_finished(self, session_id):
-        """ Check if a session with id session_id has finished.
 
-        :param session_id: The session id to get.
-        :type session_id: str
-        :return: The session as a json object.
-        :rtype: dict
-        """
-        try:
-            status = self.get_session(session_id)['status']
-            if status == 'Finished':
-                return True
-            else:
-                return False
-        except json.JSONDecodeError:
-            # Could happen if the session has not been written to db yet
-            return False
-        except Exception:
-            raise
 
     def set_package(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
