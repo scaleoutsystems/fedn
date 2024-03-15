@@ -3,12 +3,9 @@ import os
 import grpc
 import jwt
 
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_JWT_ALGORITHM, SECRET_KEY
 from fedn.common.log_config import logger
 from fedn.network.api.auth import check_custom_claims
-
-SECRET_KEY = os.environ.get('FEDN_JWT_SECRET_KEY', False)
-FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
-FEDN_JWT_ALGORITHM = os.environ.get('FEDN_JWT_ALGORITHM', 'HS256')
 
 ENDPOINT_ROLES_MAPPING = {
     '/fedn.Combiner/TaskStream': ['client'],
@@ -51,8 +48,6 @@ def _unary_unary_rpc_terminator(code, details):
         context.abort(code, details)
 
     return grpc.unary_unary_rpc_method_handler(terminate)
-
-# Define the gRPC interceptor class
 class JWTInterceptor(grpc.ServerInterceptor):
     def __init__(self):
         pass

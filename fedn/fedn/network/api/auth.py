@@ -4,13 +4,10 @@ from functools import wraps
 import jwt
 from flask import jsonify, request
 
-# Define your secret key for JWT
-SECRET_KEY = os.environ.get('FEDN_JWT_SECRET_KEY', False)
-FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_KEY', False)
-FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_VALUE', False)
-FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
-FEDN_AUTH_WHITELIST_URL_PREFIX = os.environ.get('FEDN_AUTH_WHITELIST_URL_PREFIX', False)
-FEDN_JWT_ALGORITHM = os.environ.get('FEDN_JWT_ALGORITHM', 'HS256')
+from fedn.common.config import (FEDN_AUTH_SCHEME,
+                                FEDN_AUTH_WHITELIST_URL_PREFIX,
+                                FEDN_JWT_ALGORITHM, FEDN_JWT_CUSTOM_CLAIM_KEY,
+                                FEDN_JWT_CUSTOM_CLAIM_VALUE, SECRET_KEY)
 
 
 def check_role_claims(payload, role):
