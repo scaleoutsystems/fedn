@@ -179,9 +179,9 @@ class APIClient:
 
         if n_max:
             _headers['X-Limit'] = str(n_max)
-        
+
         response = requests.get(self._get_url_api_v1('combiners'), verify=self.verify, headers=_headers)
-        
+
         _json = response.json()
 
         return _json
@@ -200,6 +200,39 @@ class APIClient:
 
         return _json
 
+    # --- Rounds --- #
+
+    def list_rounds(self, n_max: int = None):
+        """ Get all rounds from the statestore.
+
+        :return: All rounds with config and metrics.
+        :rtype: dict
+        """
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1('rounds'), verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_round(self, id: str):
+        """ Get a round from the statestore.
+
+        :param round_id: The round id to get.
+        :type round_id: str
+        :return: The round config and metrics.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1(f'rounds/{id}'), verify=self.verify, headers=self.headers)
+        
+        _json = response.json()
+
+        return _json
+
     def get_client_config(self, checksum=True):
         """ Get the controller configuration. Optionally include the checksum.
         The config is used for clients to connect to the controller and ask for combiner assignment.
@@ -212,26 +245,6 @@ class APIClient:
         response = requests.get(self._get_url('get_client_config'), params={'checksum': checksum}, verify=self.verify, headers=self.headers)
         return response.json()
 
-
-    def list_rounds(self):
-        """ Get all rounds from the statestore.
-
-        :return: All rounds with config and metrics.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('list_rounds'), verify=self.verify, headers=self.headers)
-        return response.json()
-
-    def get_round(self, round_id):
-        """ Get a round from the statestore.
-
-        :param round_id: The round id to get.
-        :type round_id: str
-        :return: The round config and metrics.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url(f'get_round?round_id={round_id}'), verify=self.verify, headers=self.headers)
-        return response.json()
 
     def start_session(self, session_id=None, aggregator='fedavg', model_id=None, round_timeout=180, rounds=5, round_buffer_size=-1, delete_models=True,
                       validate=True, helper='numpyhelper', min_clients=1, requested_clients=8):
