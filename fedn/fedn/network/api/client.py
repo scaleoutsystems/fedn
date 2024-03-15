@@ -49,6 +49,7 @@ class APIClient:
         return self._get_url(f'api/v1/{endpoint}')
 
     # --- Models --- #
+
     def get_latest_model(self):
         """ Get the latest model from the statestore.
 
@@ -66,7 +67,19 @@ class APIClient:
 
         return _json
 
-    def get_model_trail(self, id: str = None, n_max: int = 100):
+    def set_initial_model(self, path):
+        """ Set the initial model in the statestore and upload to model repository.
+
+        :param path: The file path of the initial model to set.
+        :type path: str
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        with open(path, 'rb') as file:
+            response = requests.post(self._get_url('set_initial_model'), files={'file': file}, verify=self.verify, headers=self.headers)
+        return response.json()
+
+    def get_model_trail(self, id: str = None, n_max: int = None):
         """ Get the model trail.
 
         :return: The model trail as dict including commit timestamp.
@@ -87,30 +100,50 @@ class APIClient:
         response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=self.headers)
         _json = response.json()
 
-        if "result" in _json:
-            return _json["result"]
-
         return _json
 
-    def list_models(self, session_id=None):
+    def list_models(self, session_id: str = None, n_max: int = None):
         """ Get all models from the statestore.
 
         :return: All models.
         :rtype: dict
         """
-        response = requests.get(self._get_url('list_models'), params={'session_id': session_id}, verify=self.verify, headers=self.headers)
-        return response.json()
+        _params = {}
 
-    def list_clients(self):
+        if session_id:
+            _params['session_id'] = session_id
+
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1('models'), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    # --- Clients --- #
+
+    def list_clients(self, n_max: int = None):
         """ Get all clients from the statestore.
 
         return: All clients.
         rtype: dict
         """
-        response = requests.get(self._get_url('list_clients'), verify=self.verify, headers=self.headers)
-        return response.json()
+        _headers = self.headers.copy()
 
-    def get_active_clients(self, combiner_id):
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1('clients'), verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_active_clients(self, combiner_id: str = None, n_max: int = None):
         """ Get all active clients from the statestore.
 
         :param combiner_id: The combiner id to get active clients for.
@@ -118,8 +151,21 @@ class APIClient:
         :return: All active clients.
         :rtype: dict
         """
-        response = requests.get(self._get_url('get_active_clients'), params={'combiner': combiner_id}, verify=self.verify, headers=self.headers)
-        return response.json()
+        _params = {"status": "online"}
+
+        if combiner_id:
+            _params['combiner'] = combiner_id
+        
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers['X-Limit'] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1('clients'), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
 
     def get_client_config(self, checksum=True):
         """ Get the controller configuration. Optionally include the checksum.
@@ -314,27 +360,6 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url('get_package_checksum'), verify=self.verify, headers=self.headers)
-        return response.json()
-
-    def get_initial_model(self):
-        """ Get the initial model from the statestore.
-
-        :return: The initial model id.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url('get_initial_model'), verify=self.verify, headers=self.headers)
-        return response.json()
-
-    def set_initial_model(self, path):
-        """ Set the initial model in the statestore and upload to model repository.
-
-        :param path: The file path of the initial model to set.
-        :type path: str
-        :return: A dict with success or failure message.
-        :rtype: dict
-        """
-        with open(path, 'rb') as file:
-            response = requests.post(self._get_url('set_initial_model'), files={'file': file}, verify=self.verify, headers=self.headers)
         return response.json()
 
     def get_controller_status(self):
