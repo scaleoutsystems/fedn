@@ -199,7 +199,7 @@ class APIClient:
         :type session_id: str
         :param n_max: The maximum number of models to get (If none all will be fetched).
         :type n_max: int
-        :return: All models.
+        :return: Models.
         :rtype: dict
         """
         _params = {}
@@ -256,7 +256,7 @@ class APIClient:
         :type id: str
         :param n_max: The maximum number of models to get (If none all will be fetched).
         :type n_max: int
-        :return: List of models.
+        :return: Models.
         :rtype: dict
         """
         if not id:
@@ -313,9 +313,9 @@ class APIClient:
     def get_package(self, id: str):
         """ Get a compute package from the statestore.
 
-        :param id: The compute package id to get.
+        :param id: The id of the compute package to get.
         :type id: str
-        :return: The compute package with info.
+        :return: Package.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'packages/{id}'), verify=self.verify, headers=self.headers)
@@ -325,9 +325,11 @@ class APIClient:
         return _json
 
     def get_packages(self, n_max: int = None):
-        """ Get all compute packages from the statestore.
+        """ Get compute packages from the statestore.
 
-        :return: All compute packages with info.
+        :param n_max: The maximum number of packages to get (If none all will be fetched).
+        :type n_max: int
+        :return: Packages.
         :rtype: dict
         """
         _headers = self.headers.copy()
@@ -342,9 +344,9 @@ class APIClient:
         return _json
 
     def get_active_package(self):
-        """ Get the compute package from the statestore.
+        """ Get the (active) compute package from the statestore.
 
-        :return: The compute package with info.
+        :return: Package.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1('packages/active'), verify=self.verify, headers=self.headers)
@@ -360,7 +362,7 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url('get_package_checksum'), verify=self.verify, headers=self.headers)
-        
+
         _json = response.json()
 
         return _json
@@ -406,7 +408,7 @@ class APIClient:
 
         :param round_id: The round id to get.
         :type round_id: str
-        :return: The round config and metrics.
+        :return: Round (config and metrics).
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'rounds/{id}'), verify=self.verify, headers=self.headers)
@@ -418,7 +420,9 @@ class APIClient:
     def get_rounds(self, n_max: int = None):
         """ Get all rounds from the statestore.
 
-        :return: All rounds with config and metrics.
+        :param n_max: The maximum number of rounds to get (If none all will be fetched).
+        :type n_max: int
+        :return: Rounds.
         :rtype: dict
         """
         _headers = self.headers.copy()
@@ -439,7 +443,7 @@ class APIClient:
 
         :param id: The session id to get.
         :type id: str
-        :return: The session as a json object.
+        :return: Session.
         :rtype: dict
         """
 
@@ -450,9 +454,11 @@ class APIClient:
         return _json
 
     def get_sessions(self, n_max: int = None):
-        """ Get all sessions from the statestore.
+        """ Get sessions from the statestore.
 
-        :return: All sessions in dict.
+        :param n_max: The maximum number of sessions to get (If none all will be fetched).
+        :type n_max: int
+        :return: Sessions.
         :rtype: dict
         """
         _headers = self.headers.copy()
@@ -467,12 +473,12 @@ class APIClient:
         return _json
 
     def get_session_status(self, id: str):
-        """ Check if a session with id id has finished.
+        """ Get the status of a session.
 
-        :param id: The session id to get.
+        :param id: The id of the session to get.
         :type id: str
-        :return: The session as a json object.
-        :rtype: dict
+        :return: The status of the session.
+        :rtype: str
         """
         session = self.get_session(id)
 
@@ -482,12 +488,12 @@ class APIClient:
         return "Could not retrieve session status."
 
     def get_session_is_finished(self, id: str):
-        """ Check if a session with id id has finished.
+        """ Check if a session with id has finished.
 
-        :param id: The session id to get.
+        :param id: The id of the session to get.
         :type id: str
-        :return: The session as a json object.
-        :rtype: dict
+        :return: True if session is finished, otherwise false.
+        :rtype: bool
         """
         status = self.get_session_status(id)
         return status and status.lower() == "finished"
@@ -551,11 +557,11 @@ class APIClient:
     # --- Statuses --- #
 
     def get_status(self, id: str):
-        """ Get an event from the statestore.
+        """ Get a status object (event) from the statestore.
 
-        :param id: The event id to get.
+        :param id: The id of the status to get.
         :type id: str
-        :return: The event in dict.
+        :return: Status.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'statuses/{id}'), verify=self.verify, headers=self.headers)
@@ -565,10 +571,19 @@ class APIClient:
         return _json
 
     def get_statuses(self, session_id: str = None, event_type: str = None, sender_name: str = None, sender_role: str = None, n_max: int = None):
-        """ Get the events from the statestore. Pass kwargs to filter events.
+        """ Get statuses from the statestore. Filter by input parameters
 
-        :return: The events in dict
-        :rtype: dict
+        :param session_id: The session id to get statuses for.
+        :type session_id: str
+        :param event_type: The event type to get.
+        :type event_type: str
+        :param sender_name: The sender name to get.
+        :type sender_name: str
+        :param sender_role: The sender role to get.
+        :type sender_role: str
+        :param n_max: The maximum number of statuses to get (If none all will be fetched).
+        :type n_max: int
+        :return: Statuses
         """
         _params = {}
 
@@ -600,9 +615,9 @@ class APIClient:
     def get_validation(self, id: str):
         """ Get a validation from the statestore.
 
-        :param id: The validation id to get.
+        :param id: The id of the validation to get.
         :type id: str
-        :return: The validation in dict.
+        :return: Validation.
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1(f'validations/{id}'), verify=self.verify, headers=self.headers)
@@ -622,9 +637,25 @@ class APIClient:
         receiver_role: str = None,
         n_max: int = None
     ):
-        """ Get all validations from the statestore. Pass kwargs to filter validations.
+        """ Get validations from the statestore. Filter by input parameters.
 
-        :return: All validations in dict.
+        :param session_id: The session id to get validations for.
+        :type session_id: str
+        :param model_id: The model id to get validations for.
+        :type model_id: str
+        :param correlation_id: The correlation id to get validations for.
+        :type correlation_id: str
+        :param sender_name: The sender name to get validations for.
+        :type sender_name: str
+        :param sender_role: The sender role to get validations for.
+        :type sender_role: str
+        :param receiver_name: The receiver name to get validations for.
+        :type receiver_name: str
+        :param receiver_role: The receiver role to get validations for.
+        :type receiver_role: str
+        :param n_max: The maximum number of validations to get (If none all will be fetched).
+        :type n_max: int
+        :return: Validations.
         :rtype: dict
         """
         _params = {}
@@ -640,13 +671,13 @@ class APIClient:
 
         if sender_name:
             _params["sender.name"] = sender_name
-        
+
         if sender_role:
             _params["sender.role"] = sender_role
-        
+
         if receiver_name:
             _params["receiver.name"] = receiver_name
-        
+
         if receiver_role:
             _params["receiver.role"] = receiver_role
 
@@ -656,7 +687,7 @@ class APIClient:
             _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('validations'), params=_params, verify=self.verify, headers=_headers)
-        
+
         _json = response.json()
 
         return _json
