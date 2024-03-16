@@ -16,7 +16,7 @@ def compile_model(max_iter=10):
     clf = MLPClassifier(max_iter=max_iter)
     # This is needed to initialize some state variables needed to make predictions
     # We will overwrite weights and biases during FL training
-    X_train, y_train, _, _ = make_data(n=10)
+    X_train, y_train, _, _ = make_data()
     clf.fit(X_train, y_train)
     return clf
 
@@ -60,10 +60,16 @@ def init_seed(out_path='seed.npz'):
     save_parameters(model, out_path)
 
 
-def make_data(n=100):
-    """ Generate / simulate n data points. """
-    X, y = make_classification(n_samples=10000, n_features=4, random_state=42)
-    ind = np.random.choice(n-1, n)
+def make_data(n_min=50, n_max=100):
+    """ Generate / simulate a random number n data points.
+
+    n will fall in the interval (n_min, n_max)
+
+    """
+    n_samples = 100000
+    X, y = make_classification(n_samples=n_samples, n_features=4, random_state=42)
+    n = np.random.randint(n_min, n_max, 1)[0]
+    ind = np.random.choice(n_samples-1, n)
     X = X[ind, :]
     y = y[ind]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -84,7 +90,9 @@ def train(in_model_path, out_model_path):
 
     # Train
     X_train, y_train, _, _ = make_data()
-    model.fit(X_train, y_train)
+    epochs = 10
+    for i in range(epochs):
+        model.partial_fit(X_train, y_train)
 
     # Metadata needed for aggregation server side
     metadata = {

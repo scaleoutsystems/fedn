@@ -267,7 +267,8 @@ class RoundHandler:
 
         active = self.server.nr_active_trainers()
         if active >= int(config['clients_required']):
-            logger.info("Number of clients required ({0}) to start round met {1}.".format(config['clients_required'], active))
+            logger.info("Number of clients required ({0}) to start round met {1}.".format(
+                config['clients_required'], active))
             return True
         else:
             logger.info("Too few clients to start round.")
