@@ -16,8 +16,9 @@ federated machine learning. It let's developers, researchers and data scientists
 Core Features
 =============
 
--  **Scalable and resilient.** FEDn enables multiple aggregation servers (combiners) to divide up the work to coordinate clients and aggregate models. This makes the framework able to scale to large numbers of clients in a cross-device setting, as well as handle large model updates in a cross-silo setting. 
-   The server-side is able to seamlessly recover from failure, making for robust deployment in production scenarios. 
+-  **Scalable and resilient.** FEDn enables multiple aggregation servers (combiners) to divide up the work to coordinate clients and aggregate models. This makes the framework able to scale to large numbers of clients. 
+   The server-side is able to seamlessly recover from failure, making for robust deployment in production scenarios. FEDn is robust in asynchronous federated learning scenarios, seamlessly handling clients that connects 
+   and drops out during training.
 
 -  **Security**. FL clients do not have to open any ingress ports. The framework is built using secure industry standard communication protocols and 
    supports token-based authentication for FL clients.   
@@ -27,11 +28,12 @@ Core Features
 
 -  **Robust in asynchronous federated learning scenarios**. FEDn handles clients that connects and disconnects during training. 
 
--  **Deploy your FL project on FEDn Studio for real-world scenarios**. Users can develop their FL use-case in a local development environment and then deploy it to production on FEDn Studio. FEDn Studio 
-   provides the FEDn server-side as a managed service. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
-
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
+
+-  **Deploy your FL project to production on FEDn Studio**. Users can develop their FL use-case in a local development environment and then deploy it to production on FEDn Studio. FEDn Studio 
+   provides the FEDn server-side as a managed service. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
+
 
 
 Getting started
