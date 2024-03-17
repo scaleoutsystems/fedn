@@ -50,7 +50,7 @@ You find more details about the architecture, deployment and how to develop your
 
 FEDn Studio
 ===============
-You can deploy your FEDn projects to FEDn Studio. Studio provides a managed and production-grade deployment of the FEDn server-side on Kubernetes. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL exepriments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
+You can deploy your FEDn projects to FEDn Studio. Studio provides a managed, production-grade deployment of the FEDn server-side. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL exepriments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
 
 
 Making contributions
