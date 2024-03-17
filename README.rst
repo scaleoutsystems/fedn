@@ -11,8 +11,7 @@
    :target: https://fedn.readthedocs.io
 
 FEDn is a highly scalable and resilient framework for
-federated machine learning. It allows developers, researchers and data scientists to build federated learning systems that scale from local proof-of-concepts to real-world distributed deployments without code change. FEDn is designed to scale from pseudo-distributed
-development on your laptop to real-world production setups in geographically distributed environments. 
+federated machine learning. It let's developers, researchers and data scientists build federated learning applications that scale from local proof-of-concepts to real-world distributed deployments without code change. 
 
 Core Features
 =============
