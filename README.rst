@@ -15,25 +15,25 @@ FEDn enables developers, researchers and data scientists to build federated lear
 Core Features
 =============
 
--  **Scalable and resilient.** FEDn enables multiple aggregation servers (combiners) to divide up the work to coordinate clients and aggregate models. This makes the framework able to scale to large numbers of clients. 
-   The server-side is able to seamlessly recover from failure, making for robust deployment in production scenarios. FEDn is robust in asynchronous federated learning scenarios, seamlessly handling clients that connects 
-   and drops out during training.
+-  **Scalable and resilient.** FEDn enables multiple aggregation servers to share the work to coordinate clients and aggregate models. This makes the framework scalable to large numbers of clients. 
+   The system is able to seamlessly recover from failure, enabling robust deployment in production. FEDn also handles asynchronous federated learning scenarios, where clients connect 
+   and drop out during training.
 
--  **Security**. FL clients do not have to open any ingress ports. The framework is built using secure industry standard communication protocols and 
+-  **Security**. FL clients do not have to open any ingress ports, enabling real-world deployments in a wide range of settigs. Further, FEDn is implemented using secure industry standard communication protocols and 
    supports token-based authentication for FL clients.   
 
 -  **Track events and training progress in real-time**. Extensive event logging and distributed tracing helps developers monitor experiments in real-time, facilitating troubleshooting and auditing.  
-   Tracking and model validation data can easily be retrieved using the API enabling development of custom dashboards and visualizations. 
+   Machine learning validation metrics from clients can be retrieved using the API, enabling flexible analysis of federated experiments. 
 
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
 
--  **Deploy your FL project to production on FEDn Studio**. Users can develop their FL use-case in a local development environment and then deploy it to production on FEDn Studio. FEDn Studio 
-   provides the FEDn server-side as a managed service. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
+-  **Deploy your FL project to production on FEDn Studio**. Users can develop a FL use-case in a local development environment, and then deploy it to production on FEDn Studio. FEDn Studio 
+   provides the FEDn server-side as a managed service on Kubernetes. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
 
 
 
-Getting started
+Getting started with the SDK
 ===============
 
 The best way to get started with the FEDn SDK is to take the quickstart tutorial: 
@@ -47,17 +47,15 @@ You find more details about the architecture, deployment and how to develop your
 -  `Documentation <https://fedn.readthedocs.io>`__
 
 
-FEDn Studio
+Deploying a project to FEDn Studio
 ===============
-You can deploy your FEDn projects to FEDn Studio. Studio provides a managed, production-grade deployment of the FEDn server-side. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL exepriments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
+Studio provides a managed, production-grade deployment of the FEDn server-side. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL experiments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
 
 
 Making contributions
 ====================
 
-All pull requests will be considered and are much appreciated. Reach out
-to one of the maintainers if you are interested in making contributions,
-and we will help you find a good first issue to get you started. For
+All pull requests will be considered and are much appreciated. For
 more details please refer to our `contribution
 guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
 
