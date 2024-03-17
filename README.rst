@@ -26,8 +26,6 @@ Core Features
 -  **Track events and training progress in real-time**. Extensive event logging and distributed tracing helps developers monitor experiments in real-time, facilitating troubleshooting and auditing.  
    Tracking and model validation data can easily be retrieved using the API enabling development of custom dashboards and visualizations. 
 
--  **Robust in asynchronous federated learning scenarios**. FEDn handles clients that connects and disconnects during training. 
-
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
 
