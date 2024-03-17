@@ -10,56 +10,48 @@
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn is a modular and model agnostic framework for
-federated machine learning. FEDn is designed to scale from pseudo-distributed
+FEDn is a highly scalable and resilient framework for
+federated machine learning. It allows developers, researchers and data scientists to build federated learning systems that scale from local proof-of-concepts to real-world distributed deployments without code change. FEDn is designed to scale from pseudo-distributed
 development on your laptop to real-world production setups in geographically distributed environments. 
 
 Core Features
 =============
 
--  **Scalable and resilient.** FEDn is scalable and resilient via a tiered 
-   architecture where multiple aggregation servers (combiners) divide up the work to coordinate clients and aggregate models. 
-   Benchmarks show high performance both for thousands of clients in a cross-device
-   setting and for large model updates in a cross-silo setting. 
-   FEDn has the ability to recover from failure in all critical components. 
+-  **Scalable and resilient.** FEDn enables multiple aggregation servers (combiners) to divide up the work to coordinate clients and aggregate models. This makes the framework able to scale to large numbers of clients in a cross-device setting, as well as handle large model updates in a cross-silo setting. 
+   The server-side is able to seamlessly recover from failure, making for robust deployment in production scenarios. 
 
--  **Security**. FEDn is built using secure industry standard communication protocols (gRPC). A key feature is that
-   clients do not have to expose any ingress ports. 
+-  **Security**. FL clients do not have to open any ingress ports. The framework is built using secure industry standard communication protocols and 
+   supports token-based authentication for FL clients.   
 
--  **Track events and training progress in real-time**. FEDn tracks events for clients and aggregation servers, logging to MongoDB. This
-   helps developers monitor traning progress in real-time, and to troubleshoot the distributed computation.  
+-  **Track events and training progress in real-time**. Extensive event logging and distributed tracing helps developers monitor experiments in real-time, facilitating troubleshooting and auditing.  
    Tracking and model validation data can easily be retrieved using the API enabling development of custom dashboards and visualizations. 
 
--  **Flexible handling of asynchronous clients**. FEDn supports flexible experimentation 
-   with clients coming in and dropping out during training sessions. Extend aggregators to experiment 
-   with different strategies to handle so called stragglers.
+-  **Robust in asynchronous federated learning scenarios**. FEDn handles clients that connects and disconnects during training. 
 
--  **ML-framework agnostic**. Model updates are treated as black-box
-   computations. This means that it is possible to support any
-   ML model type or framework. Support for Keras and PyTorch is
+-  **Deploy your FL project on FEDn Studio for real-world scenarios**. Users can develop their FL use-case in a local development environment and then deploy it to production on FEDn Studio. FEDn Studio 
+   provides the FEDn server-side as a managed service. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
+
+-  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
 
 
 Getting started
 ===============
 
-The best way to get started is to take the quickstart tutorial: 
+The best way to get started with the FEDn SDK is to take the quickstart tutorial: 
 
 - `Quickstart PyTorch <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
 
 Documentation
 =============
-You will find more details about the architecture, compute package and how to deploy FEDn fully distributed in the documentation:
+You find more details about the architecture, deployment and how to develop your own application in the documentation:
 
 -  `Documentation <https://fedn.readthedocs.io>`__
--  `Paper <https://arxiv.org/abs/2103.00148>`__
 
 
 FEDn Studio
 ===============
-Scaleout also develops FEDn Studio, a web application that extends the FEDn SDK with a UI, production-grade deployment of the FEDn server side on Kubernetes, user authentication/authorization, client identity/API-token management, and project-based multitenancy for segmenting work and resources into collaboration workspaces. FEDn Studio is available as a fully managed service.  
-There is also additional tooling and charts for self-managed deployment on Kubernetes including integration with several projects from the cloud native landscape. 
-See  `FEDn Framework <https://www.scaleoutsystems.com/framework>`__  for more information. 
+You can deploy your FEDn projects to FEDn Studio. Studio provides a managed and production-grade deployment of the FEDn server-side on Kubernetes. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL exepriments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
 
 
 Making contributions
