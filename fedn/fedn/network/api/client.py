@@ -260,7 +260,7 @@ class APIClient:
         :rtype: dict
         """
         if not id:
-            model = self.get_latest_model()
+            model = self.get_active_model()
             if "id" in model:
                 id = model["id"]
             else:

@@ -18,9 +18,9 @@ if __name__ == '__main__':
 
     session_config = {
         "helper": "numpyhelper",
-        "session_id": str(uuid.uuid4()),
+        "id": str(uuid.uuid4()),
         "aggregator": "fedavg",
-        "round_timeout": 10,
+        "round_timeout": 20,
         "rounds": 100,
         "validate": False,
     }

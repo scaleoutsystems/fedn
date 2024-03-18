@@ -12,7 +12,7 @@ HELPER_MODULE = 'numpyhelper'
 ARRAY_SIZE = 10000
 
 
-def compile_model(max_iter=10):
+def compile_model(max_iter=1):
     clf = MLPClassifier(max_iter=max_iter)
     # This is needed to initialize some state variables needed to make predictions
     # We will overwrite weights and biases during FL training
@@ -67,12 +67,13 @@ def make_data(n_min=50, n_max=100):
 
     """
     n_samples = 100000
-    X, y = make_classification(n_samples=n_samples, n_features=4, random_state=42)
-    n = np.random.randint(n_min, n_max, 1)[0]
-    ind = np.random.choice(n_samples-1, n)
-    X = X[ind, :]
-    y = y[ind]
+    X, y = make_classification(n_samples=n_samples, n_features=4, n_informative=4, n_redundant=0, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    n = np.random.randint(n_min, n_max, 1)[0]
+    ind = np.random.choice(len(X_train), n)
+    X_train = X_train[ind, :]
+    y_train = y_train[ind]
     return X_train, y_train, X_test, y_test
 
 

@@ -5,4 +5,4 @@ DISCOVER_PORT = 8092
 
 client = APIClient(DISCOVER_HOST, DISCOVER_PORT)
 client.set_package('package.tgz', 'numpyhelper')
-client.set_initial_model('seed.npz')
+client.set_model('seed.npz')
