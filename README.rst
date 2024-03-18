@@ -10,7 +10,8 @@
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn enables developers, researchers and data scientists to build federated learning applications that scale from local proof-of-concepts to real-world distributed deployments without code change. 
+FEDn enables developers, researchers and data scientists to build federated learning applications that scale from local proof-of-concepts to real-world distributed deployments.
+Develop your FML use-case in a pseudo-local environment and then deploy to FEDn Studio for real-world FL without any code change. 
 
 Core Features
 =============
@@ -28,10 +29,16 @@ Core Features
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
 
--  **Deploy your FL project to production on FEDn Studio**. Users can develop a FL use-case in a local development environment, and then deploy it to production on FEDn Studio. FEDn Studio 
-   provides the FEDn server-side as a managed service on Kubernetes. A web application provides an intuitive UI for orchestrating runs, visualizing and downloading results, and manage FL client tokens.      
+**From development to real-world FL**
 
+Users can develop a FL use-case in a local development environment, and then deploy it to FEDn Studio: 
 
+-  The FEDn server-side as a managed, production-grade service on Kubernetes. 
+-  Token-based authentication for FL clients  
+-  Role-based access control (RBAC)
+-  Dashboard for orchestrating runs, visualizing and downloading results
+-  Admin dashboard for managing and scaling the FEDn network 
+-  Collaborate with other data-scientists in a shared workspace. 
 
 Getting started with the SDK
 ===============
