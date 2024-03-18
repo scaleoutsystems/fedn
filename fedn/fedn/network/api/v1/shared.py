@@ -33,6 +33,13 @@ def get_limit(headers: object) -> int:
     return 0
 
 
+def get_reverse(headers: object) -> bool:
+    reverse: str = headers.get("X-Reverse")
+    if reverse and reverse.lower() == "true":
+        return True
+    return False
+
+
 def get_skip(headers: object) -> int:
     skip: str | None = headers.get("X-Skip")
     if is_positive_integer(skip):

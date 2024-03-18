@@ -136,7 +136,7 @@ class ModelStore(Store[Model]):
 
         return result
 
-    def list_ancestors(self, id: str, limit: int, use_typing: bool = False) -> List[Model]:
+    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False, use_typing: bool = False) -> List[Model]:
         """List ancestors
         param id: The id of the entity
             type: str
@@ -162,6 +162,10 @@ class ModelStore(Store[Model]):
         current_model_id: str = model["parent_model"]
         result: list = []
 
+        if include_self:
+            formatted_model = Model.from_dict(model) if use_typing else from_document(model)
+            result.append(formatted_model)
+
         for _ in range(limit):
             if current_model_id is None:
                 break
@@ -174,6 +178,9 @@ class ModelStore(Store[Model]):
                 current_model_id = model["parent_model"]
             else:
                 break
+
+        if reverse:
+            result.reverse()
 
         return result
 
