@@ -10,8 +10,7 @@
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn enables developers, researchers and data scientists to build federated learning applications that scale from local proof-of-concepts to real-world distributed deployments.
-Develop your FML use-case in a pseudo-local environment and then deploy to FEDn Studio for real-world FL without any code change. 
+FEDn empowers developers, researchers, and data scientists to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. Develop your Federated Machine Learning (FML) use case in a pseudo-local environment, then deploy it to FEDn Studio for real-world Federated Learning (FL) without any need for code changes.
 
 Core Features
 =============
