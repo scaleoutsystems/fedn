@@ -32,5 +32,5 @@ if __name__ == '__main__':
 
     print("Started session: {}".format(session))
 
-    while not client.session_is_finished(session_config['session_id']):
+    while not client.session_is_finished(session_config['id']):
         time.sleep(2)
