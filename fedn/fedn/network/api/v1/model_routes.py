@@ -576,9 +576,7 @@ def get_parameters(id: str):
             for i in range(len(a.files)):
                 weights.append(a[str(i)].tolist())
 
-            response = {"weights": weights}
-
-            return jsonify(response), 200
+            return jsonify(array=weights), 200
         else:
             return jsonify({"message": "No model storage configured"}), 500
     except EntityNotFound as e:
