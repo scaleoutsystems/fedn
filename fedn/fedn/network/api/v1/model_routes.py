@@ -3,8 +3,8 @@ import io
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
-from fedn.network.api.v1.shared import (api_version, get_limit, get_reverse,
-                                        get_post_data_to_kwargs,
+from fedn.network.api.v1.shared import (api_version, get_limit,
+                                        get_post_data_to_kwargs, get_reverse,
                                         get_typed_list_headers, mdb,
                                         modelstorage_config)
 from fedn.network.storage.s3.base import RepositoryBase
