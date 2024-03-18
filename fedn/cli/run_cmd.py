@@ -170,6 +170,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param max_clients:
     :param init:
     """
+    # TODO: Should use fedn.common.config.get_combiner_config() instead of this
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
               'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
               'init': init}
