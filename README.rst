@@ -29,16 +29,17 @@ Core Features
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
 
-**From development to real-world FL**
+From development to real-world FL: 
 
-Users can develop a FL use-case in a local development environment, and then deploy it to FEDn Studio: 
-
+-  Develop a FEDn project in a local development environment, and then deploy it to FEDn Studio
 -  The FEDn server-side as a managed, production-grade service on Kubernetes. 
 -  Token-based authentication for FL clients  
 -  Role-based access control (RBAC)
 -  Dashboard for orchestrating runs, visualizing and downloading results
 -  Admin dashboard for managing and scaling the FEDn network 
 -  Collaborate with other data-scientists in a shared workspace. 
+
+
 
 Getting started with the SDK
 ===============
