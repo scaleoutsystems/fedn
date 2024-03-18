@@ -434,7 +434,7 @@ class APIClient:
         else:
             return {'success': False, 'message': 'Failed to download package.'}
 
-    def set_package(self, path: str, helper: str, name: str = None, description: str = None):
+    def set_package_active(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
