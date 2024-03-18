@@ -25,6 +25,10 @@ class API:
         self.statestore = statestore
         self.control = control
         self.name = "api"
+        # TODO: make configurable, perhaps in config.py or package.py
+        self.local_path = os.path.expanduser("~/.fedn/tmp_dir")
+        if not os.path.exists(self.local_path):
+            os.makedirs(self.local_path)
 
     def _to_dict(self):
         """Convert the object to a dict.
@@ -240,7 +244,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file_path = os.path.join(self.local_path, file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -386,18 +390,18 @@ class API:
             mutex.acquire()
             # TODO: make configurable, perhaps in config.py or package.py
             return send_from_directory(
-                "/app/client/package/", name, as_attachment=True
+                self.local_path, name, as_attachment=True
             )
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = os.path.join(self.local_path, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
                 return send_from_directory(
-                    "/app/client/package/", name, as_attachment=True
+                    self.local_path, name, as_attachment=True
                 )
             except Exception:
                 raise

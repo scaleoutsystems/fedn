@@ -8,6 +8,8 @@ from fedn.common.log_config import logger
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
+from fedn.network.storage.filesystem.repository import \
+    LocalFileSystemModelRepository
 from fedn.network.storage.s3.repository import Repository
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
@@ -64,6 +66,9 @@ class ControlBase(ABC):
             self.model_repository = Repository(
                 storage_config["storage_config"]
             )
+        elif storage_config['storage_type'] == "filesystem":
+            storage_path = storage_config['storage_config'].get('storage_path', './')
+            self.model_repository = LocalFileSystemModelRepository(storage_path)
         else:
             logger.error("Unsupported storage backend, exiting.")
             raise UnsupportedStorageBackend()

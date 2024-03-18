@@ -26,14 +26,13 @@ setup(
         "pyopenssl",
         "ttictoc",
         "psutil",
-        "click==8.0.1",
+        "click==8.1.7",
         "jinja2",
         "plotly",
         "pandas",
         "bokeh<3.0.0",
         "networkx",
-        "grpcio-health-checking~=1.57.0",
-        "flasgger==0.9.5"
+        "grpcio-health-checking~=1.57.0"
     ],
     license='Apache 2.0',
     zip_safe=False,

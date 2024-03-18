@@ -10,7 +10,6 @@ CONTEXT_SETTINGS = dict(
 @click.pass_context
 def main(ctx):
     """
-
-    :param ctx:
+    *** FEDn CLI ***
     """
     ctx.obj = dict()
