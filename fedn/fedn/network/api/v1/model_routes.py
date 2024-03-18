@@ -3,7 +3,7 @@ import io
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
-from fedn.network.api.v1.shared import (api_version, get_limit,
+from fedn.network.api.v1.shared import (api_version, get_limit, get_reverse,
                                         get_post_data_to_kwargs,
                                         get_typed_list_headers, mdb,
                                         modelstorage_config)
@@ -418,12 +418,23 @@ def get_ancestors(id: str):
         required: true
         type: string
         description: The id or model property of the model
+      - name: include_self
+        in: query
+        required: false
+        type: boolean
+        description: Whether to include the initial model in the response
       - name: X-Limit
         in: header
         required: false
         type: integer
         description: The maximum number of models to retrieve (defaults to 10)
         default: 10
+      - name: X-Reverse
+        in: header
+        required: false
+        type: boolean
+        description: Whether to reverse the order of the ancestors
+        default: false
     responses:
         200:
             description: The model
@@ -446,8 +457,12 @@ def get_ancestors(id: str):
     """
     try:
         limit = get_limit(request.headers)
+        reverse = get_reverse(request.headers)
+        include_self_param: str = request.args.get('include_self')
 
-        ancestors = model_store.list_ancestors(id, limit or 10, use_typing=False)
+        include_self: bool = include_self_param and include_self_param.lower() == "true"
+
+        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse, use_typing=False)
 
         response = ancestors
 
