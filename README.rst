@@ -15,15 +15,11 @@ FEDn empowers developers, researchers, and data scientists to create federated l
 Core Features
 =============
 
--  **Scalable and resilient.** FEDn enables multiple aggregation servers to share the work to coordinate clients and aggregate models. This makes the framework scalable to large numbers of clients. 
-   The system is able to seamlessly recover from failure, enabling robust deployment in production. FEDn also handles asynchronous federated learning scenarios, where clients connect 
-   and drop out during training.
+-  **Scalable and resilient.** FEDn facilitates the coordination of clients and model aggregation through multiple aggregation servers sharing the workload. This design makes the framework highly scalable, accommodating large numbers of clients. The system is engineered to seamlessly recover from failures, ensuring robust deployment in production environments. Furthermore, FEDn adeptly manages asynchronous federated learning scenarios, accommodating clients that may connect or drop out during training.
 
--  **Security**. FL clients do not have to open any ingress ports, enabling real-world deployments in a wide range of settigs. Further, FEDn is implemented using secure industry standard communication protocols and 
-   supports token-based authentication for FL clients.   
+-  **Security**. FL clients do not need to open any ingress ports, facilitating real-world deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication for FL clients, enhancing security and ease of integration in diverse environments.   
 
--  **Track events and training progress in real-time**. Extensive event logging and distributed tracing helps developers monitor experiments in real-time, facilitating troubleshooting and auditing.  
-   Machine learning validation metrics from clients can be retrieved using the API, enabling flexible analysis of federated experiments. 
+-  **Track events and training progress in real-time**. Extensive event logging and distributed tracing enable developers to monitor experiments in real-time, simplifying troubleshooting and auditing processes. Machine learning validation metrics from clients can be accessed via the API, allowing for flexible analysis of federated experiments. 
 
 -  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
    available out-of-the-box.
@@ -57,7 +53,10 @@ You find more details about the architecture, deployment and how to develop your
 
 Deploying a project to FEDn Studio
 ===============
-Studio provides a managed, production-grade deployment of the FEDn server-side. With Studio you manage token-based authentication for clients, and are able to collaborate with other users in joint project workspaces. In addition to a REST API, Studio has an intuitive Dashboard that let's you manage FL experiments and visualize and download logs and metrics. Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
+
+Studio offers a managed, production-grade deployment of the FEDn server-side infrastructure. With Studio, you can manage token-based authentication for clients and collaborate with other users in joint project workspaces. In addition to a REST API, Studio features an intuitive dashboard that allows you to manage FL experiments and visualize and download logs and metrics, enhancing your ability to monitor and analyze federated learning projects.
+
+Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
 
 
 Making contributions
