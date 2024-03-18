@@ -677,7 +677,7 @@ class APIClient:
         _headers = self.headers.copy()
 
         if n_max:
-            _headers['X-Limit'] = str(n_max)        
+            _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('statuses'), params=_params, verify=self.verify, headers=_headers)
 
