@@ -134,7 +134,7 @@ if __name__ == '__main__':
     client = APIClient(host="localhost", port=8092)
     fire.Fire({
         'set_seed': client.set_active_model,
-        'set_package': client.set_package_active,
+        'set_package': client.set_active_package,
         'start_session': client.start_session,
         'get_client_config': _download_config,
         'test_api_get_methods': test_api_get_methods,
