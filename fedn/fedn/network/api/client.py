@@ -537,7 +537,7 @@ class APIClient:
         :rtype: dict
         """
         response = requests.post(self._get_url('start_session'), json={
-            'id': id,
+            'session_id': id,
             'aggregator': aggregator,
             'model_id': model_id,
             'round_timeout': round_timeout,
