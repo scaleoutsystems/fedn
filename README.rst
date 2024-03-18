@@ -35,6 +35,7 @@ From development to real-world FL:
 -  The FEDn server-side as a managed, production-grade service on Kubernetes. 
 -  Token-based authentication for FL clients  
 -  Role-based access control (RBAC)
+-  REST API 
 -  Dashboard for orchestrating runs, visualizing and downloading results
 -  Admin dashboard for managing and scaling the FEDn network 
 -  Collaborate with other data-scientists in a shared workspace. 
