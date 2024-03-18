@@ -218,6 +218,18 @@ class APIClient:
 
         return _json
 
+    def get_models_count(self):
+        """ Get the number of models in the statestore.
+
+        :return: The number of models.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('models/count'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     def get_active_model(self):
         """ Get the latest model from the statestore.
 
@@ -260,7 +272,7 @@ class APIClient:
         :rtype: dict
         """
         if not id:
-            model = self.get_latest_model()
+            model = self.get_active_model()
             if "id" in model:
                 id = model["id"]
             else:
@@ -268,10 +280,10 @@ class APIClient:
 
         _headers = self.headers.copy()
 
-        if n_max:
-            _headers['X-Limit'] = str(n_max)
+        _count: int = n_max if n_max else self.get_models_count()
+        _headers['X-Limit'] = str(_count)
 
-        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=_headers)
         _json = response.json()
 
         return _json
@@ -487,7 +499,7 @@ class APIClient:
 
         return "Could not retrieve session status."
 
-    def get_session_is_finished(self, id: str):
+    def session_is_finished(self, id: str):
         """ Check if a session with id has finished.
 
         :param id: The id of the session to get.
