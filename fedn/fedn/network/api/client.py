@@ -271,20 +271,6 @@ class APIClient:
 
         return _json
 
-    def get_model_parameters(self, id: str):
-        """ Get the parameters of a model.
-
-        :param id: The id (or model property) of the model to get parameters for.
-        :type id: str
-        :return: The parameters of the model.
-        :rtype: dict
-        """
-        response = requests.get(self._get_url_api_v1(f'models/{id}/parameters'), verify=self.verify, headers=self.headers)
-
-        _json = response.json()
-
-        return _json
-
     def get_model_trail(self, id: str = None, include_self: bool = True, reverse: bool = True, n_max: int = None):
         """ Get the model trail.
 
