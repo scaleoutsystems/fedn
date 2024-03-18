@@ -82,6 +82,18 @@ class APIClient:
 
         return _json
 
+    def get_clients_count(self):
+        """ Get the number of clients in the statestore.
+
+        :return: The number of clients.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('clients/count'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     def get_client_config(self, checksum=True):
         """ Get client config from controller. Optionally include the checksum.
         The config is used for clients to connect to the controller and ask for combiner assignment.
@@ -157,6 +169,18 @@ class APIClient:
             _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('combiners'), verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_combiners_count(self):
+        """ Get the number of combiners in the statestore.
+
+        :return: The number of combiners.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('combiners/count'), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -261,7 +285,7 @@ class APIClient:
 
         return _json
 
-    def get_model_trail(self, id: str = None, n_max: int = None):
+    def get_model_trail(self, id: str = None, include_self: bool = True, reverse: bool = True, n_max: int = None):
         """ Get the model trail.
 
         :param id: The id (or model property) of the model to start the trail from. (optional)
@@ -282,8 +306,11 @@ class APIClient:
 
         _count: int = n_max if n_max else self.get_models_count()
         _headers['X-Limit'] = str(_count)
+        _headers['X-Reverse'] = "true" if reverse else "false"
 
-        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=_headers)
+        _include_self_str: str = "true" if include_self else "false"
+
+        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors?include_self={_include_self_str}'), verify=self.verify, headers=_headers)
         _json = response.json()
 
         return _json
@@ -308,7 +335,7 @@ class APIClient:
         else:
             return {'success': False, 'message': 'Failed to download model.'}
 
-    def set_model(self, path):
+    def set_active_model(self, path):
         """ Set the initial model in the statestore and upload to model repository.
 
         :param path: The file path of the initial model to set.
@@ -355,6 +382,18 @@ class APIClient:
 
         return _json
 
+    def get_packages_count(self):
+        """ Get the number of compute packages in the statestore.
+
+        :return: The number of packages.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('packages/count'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     def get_active_package(self):
         """ Get the (active) compute package from the statestore.
 
@@ -395,7 +434,7 @@ class APIClient:
         else:
             return {'success': False, 'message': 'Failed to download package.'}
 
-    def set_package(self, path: str, helper: str, name: str = None, description: str = None):
+    def set_package_active(self, path: str, helper: str, name: str = None, description: str = None):
         """ Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
@@ -448,6 +487,18 @@ class APIClient:
 
         return _json
 
+    def get_rounds_count(self):
+        """ Get the number of rounds in the statestore.
+
+        :return: The number of rounds.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('rounds/count'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     # --- Sessions --- #
 
     def get_session(self, id: str):
@@ -479,6 +530,18 @@ class APIClient:
             _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('sessions'), verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_sessions_count(self):
+        """ Get the number of sessions in the statestore.
+
+        :return: The number of sessions.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('sessions/count'), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -622,6 +685,18 @@ class APIClient:
 
         return _json
 
+    def get_statuses_count(self):
+        """ Get the number of statuses in the statestore.
+
+        :return: The number of statuses.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('statuses/count'), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
     # --- Validations --- #
 
     def get_validation(self, id: str):
@@ -699,6 +774,18 @@ class APIClient:
             _headers['X-Limit'] = str(n_max)
 
         response = requests.get(self._get_url_api_v1('validations'), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def get_validations_count(self):
+        """ Get the number of validations in the statestore.
+
+        :return: The number of validations.
+        :rtype: dict
+        """
+        response = requests.get(self._get_url_api_v1('validations/count'), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 

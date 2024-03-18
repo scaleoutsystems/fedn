@@ -18,65 +18,123 @@ def _download_config(output):
 
 def test_api_get_methods():
     client = APIClient(host="localhost", port=8092)
-    status = client.get_controller_status()
-    assert status
-    print("Controller status: ", status, flush=True)
 
-    events = client.get_events()
-    assert events
-    print("Events: ", events, flush=True)
-
-    validations = client.list_validations()
-    assert validations
-    print("Validations: ", validations, flush=True)
-
-    models = client.get_model_trail()
-    assert models
-    print("Models: ", models, flush=True)
-
-    clients = client.list_clients()
+    # --- Clients --- #
+    clients = client.get_clients()
     assert clients
     print("Clients: ", clients, flush=True)
 
-    combiners = client.list_combiners()
+    active_clients = client.get_active_clients()
+    assert active_clients
+    print("Active clients: ", active_clients, flush=True)
+
+    clients_count = client.get_clients_count()
+    assert clients_count
+    print("Clients count: ", clients_count, flush=True)
+
+    # --- Combiners --- #
+
+    combiners = client.get_combiners()
     assert combiners
     print("Combiners: ", combiners, flush=True)
+
+    combiners_count = client.get_combiners_count()
+    assert combiners_count
+    print("Combiners count: ", combiners_count, flush=True)
 
     combiner = client.get_combiner("combiner")
     assert combiner
     print("Combiner: ", combiner, flush=True)
 
-    first_model = client.get_initial_model()
-    assert first_model
-    print("First model: ", first_model, flush=True)
+    # --- Controllers --- #
 
-    package = client.get_package()
-    assert package
-    print("Package: ", package, flush=True)
+    status = client.get_controller_status()
+    assert status
+    print("Controller status: ", status, flush=True)
+
+    # --- Models --- #
+
+    models = client.get_models()
+    assert models
+    print("Models: ", models, flush=True)
+
+    models_count = client.get_models_count()
+    assert models_count
+    print("Models count: ", models_count, flush=True)
+
+    models_from_trail = client.get_model_trail()
+    assert models_from_trail
+    print("Models: ", models_from_trail, flush=True)
+
+    active_model = client.get_active_model()
+    assert active_model
+    print("Active model: ", active_model, flush=True)
+
+    # --- Packages --- #
+
+    packages = client.get_packages()
+    assert packages
+    print("Packages: ", packages, flush=True)
+
+    packages_count = client.get_packages_count()
+    assert packages_count
+    print("Packages count: ", packages_count, flush=True)
+
+    active_package = client.get_active_package()
+    assert active_package
+    print("Active package: ", active_package, flush=True)
 
     checksum = client.get_package_checksum()
     assert checksum
     print("Checksum: ", checksum, flush=True)
 
-    rounds = client.list_rounds()
+    # --- Rounds --- #
+
+    rounds = client.get_rounds()
     assert rounds
     print("Rounds: ", rounds, flush=True)
 
-    round = client.get_round(1)
-    assert round
-    print("Round: ", round, flush=True)
+    rounds_count = client.get_rounds_count()
+    assert rounds_count
+    print("Rounds count: ", rounds_count, flush=True)
 
-    sessions = client.list_sessions()
+    # --- Sessions --- #
+
+    sessions = client.get_sessions()
     assert sessions
     print("Sessions: ", sessions, flush=True)
+
+    sessions_count = client.get_sessions_count()
+    assert sessions_count
+    print("Sessions count: ", sessions_count, flush=True)
+
+    # --- Statuses --- #
+
+    statuses = client.get_statuses()
+    assert statuses
+    print("Statuses: ", statuses, flush=True)
+
+    statuses_count = client.get_statuses_count()
+    assert statuses_count
+    print("Statuses count: ", statuses_count, flush=True)
+
+    # --- Validations --- #
+
+    validations = client.get_validations()
+    assert validations
+    print("Validations: ", validations, flush=True)
+
+    validations_count = client.get_validations_count()
+    assert validations_count
+    print("Validations count: ", validations_count, flush=True)
 
 
 if __name__ == '__main__':
 
     client = APIClient(host="localhost", port=8092)
     fire.Fire({
-        'set_seed': client.set_initial_model,
-        'set_package': client.set_package,
+        'set_seed': client.set_active_model,
+        'set_package': client.set_package_active,
         'start_session': client.start_session,
         'get_client_config': _download_config,
         'test_api_get_methods': test_api_get_methods,
