@@ -261,7 +261,7 @@ class APIClient:
 
         return _json
 
-    def get_model_trail(self, id: str = None, n_max: int = None):
+    def get_model_trail(self, id: str = None, include_self: bool = True, reverse: bool = True, n_max: int = None):
         """ Get the model trail.
 
         :param id: The id (or model property) of the model to start the trail from. (optional)
@@ -282,8 +282,11 @@ class APIClient:
 
         _count: int = n_max if n_max else self.get_models_count()
         _headers['X-Limit'] = str(_count)
+        _headers['X-Reverse'] = "true" if reverse else "false"
 
-        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors'), verify=self.verify, headers=_headers)
+        _include_self_str: str = "true" if include_self else "false"
+
+        response = requests.get(self._get_url_api_v1(f'models/{id}/ancestors?include_self={_include_self_str}'), verify=self.verify, headers=_headers)
         _json = response.json()
 
         return _json
