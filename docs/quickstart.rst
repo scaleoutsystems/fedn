@@ -82,8 +82,8 @@ Upload the compute package and seed model to FEDn:
 
    >>> from fedn import APIClient
    >>> client = APIClient(host="localhost", port=8092)
-   >>> client.set_package("package.tgz", helper="numpyhelper")
-   >>> client.set_initial_model("seed.npz")
+   >>> client.set_active_package("package.tgz", helper="numpyhelper")
+   >>> client.set_active_model("seed.npz")
 
 Configure and attach clients
 -------------
@@ -151,7 +151,7 @@ You are now ready to start training the model. In the python enviroment you inst
    # Show model trail:
    >>> client.get_model_trail()
    # Show model performance:
-   >>> client.list_validations()
+   >>> client.get_validations()
 
 Please see :py:mod:`fedn.network.api` for more details on the APIClient. 
 
