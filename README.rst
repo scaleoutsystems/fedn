@@ -34,6 +34,7 @@ From development to real-world FL:
 -  Dashboard for orchestrating runs, visualizing and downloading results
 -  Admin dashboard for managing and scaling the FEDn network 
 -  Collaborate with other data-scientists in a shared workspace. 
+-  Cloud or on-premise deployment 
 
 
 
