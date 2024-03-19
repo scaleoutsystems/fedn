@@ -5,7 +5,6 @@ import sys
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 
-
 def load_data(data_path, is_train=True):
     """ Load data from disk.
 
@@ -17,9 +16,9 @@ def load_data(data_path, is_train=True):
     :rtype: tuple
     """
     if data_path is None:
-        data = torch.load(abs_path+'/../data/clients/1/mnist.pt')
-    else:
-        data = torch.load(data_path)
+        data_path = os.environ.get("MNIST_DATA_PATH", abs_path+'/../data/clients/1/mnist.pt')
+
+    data = torch.load(data_path)
 
     if is_train:
         X = data['x_train']
