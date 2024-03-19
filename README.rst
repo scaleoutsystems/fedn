@@ -1,5 +1,3 @@
-.. figure:: https://thumb.tildacdn.com/tild6637-3937-4565-b861-386330386132/-/resize/560x/-/format/webp/FEDn_logo.png
-   :alt: FEDn logo
 
 .. image:: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg
    :target: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml
@@ -9,6 +7,9 @@
 
 .. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
+
+FEDn
+--------
 
 FEDn empowers developers, researchers, and data scientists to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. Develop your Federated Machine Learning (FML) use case in a pseudo-local environment, then deploy it to FEDn Studio for real-world Federated Learning (FL) without any need for code changes.
 
@@ -35,7 +36,6 @@ From development to real-world FL:
 -  Admin dashboard for managing and scaling the FEDn network 
 -  Collaborate with other data-scientists in a shared workspace. 
 -  Cloud or on-premise deployment 
-
 
 
 Getting started with FEDn
