@@ -9,6 +9,7 @@
    architecture
    aggregators
    helpers
+   auth
    faq
    modules
 

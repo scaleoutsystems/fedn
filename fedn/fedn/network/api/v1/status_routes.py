@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, get_use_typing,
                                         mdb)
@@ -12,6 +13,7 @@ status_store = StatusStore(mdb, "control.status")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_statuses():
     """Get statuses
     Retrieves a list of statuses based on the provided parameters.
@@ -144,6 +146,7 @@ def get_statuses():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_statuses():
     """Get statuses
     Retrieves a list of statuses based on the provided parameters.
@@ -246,6 +249,7 @@ def list_statuses():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_statuses_count():
     """Statuses count
     Retrieves the count of statuses based on the provided parameters.
@@ -307,6 +311,7 @@ def get_statuses_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def statuses_count():
     """Statuses count
     Retrieves the count of statuses based on the provided parameters.
@@ -368,6 +373,7 @@ def statuses_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_status(id: str):
     """Get status
     Retrieves a status based on the provided id.

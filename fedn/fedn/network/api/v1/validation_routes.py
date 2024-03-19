@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, get_use_typing,
                                         mdb)
@@ -13,6 +14,7 @@ validation_store = ValidationStore(mdb, "control.validations")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_validations():
     """Get validations
     Retrieves a list of validations based on the provided parameters.
@@ -152,6 +154,7 @@ def get_validations():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_validations():
     """Get validations
     Retrieves a list of validations based on the provided parameters.
@@ -257,6 +260,7 @@ def list_validations():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_validations_count():
     """Validations count
     Retrieves the count of validations based on the provided parameters.
@@ -322,6 +326,7 @@ def get_validations_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def validations_count():
     """Validations count
     Retrieves the count of validations based on the provided parameters.
@@ -386,6 +391,7 @@ def validations_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_validation(id: str):
     """Get validation
     Retrieves a validation based on the provided id.

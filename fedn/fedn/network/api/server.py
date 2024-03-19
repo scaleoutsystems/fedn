@@ -1,17 +1,13 @@
+import os
+
 from flasgger import Swagger
 from flask import Flask, jsonify, request
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
                                 get_network_config, get_statestore_config)
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
-from fedn.network.api.v1.client_routes import bp as client_bp
-from fedn.network.api.v1.combiner_routes import bp as combiner_bp
-from fedn.network.api.v1.model_routes import bp as model_bp
-from fedn.network.api.v1.package_routes import bp as package_bp
-from fedn.network.api.v1.round_routes import bp as round_bp
-from fedn.network.api.v1.session_routes import bp as session_bp
-from fedn.network.api.v1.status_routes import bp as status_bp
-from fedn.network.api.v1.validation_routes import bp as validation_bp
+from fedn.network.api.v1 import _routes
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
@@ -21,30 +17,31 @@ modelstorage_config = get_modelstorage_config()
 statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
 statestore.set_storage_backend(modelstorage_config)
 control = Control(statestore=statestore)
+
+custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
 app = Flask(__name__)
-app.register_blueprint(client_bp)
-app.register_blueprint(status_bp)
-app.register_blueprint(model_bp)
-app.register_blueprint(validation_bp)
-app.register_blueprint(package_bp)
-app.register_blueprint(session_bp)
-app.register_blueprint(combiner_bp)
-app.register_blueprint(round_bp)
+for bp in _routes:
+    app.register_blueprint(bp)
+    if custom_url_prefix:
+        app.register_blueprint(bp,
+                               name=f"{bp.name}_custom",
+                               url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
 
 template = {
-  "swagger": "2.0",
-  "info": {
-    "title": "FEDn API",
-    "description": "API for the FEDn network.",
-    "version": "0.0.1"
-  }
+    "swagger": "2.0",
+    "info": {
+        "title": "FEDn API",
+        "description": "API for the FEDn network.",
+        "version": "0.0.1"
+    }
 }
 
 swagger = Swagger(app, template=template)
 
 
 @app.route("/get_model_trail", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_model_trail():
     """Get the model trail for a given session.
     param: session: The session id to get the model trail for.
@@ -55,7 +52,12 @@ def get_model_trail():
     return api.get_model_trail()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_model_trail", view_func=get_model_trail, methods=["GET"])
+
+
 @app.route("/get_model_ancestors", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_model_ancestors():
     """Get the ancestors of a model.
     param: model: The model id to get the ancestors for.
@@ -71,7 +73,12 @@ def get_model_ancestors():
     return api.get_model_ancestors(model, limit)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_model_ancestors", view_func=get_model_ancestors, methods=["GET"])
+
+
 @app.route("/get_model_descendants", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_model_descendants():
     """Get the ancestors of a model.
     param: model: The model id to get the child for.
@@ -87,7 +94,12 @@ def get_model_descendants():
     return api.get_model_descendants(model, limit)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_model_descendants", view_func=get_model_descendants, methods=["GET"])
+
+
 @app.route("/list_models", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_models():
     """Get models from the statestore.
     param:
@@ -108,7 +120,12 @@ def list_models():
     return api.get_models(session_id, limit, skip, include_active)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_models", view_func=list_models, methods=["GET"])
+
+
 @app.route("/get_model", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_model():
     """Get a model from the statestore.
     param: model: The model id to get.
@@ -123,7 +140,12 @@ def get_model():
     return api.get_model(model)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_model", view_func=get_model, methods=["GET"])
+
+
 @app.route("/delete_model_trail", methods=["GET", "POST"])
+@jwt_auth_required(role="admin")
 def delete_model_trail():
     """Delete the model trail for a given session.
     param: session: The session id to delete the model trail for.
@@ -134,7 +156,12 @@ def delete_model_trail():
     return jsonify({"message": "Not implemented"}), 501
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/delete_model_trail", view_func=delete_model_trail, methods=["GET", "POST"])
+
+
 @app.route("/list_clients", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_clients():
     """Get all clients from the statestore.
     return: All clients as a json object.
@@ -148,7 +175,12 @@ def list_clients():
     return api.get_clients(limit, skip, status)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_clients", view_func=list_clients, methods=["GET"])
+
+
 @app.route("/get_active_clients", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_active_clients():
     """Get all active clients from the statestore.
     param: combiner_id: The combiner id to get active clients for.
@@ -165,7 +197,12 @@ def get_active_clients():
     return api.get_active_clients(combiner_id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_active_clients", view_func=get_active_clients, methods=["GET"])
+
+
 @app.route("/list_combiners", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_combiners():
     """Get all combiners in the network.
     return: All combiners as a json object.
@@ -178,7 +215,12 @@ def list_combiners():
     return api.get_all_combiners(limit, skip)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_combiners", view_func=list_combiners, methods=["GET"])
+
+
 @app.route("/get_combiner", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_combiner():
     """Get a combiner from the statestore.
     param: combiner_id: The combiner id to get.
@@ -195,7 +237,12 @@ def get_combiner():
     return api.get_combiner(combiner_id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_combiner", view_func=get_combiner, methods=["GET"])
+
+
 @app.route("/list_rounds", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_rounds():
     """Get all rounds from the statestore.
     return: All rounds as a json object.
@@ -204,7 +251,12 @@ def list_rounds():
     return api.get_all_rounds()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_rounds", view_func=list_rounds, methods=["GET"])
+
+
 @app.route("/get_round", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_round():
     """Get a round from the statestore.
     param: round_id: The round id to get.
@@ -218,7 +270,12 @@ def get_round():
     return api.get_round(round_id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_round", view_func=get_round, methods=["GET"])
+
+
 @app.route("/start_session", methods=["GET", "POST"])
+@jwt_auth_required(role="admin")
 def start_session():
     """Start a new session.
     return: The response from control.
@@ -228,7 +285,12 @@ def start_session():
     return api.start_session(**json_data)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/start_session", view_func=start_session, methods=["GET", "POST"])
+
+
 @app.route("/list_sessions", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_sessions():
     """Get all sessions from the statestore.
     return: All sessions as a json object.
@@ -240,7 +302,12 @@ def list_sessions():
     return api.get_all_sessions(limit, skip)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_sessions", view_func=list_sessions, methods=["GET"])
+
+
 @app.route("/get_session", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_session():
     """Get a session from the statestore.
     param: session_id: The session id to get.
@@ -257,13 +324,23 @@ def get_session():
     return api.get_session(session_id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_session", view_func=get_session, methods=["GET"])
+
+
 @app.route("/set_active_package", methods=["PUT"])
+@jwt_auth_required(role="admin")
 def set_active_package():
     id = request.args.get("id", None)
     return api.set_active_compute_package(id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/set_active_package", view_func=set_active_package, methods=["PUT"])
+
+
 @app.route("/set_package", methods=["POST"])
+@jwt_auth_required(role="admin")
 def set_package():
     """ Set the compute package in the statestore.
         Usage with curl:
@@ -295,7 +372,12 @@ def set_package():
     )
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/set_package", view_func=set_package, methods=["POST"])
+
+
 @app.route("/get_package", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_package():
     """Get the compute package from the statestore.
     return: The compute package as a json object.
@@ -304,7 +386,12 @@ def get_package():
     return api.get_compute_package()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_package", view_func=get_package, methods=["GET"])
+
+
 @app.route("/list_compute_packages", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_compute_packages():
     """Get the compute package from the statestore.
     return: The compute package as a json object.
@@ -320,7 +407,12 @@ def list_compute_packages():
     )
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_compute_packages", view_func=list_compute_packages, methods=["GET"])
+
+
 @app.route("/download_package", methods=["GET"])
+@jwt_auth_required(role="client")
 def download_package():
     """Download the compute package.
     return: The compute package as a json object.
@@ -330,13 +422,23 @@ def download_package():
     return api.download_compute_package(name)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/download_package", view_func=download_package, methods=["GET"])
+
+
 @app.route("/get_package_checksum", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_package_checksum():
     name = request.args.get("name", None)
     return api.get_checksum(name)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_package_checksum", view_func=get_package_checksum, methods=["GET"])
+
+
 @app.route("/get_latest_model", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_latest_model():
     """Get the latest model from the statestore.
     return: The initial model as a json object.
@@ -345,7 +447,12 @@ def get_latest_model():
     return api.get_latest_model()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_latest_model", view_func=get_latest_model, methods=["GET"])
+
+
 @app.route("/set_current_model", methods=["PUT"])
+@jwt_auth_required(role="admin")
 def set_current_model():
     """Set the initial model in the statestore and upload to model repository.
         Usage with curl:
@@ -364,10 +471,14 @@ def set_current_model():
     return api.set_current_model(id)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/set_current_model", view_func=set_current_model, methods=["PUT"])
+
 # Get initial model endpoint
 
 
 @app.route("/get_initial_model", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_initial_model():
     """Get the initial model from the statestore.
     return: The initial model as a json object.
@@ -376,7 +487,12 @@ def get_initial_model():
     return api.get_initial_model()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_initial_model", view_func=get_initial_model, methods=["GET"])
+
+
 @app.route("/set_initial_model", methods=["POST"])
+@jwt_auth_required(role="admin")
 def set_initial_model():
     """Set the initial model in the statestore and upload to model repository.
         Usage with curl:
@@ -396,7 +512,12 @@ def set_initial_model():
     return api.set_initial_model(file)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/set_initial_model", view_func=set_initial_model, methods=["POST"])
+
+
 @app.route("/get_controller_status", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_controller_status():
     """Get the status of the controller.
     return: The status as a json object.
@@ -405,7 +526,12 @@ def get_controller_status():
     return api.get_controller_status()
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_controller_status", view_func=get_controller_status, methods=["GET"])
+
+
 @app.route("/get_client_config", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_client_config():
     """Get the client configuration.
     return: The client configuration as a json object.
@@ -416,7 +542,12 @@ def get_client_config():
     return api.get_client_config(checksum)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_client_config", view_func=get_client_config, methods=["GET"])
+
+
 @app.route("/get_events", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_events():
     """Get the events from the statestore.
     return: The events as a json object.
@@ -428,7 +559,12 @@ def get_events():
     return api.get_events(**kwargs)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_events", view_func=get_client_config, methods=["GET"])
+
+
 @app.route("/list_validations", methods=["GET"])
+@jwt_auth_required(role="admin")
 def list_validations():
     """Get all validations from the statestore.
     return: All validations as a json object.
@@ -439,7 +575,12 @@ def list_validations():
     return api.get_all_validations(**kwargs)
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_validations", view_func=list_validations, methods=["GET"])
+
+
 @app.route("/add_combiner", methods=["POST"])
+@jwt_auth_required(role="combiner")
 def add_combiner():
     """Add a combiner to the network.
     return: The response from the statestore.
@@ -454,7 +595,12 @@ def add_combiner():
     return response
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/add_combiner", view_func=add_combiner, methods=["POST"])
+
+
 @app.route("/add_client", methods=["POST"])
+@jwt_auth_required(role="client")
 def add_client():
     """Add a client to the network.
     return: The response from control.
@@ -470,7 +616,12 @@ def add_client():
     return response
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/add_client", view_func=add_client, methods=["POST"])
+
+
 @app.route("/list_combiners_data", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_combiners_data():
     """List data from combiners.
     return: The response from control.
@@ -489,7 +640,12 @@ def list_combiners_data():
     return response
 
 
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
+
+
 @app.route("/get_plot_data", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_plot_data():
     """Get plot data from the statestore.
     rtype: json
@@ -502,6 +658,9 @@ def get_plot_data():
         return jsonify({"success": False, "message": str(e)}), 400
     return response
 
+
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/get_plot_data", view_func=get_plot_data, methods=["GET"])
 
 if __name__ == "__main__":
     config = get_controller_config()

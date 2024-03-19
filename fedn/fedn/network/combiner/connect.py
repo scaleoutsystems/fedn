@@ -5,6 +5,7 @@
 #
 #
 import enum
+import os
 
 import requests
 
@@ -72,9 +73,13 @@ class ConnectorCombiner:
         self.myhost = myhost
         self.myport = myport
         self.token = token
+        self.token_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
         self.name = name
         self.secure = secure
         self.verify = verify
+
+        if not self.token:
+            self.token = os.environ.get('FEDN_AUTH_TOKEN', None)
 
         # for https we assume a an ingress handles permanent redirect (308)
         self.prefix = "http://"
@@ -101,10 +106,11 @@ class ConnectorCombiner:
             "port": self.myport,
             "secure_grpc": self.secure
         }
+        url_prefix = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
         try:
-            retval = requests.post(self.connect_string + '/add_combiner', json=payload,
+            retval = requests.post(self.connect_string + url_prefix + '/add_combiner', json=payload,
                                    verify=self.verify,
-                                   headers={'Authorization': 'Token {}'.format(self.token)})
+                                   headers={'Authorization': f'{self.token_scheme} {self.token}'})
         except Exception:
             return Status.Unassigned, {}
 
