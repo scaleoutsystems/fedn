@@ -11,7 +11,7 @@
 FEDn
 --------
 
-FEDn empowers developers, researchers, and data scientists to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. Develop your Federated Machine Learning (FML) use case in a pseudo-local environment, then deploy it to FEDn Studio for real-world Federated Learning (FL) without any need for code changes.
+FEDn empowers developers, researchers, and data scientists to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. Develop your federated learning use case in a pseudo-local environment, and deploy it to FEDn Studio for real-world Federated Learning without any need for code changes.
 
 Core Features
 =============
