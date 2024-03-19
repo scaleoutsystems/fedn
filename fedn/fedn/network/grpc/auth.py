@@ -73,7 +73,6 @@ class JWTInterceptor(grpc.ServerInterceptor):
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, f'Invalid token scheme, expected {FEDN_AUTH_SCHEME}')
         
         token = token.split(' ')[1]
-        print(f"HANDLER: {handler_call_details}", flush=True)
 
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[FEDN_JWT_ALGORITHM])
@@ -87,6 +86,8 @@ class JWTInterceptor(grpc.ServerInterceptor):
             return continuation(handler_call_details)
         except jwt.InvalidTokenError:
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, 'Invalid token')
+        except jwt.ExpiredSignatureError:
+            return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, 'Token expired')
         except Exception as e:
             logger.error(str(e))
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNKNOWN, str(e))

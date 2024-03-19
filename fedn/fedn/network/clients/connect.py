@@ -9,7 +9,9 @@ import os
 
 import requests
 
-from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
+from fedn.common.config import (FEDN_AUTH_REFRESH_TOKEN,
+                                FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME,
+                                FEDN_CUSTOM_URL_PREFIX)
 from fedn.common.log_config import logger
 
 
@@ -94,6 +96,16 @@ class ConnectorClient:
             return Status.UnMatchedConfig, reason
 
         if retval.status_code == 401:
+            if 'message' in retval.json():
+                reason = retval.json()['message']
+                logger.warning(reason)
+                if reason == 'Token expired':
+                    status_code = self.refresh_token()
+                    if status_code >= 200 and status_code < 204:
+                        logger.info("Token refreshed.")
+                        return Status.TryAgain, reason
+                    else:
+                        return Status.UnAuthorized, "Could not refresh token"
             reason = "Unauthorized connection to reducer, make sure the correct token is set"
             return Status.UnAuthorized, reason
 
@@ -116,3 +128,21 @@ class ConnectorClient:
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None
+    
+    def refresh_token(self):
+        """
+        Refresh client token.
+
+        :return: Tuple with assingment status, combiner connection information if sucessful, else None.
+        :rtype: tuple(:class:`fedn.network.clients.connect.Status`, str)
+        """
+        if not FEDN_AUTH_REFRESH_TOKEN_URI or not FEDN_AUTH_REFRESH_TOKEN:
+            logger.error("No refresh token URI/Token set, cannot refresh token.")
+            return 401
+       
+        payload = requests.post(FEDN_AUTH_REFRESH_TOKEN_URI, 
+                              verify=self.verify, 
+                              allow_redirects=True, 
+                              json={'refresh': FEDN_AUTH_REFRESH_TOKEN})
+        self.token = payload.json()['access']
+        return payload.status_code

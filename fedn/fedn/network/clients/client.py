@@ -21,6 +21,7 @@ from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.config import FEDN_AUTH_SCHEME
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
@@ -112,7 +113,7 @@ class Client:
         while True:
             status, response = self.connector.assign()
             if status == Status.TryAgain:
-                logger.info(response)
+                logger.info("Assignment request failed. Retrying in 5 seconds.")
                 time.sleep(5)
                 continue
             if status == Status.Assigned:
@@ -125,7 +126,10 @@ class Client:
                 logger.critical(response)
                 sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
-
+        # If token was refreshed, update the config
+        if self.config['token'] != self.connector.token:
+            self.config['token'] = self.connector.token
+            self._add_grpc_metadata('authorization', f"{FEDN_AUTH_SCHEME} {self.config['token']}")
         logger.info("Assignment successfully received.")
         logger.info("Received combiner configuration: {}".format(client_config))
         return client_config
@@ -178,10 +182,9 @@ class Client:
         host = client_config['host']
         # Add host to gRPC metadata
         self._add_grpc_metadata('grpc-server', host)
-        auth_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Token')
         if self.config['token']:
-            self._add_grpc_metadata('authorization', f"{auth_scheme} {self.config['token']}")
-        logger.info("Client using metadata: {}.".format(self.metadata))
+            self._add_grpc_metadata('authorization', f"{FEDN_AUTH_SCHEME} {self.config['token']}")
+        logger.debug("Client using metadata: {}.".format(self.metadata))
         port = client_config['port']
         secure = False
         if client_config['fqdn'] is not None:
@@ -373,21 +376,24 @@ class Client:
         request.sender.name = self.name
         request.sender.role = fedn.WORKER
 
-        for part in self.modelStub.Download(request, metadata=self.metadata):
+        try:
+            for part in self.modelStub.Download(request, metadata=self.metadata):
 
-            if part.status == fedn.ModelStatus.IN_PROGRESS:
-                data.write(part.data)
+                if part.status == fedn.ModelStatus.IN_PROGRESS:
+                    data.write(part.data)
 
-            if part.status == fedn.ModelStatus.OK:
-                return data
+                if part.status == fedn.ModelStatus.OK:
+                    return data
 
-            if part.status == fedn.ModelStatus.FAILED:
-                return None
-
-            if part.status == fedn.ModelStatus.UNKNOWN:
-                if time.time() - time_start >= timeout:
+                if part.status == fedn.ModelStatus.FAILED:
                     return None
-                continue
+
+                if part.status == fedn.ModelStatus.UNKNOWN:
+                    if time.time() - time_start >= timeout:
+                        return None
+                    continue
+        except grpc.RpcError as e:
+            logger.critical(f"GRPC: An error occurred during model download: {e}")
 
         return data
 
@@ -412,7 +418,10 @@ class Client:
 
         bt.seek(0, 0)
 
-        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
+        try:
+            result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
+        except grpc.RpcError as e:
+            logger.critical(f"GRPC: An error occurred during model upload: {e}")
 
         return result
 
@@ -451,16 +460,26 @@ class Client:
                 # Handle gRPC errors
                 status_code = e.code()
                 if status_code == grpc.StatusCode.UNAVAILABLE:
-                    logger.warning("GRPC server unavailable during model update request stream. Retrying.")
+                    logger.warning("GRPC TaskStream: server unavailable during model update request stream. Retrying.")
                     # Retry after a delay
                     time.sleep(5)
+                if status_code == grpc.StatusCode.UNAUTHENTICATED:
+                    details = e.details()
+                    if details == 'Token expired':
+                        logger.warning("GRPC TaskStream: Token expired. Reconnecting.")
+                        self.detach()
+                
+                if status_code == grpc.StatusCode.CANCELLED:
+                    # Expected if the client is detached
+                    logger.critical("GRPC TaskStream: Client detached from combiner. Atempting to reconnect.")
+
                 else:
                     # Log the error and continue
-                    logger.error(f"An error occurred during model update request stream: {e}")
+                    logger.error(f"GRPC TaskStream: An error occurred during model update request stream: {e}")
 
             except Exception as ex:
                 # Handle other exceptions
-                logger.error(f"An error occurred during model update request stream: {ex}")
+                logger.error(f"GRPC TaskStream: An error occurred during model update request stream: {ex}")
 
         # Detach if not attached
         if not self._attached:
@@ -657,12 +676,15 @@ class Client:
                     self.inbox.task_done()
             except queue.Empty:
                 pass
+            except grpc.RpcError as e:
+                status_code = e.code()
+                logger.critical(f"GRPC process_request: An error occurred during process request: {e}")
 
     def _handle_combiner_failure(self):
         """ Register failed combiner connection."""
         self._missed_heartbeat += 1
         if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
-            self.detach()()
+            self.detach()
 
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
@@ -680,8 +702,13 @@ class Client:
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()
-                logger.warning("Client heartbeat: GRPC error, {}. Retrying.".format(
-                    status_code.name))
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.warning("GRPC hearbeat: server unavailable during send heartbeat. Retrying.")
+                if status_code == grpc.StatusCode.UNAUTHENTICATED:
+                    details = e.details()
+                    if details == 'Token expired':
+                        logger.warning("GRPC hearbeat: Token expired. Reconnecting.")
+                        self.detach()
                 logger.debug(e)
                 self._handle_combiner_failure()
 
@@ -717,7 +744,16 @@ class Client:
         self.logs.append(
             "{} {} LOG LEVEL {} MESSAGE {}".format(str(datetime.now()), status.sender.name, status.log_level,
                                                    status.status))
-        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        try:
+            _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        except grpc.RpcError as e:
+            status_code = e.code()
+            if status_code == grpc.StatusCode.UNAVAILABLE:
+                logger.warning("GRPC SendStatus: server unavailable during send status.")
+            if status_code == grpc.StatusCode.UNAUTHENTICATED:
+                details = e.details()
+                if details == 'Token expired':
+                    logger.warning("GRPC SendStatus: Token expired.")       
 
     def run(self):
         """ Run the client. """
