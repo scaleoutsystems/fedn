@@ -21,7 +21,7 @@ if __name__ == '__main__':
         "id": str(uuid.uuid4()),
         "aggregator": "fedavg",
         "round_timeout": 20,
-        "rounds": 100,
+        "rounds": 1000,
         "validate": False,
     }
 
