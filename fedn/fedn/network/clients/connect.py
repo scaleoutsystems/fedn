@@ -5,7 +5,6 @@
 #
 #
 import enum
-import os
 
 import requests
 
@@ -128,7 +127,7 @@ class ConnectorClient:
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None
-    
+
     def refresh_token(self):
         """
         Refresh client token.
@@ -139,10 +138,10 @@ class ConnectorClient:
         if not FEDN_AUTH_REFRESH_TOKEN_URI or not FEDN_AUTH_REFRESH_TOKEN:
             logger.error("No refresh token URI/Token set, cannot refresh token.")
             return 401
-       
-        payload = requests.post(FEDN_AUTH_REFRESH_TOKEN_URI, 
-                              verify=self.verify, 
-                              allow_redirects=True, 
-                              json={'refresh': FEDN_AUTH_REFRESH_TOKEN})
+
+        payload = requests.post(FEDN_AUTH_REFRESH_TOKEN_URI,
+                                verify=self.verify,
+                                allow_redirects=True,
+                                json={'refresh': FEDN_AUTH_REFRESH_TOKEN})
         self.token = payload.json()['access']
         return payload.status_code

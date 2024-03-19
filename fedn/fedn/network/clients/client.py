@@ -468,7 +468,7 @@ class Client:
                     if details == 'Token expired':
                         logger.warning("GRPC TaskStream: Token expired. Reconnecting.")
                         self.detach()
-                
+
                 if status_code == grpc.StatusCode.CANCELLED:
                     # Expected if the client is detached
                     logger.critical("GRPC TaskStream: Client detached from combiner. Atempting to reconnect.")
@@ -677,7 +677,6 @@ class Client:
             except queue.Empty:
                 pass
             except grpc.RpcError as e:
-                status_code = e.code()
                 logger.critical(f"GRPC process_request: An error occurred during process request: {e}")
 
     def _handle_combiner_failure(self):
@@ -753,7 +752,7 @@ class Client:
             if status_code == grpc.StatusCode.UNAUTHENTICATED:
                 details = e.details()
                 if details == 'Token expired':
-                    logger.warning("GRPC SendStatus: Token expired.")       
+                    logger.warning("GRPC SendStatus: Token expired.")
 
     def run(self):
         """ Run the client. """

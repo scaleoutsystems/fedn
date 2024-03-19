@@ -1,5 +1,3 @@
-import os
-
 import grpc
 import jwt
 
@@ -34,20 +32,24 @@ USER_AGENT_WHITELIST = [
     'grpc_health_probe'
 ]
 
+
 def check_role_claims(payload, endpoint):
-    user_role = payload.get('role', '')    
-    
+    user_role = payload.get('role', '')
+
     # Perform endpoint-specific RBAC check
     allowed_roles = ENDPOINT_ROLES_MAPPING.get(endpoint)
-    if allowed_roles and not user_role in allowed_roles:
+    if allowed_roles and user_role not in allowed_roles:
         return False
     return True
+
 
 def _unary_unary_rpc_terminator(code, details):
     def terminate(ignored_request, context):
         context.abort(code, details)
 
     return grpc.unary_unary_rpc_method_handler(terminate)
+
+
 class JWTInterceptor(grpc.ServerInterceptor):
     def __init__(self):
         pass
@@ -57,32 +59,32 @@ class JWTInterceptor(grpc.ServerInterceptor):
         if not SECRET_KEY:
             return continuation(handler_call_details)
         metadata = dict(handler_call_details.invocation_metadata)
-        # Pass whitelisted methods 
+        # Pass whitelisted methods
         if handler_call_details.method in ENDPOINT_WHITELIST:
             return continuation(handler_call_details)
         # Pass if the request comes from whitelisted user agents
         user_agent = metadata.get('user-agent').split(' ')[0]
         if user_agent in USER_AGENT_WHITELIST:
             return continuation(handler_call_details)
-        
+
         token = metadata.get('authorization')
         if token is None:
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, 'Token is missing')
-        
+
         if not token.startswith(FEDN_AUTH_SCHEME):
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, f'Invalid token scheme, expected {FEDN_AUTH_SCHEME}')
-        
+
         token = token.split(' ')[1]
 
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[FEDN_JWT_ALGORITHM])
-            
+
             if not check_role_claims(payload, handler_call_details.method):
                 return _unary_unary_rpc_terminator(grpc.StatusCode.PERMISSION_DENIED, 'Insufficient permissions')
-            
+
             if not check_custom_claims(payload):
                 return _unary_unary_rpc_terminator(grpc.StatusCode.PERMISSION_DENIED, 'Insufficient permissions')
-            
+
             return continuation(handler_call_details)
         except jwt.InvalidTokenError:
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, 'Invalid token')
