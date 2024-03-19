@@ -38,16 +38,17 @@ From development to real-world FL:
 
 
 
-Getting started with the SDK
+Getting started with FEDn
 ===============
 
-The best way to get started with the FEDn SDK is to take the quickstart tutorial: 
+The best way to get started is to take the quickstart tutorial: 
 
-- `Quickstart PyTorch <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
+- `Quickstart <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
 
 Documentation
 =============
-You find more details about the architecture, deployment and how to develop your own application in the documentation:
+
+More details about the architecture, deployment, and how to develop your own application and framework extensions (such as custom aggregators) are found in the documentation:
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 
@@ -55,10 +56,21 @@ You find more details about the architecture, deployment and how to develop your
 Deploying a project to FEDn Studio
 ===============
 
-Studio offers a managed, production-grade deployment of the FEDn server-side infrastructure. With Studio, you can manage token-based authentication for clients and collaborate with other users in joint project workspaces. In addition to a REST API, Studio features an intuitive dashboard that allows you to manage FL experiments and visualize and download logs and metrics, enhancing your ability to monitor and analyze federated learning projects.
+Studio offers a production-grade deployment of the FEDn server-side infrastructure on Kubernetes. With Studio, you can also manage token-based authentication for clients and collaborate with other users in joint project workspaces. In addition to a REST API, Studio features intuitive dashboards that allows you to orchestrate FL experiments and visualize and manage global models, event logs and metrics. These features enhance your ability to monitor and analyze federated learning projects. Studio is available as-a service hosted by Scaleout and one project is provided for free for testing and research. 
 
-Follow this guide to `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__ . 
+- `Register for a project in Studio <https://studio.scaleoutsystems.com/signup/>`__
+- `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__  
 
+Options and charts are also available for self-managed deployment of FEDn Studio, reach out to the Scaleout team for more information. 
+
+
+Support
+=================
+
+Community support in available in our `Discord
+server <https://discord.gg/KMg4VwszAd>`__.
+
+Options are also available for `Enterprise support <https://www.scaleoutsystems.com/start#pricing>`__.
 
 Making contributions
 ====================
@@ -66,12 +78,6 @@ Making contributions
 All pull requests will be considered and are much appreciated. For
 more details please refer to our `contribution
 guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
-
-Community support
-=================
-
-Community support in available in our `Discord
-server <https://discord.gg/KMg4VwszAd>`__.
 
 Citation
 ========
