@@ -32,11 +32,6 @@ body {
     font-style: normal;
 }
 
-div.wy-nav-content {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-
 a {
     color: var(--scaleout-black);
     text-decoration: none;
@@ -63,58 +58,6 @@ a:visited {
     color: var(--scaleout-black);
 }
 
-nav.wy-nav-side {
-    background-color: var(--scaleout-white);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-div.wy-side-nav-search {
-    background-color: var(--scaleout-white);
-}
-
-.wy-menu-vertical a {
-    color: var(--scaleout-black);
-    display: inline-block;
-}
-
-.wy-menu-vertical a:hover {
-    background-color: var(--scaleout-white);
-    cursor: pointer;
-}
-
-.wy-side-nav-search input[type=text] {
-    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
-    border-color: var(--scaleout-grey-6);
-}
-
-.rst-content .section ul,
-.rst-content .toctree-wrapper ul,
-.rst-content section ul,
-.wy-plain-list-disc,
-article ul {
-    list-style: disc;
-    line-height: 16px;
-    margin-bottom: 16px;
-}
-
-.rst-content .section ul li,
-.rst-content .toctree-wrapper ul li,
-.rst-content section ul li,
-.wy-plain-list-disc li,
-article ul li {
-    list-style: none;
-    margin-left: 16px;
-}
-
-
-.rst-content .section ul li li,
-.rst-content .toctree-wrapper ul li li,
-.rst-content section ul li li,
-.wy-plain-list-disc li li,
-article ul li li {
-    list-style: none;
-}
-
 .rst-content .toctree-wrapper>p.caption,
 span.caption-text,
 h1,
@@ -130,18 +73,20 @@ legend {
     color: var(--scaleout-black);
 }
 
+.wy-menu-vertical a:hover {
+    background-color: var(--scaleout-white);
+    cursor: pointer;
+}
+
+.wy-menu-vertical a {
+    color: var(--scaleout-black);
+    display: inline-block;
+}
+
 .rst-content .toctree-wrapper ul li.toctree-l1>a {
     font-weight: 500;
-    text-shadow: 0 0 1px black;
 }
 
-
-.btn {
-    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
-    border-color: var(--scaleout-grey-6);
-    border-radius: 8px;
-}
-
-.btn-neutral {
-    background: white !important;
+.wy-menu-vertical li.current a:hover {
+    background: var(--scaleout-white);
 }
