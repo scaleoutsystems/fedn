@@ -6,7 +6,7 @@ the host and different devices as clients. For general steps on how to run FEDn,
 
 
 .. note::
-   For a secure and production-grade deployment solution over **public networks**, explore the FEDn studio service at 
+   For a secure and production-grade deployment solution over **public networks**, explore the FEDn Studio service at 
    **studio.scaleoutsystems.com**. 
    
    Alternatively follow this tutorial substituting the hosts local IP with your public IP, open the neccesary 
