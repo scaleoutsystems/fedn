@@ -60,10 +60,9 @@ def init_seed(out_path='seed.npz'):
     save_parameters(model, out_path)
 
 
-def make_data(n_min=50, n_max=100):
-    """ Generate / simulate a random number n data points.
-
-    n will fall in the interval (n_min, n_max)
+def make_data(n_min=10, n_max=100):
+    """ Generate / simulate a random number (uniform distribution) 
+    of data points in the interval (n_min, n_max)
 
     """
     n_samples = 100000
