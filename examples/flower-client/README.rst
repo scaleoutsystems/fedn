@@ -1,26 +1,53 @@
 Using Flower clients in FEDn
 -------------
 
-Example using an adapter for the Flower ClientApp abstraction to run Flower Clients in FEDn. 
-See `flwr_client.py` and `flwr_task.py` for Flower client code. Adapter and workflow in 
-`entrypoint` and `client_app_adapter.py`.
+This example shows how to run a Flower 'ClientApp' using the FEDn server-side infrastructure.
+
+See `flwr_client.py` and `flwr_task.py` for the Flower client code. The FEDn compute package is complemented
+with an adapter for the Flower client, `client_app_adapter.py`.
    
 
-Run details
+Running the example
 -----------
 
-See `https://fedn.readthedocs.io/en/stable/quickstart.html` for general run details. Note 
-that the flower client handles data distribution programatically, so data related steps can be 
-omitted. To run this example after initializing fedn with the `seed.npz` and `package` that 
-can be generated through `bin/build`, continue with building a docker image containing the flower 
-dependencies. From the repository root execute:
+See `https://fedn.readthedocs.io/en/stable/quickstart.html` for a general introduction to FEDn. This example follows the same structure
+as the pytorch quickstart example. To build the compute package and seed model: 
 
 .. code-block::
 
-   docker build --build-arg REQUIREMENTS=examples/flower-client/requirements.txt -t flower-client .
+   bin/init_venv.sh
 
-In separate terminals, navigate to this folder, start clients and inject the `CLIENT_NUMBER` 
+.. code-block::
+
+   bin/build.sh
+
+Build a docker image containing the project dependencies including flower (this might take a long time):
+
+.. code-block::
+
+   docker build -t flower-client .
+
+In a separate terminal, navigate to this folder, then start a client and inject the `CLIENT_NUMBER` 
 dependency, for example for client1:
+
+If you are running FEDn locally using the provided docker-compose template:
+=====
+
+Use the FEDn API Client to initalize FEDn with the compute package and seed model: 
+
+.. code-block::
+
+   python init_fedn.py
+
+Create a file 'client.yaml' with the following content: 
+
+.. code-block::
+   
+   network_id: fedn-network
+   discover_host: api-server
+   discover_port: 8092
+
+The start the client
 
 .. code-block::
 
@@ -29,3 +56,19 @@ dependency, for example for client1:
    --network=fedn_default \
    -e CLIENT_NUMBER=0 \
    flower-client run client -in client.yaml --name client1
+
+
+If you are using a FEDn Studio project:
+=====
+
+- Register a client in Studio and obtain the corresponding 'client.yaml' 
+
+Then start the client: 
+
+.. code-block::
+
+   docker run \
+   -v $PWD/client.yaml:/app/client.yaml \
+   -e CLIENT_NUMBER=0 \
+   flower-client run client -in client.yaml --name client1 --secure=True --force-ssl
+
