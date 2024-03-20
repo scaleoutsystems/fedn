@@ -1,4 +1,4 @@
-"""Flower client code for helper functions. Inspired from https://github.com/adap/flower/tree/main/examples/app-pytorch."""
+"""Flower client code for helper functions. Code from https://github.com/adap/flower/tree/main/examples/app-pytorch."""
 
 from collections import OrderedDict
 

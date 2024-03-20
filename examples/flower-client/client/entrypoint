@@ -15,7 +15,8 @@ flwr_adapter = FlwrClientAppAdapter(app)
 
 
 def _get_node_id():
-    # Figure out FEDn client number from container name
+    """Get client number from environment variable. """
+
     number = os.environ.get("CLIENT_NUMBER", "0")
     return int(number)
 
