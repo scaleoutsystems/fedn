@@ -38,7 +38,7 @@ class Dispatcher:
                 shell = ['/bin/sh', '-c']
                 args = shell + [' '.join(cmd + args)]
             else:
-                args = cmd.split(' ')+args
+                args = cmd[0].split(' ')+args
 
             print(args)
             run_process(args=args, cwd=self.project_dir)
