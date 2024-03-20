@@ -556,6 +556,7 @@ class Client:
                 fh.write(model.getbuffer())
 
             _, outpath = tempfile.mkstemp()
+            os.close(_)
             self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
