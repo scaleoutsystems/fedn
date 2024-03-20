@@ -70,5 +70,5 @@ Then start the client:
    docker run \
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
-   flower-client run client -in client.yaml --name client1 --secure=True --force-ssl
+   flower-client run client -in client.yaml --secure=True --force-ssl
 
