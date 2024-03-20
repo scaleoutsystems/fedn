@@ -1,4 +1,4 @@
-FROM ghcr.io/scaleoutsystems/fedn/fedn:master
+FROM ghcr.io/scaleoutsystems/fedn/fedn:0.8.0
 
 COPY requirements.txt /app/config/requirements.txt
 
