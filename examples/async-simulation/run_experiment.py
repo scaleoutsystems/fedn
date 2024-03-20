@@ -19,7 +19,7 @@ if __name__ == '__main__':
     session_config = {
         "helper": "numpyhelper",
         "id": str(uuid.uuid4()),
-        "aggregator": "fedavg",
+        "aggregator": "fedopt",
         "round_timeout": 20,
         "rounds": 1000,
         "validate": False,

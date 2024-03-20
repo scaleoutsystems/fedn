@@ -192,7 +192,7 @@ class Client:
         if self.config['token']:
             self._add_grpc_metadata('authorization', f"{FEDN_AUTH_SCHEME} {self.config['token']}")
         logger.debug("Client using metadata: {}.".format(self.metadata))
-        port = client_config['port']
+        port = combiner_config['port']
         secure = False
         if combiner_config['fqdn'] is not None:
             host = combiner_config['fqdn']
