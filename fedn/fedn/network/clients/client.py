@@ -26,7 +26,7 @@ from fedn.common.log_config import (logger, set_log_level_from_string,
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
-from fedn.network.combiner.modelservice import upload_request_generator
+from fedn.network.combiner.modelservice import upload_request_generator, get_tmp_path
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -555,8 +555,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            _, outpath = tempfile.mkstemp()
-            os.close(_)
+            outpath = get_tmp_path()
             self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
