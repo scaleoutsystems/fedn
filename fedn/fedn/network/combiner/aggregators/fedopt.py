@@ -40,7 +40,7 @@ class Aggregator(AggregatorBase):
         self.tau = 1e-4
 
     def combine_models(self, helper=None, delete_models=True):
-        """Compute pseudo gradients usigng model updates in the queue.
+        """Compute pseudo gradients using model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional
@@ -88,7 +88,7 @@ class Aggregator(AggregatorBase):
                     pseudo_gradient = helper.increment_average(
                         pseudo_gradient, pseudo_gradient_next, metadata['num_examples'], total_examples)
 
-                print("NORM PSEUDOGRADIENT: ", helper.norm(pseudo_gradient), flush=True)
+                logger.info("NORM PSEUDOGRADIENT: {}".format(helper.norm(pseudo_gradient)))
 
                 nr_aggregated_models += 1
                 # Delete model from storage
