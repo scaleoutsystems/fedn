@@ -93,10 +93,6 @@ If you use FEDn in your research, please cite:
      year={2021}
    }
 
-Organizational collaborators, contributors and supporters
-=========================================================
-
-|FEDn logo| |UU logo| |AI Sweden logo| |Zenseact logo| |Scania logo|
 
 License
 =======
@@ -104,13 +100,4 @@ License
 FEDn is licensed under Apache-2.0 (see `LICENSE <LICENSE>`__ file for
 full information).
 
-.. |FEDn logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/Scaleout.png
-   :width: 15%
-.. |UU logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/UU.png
-   :width: 15%
-.. |AI Sweden logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/ai-sweden-logo.png
-   :width: 15%
-.. |Zenseact logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/zenseact-logo.png
-   :width: 15%
-.. |Scania logo| image:: https://github.com/scaleoutsystems/fedn/raw/master/docs/img/logos/Scania.png
-   :width: 15%
+Use of FEDn Studio (SaaS) is subject to the `Terms of Use <https://www.scaleoutsystems.com/terms>`__.
