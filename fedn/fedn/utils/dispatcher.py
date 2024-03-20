@@ -37,7 +37,8 @@ class Dispatcher:
             if os.name != "nt":
                 shell = ['/bin/sh', '-c']
                 args = shell + [' '.join(cmd + args)]
-
+            else:
+                args = cmd+args
             run_process(args=args, cwd=self.project_dir)
 
             logger.info('Done executing {}'.format(cmd_type))
