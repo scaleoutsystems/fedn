@@ -34,10 +34,9 @@ class Dispatcher:
             args = cmdsandargs[1:]
 
             # shell (this could be a venv, TODO: parametrize)
-            if os.name == "nt":
-                shell = []
-            else:
+            if os.name != "nt":
                 shell = ['/bin/sh', '-c']
+                args = shell + [' '.join(cmd + args)]
 
             # add the corresponding process defined in project.yaml and append arguments from invoked command
             args = shell + [' '.join(cmd + args)]
