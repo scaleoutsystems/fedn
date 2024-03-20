@@ -38,8 +38,6 @@ class Dispatcher:
                 shell = ['/bin/sh', '-c']
                 args = shell + [' '.join(cmd + args)]
 
-            # add the corresponding process defined in project.yaml and append arguments from invoked command
-            args = shell + [' '.join(cmd + args)]
             run_process(args=args, cwd=self.project_dir)
 
             logger.info('Done executing {}'.format(cmd_type))
