@@ -2,7 +2,7 @@
 set -e
 
 # Init venv
-python -m venv .mnist-pytorch
+python3 -m venv .mnist-pytorch
 
 # Pip deps
 .mnist-pytorch/bin/pip install --upgrade pip

@@ -26,11 +26,9 @@ handler.setFormatter(formatter)
 
 
 class StudioHTTPHandler(logging.handlers.HTTPHandler):
-    def __init__(self, host, url, method='POST', token=None, projectname='', apptype=''):
+    def __init__(self, host, url, method='POST', token=None):
         super().__init__(host, url, method)
         self.token = token
-        self.projectname = projectname
-        self.apptype = apptype
 
     def emit(self, record):
         log_entry = self.mapLogRecord(record)
@@ -69,9 +67,7 @@ if REMOTE_LOG_SERVER:
         host=REMOTE_LOG_SERVER,
         url=REMOTE_LOG_PATH,
         method='POST',
-        token=remote_token,
-        projectname='test-project',
-        apptype='client'
+        token=remote_token
     )
     http_handler.setLevel(rloglevel)
     logger.addHandler(http_handler)
