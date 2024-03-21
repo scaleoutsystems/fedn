@@ -59,7 +59,7 @@ class Client:
         self._attached = False
         self._missed_heartbeat = 0
         self.config = config
-
+        self.trace_attribs = False
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
 
@@ -243,7 +243,7 @@ class Client:
         """Disconnect from the combiner."""
         self.channel.close()
 
-    def detach(self):
+    def _detach(self):
         """Detach from the FEDn network (disconnect from combiner)"""
         # Setting _attached to False will make all processing threads return
         if not self._attached:

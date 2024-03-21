@@ -120,8 +120,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                        'certificate': cert,
                        'key': key}
 
-        print(announce_config, flush=True)
-
         # Set up model repository
         self.repository = Repository(
             announce_config['storage']['storage_config'])
@@ -564,7 +562,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 return response
 
         except Exception as e:
-            logger.error("Combiner not properly configured! {}".format(e), flush=True)
+            logger.error("Combiner not properly configured! {}".format(e))
             raise
 
         response.status = fedn.ConnectionStatus.TRY_AGAIN_LATER

@@ -145,7 +145,7 @@ class Control(ControlBase):
         self.create_round({'round_id': round_id, 'status': "Pending"})
 
         if len(self.network.get_combiners()) < 1:
-            logger.warning("Round cannot start, no combiners connected!", flush=True)
+            logger.warning("Round cannot start, no combiners connected!")
             self.set_round_status(round_id, 'Failed')
             return None, self.statestore.get_round(round_id)
 

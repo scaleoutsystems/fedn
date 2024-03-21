@@ -4,6 +4,7 @@ import tempfile
 
 import numpy as np
 
+from fedn.common.log_config import logger
 from fedn.utils.helpers.helperbase import HelperBase
 
 
@@ -86,7 +87,7 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in json format.
         """
-        print("in android helper load")
+        logger.debug("in android helper load")
         if isinstance(fh, str):
             with open(fh, "rb") as file:
                 byte_data = file.read()
