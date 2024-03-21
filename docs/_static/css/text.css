@@ -90,3 +90,7 @@ legend {
 .wy-menu-vertical li.current a:hover {
     background: var(--scaleout-white);
 }
+
+a.reference.internal {
+    width: fit-content;
+}
