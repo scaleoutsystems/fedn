@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, mdb)
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -11,6 +12,7 @@ round_store = RoundStore(mdb, "control.rounds")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_rounds():
     """Get rounds
     Retrieves a list of rounds based on the provided parameters.
@@ -107,6 +109,7 @@ def get_rounds():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_rounds():
     """List rounds
     Retrieves a list of rounds based on the provided parameters.
@@ -187,6 +190,7 @@ def list_rounds():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_rounds_count():
     """Rounds count
     Retrieves the count of rounds based on the provided parameters.
@@ -227,6 +231,7 @@ def get_rounds_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def rounds_count():
     """Rounds count
     Retrieves the count of rounds based on the provided parameters.
@@ -271,6 +276,7 @@ def rounds_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_round(id: str):
     """Get round
     Retrieves a round based on the provided id.

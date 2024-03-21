@@ -4,11 +4,13 @@
    
    introduction
    quickstart
+   distributed
    apiclient
    tutorial
    architecture
    aggregators
    helpers
+   auth
    faq
    modules
 
