@@ -46,3 +46,7 @@ article ul li li {
 .btn-neutral {
     background: white !important;
 }
+
+.highlight {
+    background: var(--scaleout-grey-1) !important;
+}

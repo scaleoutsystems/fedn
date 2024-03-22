@@ -38,6 +38,7 @@ a {
     display: inline-block;
 }
 
+
 a::after {
     content: '';
     display: block;
@@ -45,6 +46,11 @@ a::after {
     height: 1px;
     background: #000;
     transition: width .4s;
+}
+
+.wy-side-scroll a::after {
+    content: none;
+    transition: none;
 }
 
 a:hover::after,

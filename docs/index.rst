@@ -1,14 +1,24 @@
 .. toctree::
    :maxdepth: 2
-   :caption: Table of Contents
+   :caption: Introduction
    
    introduction
    quickstart
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Documentation
+   
    apiclient
    tutorial
    architecture
    aggregators
    helpers
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Miscellaneous
+   
    faq
    modules
 
