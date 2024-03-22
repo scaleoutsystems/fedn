@@ -9,6 +9,7 @@
    :maxdepth: 2
    :caption: Documentation
    
+   studio
    apiclient
    tutorial
    architecture
