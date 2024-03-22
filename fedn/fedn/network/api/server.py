@@ -427,7 +427,7 @@ if custom_url_prefix:
 
 
 @app.route("/get_package_checksum", methods=["GET"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def get_package_checksum():
     name = request.args.get("name", None)
     return api.get_checksum(name)
