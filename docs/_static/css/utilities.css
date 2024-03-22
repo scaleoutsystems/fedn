@@ -7,16 +7,12 @@ nav.wy-nav-side {
     background-color: var(--scaleout-white);
     background: var(--scaleout-white);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    width: 340px;
+
 }
 
 div.wy-side-nav-search {
     background-color: var(--scaleout-white);
-    width: 340px;
-}
 
-div.wy-menu-vertical {
-    width: 340px;
 }
 
 .wy-menu-vertical li.current {
@@ -39,12 +35,4 @@ div.wy-menu-vertical {
 
 .wy-menu-vertical li.toctree-l1.current>a {
     border: 0;
-}
-
-div.wy-side-scroll {
-    width: 340px;
-}
-
-.wy-nav-content-wrap {
-    margin-left: 340px;
 }

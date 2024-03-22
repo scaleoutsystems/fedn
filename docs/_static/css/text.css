@@ -100,3 +100,8 @@ legend {
 a.reference.internal {
     width: fit-content;
 }
+
+.caption-text {
+    opacity: 0.5;
+    font-weight: 900 !important;
+}
