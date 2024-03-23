@@ -34,7 +34,7 @@ class Aggregator(AggregatorBase):
         self.m = None
 
         # Server side hyperparameters. Note that these may need extensive fine tuning.
-        self.eta = 0.1
+        self.eta = 1e-2
         self.beta1 = 0.9
         self.beta2 = 0.99
         self.tau = 1e-4

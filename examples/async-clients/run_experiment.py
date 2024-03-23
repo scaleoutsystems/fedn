@@ -16,21 +16,23 @@ client = APIClient(DISCOVER_HOST, DISCOVER_PORT)
 
 if __name__ == '__main__':
 
-    session_config = {
-        "helper": "numpyhelper",
-        "id": str(uuid.uuid4()),
-        "aggregator": "fedavg",
-        "round_timeout": 20,
-        "rounds": 600,
-        "validate": False,
-    }
+    num_sessions = 3
+    for s in range(num_sessions):
+        session_config = {
+            "helper": "numpyhelper",
+            "id": str(uuid.uuid4()),
+            "aggregator": "fedopt",
+            "round_timeout": 20,
+            "rounds": 100,
+            "validate": False,
+        }
 
-    session = client.start_session(**session_config)
-    if session['success'] is False:
-        print(session['message'])
-        exit(0)
+        session = client.start_session(**session_config)
+        if session['success'] is False:
+            print(session['message'])
+            exit(0)
 
-    print("Started session: {}".format(session))
+        print("Started session: {}".format(session))
 
-    while not client.session_is_finished(session_config['id']):
-        time.sleep(2)
+        while not client.session_is_finished(session_config['id']):
+            time.sleep(2)
