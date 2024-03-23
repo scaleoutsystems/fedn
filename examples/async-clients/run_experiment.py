@@ -16,7 +16,7 @@ client = APIClient(DISCOVER_HOST, DISCOVER_PORT)
 
 if __name__ == '__main__':
 
-    num_sessions = 3
+    num_sessions = 6
     for s in range(num_sessions):
         session_config = {
             "helper": "numpyhelper",
