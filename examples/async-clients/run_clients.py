@@ -17,10 +17,8 @@ combiner    127.0.0.1
 """
 
 import copy
-import multiprocessing as mp
 import time
-import uuid
-from multiprocessing import Pool, Process
+from multiprocessing import Process
 
 import numpy as np
 
