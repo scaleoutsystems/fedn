@@ -1,5 +1,5 @@
-# ASYNC SIMULATION 
-This example is intended as a tool to experiment with asynchronous client workflows.     
+# ASYNC CLIENTS 
+This example shows how to experiment with intermittent and asynchronous client workflows.     
 
 ## Prerequisites
 - [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
@@ -8,15 +8,14 @@ This example is intended as a tool to experiment with asynchronous client workfl
 
 ## Running the example (pseudo-distributed, single host)
 
-Clone FEDn and locate into this directory.
+First, make sure that FEDn is installed (we recommend using a virtual environment)
+
+Clone FEDn
 ```sh
 git clone https://github.com/scaleoutsystems/fedn.git
-cd fedn/examples/async-simulation
 ```
 
-### Preparing the environment, the local data, the compute package and seed model
-
-Install FEDn and dependencies (we recommend using a virtual environment):
+Install FEDn and dependencies
 
 ``
 pip install fedn
@@ -28,7 +27,9 @@ Or from source, standing in the folder 'fedn/fedn'
 pip install .
 ```
 
-Standing in examples/async-simulation
+### Prepare the example environment, the compute package and seed model
+
+Standing in the folder fedn/examples/async-clients
 ```
 pip install -r requirements.txt
 ```
@@ -42,9 +43,11 @@ tar -czvf package.tgz client
 python client/entrypoint init_seed
 ```
 
+You will now have a file 'seed.npz' in the directory.
+
 ### Running a simulation
 
-Deploy FEDn on localhost. From the FEDn root directory: 
+Deploy FEDn on localhost. Standing in the the FEDn root directory: 
 
 ```
 docker-compose up 
@@ -55,4 +58,20 @@ Initialize FEDn with the compute package and seed model
 ```
 python init_fedn.py
 ```
+
+Start simulating clients
+```
+python run_clients.py
+```
+
+Start the experiment / training sessions: 
+
+```
+python run_experiment.py
+```
+
+Once global models start being produced, you can start analyzing results using API Client, refer to the notebook "Experiment.ipynb" for instructions. 
+
+
+
 
