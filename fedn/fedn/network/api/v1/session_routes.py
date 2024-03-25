@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, mdb)
 from fedn.network.storage.statestore.stores.session_store import SessionStore
@@ -11,6 +12,7 @@ session_store = SessionStore(mdb, "control.sessions")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_sessions():
     """Get sessions
     Retrieves a list of sessions based on the provided parameters.
@@ -99,6 +101,7 @@ def get_sessions():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_sessions():
     """List sessions
     Retrieves a list of sessions based on the provided parameters.
@@ -178,6 +181,7 @@ def list_sessions():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_sessions_count():
     """Sessions count
     Retrieves the count of sessions based on the provided parameters.
@@ -218,6 +222,7 @@ def get_sessions_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def sessions_count():
     """Sessions count
     Retrieves the count of sessions based on the provided parameters.
@@ -262,6 +267,7 @@ def sessions_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_session(id: str):
     """Get session
     Retrieves a session based on the provided id.

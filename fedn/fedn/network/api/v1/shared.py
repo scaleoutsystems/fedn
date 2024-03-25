@@ -3,11 +3,13 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.common.config import get_network_config, get_statestore_config
+from fedn.common.config import (get_modelstorage_config, get_network_config,
+                                get_statestore_config)
 
 api_version = "v1"
 
 statestore_config = get_statestore_config()
+modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
 
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
@@ -29,6 +31,13 @@ def get_limit(headers: object) -> int:
     if is_positive_integer(limit):
         return int(limit)
     return 0
+
+
+def get_reverse(headers: object) -> bool:
+    reverse: str = headers.get("X-Reverse")
+    if reverse and reverse.lower() == "true":
+        return True
+    return False
 
 
 def get_skip(headers: object) -> int:

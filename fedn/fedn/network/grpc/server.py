@@ -6,6 +6,7 @@ from grpc_health.v1 import health, health_pb2_grpc
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
+from fedn.network.grpc.auth import JWTInterceptor
 
 
 class Server:
@@ -16,7 +17,7 @@ class Server:
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
 
-        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=350))
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=350), interceptors=[JWTInterceptor()])
         self.certificate = None
         self.health_servicer = health.HealthServicer()
 
