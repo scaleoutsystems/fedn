@@ -5,6 +5,17 @@ import yaml
 global STATESTORE_CONFIG
 global MODELSTORAGE_CONFIG
 
+SECRET_KEY = os.environ.get('FEDN_JWT_SECRET_KEY', False)
+FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_KEY', False)
+FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get('FEDN_JWT_CUSTOM_CLAIM_VALUE', False)
+
+FEDN_AUTH_WHITELIST_URL_PREFIX = os.environ.get('FEDN_AUTH_WHITELIST_URL_PREFIX', False)
+FEDN_JWT_ALGORITHM = os.environ.get('FEDN_JWT_ALGORITHM', 'HS256')
+FEDN_AUTH_SCHEME = os.environ.get('FEDN_AUTH_SCHEME', 'Token')
+FEDN_AUTH_REFRESH_TOKEN_URI = os.environ.get('FEDN_AUTH_REFRESH_TOKEN_URI', False)
+FEDN_AUTH_REFRESH_TOKEN = os.environ.get('FEDN_AUTH_REFRESH_TOKEN', False)
+FEDN_CUSTOM_URL_PREFIX = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
+
 
 def get_environment_config():
     """ Get the configuration from environment variables.

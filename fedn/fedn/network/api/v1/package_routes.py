@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, get_use_typing,
                                         mdb)
@@ -12,6 +13,7 @@ package_store = PackageStore(mdb, "control.package")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_packages():
     """Get packages
     Retrieves a list of packages based on the provided parameters.
@@ -132,6 +134,7 @@ def get_packages():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_packages():
     """List packages
     Retrieves a list of packages based on the provided parameters.
@@ -221,6 +224,7 @@ def list_packages():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_packages_count():
     """Package count
     Retrieves the count of packages based on the provided parameters.
@@ -281,6 +285,7 @@ def get_packages_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def packages_count():
     """Package count
     Retrieves the count of packages based on the provided parameters.
@@ -342,6 +347,7 @@ def packages_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_package(id: str):
     """Get package
     Retrieves a package based on the provided id.
@@ -388,6 +394,7 @@ def get_package(id: str):
 
 
 @bp.route("/active", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_active_package():
     """Get active package
     Retrieves the active package

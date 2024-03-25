@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
                                         get_typed_list_headers, mdb)
 from fedn.network.storage.statestore.stores.client_store import ClientStore
@@ -11,6 +12,7 @@ client_store = ClientStore(mdb, "network.clients")
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_clients():
     """Get clients
     Retrieves a list of clients based on the provided parameters.
@@ -127,6 +129,7 @@ def get_clients():
 
 
 @bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
 def list_clients():
     """List clients
     Retrieves a list of clients based on the provided parameters.
@@ -213,6 +216,7 @@ def list_clients():
 
 
 @bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_clients_count():
     """Clients count
     Retrieves the total number of clients based on the provided parameters.
@@ -273,6 +277,7 @@ def get_clients_count():
 
 
 @bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
 def clients_count():
     """Clients count
     Retrieves the total number of clients based on the provided parameters.
@@ -325,6 +330,7 @@ def clients_count():
 
 
 @bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_client(id: str):
     """Get client
     Retrieves a client based on the provided id.

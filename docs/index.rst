@@ -10,11 +10,13 @@
    :caption: Documentation
    
    studio
+   distributed
    apiclient
    tutorial
    architecture
    aggregators
    helpers
+   auth
    
 .. toctree::
    :maxdepth: 2

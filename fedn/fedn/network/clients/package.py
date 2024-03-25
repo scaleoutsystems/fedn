@@ -9,6 +9,7 @@ from distutils.dir_util import copy_tree
 import requests
 import yaml
 
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher
@@ -52,13 +53,13 @@ class PackageRuntime:
         else:
             scheme = "http"
         if port:
-            path = f"{scheme}://{host}:{port}/download_package"
+            path = f"{scheme}://{host}:{port}{FEDN_CUSTOM_URL_PREFIX}/download_package"
         else:
-            path = f"{scheme}://{host}/download_package"
+            path = f"{scheme}://{host}{FEDN_CUSTOM_URL_PREFIX}/download_package"
         if name:
             path = path + "?name={}".format(name)
 
-        with requests.get(path, stream=True, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
+        with requests.get(path, stream=True, verify=False, headers={'Authorization': f'{FEDN_AUTH_SCHEME} {token}'}) as r:
             if 200 <= r.status_code < 204:
 
                 params = cgi.parse_header(
@@ -73,13 +74,13 @@ class PackageRuntime:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
         if port:
-            path = f"{scheme}://{host}:{port}/get_package_checksum"
+            path = f"{scheme}://{host}:{port}{FEDN_CUSTOM_URL_PREFIX}/get_package_checksum"
         else:
-            path = f"{scheme}://{host}/get_package_checksum"
+            path = f"{scheme}://{host}{FEDN_CUSTOM_URL_PREFIX}/get_package_checksum"
 
         if name:
             path = path + "?name={}".format(name)
-        with requests.get(path, verify=False, headers={'Authorization': 'Token {}'.format(token)}) as r:
+        with requests.get(path, verify=False, headers={'Authorization': f'{FEDN_AUTH_SCHEME} {token}'}) as r:
             if 200 <= r.status_code < 204:
 
                 data = r.json()

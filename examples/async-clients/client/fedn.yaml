@@ -1,0 +1,5 @@
+entry_points:
+  train:
+    command: python entrypoint.py train $ENTRYPOINT_OPTS
+  validate: 
+    command: python entrypoint.py validate $ENTRYPOINT_OPTS
