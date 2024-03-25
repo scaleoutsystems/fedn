@@ -14,6 +14,7 @@ combiner    127.0.0.1
 
 import copy
 import time
+import uuid
 
 from fedn import APIClient
 from fedn.network.clients.client import Client

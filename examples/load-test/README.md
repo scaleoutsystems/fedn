@@ -21,6 +21,8 @@ cd fedn/examples/load-test
 
 ### Preparing the environment, the local data, the compute package and seed model
 
+We recommend that you use a virtual environment. 
+
 Install FEDn: 
 ```
 pip install fedn
