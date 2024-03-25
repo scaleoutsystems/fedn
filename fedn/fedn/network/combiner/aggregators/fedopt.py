@@ -34,6 +34,7 @@ class Aggregator(AggregatorBase):
         self.m = None
 
         # Server side hyperparameters. Note that these may need extensive fine tuning.
+        self.serveropt = "adam"
         self.eta = 1e-2
         self.beta1 = 0.9
         self.beta2 = 0.99
@@ -102,7 +103,14 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        model = self.serveropt_adam(helper, pseudo_gradient, model_old)
+        if self.serveropt == 'adam':
+            model = self.serveropt_adam(helper, pseudo_gradient, model_old)
+        elif self.serveropt == 'yogi':
+            model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
+        elif self.serveropt == 'adagrad':
+            model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
+        else:
+            logger.warning("Unsupported server side optimizer, using default (adam)")
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
@@ -110,6 +118,60 @@ class Aggregator(AggregatorBase):
         return model, data
 
     def serveropt_adam(self, helper, pseudo_gradient, model_old):
+        """ Server side optimization, FedAdam.
+
+        :param helper: instance of helper class.
+        :type helper: Helper
+        :param pseudo_gradient: The pseudo gradient.
+        :type pseudo_gradient: As defined by helper.
+        :return: new model weights.
+        :rtype: as defined by helper.
+        """
+
+        if not self.v:
+            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+
+        if not self.m:
+            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+        else:
+            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+
+        p = helper.power(pseudo_gradient, 2)
+        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
+        t = helper.divide(self.m, sv)
+
+        model = helper.add(model_old, t, 1.0, self.eta)
+        return model
+
+    def serveropt_yogi(self, helper, pseudo_gradient, model_old):
+        """ Server side optimization, FedAdam.
+
+        :param helper: instance of helper class.
+        :type helper: Helper
+        :param pseudo_gradient: The pseudo gradient.
+        :type pseudo_gradient: As defined by helper.
+        :return: new model weights.
+        :rtype: as defined by helper.
+        """
+
+        if not self.v:
+            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+
+        if not self.m:
+            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+        else:
+            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+
+        p = helper.power(pseudo_gradient, 2)
+        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
+        t = helper.divide(self.m, sv)
+
+        model = helper.add(model_old, t, 1.0, self.eta)
+        return model
+
+    def serveropt_adagrad(self, helper, pseudo_gradient, model_old):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
