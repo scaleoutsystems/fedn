@@ -50,3 +50,7 @@ article ul li li {
 .highlight {
     background: var(--scaleout-grey-1) !important;
 }
+
+img {
+    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
+}

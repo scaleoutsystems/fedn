@@ -48,7 +48,8 @@ a::after {
     transition: width .4s;
 }
 
-.wy-side-scroll a::after {
+.wy-side-scroll a::after,
+a.image-reference::after {
     content: none;
     transition: none;
 }
@@ -104,4 +105,8 @@ a.reference.internal {
 .caption-text {
     opacity: 0.5;
     font-weight: 900 !important;
+}
+
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4>a {
+    background: none !important;
 }

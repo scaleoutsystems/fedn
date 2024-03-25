@@ -56,6 +56,7 @@ htmlhelp_basename = 'fedndocs'
 html_logo = '_static/images/scaleout_grey.png'
 # FEDn logo looks ugly on rtd theme
 
+html_favicon = 'favicon.png'
 
 # Here we assume that the file is at _static/custom.css
 html_css_files = [

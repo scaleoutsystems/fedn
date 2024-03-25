@@ -31,6 +31,9 @@ Once you have created a project, you can find it via the sidebar link Projects. 
 6. **Events**: a log of events from the combiner and the clients of the federated network
 7. **Settings**: project settings, including the option to delete the project and give access to other users
 
+.. image:: img/studio_project_overview.png
+
+
 Configure and attach clients
 ----------------------------
 
@@ -78,7 +81,7 @@ This will diplay the the docker command to attach the client. Run the command fr
         -v $PWD/client.yaml:/app/client.yaml \
         -v $PWD/data/clients/1:/var/data \
         -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-        ghcr.io/scaleoutsystems/fedn/fedn:0.9.0-mnist-pytorch run client --secure=True --force-ssl -in client.yaml
+        ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client --secure=True --force-ssl -in client.yaml
 
 If the client is successfully connected, you should see the client listed in the "Clients log" list.
 
