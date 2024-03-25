@@ -41,7 +41,7 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
         self._key = key
 
     def __call__(self, context, callback):
-        callback((('authorization', f'Token {self._key}'),), None)
+        callback((('authorization', f'{FEDN_AUTH_SCHEME} {self._key}'),), None)
 
 
 class Client:
@@ -116,6 +116,7 @@ class Client:
         while True:
             status, response = self.connector.assign()
             if status == Status.TryAgain:
+                logger.warning(response)
                 logger.info("Assignment request failed. Retrying in 5 seconds.")
                 time.sleep(5)
                 continue
@@ -129,10 +130,6 @@ class Client:
                 logger.critical(response)
                 sys.exit("Exiting: UnMatchedConfig")
             time.sleep(5)
-        # If token was refreshed, update the config
-        if self.config['token'] != self.connector.token:
-            self.config['token'] = self.connector.token
-            self._add_grpc_metadata('authorization', f"{FEDN_AUTH_SCHEME} {self.config['token']}")
         logger.info("Assignment successfully received.")
         logger.info("Received combiner configuration: {}".format(combiner_config))
         return combiner_config
@@ -189,8 +186,6 @@ class Client:
         host = combiner_config['host']
         # Add host to gRPC metadata
         self._add_grpc_metadata('grpc-server', host)
-        if self.config['token']:
-            self._add_grpc_metadata('authorization', f"{FEDN_AUTH_SCHEME} {self.config['token']}")
         logger.debug("Client using metadata: {}.".format(self.metadata))
         port = combiner_config['port']
         secure = False
