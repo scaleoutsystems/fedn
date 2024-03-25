@@ -33,14 +33,16 @@ class Aggregator(AggregatorBase):
         self.v = None
         self.m = None
 
-        # Server side hyperparameters. Note that these may need extensive fine tuning.
-        self.serveropt = "adam"
-        self.eta = 1e-2
-        self.beta1 = 0.9
-        self.beta2 = 0.99
-        self.tau = 1e-4
+        # Server side default hyperparameters. Note that these may need fine tuning.
+        self.default_params = {
+            'serveropt': 'adam',
+            'learning_rate': 1e-2,
+            'beta1': 0.9,
+            'beta2': 0.99,
+            'tau': 1e-4,
+        }
 
-    def combine_models(self, helper=None, delete_models=True):
+    def combine_models(self, helper=None, delete_models=True, params=None):
         """Compute pseudo gradients using model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
@@ -51,6 +53,8 @@ class Aggregator(AggregatorBase):
         :type max_nr_models: int, optional
         :param delete_models: Delete models from storage after aggregation, defaults to True
         :type delete_models: bool, optional
+        :param params: Additional key-word arguments.
+        :type params: dict
         :return: The global model and metadata
         :rtype: tuple
         """
@@ -58,6 +62,14 @@ class Aggregator(AggregatorBase):
         data = {}
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
+
+        # Override default hyperparameters:
+        if params:
+            for key, value in self.default_params:
+                if key not in params:
+                    params[key] = value
+        else:
+            params = self.default_params
 
         model = None
         nr_aggregated_models = 0
@@ -108,16 +120,14 @@ class Aggregator(AggregatorBase):
         elif self.serveropt == 'yogi':
             model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
         elif self.serveropt == 'adagrad':
-            model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
-        else:
-            logger.warning("Unsupported server side optimizer, using default (adam)")
+            model = self.serveropt_adagrad(helper, pseudo_gradient, model_old)
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data
 
-    def serveropt_adam(self, helper, pseudo_gradient, model_old):
+    def serveropt_adam(self, helper, pseudo_gradient, model_old, params):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
@@ -127,24 +137,29 @@ class Aggregator(AggregatorBase):
         :return: new model weights.
         :rtype: as defined by helper.
         """
+        beta1 = params['beta1']
+        beta2 = params['beta2']
+        learning_rate = params['learning_rate']
+        tau = params['tau']
 
         if not self.v:
-            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+            self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
 
         p = helper.power(pseudo_gradient, 2)
-        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
-        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
-        t = helper.divide(self.m, sv)
+        self.v = helper.add(self.v, p, beta2, (1.0-beta2))
 
-        model = helper.add(model_old, t, 1.0, self.eta)
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, tau))
+        t = helper.divide(self.m, sv)
+        model = helper.add(model_old, t, 1.0, learning_rate)
+
         return model
 
-    def serveropt_yogi(self, helper, pseudo_gradient, model_old):
+    def serveropt_yogi(self, helper, pseudo_gradient, model_old, params):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
@@ -155,23 +170,31 @@ class Aggregator(AggregatorBase):
         :rtype: as defined by helper.
         """
 
+        beta1 = params['beta1']
+        beta2 = params['beta2']
+        learning_rate = params['learning_rate']
+        tau = params['tau']
+
         if not self.v:
-            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+            self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
 
         p = helper.power(pseudo_gradient, 2)
-        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
-        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
-        t = helper.divide(self.m, sv)
+        s = helper.sign(helper.add(self.v, p, 1.0, -1.0))
+        s = helper.multiply(s, p)
+        self.v = helper.add(self.v, s, 1.0, -(1.0-beta2))
 
-        model = helper.add(model_old, t, 1.0, self.eta)
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, tau))
+        t = helper.divide(self.m, sv)
+        model = helper.add(model_old, t, 1.0, learning_rate)
+
         return model
 
-    def serveropt_adagrad(self, helper, pseudo_gradient, model_old):
+    def serveropt_adagrad(self, helper, pseudo_gradient, model_old, params):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
@@ -182,18 +205,23 @@ class Aggregator(AggregatorBase):
         :rtype: as defined by helper.
         """
 
+        beta1 = params['beta1']
+        learning_rate = params['learning_rate']
+        tau = params['tau']
+
         if not self.v:
-            self.v = helper.ones(pseudo_gradient, math.pow(self.tau, 2))
+            self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-self.beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, self.beta1, (1.0-self.beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
 
         p = helper.power(pseudo_gradient, 2)
-        self.v = helper.add(self.v, p, self.beta2, (1.0-self.beta2))
-        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, self.tau))
-        t = helper.divide(self.m, sv)
+        self.v = helper.add(self.v, p, 1.0, 1.0)
 
-        model = helper.add(model_old, t, 1.0, self.eta)
+        sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, tau))
+        t = helper.divide(self.m, sv)
+        model = helper.add(model_old, t, 1.0, learning_rate)
+
         return model

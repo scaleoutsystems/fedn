@@ -1007,6 +1007,7 @@ class API:
         self,
         session_id,
         aggregator='fedavg',
+        aggregator_kwargs=None,
         model_id=None,
         rounds=5,
         round_timeout=180,
@@ -1107,6 +1108,7 @@ class API:
         session_config = {
             "session_id": session_id if session_id else str(uuid.uuid4()),
             "aggregator": aggregator,
+            "aggregator_kwargs": aggregator_kwargs,
             "round_timeout": round_timeout,
             "buffer_size": round_buffer_size,
             "model_id": model_id,
