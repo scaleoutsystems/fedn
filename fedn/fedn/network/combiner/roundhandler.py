@@ -174,7 +174,7 @@ class RoundHandler:
                 delete_models = False
             model, data = self.aggregator.combine_models(helper=helper,
                                                          delete_models=delete_models,
-                                                         params=self.config['aggregator_kwargs'])
+                                                         params=config['aggregator_kwargs'])
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
 

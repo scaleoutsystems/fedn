@@ -115,11 +115,11 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        if self.serveropt == 'adam':
+        if params['serveropt'] == 'adam':
             model = self.serveropt_adam(helper, pseudo_gradient, model_old)
-        elif self.serveropt == 'yogi':
+        elif params['serveropt'] == 'yogi':
             model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
-        elif self.serveropt == 'adagrad':
+        elif params['serveropt'] == 'adagrad':
             model = self.serveropt_adagrad(helper, pseudo_gradient, model_old)
 
         data['nr_aggregated_models'] = nr_aggregated_models
