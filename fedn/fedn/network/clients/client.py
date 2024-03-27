@@ -346,15 +346,17 @@ class Client:
             except Exception as e:
                 logger.error(f"Caught exception: {type(e).__name__}")
         else:
-            run_path: str
+            from_path: str = None
+            run_path: str = None
 
-            if "package_path" in config and config["package_path"]:
-                run_path = f"{config['package_path']}/client"
+            if "package_dir" in config and config["package_dir"]:
+                path = f"{config['package_dir']}"
+                run_path = f"{config['package_dir']}"
+                from_path = path
             else:
                 run_path = os.path.join(os.getcwd(), 'client')
 
-
-            self.dispatcher = pr.dispatcher(run_path)
+            self.dispatcher = pr.dispatcher(run_path, from_path=from_path)
 
     def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.

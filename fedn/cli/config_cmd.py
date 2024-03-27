@@ -12,7 +12,7 @@ envs = [
     "FEDN_TOKEN",
     "FEDN_AUTH_SCHEME",
     "FEDN_CONTROLLER_URL",
-    "FEDN_PACKAGE_PATH"
+    "FEDN_PACKAGE_DIR"
 ]
 
 

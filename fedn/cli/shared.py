@@ -48,5 +48,5 @@ def get_token(token: str) -> str:
     return f"{scheme} {_token}"
 
 
-def get_client_package_path(path: str) -> str:
-    return path or os.environ.get('FEDN_PACKAGE_PATH', None)
+def get_client_package_dir(path: str) -> str:
+    return path or os.environ.get('FEDN_PACKAGE_DIR', None)

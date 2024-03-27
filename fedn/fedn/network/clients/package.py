@@ -144,18 +144,20 @@ class PackageRuntime:
             logger.error("Error extracting files.")
             return False
 
-    def dispatcher(self, run_path):
+    def dispatcher(self, run_path: str, from_path: str = None):
         """ Dispatch the compute package
 
         :param run_path: path to dispatch the compute package
         :type run_path: str
+        :param from_path: path to the compute package
+        :type from_path: str
         :return: Dispatcher object
         :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
-        from_path = os.path.join(os.getcwd(), 'client')
+        _from_path = from_path or os.path.join(os.getcwd(), 'client')
 
         # preserve_times=False ensures compatibility with Gramine LibOS
-        copy_tree(from_path, run_path, preserve_times=False)
+        copy_tree(_from_path, run_path, preserve_times=False)
 
         try:
             cfg = None
