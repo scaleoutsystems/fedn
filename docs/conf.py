@@ -40,21 +40,30 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.
 html_theme = 'sphinx_rtd_theme'
 
+html_theme_options = {
+    'logo_only': True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'fedndocs'
 
 # If defined shows an image instead of project name on page top-left (link to index page)
-# html_logo = '' # FEDn logo looks ugly on rtd theme
+html_logo = '_static/images/scaleout_logo_flat_dark.svg'
+# FEDn logo looks ugly on rtd theme
+
+html_favicon = 'favicon.png'
 
 # Here we assume that the file is at _static/custom.css
-html_css_files = []
-
+html_css_files = [
+    'css/elements.css',
+    'css/text.css',
+    'css/utilities.css',
+]
 
 # LaTeX elements
 latex_elements = {

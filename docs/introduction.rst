@@ -13,7 +13,7 @@ The server aggregates and combines the gradients from multiple participants to u
 This iterative process allows the global model to improve without the need to share the raw data.
 
 FEDn: the SDK for scalable federated learning
----------------------------------------------
+.............................................
 
 FEDn serves as a System Development Kit (SDK) enabling scalable federated learning. 
 It is used to implement the core server side logic (including model aggregation) and the client side integrations. 
