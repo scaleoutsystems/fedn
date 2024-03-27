@@ -17,6 +17,11 @@ def upload_cmd(ctx):
 
 
 def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
+    _url = os.environ.get('FEDN_CONTROLLER_URL')
+
+    if _url:
+        return f'{_url}/{endpoint}'
+
     _protocol = os.environ.get('FEDN_PROTOCOL') or protocol or CONTROLLER_DEFAULTS['protocol']
     _host = os.environ.get('FEDN_HOST') or host or CONTROLLER_DEFAULTS['host']
     _port = os.environ.get('FEDN_PORT') or port or CONTROLLER_DEFAULTS['port']
