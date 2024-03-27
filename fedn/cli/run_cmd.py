@@ -10,7 +10,7 @@ from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 
 from .main import main
-from .shared import CLIENT_DEFAULTS, COMBINER_DEFAULTS, CONTROLLER_DEFAULTS
+from .shared import CLIENT_DEFAULTS, COMBINER_DEFAULTS, CONTROLLER_DEFAULTS, get_client_package_path
 
 
 def get_statestore_config_from_file(init):
@@ -118,6 +118,7 @@ def run_cmd(ctx):
 @click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
 @click.option('-i', '--client_id', required=False)
 @click.option('--local-package', is_flag=True, help='Enable local compute package')
+@click.option('-pp', '--package-path', required=False, help='Path to local package')
 @click.option('--force-ssl', is_flag=True, help='Force SSL/TLS for REST service')
 @click.option('-u', '--dry-run', required=False, default=False)
 @click.option('-s', '--secure', required=False, default=False)
@@ -134,7 +135,7 @@ def run_cmd(ctx):
 @click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
 @click.option('--verbosity', required=False, default='INFO', type=click.Choice(['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'], case_sensitive=False))
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
+def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, package_path, force_ssl, dry_run, secure, preshared_cert,
                verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat,
                verbosity):
     """
@@ -159,11 +160,14 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :return:
     """
     remote = False if local_package else True
+
+    package_path = get_client_package_path(package_path)
+
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
               'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
+              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity, 'package_path': package_path}
 
     if init:
         apply_config(config)

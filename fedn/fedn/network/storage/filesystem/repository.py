@@ -68,3 +68,10 @@ class LocalFileSystemModelRepository:
             os.remove(package_path)
         else:
             raise FileNotFoundError(f"Compute package {compute_package} not found.")
+        
+    def delete_model(self, model_id):
+        model_path = self.get_model_path(model_id)
+        if os.path.exists(model_path):
+            os.remove(model_path)
+        else:
+            raise FileNotFoundError(f"Model with ID {model_id} not found.")

@@ -105,13 +105,6 @@ class ConnectorClient:
 
                 return Status.TryAgain, reason
 
-            reducer_package = retval.json()['package']
-            if reducer_package != self.package:
-                reason = "Unmatched config of compute package between client and reducer.\n" +\
-                    "Reducer uses {} package and client uses {}.".format(
-                        reducer_package, self.package)
-                return Status.UnMatchedConfig, reason
-
             return Status.Assigned, retval.json()
 
         return Status.Unassigned, None

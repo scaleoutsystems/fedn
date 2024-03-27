@@ -230,8 +230,9 @@ class Client:
                                                                              host,
                                                                              port))
 
-        logger.info("Using {} compute package.".format(
-            client_config["package"]))
+
+        logger.info(f"Using {'remote' if self.config['remote_compute_context'] else 'local'} compute package")
+
 
     def _disconnect(self):
         """Disconnect from the combiner."""
@@ -303,8 +304,8 @@ class Client:
         :type config: dict
         :return:
         """
+        pr = PackageRuntime(os.getcwd(), os.getcwd())
         if config['remote_compute_context']:
-            pr = PackageRuntime(os.getcwd(), os.getcwd())
 
             retval = None
             tries = 10
@@ -345,15 +346,15 @@ class Client:
             except Exception as e:
                 logger.error(f"Caught exception: {type(e).__name__}")
         else:
-            # TODO: Deprecate
-            dispatch_config = {'entry_points':
-                               {'predict': {'command': 'python3 predict.py'},
-                                'train': {'command': 'python3 train.py'},
-                                'validate': {'command': 'python3 validate.py'}}}
-            from_path = os.path.join(os.getcwd(), 'client')
+            run_path: str
 
-            copy_tree(from_path, self.run_path)
-            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+            if "package_path" in config and config["package_path"]:
+                run_path = f"{config['package_path']}/client"
+            else:
+                run_path = os.path.join(os.getcwd(), 'client')
+
+
+            self.dispatcher = pr.dispatcher(run_path)
 
     def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.

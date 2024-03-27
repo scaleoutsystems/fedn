@@ -30,9 +30,9 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     if _url:
         return f'{_url}/api/{API_VERSION}/{endpoint}'
 
-    _protocol = os.environ.get('FEDN_PROTOCOL') or protocol or CONTROLLER_DEFAULTS['protocol']
-    _host = os.environ.get('FEDN_HOST') or host or CONTROLLER_DEFAULTS['host']
-    _port = os.environ.get('FEDN_PORT') or port or CONTROLLER_DEFAULTS['port']
+    _protocol = protocol or os.environ.get('FEDN_PROTOCOL') or CONTROLLER_DEFAULTS['protocol']
+    _host = host or os.environ.get('FEDN_HOST') or CONTROLLER_DEFAULTS['host']
+    _port = port or os.environ.get('FEDN_PORT') or CONTROLLER_DEFAULTS['port']
 
     return f'{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}'
 
@@ -46,3 +46,7 @@ def get_token(token: str) -> str:
     scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 
     return f"{scheme} {_token}"
+
+
+def get_client_package_path(path: str) -> str:
+    return path or os.environ.get('FEDN_PACKAGE_PATH', None)
