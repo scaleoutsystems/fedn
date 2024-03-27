@@ -330,16 +330,17 @@ class Client:
 
             if retval:
                 self.untar_package(pr)
-                # pr.unpack()
 
             self.dispatcher = pr.dispatcher(self.run_path)
             try:
                 logger.info("Initiating Dispatcher with entrypoint set to: startup")
                 self.dispatcher.run_cmd("startup")
             except KeyError:
+                logger.info("No startup command found in package. Continuing.")
                 pass
             except Exception as e:
                 logger.error(f"Caught exception: {type(e).__name__}")
+            
         else:
             # TODO: Deprecate
             dispatch_config = {'entry_points':
@@ -350,6 +351,10 @@ class Client:
 
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+        # Get or create python environment
+        activate_cmd = self.dispatcher.get_or_create_python_env()
+        if activate_cmd:
+            logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 
     def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.

@@ -128,10 +128,14 @@ class Dispatcher:
         """ Initialize the dispatcher."""
         self.config = config
         self.project_dir = project_dir
+        self.activate_cmd = ""
     
     def _get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
-        python_env = self.config.get("python_env")
-        if python_env:
+        python_env = self.config.get("python_env", "")
+        if not python_env:
+            logger.info("No python_env specified in the configuration, using the system Python.")
+            return python_env
+        else:
             python_env_path = os.path.join(self.project_dir, python_env)
             if not os.path.exists(python_env_path):
                 raise Exception(
@@ -169,7 +173,7 @@ class Dispatcher:
                     f"python -m pip install --quiet -U {' '.join(pip_requirements_override)}",
                 )
                 _exec_cmd(cmd, capture_output=capture_output, extra_env=extra_env)
-
+            self.activate_cmd = activate_cmd
             return activate_cmd
         except:
             logger.critical("Encountered unexpected error while creating %s", env_dir)
@@ -180,7 +184,13 @@ class Dispatcher:
                 logger.warning(msg, env_dir)
             raise
 
-    def run_cmd(self, cmd_type):
+    def run_cmd(self, 
+                cmd_type, 
+                capture_output=False, 
+                extra_env=None, 
+                synchronous=True, 
+                stream_output=False
+        ):
         """ Run a command.
 
         :param cmd_type: The command type.
@@ -190,20 +200,21 @@ class Dispatcher:
         try:
             cmdsandargs = cmd_type.split(' ')
 
-            cmd = [self.config['entry_points'][cmdsandargs[0]]['command']]
+            entry_point = [self.config['entry_points'][cmdsandargs[0]]['command']]
 
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
 
-            # shell (this could be a venv, TODO: parametrize)
-            if os.name == "nt":
-                shell = []
-            else:
-                shell = ['/bin/sh', '-c']
-
-            # add the corresponding process defined in project.yaml and append arguments from invoked command
-            args = shell + [' '.join(cmd + args)]
-            run_process(args=args, cwd=self.project_dir)
+            cmd = _join_commands(self.activate_cmd, entry_point, args)
+            logger.info('Running command: {}'.format(cmd))
+            _exec_cmd(
+                cmd,
+                throw_on_error=True,
+                extra_env=extra_env,
+                capture_output=capture_output,
+                synchronous=synchronous,
+                stream_output=stream_output,
+            )
 
             logger.info('Done executing {}'.format(cmd_type))
         except IndexError:

@@ -1,6 +1,6 @@
 python_env: python_env.yaml
 entry_points:
   train:
-    command: /venv/bin/python entrypoint train $ENTRYPOINT_OPTS
+    command: python entrypoint train $ENTRYPOINT_OPTS
   validate:
-    command: /venv/bin/python entrypoint validate $ENTRYPOINT_OPTS
+    command: python entrypoint validate $ENTRYPOINT_OPTS
