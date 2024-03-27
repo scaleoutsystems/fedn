@@ -54,3 +54,7 @@ article ul li li {
 img {
     box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
 }
+
+img.logo {
+    box-shadow: none;
+}

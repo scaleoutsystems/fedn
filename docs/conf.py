@@ -53,7 +53,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'fedndocs'
 
 # If defined shows an image instead of project name on page top-left (link to index page)
-html_logo = '_static/images/scaleout_grey.png'
+html_logo = '_static/images/scaleout_logo_flat_dark.svg'
 # FEDn logo looks ugly on rtd theme
 
 html_favicon = 'favicon.png'
