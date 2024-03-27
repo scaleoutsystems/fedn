@@ -140,6 +140,7 @@ class RoundHandler:
         :return: an aggregated model and associated metadata
         :rtype: model, dict
         """
+        print("CONFIG: ", config)
 
         logger.info(
             "ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))

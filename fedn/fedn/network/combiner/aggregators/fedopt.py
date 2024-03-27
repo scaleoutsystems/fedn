@@ -59,17 +59,23 @@ class Aggregator(AggregatorBase):
         :rtype: tuple
         """
 
+        print("PARAMS: {}".format(params), flush=True)
+        #import json
+        #params = dict(params)
+
         data = {}
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
 
         # Override default hyperparameters:
         if params:
-            for key, value in self.default_params:
+            for key, value in self.default_params.items():
                 if key not in params:
                     params[key] = value
         else:
             params = self.default_params
+
+        print("PARAMS2: {}".format(params), flush=True)
 
         model = None
         nr_aggregated_models = 0
@@ -121,6 +127,8 @@ class Aggregator(AggregatorBase):
             model = self.serveropt_yogi(helper, pseudo_gradient, model_old)
         elif params['serveropt'] == 'adagrad':
             model = self.serveropt_adagrad(helper, pseudo_gradient, model_old)
+        else:
+            raise
 
         data['nr_aggregated_models'] = nr_aggregated_models
 
