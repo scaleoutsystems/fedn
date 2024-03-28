@@ -200,15 +200,20 @@ class Dispatcher:
         try:
             cmdsandargs = cmd_type.split(' ')
 
-            entry_point = [self.config['entry_points'][cmdsandargs[0]]['command']]
+            entry_point = self.config['entry_points'][cmdsandargs[0]]['command']
 
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
 
-            cmd = _join_commands(self.activate_cmd, entry_point, args)
+            # Join entry point and arguments into a single command as a string
+            entry_point_args = ' '.join(args)
+            entry_point = f"{entry_point} {entry_point_args}"
+
+            cmd = _join_commands(self.activate_cmd, entry_point)
             logger.info('Running command: {}'.format(cmd))
             _exec_cmd(
                 cmd,
+                cwd=self.project_dir,
                 throw_on_error=True,
                 extra_env=extra_env,
                 capture_output=capture_output,

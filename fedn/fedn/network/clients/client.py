@@ -352,7 +352,7 @@ class Client:
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
         # Get or create python environment
-        activate_cmd = self.dispatcher.get_or_create_python_env()
+        activate_cmd = self.dispatcher._get_or_create_python_env()
         if activate_cmd:
             logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 

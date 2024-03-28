@@ -34,6 +34,7 @@ def _join_commands(*commands):
 def _exec_cmd(
     cmd,
     *,
+    cwd=None,
     throw_on_error=True,
     extra_env=None,
     capture_output=True,
@@ -100,6 +101,7 @@ def _exec_cmd(
 
     process = subprocess.Popen(
         cmd,
+        cwd=cwd,
         env=env,
         text=True,
         **kwargs,
