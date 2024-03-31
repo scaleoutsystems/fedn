@@ -1,10 +1,12 @@
-.. image:: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg
+|pic1| |pic2| |pic3|
+
+.. |pic1| image:: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg
    :target: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml
 
-.. image:: https://badgen.net/badge/icon/discord?icon=discord&label
+.. |pic2| image:: https://badgen.net/badge/icon/discord?icon=discord&label
    :target: https://discord.gg/KMg4VwszAd
 
-.. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
+.. |pic3| image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
 FEDn
