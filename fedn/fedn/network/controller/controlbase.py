@@ -177,7 +177,7 @@ class ControlBase(ABC):
         else:
             return None
 
-    def create_session(self, config):
+    def create_session(self, config, status='Initialized'):
         """ Initialize a new session in backend db. """
 
         if "session_id" not in config.keys():
@@ -188,6 +188,7 @@ class ControlBase(ABC):
 
         self.statestore.create_session(id=session_id)
         self.statestore.set_session_config(session_id, config)
+        self.statestore.set_session_status(session_id, status)
 
     def set_session_status(self, session_id, status):
         """ Set the round round stats.

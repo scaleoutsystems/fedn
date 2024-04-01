@@ -254,7 +254,7 @@ class RoundHandler:
 
         return clients
 
-    def _check_nr_round_clients(self, config, timeout=0.0):
+    def _check_nr_round_clients(self, config):
         """Check that the minimal number of clients required to start a round are available.
 
         :param config: The round config object.
@@ -265,27 +265,14 @@ class RoundHandler:
         :rtype: bool
         """
 
-        ready = False
-        t = 0.0
-        while not ready:
-            active = self.server.nr_active_trainers()
-
-            if active >= int(config['clients_requested']):
-                return True
-            else:
-                logger.info("waiting for {} clients to get started, currently: {}".format(
-                    int(config['clients_requested']) - active,
-                    active))
-            if t >= timeout:
-                if active >= int(config['clients_required']):
-                    return True
-                else:
-                    return False
-
-            time.sleep(1.0)
-            t += 1.0
-
-        return ready
+        active = self.server.nr_active_trainers()
+        if active >= int(config['clients_required']):
+            logger.info("Number of clients required ({0}) to start round met {1}.".format(
+                config['clients_required'], active))
+            return True
+        else:
+            logger.info("Too few clients to start round.")
+            return False
 
     def execute_validation_round(self, round_config):
         """ Coordinate validation rounds as specified in config.
