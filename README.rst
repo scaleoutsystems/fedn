@@ -12,9 +12,9 @@
 FEDn
 --------
 
-FEDn empowers its users to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. 
+FEDn empowers its users to create federated learning applications that seamlessly transition from local proofs-of-concept to secure distributed deployments. Leverage both a flexible local development environment and a managed deployment of the server-side (SaaS) to accelerate development of real-world federated learning applications. 
 
-Leverage a flexible local development environment as well as a no-setup, managed deployment of the server-side (SaaS) to accelerate development of federated learning applications. Development is guided by the follwing core design principles: 
+FEDn development is guided by the follwing core design principles: 
 
 -  **Seamless transion from proof-of-concepts to real-world FL**. FEDn has been designed to make the journey from R&D to real-world deployments as smooth as possibe. Develop your federated learning use case in a pseudo-local environment, then deploy it to FEDn Studio (cloud or on-premise) for real-world scenarios. No code change is required to go from development and testing to production. 
 
