@@ -69,12 +69,12 @@ More details about the architecture, deployment, and how to develop your own app
 Deploying a project to FEDn Studio
 =======================================
 
-FEDn Studio SaaS is free for testing, development and research (one project per user, backend compute resources sized for dev/test):   
+FEDn Studio SaaS is free for development, testing and research (one project per user, backend compute resources sized for dev/test):   
 
 - `Register for an account in Studio <https://studio.scaleoutsystems.com/signup/>`__
 - `Take the tutorial to deploy your project <https://guide.scaleoutsystems.com/#/docs>`__  
 
-Scaleout can also support large-scale experiments on Studio by setting custom resource quotas. Helm charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact Scaleout for more information.
+Scaleout can support users in scaling up experiments on Studio by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact Scaleout for more information.
 
 
 Support
