@@ -16,7 +16,7 @@ FEDn empowers its users to create federated learning applications that seamlessl
 
 Leverage a flexible pseudo-local sandbox to rapidly transition your existing ML project to a federated setting. Test and scale in real-world scenarios using FEDn Studio - a fully managed, secure deployment of all server-side components (SaaS). 
 
-We develop the FEDn framework follow these core design principles:
+We develop the FEDn framework following these core design principles:
 
 -  **Seamless transition from proof-of-concepts to real-world FL**. FEDn has been designed to make the journey from R&D to real-world deployments as smooth as possibe. Develop your federated learning use case in a pseudo-local environment, then deploy it to FEDn Studio (cloud or on-premise) for real-world scenarios. No code change is required to go from development and testing to production. 
 
