@@ -22,7 +22,7 @@ from tenacity import retry, stop_after_attempt
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.config import FEDN_AUTH_SCHEME
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
@@ -81,9 +81,13 @@ class Client:
 
         # Folder where the client will store downloaded compute package and logs
         self.name = config['name']
-        dirname = self.name+"-"+time.strftime("%Y%m%d-%H%M%S")
-        self.run_path = os.path.join(os.getcwd(), dirname)
-        os.mkdir(self.run_path)
+        if FEDN_PACKAGE_EXTRACT_DIR:
+            self.run_path = os.path.join(os.getcwd(), FEDN_PACKAGE_EXTRACT_DIR)
+        else:
+            dirname = self.name+"-"+time.strftime("%Y%m%d-%H%M%S")
+            self.run_path = os.path.join(os.getcwd(), dirname)
+        if not os.path.exists(self.run_path):
+            os.mkdir(self.run_path)
 
         self.started_at = datetime.now()
         self.logs = []
@@ -334,6 +338,7 @@ class Client:
             self.dispatcher = pr.dispatcher(self.run_path)
             try:
                 logger.info("Initiating Dispatcher with entrypoint set to: startup")
+                activate_cmd = self.dispatcher._get_or_create_python_env()
                 self.dispatcher.run_cmd("startup")
             except KeyError:
                 logger.info("No startup command found in package. Continuing.")

@@ -209,7 +209,11 @@ class Dispatcher:
             entry_point_args = ' '.join(args)
             entry_point = f"{entry_point} {entry_point_args}"
 
-            cmd = _join_commands(self.activate_cmd, entry_point)
+            if self.activate_cmd:
+                cmd = _join_commands(self.activate_cmd, entry_point)
+            else:
+                cmd = _join_commands(entry_point)
+                
             logger.info('Running command: {}'.format(cmd))
             _exec_cmd(
                 cmd,
