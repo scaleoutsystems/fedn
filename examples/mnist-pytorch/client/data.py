@@ -3,6 +3,7 @@ from math import floor
 
 import torch
 import torchvision
+from model import init_seed
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
@@ -95,3 +96,5 @@ if __name__ == '__main__':
     if not os.path.exists(abs_path+'/data/clients/1'):
         get_data()
         split()
+    if not os.path.exists(abs_path+'/data/models'):
+        init_seed(abs_path+'data/models/seed.npz')

@@ -20,6 +20,9 @@ if [ "$example" == "mnist-keras" ]; then
     bin/get_data
     bin/split_data
 fi
+popd
 
+pushd "examples/$example"
 >&2 echo "Build compute package and seed"
 bin/build.sh
+popd
