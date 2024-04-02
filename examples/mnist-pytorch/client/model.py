@@ -1,7 +1,6 @@
 import collections
 
 import torch
-
 from fedn.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = 'numpyhelper'
