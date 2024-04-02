@@ -1,4 +1,4 @@
-#!./.flower-example/bin/python
+#!/usr/bin/env python
 import os
 
 import fire

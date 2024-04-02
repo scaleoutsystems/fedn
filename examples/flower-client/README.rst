@@ -11,7 +11,7 @@ Running the example
 -------------------
 
 See `https://fedn.readthedocs.io/en/stable/quickstart.html` for a general introduction to FEDn. This example follows the same structure
-as the pytorch quickstart example. To build the compute package and seed model: 
+as the pytorch quickstart example. To build a virtual environment, the compute package and the seed model: 
 
 .. code-block::
 
@@ -20,12 +20,6 @@ as the pytorch quickstart example. To build the compute package and seed model:
 .. code-block::
 
    bin/build.sh
-
-Build a docker image containing the project dependencies including flower (this might take a long time):
-
-.. code-block::
-
-   docker build -t flower-client .
 
 In a separate terminal, navigate to this folder, then start a client and inject the `CLIENT_NUMBER` 
 dependency, for example for client1:
@@ -37,6 +31,26 @@ If you are using a FEDn Studio project:
 - Register a client in Studio and obtain the corresponding 'client.yaml' 
 
 Then start the client: 
+
+Activate the virtual environment:
+.. code-block::
+   source .flower-example/bin/activate
+
+Start the fedn client: 
+
+.. code-block::
+   CLIENT_NUMBER=0 FEDN_AUTH_SCHEME=Bearer fedn run client -in client.yaml --force-ssl --secure=True
+
+
+
+
+If you prefer to use Docker:
+
+Build an image containing the project dependencies (this might take a long time):
+
+.. code-block::
+
+   docker build -t flower-client .
 
 .. code-block::
 
