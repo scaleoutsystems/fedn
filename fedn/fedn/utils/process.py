@@ -5,6 +5,8 @@ import sys
 from fedn.common.log_config import logger
 
 _IS_UNIX = os.name != "nt"
+
+
 class ShellCommandException(Exception):
     @classmethod
     def from_completed_process(cls, process):
@@ -26,10 +28,12 @@ class ShellCommandException(Exception):
             ]
         return cls("\n".join(lines))
 
+
 def _join_commands(*commands):
     entry_point = ["bash", "-c"] if _IS_UNIX else ["cmd", "/c"]
     sep = " && " if _IS_UNIX else " & "
     return [*entry_point, sep.join(map(str, commands))]
+
 
 def _exec_cmd(
     cmd,
@@ -124,6 +128,7 @@ def _exec_cmd(
     if throw_on_error and returncode != 0:
         raise ShellCommandException.from_completed_process(comp_process)
     return comp_process
+
 
 def run_process(args, cwd):
     """ Run a process and log the output.

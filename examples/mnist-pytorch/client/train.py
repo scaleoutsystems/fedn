@@ -1,3 +1,5 @@
+from data import load_data
+from model import load_parameters, save_parameters
 import math
 import os
 import sys
@@ -8,9 +10,6 @@ from fedn.utils.helpers.helpers import save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
-
-from data import load_data
-from model import load_parameters, save_parameters
 
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):

@@ -345,7 +345,7 @@ class Client:
                 pass
             except Exception as e:
                 logger.error(f"Caught exception: {type(e).__name__}")
-            
+
         else:
             # TODO: Deprecate
             dispatch_config = {'entry_points':

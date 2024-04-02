@@ -7,6 +7,7 @@ import torchvision
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 
+
 def get_data(out_dir='data'):
     # Make dir if necessary
     if not os.path.exists(out_dir):
@@ -19,6 +20,7 @@ def get_data(out_dir='data'):
     if not os.path.exists(f'{out_dir}/test'):
         torchvision.datasets.MNIST(
             root=f'{out_dir}/test', transform=torchvision.transforms.ToTensor, train=False, download=True)
+
 
 def load_data(data_path, is_train=True):
     """ Load data from disk.
@@ -46,6 +48,7 @@ def load_data(data_path, is_train=True):
     X = X / 255
 
     return X, y
+
 
 def splitset(dataset, parts):
     n = dataset.shape[0]
@@ -85,6 +88,7 @@ def split(out_dir='data', n_splits=2):
             'y_test': data['y_test'][i],
         },
             f'{subdir}/mnist.pt')
+
 
 if __name__ == '__main__':
     # Prepare data if not already done

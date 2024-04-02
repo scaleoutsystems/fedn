@@ -85,6 +85,7 @@ class _PythonEnv:
     @staticmethod
     def get_dependencies_from_conda_yaml(path):
         raise NotImplementedError
+
     @classmethod
     def from_conda_yaml(cls, path):
         return cls.from_dict(cls.get_dependencies_from_conda_yaml(path))
