@@ -31,7 +31,7 @@ def load_data(data_path, is_train=True):
     :rtype: tuple
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path+'/../data/clients/1/mnist.pt')
+        data_path = os.environ.get("FEDN_DATA_PATH", abs_path+'/data/clients/1/mnist.pt')
 
     data = torch.load(data_path)
 

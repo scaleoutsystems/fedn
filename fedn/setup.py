@@ -26,6 +26,7 @@ setup(
         "grpcio-health-checking~=1.57.0",
         "flasgger==0.9.5",
         "plotly",
+        "virtualenv",
     ],
     license='Apache 2.0',
     zip_safe=False,

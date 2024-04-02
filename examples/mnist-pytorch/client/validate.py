@@ -2,14 +2,13 @@ import os
 import sys
 
 import torch
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.abspath(dir_path))
-
 from data import load_data
 from model import load_parameters
 
 from fedn.utils.helpers.helpers import save_metrics
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(dir_path))
 
 
 def validate(in_model_path, out_json_path, data_path=None):

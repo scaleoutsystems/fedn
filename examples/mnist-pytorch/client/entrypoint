@@ -1,7 +1,6 @@
 #!./.mnist-pytorch/bin/python
 import collections
 import math
-import os
 
 import fire
 import torch
