@@ -1,7 +1,7 @@
 Studio
 ===============
 
-FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides a user-friendly interface for creating and managing federated learning experiments, monitoring the progress of training, and visualizing the results.
+FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides a user-friendly interface for monitoring the progress of training and visualizing the results.
 
 Getting started
 ---------------
@@ -11,7 +11,7 @@ Before you can start using Studio, you will need an account. Head over to `studi
 Create a project
 ----------------
 
-Start by creating a new project. A project is a container for your federated learning experiments. You can create multiple projects to organize your experiments. A project can be shared with other users, allowing you to collaborate on experiments.
+Start by creating a new project. A project can be used to organize your work. It can be shared with other users, allowing you to collaborate on experiments.
 
 1. Click on the "New Project" button in the top right corner of the screen.
 2. Continue by clicking the "Create button". The FEDn template contains all the services necessary to start a federation.
@@ -37,9 +37,9 @@ Once you have created a project, you can find it via the sidebar link Projects. 
 Configure and attach clients
 ----------------------------
 
-This step is very similar to how connecting a client to a local FEDn instance (:doc:`quickstart`). The main difference is that the client needs an authorization token to connect to a federation hosted on FEDn Studio. These are the steps to configure and attach a client to a project:
+This step is very similar to how a client is connected to a local FEDn instance (:doc:`quickstart`). The main difference is that the client needs an authorization token to connect to a federation hosted on FEDn Studio. These are the steps to configure and attach a client to a project:
 
-In order to generate some data for training, on your local machine, navigate to the mnist-pytorch example:
+In order to set up the local environment and configure local client data access, on your local machine, navigate to the mnist-pytorch example:
 
 
 .. code-block:: bash
@@ -58,7 +58,7 @@ Run the following commands:
     bin/split_data
     bin/build.sh
 
-This commands will generate some training data and two files: package.tgz and seed.npz. The first is a compute package file and the second is a model file that can be used as the inital seed model. (For a more detailed explanation of the commands, see the :doc:`quickstart`)
+These commands will generate training data and two files: package.tgz and seed.npz. The first is a compute package file and the second is a model file that can be used as the inital seed model. (For a more detailed explanation of the commands, see the :doc:`quickstart`)
 
 Upload files
 ~~~~~~~~~~~~
