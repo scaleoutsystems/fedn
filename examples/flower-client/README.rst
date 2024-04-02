@@ -33,15 +33,16 @@ If you are using a FEDn Studio project:
 Then start the client: 
 
 Activate the virtual environment:
+
 .. code-block::
+   
    source .flower-example/bin/activate
 
 Start the fedn client: 
 
 .. code-block::
+
    CLIENT_NUMBER=0 FEDN_AUTH_SCHEME=Bearer fedn run client -in client.yaml --force-ssl --secure=True
-
-
 
 
 If you prefer to use Docker:
