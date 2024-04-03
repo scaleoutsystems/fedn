@@ -4,7 +4,8 @@ Code adapted from https://github.com/adap/flower/tree/main/examples/app-pytorch.
 """
 
 from flwr.client import ClientApp, NumPyClient
-from flwr_task import DEVICE, Net, get_weights, load_data, set_weights, test, train
+from flwr_task import (DEVICE, Net, get_weights, load_data, set_weights, test,
+                       train)
 
 
 # Define FlowerClient and client_fn
@@ -19,8 +20,8 @@ class FlowerClient(NumPyClient):
 
     def fit(self, parameters, config):
         set_weights(self.net, parameters)
-        results = train(self.net, self.trainloader, self.testloader, epochs=3)
-        return get_weights(self.net), len(self.trainloader.dataset), results
+        train(self.net, self.trainloader, epochs=3)
+        return get_weights(self.net), len(self.trainloader.dataset), {}
 
     def evaluate(self, parameters, config):
         set_weights(self.net, parameters)
