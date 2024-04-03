@@ -58,7 +58,7 @@ def load_data(partition_id, num_clients):
     return trainloader, testloader
 
 
-def train(net, trainloader, epochs):
+def train(net, trainloader, valloader, epochs):
     """Train the model on the training set."""
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -69,6 +69,17 @@ def train(net, trainloader, epochs):
             optimizer.zero_grad()
             criterion(net(images.to(DEVICE)), labels.to(DEVICE)).backward()
             optimizer.step()
+
+    train_loss, train_acc = test(net, trainloader)
+    val_loss, val_acc = test(net, valloader)
+
+    results = {
+        "train_loss": train_loss,
+        "train_accuracy": train_acc,
+        "val_loss": val_loss,
+        "val_accuracy": val_acc,
+    }
+    return results
 
 
 def test(net, testloader):
