@@ -1,7 +1,9 @@
 Studio
 ===============
 
-FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides a user-friendly interface for monitoring the progress of training and visualizing the results.
+FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides a user-friendly interface for monitoring the progress of training and visualizing the results. The FEDn Studio is available as a SaaS at `studio.scaleoutsystems.com <https://studio.scaleoutsystems.com>`_ . It is free for development, testing and research (one project per user, backend compute resources sized for dev/test).
+
+Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
 
 Getting started
 ---------------
