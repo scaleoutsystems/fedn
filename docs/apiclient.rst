@@ -37,8 +37,8 @@ To set the initial seed model, you can use the following code snippet:
    
    client.set_active_model(path="path/to/seed.npz")
 
-Start training
---------------
+Start training session
+----------------------
 
 Once the active package and seed model are set, you can connect clients to the network and start training models. The following code snippet initializes a session (training rounds):
 
