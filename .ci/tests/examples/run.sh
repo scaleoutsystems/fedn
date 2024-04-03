@@ -30,6 +30,11 @@ python ../../.ci/tests/examples/wait_for.py combiners
 >&2 echo "Upload compute package"
 python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper"
 
+if [ "$example" == "mnist-pytorch" ]; then
+    pushd examples/mnist-pytorch
+    python client/model.py
+    popd
+
 >&2 echo "Upload seed"
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
 
