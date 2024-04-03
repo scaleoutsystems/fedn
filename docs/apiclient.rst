@@ -49,7 +49,7 @@ Once the active package and seed model are set, you can connect clients to the n
 List data
 ---------
 
-Other than starting training sessions, the APIClient can be used to get data from the network, such as sessions, models etc. All entities are represented and the all work in a similar fashion.
+Other than starting training sessions, the APIClient can be used to get data from the network, such as sessions, models etc. All entities are represented and they all work in a similar fashion.
 
 * get_*() - (plural) list all entities of a specific type
 * get_*(id=<id-of-entity>) - get a specific entity
