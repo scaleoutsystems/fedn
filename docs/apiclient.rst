@@ -3,8 +3,8 @@ APIClient
 
 FEDn comes with an *APIClient* for interacting with the FEDn network. The APIClient is a Python3 library that can be used to interact with the FEDn network programmatically. 
 
-Connect to the network
-----------------------
+Installation
+------------
 
 The APIClient is available as a Python package on PyPI, and can be installed using pip:
 
@@ -12,6 +12,8 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
    
    $ pip install fedn
 
+Initialize the APIClient
+------------------------
 
 To initialize the APIClient, you need to provide the hostname and port of the FEDn API server. The default port is 8092. The following code snippet shows how to initialize the APIClient:
 
@@ -20,20 +22,20 @@ To initialize the APIClient, you need to provide the hostname and port of the FE
    from fedn import APIClient
    client = APIClient("localhost", 8092)
 
-Inital setup
-------------
+Set active package and seed model
+---------------------------------
 
-Before you can start training models, you need to set the active package and an initail seed model. The active package can be set using the following code snippet:
+The active package can be set using the following code snippet:
 
 .. code-block:: python
    
-   client.set_active_package(path="path/to/compute_package.zip", helper="numpyhelper")
+   client.set_active_package(path="path/to/package.tgz", helper="numpyhelper")
 
 To set the initial seed model, you can use the following code snippet:
 
 .. code-block:: python
    
-   client.set_active_model(path="path/to/seed_model.zip")
+   client.set_active_model(path="path/to/seed.npz")
 
 Start training
 --------------

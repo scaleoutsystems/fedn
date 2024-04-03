@@ -6,7 +6,7 @@ FEDn Studio is a web-based tool for managing and monitoring federated learning e
 Getting started
 ---------------
 
-Before you can start using Studio, you will need an account. Head over to `studio.scaleoutsystems.com/signup <https://studio.scaleoutsystems.com/signup/>`_  and sign up today!
+Before you can start using Studio, you will need an account. Head over to `studio.scaleoutsystems.com/signup <https://studio.scaleoutsystems.com/signup/>`_  and sign up.
 
 Create a project
 ----------------
@@ -23,21 +23,19 @@ Project overview
 
 Once you have created a project, you can find it via the sidebar link Projects. Here you will find the list of all your projects. When inside a project you can see the following tabs in the sidebar:
 
-1. **Dashboard**: The dashboard provides an overview of the project. The controller and combiner(s) are listed under "Network". This is also where you can find the current FEDn version and get the option to upgrade to a newer version if available
-2. **Clients**: management of client configurations and a list of current clients. Observe that this feature does not deploy clients, instead it configures a client config that contains a unique token which is required to connect to the reducer and the combiner
-3. **Combiners**: a list of combiners. Observe number of active clients for each combiner
-4. **Sessions**: a list of sessions with related models. Configure and start a new session. Upload compute package and seed model, set number of rounds, timeout limit etc
-5. **Models**: a list of models generated across sessions
-6. **Events**: a log of events from the combiner and the clients of the federated network
-7. **Settings**: project settings, including the option to delete the project and give access to other users
+1. **Dashboard**: The dashboard provides an overview of the project. The controller and combiner(s) are listed under "Network". This is also where you can find the current FEDn version and get the option to upgrade to a newer version if available.
+2. **Clients**: management of client configurations and a list of current clients. Observe that this feature does not deploy clients, instead it configures a client config that contains a unique token which is required to connect to the reducer and the combiner.
+3. **Combiners**: a list of combiners. Observe number of active clients for each combiner.
+4. **Sessions**: a list of sessions with related models. Configure and start a new session. Upload compute package and seed model, set number of rounds, timeout limit etc.
+5. **Models**: a list of models generated across sessions.
+6. **Events**: a log of events from the combiner and the clients of the federated network.
+7. **Settings**: project settings, including the option to delete the project and give access to other users.
 
 .. image:: img/studio_project_overview.png
 
 
-Configure and attach clients
-----------------------------
-
-This step is very similar to how a client is connected to a local FEDn instance (:doc:`quickstart`). The main difference is that the client needs an authorization token to connect to a federation hosted on FEDn Studio. These are the steps to configure and attach a client to a project:
+Initialize the project with a compute package and a seed model
+--------------------------------------------------------------
 
 In order to set up the local environment and configure local client data access, on your local machine, navigate to the mnist-pytorch example:
 
@@ -68,7 +66,7 @@ In the Studio UI, navigate to the project you created and click on the "Sessions
 .. image:: img/upload_package.png
 
 Connect client
-~~~~~~~~~~~~~~
+--------------
 
 Navigate to clients and click on the "Download config" button. This downloads a client config file. Place this file in the mnist-pytorch directory on your local machine. Rename the file to client.yaml. Then edit it to set the name of the client.
 
