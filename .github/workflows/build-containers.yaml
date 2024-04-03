@@ -95,5 +95,3 @@ jobs:
           tags: ${{ steps.meta3.outputs.tags }}
           labels: ${{ steps.meta3.outputs.labels }}
           file: Dockerfile
-          build-args: |
-            REQUIREMENTS=examples/mnist-pytorch/requirements.txt
