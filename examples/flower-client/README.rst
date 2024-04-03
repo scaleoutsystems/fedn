@@ -1,7 +1,7 @@
 Using Flower clients in FEDn
 ============================
 
-This example shows how to run a Flower 'ClientApp' using the FEDn server-side infrastructure.
+This example demonstrates how to run a Flower 'ClientApp' on FEDn.
 
 See `flwr_client.py` and `flwr_task.py` for the Flower client code. The FEDn compute package is complemented
 with an adapter for the Flower client, `client_app_adapter.py`.
@@ -17,28 +17,27 @@ as the pytorch quickstart example. To build a virtual environment, the compute p
 
    bin/init_venv.sh
 
+Activate the virtual environment:
+
+.. code-block::
+
+   source .flower-example/bin/activate
+
+Build the compute package and the seed model:
+
 .. code-block::
 
    bin/build.sh
 
-In a separate terminal, navigate to this folder, then start a client and inject the `CLIENT_NUMBER` 
-dependency, for example for client1:
 
+If you are using a FEDn Studio project (recommended):
+-----------------------------------------------------
 
-If you are using a FEDn Studio project:
----------------------------------------
+- From the "sessions" menu, upload the compute package and seed model. 
 
 - Register a client in Studio and obtain the corresponding 'client.yaml' 
 
-Then start the client: 
-
-Activate the virtual environment:
-
-.. code-block::
-   
-   source .flower-example/bin/activate
-
-Start the fedn client: 
+Then, on your local machine (in the same virtual environment), start the FEDn client: 
 
 .. code-block::
 
@@ -53,6 +52,8 @@ Build an image containing the project dependencies (this might take a long time)
 
    docker build -t flower-client .
 
+Then start the client:
+
 .. code-block::
 
    docker run \
@@ -61,8 +62,10 @@ Build an image containing the project dependencies (this might take a long time)
    flower-client run client -in client.yaml --secure=True --force-ssl
 
 
-If you are running FEDn locally using the provided docker-compose template:
----------------------------------------------------------------------------
+If you are running FEDn in pseudo-local mode on your own machine:
+------------------------------------------------------------------
+
+Make sure that the FEDn network is running on local host (see `https://fedn.readthedocs.io/en/stable/quickstart.html`). 
 
 Use the FEDn API Client to initalize FEDn with the compute package and seed model: 
 
@@ -78,7 +81,7 @@ Create a file 'client.yaml' with the following content:
    discover_host: api-server
    discover_port: 8092
 
-The start the client
+Then start the client (using Docker)
 
 .. code-block::
 
