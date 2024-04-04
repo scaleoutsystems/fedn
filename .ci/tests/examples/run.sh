@@ -31,9 +31,7 @@ python ../../.ci/tests/examples/wait_for.py combiners
 python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper"
 
 if [ "$example" == "mnist-pytorch" ]; then
-    pushd examples/mnist-pytorch
     python client/model.py
-    popd
 fi
 
 >&2 echo "Upload seed"
