@@ -30,15 +30,15 @@ python ../../.ci/tests/examples/wait_for.py combiners
 >&2 echo "Upload compute package"
 python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper"
 
+>&2 echo "Wait for clients to connect"
+python ../../.ci/tests/examples/wait_for.py clients
+
 if [ "$example" == "mnist-pytorch" ]; then
-    python client/model.py
+    docker cp fedn-client-1:/app/package/data/models/seed.npz seed.npz
 fi
 
 >&2 echo "Upload seed"
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
-
->&2 echo "Wait for clients to connect"
-python ../../.ci/tests/examples/wait_for.py clients
 
 >&2 echo "Start session"
 python ../../.ci/tests/examples/api_test.py start_session --rounds 3 --helper "$helper"
