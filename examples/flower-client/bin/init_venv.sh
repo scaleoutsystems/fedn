@@ -2,7 +2,7 @@
 set -e
 
 # Init venv
-python3 -m venv .flower-example
+python3 -m venv .flower-client
 
 # Pip deps
 .flower-example/bin/pip install --upgrade pip
