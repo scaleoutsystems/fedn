@@ -9,12 +9,50 @@ We here assume working experience with containers, Docker and docker-compose.
 Prerequisites
 -------------
 
--  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
+Using FEDn Studio:
+
+-  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
+
+If using self-managed with docker-compose:
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
-Quick start
------------
+Quick start with FEDn Studio
+----------------------------
+
+Clone this repository, locate into this directory:
+
+.. code-block::
+
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn/examples/mnist-pytorch
+
+Create the package using script:
+
+.. code-block::
+
+   bin/build.sh
+
+This should create a file 'package.tgz' in the project folder.
+
+Upload the package to FEDn Studio project. 
+
+Start the client using the client.yaml file from FEDn Studio.
+
+.. code-block::
+  pip install fedn 
+  export FEDN_AUTH_SCHEME=Bearer
+  export FEDN_PACKAGE_EXTRACT_DIR=package
+  fedn run client -in client.yaml --name client1 --secure=True --force-ssl
+
+
+Upload the initial model to FEDn Studio project. The seed.npz file is created when you run start the client and is found in ./data/models/seed.npz
+
+The default traning and test data is found in ./data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
+The default split into 2 partitions can be changed in client/data.py.
+
+Quick start with docker-compose
+-------------------------------
 
 Clone this repository, locate into this directory:
 
@@ -27,96 +65,49 @@ Start a pseudo-distributed FEDn network using docker-compose:
 
 .. code-block::
 
-   docker-compose -f ../../docker-compose.yaml up
+   docker compose \
+    -f ../../docker-compose.yaml \
+    -f docker-compose.override.yaml \
+    up -d
 
-This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
+This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. As well as two clients. 
 You can verify the deployment using these urls: 
 
 - API Server: http://localhost:8092/get_controller_status
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
 
-Next, we will prepare the client. A key concept in FEDn is the compute package - 
-a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
-
-Locate into 'examples/mnist-pytorch' and familiarize yourself with the project structure. The entrypoints
-are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
-'requirements.txt'. For convenience, we have provided utility scripts to set up a virtual environment.    
-
-Start by initializing a virtual enviroment with all of the required dependencies for this project.
+To check the client output logs, run:
 
 .. code-block::
 
-   bin/init_venv.sh
+   docker logs fedn-client-1
 
-Next create the compute package and a seed model:
+It should be waiting for the configuration of the package.
+
+Create the package (compress client folder):
 
 .. code-block::
 
    bin/build.sh
 
-You should now have a file 'package.tgz' and 'seed.npz' in the project folder. 
+You should now have a file 'package.tgz'. 
 
-Next we prepare the local dataset. For this we download MNIST data and make data partitions: 
+You are now ready to use the API to initialize the system with the package.
 
-Download the data:
-
-.. code-block::
-
-   bin/get_data
-
-
-Split the data in 10 partitions:
+Obs - After you have uploaded the package, you need to fetch the initial model (seed.npz) from client container:
 
 .. code-block::
 
-   bin/split_data --n_splits=10
-
-Data partitions will be generated in the folder 'data/clients'.  
-
-FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
-
-.. code-block::
-
-   network_id: fedn-network
-   discover_host: api-server
-   discover_port: 8092
-
-Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
-To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
-
-.. code-block::
-
-   docker run \
-  -v $PWD/client.yaml:/app/client.yaml \
-  -v $PWD/data/clients/1:/var/data \
-  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-  --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1
-
-Observe the API Server logs and combiner logs, you should see the client connecting and entering into a state asking for a compute package. 
-
-In a separate terminal, start a second client using the data partition 'data/clients/2/mnist.pt':
-
-.. code-block::
-
-   docker run \
-  -v $PWD/client.yaml:/app/client.yaml \
-  -v $PWD/data/clients/2:/var/data \
-  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-  --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client2
- 
-You are now ready to use the API to initialize the system with the compute package and seed model, and to start federated training. 
+   docker cp fedn-client-1:/app/package/data/models/seed.npz .
 
 - Follow the example in the `Jupyter Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`__
 
 
 Automate experimentation with several clients:  
------------
+----------------------------------------------
 
-Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
-To start the network and attach 4 clients: 
+If you want to scale the number of clients, you can do so by running the following command:
 
 .. code-block::
 
@@ -124,7 +115,7 @@ To start the network and attach 4 clients:
 
 
 Access logs and validation data from MongoDB  
------------
+--------------------------------------------
 You can access and download event logs and validation data via the API, and you can also as a developer obtain 
 the MongoDB backend data using pymongo or via the MongoExpress interface: 
 
@@ -133,7 +124,7 @@ the MongoDB backend data using pymongo or via the MongoExpress interface:
 The credentials are as set in docker-compose.yaml in the root of the repository. 
 
 Access model updates  
------------
+--------------------
 
 You can obtain model updates from the 'fedn-models' bucket in Minio: 
 
@@ -141,9 +132,9 @@ You can obtain model updates from the 'fedn-models' bucket in Minio:
 
 
 Clean up
------------
+-------
 You can clean up by running 
 
 .. code-block::
 
-   docker-compose down
+   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml down -v
