@@ -16,7 +16,7 @@ pip install ./fedn/ fire
 >&2 echo "Start FEDn"
 pushd "examples/$example"
 
-docker-compose \
+docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
     up -d --build
@@ -52,7 +52,7 @@ python ../../.ci/tests/examples/wait_for.py rounds
 python ../../.ci/tests/examples/api_test.py get_client_config --output ../../client.yaml
 
 # Redeploy clients with config
-docker-compose \
+docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
     -f ../../.ci/tests/examples/compose-client-settings.override.yaml \
