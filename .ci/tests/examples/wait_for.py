@@ -6,7 +6,7 @@ import fire
 import pymongo
 import requests
 
-RETRIES = 18
+RETRIES = 30
 SLEEP = 10
 
 
