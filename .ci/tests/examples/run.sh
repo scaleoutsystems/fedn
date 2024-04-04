@@ -12,7 +12,7 @@ helper="$2"
 >&2 echo "Start FEDn"
 pushd "examples/$example"
 
-docker-compose \
+docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
     up -d --build
@@ -43,7 +43,7 @@ docker-compose \
 ".$example/bin/python" ../../.ci/tests/examples/api_test.py get_client_config --output ../../client.yaml
 
 # Redeploy clients with config
-docker-compose \
+docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
     -f ../../.ci/tests/examples/compose-client-settings.override.yaml \
