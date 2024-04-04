@@ -34,6 +34,7 @@ if [ "$example" == "mnist-pytorch" ]; then
     pushd examples/mnist-pytorch
     python client/model.py
     popd
+fi
 
 >&2 echo "Upload seed"
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
