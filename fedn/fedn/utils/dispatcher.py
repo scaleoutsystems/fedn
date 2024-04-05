@@ -1,3 +1,21 @@
+""" 
+Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
+with modifications made by Scaleout Systems AB.
+Copyright (c) 2018 Databricks, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import os
 import shutil
 import sys
@@ -18,13 +36,6 @@ _IS_UNIX = os.name != "nt"
 def remove_on_error(path: os.PathLike, onerror=None):
     """A context manager that removes a file or directory if an exception is raised during
     execution.
-
-    Args:
-        path: Path to the file or directory.
-        onerror: A callback function that will be called with the captured exception before
-            the file or directory is removed. For example, you can use this callback to
-            log the exception.
-
     """
     try:
         yield
