@@ -1,5 +1,67 @@
 lint = ["ruff>=0.0.220"] # MIT License (MIT)
 
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedn"
+version = "0.8.0"
+description = "Scaleout Federated Learning"
+authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
+readme = "README.md"
+license = {file="LICENSE"}
+keywords = [
+    "Scaleout",
+    "FEDn",
+    "Federated learning",
+    "FL",
+    "Machine learning",
+]
+classifiers = [
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+requires-python = '>=3.8,<3.12'
+dependencies = [
+  "requests",
+  "urllib3>=1.26.4",
+  "minio",
+  "grpcio~=1.60.0",
+  "grpcio-tools~=1.60.0",
+  "numpy>=1.21.6",
+  "protobuf~=4.25.2",
+  "pymongo",
+  "Flask",
+  "pyjwt",
+  "pyopenssl",
+  "psutil",
+  "click==8.0.1",
+  "grpcio-health-checking~=1.60.0",
+  "flasgger==0.9.5",
+  "plotly"
+]
+
+[project.urls]
+homepage = "https://www.scaleoutsystems.com"
+documentation = 'https://fedn.readthedocs.io/en/stable/'
+repository = 'https://github.com/scaleoutsystems/fedn'
+
+[project.scripts]
+fedn = "cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fedn*"]
+exclude = ["tests", "tests.*"]
+
 [tool.ruff]
 line-length = 160
 target-version = "py39"
