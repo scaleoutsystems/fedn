@@ -1,4 +1,4 @@
-Using Flower clients in FEDn
+Using Flower ClientApps in FEDn
 ============================
 
 This example demonstrates how to run a Flower 'ClientApp' on FEDn.
@@ -39,21 +39,19 @@ Create the seed model (to be uploaded to FEDn):
    python client/entrypoint init_seed
 
 Next, you will upload the compute package and seed model to
-a FEDn network (a deployment of the server-side infrastructure). 
-
-You have two main options: using FEDn Studio (SaaS)
-(recommended for new users), or deploying a pseudo-local sandbox
-on your own machine using docker compose. 
+a FEDn network. Here you have two main options: using FEDn Studio 
+(recommended for new users), or a pseudo-local deployment
+on your own machine. 
 
 If you are using FEDn Studio (recommended):
 -----------------------------------------------------
 
 Follow instructions here to register for Studio and start a project: https://fedn.readthedocs.io/en/stable/studio.html.
 
-In you Studio project: 
+In your Studio project: 
 
 - From the "Sessions" menu, upload the compute package and seed model. 
-- Register a client in Studio and obtain the corresponding 'client.yaml'.  
+- Register a client and obtain the corresponding 'client.yaml'.  
 
 On your local machine / client (in the same virtual environment), start the FEDn client: 
 
