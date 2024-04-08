@@ -6,69 +6,100 @@ FEDn Projects
 A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
 a project is a directory of files (often as a Git repository), containing your machine learning code, FEDn entrypoints, and a specification 
 of the runtime environment (python environment or a Docker image). The FEDn API and command-line tools helps a user automate deployment of
-a project that follows the conventions   
+a project that follows the conventions. 
 
-This tutorial walks you through the design of a *compute package* for a FEDn client. The compute package is a tar.gz bundle of the code to be executed by each data-provider/client.
-You will learn how to design the compute package and how to write the entry points for training and validation. Examples are provided for the Keras and PyTorch frameworks, which can be
-found in the `examples <https://github.com/scaleoutsystems/fedn/tree/master/examples>`_.
+Overview
+------------------------------
 
-The compute package
------------------------------
+We recommend that projects have roughly the following folder and file structure:
+
+| project
+| ├── client
+| │   ├── fedn.yaml
+| │   ├── python_env.yaml
+| │   ├── data.py
+| │   ├── model.py
+| │   ├── train.py
+| │   └── validate.py
+| ├── data
+| │   └── mnist.npz
+| ├── README.md
+| ├── scripts / notebooks
+| └── Dockerfile / docker-compose.yaml
+| 
+
+The "client" folder is referred to as the *compute package*. When deploying the project to FEDn, this folder will be compressed as a .tgz bundle and uploaded to the FEDn controller. 
+FEDn will automatically distribute this bundle to each connected client/data provider. Upon recipt of the bundle, the client will unpack it and stage it locally, then initialize a Dispatcher
+ready to execute code for computing model updates (local training) and (optionally) validating models. The Dispatcher will look to the FEDn Project File 'fedn.yaml' for entrypoints to execute.
 
 .. image:: img/ComputePackageOverview.png
    :alt: Compute package overview
    :width: 100%
    :align: center
 
-The *compute package* is a .tgz bundle of the code to be executed by each data-provider/client. 
-This package is uploaded to the *Controller* upon initialization of the FEDN Network (along with the initial model). 
-When a client connects to the network, it downloads and unpacks the package locally and are then ready to 
-participate in training and/or validation. 
+The above figure provides a logical view of how FEDn uses the compute package (client folder). When the :py:mod:`fedn.network.clients`  
+recieves a model update request, it calls upon a Dispatcher that looks up entry point definitions 
+in the compute package. These entrypoints define commands executed by the client to update/train or validate a model.   
 
-The logic is illustrated in the above figure. When the :py:mod:`fedn.network.clients`  
-recieves a model update request from the combiner, it calls upon a Dispatcher that looks up entry point definitions 
-in the compute package. These entrypoints define commands executed by the client to update/train or validate a model.
-
-Designing the compute package
+FEDn Project File (fedn.yaml)
 ------------------------------
-We recommend to use the project structure followed by most example `projects <https://github.com/scaleoutsystems/fedn/tree/master/examples>`_.
-In the examples we have roughly the following file and folder structure:
 
-| project
-| ├── client
-| │   ├── fedn.yaml
-| │   └── entrypoint.py
-| ├── data
-| │   └── mnist.npz
-| ├── requirements.txt
-| └── docker-compose.yml/Dockerfile
-| 
-
-The "client" folder is referred to as the *compute package*. When deploying the project to FEDn, this folder will be compressed as a .tgz bundle of the code. FEDn will
-help distributed this bundle to each connected client/data provider. The entry points, mentioned above, are defined in the *fedn.yaml*:
+FEDn uses on a project file named 'fedn.yaml' to specify which entrypoints to execute when the client recieves a training or validation request, and 
+what environment to execute those entrypoints in. 
 
 .. code-block:: yaml
-    
+
+    python_env: python_env.yaml
+
     entry_points:
+        startup:
+            command: python data.py
         train:
-            command: python entrypoint.py <args>
+            command: python train.py
         validate:
-            command: python entrypoint.py <args>
+            command: python validate.py
 
-The training entry point should be a single-input single-output program, taking as input a model update file 
-and writing a model update file (same file format). Staging and upload of these files are handled by the FEDn client. A helper class in the FEDn SDK handles the ML-framework 
-specific file serialization and deserialization. The validation entry point acts very similar except we perform validation on the 
-*model_in* and outputs a json containing a validation scores (see more below). 
 
-Upon training (model update) requests from the combiner, the client will download the latest (current) global model and *entrypoint.py train* will be executed with this model update as input. 
-After training / updating completes, the local client will capture the output file and send back the updated model to the combiner. 
-For the local execution this means that the program (in this case entrypoint.py) will be executed as:  
+Environment
+---------------
+ 
+The software environment to be used to exectute the entry points. This should specify all client side dependencies of the project. 
+FEDn currently supports Virtualenv environments, with packages on PyPI. When a project specifies a **python_env**, the FEDn 
+client will create an isolated virtual environment and install the project dependencies into it before strating up the client.  
+
+
+Entry Points
+------------------------------
+
+There are up to three Entry Points to be specified.
+
+
+Startup Entrypoint (startup, optional): 
+
+This entrypoint is called **once** immediately after the client starts up. It can be used to do runtime configurations of the local execution environment. 
+For example, in the quickstart tutorial example, it is used to download the MNIST dataset and create partitions. This is a convenience useful for 
+automation of experiments. 
+
+Training Entrypoint (train,  mandatory): 
+
+This entrypoint is invoked every time the client recieves a new model update request. The training entry point must be a single-input single-output (SISO) program. It will be invoked by FEDn as such: 
 
 .. code-block:: python
 
-   python entrypoint.py train in_model_path out_model_path <extra-args>
+    python train.py model_in model_out
 
-A *entrypoint.py* example can look like this:
+where in_model_path is the path to a model update file, and out_model_path is the file to which the new model update will be written. 
+
+Download and upload of these files are handled automatically by the FEDn client. 
+
+Validation Entrypoint (validate, optional): 
+
+The validation entry point acts very similar to the traning entrypoint. It should read a model update from file, validate it (in any way suitable to the user), and write  a **json file** containing validation data:
+
+.. code-block:: python
+
+    python validate.py model_in validations.json
+
 
 .. code-block:: python
 
