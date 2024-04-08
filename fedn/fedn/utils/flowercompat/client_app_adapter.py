@@ -28,6 +28,9 @@ class FlwrClientAppAdapter:
         client_return_message = self.app(message, context)
         # return NDArrays of clients parameters
         parameters = self._parse_get_parameters_message(client_return_message)
+        if len(parameters) == 0:
+            raise ValueError("The 'parameters' list is empty. Ensure your flower \
+                             client has implemented a get_parameters() function.")
         return parameters
 
     def train(self, parameters: NDArrays, partition_id: int):

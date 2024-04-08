@@ -2,9 +2,9 @@
 import os
 
 import fire
+from fedn.utils.flowercompat.client_app_adapter import FlwrClientAppAdapter
 from flwr_client import app
 
-from fedn.utils.flowercompat.client_app_adapter import FlwrClientAppAdapter
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = "numpyhelper"
@@ -37,7 +37,7 @@ def init_seed(out_path="seed.npz"):
     :param out_path: The path to save the seed model to.
     :type out_path: str
     """
-    # Init and save
+    # This calls get_parameters in the flower client which needs to be implemented.
     parameters_np = flwr_adapter.init_parameters(partition_id=_get_node_id())
     save_parameters(out_path, parameters_np)
 
