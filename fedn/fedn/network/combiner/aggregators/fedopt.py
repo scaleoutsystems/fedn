@@ -34,13 +34,13 @@ class Aggregator(AggregatorBase):
         self.m = None
 
         # Server side hyperparameters. Note that these may need extensive fine tuning.
-        self.eta = 0.1
+        self.eta = 1e-2
         self.beta1 = 0.9
         self.beta2 = 0.99
         self.tau = 1e-4
 
     def combine_models(self, helper=None, delete_models=True):
-        """Compute pseudo gradients usigng model updates in the queue.
+        """Compute pseudo gradients using model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
         :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional

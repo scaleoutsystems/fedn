@@ -427,7 +427,7 @@ if custom_url_prefix:
 
 
 @app.route("/get_package_checksum", methods=["GET"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def get_package_checksum():
     name = request.args.get("name", None)
     return api.get_checksum(name)
@@ -560,7 +560,7 @@ def get_events():
 
 
 if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_events", view_func=get_client_config, methods=["GET"])
+    app.add_url_rule(f"{custom_url_prefix}/get_events", view_func=get_events, methods=["GET"])
 
 
 @app.route("/list_validations", methods=["GET"])
