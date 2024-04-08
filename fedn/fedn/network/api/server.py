@@ -40,6 +40,15 @@ template = {
 swagger = Swagger(app, template=template)
 
 
+@app.route('/health', methods=["GET"])
+def health_check():
+    return 'OK', 200
+
+
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/health", view_func=health_check, methods=["GET"])
+
+
 @app.route("/get_model_trail", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_model_trail():
