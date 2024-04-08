@@ -773,16 +773,18 @@ class Client:
             cnt = 0
             old_state = self.state
             while True:
-                time.sleep(1)
+                time.sleep(5)
                 if cnt == 0:
                     logger.info("Client is active, waiting for model update requests.")
                     cnt = 1
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
                 if not self._connected:
-                    logger.info("Detached from combiner.")
-                    # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed. s
-                    self.attach()
+                    logger.warning("Detached from combiner.")
+                    # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed.
+                    # Attach to the FEDn network (get combiner)
+                    combiner_config = self.assign()
+                    self.connect(combiner_config)
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:
                     return
