@@ -710,13 +710,14 @@ class Client:
                 status_code = e.code()
                 if status_code == grpc.StatusCode.UNAVAILABLE:
                     logger.warning("GRPC hearbeat: server unavailable during send heartbeat. Retrying.")
+                    self._handle_combiner_failure()
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == 'Token expired':
-                        logger.warning("GRPC hearbeat: Token expired. Reconnecting.")
+                        logger.warning("GRPC hearbeat: Token expired. Disconnecting.")
                         self.detach()
+                        exit(0)
                 logger.debug(e)
-                self._handle_combiner_failure()
 
             time.sleep(update_frequency)
             if not self._connected:
@@ -780,13 +781,15 @@ class Client:
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
                 if not self._connected:
-                    logger.warning("Detached from combiner.")
+                    reconnection_attempt = 1
+                    logger.warning("Client is not connected to combiner. Attempting to reconnect (attempt={})".format(reconnection_attempt))
                     # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed.
                     # Attach to the FEDn network (get combiner)
                     combiner_config = self.assign()
                     self.connect(combiner_config)
                     self._subscribe_to_combiner(self.config)
                 if self.error_state:
+                    logger.error("Client in error state. Terminiating.")
                     return
         except KeyboardInterrupt:
             logger.info("Shutting down.")
