@@ -36,7 +36,7 @@ Create the compute package (make a tarball of the 'client' folder):
 
 This should create a file 'package.tgz' in the project folder.
 
-Upload the package to FEDn Studio project. 
+Upload the package to the FEDn Studio project. 
 
 Start the client using the client.yaml file from FEDn Studio.
 
@@ -45,7 +45,7 @@ Start the client using the client.yaml file from FEDn Studio.
    pip install fedn 
    export FEDN_AUTH_SCHEME=Bearer
    export FEDN_PACKAGE_EXTRACT_DIR=package
-   fedn run client -in client.yaml --name client1 --secure=True --force-ssl
+   fedn run client -in client.yaml --secure=True --force-ssl
 
 
 Upload the initial model to FEDn Studio project. The seed.npz file is created when you run start the client and is found in ./data/models/seed.npz
