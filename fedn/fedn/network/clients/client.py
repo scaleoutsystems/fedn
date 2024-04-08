@@ -94,14 +94,14 @@ class Client:
         combiner_config = self.assign()
         self.connect(combiner_config)
 
-        self._initialize_dispatcher(config)
+        self._initialize_dispatcher(self.config)
 
         self._initialize_helper(combiner_config)
         if not self.helper:
             logger.warning("Failed to retrieve helper class settings: {}".format(
                 combiner_config))
 
-        self._subscribe_to_combiner(config)
+        self._subscribe_to_combiner(self.config)
 
         self.state = ClientState.idle
 
@@ -715,8 +715,8 @@ class Client:
                     details = e.details()
                     if details == 'Token expired':
                         logger.warning("GRPC hearbeat: Token expired. Disconnecting.")
-                        self.detach()
-                        exit(0)
+                        self.disconnect()
+                        sys.exit("Unauthorized. Token expired. Please obtain a new token.")
                 logger.debug(e)
 
             time.sleep(update_frequency)
@@ -781,15 +781,13 @@ class Client:
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
                 if not self._connected:
-                    reconnection_attempt = 1
-                    logger.warning("Client is not connected to combiner. Attempting to reconnect (attempt={})".format(reconnection_attempt))
-                    # TODO: Implement a check/condition to ulitmately close down if too many reattachment attepts have failed.
-                    # Attach to the FEDn network (get combiner)
+                    logger.warning("Client lost connection to combiner. Attempting to reconnect to FEDn network (attempt={})".format(reconnection_attempt))
                     combiner_config = self.assign()
                     self.connect(combiner_config)
                     self._subscribe_to_combiner(self.config)
+                    cnt = 0
                 if self.error_state:
                     logger.error("Client in error state. Terminiating.")
-                    return
+                    sys.exit("Client in error state. Terminiating.")
         except KeyboardInterrupt:
             logger.info("Shutting down.")
