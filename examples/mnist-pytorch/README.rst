@@ -28,7 +28,7 @@ Clone this repository, locate into this directory:
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn/examples/mnist-pytorch
 
-Create the compute package :
+Create the compute package (make a tarball of the 'client' folder):
 
 .. code-block::
 

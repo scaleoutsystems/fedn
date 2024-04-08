@@ -1,4 +1,4 @@
-""" 
+"""
 Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
 with modifications made by Scaleout Systems AB.
 Copyright (c) 2018 Databricks, Inc.
