@@ -96,6 +96,8 @@ if __name__ == '__main__':
     if not os.path.exists(abs_path+'/data/clients/1'):
         get_data()
         split()
+
+    # Create seed model
     if not os.path.exists(abs_path+'/data/models'):
         os.mkdir(abs_path+'/data/models')
         init_seed(abs_path+'/data/models/seed.npz')

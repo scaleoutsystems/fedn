@@ -1,7 +1,8 @@
 Quickstart Tutorial PyTorch (MNIST)
 -----------------------------------
 
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
+This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST.
+The project is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation (CPU only or GPU) should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
 We here assume working experience with containers, Docker and docker-compose. 
@@ -28,7 +29,7 @@ Clone this repository, locate into this directory:
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn/examples/mnist-pytorch
 
-Create the compute package (make a tarball of the 'client' folder):
+Create the compute package (compress the 'client' folder):
 
 .. code-block::
 
@@ -48,9 +49,15 @@ Start the client using the client.yaml file from FEDn Studio.
    fedn run client -in client.yaml --secure=True --force-ssl
 
 
-Upload the initial model to FEDn Studio project. The seed.npz file is created when you run start the client and is found in ./data/models/seed.npz
+Upload the initial model to FEDn Studio project. The seed.npz file is created when you run the client the first time and is found in 'package/data/models/seed.npz'
 
-The default traning and test data is found in ./data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
+The default traning and test data is found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
+For example, to use the second partiton:
+
+.. code-block::
+
+   export FEDN_DATA_PATH=data/clients/2/mnist.pt
+
 The default split into 2 partitions can be changed in client/data.py.
 
 Quick start with docker-compose
@@ -91,7 +98,7 @@ Create the package (compress client folder):
 
 .. code-block::
 
-   bin/build.sh
+   tar -czvf package.tgz client 
 
 You should now have a file 'package.tgz'. 
 

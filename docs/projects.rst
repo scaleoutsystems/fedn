@@ -1,7 +1,12 @@
-.. _tutorial-label:
+.. _projects-label:
 
-Compute Package
+FEDn Projects
 ================================================
+
+A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
+a project is a directory of files (often as a Git repository), containing your machine learning code, FEDn entrypoints, and a specification 
+of the runtime environment (python environment or a Docker image). The FEDn API and command-line tools helps a user automate deployment of
+a project that follows the conventions   
 
 This tutorial walks you through the design of a *compute package* for a FEDn client. The compute package is a tar.gz bundle of the code to be executed by each data-provider/client.
 You will learn how to design the compute package and how to write the entry points for training and validation. Examples are provided for the Keras and PyTorch frameworks, which can be
@@ -31,16 +36,16 @@ In the examples we have roughly the following file and folder structure:
 
 | project
 | ├── client
-| │   ├── entrypoint.py
-| │   └── fedn.yaml
+| │   ├── fedn.yaml
+| │   └── entrypoint.py
 | ├── data
 | │   └── mnist.npz
 | ├── requirements.txt
 | └── docker-compose.yml/Dockerfile
 | 
 
-The "client" folder is the *compute package* which will become a .tgz bundle of the code to be executed by 
-each data-provider/client. The entry points, mentioned above, are defined in the *fedn.yaml*:
+The "client" folder is referred to as the *compute package*. When deploying the project to FEDn, this folder will be compressed as a .tgz bundle of the code. FEDn will
+help distributed this bundle to each connected client/data provider. The entry points, mentioned above, are defined in the *fedn.yaml*:
 
 .. code-block:: yaml
     
