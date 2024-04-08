@@ -2,7 +2,7 @@ Quickstart Tutorial PyTorch (MNIST)
 -----------------------------------
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
-A normal high-end laptop or a workstation should be able to sustain a few clients. 
+A normal high-end laptop or a workstation (CPU only or GPU) should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
 We here assume working experience with containers, Docker and docker-compose. 
    
@@ -28,11 +28,11 @@ Clone this repository, locate into this directory:
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn/examples/mnist-pytorch
 
-Create the package using script:
+Create the compute package :
 
 .. code-block::
 
-   bin/build.sh
+   tar -czvf package.tgz client 
 
 This should create a file 'package.tgz' in the project folder.
 
