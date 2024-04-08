@@ -1,14 +1,16 @@
 from typing import Tuple
 
 from flwr.client import ClientApp
-from flwr.common import (Context, EvaluateIns, FitIns, Message, MessageType,
-                         Metadata, NDArrays, ndarrays_to_parameters,
+from flwr.common import (Context, EvaluateIns, GetParametersIns, FitIns, 
+                         Message, MessageType, MessageTypeLegacy, Metadata, 
+                         NDArrays, ndarrays_to_parameters, 
                          parameters_to_ndarrays)
 from flwr.common.recordset_compat import (evaluateins_to_recordset,
                                           fitins_to_recordset,
+                                          getparametersins_to_recordset,
                                           recordset_to_evaluateres,
-                                          recordset_to_fitres)
-from flwr_task import Net, get_weights
+                                          recordset_to_fitres,
+                                          recordset_to_getparametersres)
 
 
 class FlwrClientAppAdapter:
@@ -17,8 +19,16 @@ class FlwrClientAppAdapter:
     def __init__(self, app: ClientApp) -> None:
         self.app = app
 
-    def init_parameters(self):
-        return get_weights(net=Net())
+    def init_parameters(self, partition_id: int):
+        # Construct a get_parameters message for the ClientApp
+        message, context = self._construct_message(
+            MessageTypeLegacy.GET_PARAMETERS, [], partition_id
+        )
+        # Call client app with train message
+        client_return_message = self.app(message, context)
+        # return NDArrays of clients parameters
+        parameters = self._parse_get_parameters_message(client_return_message)
+        return parameters
 
     def train(self, parameters: NDArrays, partition_id: int):
         # Construct a train message for the ClientApp with given parameters
@@ -41,6 +51,10 @@ class FlwrClientAppAdapter:
         # Parse return message
         loss, accuracy = self._parse_evaluate_message(client_return_message)
         return loss, accuracy
+    
+    def _parse_get_parameters_message(self, message: Message) -> NDArrays:
+        get_parameters_res = recordset_to_getparametersres(message.content, keep_input=False)
+        return parameters_to_ndarrays(get_parameters_res.parameters)
 
     def _parse_train_message(self, message: Message) -> Tuple[NDArrays, int]:
         fitres = recordset_to_fitres(message.content, keep_input=False)
@@ -67,6 +81,9 @@ class FlwrClientAppAdapter:
         if message_type == MessageType.EVALUATE:
             ev_ins: EvaluateIns = EvaluateIns(parameters=parameters, config={})
             recordset = evaluateins_to_recordset(evaluateins=ev_ins, keep_input=False)
+        if message_type == MessageTypeLegacy.GET_PARAMETERS:
+            get_parameters_ins: GetParametersIns = GetParametersIns({})
+            recordset = getparametersins_to_recordset(getparameters_ins=get_parameters_ins)
 
         metadata = Metadata(
             run_id=0,
