@@ -686,12 +686,6 @@ class Client:
             except grpc.RpcError as e:
                 logger.critical(f"GRPC process_request: An error occurred during process request: {e}")
 
-    def _handle_combiner_failure(self):
-        """ Register failed combiner connection."""
-        self._missed_heartbeat += 1
-        if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
-            self.disconnect()
-
     def _send_heartbeat(self, update_frequency=2.0):
         """Send a heartbeat to the combiner.
 
@@ -709,12 +703,15 @@ class Client:
             except grpc.RpcError as e:
                 status_code = e.code()
                 if status_code == grpc.StatusCode.UNAVAILABLE:
-                    logger.warning("GRPC hearbeat: server unavailable during send heartbeat. Retrying.")
-                    self._handle_combiner_failure()
+                    self._missed_heartbeat += 1
+                    logger.error("GRPC hearbeat: combiner unavailable, retrying (attempt {}/{}).".format(self._missed_heartbeat,
+                                                                                                         self.config['reconnect_after_missed_heartbeat']))
+                    if self._missed_heartbeat > self.config['reconnect_after_missed_heartbeat']:
+                        self.disconnect()
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == 'Token expired':
-                        logger.warning("GRPC hearbeat: Token expired. Disconnecting.")
+                        logger.error("GRPC hearbeat: Token expired. Disconnecting.")
                         self.disconnect()
                         sys.exit("Unauthorized. Token expired. Please obtain a new token.")
                 logger.debug(e)
@@ -781,7 +778,7 @@ class Client:
                 if self.state != old_state:
                     logger.info("Client in {} state.".format(ClientStateToString(self.state)))
                 if not self._connected:
-                    logger.warning("Client lost connection to combiner. Attempting to reconnect to FEDn network (attempt={})".format(reconnection_attempt))
+                    logger.warning("Client lost connection to combiner. Attempting to reconnect to FEDn network.")
                     combiner_config = self.assign()
                     self.connect(combiner_config)
                     self._subscribe_to_combiner(self.config)
