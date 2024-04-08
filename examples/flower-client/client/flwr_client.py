@@ -16,7 +16,7 @@ class FlowerClient(NumPyClient):
         self.trainloader, self.testloader = load_data(
             partition_id=int(cid), num_clients=10
         )
-    
+
     def get_parameters(self, config):
         return [val.cpu().numpy() for _, val in self.net.state_dict().items()]
 
