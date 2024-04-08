@@ -60,7 +60,7 @@ class Client:
         self._connected = False
         self._missed_heartbeat = 0
         self.config = config
-
+        self.trace_attribs = False
         set_log_level_from_string(config.get('verbosity', "INFO"))
         set_log_stream(config.get('logfile', None))
 

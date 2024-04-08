@@ -1,5 +1,5 @@
 Quickstart Tutorial PyTorch (MNIST)
--------------
+-------------------------------------
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
@@ -99,13 +99,57 @@ Obs - After you have uploaded the package, you need to fetch the initial model (
 
 .. code-block::
 
-   docker cp fedn-client-1:/app/package/data/models/seed.npz .
+   bin/get_data
+
+
+Split the data in 10 partitions:
+
+.. code-block::
+
+   bin/split_data --n_splits=10
+
+Data partitions will be generated in the folder 'data/clients'.  
+
+FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
+
+.. code-block::
+
+   network_id: fedn-network
+   discover_host: api-server
+   discover_port: 8092
+
+Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
+To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
+
+.. code-block::
+
+   docker run \
+     -v $PWD/client.yaml:/app/client.yaml \
+     -v $PWD/data/clients/1:/var/data \
+     -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+     --network=fedn_default \
+     ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client1
+
+Observe the API Server logs and combiner logs, you should see the client connecting and entering into a state asking for a compute package. 
+
+In a separate terminal, start a second client using the data partition 'data/clients/2/mnist.pt':
+
+.. code-block::
+
+   docker run \
+     -v $PWD/client.yaml:/app/client.yaml \
+     -v $PWD/data/clients/2:/var/data \
+     -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
+     --network=fedn_default \
+     ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client -in client.yaml --name client2
+ 
+You are now ready to use the API to initialize the system with the compute package and seed model, and to start federated training. 
 
 - Follow the example in the `Jupyter Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`__
 
 
-Automate experimentation with several clients:  
-----------------------------------------------
+Automate experimentation with several clients  
+-----------------------------------------------
 
 If you want to scale the number of clients, you can do so by running the following command:
 
@@ -115,7 +159,7 @@ If you want to scale the number of clients, you can do so by running the followi
 
 
 Access logs and validation data from MongoDB  
---------------------------------------------
+---------------------------------------------
 You can access and download event logs and validation data via the API, and you can also as a developer obtain 
 the MongoDB backend data using pymongo or via the MongoExpress interface: 
 
@@ -124,7 +168,7 @@ the MongoDB backend data using pymongo or via the MongoExpress interface:
 The credentials are as set in docker-compose.yaml in the root of the repository. 
 
 Access model updates  
---------------------
+---------------------
 
 You can obtain model updates from the 'fedn-models' bucket in Minio: 
 
@@ -132,7 +176,7 @@ You can obtain model updates from the 'fedn-models' bucket in Minio:
 
 
 Clean up
--------
+--------
 You can clean up by running 
 
 .. code-block::

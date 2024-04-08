@@ -5,4 +5,5 @@
     },
     "python.linting.enabled": true,
     "python.linting.flake8Enabled": true,
+    "esbonio.sphinx.confDir": "",
 }

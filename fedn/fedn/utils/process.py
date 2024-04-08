@@ -142,7 +142,6 @@ def run_process(args, cwd):
     status = subprocess.Popen(
         args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    # print(status)
     def check_io():
         """ Check stdout/stderr of the child process.
 

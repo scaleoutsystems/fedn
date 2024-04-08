@@ -1,0 +1,60 @@
+/* inputs  */
+
+.wy-side-nav-search input[type=text] {
+    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
+    border-color: var(--scaleout-grey-6);
+}
+
+/* lists */
+
+.rst-content .section ul,
+.rst-content .toctree-wrapper ul,
+.rst-content section ul,
+.wy-plain-list-disc,
+article ul {
+    list-style: none;
+    line-height: 16px;
+    margin-bottom: 16px;
+}
+
+.rst-content .section ul li,
+.rst-content .toctree-wrapper ul li,
+.rst-content section ul li,
+.wy-plain-list-disc li,
+article ul li {
+    list-style: none;
+    margin-left: 16px;
+}
+
+
+.rst-content .section ul li li,
+.rst-content .toctree-wrapper ul li li,
+.rst-content section ul li li,
+.wy-plain-list-disc li li,
+article ul li li {
+    list-style: none;
+}
+
+/* buttons */
+
+.btn {
+    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
+    border-color: var(--scaleout-grey-6);
+    border-radius: 8px;
+}
+
+.btn-neutral {
+    background: white !important;
+}
+
+.highlight {
+    background: var(--scaleout-grey-1) !important;
+}
+
+img {
+    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
+}
+
+img.logo {
+    box-shadow: none;
+}
