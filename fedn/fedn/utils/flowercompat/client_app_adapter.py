@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from flwr.client import ClientApp
-from flwr.common import (Context, EvaluateIns, GetParametersIns, FitIns, 
+from flwr.common import (Context, EvaluateIns, FitIns, GetParametersIns, 
                          Message, MessageType, MessageTypeLegacy, Metadata, 
                          NDArrays, ndarrays_to_parameters, 
                          parameters_to_ndarrays)
