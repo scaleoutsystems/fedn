@@ -2,5 +2,5 @@ data
 *.npz
 *.tgz
 *.tar.gz
-.flower-example
+.flower-client
 client.yaml
