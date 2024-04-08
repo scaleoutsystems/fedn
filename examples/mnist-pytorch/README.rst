@@ -1,5 +1,5 @@
 Quickstart Tutorial PyTorch (MNIST)
--------------------------------------
+-----------------------------------
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
@@ -14,6 +14,7 @@ Using FEDn Studio:
 -  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
 
 If using self-managed with docker-compose:
+
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
@@ -40,10 +41,11 @@ Upload the package to FEDn Studio project.
 Start the client using the client.yaml file from FEDn Studio.
 
 .. code-block::
-  pip install fedn 
-  export FEDN_AUTH_SCHEME=Bearer
-  export FEDN_PACKAGE_EXTRACT_DIR=package
-  fedn run client -in client.yaml --name client1 --secure=True --force-ssl
+
+   pip install fedn 
+   export FEDN_AUTH_SCHEME=Bearer
+   export FEDN_PACKAGE_EXTRACT_DIR=package
+   fedn run client -in client.yaml --name client1 --secure=True --force-ssl
 
 
 Upload the initial model to FEDn Studio project. The seed.npz file is created when you run start the client and is found in ./data/models/seed.npz
