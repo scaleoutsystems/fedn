@@ -66,7 +66,7 @@ Or, if you prefer to use Docker, build an image (this might take a long time):
 
    docker build -t flower-client .
 
-Then start the client usign Docker:
+Then start the client using Docker:
 
 .. code-block::
 
