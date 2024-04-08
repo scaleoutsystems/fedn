@@ -1,5 +1,4 @@
 """Flower client code for helper functions.
-
 Code adapted from https://github.com/adap/flower/tree/main/examples/app-pytorch.
 """
 

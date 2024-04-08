@@ -1,5 +1,4 @@
 """Flower client code using the ClientApp abstraction.
-
 Code adapted from https://github.com/adap/flower/tree/main/examples/app-pytorch.
 """
 

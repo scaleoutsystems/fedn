@@ -38,7 +38,7 @@ def init_seed(out_path="seed.npz"):
     :type out_path: str
     """
     # Init and save
-    parameters_np = flwr_adapter.init_parameters()
+    parameters_np = flwr_adapter.init_parameters(partition_id=_get_node_id())
     save_parameters(out_path, parameters_np)
 
 
