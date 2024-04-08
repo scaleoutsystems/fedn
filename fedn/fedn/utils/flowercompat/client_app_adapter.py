@@ -51,7 +51,7 @@ class FlwrClientAppAdapter:
         # Parse return message
         loss, accuracy = self._parse_evaluate_message(client_return_message)
         return loss, accuracy
-    
+
     def _parse_get_parameters_message(self, message: Message) -> NDArrays:
         get_parameters_res = recordset_to_getparametersres(message.content, keep_input=False)
         return parameters_to_ndarrays(get_parameters_res.parameters)
