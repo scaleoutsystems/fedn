@@ -1,5 +1,6 @@
 import base64
 
+from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 
@@ -67,13 +68,13 @@ class Network:
         :return: None
         """
         if not self.control.idle():
-            print("Reducer is not idle, cannot add additional combiner.")
+            logger.warning("Reducer is not idle, cannot add additional combiner.")
             return
 
         if self.get_combiner(combiner.name):
             return
 
-        print("adding combiner {}".format(combiner.name), flush=True)
+        logger.info("adding combiner {}".format(combiner.name))
         self.statestore.set_combiner(combiner.to_dict())
 
     def remove_combiner(self, combiner):
@@ -84,7 +85,7 @@ class Network:
         :return: None
         """
         if not self.control.idle():
-            print("Reducer is not idle, cannot remove combiner.")
+            logger.warning("Reducer is not idle, cannot remove combiner.")
             return
         self.statestore.delete_combiner(combiner.name)
 
@@ -105,8 +106,8 @@ class Network:
         :return: None
         """
         # TODO: Implement strategy to handle an unavailable combiner.
-        print("REDUCER CONTROL: Combiner {} unavailable.".format(
-            combiner.name), flush=True)
+        logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(
+            combiner.name))
 
     def add_client(self, client):
         """ Add a new client to the network.
@@ -119,7 +120,7 @@ class Network:
         if self.get_client(client['name']):
             return
 
-        print("adding client {}".format(client['name']), flush=True)
+        logger.info("adding client {}".format(client['name']))
         self.statestore.set_client(client)
 
     def get_client(self, name):
