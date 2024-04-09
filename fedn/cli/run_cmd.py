@@ -1,3 +1,6 @@
+import os
+import shutil
+import tarfile
 import uuid
 
 import click
@@ -7,6 +10,7 @@ from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
+from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 from .main import main
 
@@ -179,3 +183,49 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     combiner = Combiner(config)
     combiner.run()
+
+
+@main.group('package')
+@click.pass_context
+def package_cmd(ctx):
+    """
+
+    :param ctx:
+    """
+    pass
+
+
+@package_cmd.command('create')
+@click.option('-p', '--path', required=True, help='Path to package directory containing fedn.yaml')
+@click.option('-n', '--name', required=False, default='package.tgz', help='Name of package tarball')
+@click.pass_context
+def create_cmd(ctx, path, name):
+    """
+
+    :param ctx:
+    :param path:
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, 'fedn.yaml')
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    with tarfile.open(name, "w:gz") as tar:
+        tar.add(path, arcname=os.path.basename(path))
+        logger.info(f"Created package {name}")
+
+    config = _read_yaml_file(yaml_file)
+    # Check that build is defined in fedn.yaml under entry_points
+    if 'build' not in config['entry_points']:
+        logger.error("No build command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("build")
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
