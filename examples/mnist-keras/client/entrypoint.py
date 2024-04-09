@@ -1,4 +1,3 @@
-#!./.mnist-keras/bin/python
 import json
 import os
 
