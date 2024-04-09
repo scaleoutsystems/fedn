@@ -6,7 +6,7 @@ import os
 import docker
 import fire
 import torch
-
+import yaml
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 import copy
 HELPER_MODULE = 'numpyhelper'
@@ -117,7 +117,7 @@ def init_seed(out_path='seed.npz'):
     save_parameters(model, out_path)
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01, mu=3):
+def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01, client_settings_path ='/var/client_settings.yaml'):
     """ Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -137,6 +137,17 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     :param lr: The learning rate to use.
     :type lr: float
     """
+
+    with open(client_settings_path, 'r') as fh:
+        try:
+            client_settings = dict(yaml.safe_load(fh))
+        except yaml.YAMLError as e:
+            raise
+
+    mu = client_settings['mu']
+
+    print("mu: ", mu)
+
     print("data_path: ", data_path)
     print(os.getcwd())
     print("list data path: ", os.listdir('/var/data'))
