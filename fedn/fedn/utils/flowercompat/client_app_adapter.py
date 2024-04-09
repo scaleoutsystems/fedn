@@ -19,7 +19,7 @@ class FlwrClientAppAdapter:
     def __init__(self, app: ClientApp) -> None:
         self.app = app
 
-    def init_parameters(self, partition_id: int, config:dict = {}): 
+    def init_parameters(self, partition_id: int, config: dict = {}):
         # Construct a get_parameters message for the ClientApp
         message, context = self._construct_message(
             MessageTypeLegacy.GET_PARAMETERS, [], partition_id, config
@@ -33,7 +33,7 @@ class FlwrClientAppAdapter:
                              client has implemented a get_parameters() function.")
         return parameters
 
-    def train(self, parameters: NDArrays, partition_id: int, config:dict = {}): 
+    def train(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct a train message for the ClientApp with given parameters
         message, context = self._construct_message(
             MessageType.TRAIN, parameters, partition_id, config
@@ -44,7 +44,7 @@ class FlwrClientAppAdapter:
         params, num_examples = self._parse_train_message(client_return_message)
         return params, num_examples
 
-    def evaluate(self, parameters: NDArrays, partition_id: int, config:dict = {}): 
+    def evaluate(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct an evaluate message for the ClientApp with given parameters
         message, context = self._construct_message(
             MessageType.EVALUATE, parameters, partition_id, config
