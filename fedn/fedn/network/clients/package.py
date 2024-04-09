@@ -7,12 +7,11 @@ import tarfile
 from distutils.dir_util import copy_tree
 
 import requests
-import yaml
 
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
-from fedn.utils.dispatcher import Dispatcher
+from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 
 class PackageRuntime:
@@ -158,17 +157,7 @@ class PackageRuntime:
         # preserve_times=False ensures compatibility with Gramine LibOS
         copy_tree(from_path, run_path, preserve_times=False)
 
-        try:
-            cfg = None
-            with open(os.path.join(run_path, 'fedn.yaml'), 'rb') as config_file:
-
-                cfg = yaml.safe_load(config_file.read())
-                self.dispatch_config = cfg
-
-        except Exception:
-            logger.error(
-                "Error trying to load and unpack dispatcher config - trying default")
-
+        self.dispatch_config = _read_yaml_file(os.path.join(run_path, 'fedn.yaml'))
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 
         return dispatcher

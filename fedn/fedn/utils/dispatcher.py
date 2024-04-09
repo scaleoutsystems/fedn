@@ -24,6 +24,8 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
+import yaml
+
 from fedn.common.log_config import logger
 from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
@@ -133,6 +135,21 @@ def _create_virtualenv(
     return activate_cmd
 
 
+def _read_yaml_file(file_path):
+    try:
+        cfg = None
+        with open(file_path, 'rb') as config_file:
+
+            cfg = yaml.safe_load(config_file.read())
+
+    except Exception as e:
+        logger.error(
+            f"Error trying to read yaml file: {file_path}"
+        )
+        raise e
+    return cfg
+
+
 class Dispatcher:
     """ Dispatcher class for compute packages.
 
@@ -147,6 +164,7 @@ class Dispatcher:
         self.config = config
         self.project_dir = project_dir
         self.activate_cmd = ""
+        self.python_env_path = ""
 
     def _get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
         python_env = self.config.get("python_env", "")
@@ -164,6 +182,7 @@ class Dispatcher:
 
         extra_env = _get_virtualenv_extra_env_vars()
         env_dir = Path(self.project_dir) / Path(python_env.name)
+        self.python_env_path = env_dir
         try:
             python_bin_path = _install_python(python_env.python, capture_output=True)
         except NotImplementedError:
