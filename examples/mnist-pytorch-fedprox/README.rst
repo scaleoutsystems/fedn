@@ -1,10 +1,9 @@
-[link text itself]: http://www.reddit.com
 
 
 Quickstart Tutorial PyTorch with FEDProx (MNIST)
 -------------------------------------------------
-This is an enhanced version of our Pytorch MNIST example that let you use the FedProx algorithm [paper](/guides/content/editing-an-existing-page)
-eg. [click here](www.google.com)
+This is an enhanced version of our Pytorch MNIST example that let you use the FedProx algorithm [paper](https://arxiv.org/abs/1812.06127).
+
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
