@@ -1,11 +1,11 @@
 Quickstart Tutorial PyTorch (MNIST)
--------------
+------------------------------------
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
 We here assume working experience with containers, Docker and docker-compose. 
-   
+
 Prerequisites
 -------------
 
@@ -112,8 +112,9 @@ You are now ready to use the API to initialize the system with the compute packa
 - Follow the example in the `Jupyter Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`__
 
 
+
 Automate experimentation with several clients:  
------------
+-----------------------------------------------
 
 Now that you have an understanding of the main components of FEDn, you can use the provided docker-compose templates to automate deployment of FEDn and clients. 
 To start the network and attach 4 clients: 
@@ -124,7 +125,8 @@ To start the network and attach 4 clients:
 
 
 Access logs and validation data from MongoDB  
------------
+---------------------------------------------
+
 You can access and download event logs and validation data via the API, and you can also as a developer obtain 
 the MongoDB backend data using pymongo or via the MongoExpress interface: 
 
@@ -132,8 +134,12 @@ the MongoDB backend data using pymongo or via the MongoExpress interface:
 
 The credentials are as set in docker-compose.yaml in the root of the repository. 
 
+Adjust fed-Prox parameter μ
+--------------------------------
+open file: client_settings.yaml and change mu value.
+
 Access model updates  
------------
+-----------------------
 
 You can obtain model updates from the 'fedn-models' bucket in Minio: 
 
