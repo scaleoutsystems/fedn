@@ -38,7 +38,7 @@ def init_seed(out_path="seed.npz"):
     :type out_path: str
     """
     # This calls get_parameters in the flower client which needs to be implemented.
-    parameters_np = flwr_adapter.init_parameters(partition_id=_get_node_id())
+    parameters_np = flwr_adapter.init_parameters(partition_id=_get_node_id(), config={})
     save_parameters(out_path, parameters_np)
 
 
@@ -58,7 +58,7 @@ def train(in_model_path, out_model_path):
 
     # Train on flower client
     params, num_examples = flwr_adapter.train(
-        parameters=parameters_np, partition_id=_get_node_id()
+        parameters=parameters_np, partition_id=_get_node_id(), config={}
     )
 
     # Metadata needed for aggregation server side
@@ -86,7 +86,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     """
     parameters_np = helper.load(in_model_path)
 
-    loss, accuracy = flwr_adapter.evaluate(parameters_np, partition_id=_get_node_id())
+    loss, accuracy = flwr_adapter.evaluate(parameters_np, partition_id=_get_node_id(), config={})
 
     # JSON schema
     report = {
