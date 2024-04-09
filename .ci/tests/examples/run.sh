@@ -16,6 +16,8 @@ pip install ./fedn/ fire
 >&2 echo "Start FEDn"
 pushd "examples/$example"
 
+fedn package create --path client
+
 docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
