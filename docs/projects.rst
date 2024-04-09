@@ -103,127 +103,25 @@ model on local test/validation data. It should read a model update from file, va
 
  The validate entrypoint is optional. 
 
-Example entry points
-^^^^^^^^^^^^^^^^^^^^^
+Example train entry point
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Below is an example training entry point taken from the PyTorch getting stated project. 
 
 .. code-block:: python
 
-    import collections
     import math
     import os
+    import sys
 
-    import docker
-    import fire
     import torch
+    from data import load_data
+    from model import load_parameters, save_parameters
 
-    from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+    from fedn.utils.helpers.helpers import save_metadata
 
-    HELPER_MODULE = 'numpyhelper'
-    helper = get_helper(HELPER_MODULE)
-
-    NUM_CLASSES = 10
-
-
-    def _get_data_path():
-        """ For test automation using docker-compose. """
-        # Figure out FEDn client number from container name
-        client = docker.from_env()
-        container = client.containers.get(os.environ['HOSTNAME'])
-        number = container.name[-1]
-
-        # Return data path
-        return f"/var/data/clients/{number}/mnist.pt"
-
-
-    def compile_model():
-        """ Compile the pytorch model.
-
-        :return: The compiled model.
-        :rtype: torch.nn.Module
-        """
-        class Net(torch.nn.Module):
-            def __init__(self):
-                super(Net, self).__init__()
-                self.fc1 = torch.nn.Linear(784, 64)
-                self.fc2 = torch.nn.Linear(64, 32)
-                self.fc3 = torch.nn.Linear(32, 10)
-
-            def forward(self, x):
-                x = torch.nn.functional.relu(self.fc1(x.reshape(x.size(0), 784)))
-                x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-                x = torch.nn.functional.relu(self.fc2(x))
-                x = torch.nn.functional.log_softmax(self.fc3(x), dim=1)
-                return x
-
-        return Net()
-
-
-    def load_data(data_path, is_train=True):
-        """ Load data from disk.
-
-        :param data_path: Path to data file.
-        :type data_path: str
-        :param is_train: Whether to load training or test data.
-        :type is_train: bool
-        :return: Tuple of data and labels.
-        :rtype: tuple
-        """
-        if data_path is None:
-            data = torch.load(_get_data_path())
-        else:
-            data = torch.load(data_path)
-
-        if is_train:
-            X = data['x_train']
-            y = data['y_train']
-        else:
-            X = data['x_test']
-            y = data['y_test']
-
-        # Normalize
-        X = X / 255
-
-        return X, y
-
-
-    def save_parameters(model, out_path):
-        """ Save model paramters to file.
-
-        :param model: The model to serialize.
-        :type model: torch.nn.Module
-        :param out_path: The path to save to.
-        :type out_path: str
-        """
-        parameters_np = [val.cpu().numpy() for _, val in model.state_dict().items()]
-        helper.save(parameters_np, out_path)
-
-
-    def load_parameters(model_path):
-        """ Load model parameters from file and populate model.
-
-        param model_path: The path to load from.
-        :type model_path: str
-        :return: The loaded model.
-        :rtype: torch.nn.Module
-        """
-        model = compile_model()
-        parameters_np = helper.load(model_path)
-
-        params_dict = zip(model.state_dict().keys(), parameters_np)
-        state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
-        model.load_state_dict(state_dict, strict=True)
-        return model
-
-
-    def init_seed(out_path='seed.npz'):
-        """ Initialize seed model and save it to file.
-
-        :param out_path: The path to save the seed model to.
-        :type out_path: str
-        """
-        # Init and save
-        model = compile_model()
-        save_parameters(model, out_path)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.abspath(dir_path))
 
 
     def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
@@ -288,54 +186,9 @@ Example entry points
         save_parameters(model, out_model_path)
 
 
-    def validate(in_model_path, out_json_path, data_path=None):
-        """ Validate model.
+    if __name__ == "__main__":
+        train(sys.argv[1], sys.argv[2])
 
-        :param in_model_path: The path to the input model.
-        :type in_model_path: str
-        :param out_json_path: The path to save the output JSON to.
-        :type out_json_path: str
-        :param data_path: The path to the data file.
-        :type data_path: str
-        """
-        # Load data
-        x_train, y_train = load_data(data_path)
-        x_test, y_test = load_data(data_path, is_train=False)
-
-        # Load model
-        model = load_parameters(in_model_path)
-        model.eval()
-
-        # Evaluate
-        criterion = torch.nn.NLLLoss()
-        with torch.no_grad():
-            train_out = model(x_train)
-            training_loss = criterion(train_out, y_train)
-            training_accuracy = torch.sum(torch.argmax(
-                train_out, dim=1) == y_train) / len(train_out)
-            test_out = model(x_test)
-            test_loss = criterion(test_out, y_test)
-            test_accuracy = torch.sum(torch.argmax(
-                test_out, dim=1) == y_test) / len(test_out)
-
-        # JSON schema
-        report = {
-            "training_loss": training_loss.item(),
-            "training_accuracy": training_accuracy.item(),
-            "test_loss": test_loss.item(),
-            "test_accuracy": test_accuracy.item(),
-        }
-
-        # Save JSON
-        save_metrics(report, out_json_path)
-
-
-    if __name__ == '__main__':
-        fire.Fire({
-            'init_seed': init_seed,
-            'train': train,
-            'validate': validate,
-        })
         
 
 The format of the input and output files (model updates) are using numpy ndarrays. A helper instance :py:mod:`fedn.utils.helpers.plugins.numpyhelper` is used to handle the serialization and deserialization of the model updates. 
@@ -344,21 +197,10 @@ The third function (_save_model) is used to save the model to disk using the num
 using the pytorch helper module. The fifth function (_init_seed) is used to initialize the seed model. The sixth function (_train) is used to train the model, observe the two first arguments which will be set by the FEDn client. 
 The seventh function (_validate) is used to validate the model, again observe the two first arguments which will be set by the FEDn client.
 
-Finally, we use the python package fire to create a command line interface for the entry points. This is not required but convenient.    
-
-For validations it is a requirement that the output is saved in a valid json format: 
-
-.. code-block:: python
-
-   python entrypoint.py validate in_model_path out_json_path <extra-args>
- 
-In the code example we use the helper function :py:meth:`fedn.utils.helpers.helpers.save_metrics` to save the validation scores as a json file. 
-
-These values can then be obtained (by an athorized user) from the MongoDB database or using the :py:meth:`fedn.network.api.client.APIClient.list_validations`. 
 
 Packaging for distribution
 --------------------------
-For the compute package we need to compress the *client* folder as .tgz file. E.g. using:
+To deploy a project to FEDn (Studio or pseudo-local) we simply compress the *client* folder as .tgz file. E.g. using:
 
 .. code-block:: bash
 
