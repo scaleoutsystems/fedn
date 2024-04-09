@@ -1,5 +1,10 @@
-Quickstart Tutorial PyTorch (MNIST)
-------------------------------------
+[link text itself]: http://www.reddit.com
+
+
+Quickstart Tutorial PyTorch with FEDProx (MNIST)
+-------------------------------------------------
+This is an enhanced version of our Pytorch MNIST example that let you use the FedProx algorithm [paper](/guides/content/editing-an-existing-page)
+eg. [click here](www.google.com)
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
@@ -137,6 +142,7 @@ The credentials are as set in docker-compose.yaml in the root of the repository.
 Adjust fed-Prox parameter μ
 --------------------------------
 open file: client_settings.yaml and change mu value.
+If mu is set to 0 it is vanilla fedavg.
 
 Access model updates  
 -----------------------
