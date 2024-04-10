@@ -14,7 +14,7 @@ def splitset(dataset, parts):
     return np.array(result)
 
 
-def split(dataset='data/mnist.npz', outdir='data', n_splits=2):
+def split(dataset='../data/mnist.npz', outdir='../data', n_splits=2):
     # Load and convert to dict
     package = np.load(dataset)
     data = {}
