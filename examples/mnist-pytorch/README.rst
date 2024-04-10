@@ -22,7 +22,13 @@ If using self-managed with docker-compose:
 Quick start with FEDn Studio
 ----------------------------
 
-Clone this repository, locate into this directory:
+Install fedn: 
+
+.. code-block::
+
+   pip install fedn
+
+Clone this repository, then locate into this directory:
 
 .. code-block::
 
@@ -33,25 +39,29 @@ Create the compute package (compress the 'client' folder):
 
 .. code-block::
 
-   tar -czvf package.tgz client 
+   fedn package create --path client
 
 This should create a file 'package.tgz' in the project folder.
 
-Upload the package to the FEDn Studio project. 
-
-Start the client using the client.yaml file from FEDn Studio.
+Next, generate a seed model (the first model in the global model trail):
 
 .. code-block::
 
-   pip install fedn 
+   fedn run build --path client
+
+Upload the package and seed model to the FEDn Studio project on the "Session" page. 
+
+In Studio, go to "Clients" and download a new client configuration file (contains the access token). 
+Then, start the client using the client.yaml file:
+
+.. code-block::
+
    export FEDN_AUTH_SCHEME=Bearer
    export FEDN_PACKAGE_EXTRACT_DIR=package
    fedn run client -in client.yaml --secure=True --force-ssl
 
-
-Upload the initial model to FEDn Studio project. The seed.npz file is created when you run the client the first time and is found in 'package/data/models/seed.npz'
-
-The default traning and test data is found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
+The default traning and test data is for this example downloaded and split direcly by the client when it starts up. 
+The data will be found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
 For example, to use the second partiton:
 
 .. code-block::
