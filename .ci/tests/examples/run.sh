@@ -16,7 +16,7 @@ source ".$example/bin/activate"
 >&2 echo "Start FEDn"
 pushd "examples/$example"
 
-".$example/bin/fedn" package create --path client
+"../../.$example/bin/fedn" package create --path client
 
 docker compose \
     -f ../../docker-compose.yaml \
