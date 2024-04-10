@@ -163,7 +163,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     save_metrics(report, out_json_path)
 
 
-def infer(in_model_path, out_json_path, data_path=None):
+def predict(in_model_path, out_json_path, data_path=None):
     # Using test data for inference but another dataset could be loaded
     x_test, _ = load_data(data_path, is_train=False)
 
@@ -187,6 +187,6 @@ if __name__ == '__main__':
         'init_seed': init_seed,
         'train': train,
         'validate': validate,
-        'infer': infer,
+        'predict': predict,
         '_get_data_path': _get_data_path,  # for testing
     })
