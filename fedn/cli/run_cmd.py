@@ -187,13 +187,13 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
 @run_cmd.command('build')
 @click.option('-p', '--path', required=True, help='Path to package directory containing fedn.yaml')
-@click.option('-n', '--name', required=False, default='seed.npz', help='Name of seed file')
 @click.pass_context
-def build_cmd(ctx, path, name):
-    """
+def build_cmd(ctx, path):
+    """ Execute 'build' entrypoint in fedn.yaml.
 
     :param ctx:
-    :param path:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
     """
     path = os.path.abspath(path)
     yaml_file = os.path.join(path, 'fedn.yaml')
