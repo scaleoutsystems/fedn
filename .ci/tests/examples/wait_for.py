@@ -7,7 +7,7 @@ import pymongo
 import requests
 
 RETRIES = 30
-SLEEP = 10
+SLEEP = 20
 
 
 def _eprint(*args, **kwargs):
