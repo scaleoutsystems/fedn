@@ -11,12 +11,12 @@ helper="$2"
 
 python -m venv ".$example"
 source ".$example/bin/activate"
-pip install ./fedn/ fire
+".$example/bin/pip" install ./fedn/ fire
 
 >&2 echo "Start FEDn"
 pushd "examples/$example"
 
-fedn package create --path client
+".$example/bin/fedn" package create --path client
 
 docker compose \
     -f ../../docker-compose.yaml \
