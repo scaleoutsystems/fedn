@@ -35,10 +35,6 @@ python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --hel
 >&2 echo "Wait for clients to connect"
 python ../../.ci/tests/examples/wait_for.py clients
 
-if [ "$example" == "mnist-pytorch" ]; then
-    docker cp fedn-client-1:/app/package/data/models/seed.npz seed.npz
-fi
-
 >&2 echo "Upload seed"
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
 
