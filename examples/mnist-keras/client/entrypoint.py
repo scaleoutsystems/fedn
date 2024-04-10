@@ -15,6 +15,7 @@ NUM_CLASSES = 10
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 
+
 def _get_data_path():
     data_path = os.environ.get('FEDN_DATA_PATH', abs_path + '/data/clients/1/mnist.npz')
 
