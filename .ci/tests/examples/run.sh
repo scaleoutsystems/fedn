@@ -17,6 +17,7 @@ source ".$example/bin/activate"
 pushd "examples/$example"
 
 "../../.$example/bin/fedn" package create --path client
+"../../.$example/bin/fedn" run build --path client
 
 docker compose \
     -f ../../docker-compose.yaml \
