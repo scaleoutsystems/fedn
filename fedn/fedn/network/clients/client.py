@@ -28,7 +28,8 @@ from fedn.common.log_config import (logger, set_log_level_from_string,
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
-from fedn.network.combiner.modelservice import upload_request_generator
+from fedn.network.combiner.modelservice import (get_tmp_path,
+                                                upload_request_generator)
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -177,8 +178,7 @@ class Client:
     def connect(self, combiner_config):
         """Connect to combiner.
 
-        :param combiner_config: A configuration dictionary containing connection information for
-        the combiner.
+        :param combiner_config: connection information for the combiner.
         :type combiner_config: dict
         """
 
@@ -581,7 +581,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            _, outpath = tempfile.mkstemp()
+            outpath = get_tmp_path()
             self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
