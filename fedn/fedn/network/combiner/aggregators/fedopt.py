@@ -94,7 +94,7 @@ class Aggregator(AggregatorBase):
 
                 logger.info(
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
-                print("***** ", model_update, flush=True)
+                logger.info("***** {}".format(model_update))
 
                 # Increment total number of examples
                 total_examples += metadata['num_examples']

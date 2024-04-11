@@ -111,6 +111,8 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.mnist-pytorch
+.mnist-keras
 env/
 venv/
 ENV/
