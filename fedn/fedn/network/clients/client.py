@@ -6,7 +6,6 @@ import queue
 import re
 import socket
 import sys
-import tempfile
 import threading
 import time
 import uuid
@@ -22,13 +21,14 @@ from tenacity import retry, stop_after_attempt
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.config import FEDN_AUTH_SCHEME
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
-from fedn.network.combiner.modelservice import upload_request_generator
+from fedn.network.combiner.modelservice import (get_tmp_path,
+                                                upload_request_generator)
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -81,9 +81,13 @@ class Client:
 
         # Folder where the client will store downloaded compute package and logs
         self.name = config['name']
-        dirname = self.name+"-"+time.strftime("%Y%m%d-%H%M%S")
-        self.run_path = os.path.join(os.getcwd(), dirname)
-        os.mkdir(self.run_path)
+        if FEDN_PACKAGE_EXTRACT_DIR:
+            self.run_path = os.path.join(os.getcwd(), FEDN_PACKAGE_EXTRACT_DIR)
+        else:
+            dirname = self.name+"-"+time.strftime("%Y%m%d-%H%M%S")
+            self.run_path = os.path.join(os.getcwd(), dirname)
+        if not os.path.exists(self.run_path):
+            os.mkdir(self.run_path)
 
         self.started_at = datetime.now()
         self.logs = []
@@ -173,8 +177,7 @@ class Client:
     def connect(self, combiner_config):
         """Connect to combiner.
 
-        :param combiner_config: A configuration dictionary containing connection information for
-        the combiner.
+        :param combiner_config: connection information for the combiner.
         :type combiner_config: dict
         """
 
@@ -330,16 +333,18 @@ class Client:
 
             if retval:
                 self.untar_package(pr)
-                # pr.unpack()
 
             self.dispatcher = pr.dispatcher(self.run_path)
             try:
                 logger.info("Initiating Dispatcher with entrypoint set to: startup")
+                activate_cmd = self.dispatcher._get_or_create_python_env()
                 self.dispatcher.run_cmd("startup")
             except KeyError:
+                logger.info("No startup command found in package. Continuing.")
                 pass
             except Exception as e:
                 logger.error(f"Caught exception: {type(e).__name__}")
+
         else:
             # TODO: Deprecate
             dispatch_config = {'entry_points':
@@ -350,6 +355,10 @@ class Client:
 
             copy_tree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+        # Get or create python environment
+        activate_cmd = self.dispatcher._get_or_create_python_env()
+        if activate_cmd:
+            logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 
     def get_model_from_combiner(self, id, timeout=20):
         """Fetch a model from the assigned combiner.
@@ -571,7 +580,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(model.getbuffer())
 
-            _, outpath = tempfile.mkstemp()
+            outpath = get_tmp_path()
             self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:

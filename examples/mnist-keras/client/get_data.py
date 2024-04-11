@@ -1,9 +1,8 @@
-#!./.mnist-keras/bin/python
 import os
 from math import floor
 
-import fire
 import numpy as np
+import tensorflow as tf
 
 
 def splitset(dataset, parts):
@@ -38,5 +37,17 @@ def split(dataset='data/mnist.npz', outdir='data', n_splits=2):
                  y_test=data['y_test'][i])
 
 
+def get_data(out_dir='data'):
+    # Make dir if necessary
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+
+    # Download data
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    np.savez(f'{out_dir}/mnist.npz', x_train=x_train,
+             y_train=y_train, x_test=x_test, y_test=y_test)
+
+
 if __name__ == '__main__':
-    fire.Fire(split)
+    get_data()
+    split()

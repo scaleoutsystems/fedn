@@ -16,6 +16,8 @@ FEDN_AUTH_REFRESH_TOKEN_URI = os.environ.get('FEDN_AUTH_REFRESH_TOKEN_URI', Fals
 FEDN_AUTH_REFRESH_TOKEN = os.environ.get('FEDN_AUTH_REFRESH_TOKEN', False)
 FEDN_CUSTOM_URL_PREFIX = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
 
+FEDN_PACKAGE_EXTRACT_DIR = os.environ.get('FEDN_PACKAGE_EXTRACT_DIR', '')
+
 
 def get_environment_config():
     """ Get the configuration from environment variables.

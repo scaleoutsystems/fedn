@@ -1,8 +1,6 @@
-#!./.mnist-keras/bin/python
 import json
 import os
 
-import docker
 import fire
 import numpy as np
 import tensorflow as tf
@@ -14,14 +12,14 @@ helper = get_helper(HELPER_MODULE)
 
 NUM_CLASSES = 10
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+abs_path = os.path.abspath(dir_path)
+
 
 def _get_data_path():
-    # Figure out FEDn client number from container name
-    client = docker.from_env()
-    container = client.containers.get(os.environ['HOSTNAME'])
-    number = container.name[-1]
-    # Return data path
-    return f"/var/data/clients/{number}/mnist.npz"
+    data_path = os.environ.get('FEDN_DATA_PATH', abs_path + '/data/clients/1/mnist.npz')
+
+    return data_path
 
 
 def compile_model(img_rows=28, img_cols=28):
@@ -74,7 +72,7 @@ def load_data(data_path, is_train=True):
     return X, y
 
 
-def init_seed(out_path='seed.npz'):
+def init_seed(out_path='../seed.npz'):
     """ Initialize seed model and save it to file.
 
     :param out_path: The path to save the seed model to.
@@ -168,7 +166,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     save_metrics(report, out_json_path)
 
 
-def infer(in_model_path, out_json_path, data_path=None):
+def predict(in_model_path, out_json_path, data_path=None):
     # Using test data for inference but another dataset could be loaded
     x_test, _ = load_data(data_path, is_train=False)
 
@@ -192,6 +190,6 @@ if __name__ == '__main__':
         'init_seed': init_seed,
         'train': train,
         'validate': validate,
-        'infer': infer,
+        'predict': predict,
         '_get_data_path': _get_data_path,  # for testing
     })

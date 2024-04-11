@@ -1,25 +1,25 @@
-Quickstart Tutorial PyTorch (MNIST)
+Getting started with FEDn
 ===================================
 
 .. note::
-   This tutorial is a quickstart guide to FEDn where the federated learning project has been defined
-   using an already implemented ``compute package``. This turorial is a good starting point for developers, however,
-   head over to :ref:`tutorial-label` when you are ready to define your own federated learning projects.
+   This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is desinged to serve as a minimalistic starting point for developers. 
+   To learn how to develop your own federated machine learning projects with FEDn, see :ref:`projects-label`. 
 
 This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
 We here assume working experience with containers, Docker and docker-compose. 
    
-Prerequisites
--------------
+Prerequisites using FEDn Studio
+----------------------------------
 
--  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
+-  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
+
+Prerequisites for pseudo-distributed deployments: 
+----------------------------------------------------
+
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
-
-Launch a pseudo-distributed FEDn Network 
--------------
 
 
 Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
@@ -39,7 +39,7 @@ You can verify the deployment using these urls:
    The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
 
 Install the FEDn SDK
--------------
+--------------------
 
 .. note::
     To programmatically interact with the FEDn network use the APIClient.
@@ -54,7 +54,7 @@ Install the FEDn SDK
 
 
 Prepare the compute package and seed the FEDn network
--------------
+-----------------------------------------------------------------
 
 Next, we will prepare the client. A key concept in FEDn is the compute package - 
 a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 

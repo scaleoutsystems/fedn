@@ -1,4 +1,4 @@
-Introduction to Federated Learning
+What is FEDn? 
 ==================================
 
 Federated Learning offers a novel approach to address challenges related to data privacy, security, 
