@@ -6,7 +6,6 @@ import queue
 import re
 import socket
 import sys
-import tempfile
 import threading
 import time
 import uuid
