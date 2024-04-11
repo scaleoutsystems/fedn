@@ -12,7 +12,7 @@
    studio
    distributed
    apiclient
-   tutorial
+   projects
    architecture
    aggregators
    helpers
