@@ -4,7 +4,7 @@ This is a mimimalistic TF/Keras version of the Quickstart Tutorial (PyTorch). Fo
 examples of API usage for starting and interacting with federated experiments, refer to that tutorial.
 
 ## Prerequisites
-- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
+- [Python 3.8, 3.9, 3.10 or 3.11](https://www.python.org/downloads)
 - [Docker](https://docs.docker.com/get-docker)
 - [Docker Compose](https://docs.docker.com/compose/install)
 
@@ -15,29 +15,17 @@ git clone https://github.com/scaleoutsystems/fedn.git
 cd fedn/examples/mnist-keras
 ```
 
-### Preparing the environment, the local data, the compute package and seed model
+### Build the compute package and the seed model (model to initalize the global model trail)
 
-Start by initializing a virtual enviroment with all of the required dependencies.
 ```sh
-bin/init_venv.sh
+fedn package create --path client
 ```
 
-Then, to get the data you can run the following script.
 ```sh
-bin/get_data
+fedn run build --path client
 ```
 
-The next command splits the data in 2 parts for the clients.
-```sh
-bin/split_data
-```
-> **Note**: run with `--n_splits=N` to split in *N* parts.
-
-Create the compute package and a seed model that you will be asked to upload in the next step.
-```
-bin/build.sh
-```
-> The files location will be `package/package.tgz` and `seed.npz`.
+> You will now have two files,  `package.tgz` and `seed.npz`.
 
 ### Deploy FEDn 
 Now we are ready to deploy FEDn and two clients with `docker-compose`.
@@ -49,7 +37,7 @@ docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up
 > **Note**: run with `--scale client=N` to start *N* clients.
 
 ### Run federated training 
-Refer to the notebook to create your own drivers for seeding the federation and running experiments.
+Refer to this notebook to upload the package and seed model and run experiments:
 
  https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb 
 

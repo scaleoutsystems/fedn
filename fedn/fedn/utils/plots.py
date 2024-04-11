@@ -6,6 +6,7 @@ import plotly
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
+from fedn.common.log_config import logger
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 
@@ -27,7 +28,7 @@ class Plot:
             self.network_clients = self.mdb["network.clients"]
 
         except Exception as e:
-            print("FAILED TO CONNECT TO MONGO, {}".format(e), flush=True)
+            logger.error("FAILED TO CONNECT TO MONGO, {}".format(e))
             self.collection = None
             raise
 

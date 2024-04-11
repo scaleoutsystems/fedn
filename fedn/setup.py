@@ -8,7 +8,7 @@ setup(
     author_email='contact@scaleoutsystems.com',
     url='https://www.scaleoutsystems.com',
     py_modules=['fedn'],
-    python_requires='>=3.8,<3.11',
+    python_requires='>=3.8,<3.12',
     install_requires=[
         "requests",
         "urllib3>=1.26.4",
@@ -26,6 +26,7 @@ setup(
         "grpcio-health-checking~=1.60.0",
         "flasgger==0.9.5",
         "plotly",
+        "virtualenv",
     ],
     license='Apache 2.0',
     zip_safe=False,
@@ -39,5 +40,6 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )
