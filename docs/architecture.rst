@@ -13,8 +13,7 @@ By horizontally scaling the number of combiners, one can meet the needs of a gro
 
 
 
-The clients: tier 1
-...................
+**The clients: tier 1**
 
 A Client (gRPC client) is a data node, holding private data and connecting to a Combiner (gRPC server) to receive model update requests and model validation requests during training sessions. 
 Importantly, clients uses remote procedure calls (RPC) to ask for model updates tasks, thus the clients not require any open ingress ports! A client receives the code (called package or compute package) to be executed from the *Controller* 
@@ -22,8 +21,7 @@ upon connecting to the network, and thus they only need to be configured prior t
 This allows for a high degree of flexibility in terms of what kind of training and validation tasks that can be performed on the client side. Such as different types of machine learning models and framework, and even programming languages.
 A python3 client implementation is provided out of the box, and it is possible to write clients in a variety of languages to target different software and hardware requirements.  
 
-The combiners: tier 2
-.....................
+**The combiners: tier 2**
 
 A combiner is an actor whose main role is to orchestrate and aggregate model updates from a number of clients during a training session. 
 When and how to trigger such orchestration are specified in the overall *compute plan* laid out by the *Controller*. 
@@ -31,8 +29,7 @@ Each combiner in the network runs an independent gRPC server, providing RPCs for
 Hence, the total number of clients that can be accommodated in a FEDn network is proportional to the number of active combiners in the FEDn network. 
 Combiners can be deployed anywhere, e.g. in a cloud or on a fog node to provide aggregation services near the cloud edge. 
 
-The controller: tier 3
-......................
+**The controller: tier 3**
 
 Tier 3 does actually contain several components and services, but we tend to associate it with the *Controller* the most. The *Controller* fills three main roles in the FEDn network:
 
@@ -45,8 +42,7 @@ Tier 3 also contain a *Reducer* component, which is responsible for aggregating 
 which is responsible for storing various states of the network and training sessions. The final global model trail from a traning session is stored in the *ModelRegistry* database. 
 
 
-Notes on aggregating algorithms
-...............................
+**Notes on aggregating algorithms**
 
 FEDn is designed to allow customization of the FedML algorithm, following a specified pattern, or programming model. 
 Model aggregation happens on two levels in the network. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. 

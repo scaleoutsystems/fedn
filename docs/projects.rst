@@ -71,7 +71,11 @@ client will create an isolated virtual environment and install the project depen
 Entry Points
 ^^^^^^^^^^^^
 
-There are up to three Entry Points to be specified.
+There are up to four Entry Points to be specified.
+
+**Build Entrypoint (build, optional):**
+
+This entrypoint is usually called **once** for building artifacts such as initial seed models. However, it not limited to artifacts, and can be used for any kind of setup that needs to be done before the client starts up.
 
 **Startup Entrypoint (startup, optional):**
 
