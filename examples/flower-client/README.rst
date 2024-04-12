@@ -1,5 +1,5 @@
 Using Flower ClientApps in FEDn
-============================
+-------------------------------
 
 This example demonstrates how to run a Flower 'ClientApp' on FEDn.
 
@@ -15,28 +15,32 @@ Running the example
 See `https://fedn.readthedocs.io/en/stable/quickstart.html` for a general introduction to FEDn. 
 This example follows the same structure as the pytorch quickstart example. 
 
-Build a virtual environment (note that you might need to install the 'venv' package): 
+Install fedn:
 
 .. code-block::
 
-   bin/init_venv.sh
+   pip install fedn
 
-Activate the virtual environment:
-
-.. code-block::
-
-   source .flower-client/bin/activate
-
-Make the compute package (to be uploaded to FEDn):
+Clone this repository, then locate into this directory:
 
 .. code-block::
 
-   tar -czvf package.tgz client
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn/examples/mnist-pytorch
 
-Create the seed model (to be uploaded to FEDn):
+Create the compute package (compress the 'client' folder):
+
 .. code-block::
 
-   python client/entrypoint init_seed
+   fedn package create --path client
+
+This should create a file 'package.tgz' in the project folder.
+
+Next, generate a seed model (the first model in the global model trail):
+
+.. code-block::
+
+   fedn run build --path client
 
 Next, you will upload the compute package and seed model to
 a FEDn network. Here you have two main options: using FEDn Studio 
@@ -53,11 +57,14 @@ In your Studio project:
 - From the "Sessions" menu, upload the compute package and seed model. 
 - Register a client and obtain the corresponding 'client.yaml'.  
 
-On your local machine / client (in the same virtual environment), start the FEDn client: 
+On your local machine / client, start the FEDn client: 
+
 
 .. code-block::
 
-   CLIENT_NUMBER=0 FEDN_AUTH_SCHEME=Bearer fedn run client -in client.yaml --force-ssl --secure=True
+   export FEDN_AUTH_SCHEME=Bearer
+   export FEDN_PACKAGE_EXTRACT_DIR=package
+   CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
 
 
 Or, if you prefer to use Docker, build an image (this might take a long time):
