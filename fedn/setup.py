@@ -27,7 +27,6 @@ setup(
         "flasgger==0.9.5",
         "plotly",
         "virtualenv",
-        "flwr==1.8.0",
     ],
     license='Apache 2.0',
     zip_safe=False,
