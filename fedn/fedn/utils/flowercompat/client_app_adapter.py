@@ -19,10 +19,10 @@ class FlwrClientAppAdapter:
     def __init__(self, app: ClientApp) -> None:
         self.app = app
 
-    def init_parameters(self, partition_id: int):
+    def init_parameters(self, partition_id: int, config: dict = {}):
         # Construct a get_parameters message for the ClientApp
         message, context = self._construct_message(
-            MessageTypeLegacy.GET_PARAMETERS, [], partition_id
+            MessageTypeLegacy.GET_PARAMETERS, [], partition_id, config
         )
         # Call client app with train message
         client_return_message = self.app(message, context)
@@ -33,10 +33,10 @@ class FlwrClientAppAdapter:
                              client has implemented a get_parameters() function.")
         return parameters
 
-    def train(self, parameters: NDArrays, partition_id: int):
+    def train(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct a train message for the ClientApp with given parameters
         message, context = self._construct_message(
-            MessageType.TRAIN, parameters, partition_id
+            MessageType.TRAIN, parameters, partition_id, config
         )
         # Call client app with train message
         client_return_message = self.app(message, context)
@@ -44,10 +44,10 @@ class FlwrClientAppAdapter:
         params, num_examples = self._parse_train_message(client_return_message)
         return params, num_examples
 
-    def evaluate(self, parameters: NDArrays, partition_id: int):
+    def evaluate(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct an evaluate message for the ClientApp with given parameters
         message, context = self._construct_message(
-            MessageType.EVALUATE, parameters, partition_id
+            MessageType.EVALUATE, parameters, partition_id, config
         )
         # Call client app with evaluate message
         client_return_message = self.app(message, context)
@@ -76,16 +76,17 @@ class FlwrClientAppAdapter:
         message_type: MessageType,
         parameters: NDArrays,
         partition_id: int,
+        config: dict,
     ) -> Tuple[Message, Context]:
         parameters = ndarrays_to_parameters(parameters)
         if message_type == MessageType.TRAIN:
-            fit_ins: FitIns = FitIns(parameters=parameters, config={})
+            fit_ins: FitIns = FitIns(parameters=parameters, config=config)
             recordset = fitins_to_recordset(fitins=fit_ins, keep_input=False)
         if message_type == MessageType.EVALUATE:
-            ev_ins: EvaluateIns = EvaluateIns(parameters=parameters, config={})
+            ev_ins: EvaluateIns = EvaluateIns(parameters=parameters, config=config)
             recordset = evaluateins_to_recordset(evaluateins=ev_ins, keep_input=False)
         if message_type == MessageTypeLegacy.GET_PARAMETERS:
-            get_parameters_ins: GetParametersIns = GetParametersIns({})
+            get_parameters_ins: GetParametersIns = GetParametersIns(config=config)
             recordset = getparametersins_to_recordset(getparameters_ins=get_parameters_ins)
 
         metadata = Metadata(

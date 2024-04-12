@@ -28,6 +28,9 @@ setup(
         "plotly",
         "virtualenv",
     ],
+    extras_require={
+        'flower': ["flwr==1.8.0"]
+    },
     license='Apache 2.0',
     zip_safe=False,
     entry_points={
