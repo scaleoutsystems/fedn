@@ -41,7 +41,7 @@ class Server:
             self.server.add_secure_port(
                 '[::]:' + str(config['port']), server_credentials)
         else:
-            logger.info("Creating insecure gRPC server")
+            logger.info("Creating gRPC server")
             self.server.add_insecure_port('[::]:' + str(config['port']))
 
     def start(self):
