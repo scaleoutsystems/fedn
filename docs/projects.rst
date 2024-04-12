@@ -14,19 +14,19 @@ Overview
 We recommend that projects have roughly the following folder and file structure:
 
 | project
-| ├── client
-| │   ├── fedn.yaml
-| │   ├── python_env.yaml
-| │   ├── data.py
-| │   ├── model.py
-| │   ├── train.py
-| │   └── validate.py
-| ├── data
-| │   └── mnist.npz
-| ├── README.md
-| ├── scripts / notebooks
-| └── Dockerfile / docker-compose.yaml
-| 
+| ├ client
+| │   ├ fedn.yaml
+| │   ├ python_env.yaml
+| │   ├ data.py
+| │   ├ model.py
+| │   ├ train.py
+| │   └ validate.py
+| ├ data
+| │   └ mnist.npz
+| ├ README.md
+| ├ scripts / notebooks
+| └ Dockerfile / docker-compose.yaml
+|
 
 The "client" folder is referred to as the *compute package*. The file fedn.yaml is the FEDn Project File. It informs the FEDn Client of the code entry points to execute when computing model updates (local training) and validating models (optionally) . 
 When deploying the project to FEDn, the client folder will be compressed as a .tgz bundle and uploaded to the FEDn controller. FEDn can then manage the distribution of the compute package to each client/data provider when they connect. 
@@ -200,14 +200,14 @@ The seventh function (_validate) is used to validate the model, again observe th
 
 Packaging for distribution
 --------------------------
-To deploy a project to FEDn (Studio or pseudo-local) we simply compress the *client* folder as .tgz file. E.g. using:
+To deploy a project to FEDn (Studio or pseudo-local) we simply compress the *client* folder as .tgz file. using fedn command line tool or manually:
 
 .. code-block:: bash
 
-    tar -czvf package.tgz client
+    fedn package create --path client
 
 
-This file can then be uploaded to the FEDn network using the :py:meth:`fedn.network.api.client.APIClient.set_package`.
+The created file package.tgz can then be uploaded to the FEDn network using the :py:meth:`fedn.network.api.client.APIClient.set_package`.
 
 
 More on local data access 

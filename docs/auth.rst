@@ -22,69 +22,85 @@ A full list of the "roles to endpoint" mappings for gRPC can be found in the `fe
 
 To enable the FEDn RBAC system, you need to set the following environment variables in the controller and combiner:
 
-.. envvar:: FEDN_JWT_SECRET_KEY
-    :type: str
-    :required: yes
-    :default: None
-    :description: The secret key used for JWT token encryption.
+Authentication Environment Variables
+-------------------------------------
 
-.. envvar:: FEDN_JWT_ALGORITHM
-    :type: str
-    :required: no
-    :default: "HS256"
-    :description: The algorithm used for JWT token encryption.
+.. line-block::
 
-.. envvar:: FEDN_AUTH_SCHEME
-    :type: str
-    :required: no
-    :default: "Token"
-    :description: The authentication scheme used in the FEDn API and gRPC interceptors.
+     **FEDN_JWT_SECRET_KEY**
+      - **Type:** str
+      - **Required:** yes
+      - **Default:** None
+      - **Description:** The secret key used for JWT token encryption.
 
-For further fexibility, you can also set the following environment variables:
+     **FEDN_JWT_ALGORITHM**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "HS256"
+      - **Description:** The algorithm used for JWT token encryption.
 
-.. envvar:: FEDN_CUSTOM_URL_PREFIX
-    :type: str
-    :required: no
-    :default: None
-    :description: Add a custom URL prefix used in the FEDn API, such as /internal or /v1.
+     **FEDN_AUTH_SCHEME**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "Token"
+      - **Description:** The authentication scheme used in the FEDn API and gRPC interceptors.
 
-.. envvar:: FEDN_AUTH_WHITELIST_URL
-    :type: str
-    :required: no
-    :default: None
-    :description: A URL patterns to the API that should be excluded from the FEDn RBAC system. For example /internal (to enable internal API calls).
+Additional Environment Variables
+--------------------------------
 
-.. envvar:: FEDN_JWT_CUSTOM_CLAIM_KEY
-    :type: str
-    :required: no
-    :default: None
-    :description: The custom claim key used in the JWT token.
+For further flexibility, you can also set the following environment variables:
 
-.. envvar:: FEDN_JWT_CUSTOM_CLAIM_VALUE
-    :type: str
-    :required: no
-    :default: None
-    :description: The custom claim value used in the JWT token.
+.. line-block::
+
+     **FEDN_CUSTOM_URL_PREFIX**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** Add a custom URL prefix used in the FEDn API, such as /internal or /v1.
+
+     **FEDN_AUTH_WHITELIST_URL**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** A URL pattern to the API that should be excluded from the FEDn RBAC system. For example, /internal (to enable internal API calls).
+
+     **FEDN_JWT_CUSTOM_CLAIM_KEY**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The custom claim key used in the JWT token.
+
+     **FEDN_JWT_CUSTOM_CLAIM_VALUE**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The custom claim value used in the JWT token.
+
+Client Environment Variables
+-----------------------------
+
+For the client, you need to set the following environment variables:
+
+.. line-block::
+
+     **FEDN_AUTH_REFRESH_TOKEN_URI**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The URI used to obtain new access tokens when the old ones expire.
+
+     **FEDN_AUTH_REFRESH_TOKEN**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The refresh token used to obtain new access tokens when the old ones expire.
+
+     **FEDN_AUTH_SCHEME**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "Token"
+      - **Description:** The authentication scheme used in the FEDn API and gRPC interceptors.
 
 
-For the client you need to set the following environment variables:
 
-.. envvar:: FEDN_JWT_ACCESS_TOKEN
-    :type: str
-    :required: yes
-    :default: None
-    :description: The access token used to authenticate the client to the FEDn API.
-
-.. envvar:: FEDN_JWT_REFRESH_TOKEN
-    :type: str
-    :required: no
-    :default: None
-    :description: The refresh token used to obtain new access tokens when the old ones expire.
-
-.. envvar:: FEDN_AUTH_SCHEME
-    :type: str
-    :required: no
-    :default: "Token"
-    :description: The authentication scheme used in the FEDn API and gRPC interceptors.
-
-You can also use `--token` flags in the FEDn CLI to set the access token.
+You can use `--token` flags in the FEDn CLI to set the access token.
