@@ -1,3 +1,4 @@
+import ast
 import math
 
 from fedn.common.log_config import logger
@@ -60,9 +61,7 @@ class Aggregator(AggregatorBase):
         """
 
         print("PARAMS: {}".format(params), flush=True)
-        #import json
-        #params = dict(params)
-
+        params = ast.literal_eval(params)
         data = {}
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
@@ -70,7 +69,9 @@ class Aggregator(AggregatorBase):
         # Override default hyperparameters:
         if params:
             for key, value in self.default_params.items():
+                print(key, value, flush=True)
                 if key not in params:
+                    print(key, flush=True)
                     params[key] = value
         else:
             params = self.default_params
