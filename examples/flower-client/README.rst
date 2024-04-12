@@ -26,7 +26,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-pytorch
+   cd fedn/examples/flower-client
 
 Create the compute package (compress the 'client' folder):
 
