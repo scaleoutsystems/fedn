@@ -1,29 +1,28 @@
 Getting started with FEDn
-===================================
+=========================
 
 .. note::
    This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is desinged to serve as a minimalistic starting point for developers. 
    To learn how to develop your own federated machine learning projects with FEDn, see :ref:`projects-label`. 
 
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
+This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode or in FEDn Studio. 
 A normal high-end laptop or a workstation should be able to sustain a few clients. 
 The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
-We here assume working experience with containers, Docker and docker-compose. 
+We here assume working experience with containers, Docker and docker-compose if you are running in pseudo-distributed mode.
+For a details on FEDn Studio UI, see :ref:`studio`. 
    
-Prerequisites using FEDn Studio (recommended)
----------------------------------------------
+**Prerequisites using FEDn Studio (recommended)**
 
 -  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
 
-Prerequisites for pseudo-distributed mode: 
-------------------------------------------
+**Prerequisites for pseudo-distributed mode**
 
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
 
 In pseudo-distributed mode
-__________________________
+--------------------------
 
 .. note::
    This is not required if you are using FEDn Studio!
@@ -48,8 +47,7 @@ You can verify the deployment using these urls:
 Install FEDn
 ------------
 
-Using pip
-_________
+**Using pip**
 
 Install the FEDn package using pip:
 
@@ -57,8 +55,7 @@ Install the FEDn package using pip:
 
    pip install fedn
 
-From source
-___________
+**From source**
 
 Clone the FEDn repository and install the package:
 
@@ -69,6 +66,8 @@ Clone the FEDn repository and install the package:
    pip install -e .
 
 It is recommended to use a virtual environment when installing FEDn.
+
+.. _package-creation:
 
 Prepare the package and seed model
 ----------------------------------
@@ -95,13 +94,14 @@ Next, run the build entrypoint defined in ``client/fedn.yaml`` to build the mode
 
 This will create a seed model called 'seed.npz' in the root of the project.
 
-Upload the package and seed model
-_________________________________
+**Upload the package and seed model**
 
 .. note:: 
    If you are using FEDn Studio, you need to create an admin token and use the token to authenticate the APIClient.
    Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient.
    The controller host can be found on the dashboard in FEDn Studio.
+
+   You can also upload the file via the FEDn Studio UI. Please see :ref:`studio-upload-files` for more details.
 
 Upload the package and seed model to FEDn controller using the APIClient:
 
@@ -122,8 +122,7 @@ Upload the package and seed model to FEDn controller using the APIClient:
 Configure and attach clients
 ----------------------------
 
-FEDn Studio
-____________________________________
+**FEDn Studio**
 
 In FEDn Studio, you can configure and attach clients to the network. Go to the 'Clients' tab and click 'Connect client'.
 Download the client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
@@ -131,11 +130,11 @@ Then start the client by running the following command in the root of the projec
 
 .. code-block::
 
+  export FEDN_AUTH_SCHEME=Bearer 
   fedn run client -in client.yaml --secure=True --force-ssl
 
 
-Pseudo-distributed mode
-_______________________
+**Pseudo-distributed mode**
 
 In pseudo-distributed mode, you can start a client using the provided docker compose template in the root of the project.
 .. code-block::
@@ -148,7 +147,11 @@ This will build a container image for the client and start two clients.
 Start a training session
 ------------------------
 
-You are now ready to start training the model:
+.. note:: 
+
+   In FEDn Studio, you can start a training session by going to the 'Sessions' tab and click 'Start session'.
+
+You are now ready to start training the model using the APIClient:
 
 .. code:: python
 
@@ -196,16 +199,15 @@ You can access model updates via the APIClient:
    - http://localhost:9000
 
 
-Clean up
---------
+**Clean up**
 If you are running in pseudo-distributed mode, you can stop the network using docker-compose:
 
 .. code-block::
 
    docker-compose down
 
-Where to go from here? 
---------
+**Where to go from here?**
+
 With you first FEDn federation deployed, we suggest that you take a close look at how a FEDn project is structured
 and how you develop your own FEDn projects:
 
