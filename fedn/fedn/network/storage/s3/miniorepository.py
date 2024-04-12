@@ -35,8 +35,6 @@ class MINIORepository(RepositoryBase):
                                 access_key=config['storage_access_key'],
                                 secret_key=config['storage_secret_key'],
                                 secure=config['storage_secure_mode'])
-            logger.warning(
-                "S3/MINIO RUNNING IN **INSECURE** MODE!")
 
     def set_artifact(self, instance_name, instance, bucket, is_file=False):
 
