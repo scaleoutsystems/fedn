@@ -67,13 +67,7 @@ On your local machine / client, start the FEDn client:
    CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
 
 
-Or, if you prefer to use Docker, build an image (this might take a long time):
-
-.. code-block::
-
-   docker build -t flower-client .
-
-Then start the client using Docker:
+Or, if you prefer to use Docker (this might take a long time):
 
 .. code-block::
 
@@ -81,7 +75,8 @@ Then start the client using Docker:
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
    -e FEDN_AUTH_SCHEME=Bearer \
-   flower-client run client -in client.yaml --secure=True --force-ssl
+   -e FEDN_PACKAGE_EXTRACT_DIR=package \
+   ghcr.io/scaleoutsystems/fedn/fedn:master run client -in client.yaml --secure=True --force-ssl
 
 
 If you are running FEDn in pseudo-local mode:
@@ -112,4 +107,6 @@ Then start the client (using Docker)
    -v $PWD/client.yaml:/app/client.yaml \
    --network=fedn_default \
    -e CLIENT_NUMBER=0 \
-   flower-client run client -in client.yaml
+   -e FEDN_AUTH_SCHEME=Bearer \
+   -e FEDN_PACKAGE_EXTRACT_DIR=package \
+   ghcr.io/scaleoutsystems/fedn/fedn:master run client -in client.yaml
