@@ -11,7 +11,6 @@ from flwr_task import (DEVICE, Net, get_weights, load_data, set_weights, test,
 class FlowerClient(NumPyClient):
     def __init__(self, cid) -> None:
         super().__init__()
-        print(f"STARTED CLIENT WITH CID {cid}")
         self.net = Net().to(DEVICE)
         self.trainloader, self.testloader = load_data(
             partition_id=int(cid), num_clients=10

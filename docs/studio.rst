@@ -1,3 +1,5 @@
+.. _studio:
+
 Studio
 ===============
 
@@ -10,8 +12,7 @@ Getting started
 
 Before you can start using Studio, you will need an account. Head over to `studio.scaleoutsystems.com/signup <https://studio.scaleoutsystems.com/signup/>`_  and sign up.
 
-Create a project
-----------------
+**Create a project**
 
 Start by creating a new project. A project can be used to organize your work. It can be shared with other users, allowing you to collaborate on experiments.
 
@@ -20,8 +21,7 @@ Start by creating a new project. A project can be used to organize your work. It
 3. Enter the project name (mandatory). The project description is optional.
 4. Click the "Create" button to create the project.
 
-Project overview
-----------------
+**Project overview**
 
 Once you have created a project, you can find it via the sidebar link Projects. Here you will find the list of all your projects. When inside a project you can see the following tabs in the sidebar:
 
@@ -36,32 +36,15 @@ Once you have created a project, you can find it via the sidebar link Projects. 
 .. image:: img/studio_project_overview.png
 
 
-Initialize the project with a compute package and a seed model
---------------------------------------------------------------
+Package and seed model
+----------------------
 
-In order to set up the local environment and configure local client data access, on your local machine, navigate to the mnist-pytorch example:
+Please see :ref:`package-creation` for instructions on how to create a package and a seed model.
 
-
-.. code-block:: bash
-
-    cd fedn/examples/mnist-pytorch
-
-Generate files
-~~~~~~~~~~~~~~
-
-Run the following commands:
-
-.. code-block:: bash
-
-    bin/init_venv.sh
-    bin/get_data
-    bin/split_data
-    bin/build.sh
-
-These commands will generate training data and two files: package.tgz and seed.npz. The first is a compute package file and the second is a model file that can be used as the inital seed model. For a more detailed explaination of the commands, see the :doc:`quickstart`.
+.. _studio-upload-files:
 
 Upload files
-~~~~~~~~~~~~
+------------
 
 In the Studio UI, navigate to the project you created and click on the "Sessions" tab. Click on the "New Session" button. Under the Compute package tab, select a name and upload the generated package file. Under the Seed model tab upload the generated seed file:
 
@@ -70,25 +53,29 @@ In the Studio UI, navigate to the project you created and click on the "Sessions
 Connect a client
 ----------------
 
-Navigate to "Clients" and click on the "Download config" button. This downloads a client config file. Place this file in the mnist-pytorch directory on your local machine. Rename the file to client.yaml. Then edit it to set the name of the client.
+Navigate to "Clients" in the sidebar.
 
-In Studio, click on the "Connect client" button.
-This will diplay the the docker command to attach the client. Run the command from the mnist-pytorch directory on your local machine. The command should look similar to this. Please note that the version number of the docker image may differ and should correspond to the FEDn version used in the project (for example, to use FEDn 0.9.0 replace 'ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch' with 'ghcr.io/scaleoutsystems/fedn/fedn:0.9.0-mnist-pytorch'):
+Click on the "Connect client" button. Follow the instructions on the site to connect the client.
+Alternatively, you can connect the client using a docker container by running the following command:
 
 .. code-block:: bash
 
       docker run \
         -v $PWD/client.yaml:/app/client.yaml \
-        -v $PWD/data/clients/1:/var/data \
-        -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-        ghcr.io/scaleoutsystems/fedn/fedn:master-mnist-pytorch run client --secure=True --force-ssl -in client.yaml
+        ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client --secure=True --force-ssl -in client.yaml
 
 If the client is successfully connected, you should see the client listed in the "Clients log" list.
 
-Start a session
----------------
+Start a training session
+------------------------
 
 In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the Start session tab and enter your desirable settings (or use default) and hit the "Start run" button. In the terminal where your are running your client you should now see some activity. When the round is completed you can see the results in the FEDn Studio UI on the "Models" page.
 
+.. _studio-api:
 
+Accessing the API
+-----------------
+
+The FEDn Studio API is available at <controller-host>/api/v1/. The controller host can be found in the project dashboard. Further, to access the API you need an admin API token.
+Nevigate to the "Settings" tab in the project and click on the "Generate token" button. Copy the token and use it to access the API. Please see :py:mod:`fedn.network.api` for how to pass the token to the APIClient.
 

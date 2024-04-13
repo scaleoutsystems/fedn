@@ -1,12 +1,12 @@
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Introduction
    
    introduction
    quickstart
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Documentation
    
    studio
@@ -19,7 +19,7 @@
    auth
    
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Miscellaneous
    
    faq
