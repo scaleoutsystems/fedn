@@ -24,7 +24,7 @@ setup(
         "psutil",
         "click==8.1.7",
         "grpcio-health-checking~=1.60.0",
-        "flasgger==0.9.5",
+        "pyyaml",
         "plotly",
         "virtualenv",
     ],
