@@ -117,7 +117,7 @@ Upload the package and seed model to FEDn controller using the APIClient:
    
    .. code:: python
 
-      client = APIClient(host=<controller-host, token=<access-token>, secure=True, verify=True)
+      client = APIClient(host=<controller-host>, token=<access-token>, secure=True, verify=True)
 
 Configure and attach clients
 ----------------------------
