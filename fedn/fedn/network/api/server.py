@@ -1,6 +1,5 @@
 import os
 
-from flasgger import Swagger
 from flask import Flask, jsonify, request
 
 from fedn.common.config import (get_controller_config, get_modelstorage_config,
@@ -27,17 +26,6 @@ for bp in _routes:
         app.register_blueprint(bp,
                                name=f"{bp.name}_custom",
                                url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
-
-template = {
-    "swagger": "2.0",
-    "info": {
-        "title": "FEDn API",
-        "description": "API for the FEDn network.",
-        "version": "0.0.1"
-    }
-}
-
-swagger = Swagger(app, template=template)
 
 
 @app.route('/health', methods=["GET"])
