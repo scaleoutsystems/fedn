@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='fedn',
-    version='0.8.0',
+    version='0.9.0',
     description="""Scaleout Federated Learning""",
     author='Scaleout Systems AB',
     author_email='contact@scaleoutsystems.com',
@@ -18,11 +18,11 @@ setup(
         "numpy>=1.21.6",
         "protobuf~=4.25.2",
         "pymongo",
-        "Flask",
+        "Flask==3.0.3",
         "pyjwt",
         "pyopenssl",
         "psutil",
-        "click==8.0.1",
+        "click==8.1.3",
         "grpcio-health-checking~=1.60.0",
         "flasgger==0.9.5",
         "plotly",
