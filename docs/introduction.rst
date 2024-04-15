@@ -50,3 +50,10 @@ Data is logged as JSON to MongoDB, enabling users to create custom dashboards an
 
 FEDn comes with an REST-API, a CLI and a Python API Client for programmatic interaction with a FEDn network. This allows for flexible automation of experiments, for integration with 
 other systems, and for easy integration with external dashboards and visualization tools.
+
+FEDn Studio
+-----------
+
+FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides the FEDn network as a managed service, as well as a user-friendly interface for monitoring the progress of training and visualizing the results. FEDn Studio is available as a SaaS at fedn.scaleoutsystems.com . It is free for development, testing and research (one project per user, backend compute resources sized for dev/test).
+
+Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
