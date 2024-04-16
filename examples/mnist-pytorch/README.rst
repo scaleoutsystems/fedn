@@ -13,7 +13,7 @@ Prerequisites
 Using FEDn Studio:
 
 -  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
--  A FEDn Studio account: https://fedn.scaleoutsystems.com/signup   
+-  `A FEDn Studio account: <https://fedn.scaleoutsystems.com/signup>`__   
 
 If using self-managed with docker-compose:
 
@@ -65,13 +65,20 @@ Then, start the client using the client.yaml file:
 
 The default traning and test data is for this example downloaded and split direcly by the client when it starts up. 
 The data will be found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
-For example, to use the second partiton:
+For example, to start a client using the second partiton:
 
 .. code-block::
 
-   export FEDN_DATA_PATH=data/clients/2/mnist.pt
+   export FEDN_PACKAGE_EXTRACT_DIR=package
+   export FEDN_DATA_PATH=package/data/clients/2/mnist.pt
+   fedn run client -in client.yaml --secure=True --force-ssl
 
-The default split into 2 partitions can be changed in client/data.py.
+The default split into 2 partitions. This can be changed by setting the enviroment variable ``FEDN_NUM_DATA_SPLITS``: 
+
+.. code-block::
+
+   export FEDN_NUM_DATA_SPLITS=10
+
 
 Connecting clients using Docker
 ===============================
@@ -109,19 +116,18 @@ You can verify the deployment using these urls:
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
 
-Upload the package and seed model to FEDn controller using the APIClient:
+Upload the package and seed model to FEDn controller using the APIClient. In Python:
 
-.. code:: python
+.. code-block::
 
    >>> from fedn import APIClient
    >>> client = APIClient(host="localhost", port=8092)
    >>> client.set_active_package("package.tgz", helper="numpyhelper")
    >>> client.set_active_model("seed.npz")
 
-The client should now recieve and unpack the compute package, and report "Client is active, waiting for model update requests".
 You can now start a training session with 5 rounds (default): 
 
-.. code:: python
+.. code-block::
 
    >>> client.start_session()
 
