@@ -1,4 +1,4 @@
-FEDn Project: PyTorch (MNIST)
+FEDn Project: MNIST (PyTorch)
 -----------------------------------
 
 This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 

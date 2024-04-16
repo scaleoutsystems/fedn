@@ -1,45 +1,51 @@
-# MNIST (TensorFlow/Keras version)
+# FEDn Project: Keras/Tensorflow (MNIST) 
 
-This is a mimimalistic TF/Keras version of the Quickstart Tutorial (PyTorch). For more detailed explaination including a Jupyter Notebook with 
-examples of API usage for starting and interacting with federated experiments, refer to that tutorial.
+This is a TF/Keras version of the Quickstart Tutorial (PyTorch) FEDn Project. For a step-by-step guide, refer to that tutorial.
+
+   **Note: We recommend all new users to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html**
 
 ## Prerequisites
 - [Python 3.8, 3.9, 3.10 or 3.11](https://www.python.org/downloads)
-- [Docker](https://docs.docker.com/get-docker)
-- [Docker Compose](https://docs.docker.com/compose/install)
 
-## Running the example (pseudo-distributed)
-Clone FEDn and locate into this directory.
-```sh
-git clone https://github.com/scaleoutsystems/fedn.git
-cd fedn/examples/mnist-keras
-```
+Creating the compute package and seed model
+-------------------------------------------
 
-### Build the compute package and the seed model (model to initalize the global model trail)
+Install fedn: 
 
-```sh
-fedn package create --path client
-```
+.. code-block::
 
-```sh
-fedn run build --path client
-```
+   pip install fedn
 
-> You will now have two files,  `package.tgz` and `seed.npz`.
+Clone this repository, then locate into this directory:
 
-### Deploy FEDn 
-Now we are ready to deploy FEDn and two clients with `docker-compose`.
+.. code-block::
 
-```
-docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up  
-```
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn/examples/mnist-pytorch
 
-> **Note**: run with `--scale client=N` to start *N* clients.
+Create the compute package:
 
-### Run federated training 
-Refer to this notebook to upload the package and seed model and run experiments:
+.. code-block::
 
- https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb 
+   fedn package create --path client
 
-## Clean up
-You can clean up by running `docker-compose down`.
+This should create a file 'package.tgz' in the project folder.
+
+Next, generate a seed model (the first model in a global model trail):
+
+.. code-block::
+
+   fedn run build --path client
+
+This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
+
+Using FEDn Studio
+------------------
+
+To set up your FEDn Studio project and learn how to connect clients (using JWT token authentication), follow this guide: https://fedn.readthedocs.io/en/latest/studio.html. On the 
+step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
+
+In pseudo-distributed mode (local development mode)
+----------------------------------------------------
+
+See the PyTorch version of this example for detailed instructions on how to deploy FEDn in `local development mode <../mnist-pytorch/README.rst>`_.
