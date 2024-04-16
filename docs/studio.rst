@@ -78,6 +78,8 @@ Once a training session is started, you can monitor the progress of the training
 
 To get an overview of how the models have evolved over time, navigate to the "Models" tab in the sidebar. Here you can see a list of all models generated across sessions along with a graph showing some metrics of how the models are performing.
 
+.. image:: img/studio_model_overview.png
+
 .. _studio-api:
 
 Accessing the API
