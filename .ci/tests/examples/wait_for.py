@@ -68,7 +68,7 @@ def rounds(n_rounds=3):
     assert (_retry(_test_rounds, n_rounds=n_rounds))
 
 
-def clients(n_clients=2):
+def clients(n_clients=1):
     assert (_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
 
 
