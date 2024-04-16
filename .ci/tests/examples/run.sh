@@ -22,7 +22,7 @@ pushd "examples/$example"
 docker compose \
     -f ../../docker-compose.yaml \
     -f docker-compose.override.yaml \
-    up -d --build
+    up -d --build --scale client=1
 
 >&2 echo "Wait for reducer to start"
 python ../../.ci/tests/examples/wait_for.py reducer
