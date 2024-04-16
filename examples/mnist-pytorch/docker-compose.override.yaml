@@ -13,7 +13,7 @@ services:
 
   client1:
     extends:
-      file: /Users/andreash/github/fedn/docker-compose.yaml
+      file: ${HOST_REPO_DIR:-.}/docker-compose.yaml
       service: client
     environment:
       <<: *defaults
@@ -25,7 +25,7 @@ services:
 
   client2:
     extends:
-      file: /Users/andreash/github/fedn/docker-compose.yaml
+      file: ${HOST_REPO_DIR:-.}/docker-compose.yaml
       service: client
     environment:
       <<: *defaults
