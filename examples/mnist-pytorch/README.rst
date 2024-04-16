@@ -1,12 +1,15 @@
-Quickstart Tutorial PyTorch (MNIST)
+FEDn Project: PyTorch (MNIST)
 -----------------------------------
 
-This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST.
-The project is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
-A normal high-end laptop or a workstation (CPU only or GPU) should be able to sustain a few clients. 
-The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
-We here assume working experience with containers, Docker and docker-compose. 
-   
+This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 
+The example automates the partitioning of trainig data, and showcases how to set up a local development environment, 
+including automating the deployment of a variable number of clients on a single host. 
+For this assume working experience with containers, Docker and docker-compose. 
+
+   **Note: These instructions are geared towards users seeking to learn how to work 
+   with FEDn in pseudo-distributed mode (local development mode). We recommend all new users 
+   to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html** 
+
 Prerequisites
 -------------
 
@@ -15,13 +18,13 @@ Using FEDn Studio:
 -  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
 -  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__   
 
-If using self-managed with docker-compose:
+If using pseudo-distributed mode with docker-compose:
 
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
-Quick start with FEDn Studio
-----------------------------
+Creating the compute package and seed model
+-------------------------------------------
 
 Install fedn: 
 
@@ -36,7 +39,7 @@ Clone this repository, then locate into this directory:
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn/examples/mnist-pytorch
 
-Create the compute package (compress the 'client' folder):
+Create the compute package:
 
 .. code-block::
 
@@ -44,7 +47,7 @@ Create the compute package (compress the 'client' folder):
 
 This should create a file 'package.tgz' in the project folder.
 
-Next, generate a seed model (the first model in the global model trail):
+Next, generate a seed model (the first model in a global model trail):
 
 .. code-block::
 
@@ -52,36 +55,32 @@ Next, generate a seed model (the first model in the global model trail):
 
 This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
-Follow the guide here to set up your FEDn Studio project: https://fedn.readthedocs.io/en/latest/studio.html. On the 
-step "Upload Files", upload 'package.tgz' and 'seed.npz'. 
+Using FEDn Studio
+-------------------------------------------
 
-In Studio, go to "Clients" and download a new client configuration file (contains the access token). 
-Then, start the client using the client.yaml file:
+Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using JWT token authentication): https://fedn.readthedocs.io/en/latest/studio.html. On the 
+step "Upload Files", upload  'package.tgz' and 'seed.npz' created above. 
+
+
+Modifing the data split:
+=========================
+
+The default traning and test data  for this example is downloaded and split direcly by the client when it starts up (see 'startup' entrypoint). 
+The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
+For example, to split the data in 10 parts and start a client using the 8th partiton:
 
 .. code-block::
 
    export FEDN_PACKAGE_EXTRACT_DIR=package
-   fedn run client -in client.yaml --secure=True --force-ssl
-
-The default traning and test data is for this example downloaded and split direcly by the client when it starts up. 
-The data will be found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
-For example, to start a client using the second partiton:
-
-.. code-block::
-
-   export FEDN_PACKAGE_EXTRACT_DIR=package
-   export FEDN_DATA_PATH=package/data/clients/2/mnist.pt
-   fedn run client -in client.yaml --secure=True --force-ssl
-
-The default split into 2 partitions. This can be changed by setting the enviroment variable ``FEDN_NUM_DATA_SPLITS``: 
-
-.. code-block::
-
    export FEDN_NUM_DATA_SPLITS=10
+   export FEDN_DATA_PATH=package/data/clients/8/mnist.pt
+   fedn run client -in client.yaml --secure=True --force-ssl
+
+The default is to split the data into 2 partitions and use the first partition. 
 
 
-Connecting clients using Docker
-===============================
+Connecting clients using Docker:
+================================
 
 For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalled. To start a client using Docker: 
 
@@ -120,22 +119,22 @@ Upload the package and seed model to FEDn controller using the APIClient. In Pyt
 
 .. code-block::
 
-   >>> from fedn import APIClient
-   >>> client = APIClient(host="localhost", port=8092)
-   >>> client.set_active_package("package.tgz", helper="numpyhelper")
-   >>> client.set_active_model("seed.npz")
+   from fedn import APIClient
+   client = APIClient(host="localhost", port=8092)
+   client.set_active_package("package.tgz", helper="numpyhelper")
+   client.set_active_model("seed.npz")
 
 You can now start a training session with 5 rounds (default): 
 
 .. code-block::
 
-   >>> client.start_session()
+   client.start_session()
 
 Automate experimentation with several clients  
 =============================================
 
 If you want to scale the number of clients, you can do so by modifying ``docker-compose.override.yaml``. For example, 
-in order to run with 3 clients, change the envinronment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client 
+in order to run with 3 clients, change the environment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client 
 by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data/clients/3/mnist.pt``
 
 
