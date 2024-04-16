@@ -117,22 +117,10 @@ Upload the package and seed model to FEDn controller using the APIClient:
    
    .. code:: python
 
-      client = APIClient(host=<controller-host, token=<access-token>, secure=True, verify=True)
+      client = APIClient(host=<controller-host>, token=<access-token>, secure=True, verify=True)
 
 Configure and attach clients
 ----------------------------
-
-**FEDn Studio**
-
-In FEDn Studio, you can configure and attach clients to the network. Go to the 'Clients' tab and click 'Connect client'.
-Download the client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
-Then start the client by running the following command in the root of the project:
-
-.. code-block::
-
-  export FEDN_AUTH_SCHEME=Bearer 
-  fedn run client -in client.yaml --secure=True --force-ssl
-
 
 **Pseudo-distributed mode**
 
@@ -142,7 +130,18 @@ In pseudo-distributed mode, you can start a client using the provided docker com
    docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=2
 
 
-This will build a container image for the client and start two clients.
+This will build a container image for the client, start two clients and connect them to local API server.
+
+.. note::
+
+  In FEDn Studio, you can configure and attach clients to the network. Go to the 'Clients' tab and click 'Connect client'.
+  Download the client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
+  Then start the client by running the following command in the root of the project:
+
+  .. code-block::
+
+    export FEDN_AUTH_SCHEME=Bearer 
+    fedn run client -in client.yaml --secure=True --force-ssl
 
 Start a training session
 ------------------------
