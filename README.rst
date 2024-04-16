@@ -72,7 +72,7 @@ Running your project in FEDn Studio (SaaS or on-premise)
 
 The FEDn Studio SaaS is free for development, testing and research (one project per user, backend compute resources sized for dev/test):   
 
-- `Register for a free account in FEDn Studio <https://studio.scaleoutsystems.com/signup/>`__
+- `Register for a free account in FEDn Studio <https://fedn.scaleoutsystems.com/signup/>`__
 - `Take the tutorial to deploy your project on FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__  
 
 Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
