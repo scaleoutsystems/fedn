@@ -71,6 +71,15 @@ Start a training session
 
 In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the Start session tab and enter your desirable settings (or use default) and hit the "Start run" button. In the terminal where your are running your client you should now see some activity. When the round is completed you can see the results in the FEDn Studio UI on the "Models" page.
 
+Watch the training progress
+---------------------------
+
+Once a training session is started, you can monitor the progress of the training by navigating to "Sessions" and click on the "Open" button of the active session. The session page will list the models as soon as they are generated. To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model wieghts and get validation metrics.
+
+To get an overview of how the models have evolved over time, navigate to the "Models" tab in the sidebar. Here you can see a list of all models generated across sessions along with a graph showing some metrics of how the models are performing.
+
+.. image:: img/studio_model_overview.png
+
 .. _studio-api:
 
 Accessing the API
