@@ -119,6 +119,17 @@ class Helper(HelperBase):
             n += np.linalg.norm(x, 1)
         return n
 
+    def sign(self, m):
+        """ Sign of m.
+
+        :param m: Model parameters.
+        :type m: list of ndarrays
+        :return: sign(m)
+        :rtype: list of ndarrays
+        """
+
+        return [np.sign(x) for x in m]
+
     def ones(self, m1, a):
         """ Return a list of numpy arrays of the same shape as m1, filled with ones.
 
