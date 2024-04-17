@@ -7,7 +7,7 @@ including automating the deployment of a variable number of clients on a single 
 For this assume working experience with containers, Docker and docker-compose. 
 
    **Note: These instructions are geared towards users seeking to learn how to work 
-   with FEDn in pseudo-distributed mode (local development mode). We recommend all new users 
+   with FEDn in local development mode using Docker/docker-compose. We recommend all new users 
    to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html** 
 
 Prerequisites
