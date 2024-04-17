@@ -1,8 +1,8 @@
-Distributed deployment
-======================
+Self-managed distributed deployment
+===================================
 
 This tutorial outlines the steps for deploying the FEDn framework over a **local network**, using a single workstation or laptop as 
-the host, and different devices as clients. For general steps on how to run FEDn, see one of the quickstart tutorials. 
+the host for the servier-side components, and other hosts or devices as clients. For general steps on how to run FEDn, see the quickstart tutorials. 
 
 
 .. note::
