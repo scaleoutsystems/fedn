@@ -8,7 +8,7 @@ Getting started with FEDn
 **Prerequisites**
 
 -  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
--  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
+-  `A FEDn Studio account <https://studio.scaleoutsystems.com/signup>`__ 
 
 
 Set up a FEDn Studio Project

@@ -7,7 +7,7 @@ the host for the servier-side components, and other hosts or devices as clients.
 
 .. note::
    For a secure and production-grade deployment solution over **public networks**, explore the FEDn Studio service at 
-   **fedn.scaleoutsystems.com**. 
+   **studio.scaleoutsystems.com**. 
    
    Alternatively follow this tutorial substituting the hosts local IP with your public IP, open the neccesary 
    ports (see which ports are used in docker-compose.yaml), and ensure you have taken additional neccesary security 

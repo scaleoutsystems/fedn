@@ -2,9 +2,8 @@ FEDn Project: MNIST (PyTorch)
 -----------------------------------
 
 This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 
-The example automates the partitioning of trainig data, and showcases how to set up a local development environment, 
-including automating the deployment of a variable number of clients on a single host. 
-For this assume working experience with containers, Docker and docker-compose. 
+The example is intented as a minimalistic quickstart and automates the handling of training data
+by letting the client download and create its partition of the dataset as it starts up.
 
    **Note: These instructions are geared towards users seeking to learn how to work 
    with FEDn in local development mode using Docker/docker-compose. We recommend all new users 
@@ -16,7 +15,7 @@ Prerequisites
 Using FEDn Studio:
 
 -  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
--  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__   
+-  `A FEDn Studio account <https://studio.scaleoutsystems.com/signup>`__   
 
 If using pseudo-distributed mode with docker-compose:
 
@@ -58,8 +57,8 @@ This step will take a few minutes, depending on hardware and internet connection
 Using FEDn Studio
 -------------------------------------------
 
-Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using JWT token authentication): https://fedn.readthedocs.io/en/latest/studio.html. On the 
-step "Upload Files", upload  'package.tgz' and 'seed.npz' created above. 
+Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using JWT token authentication): `Studio guide <https://fedn.readthedocs.io/en/latest/studio.html>`__. 
+On the step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
 
 Modifing the data split:
