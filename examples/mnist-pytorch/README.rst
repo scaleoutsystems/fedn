@@ -94,7 +94,7 @@ For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalle
      ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
 
 
-Working in psuedo-distributed mode (for local development)
+Local development mode using Docker/docker compose
 ----------------------------------------------------------
 
 Follow the steps above to install FEDn, generate 'package.tgz' and 'seed.tgz'.
