@@ -17,7 +17,9 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/data/clients/1/mnist.pt
+      FEDN_DATA_PATH: /app/package
+      <<: *defaults
+      FEDN_DATA_CHUNK: 1
     deploy:
       replicas: 1
     volumes:
@@ -29,7 +31,9 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/data/clients/2/mnist.pt
+      FEDN_DATA_PATH: /app/package
+      <<: *defaults
+      FEDN_DATA_CHUNK: 2
     deploy:
       replicas: 1
     volumes:
