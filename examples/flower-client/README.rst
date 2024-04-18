@@ -1,12 +1,12 @@
 FEDn Project: Flower ClientApps in FEDn
--------------------------------
+---------------------------------------
 
 This example demonstrates how to run a Flower 'ClientApp' on FEDn.
 
 The FEDn compute package 'client/entrypoint' 
 uses a built-in Flower compatibiltiy adapter for convenient wrapping of the Flower client.
 See `flwr_client.py` and `flwr_task.py` for the Flower client code (which is adapted from 
-https://github.com/adap/flower/tree/main/examples/app-pytorch). 
+https://github.com/adap/flower/tree/main/examples/app-pytorch).
 
 
 Running the example
@@ -42,19 +42,19 @@ Next, generate a seed model (the first model in the global model trail):
 
    fedn run build --path client
 
-Next, you will upload the compute package and seed model to
+This creates a seed.npz in the root of the project folder. Next, you will upload the compute package and seed model to
 a FEDn network. Here you have two main options: using FEDn Studio 
-(recommended for new users), or a pseudo-local deployment
+(recommended for new users), or a self-managed pseudo-distributed deployment
 on your own machine. 
 
 If you are using FEDn Studio (recommended):
------------------------------------------------------
+-------------------------------------------
 
 Follow instructions here to register for Studio and start a project: https://fedn.readthedocs.io/en/stable/studio.html.
 
 In your Studio project: 
 
-- From the "Sessions" menu, upload the compute package and seed model. 
+- From the "Sessions" menu, upload the compute package (package.tgz) and seed model (seed.npz). 
 - Register a client and obtain the corresponding 'client.yaml'.  
 
 On your local machine / client, start the FEDn client: 
@@ -72,15 +72,14 @@ Or, if you prefer to use Docker (this might take a long time):
    docker run \
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
-   -e FEDN_AUTH_SCHEME=Bearer \
    -e FEDN_PACKAGE_EXTRACT_DIR=package \
-   ghcr.io/scaleoutsystems/fedn/fedn:master run client -in client.yaml --secure=True --force-ssl
+   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --secure=True --force-ssl
 
 
-If you are running FEDn in pseudo-local mode:
-------------------------------------------------------------------
+If you are running FEDn in local development mode:
+--------------------------------------------------
 
-Deploy a FEDn network on local host (see `https://fedn.readthedocs.io/en/stable/quickstart.html`). 
+Deploy a FEDn network on local host (see `https://fedn.readthedocs.io/en/stable/quickstart.html#local-development-deployment-using-docker-compose`). 
 
 Use the FEDn API Client to initalize FEDn with the compute package and seed model: 
 
@@ -105,9 +104,8 @@ Then start the client (using Docker)
    -v $PWD/client.yaml:/app/client.yaml \
    --network=fedn_default \
    -e CLIENT_NUMBER=0 \
-   -e FEDN_AUTH_SCHEME=Bearer \
    -e FEDN_PACKAGE_EXTRACT_DIR=package \
-   ghcr.io/scaleoutsystems/fedn/fedn:master run client -in client.yaml
+   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml
 
 
 Scaling to multiple clients
