@@ -3,14 +3,14 @@
 Studio
 ===============
 
-FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides the FEDn network as a managed service, as well as a user-friendly interface for monitoring the progress of training and visualizing the results. FEDn Studio is available as a SaaS at `studio.scaleoutsystems.com <https://studio.scaleoutsystems.com>`_ . It is free for development, testing and research (one project per user, backend compute resources sized for dev/test).
+FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides the FEDn network as a managed service, as well as a user-friendly interface for monitoring the progress of training and visualizing the results. FEDn Studio is available as a SaaS at `fedn.scaleoutsystems.com <https://fedn.scaleoutsystems.com>`_ . It is free for development, testing and research (one project per user, backend compute resources sized for dev/test).
 
 Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
 
 Getting started
 ---------------
 
-Before you can start using Studio, you will need an account. Head over to `studio.scaleoutsystems.com/signup <https://studio.scaleoutsystems.com/signup/>`_  and sign up.
+Before you can start using Studio, you will need an account. Head over to `fedn.scaleoutsystems.com/signup <https://fedn.scaleoutsystems.com/signup/>`_  and sign up.
 
 **Create a project**
 
@@ -70,6 +70,15 @@ Start a training session
 ------------------------
 
 In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the Start session tab and enter your desirable settings (or use default) and hit the "Start run" button. In the terminal where your are running your client you should now see some activity. When the round is completed you can see the results in the FEDn Studio UI on the "Models" page.
+
+Watch the training progress
+---------------------------
+
+Once a training session is started, you can monitor the progress of the training by navigating to "Sessions" and click on the "Open" button of the active session. The session page will list the models as soon as they are generated. To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model wieghts and get validation metrics.
+
+To get an overview of how the models have evolved over time, navigate to the "Models" tab in the sidebar. Here you can see a list of all models generated across sessions along with a graph showing some metrics of how the models are performing.
+
+.. image:: img/studio_model_overview.png
 
 .. _studio-api:
 

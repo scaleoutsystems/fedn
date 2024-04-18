@@ -1,7 +1,7 @@
 .. _helper-label:
 
-Model Serialization/Deserialization - Helpers
-=============================================
+Model Serialization/Deserialization
+===================================
 
 In federated learning, model updates need to be serialized and deserialized in order to be 
 transferred between clients and server/combiner. There is also a need to write and load models 
