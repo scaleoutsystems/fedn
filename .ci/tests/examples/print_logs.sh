@@ -15,8 +15,5 @@ echo "Client 1 logs"
 if [ "$example" == "mnist-keras" ]; then
     docker logs "$(basename $PWD)-client-1"
 else
-    docker logs "$(basename $PWD)-client1"
+    docker logs "$(basename $PWD)-client1-1"
 fi
-
-echo "Client 2 logs"
-docker logs "$(basename $PWD)-client-2"
