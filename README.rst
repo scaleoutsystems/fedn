@@ -57,7 +57,7 @@ Getting started
 
 The best way to get started is to take the quickstart tutorial: 
 
-- `Quickstart <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
+- `Quickstart <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
 
 Documentation
 =============
@@ -72,8 +72,8 @@ Running your project in FEDn Studio (SaaS or on-premise)
 
 The FEDn Studio SaaS is free for development, testing and research (one project per user, backend compute resources sized for dev/test):   
 
-- `Register for a free account in FEDn Studio <https://studio.scaleoutsystems.com/signup/>`__
-- `Take the tutorial to deploy your project on FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__  
+- `Register for a free account in FEDn Studio <https://fedn.scaleoutsystems.com/signup/>`__
+- `Take the tutorial to deploy your project on FEDn Studio <https://fedn.readthedocs.io/en/stable/studio.html>`__  
 
 Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
 
@@ -91,7 +91,7 @@ Making contributions
 
 All pull requests will be considered and are much appreciated. For
 more details please refer to our `contribution
-guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
+guidelines <https://github.com/scaleoutsystems/fedn/blob/master/CONTRIBUTING.md>`__.
 
 Citation
 ========

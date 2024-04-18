@@ -17,7 +17,7 @@ jobs:
         to_test:
           - "mnist-keras numpyhelper"
           - "mnist-pytorch numpyhelper"
-        python_version: ["3.9","3.10"]
+        python_version: ["3.8","3.9","3.10", "3.11"]
         os:
           - ubuntu-22.04
     runs-on: ${{ matrix.os }}
