@@ -113,9 +113,9 @@ Then start the client (using Docker)
 Scaling to multiple clients
 ------------------------------------------------------------------
 
-To scale the experiment with additional clients on the same host, simply execute the run 
-command again from another terminal. If running from another host add another 'client.yaml', 
-install fedn and execute the run command. In both cases inject a client number as an environment 
+To scale the experiment with additional clients on the same host, execute the run command
+again from another terminal. If running from another host, add another 'client.yaml', install 
+fedn, and execute the run command. In both cases inject a client number as an environment 
 varible which is used for distributing data (see 'flwr_task.py').
 
 For Unix Operating Systems:
