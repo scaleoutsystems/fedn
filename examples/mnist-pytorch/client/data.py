@@ -61,7 +61,8 @@ def splitset(dataset, parts):
 
 def split(out_dir='data'):
 
-    n_splits = os.environ.get("FEDN_NUM_DATA_SPLITS", 2)
+    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
+
     # Make dir
     if not os.path.exists(f'{out_dir}/clients'):
         os.mkdir(f'{out_dir}/clients')
