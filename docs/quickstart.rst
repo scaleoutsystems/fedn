@@ -2,47 +2,19 @@ Getting started with FEDn
 =========================
 
 .. note::
-   This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is desinged to serve as a minimalistic starting point for developers. 
-   To learn how to develop your own federated machine learning projects with FEDn, see :ref:`projects-label`. 
-
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode or in FEDn Studio. 
-A normal high-end laptop or a workstation should be able to sustain a few clients. 
-The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
-We here assume working experience with containers, Docker and docker-compose if you are running in pseudo-distributed mode.
-For a details on FEDn Studio UI, see :ref:`studio`. 
+   This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a minimalistic starting point for developers. 
+   To learn about FEDn Projects in order to develop your own federated machine learning projects, see :ref:`projects-label`. 
    
-**Prerequisites using FEDn Studio (recommended)**
+**Prerequisites**
 
 -  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
-
-**Prerequisites for pseudo-distributed mode**
-
--  `Docker <https://docs.docker.com/get-docker>`__
--  `Docker Compose <https://docs.docker.com/compose/install>`__
+-  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
 
 
-In pseudo-distributed mode
---------------------------
+Set up a FEDn Studio Project
+----------------------------
 
-.. note::
-   This is not required if you are using FEDn Studio!
-
-In pseudo-distributed mode, you can start a FEDn network using docker-compose.
-Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
-
-.. code-block::
-
-   docker-compose up 
-
-This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
-You can verify the deployment using these urls: 
-
-- API Server: http://localhost:8092/get_controller_status
-- Minio: http://localhost:9000
-- Mongo Express: http://localhost:8081
-
-.. warning:: 
-   The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
+Start by creating an account in FEDn Studio and set up a project by following the instruction here: :ref:`studio`.
 
 Install FEDn
 ------------
@@ -69,14 +41,17 @@ It is recommended to use a virtual environment when installing FEDn.
 
 .. _package-creation:
 
-Prepare the package and seed model
-----------------------------------
+Initialize FEDn with the client code bundle and seed model 
+----------------------------------------------------------
 
-Next, we will prepare the client. A key concept in FEDn is the package - 
-a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
+Next, we will prepare the client. The key part of a FEDn Project is the client definition - 
+code that contains entrypoints for training and (optionally) validating a model update on the client. 
 
-Locate into ``examples/mnist-pytorch`` and familiarize yourself with the project structure. The dependencies needed in the client environment are specified in 
-in ``client/python_env.yaml``.    
+Locate into ``examples/mnist-pytorch`` and familiarize yourself with the project structure. The dependencies needed in the client environment are specified 
+in ``client/python_env.yaml``. 
+
+In order to train a federated model using FEDn, your Studio project needs to be initialized with a compute package and a seed model. The compute package is a bundle
+of the client specification, and the seed model is a first version of the global model.  
 
 Create a package of the fedn project (assumes your current working directory is in the root of the project /examples/mnist-pytorch):
 
@@ -92,63 +67,67 @@ Next, run the build entrypoint defined in ``client/fedn.yaml`` to build the mode
 
    fedn run build --path client
 
-This will create a seed model called 'seed.npz' in the root of the project.
+This will create a seed model called 'seed.npz' in the root of the project. We will now upload these to your Studio project using the FEDn APIClient. 
 
 **Upload the package and seed model**
 
 .. note:: 
-   If you are using FEDn Studio, you need to create an admin token and use the token to authenticate the APIClient.
-   Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient.
-   The controller host can be found on the dashboard in FEDn Studio.
+   You need to create an API admin token and use the token to authenticate the APIClient.
+   Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient below.
+   The controller host can be found on the main Dashboard in FEDn Studio.
 
    You can also upload the file via the FEDn Studio UI. Please see :ref:`studio-upload-files` for more details.
 
-Upload the package and seed model to FEDn controller using the APIClient:
+Upload the package and seed model using the APIClient:
 
 .. code:: python
 
    >>> from fedn import APIClient
-   >>> client = APIClient(host="localhost", port=8092)
+   >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
    >>> client.set_active_package("package.tgz", helper="numpyhelper")
    >>> client.set_active_model("seed.npz")
 
-.. note::
-   If you are using FEDn Studio, you need to authenticate the APIClient by setting the access token:
-   
-   .. code:: python
-
-      client = APIClient(host=<controller-host>, token=<access-token>, secure=True, verify=True)
 
 Configure and attach clients
 ----------------------------
 
-**Pseudo-distributed mode**
+Each local client needs an access token in order to connect. These tokens are issued from your Studio Project. Go to the 'Clients' tab and click 'Connect client'.
+Download a client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
+Then start the client by running the following command in the root of the project:
 
-In pseudo-distributed mode, you can start a client using the provided docker compose template in the root of the project.
 .. code-block::
 
-   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=2
+   fedn run client -in client.yaml --secure=True --force-ssl
 
+Repeat the above for the number of clients you want to use. A normal laptop should be able to handle several clients for this example.
 
-This will build a container image for the client, start two clients and connect them to local API server.
+**Modifing the data split:**
 
-.. note::
+The default traning and test data for this example (MNIST) is for convenience downloaded and split by the client when it starts up (see 'startup' entrypoint). 
+The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
+For example, to split the data in 10 parts and start a client using the 8th partiton:
 
-  In FEDn Studio, you can configure and attach clients to the network. Go to the 'Clients' tab and click 'Connect client'.
-  Download the client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
-  Then start the client by running the following command in the root of the project:
+.. tabs::
 
-  .. code-block::
+    .. code-tab:: bash
+         :caption: Unix/MacOS
 
-    export FEDN_AUTH_SCHEME=Bearer 
-    fedn run client -in client.yaml --secure=True --force-ssl
+         export FEDN_PACKAGE_EXTRACT_DIR=package
+         export FEDN_NUM_DATA_SPLITS=10
+         export FEDN_DATA_PATH=package/data/clients/8/mnist.pt
+         fedn run client -in client.yaml --secure=True --force-ssl
+
+    .. code-tab:: bash
+         :caption: Windows (Powershell)
+
+         $env:FEDN_PACKAGE_EXTRACT_DIR="package"
+         $env:FEDN_NUM_DATA_SPLITS=10
+         $env:FEDN_DATA_PATH="package/data/clients/8/mnist.pt"
+         fedn run client -in client.yaml --secure=True --force-ssl
+
 
 Start a training session
 ------------------------
-
-.. note:: 
-
-   In FEDn Studio, you can start a training session by going to the 'Sessions' tab and click 'Start session'.
 
 You are now ready to start training the model using the APIClient:
 
@@ -163,51 +142,126 @@ You are now ready to start training the model using the APIClient:
    # Show model performance:
    >>> client.get_validations()
 
+
 Please see :py:mod:`fedn.network.api` for more details on the APIClient. 
 
-There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_ version of this tutorial including examples of how to fetch and visualize model validations.
+.. note:: 
 
-Access logs and validation data from MongoDB  
---------------------------------------------
-You can access and download event logs and validation data via the API. If your are running in pseudo-distributed mode, you can access the MongoDB backend directly.
-Either using pymongo (or other mongo clients) or via the MongoExpress interface: 
-
-- http://localhost:8081/db/fedn-network/ 
-
-The credentials are as set in docker-compose.yaml in the root of the repository. 
+   In FEDn Studio, you can start a training session by going to the 'Sessions' tab and click 'Start session'. See :ref:`studio` for a
+   step-by-step guide for how to control experiments using the UI. 
 
 Access model updates  
 --------------------
 
-
 .. note::
-   In FEDn Studio, you can access model updates by going to the 'Models' or 'Sessions' tab. Here you can download model updates, metrics (as csv) and view the model trail.
+   In FEDn Studio, you can access global model updates by going to the 'Models' or 'Sessions' tab. Here you can download model updates, metrics (as csv) and view the model trail.
 
 
-You can access model updates via the APIClient:
+You can access global model updates via the APIClient:
 
 .. code:: python
 
    >>> ...
    >>> client.download_model("<model-id>", path="model.npz")
 
-.. note::
-   If running in pseudo-distributed mode, you can access model updates via the Minio interface.
-   You can obtain model updates from the 'fedn-models' bucket: 
 
-   - http://localhost:9000
+**Connecting clients using Docker**
 
-
-**Clean up**
-If you are running in pseudo-distributed mode, you can stop the network using docker-compose:
+You can also use Docker to containerize the client. 
+For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalled.
+To start a client using Docker: 
 
 .. code-block::
 
-   docker-compose down
+   docker run \
+     -v $PWD/client.yaml:/app/client.yaml \
+     -e FEDN_PACKAGE_EXTRACT_DIR=package \
+     -e FEDN_NUM_DATA_SPLITS=2 \
+     -e FEDN_DATA_PATH=/app/package/data/clients/1/mnist.pt \
+     ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
+
 
 **Where to go from here?**
 
-With you first FEDn federation deployed, we suggest that you take a close look at how a FEDn project is structured
+With you first FEDn federation set up, we suggest that you take a close look at how a FEDn project is structured
 and how you develop your own FEDn projects:
 
 - :ref:`projects-label`
+
+
+Local development deployment (using docker compose)
+----------------------------------------------------------
+
+.. note::
+   These instructions are for users wanting to set up a local development deployment of FEDn (wihout Studio).
+   This requires basic knowledge of Docker and docker-compose. 
+   The main use-case for this is rapid iteration while developing the FEDn Project, 
+   development of aggregator plugins, etc. 
+
+Follow the steps above to install FEDn, generate 'package.tgz' and 'seed.tgz'. Then, instead of 
+using a Studio project for a managed FEDn server-side, start a local FEDn network
+using docker-compose:
+
+.. code-block::
+
+   docker compose \
+    -f ../../docker-compose.yaml \
+    -f docker-compose.override.yaml \
+    up
+
+This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. 
+You can verify the deployment using these urls: 
+
+- API Server: http://localhost:8092/get_controller_status
+- Minio: http://localhost:9000
+- Mongo Express: http://localhost:8081
+
+Upload the package and seed model to FEDn controller using the APIClient. In Python:
+
+.. code-block::
+
+   from fedn import APIClient
+   client = APIClient(host="localhost", port=8092)
+   client.set_active_package("package.tgz", helper="numpyhelper")
+   client.set_active_model("seed.npz")
+
+You can now start a training session with 5 rounds (default): 
+
+.. code-block::
+
+   client.start_session()
+
+**Automate experimentation with several clients**  
+
+If you want to scale the number of clients, you can do so by modifying ``docker-compose.override.yaml``. For example, 
+in order to run with 3 clients, change the environment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client 
+by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data/clients/3/mnist.pt``
+
+
+**Access message logs and validation data from MongoDB**  
+
+You can access and download event logs and validation data via the API, and you can also as a developer obtain 
+the MongoDB backend data using pymongo or via the MongoExpress interface: 
+
+- http://localhost:8081/db/fedn-network/ 
+
+The credentials are as set in docker-compose.yaml in the root of the repository. 
+
+**Access global models**  
+
+You can obtain global model updates from the 'fedn-models' bucket in Minio: 
+
+- http://localhost:9000
+
+**Reset the FEDn deployment**   
+
+To purge all data from a deployment incuding all session and round data, access the MongoExpress UI interface and 
+delete the entire ``fedn-network`` collection. Then restart all services. 
+
+**Clean up**
+
+You can clean up by running 
+
+.. code-block::
+
+   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml down -v

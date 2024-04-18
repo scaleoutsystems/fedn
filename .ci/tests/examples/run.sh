@@ -19,10 +19,17 @@ pushd "examples/$example"
 "../../.$example/bin/fedn" package create --path client
 "../../.$example/bin/fedn" run build --path client
 
-docker compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    up -d --build --scale client=1
+if [ "$example" == "mnist-keras" ]; then
+    docker compose \
+        -f ../../docker-compose.yaml \
+        -f docker-compose.override.yaml \
+        up -d --build --scale client=1
+else
+    docker compose \
+        -f ../../docker-compose.yaml \
+        -f docker-compose.override.yaml \
+        up -d --build combiner api-server mongo minio client1   
+fi
 
 >&2 echo "Wait for reducer to start"
 python ../../.ci/tests/examples/wait_for.py reducer

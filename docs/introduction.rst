@@ -7,53 +7,51 @@ Federated Learning allows for collaborative model training while keeping data lo
 scenarios where data cannot be easily shared due to privacy regulations, network limitations, or ownership concerns.
 
 At its core, Federated Learning orchestrates model training across distributed devices or servers, referred to as clients or participants. 
-These participants could be diverse endpoints such as mobile devices, IoT gadgets, or remote servers. Rather than transmitting raw data to a central location, 
+These participants could be diverse endpoints such as mobile devices, IoT gateways, or remote servers. Rather than transmitting raw data to a central location, 
 each participant computes gradients locally based on its data. These gradients are then communicated to a server, often called the aggregator. 
 The server aggregates and combines the gradients from multiple participants to update a global model. 
 This iterative process allows the global model to improve without the need to share the raw data.
 
-**FEDn: the SDK for scalable federated learning**
+FEDn empowers users to create federated learning applications that seamlessly transition from local proofs-of-concept to secure distributed deployments. 
+We develop the FEDn framework following these core design principles:
 
-FEDn serves as a System Development Kit (SDK) enabling scalable federated learning. 
-It is used to implement the core server side logic (including model aggregation) and the client side integrations. 
-Developers and ML engineers can use FEDn to build custom federated learning systems and bespoke deployments.
+-  **Seamless transition from proof-of-concepts to real-world FL**. FEDn has been designed to make the journey from R&D to real-world deployments as smooth as possibe. Develop your federated learning use case in a pseudo-local environment, then deploy it to FEDn Studio (cloud or on-premise) for real-world scenarios. No code change is required to go from development and testing to production. 
+
+-  **Designed for scalability and resilience.** FEDn enables model aggregation through multiple aggregation servers sharing the workload. A hierarchical architecture makes the framework well suited borh for cross-silo and cross-device use-cases. FEDn seamlessly recover from failures in all critical components, and manages intermittent client-connections, ensuring robust deployment in production environments.
+
+-  **Secure by design.** FL clients do not need to open any ingress ports, facilitating distributed deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients (JWT), providing flexible integration in production environments.   
+
+-  **Developer and data scientist friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. Machine learning metrics can be accessed via both a Python API and visualized in an intuitive UI that helps the data scientists analyze and communicate ML-model training progress.
 
 
-One of the standout features of FEDn is its ability to deploy and scale the server-side in geographically distributed setups,
-adapting to varying project needs and geographical considerations.
+Features
+=========
+
+Federated machine learning: 
+
+- Support for any ML framework (e.g. PyTorch, Tensforflow/Keras and Scikit-learn)
+- Extendable via a plug-in architecture (aggregators, load balancers, object storage backends, databases  etc.)
+- Built-in federated algorithms (FedAvg, FedAdam, FedYogi, FedAdaGrad, etc.)
+- CLI and Python API client for running FEDn networks and coordinating experiments. 
+- Implement clients in any language (Python, C++, Kotlin etc.)
+- No open ports needed client-side.
 
 
-**Scalable and Resilient**
+FEDn Studio - From development to FL in production: 
 
-FEDn exhibits scalability and resilience, thanks to its tiered architecture. Multiple aggregation servers, in FEDn called combiners, 
-form a network to divide the workload of coordinating clients and aggregating models. 
-This architecture allows for high performance in various settings, from thousands of clients in a cross-device environment to 
-large model updates in a cross-silo scenario. Importantly, FEDn has built-in recovery capabilities for all critical components, enhancing system reliability.
+-  Leverage Scaleout's free managed service for development and testing in real-world scenarios (SaaS).      
+-  Token-based authentication (JWT) and role-based access control (RBAC) for FL clients.  
+-  REST API and UI. 
+-  Data science dashboard for orchestrating experiments and visualizing results.
+-  Admin dashboard for managing the FEDn network and users/clients.
+-  View extensive logging and tracing information. 
+-  Collaborate with other data-scientists on the project specification in a shared workspace. 
+-  Cloud or on-premise deployment (cloud-native design, deploy to any Kubernetes cluster)
 
-**ML-Framework Agnostic**
+Support
+=========
 
-With FEDn, model updates are treated as black-box computations, meaning it can support any ML model type or framework. 
-This flexibility allows for out-of-the-box support for popular frameworks like Keras and PyTorch, making it a versatile tool for any machine learning project.
+Community support in available in our `Discord
+server <https://discord.gg/KMg4VwszAd>`__.
 
-**Security**
-
-A key security feature of FEDn is its client protection capabilities - clients do not need to expose any ingress ports, 
-thus reducing potential security vulnerabilities.
-
-**Event Tracking and Training progress**
-
-To ensure transparency and control over the training process, as well as to provide means to troubleshoot distributed deployments, 
-FEDn logs events and does real-time tracking of training progress. A flexible API lets the user define validation strategies locally on clients. 
-Data is logged as JSON to MongoDB, enabling users to create custom dashboards and visualizations easily.
-
-**REST-API and Python API Client and CLI**
-
-FEDn comes with an REST-API, a CLI and a Python API Client for programmatic interaction with a FEDn network. This allows for flexible automation of experiments, for integration with 
-other systems, and for easy integration with external dashboards and visualization tools.
-
-FEDn Studio
------------
-
-FEDn Studio is a web-based tool for managing and monitoring federated learning experiments. It provides the FEDn network as a managed service, as well as a user-friendly interface for monitoring the progress of training and visualizing the results. FEDn Studio is available as a SaaS at fedn.scaleoutsystems.com . It is free for development, testing and research (one project per user, backend compute resources sized for dev/test).
-
-Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
+Options are available for `Enterprise support <https://www.scaleoutsystems.com/start#pricing>`__.
