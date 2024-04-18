@@ -1,5 +1,5 @@
 FEDn Project: MNIST (PyTorch)
------------------------------------
+-----------------------------
 
 This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 
 The example is intented as a minimalistic quickstart and automates the handling of training data
@@ -7,7 +7,7 @@ by letting the client download and create its partition of the dataset as it sta
 
    **Note: These instructions are geared towards users seeking to learn how to work 
    with FEDn in local development mode using Docker/docker-compose. We recommend all new users 
-   to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html** 
+   to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
 
 Prerequisites
 -------------
@@ -15,7 +15,7 @@ Prerequisites
 Using FEDn Studio:
 
 -  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
--  `A FEDn Studio account <https://studio.scaleoutsystems.com/signup>`__   
+-  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__   
 
 If using pseudo-distributed mode with docker-compose:
 
@@ -52,17 +52,17 @@ Next, generate a seed model (the first model in a global model trail):
 
    fedn run build --path client
 
-This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
+This will create a seed model called 'seed.npz' in the root of the project. This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
 Using FEDn Studio
--------------------------------------------
+-----------------
 
-Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using JWT token authentication): `Studio guide <https://fedn.readthedocs.io/en/latest/studio.html>`__. 
+Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using token authentication): `Studio guide <https://fedn.readthedocs.io/en/stable/studio.html>`__.
 On the step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
 
 Modifing the data split:
-=========================
+========================
 
 The default traning and test data  for this example is downloaded and split direcly by the client when it starts up (see 'startup' entrypoint). 
 The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
@@ -94,7 +94,7 @@ For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalle
 
 
 Local development mode using Docker/docker compose
-----------------------------------------------------------
+--------------------------------------------------
 
 Follow the steps above to install FEDn, generate 'package.tgz' and 'seed.tgz'.
 

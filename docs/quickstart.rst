@@ -8,7 +8,7 @@ Getting started with FEDn
 **Prerequisites**
 
 -  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
--  `A FEDn Studio account <https://studio.scaleoutsystems.com/signup>`__ 
+-  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
 
 
 Set up a FEDn Studio Project
@@ -107,12 +107,24 @@ The default traning and test data for this example (MNIST) is for convenience do
 The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
 For example, to split the data in 10 parts and start a client using the 8th partiton:
 
-.. code-block::
+.. tabs::
 
-   export FEDN_PACKAGE_EXTRACT_DIR=package
-   export FEDN_NUM_DATA_SPLITS=10
-   export FEDN_DATA_PATH=package/data/clients/8/mnist.pt
-   fedn run client -in client.yaml --secure=True --force-ssl
+    .. code-tab:: bash
+         :caption: Unix/MacOS
+
+         export FEDN_PACKAGE_EXTRACT_DIR=package
+         export FEDN_NUM_DATA_SPLITS=10
+         export FEDN_DATA_PATH=package/data/clients/8/mnist.pt
+         fedn run client -in client.yaml --secure=True --force-ssl
+
+    .. code-tab:: bash
+         :caption: Windows (Powershell)
+
+         $env:FEDN_PACKAGE_EXTRACT_DIR="package"
+         $env:FEDN_NUM_DATA_SPLITS=10
+         $env:FEDN_DATA_PATH="package/data/clients/8/mnist.pt"
+         fedn run client -in client.yaml --secure=True --force-ssl
+
 
 Start a training session
 ------------------------
