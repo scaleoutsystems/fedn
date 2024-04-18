@@ -1,4 +1,4 @@
-Using Flower ClientApps in FEDn
+FEDn Project: Flower ClientApps in FEDn
 -------------------------------
 
 This example demonstrates how to run a Flower 'ClientApp' on FEDn.
@@ -62,9 +62,7 @@ On your local machine / client, start the FEDn client:
 
 .. code-block::
 
-   export FEDN_AUTH_SCHEME=Bearer
-   export FEDN_PACKAGE_EXTRACT_DIR=package
-   CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
+   fedn run client -in client.yaml --secure=True --force-ssl
 
 
 Or, if you prefer to use Docker (this might take a long time):
@@ -110,3 +108,24 @@ Then start the client (using Docker)
    -e FEDN_AUTH_SCHEME=Bearer \
    -e FEDN_PACKAGE_EXTRACT_DIR=package \
    ghcr.io/scaleoutsystems/fedn/fedn:master run client -in client.yaml
+
+
+Scaling to multiple clients
+------------------------------------------------------------------
+
+To scale the experiment with additional clients on the same host, simply execute the run 
+command again from another terminal. If running from another host add another 'client.yaml', 
+install fedn and execute the run command. In both cases inject a client number as an environment 
+varible which is used for distributing data (see 'flwr_task.py').
+
+For Unix Operating Systems:
+
+.. code-block::
+
+   CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
+
+Using Windows PowerShell:
+
+.. code-block::
+
+   & { $env:CLIENT_NUMBER="0"; fedn run client -in client.yaml --secure=$true --force-ssl }

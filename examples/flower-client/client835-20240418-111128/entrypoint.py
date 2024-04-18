@@ -30,7 +30,7 @@ def save_parameters(out_path, parameters_np):
     helper.save(parameters_np, out_path)
 
 
-def init_seed(out_path="../seed.npz"):
+def init_seed(out_path="seed.npz"):
     """Initialize seed model and save it to file.
 
     :param out_path: The path to save the seed model to.
