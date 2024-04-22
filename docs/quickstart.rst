@@ -134,13 +134,14 @@ You are now ready to start training the model using the APIClient:
 .. code:: python
 
    >>> ...
-   >>> client.start_session(session_id="test-session", rounds=3)
+   >>> client.start_session(id="test-session", rounds=3)
    # Wait for training to complete, when controller is idle:
    >>> client.get_controller_status()
    # Show model trail:
-   >>> client.get_model_trail()
-   # Show model performance:
-   >>> client.get_validations()
+   >>> models = client.get_model_trail()
+   # Show performance of latest global model:
+   >>> model_id = models[-1]['model']
+   >>> validations = client.get_validations(model_id=model_id)
 
 
 Please see :py:mod:`fedn.network.api` for more details on the APIClient. 
