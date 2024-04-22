@@ -36,11 +36,11 @@ pip install -r requirements.txt
 
 Create the compute package and seed model:
 ```
-tar -czvf package.tgz client
+fedn package create --path client
 ```
 
 ```
-python client/entrypoint init_seed
+fedn run build --path client
 ```
 
 You will now have a file 'seed.npz' in the directory.
