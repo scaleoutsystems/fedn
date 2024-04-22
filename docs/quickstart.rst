@@ -139,8 +139,8 @@ You are now ready to start training the model using the APIClient:
    >>> client.get_controller_status()
    # Show model trail:
    >>> models = client.get_model_trail()
-   # Show model performance:
-   >>> model_id = models[2]['model']
+   # Show performance of latest global model:
+   >>> model_id = models[-1]['model']
    >>> validations = client.get_validations(model_id=model_id)
 
 
