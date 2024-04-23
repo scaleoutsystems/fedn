@@ -24,16 +24,29 @@ import numpy as np
 
 from fedn.network.clients.client import Client
 
+# Use with a Studio project:
+# settings = {
+#    'DISCOVER_HOST': 'fedn.scaleoutsystems.com/async-clients-sbz-fedn-reducer',
+#    'DISCOVER_PORT': 443,
+#    'TOKEN': "",
+#    'N_CLIENTS': 1,
+#    'N_CYCLES': 1,
+#    'CLIENTS_MAX_DELAY': 10,
+#    'CLIENTS_ONLINE_FOR_SECONDS': 120
+# }
+
+# Use with a local deployment
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
     'DISCOVER_PORT': 8092,
+    'TOKEN': None,
     'N_CLIENTS': 10,
     'N_CYCLES': 100,
     'CLIENTS_MAX_DELAY': 10,
     'CLIENTS_ONLINE_FOR_SECONDS': 120
 }
 
-client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': settings['DISCOVER_PORT'], 'token': None, 'name': 'testclient',
+client_config = {'discover_host': settings['DISCOVER_HOST'], 'discover_port': settings['DISCOVER_PORT'], 'token': settings['TOKEN'], 'name': 'testclient',
                  'client_id': 1, 'remote_compute_context': True, 'force_ssl': False, 'dry_run': False, 'secure': False,
                  'preshared_cert': False, 'verify': False, 'preferred_combiner': False,
                  'validator': True, 'trainer': True, 'init': None, 'logfile': 'test.log', 'heartbeat_interval': 2,
