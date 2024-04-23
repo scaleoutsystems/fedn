@@ -24,17 +24,6 @@ import numpy as np
 
 from fedn.network.clients.client import Client
 
-# Use with a Studio project:
-# settings = {
-#    'DISCOVER_HOST': 'fedn.scaleoutsystems.com/async-clients-sbz-fedn-reducer',
-#    'DISCOVER_PORT': 443,
-#    'TOKEN': "",
-#    'N_CLIENTS': 1,
-#    'N_CYCLES': 1,
-#    'CLIENTS_MAX_DELAY': 10,
-#    'CLIENTS_ONLINE_FOR_SECONDS': 120
-# }
-
 # Use with a local deployment
 settings = {
     'DISCOVER_HOST': '127.0.0.1',
