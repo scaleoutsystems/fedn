@@ -1,0 +1,10 @@
+# Compose schema version
+version: '3.3'
+
+# Overriding requirements
+services:
+  client:
+    deploy:
+      replicas: 2
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
