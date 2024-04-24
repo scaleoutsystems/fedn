@@ -2,10 +2,11 @@ import uuid
 
 import click
 
-from .shared import apply_config
 from fedn.network.combiner.combiner import Combiner
 
 from .main import main
+from .shared import apply_config
+
 
 @main.group('combiner')
 @click.pass_context
