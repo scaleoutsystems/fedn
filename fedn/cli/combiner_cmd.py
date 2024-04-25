@@ -1,11 +1,13 @@
 import uuid
 
 import click
+import requests
 
 from fedn.network.combiner.combiner import Combiner
 
 from .main import main
-from .shared import apply_config
+from .shared import (CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token,
+                     print_response)
 
 
 @main.group('combiner')
@@ -55,3 +57,37 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
 
     combiner = Combiner(config)
     combiner.run()
+
+
+@click.option('-p', '--protocol', required=False, default=CONTROLLER_DEFAULTS['protocol'], help='Communication protocol of controller (api)')
+@click.option('-H', '--host', required=False, default=CONTROLLER_DEFAULTS['host'], help='Hostname of controller (api)')
+@click.option('-P', '--port', required=False, default=CONTROLLER_DEFAULTS['port'], help='Port of controller (api)')
+@click.option('-t', '--token', required=False, help='Authentication token')
+@click.option('--n_max', required=False, help='Number of items to list')
+@combiner_cmd.command('list')
+@click.pass_context
+def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
+    """
+    return:
+    - count: number of combiners
+    - result: list of combiners
+    """
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint='combiners')
+    headers = {}
+
+    if n_max:
+        headers['X-Limit'] = n_max
+
+    _token = get_token(token)
+
+    if _token:
+        headers['Authorization'] = _token
+
+    click.echo(f'\nListing combiners: {url}\n')
+    click.echo(f'Headers: {headers}')
+
+    try:
+        response = requests.get(url, headers=headers)
+        print_response(response, 'combiners')
+    except requests.exceptions.ConnectionError:
+        click.echo(f'Error: Could not connect to {url}')
