@@ -50,7 +50,7 @@ def initialize_tracer():
     else:
         logger.info("Telemetry enabled. Disable by setting FEDN_TELEMETRY=false")
     
-    telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'jaeger.akkelis.com')
+    telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'telemetry.fedn.scaleoutsystems.com')
     telemetry_port = os.getenv("FEDN_TELEMETRY_PORT", 6831)
 
     # Configure the tracer to report data to Jaeger
