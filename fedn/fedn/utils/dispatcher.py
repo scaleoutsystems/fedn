@@ -27,6 +27,7 @@ from pathlib import Path
 import yaml
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import tracer, trace_all_methods, trace_module_functions
 from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
 from fedn.utils.process import _exec_cmd, _join_commands
@@ -150,6 +151,7 @@ def _read_yaml_file(file_path):
     return cfg
 
 
+@trace_all_methods
 class Dispatcher:
     """ Dispatcher class for compute packages.
 
@@ -237,9 +239,7 @@ class Dispatcher:
         """
         try:
             cmdsandargs = cmd_type.split(' ')
-
             entry_point = self.config['entry_points'][cmdsandargs[0]]['command']
-
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
 
@@ -267,3 +267,6 @@ class Dispatcher:
         except IndexError:
             message = "No such argument or configuration to run."
             logger.error(message)
+
+
+trace_module_functions(sys.modules[__name__])

@@ -24,6 +24,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
+from fedn.common.telemetry import tracer, trace_all_methods
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
@@ -36,6 +37,7 @@ CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
 
 
+@trace_all_methods
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
         self._key = key
@@ -44,6 +46,7 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
         callback((('authorization', f'{FEDN_AUTH_SCHEME} {self._key}'),), None)
 
 
+@trace_all_methods
 class Client:
     """FEDn Client. Service running on client/datanodes in a federation,
     recieving and handling model update and model validation requests.
@@ -52,7 +55,6 @@ class Client:
         and settings governing e.g. client-combiner assignment behavior.
     :type config: dict
     """
-
     def __init__(self, config):
         """Initialize the client."""
         self.state = None
@@ -793,7 +795,10 @@ class Client:
                     self._subscribe_to_combiner(self.config)
                     cnt = 0
                 if self.error_state:
-                    logger.error("Client in error state. Terminiating.")
-                    sys.exit("Client in error state. Terminiating.")
+                    logger.error("Client in error state. Terminating.")
+                    sys.exit("Client in error state. Terminating.")
+                
         except KeyboardInterrupt:
+            with tracer.start_as_current_span("Shutting down."):
+                pass
             logger.info("Shutting down.")

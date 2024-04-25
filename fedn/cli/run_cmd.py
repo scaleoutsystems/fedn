@@ -8,6 +8,7 @@ import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
+from fedn.common.telemetry import tracer, get_context
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
@@ -73,6 +74,22 @@ def validate_client_config(config):
         raise InvalidClientConfig("Could not load config from file. Check config")
 
 
+def sanitize_config(config):
+    # List of keys to sanitize (remove or mask)
+    sensitive_keys = ["discover_host",
+                      "discover_port",
+                      "name",
+                      "token",
+                      "client_id",
+                      "preshared_cert"
+                      ]
+
+    # Create a sanitized copy of the dictionary
+    sanitized_config = {key: (config[key] if key not in sensitive_keys else "***") for key in config}
+
+    return sanitized_config
+
+
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
@@ -130,20 +147,23 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :param verbosity
     :return:
     """
-    remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
+    with tracer.start_as_current_span("client_cmd") as span:
+        remote = False if local_package else True
+        config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
+                  'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
+                  'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
+                  'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
+                  'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
+        span.set_attribute("client_config", str(sanitize_config(config)))
+        context = get_context()
+        span.set_attribute("context", str(context))
+        if init:
+            apply_config(config)
 
-    if init:
-        apply_config(config)
+        validate_client_config(config)
 
-    validate_client_config(config)
-
-    client = Client(config)
-    client.run()
+        client = Client(config)
+        client.run()
 
 
 @run_cmd.command('combiner')

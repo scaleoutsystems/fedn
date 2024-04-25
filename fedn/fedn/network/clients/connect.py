@@ -12,6 +12,7 @@ from fedn.common.config import (FEDN_AUTH_REFRESH_TOKEN,
                                 FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME,
                                 FEDN_CUSTOM_URL_PREFIX)
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 
 
 class Status(enum.Enum):
@@ -23,6 +24,7 @@ class Status(enum.Enum):
     UnMatchedConfig = 4
 
 
+@trace_all_methods
 class ConnectorClient:
     """ Connector for assigning client to a combiner in the FEDn network.
 

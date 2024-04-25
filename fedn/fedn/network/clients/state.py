@@ -1,5 +1,5 @@
 from enum import Enum
-
+from fedn.common.telemetry import tracer
 
 class ClientState(Enum):
     """ Enum for representing the state of a client."""
@@ -8,6 +8,7 @@ class ClientState(Enum):
     validating = 3
 
 
+@tracer.start_as_current_span(name="ClientStateToString")
 def ClientStateToString(state):
     """ Convert a ClientState to a string representation.
 

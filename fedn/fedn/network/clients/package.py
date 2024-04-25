@@ -10,10 +10,12 @@ import requests
 
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 
+@trace_all_methods
 class PackageRuntime:
     """ PackageRuntime is used to download, validate and unpack compute packages.
 

@@ -1,5 +1,7 @@
 import click
 
+from fedn.common.telemetry import tracer, get_context
+
 CONTEXT_SETTINGS = dict(
     # Support -h as a shortcut for --help
     help_option_names=['-h', '--help'],
@@ -10,7 +12,6 @@ CONTEXT_SETTINGS = dict(
 @click.pass_context
 def main(ctx):
     """
-
     :param ctx:
     """
     ctx.obj = dict()
