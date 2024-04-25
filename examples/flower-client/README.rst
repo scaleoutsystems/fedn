@@ -1,7 +1,7 @@
 FEDn Project: Flower ClientApps in FEDn
 ---------------------------------------
 
-This example demonstrates how to run a Flower 'ClientApp' on FEDn.
+This example demonstrates how to run a Flower 'ClientApp' on FEDn. Sign up to FEDn Studio for a quick and easy way to set up all the backend services: https://fedn.scaleoutsystems.com/signup/ (optional).
 
 The FEDn compute package 'client/entrypoint' 
 uses a built-in Flower compatibiltiy adapter for convenient wrapping of the Flower client.
