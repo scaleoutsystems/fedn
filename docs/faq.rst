@@ -26,7 +26,7 @@ Yes, to facilitate interactive development of the compute package you can start 
 
 .. code-block:: bash
 
-    fedn run client --remote=False -in client.yaml 
+    fedn client start --remote=False -in client.yaml 
 
 
 Note that in production federations this options should in most cases be disallowed. 
@@ -56,7 +56,7 @@ Yes! You can toggle which message streams a client subscibes to when starting th
 
 .. code-block:: bash
 
-    fedn run client --trainer=False -in client.yaml 
+    fedn client start --trainer=False -in client.yaml 
 
 
 Q: How do you approach the question of output privacy? 

@@ -141,7 +141,7 @@ This will build a container image for the client, start two clients and connect 
   .. code-block::
 
     export FEDN_AUTH_SCHEME=Bearer 
-    fedn run client -in client.yaml --secure=True --force-ssl
+    fedn client start -in client.yaml --secure=True --force-ssl
 
 Start a training session
 ------------------------

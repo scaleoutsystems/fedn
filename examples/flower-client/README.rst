@@ -64,7 +64,7 @@ On your local machine / client, start the FEDn client:
 
    export FEDN_AUTH_SCHEME=Bearer
    export FEDN_PACKAGE_EXTRACT_DIR=package
-   CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
+   CLIENT_NUMBER=0 fedn client start -in client.yaml --secure=True --force-ssl
 
 
 Or, if you prefer to use Docker (this might take a long time):

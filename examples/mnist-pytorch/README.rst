@@ -58,7 +58,7 @@ Then, start the client using the client.yaml file:
 
    export FEDN_AUTH_SCHEME=Bearer
    export FEDN_PACKAGE_EXTRACT_DIR=package
-   fedn run client -in client.yaml --secure=True --force-ssl
+   fedn client start -in client.yaml --secure=True --force-ssl
 
 The default traning and test data is for this example downloaded and split direcly by the client when it starts up. 
 The data will be found in package/data/clients/1/mnist.pt and can be changed to other partitions by exporting the environment variable FEDN_DATA_PATH.
