@@ -50,7 +50,7 @@ def initialize_tracer():
         return NoopTracer()
     else:
         logger.info("Telemetry enabled. Disable by setting FEDN_TELEMETRY=false")
-    
+
     telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'telemetry.fedn.scaleoutsystems.com')
     telemetry_port = os.getenv("FEDN_TELEMETRY_PORT", 6831)
 
@@ -125,13 +125,14 @@ def trace_all_methods(cls):
                 span.set_attribute("class_name", cls.__name__)
                 return method(*args, **kwargs)
         return wrapper
-    
+
     # Apply the traced_method decorator to each callable method of the class
     for key, method in cls.__dict__.items():
         if callable(method) and not key.startswith('__'):
             # Set the decorated method back on the class
             setattr(cls, key, traced_method(method))
     return cls
+
 
 def trace_module_functions(module):
     for attribute_name in dir(module):

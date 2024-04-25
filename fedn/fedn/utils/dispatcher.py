@@ -27,8 +27,7 @@ from pathlib import Path
 import yaml
 
 from fedn.common.log_config import logger
-from fedn.common.telemetry import (trace_all_methods, trace_module_functions,
-                                   tracer)
+from fedn.common.telemetry import trace_all_methods, trace_module_functions
 from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
 from fedn.utils.process import _exec_cmd, _join_commands

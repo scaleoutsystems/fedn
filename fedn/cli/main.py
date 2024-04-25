@@ -1,7 +1,5 @@
 import click
 
-from fedn.common.telemetry import get_context, tracer
-
 CONTEXT_SETTINGS = dict(
     # Support -h as a shortcut for --help
     help_option_names=['-h', '--help'],

@@ -797,7 +797,7 @@ class Client:
                 if self.error_state:
                     logger.error("Client in error state. Terminating.")
                     sys.exit("Client in error state. Terminating.")
-                
+
         except KeyboardInterrupt:
             with tracer.start_as_current_span("Shutting down."):
                 pass
