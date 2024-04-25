@@ -1,5 +1,7 @@
 from enum import Enum
+
 from fedn.common.telemetry import tracer
+
 
 class ClientState(Enum):
     """ Enum for representing the state of a client."""

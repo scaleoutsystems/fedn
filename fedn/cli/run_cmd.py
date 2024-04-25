@@ -8,7 +8,7 @@ import yaml
 
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
-from fedn.common.telemetry import tracer, get_context
+from fedn.common.telemetry import get_context, tracer
 from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file

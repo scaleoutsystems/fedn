@@ -24,7 +24,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
-from fedn.common.telemetry import tracer, trace_all_methods
+from fedn.common.telemetry import trace_all_methods, tracer
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
