@@ -122,13 +122,19 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
+              'validator': validator, 'trainer': trainer, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
 
     if init:
-        apply_config(config)
+        apply_config(init, config)
+        click.echo(f'\nClient configuration loaded from file: {init}')
+        click.echo('Values set in file override defaults and command line arguments...\n')
 
-    validate_client_config(config)
+    try:
+        validate_client_config(config)
+    except InvalidClientConfig as e:
+        click.echo(f'Error: {e}')
+        return
 
     client = Client(config)
     client.run()

@@ -29,14 +29,14 @@ CLIENT_DEFAULTS = {
 API_VERSION = 'v1'
 
 
-def apply_config(config):
+def apply_config(path: str, config: dict):
     """Parse client config from file.
 
     Override configs from the CLI with settings in config file.
 
     :param config: Client config (dict).
     """
-    with open(config['init'], 'r') as file:
+    with open(path, 'r') as file:
         try:
             settings = dict(yaml.safe_load(file))
         except Exception:
@@ -51,13 +51,13 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     _url = os.environ.get('FEDN_CONTROLLER_URL')
 
     if _url:
-        return f'{_url}/api/{API_VERSION}/{endpoint}'
+        return f'{_url}/api/{API_VERSION}/{endpoint}/'
 
     _protocol = protocol or os.environ.get('FEDN_CONTROLLER_PROTOCOL') or CONTROLLER_DEFAULTS['protocol']
     _host = host or os.environ.get('FEDN_CONTROLLER_HOST') or CONTROLLER_DEFAULTS['host']
     _port = port or os.environ.get('FEDN_CONTROLLER_PORT') or CONTROLLER_DEFAULTS['port']
 
-    return f'{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}'
+    return f'{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}/'
 
 
 def get_token(token: str) -> str:

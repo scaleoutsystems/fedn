@@ -49,11 +49,12 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
     :param init:
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-              'init': init}
+              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients}
 
-    if config['init']:
-        apply_config(config)
+    if init:
+        apply_config(init, config)
+        click.echo(f'\nCombiner configuration loaded from file: {init}')
+        click.echo('Values set in file override defaults and command line arguments...\n')
 
     combiner = Combiner(config)
     combiner.run()
