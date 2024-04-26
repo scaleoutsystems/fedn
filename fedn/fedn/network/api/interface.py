@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.interfaces import (CombinerInterface,
                                               CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -19,6 +20,7 @@ from fedn.utils.plots import Plot
 __all__ = ("API",)
 
 
+@trace_all_methods
 class API:
     """The API class is a wrapper for the statestore. It is used to expose the statestore to the network API."""
 

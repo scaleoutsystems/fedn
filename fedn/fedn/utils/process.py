@@ -20,6 +20,7 @@ import subprocess
 import sys
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import tracer
 
 _IS_UNIX = os.name != "nt"
 
@@ -46,12 +47,14 @@ class ShellCommandException(Exception):
         return cls("\n".join(lines))
 
 
+@tracer.start_as_current_span("_join_commands")
 def _join_commands(*commands):
     entry_point = ["bash", "-c"] if _IS_UNIX else ["cmd", "/c"]
     sep = " && " if _IS_UNIX else " & "
     return [*entry_point, sep.join(map(str, commands))]
 
 
+@tracer.start_as_current_span("_exec_cmd")
 def _exec_cmd(
     cmd,
     *,
@@ -147,6 +150,7 @@ def _exec_cmd(
     return comp_process
 
 
+@tracer.start_as_current_span("run_process")
 def run_process(args, cwd):
     """ Run a process and log the output.
 

@@ -1,7 +1,9 @@
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.loadbalancer.loadbalancerbase import LoadBalancerBase
 
 
+@trace_all_methods
 class LeastPacked(LoadBalancerBase):
     """ Load balancer that selects the combiner with the least number of attached training clients.
 

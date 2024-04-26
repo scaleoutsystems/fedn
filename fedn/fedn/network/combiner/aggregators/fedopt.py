@@ -1,9 +1,11 @@
 import math
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
+@trace_all_methods
 class Aggregator(AggregatorBase):
     """ Federated Optimization (FedOpt) aggregator.
 

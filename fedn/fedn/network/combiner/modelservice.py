@@ -5,11 +5,13 @@ from io import BytesIO
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods, tracer
 from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
 
+@tracer.start_as_current_span(name="upload_request_generator")
 def upload_request_generator(mdl, id):
     """Generator function for model upload requests.
 
@@ -31,6 +33,7 @@ def upload_request_generator(mdl, id):
             break
 
 
+@tracer.start_as_current_span(name="model_as_bytesIO")
 def model_as_bytesIO(model):
     if not isinstance(model, BytesIO):
         bt = BytesIO()
@@ -46,6 +49,7 @@ def model_as_bytesIO(model):
     return bt
 
 
+@tracer.start_as_current_span(name="get_tmp_path")
 def get_tmp_path():
     """ Return a temporary output path compatible with save_model, load_model. """
     fd, path = tempfile.mkstemp()
@@ -53,6 +57,7 @@ def get_tmp_path():
     return path
 
 
+@tracer.start_as_current_span(name="load_model_from_BytesIO")
 def load_model_from_BytesIO(model_bytesio, helper):
     """ Load a model from a BytesIO object.
     :param model_bytesio: A BytesIO object containing the model.
@@ -71,6 +76,7 @@ def load_model_from_BytesIO(model_bytesio, helper):
     return model
 
 
+@tracer.start_as_current_span(name="serialize_model_to_BytesIO")
 def serialize_model_to_BytesIO(model, helper):
     """ Serialize a model to a BytesIO object.
 
@@ -92,6 +98,7 @@ def serialize_model_to_BytesIO(model, helper):
     return a
 
 
+@trace_all_methods
 class ModelService(rpc.ModelServiceServicer):
     """ Service for handling download and upload of models to the server.
 

@@ -14,6 +14,7 @@ import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import (logger, set_log_level_from_string,
                                     set_log_stream)
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundHandler
@@ -50,6 +51,7 @@ def role_to_proto_role(role):
         return fedn.OTHER
 
 
+@trace_all_methods
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """ Combiner gRPC server.
 

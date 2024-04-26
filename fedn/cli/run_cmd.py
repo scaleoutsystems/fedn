@@ -194,15 +194,16 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param max_clients:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-              'init': init}
+    with tracer.start_as_current_span("combiner_cmd"):
+        config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
+                  'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
+                  'init': init}
 
-    if config['init']:
-        apply_config(config)
+        if config['init']:
+            apply_config(config)
 
-    combiner = Combiner(config)
-    combiner.run()
+        combiner = Combiner(config)
+        combiner.run()
 
 
 @run_cmd.command('build')
@@ -215,26 +216,27 @@ def build_cmd(ctx, path):
     :param path: Path to folder containing fedn.yaml
     :type path: str
     """
-    path = os.path.abspath(path)
-    yaml_file = os.path.join(path, 'fedn.yaml')
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    with tracer.start_as_current_span("build_cmd"):
+        path = os.path.abspath(path)
+        yaml_file = os.path.join(path, 'fedn.yaml')
+        if not os.path.exists(yaml_file):
+            logger.error(f"Could not find fedn.yaml in {path}")
+            exit(-1)
 
-    config = _read_yaml_file(yaml_file)
-    # Check that build is defined in fedn.yaml under entry_points
-    if 'build' not in config['entry_points']:
-        logger.error("No build command defined in fedn.yaml")
-        exit(-1)
+        config = _read_yaml_file(yaml_file)
+        # Check that build is defined in fedn.yaml under entry_points
+        if 'build' not in config['entry_points']:
+            logger.error("No build command defined in fedn.yaml")
+            exit(-1)
 
-    dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
-    dispatcher.run_cmd("build")
+        dispatcher = Dispatcher(config, path)
+        _ = dispatcher._get_or_create_python_env()
+        dispatcher.run_cmd("build")
 
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+        # delete the virtualenv
+        if dispatcher.python_env_path:
+            logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+            shutil.rmtree(dispatcher.python_env_path)
 
 
 @main.group('package')
@@ -259,12 +261,13 @@ def create_cmd(ctx, path, name):
     :param ctx:
     :param path:
     """
-    path = os.path.abspath(path)
-    yaml_file = os.path.join(path, 'fedn.yaml')
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    with tracer.start_as_current_span("create_cmd"):
+        path = os.path.abspath(path)
+        yaml_file = os.path.join(path, 'fedn.yaml')
+        if not os.path.exists(yaml_file):
+            logger.error(f"Could not find fedn.yaml in {path}")
+            exit(-1)
 
-    with tarfile.open(name, "w:gz") as tar:
-        tar.add(path, arcname=os.path.basename(path))
-        logger.info(f"Created package {name}")
+        with tarfile.open(name, "w:gz") as tar:
+            tar.add(path, arcname=os.path.basename(path))
+            logger.info(f"Created package {name}")

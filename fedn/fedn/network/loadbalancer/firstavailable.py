@@ -1,6 +1,8 @@
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.loadbalancer.loadbalancerbase import LoadBalancerBase
 
 
+@trace_all_methods
 class LeastPacked(LoadBalancerBase):
     """ Load balancer that selects the first available combiner.
 

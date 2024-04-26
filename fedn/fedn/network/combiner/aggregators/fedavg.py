@@ -1,7 +1,9 @@
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
+@trace_all_methods
 class Aggregator(AggregatorBase):
     """ Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.

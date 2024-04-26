@@ -5,6 +5,7 @@
 #
 #
 import enum
+import sys
 
 import requests
 
@@ -111,13 +112,21 @@ class ConnectorClient:
             return Status.UnAuthorized, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
-            if retval.json()['status'] == 'retry':
-                if 'message' in retval.json():
-                    reason = retval.json()['message']
-                else:
-                    reason = "Reducer was not ready. Try again later."
+            try:
+                if retval.json()['status'] == 'retry':
+                    if 'message' in retval.json():
+                        reason = retval.json()['message']
+                    else:
+                        reason = "Reducer was not ready. Try again later."
 
-                return Status.TryAgain, reason
+                    return Status.TryAgain, reason
+            except requests.exceptions.JSONDecodeError as err:
+                logger.error("Response from controller was not JSON: {}".format(err))
+                logger.error("Response was: {}".format(retval.text))
+                sys.exit(1)
+            except Exception as e:
+                logger.error("Error: {}".format(e))
+                sys.exit(1)
 
             reducer_package = retval.json()['package']
             if reducer_package != self.package:

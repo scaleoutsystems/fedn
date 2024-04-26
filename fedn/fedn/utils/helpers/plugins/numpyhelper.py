@@ -1,9 +1,11 @@
 
 import numpy as np
 
+from fedn.common.telemetry import trace_all_methods
 from fedn.utils.helpers.helperbase import HelperBase
 
 
+@trace_all_methods
 class Helper(HelperBase):
     """ FEDn helper class for models weights/parameters that can be transformed to numpy ndarrays. """
 

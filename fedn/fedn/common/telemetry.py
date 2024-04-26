@@ -53,11 +53,12 @@ def initialize_tracer():
 
     telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'telemetry.fedn.scaleoutsystems.com')
     telemetry_port = os.getenv("FEDN_TELEMETRY_PORT", 6831)
+    telemetry_service_name = os.getenv("FEDN_TELEMETRY_SERVICE_NAME", "FEDn")
 
     # Configure the tracer to report data to Jaeger
     trace.set_tracer_provider(
         TracerProvider(
-            resource=Resource.create({SERVICE_NAME: "FEDn"})
+            resource=Resource.create({SERVICE_NAME: telemetry_service_name})
         )
     )
 
@@ -76,7 +77,7 @@ def initialize_tracer():
 
 
 def get_context():
-    battery = psutil.sensors_battery()
+    # battery = psutil.sensors_battery()
     context = {
                 "fedn": {
                     "version": "0.9.1",
@@ -87,10 +88,10 @@ def get_context():
                     "available_memory": psutil.virtual_memory().available,
                     "total_disk_space": psutil.disk_usage('/').total,
                     "available_disk_space": psutil.disk_usage('/').free,
-                    "battery": {
-                        "percent": battery.percent if battery else None,
-                        "plugged_in": battery.power_plugged if battery else None,
-                    }
+                    # "battery": {
+                    #     "percent": battery.percent if battery else None,
+                    #     "plugged_in": battery.power_plugged if battery else None,
+                    # }
                 },
                 "platform": {
                     "system": platform.system(),
@@ -108,12 +109,12 @@ def get_context():
 
 # Initialize tracer
 tracer = initialize_tracer()
-# try:
-#     with tracer.start_as_current_span("initialize_tracer") as span:
-#         context = get_context()
-#         span.set_attribute("context", str(context))
-# except Exception as e:
-#     logger.error("Failed to initialize tracer: {}".format(e))
+try:
+    with tracer.start_as_current_span("initialize_tracer") as span:
+        context = get_context()
+        span.set_attribute("context", str(context))
+except Exception as e:
+    logger.error("Failed to initialize tracer: {}".format(e))
 
 
 def trace_all_methods(cls):
@@ -132,10 +133,3 @@ def trace_all_methods(cls):
             # Set the decorated method back on the class
             setattr(cls, key, traced_method(method))
     return cls
-
-
-def trace_module_functions(module):
-    for attribute_name in dir(module):
-        attribute = getattr(module, attribute_name)
-        if callable(attribute):
-            setattr(module, attribute_name, tracer.start_as_current_span(attribute.__name__)(attribute))

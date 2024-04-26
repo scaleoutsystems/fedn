@@ -3,8 +3,10 @@ import queue
 from abc import ABC, abstractmethod
 
 import fedn.common.net.grpc.fedn_pb2 as fedn
+from fedn.common.telemetry import trace_all_methods
 
 
+@trace_all_methods
 class Aggregator(ABC):
     """ Abstract class defining an aggregator. """
 

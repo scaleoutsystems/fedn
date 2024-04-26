@@ -7,9 +7,11 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
 
+@trace_all_methods
 class Plot:
     """
 

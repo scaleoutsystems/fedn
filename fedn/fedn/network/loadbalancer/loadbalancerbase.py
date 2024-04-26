@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
+from fedn.common.telemetry import trace_all_methods
 
+
+@trace_all_methods
 class LoadBalancerBase(ABC):
     """ Abstract base class for load balancers.
 

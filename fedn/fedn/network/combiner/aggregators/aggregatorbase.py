@@ -4,10 +4,12 @@ import queue
 from abc import ABC, abstractmethod
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods, tracer
 
 AGGREGATOR_PLUGIN_PATH = "fedn.network.combiner.aggregators.{}"
 
 
+@trace_all_methods
 class AggregatorBase(ABC):
     """ Abstract class defining an aggregator.
 
@@ -136,6 +138,7 @@ class AggregatorBase(ABC):
         return state
 
 
+@tracer.start_as_current_span(name="get_aggregator")
 def get_aggregator(aggregator_module_name, storage, server, modelservice, control):
     """ Return an instance of the helper class.
 

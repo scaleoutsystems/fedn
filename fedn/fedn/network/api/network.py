@@ -1,12 +1,14 @@
 import base64
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 
 __all__ = 'Network',
 
 
+@trace_all_methods
 class Network:
     """ FEDn network interface. This class is used to interact with the network.
         Note: This class contain redundant code, which is not used in the current version of FEDn.

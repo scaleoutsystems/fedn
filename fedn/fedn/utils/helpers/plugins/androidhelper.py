@@ -5,9 +5,11 @@ import tempfile
 import numpy as np
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.utils.helpers.helperbase import HelperBase
 
 
+@trace_all_methods
 class Helper(HelperBase):
     """FEDn helper class for android json model weights."""
 

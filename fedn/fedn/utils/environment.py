@@ -17,12 +17,14 @@ limitations under the License.
 """
 import yaml
 
+from fedn.common.telemetry import trace_all_methods
 from fedn.utils import PYTHON_VERSION
 
 _REQUIREMENTS_FILE_NAME = "requirements.txt"
 _PYTHON_ENV_FILE_NAME = "python_env.yaml"
 
 
+@trace_all_methods
 class _PythonEnv:
     BUILD_PACKAGES = ("pip", "setuptools", "wheel")
 

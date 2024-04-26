@@ -5,9 +5,11 @@ from minio.error import InvalidResponseError
 from urllib3.poolmanager import PoolManager
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.storage.s3.base import RepositoryBase
 
 
+@trace_all_methods
 class MINIORepository(RepositoryBase):
     """ Class implementing Repository for MinIO. """
 

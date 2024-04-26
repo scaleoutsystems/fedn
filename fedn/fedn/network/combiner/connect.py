@@ -10,6 +10,7 @@ import os
 import requests
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 
 
 class Status(enum.Enum):
@@ -21,6 +22,7 @@ class Status(enum.Enum):
     UnMatchedConfig = 4
 
 
+@trace_all_methods
 class ConnectorCombiner:
     """ Connector for annnouncing combiner to the FEDn network.
 

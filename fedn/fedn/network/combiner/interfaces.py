@@ -8,12 +8,14 @@ import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.telemetry import trace_all_methods
 
 
 class CombinerUnavailableError(Exception):
     pass
 
 
+@trace_all_methods
 class Channel:
     """ Wrapper for a gRPC channel.
 
@@ -59,6 +61,7 @@ class Channel:
         return copy.copy(self.channel)
 
 
+@trace_all_methods
 class CombinerInterface:
     """ Interface for the Combiner (aggregation server).
         Abstraction on top of the gRPC server servicer.

@@ -6,9 +6,11 @@ import pymongo
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
 
+@trace_all_methods
 class MongoStateStore:
     """Statestore implementation using MongoDB.
 

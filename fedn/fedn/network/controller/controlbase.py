@@ -5,6 +5,7 @@ from time import sleep
 
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
@@ -26,6 +27,7 @@ class MisconfiguredHelper(Exception):
     pass
 
 
+@trace_all_methods
 class ControlBase(ABC):
     """Base class and interface for a global controller.
         Override this class to implement a global training strategy (control).

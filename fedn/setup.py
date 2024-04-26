@@ -29,6 +29,9 @@ setup(
         "pyyaml",
         "plotly",
         "virtualenv",
+        "opentelemetry-api",
+        "opentelemetry-sdk",
+        "opentelemetry-exporter-jaeger",
     ],
     extras_require={
         'flower': ["flwr==1.8.0"]

@@ -1,9 +1,11 @@
 import uuid
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.storage.s3.miniorepository import MINIORepository
 
 
+@trace_all_methods
 class Repository:
     """ Interface for storing model objects and compute packages in S3 compatible storage. """
 

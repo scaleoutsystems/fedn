@@ -3,11 +3,13 @@ from io import BytesIO
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
 
 
+@trace_all_methods
 class TempModelStorage(ModelStorage):
     """ Class for managing local temporary models on file on combiners."""
 

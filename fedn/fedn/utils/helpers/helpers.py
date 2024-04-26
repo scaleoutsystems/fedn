@@ -1,9 +1,12 @@
 import importlib
 import json
 
+from fedn.common.telemetry import tracer
+
 HELPER_PLUGIN_PATH = "fedn.utils.helpers.plugins.{}"
 
 
+@tracer.start_as_current_span(name="get_helper")
 def get_helper(helper_module_name):
     """ Return an instance of the helper class.
 
@@ -17,6 +20,7 @@ def get_helper(helper_module_name):
     return helper.Helper()
 
 
+@tracer.start_as_current_span("save_metadata")
 def save_metadata(metadata, filename):
     """ Save metadata to file.
 
@@ -29,6 +33,7 @@ def save_metadata(metadata, filename):
         json.dump(metadata, outfile)
 
 
+@tracer.start_as_current_span("save_metrics")
 def save_metrics(metrics, filename):
     """ Save metrics to file.
 

@@ -27,7 +27,7 @@ from pathlib import Path
 import yaml
 
 from fedn.common.log_config import logger
-from fedn.common.telemetry import trace_all_methods, trace_module_functions
+from fedn.common.telemetry import trace_all_methods, tracer
 from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
 from fedn.utils.process import _exec_cmd, _join_commands
@@ -35,6 +35,7 @@ from fedn.utils.process import _exec_cmd, _join_commands
 _IS_UNIX = os.name != "nt"
 
 
+@tracer.start_as_current_span("remove_on_error")
 @contextmanager
 def remove_on_error(path: os.PathLike, onerror=None):
     """A context manager that removes a file or directory if an exception is raised during
@@ -53,6 +54,7 @@ def remove_on_error(path: os.PathLike, onerror=None):
         raise
 
 
+@tracer.start_as_current_span("_install_python")
 def _install_python(version, pyenv_root=None, capture_output=False):
     """Installs a specified version of python with pyenv and returns a path to the installed python
     binary.
@@ -60,6 +62,7 @@ def _install_python(version, pyenv_root=None, capture_output=False):
     raise NotImplementedError("This function is not implemented yet.")
 
 
+@tracer.start_as_current_span("_is_virtualenv_available")
 def _is_virtualenv_available():
     """
     Returns True if virtualenv is available, otherwise False.
@@ -67,6 +70,7 @@ def _is_virtualenv_available():
     return shutil.which("virtualenv") is not None
 
 
+@tracer.start_as_current_span("_validate_virtualenv_is_available")
 def _validate_virtualenv_is_available():
     """
     Validates virtualenv is available. If not, throws an `Exception` with a brief instruction
@@ -79,6 +83,7 @@ def _validate_virtualenv_is_available():
         )
 
 
+@tracer.start_as_current_span("_get_virtualenv_extra_env_vars")
 def _get_virtualenv_extra_env_vars(env_root_dir=None):
     extra_env = {
         # PIP_NO_INPUT=1 makes pip run in non-interactive mode,
@@ -88,6 +93,7 @@ def _get_virtualenv_extra_env_vars(env_root_dir=None):
     return extra_env
 
 
+@tracer.start_as_current_span("_get_python_env")
 def _get_python_env(python_env_file):
     """
     Parses a python environment file and returns a dictionary with the parsed content.
@@ -96,6 +102,7 @@ def _get_python_env(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)
 
 
+@tracer.start_as_current_span("_create_virtualenv")
 def _create_virtualenv(
     python_bin_path, env_dir, python_env, extra_env=None, capture_output=False
 ):
@@ -136,6 +143,7 @@ def _create_virtualenv(
     return activate_cmd
 
 
+@tracer.start_as_current_span("_read_yaml_file")
 def _read_yaml_file(file_path):
     try:
         cfg = None
@@ -267,6 +275,3 @@ class Dispatcher:
         except IndexError:
             message = "No such argument or configuration to run."
             logger.error(message)
-
-
-trace_module_functions(sys.modules[__name__])

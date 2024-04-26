@@ -5,6 +5,7 @@ import time
 import uuid
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
                                                 serialize_model_to_BytesIO)
@@ -15,6 +16,7 @@ class ModelUpdateError(Exception):
     pass
 
 
+@trace_all_methods
 class RoundHandler:
     """ Round handler.
 

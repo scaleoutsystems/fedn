@@ -12,7 +12,10 @@ from flwr.common.recordset_compat import (evaluateins_to_recordset,
                                           recordset_to_fitres,
                                           recordset_to_getparametersres)
 
+from fedn.common.telemetry import trace_all_methods
 
+
+@trace_all_methods
 class FlwrClientAppAdapter:
     """Flwr ClientApp wrapper."""
 

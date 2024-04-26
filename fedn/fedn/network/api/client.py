@@ -2,9 +2,12 @@ import os
 
 import requests
 
+from fedn.common.telemetry import trace_all_methods
+
 __all__ = ['APIClient']
 
 
+@trace_all_methods
 class APIClient:
     """ An API client for interacting with the statestore and controller.
 

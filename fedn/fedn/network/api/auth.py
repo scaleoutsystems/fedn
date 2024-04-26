@@ -7,8 +7,10 @@ from fedn.common.config import (FEDN_AUTH_SCHEME,
                                 FEDN_AUTH_WHITELIST_URL_PREFIX,
                                 FEDN_JWT_ALGORITHM, FEDN_JWT_CUSTOM_CLAIM_KEY,
                                 FEDN_JWT_CUSTOM_CLAIM_VALUE, SECRET_KEY)
+from fedn.common.telemetry import tracer
 
 
+@tracer.start_as_current_span(name="check_role_claims")
 def check_role_claims(payload, role):
     if 'role' not in payload:
         return False
@@ -18,6 +20,7 @@ def check_role_claims(payload, role):
     return True
 
 
+@tracer.start_as_current_span(name="check_custom_claims")
 def check_custom_claims(payload):
     if FEDN_JWT_CUSTOM_CLAIM_KEY and FEDN_JWT_CUSTOM_CLAIM_VALUE:
         if payload[FEDN_JWT_CUSTOM_CLAIM_KEY] != FEDN_JWT_CUSTOM_CLAIM_VALUE:
@@ -25,6 +28,7 @@ def check_custom_claims(payload):
     return True
 
 
+@tracer.start_as_current_span(name="if_whitelisted_url_prefix")
 def if_whitelisted_url_prefix(path):
     if FEDN_AUTH_WHITELIST_URL_PREFIX and path.startswith(FEDN_AUTH_WHITELIST_URL_PREFIX):
         return True
@@ -32,6 +36,7 @@ def if_whitelisted_url_prefix(path):
         return False
 
 
+@tracer.start_as_current_span(name="jwt_auth_required")
 def jwt_auth_required(role=None):
     def actual_decorator(func):
         if not SECRET_KEY:

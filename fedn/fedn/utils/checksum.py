@@ -1,6 +1,9 @@
 import hashlib
 
+from fedn.common.telemetry import tracer
 
+
+@tracer.start_as_current_span(name="sha")
 def sha(fname):
     """ Calculate the sha256 checksum of a file. Used for computing checksums of compute packages.
 

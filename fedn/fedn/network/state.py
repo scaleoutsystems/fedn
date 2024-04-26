@@ -1,5 +1,7 @@
 from enum import Enum
 
+from fedn.common.telemetry import tracer
+
 
 class ReducerState(Enum):
     """ Enum for representing the state of a reducer."""
@@ -9,6 +11,7 @@ class ReducerState(Enum):
     monitoring = 4
 
 
+@tracer.start_as_current_span(name="ReducerStateToString")
 def ReducerStateToString(state):
     """ Convert ReducerState to string.
 
@@ -29,6 +32,7 @@ def ReducerStateToString(state):
     return "UNKNOWN"
 
 
+@tracer.start_as_current_span(name="StringToReducerState")
 def StringToReducerState(state):
     """ Convert string to ReducerState.
 

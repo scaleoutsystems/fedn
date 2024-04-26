@@ -7,6 +7,7 @@ from tenacity import (retry, retry_if_exception_type, stop_after_delay,
                       wait_random)
 
 from fedn.common.log_config import logger
+from fedn.common.telemetry import trace_all_methods
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.modelservice import load_model_from_BytesIO
 from fedn.network.controller.controlbase import ControlBase
@@ -67,6 +68,7 @@ class CombinersNotDoneException(Exception):
         super().__init__(self.message)
 
 
+@trace_all_methods
 class Control(ControlBase):
     """Controller, implementing the overall global training, validation and inference logic.
 
