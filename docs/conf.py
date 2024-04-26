@@ -12,7 +12,7 @@ copyright = '2021, Scaleout Systems AB'
 author = 'Scaleout Systems AB'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9.0'
+release = '0.9.1'
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -23,7 +23,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
+    'sphinx_code_tabs'
 ]
 
 # The master toctree document.

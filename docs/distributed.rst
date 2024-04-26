@@ -1,13 +1,13 @@
-Distributed deployment
-======================
+Self-managed distributed deployment
+===================================
 
 This tutorial outlines the steps for deploying the FEDn framework over a **local network**, using a single workstation or laptop as 
-the host, and different devices as clients. For general steps on how to run FEDn, see one of the quickstart tutorials. 
+the host for the servier-side components, and other hosts or devices as clients. For general steps on how to run FEDn, see the quickstart tutorials. 
 
 
 .. note::
    For a secure and production-grade deployment solution over **public networks**, explore the FEDn Studio service at 
-   **studio.scaleoutsystems.com**. 
+   **fedn.scaleoutsystems.com**. 
    
    Alternatively follow this tutorial substituting the hosts local IP with your public IP, open the neccesary 
    ports (see which ports are used in docker-compose.yaml), and ensure you have taken additional neccesary security 

@@ -12,7 +12,8 @@ echo "Combiner logs"
 docker logs "$(basename $PWD)-combiner-1"
           
 echo "Client 1 logs"
-docker logs "$(basename $PWD)-client-1"
-
-echo "Client 2 logs"
-docker logs "$(basename $PWD)-client-2"
+if [ "$example" == "mnist-keras" ]; then
+    docker logs "$(basename $PWD)-client-1"
+else
+    docker logs "$(basename $PWD)-client1-1"
+fi

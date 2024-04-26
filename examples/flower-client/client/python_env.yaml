@@ -7,5 +7,5 @@ dependencies:
   - torch==2.2.1
   - torchvision==0.17.1
   - fire==0.3.1
-  - fedn[flower]==0.9.0b2
+  - fedn[flower]==0.9.0
   - flwr-datasets[vision]==0.1.0

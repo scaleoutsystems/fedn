@@ -133,7 +133,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('clients'), params=_params, verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('clients/'), params=_params, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -168,7 +168,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('combiners'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('combiners/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -236,7 +236,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('models'), params=_params, verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('models/'), params=_params, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -263,7 +263,7 @@ class APIClient:
         _headers = self.headers.copy()
         _headers['X-Limit'] = "1"
 
-        response = requests.get(self._get_url_api_v1('models'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('models/'), verify=self.verify, headers=_headers)
         _json = response.json()
 
         if "result" in _json and len(_json["result"]) > 0:
@@ -362,7 +362,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('packages'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('packages/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -467,7 +467,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('rounds'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('rounds/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -515,7 +515,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('sessions'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('sessions/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -665,7 +665,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('statuses'), params=_params, verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('statuses/'), params=_params, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -759,7 +759,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('validations'), params=_params, verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('validations/'), params=_params, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
