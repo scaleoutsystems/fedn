@@ -35,7 +35,7 @@ class Aggregator(AggregatorBase):
         self.m = None
 
         # Server side default hyperparameters. Note that these may need fine tuning.
-        self.default_params = {
+        self.default_parameters = {
             'serveropt': 'adam',
             'learning_rate': 1e-3,
             'beta1': 0.9,
@@ -43,7 +43,7 @@ class Aggregator(AggregatorBase):
             'tau': 1e-4,
         }
 
-    def combine_models(self, helper=None, delete_models=True, params=None):
+    def combine_models(self, helper=None, delete_models=True, parameters=None):
         """Compute pseudo gradients using model updates in the queue.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
@@ -54,24 +54,24 @@ class Aggregator(AggregatorBase):
         :type max_nr_models: int, optional
         :param delete_models: Delete models from storage after aggregation, defaults to True
         :type delete_models: bool, optional
-        :param params: Additional key-word arguments.
-        :type params: dict
+        :param parameters: Additional key-word arguments.
+        :type parameters: dict
         :return: The global model and metadata
         :rtype: tuple
         """
 
-        params = ast.literal_eval(params)
+        parameters = ast.literal_eval(parameters)
         data = {}
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
 
         # Override default hyperparameters:
-        if params:
-            for key, value in self.default_params.items():
-                if key not in params:
-                    params[key] = value
+        if parameters:
+            for key, value in self.default_parameters.items():
+                if key not in parameters:
+                    parameters[key] = value
         else:
-            params = self.default_params
+            parameters = self.default_parameters
 
         model = None
         nr_aggregated_models = 0
@@ -114,12 +114,12 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        if params['serveropt'] == 'adam':
-            model = self.serveropt_adam(helper, pseudo_gradient, model_old, params)
-        elif params['serveropt'] == 'yogi':
-            model = self.serveropt_yogi(helper, pseudo_gradient, model_old, params)
-        elif params['serveropt'] == 'adagrad':
-            model = self.serveropt_adagrad(helper, pseudo_gradient, model_old, params)
+        if parameters['serveropt'] == 'adam':
+            model = self.serveropt_adam(helper, pseudo_gradient, model_old, parameters)
+        elif parameters['serveropt'] == 'yogi':
+            model = self.serveropt_yogi(helper, pseudo_gradient, model_old, parameters)
+        elif parameters['serveropt'] == 'adagrad':
+            model = self.serveropt_adagrad(helper, pseudo_gradient, model_old, parameters)
         else:
             logger.error("Unsupported server optimizer passed to FedOpt.")
             return
@@ -129,7 +129,7 @@ class Aggregator(AggregatorBase):
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data
 
-    def serveropt_adam(self, helper, pseudo_gradient, model_old, params):
+    def serveropt_adam(self, helper, pseudo_gradient, model_old, parameters):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
@@ -138,15 +138,15 @@ class Aggregator(AggregatorBase):
         :type pseudo_gradient: As defined by helper.
         :param model_old: The current global model.
         :type model_old: As defined in helper.
-        :param params: Hyperparamters for the aggregator.
-        :type params: dict
+        :param parameters: Hyperparamters for the aggregator.
+        :type parameters: dict
         :return: new model weights.
         :rtype: as defined by helper.
         """
-        beta1 = params['beta1']
-        beta2 = params['beta2']
-        learning_rate = params['learning_rate']
-        tau = params['tau']
+        beta1 = parameters['beta1']
+        beta2 = parameters['beta2']
+        learning_rate = parameters['learning_rate']
+        tau = parameters['tau']
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
@@ -165,7 +165,7 @@ class Aggregator(AggregatorBase):
 
         return model
 
-    def serveropt_yogi(self, helper, pseudo_gradient, model_old, params):
+    def serveropt_yogi(self, helper, pseudo_gradient, model_old, parameters):
         """ Server side optimization, FedYogi.
 
         :param helper: instance of helper class.
@@ -174,16 +174,16 @@ class Aggregator(AggregatorBase):
         :type pseudo_gradient: As defined by helper.
         :param model_old: The current global model.
         :type model_old: As defined in helper.
-        :param params: Hyperparamters for the aggregator.
-        :type params: dict
+        :param parameters: Hyperparamters for the aggregator.
+        :type parameters: dict
         :return: new model weights.
         :rtype: as defined by helper.
         """
 
-        beta1 = params['beta1']
-        beta2 = params['beta2']
-        learning_rate = params['learning_rate']
-        tau = params['tau']
+        beta1 = parameters['beta1']
+        beta2 = parameters['beta2']
+        learning_rate = parameters['learning_rate']
+        tau = parameters['tau']
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
@@ -204,7 +204,7 @@ class Aggregator(AggregatorBase):
 
         return model
 
-    def serveropt_adagrad(self, helper, pseudo_gradient, model_old, params):
+    def serveropt_adagrad(self, helper, pseudo_gradient, model_old, parameters):
         """ Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
@@ -213,15 +213,15 @@ class Aggregator(AggregatorBase):
         :type pseudo_gradient: As defined by helper.
         :param model_old: The current global model.
         :type model_old: As defined in helper.
-        :param params: Hyperparamters for the aggregator.
-        :type params: dict
+        :param parameters: Hyperparamters for the aggregator.
+        :type parameters: dict
         :return: new model weights.
         :rtype: as defined by helper.
         """
 
-        beta1 = params['beta1']
-        learning_rate = params['learning_rate']
-        tau = params['tau']
+        beta1 = parameters['beta1']
+        learning_rate = parameters['learning_rate']
+        tau = parameters['tau']
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
