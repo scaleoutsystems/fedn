@@ -333,7 +333,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
                 # If client has changed status, update statestore
-                if status == "offline":
+                if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
             else:
