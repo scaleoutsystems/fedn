@@ -53,15 +53,15 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     if _url:
         return f'{_url}/api/{API_VERSION}/{endpoint}'
 
-    _protocol = protocol or os.environ.get('FEDN_PROTOCOL') or CONTROLLER_DEFAULTS['protocol']
-    _host = host or os.environ.get('FEDN_HOST') or CONTROLLER_DEFAULTS['host']
-    _port = port or os.environ.get('FEDN_PORT') or CONTROLLER_DEFAULTS['port']
+    _protocol = protocol or os.environ.get('FEDN_CONTROLLER_PROTOCOL') or CONTROLLER_DEFAULTS['protocol']
+    _host = host or os.environ.get('FEDN_CONTROLLER_HOST') or CONTROLLER_DEFAULTS['host']
+    _port = port or os.environ.get('FEDN_CONTROLLER_PORT') or CONTROLLER_DEFAULTS['port']
 
     return f'{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}'
 
 
 def get_token(token: str) -> str:
-    _token = token or os.environ.get("FEDN_TOKEN", None)
+    _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     if _token is None:
         return None
