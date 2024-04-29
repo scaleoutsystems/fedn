@@ -11,8 +11,12 @@ class Aggregator(AggregatorBase):
 
     Implmentation following: https://arxiv.org/pdf/2003.00295.pdf
 
-    Aggregate pseudo gradients computed by subtracting the model
-    update from the global model weights from the previous round.
+    This aggregator computes pseudo gradients by subtracting the model
+    update from the global model weights from the previous round. 
+    A server-side scheme is then applied, currenty supported schemes 
+    are "adam", "yogi", "adagrad".
+
+
 
     :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
     :type id: str
