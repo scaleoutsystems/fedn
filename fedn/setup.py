@@ -31,7 +31,6 @@ setup(
         "virtualenv",
         "opentelemetry-api",
         "opentelemetry-sdk",
-        "opentelemetry-exporter-jaeger",
         "opentelemetry-exporter-otlp",
     ],
     extras_require={
