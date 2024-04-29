@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from fedn.common.exceptions import InvalidParameterError
@@ -7,21 +6,20 @@ from fedn.utils.parameters import Parameters
 
 class TestHelpers(unittest.TestCase):
 
-    # Test an invalid paramter name
-
     def test_parameters_invalidkey(self):
 
         parameters = {
             'serverop': 'adam',
             'learning_rate': 1e-3,
         }
+        param = Parameters(parameters)
 
         parameter_schema = {
             'serveropt': str,
             'learning_rate': float,
         }
 
-        self.assertRaises(InvalidParameterError, Parameters.validate_parameters, parameters, parameter_schema)
+        self.assertRaises(InvalidParameterError, param.validate_parameters, parameter_schema)
 
     def test_parameters_valid(self):
 
@@ -33,6 +31,8 @@ class TestHelpers(unittest.TestCase):
             'tau': 1e-4,
         }
 
+        param = Parameters(parameters)
+
         parameter_schema = {
             'serveropt': str,
             'learning_rate': float,
@@ -41,7 +41,7 @@ class TestHelpers(unittest.TestCase):
             'tau': float,
         }
 
-        self.assertTrue(Parameters.validate_parameters(parameters, parameter_schema))
+        self.assertTrue(param.validate_parameters(parameter_schema))
 
     def test_parameters_invalid(self):
 
@@ -52,6 +52,7 @@ class TestHelpers(unittest.TestCase):
             'beta2': 0.99,
             'tau': 1e-4,
         }
+        param = Parameters(parameters)
 
         parameter_schema = {
             'serveropt': str,
@@ -61,7 +62,7 @@ class TestHelpers(unittest.TestCase):
             'tau': float,
         }
 
-        self.assertRaises(InvalidParameterError, Parameters.validate_parameters, parameters, parameter_schema)
+        self.assertRaises(InvalidParameterError, param.validate_parameters, parameter_schema)
 
 
 if __name__ == '__main__':
