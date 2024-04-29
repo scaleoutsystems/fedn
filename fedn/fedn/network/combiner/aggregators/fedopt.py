@@ -1,6 +1,7 @@
 import ast
 import math
 
+from fedn.common.exceptions import InvalidParameterError
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
@@ -34,15 +35,6 @@ class Aggregator(AggregatorBase):
         self.v = None
         self.m = None
 
-        # Server side default hyperparameters. Note that these may need fine tuning.
-        self.default_parameters = {
-            'serveropt': 'adam',
-            'learning_rate': 1e-3,
-            'beta1': 0.9,
-            'beta2': 0.99,
-            'tau': 1e-4,
-        }
-
     def combine_models(self, helper=None, delete_models=True, parameters=None):
         """Compute pseudo gradients using model updates in the queue.
 
@@ -73,13 +65,35 @@ class Aggregator(AggregatorBase):
             'tau': float,
         }
 
-        # Override default hyperparameters:
+        try:
+            parameters.validate(parameter_schema)
+        except InvalidParameterError as e:
+            logger.error("Aggregator {} recieved invalid parameters. Reason {}".format(self.name, e))
+            return None, data
+
+        # Default hyperparameters. Note that these may need fine tuning.
+        default_parameters = {
+            'serveropt': 'adam',
+            'learning_rate': 1e-3,
+            'beta1': 0.9,
+            'beta2': 0.99,
+            'tau': 1e-4,
+        }
+
+        # Validate parameters
         if parameters:
-            for key, value in self.default_parameters.items():
-                if key not in parameters:
-                    parameters[key] = value
+            try:
+                parameters.validate(parameter_schema)
+            except InvalidParameterError as e:
+                logger.error("Aggregator {} recieved invalid parameters. Reason {}".format(self.name, e))
+                return None, data
         else:
             parameters = self.default_parameters
+
+        # Override missing paramters with defaults
+        for key, value in default_parameters.items():
+            if key not in parameters:
+                parameters[key] = value
 
         model = None
         nr_aggregated_models = 0
