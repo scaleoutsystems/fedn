@@ -19,7 +19,7 @@ class TestHelpers(unittest.TestCase):
             'learning_rate': float,
         }
 
-        self.assertRaises(InvalidParameterError, param.validate_parameters, parameter_schema)
+        self.assertRaises(InvalidParameterError, param.validate, parameter_schema)
 
     def test_parameters_valid(self):
 
@@ -41,7 +41,7 @@ class TestHelpers(unittest.TestCase):
             'tau': float,
         }
 
-        self.assertTrue(param.validate_parameters(parameter_schema))
+        self.assertTrue(param.validate(parameter_schema))
 
     def test_parameters_invalid(self):
 
@@ -62,7 +62,7 @@ class TestHelpers(unittest.TestCase):
             'tau': float,
         }
 
-        self.assertRaises(InvalidParameterError, param.validate_parameters, parameter_schema)
+        self.assertRaises(InvalidParameterError, param.validate, parameter_schema)
 
 
 if __name__ == '__main__':
