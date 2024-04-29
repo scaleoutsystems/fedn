@@ -108,6 +108,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 logger.info(response)
                 logger.info("Status.UnMatchedConfig")
                 sys.exit("Exiting: Missing config")
+            else:
+                logger.info("Status.Unassigned")
+                time.sleep(5)
 
         cert = announce_config['certificate']
         key = announce_config['key']

@@ -32,6 +32,7 @@ setup(
         "opentelemetry-api",
         "opentelemetry-sdk",
         "opentelemetry-exporter-jaeger",
+        "opentelemetry-exporter-otlp",
     ],
     extras_require={
         'flower': ["flwr==1.8.0"]

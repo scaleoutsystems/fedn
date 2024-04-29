@@ -4,6 +4,7 @@ import platform
 import psutil
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -62,15 +63,24 @@ def initialize_tracer():
         )
     )
 
+    print(telemetry_server)
+    print(telemetry_port)
     # Set up the Jaeger exporter
-    jaeger_exporter = JaegerExporter(
-        agent_host_name=telemetry_server,
-        agent_port=telemetry_port,
+    # jaeger_exporter = JaegerExporter(
+    #     # agent_host_name=telemetry_server,
+    #     collector_endpoint=f"http://{telemetry_server}:{telemetry_port}/api/traces",
+    #     # agent_port=telemetry_port,
+    # )
+
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="http://localhost:4317",  # Default OTLP port for Jaeger, adjust as needed
+        insecure=True  # Use this only if you are not setting up TLS/SSL
     )
+
 
     # Attach the exporter to the tracer provider
     trace.get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(jaeger_exporter)
+        BatchSpanProcessor(otlp_exporter)
     )
 
     return trace.get_tracer(__name__)
