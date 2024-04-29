@@ -5,7 +5,7 @@ Aggregators
 
 Overview
 ---------
-Aggregators are respobsible for combining client model updates into a combiner-level global model. 
+Aggregators are responsible for combining client model updates into a combiner-level global model. 
 During a training session, the combiners will instantiate an Aggregator and use it to process the incoming model updates from clients.
 
 .. image:: img/aggregators.png
