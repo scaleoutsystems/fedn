@@ -52,8 +52,8 @@ def initialize_tracer():
     else:
         logger.info("Telemetry enabled. Disable by setting FEDN_TELEMETRY=false")
 
-    telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'telemetry.fedn.scaleoutsystems.com')
-    telemetry_port = os.getenv("FEDN_TELEMETRY_PORT", 6831)
+    telemetry_server = os.getenv("FEDN_TELEMETRY_SERVER", 'https://telemetry.fedn.scaleoutsystems.com')
+    telemetry_port = os.getenv("FEDN_TELEMETRY_PORT", 443)
     telemetry_service_name = os.getenv("FEDN_TELEMETRY_SERVICE_NAME", "FEDn")
 
     # Configure the tracer to report data to Jaeger
@@ -63,20 +63,9 @@ def initialize_tracer():
         )
     )
 
-    print(telemetry_server)
-    print(telemetry_port)
-    # Set up the Jaeger exporter
-    # jaeger_exporter = JaegerExporter(
-    #     # agent_host_name=telemetry_server,
-    #     collector_endpoint=f"http://{telemetry_server}:{telemetry_port}/api/traces",
-    #     # agent_port=telemetry_port,
-    # )
-
     otlp_exporter = OTLPSpanExporter(
-        endpoint="http://localhost:4317",  # Default OTLP port for Jaeger, adjust as needed
-        insecure=True  # Use this only if you are not setting up TLS/SSL
+        endpoint=f"{telemetry_server}:{telemetry_port}",  # Default OTLP port for Jaeger, adjust as needed
     )
-
 
     # Attach the exporter to the tracer provider
     trace.get_tracer_provider().add_span_processor(
@@ -87,7 +76,6 @@ def initialize_tracer():
 
 
 def get_context():
-    # battery = psutil.sensors_battery()
     context = {
                 "fedn": {
                     "version": "0.9.1",
@@ -98,10 +86,6 @@ def get_context():
                     "available_memory": psutil.virtual_memory().available,
                     "total_disk_space": psutil.disk_usage('/').total,
                     "available_disk_space": psutil.disk_usage('/').free,
-                    # "battery": {
-                    #     "percent": battery.percent if battery else None,
-                    #     "plugged_in": battery.power_plugged if battery else None,
-                    # }
                 },
                 "platform": {
                     "system": platform.system(),
