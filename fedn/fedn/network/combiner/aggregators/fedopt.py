@@ -54,16 +54,24 @@ class Aggregator(AggregatorBase):
         :type max_nr_models: int, optional
         :param delete_models: Delete models from storage after aggregation, defaults to True
         :type delete_models: bool, optional
-        :param parameters: Additional key-word arguments.
-        :type parameters: dict
+        :param parameters: Aggregator hyperparameters.
+        :type parameters: `fedn.utils.parmeters.Parameters`, optional
         :return: The global model and metadata
         :rtype: tuple
         """
 
-        parameters = ast.literal_eval(parameters)
         data = {}
         data['time_model_load'] = 0.0
         data['time_model_aggregation'] = 0.0
+
+        # Define parameter schema
+        parameter_schema = {
+            'serveropt': str,
+            'learning_rate': float,
+            'beta1': float,
+            'beta2': float,
+            'tau': float,
+        }
 
         # Override default hyperparameters:
         if parameters:

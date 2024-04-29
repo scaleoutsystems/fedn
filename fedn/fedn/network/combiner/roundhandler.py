@@ -1,3 +1,4 @@
+import ast
 import queue
 import random
 import sys
@@ -9,6 +10,7 @@ from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
                                                 serialize_model_to_BytesIO)
 from fedn.utils.helpers.helpers import get_helper
+from fedn.utils.parameters import Parameters
 
 
 class ModelUpdateError(Exception):
@@ -174,7 +176,8 @@ class RoundHandler:
                 delete_models = False
 
             if "aggregator_kwargs" in config.keys():
-                parameters = config['aggregator_kwargs']
+                dict_parameters = ast.literal_eval(config['aggregator_kwargs'])
+                parameters = Parameters(dict_parameters)
             else:
                 parameters = None
 
