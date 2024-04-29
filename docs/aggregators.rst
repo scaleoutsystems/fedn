@@ -71,7 +71,7 @@ Several additional parameters that guide general behavior of the aggregation flo
 - Whether to retain or delete model update files after they have been processed (default is to delete them)
 
 
-Extending FEDn with new aggregators
+Extending FEDn with new Aggregators
 -----------------------------------
 
 A developer can extend FEDn with his/her own Aggregator(s) by implementing the interface specified in 
