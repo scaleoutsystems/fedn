@@ -91,6 +91,7 @@ class Aggregator(AggregatorBase):
                 logger.error("Aggregator {} recieved invalid parameters. Reason {}".format(self.name, e))
                 return None, data
         else:
+            logger.info("Aggregator {} using default parameteres.", format(self.name))
             parameters = self.default_parameters
 
         # Override missing paramters with defaults
