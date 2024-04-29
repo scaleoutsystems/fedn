@@ -67,7 +67,6 @@ Several additional parameters that guide general behavior of the aggregation flo
 - Buffer size: The maximal allowed length of the queue before processing it.
 - Whether to retain or delete model update files after they have been processed (default is to delete them)
 
-See API documenation for 
 
 Extending FEDn with new aggregators
 -----------------------------------
