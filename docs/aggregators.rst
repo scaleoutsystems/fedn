@@ -62,7 +62,10 @@ Training sessions can be configured to use a given aggregator. For example, to u
 
 .. note:: 
 
-   The parameters ``aggregator_kwargs``
+   The parameter ``aggregator_kwargs`` are hyperparameters for the FedOpt family aggregators. The
+   data types for these parameters (str, float) are validated by the aggregator and an error 
+   will be issued if passing parameter values of incompatible type. All hyperparameters are 
+   given above for completeness. It is primarily the ``learning_rate`` that will require tuning.
 
 Several additional parameters that guide general behavior of the aggregation flow can be configured: 
 
