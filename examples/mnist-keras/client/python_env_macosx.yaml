@@ -1,0 +1,10 @@
+name: mnist-keras
+build_dependencies:
+  - pip
+  - setuptools
+  - wheel==0.37.1
+dependencies:
+  - tensorflow-macos
+  - tensorflow-metal 
+  - fire==0.3.1
+  - fedn==0.9.0b2

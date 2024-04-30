@@ -1,5 +1,10 @@
+python_env: python_env.yaml
 entry_points:
+  build:
+    command: python model.py
+  startup:
+    command: python data.py
   train:
-    command: /venv/bin/python entrypoint train $ENTRYPOINT_OPTS
+    command: python train.py
   validate:
-    command: /venv/bin/python entrypoint validate $ENTRYPOINT_OPTS
+    command: python validate.py

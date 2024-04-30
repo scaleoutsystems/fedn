@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+:root {
+    --scaleout-black: #191919;
+    --scaleout-black-rgb: 25, 25, 25;
+    --scaleout-red: #E0746D;
+    --scaleout-red-rgb: 224, 116, 109;
+    --scaleout-yellow: #EBD886;
+    --scaleout-yellow-rgb: 235, 216, 134;
+    --scaleout-green: #81B967;
+    --scaleout-green-rgb: 129, 185, 103;
+    --scaleout-white: #FFFFFF;
+    --scaleout-white-rgb: 255, 255, 255;
+    --scaleout-grey-1: #F8F8F8;
+    --scaleout-grey-1-rgb: 248, 248, 248;
+    --scaleout-grey-2: #F2F5F9;
+    --scaleout-grey-2-rgb: 242, 245, 249;
+    --scaleout-grey-3: #F2F6F5;
+    --scaleout-grey-3-rg: 242, 246, 245;
+    --scaleout-grey-4: #FEFAE9;
+    --scaleout-grey-4-rgb: 254, 250, 233;
+    --scaleout-grey-5: #F6EDE4;
+    --scaleout-grey-5-rgb: 246, 237, 228;
+    --scaleout-grey-6: #DDDDDD;
+    --scaleout-grey-6-rgb: 221, 221, 221;
+}
+
+body {
+    font-family: "Manrope", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+}
+
+a {
+    color: var(--scaleout-black);
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+
+a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 1px;
+    background: #000;
+    transition: width .4s;
+}
+
+.wy-side-scroll a::after,
+a.image-reference::after {
+    content: none;
+    transition: none;
+}
+
+a:hover::after,
+a:focus::after,
+a.active::after {
+    width: 100%;
+}
+
+a:hover,
+a:visited {
+    color: var(--scaleout-black);
+}
+
+.rst-content .toctree-wrapper>p.caption,
+span.caption-text,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+legend {
+    margin-top: 0;
+    font-weight: 500;
+    font-family: Manrope, Roboto Slab, ff-tisa-web-pro, Georgia, Arial, sans-serif;
+    color: var(--scaleout-black);
+}
+
+.wy-menu-vertical a:hover {
+    background-color: var(--scaleout-white);
+    cursor: pointer;
+}
+
+.wy-menu-vertical a {
+    color: var(--scaleout-black);
+    display: inline-block;
+}
+
+.rst-content .toctree-wrapper ul li.toctree-l1>a {
+    font-weight: 500;
+}
+
+.wy-menu-vertical li.current a:hover {
+    background: var(--scaleout-white);
+}
+
+a.reference.internal {
+    width: fit-content;
+}
+
+.caption-text {
+    opacity: 0.5;
+    font-weight: 900 !important;
+}
+
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4>a {
+    background: none !important;
+}

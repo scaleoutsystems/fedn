@@ -17,23 +17,17 @@ jobs:
         to_test:
           - "mnist-keras numpyhelper"
           - "mnist-pytorch numpyhelper"
-        python_version: ["3.8", "3.9","3.10"]
+        python_version: ["3.8","3.9","3.10", "3.11"]
         os:
-          - ubuntu-20.04
           - ubuntu-22.04
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python_version }}
-
-      - name: configure ${{ matrix.to_test }}
-        run: |
-          echo 'BASE_IMG=python:${{ matrix.python_version }}-slim' > .env 
-          .ci/tests/examples/configure.sh ${{ matrix.to_test }}
       
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: init venv
         run: .devcontainer/bin/init_venv.sh
@@ -22,7 +22,9 @@ jobs:
           --exclude-dir='.mnist-pytorch' 
           --exclude-dir='.mnist-keras' 
           --exclude-dir='docs'
+          --exclude-dir='flower-client'
           --exclude='tests.py'
+          --exclude='README.rst'
           '^[ \t]+(import|from) ' -I . 
 
       # TODO: add linting/formatting for all file types

@@ -2,6 +2,7 @@ import os
 from io import BytesIO
 
 import fedn.network.grpc.fedn_pb2 as fedn
+from fedn.common.log_config import logger
 from fedn.network.storage.models.modelstorage import ModelStorage
 
 CHUNK_SIZE = 1024 * 1024
@@ -30,10 +31,10 @@ class TempModelStorage(ModelStorage):
 
         try:
             if self.models_metadata[model_id] != fedn.ModelStatus.OK:
-                print("File not ready! Try again", flush=True)
+                logger.warning("File not ready! Try again")
                 return None
         except KeyError:
-            print("No such model have been made available yet!", flush=True)
+            logger.error("No such model has been made available yet!")
             return None
 
         obj = BytesIO()
@@ -74,12 +75,12 @@ class TempModelStorage(ModelStorage):
 
         try:
             os.remove(os.path.join(self.default_dir, str(model_id)))
-            print("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id), flush=True)
+            logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
             # Delete id from metadata and models dict
             del self.models_metadata[model_id]
             del self.models[model_id]
         except FileNotFoundError:
-            print("Could not delete model from disk. File not found!", flush=True)
+            logger.error("Could not delete model from disk. File not found!")
             return False
         return True
 
@@ -90,11 +91,11 @@ class TempModelStorage(ModelStorage):
         for model_id in self.models.keys():
             try:
                 os.remove(os.path.join(self.default_dir, str(model_id)))
-                print("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id), flush=True)
+                logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
                 # Add id to list of ids to pop/delete from metadata and models dict
                 ids_pop.append(model_id)
             except FileNotFoundError:
-                print("TEMPMODELSTORAGE: Could not delete model {} from disk. File not found!".format(model_id), flush=True)
+                logger.error("TEMPMODELSTORAGE: Could not delete model {} from disk. File not found!".format(model_id))
         # Remove id from metadata and models dict
         for model_id in ids_pop:
             del self.models_metadata[model_id]

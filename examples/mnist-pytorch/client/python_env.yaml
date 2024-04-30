@@ -1,0 +1,9 @@
+name: mnist-pytorch
+build_dependencies:
+  - pip
+  - setuptools
+  - wheel==0.37.1
+dependencies:
+  - torch==2.2.1
+  - torchvision==0.17.1
+  - fedn==0.9.0

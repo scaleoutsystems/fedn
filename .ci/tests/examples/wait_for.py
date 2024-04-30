@@ -6,8 +6,8 @@ import fire
 import pymongo
 import requests
 
-RETRIES = 18
-SLEEP = 10
+RETRIES = 30
+SLEEP = 20
 
 
 def _eprint(*args, **kwargs):
@@ -68,7 +68,7 @@ def rounds(n_rounds=3):
     assert (_retry(_test_rounds, n_rounds=n_rounds))
 
 
-def clients(n_clients=2):
+def clients(n_clients=1):
     assert (_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
 
 

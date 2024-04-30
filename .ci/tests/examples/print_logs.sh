@@ -1,18 +1,19 @@
 #!/bin/bash
 echo "Minio logs"
-docker logs "$(basename $PWD)_minio_1"
+docker logs "$(basename $PWD)-minio-1"
 
 echo "Mongo logs"
-docker logs "$(basename $PWD)_mongo_1"
+docker logs "$(basename $PWD)-mongo-1"
 
 echo "API-Server logs"
-docker logs "$(basename $PWD)_api-server_1"
+docker logs "$(basename $PWD)-api-server-1"
 
 echo "Combiner logs"
-docker logs "$(basename $PWD)_combiner_1"
+docker logs "$(basename $PWD)-combiner-1"
           
 echo "Client 1 logs"
-docker logs "$(basename $PWD)_client_1"
-
-echo "Client 2 logs"
-docker logs "$(basename $PWD)_client_2"
+if [ "$example" == "mnist-keras" ]; then
+    docker logs "$(basename $PWD)-client-1"
+else
+    docker logs "$(basename $PWD)-client1-1"
+fi
