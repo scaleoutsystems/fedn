@@ -66,6 +66,7 @@ def _exec_cmd(
     """A convenience wrapper of `subprocess.Popen` for running a command from a Python script.
 
     Args:
+    ----
         cmd: The command to run, as a string or a list of strings.
         throw_on_error: If True, raises an Exception if the exit code of the program is nonzero.
         extra_env: Extra environment variables to be defined when running the child process.
@@ -81,6 +82,7 @@ def _exec_cmd(
         kwargs: Keyword arguments (except `text`) passed to `subprocess.Popen`.
 
     Returns:
+    -------
         If synchronous is True, return a `subprocess.CompletedProcess` instance,
         otherwise return a Popen instance.
 

@@ -16,15 +16,15 @@ jobs:
 
       - name: Install pypa/build
         run: python -m pip install build
-        working-directory: ./fedn
+        working-directory: ./
 
       - name: Build package
         run: python -m build
-        working-directory: ./fedn
+        working-directory: ./
 
       - name: Publish to Test PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.14
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: fedn/dist
+          packages_dir: ./dist

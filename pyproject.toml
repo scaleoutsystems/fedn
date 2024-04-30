@@ -117,6 +117,7 @@ lint.ignore = [
   "D104", # Missing docstring in public package (17)
   "ANN201", # Missing return type annotation for public function (100+)
   "ANN001", # Missing type annotation for function argument (100+)
+  "ANN205", # Missing return type annotation for staticmethod (5)
   "RET504", # Unnecessary assignment to `settings` before `return` statement (72)
   "ANN204", # Missing return type annotation for special method `__init__` (61)
   "D205", # 1 blank line required between summary line and description (100+)
