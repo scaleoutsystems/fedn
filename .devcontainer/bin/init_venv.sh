@@ -11,4 +11,4 @@ python -m venv .venv
     sphinx_press_theme==0.8.0 \
     sphinx-autobuild==2021.3.14 \
     sphinx_rtd_theme==0.5.2
-.venv/bin/pip install -e fedn
+.venv/bin/pip install -e .

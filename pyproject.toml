@@ -6,10 +6,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.8.0"
+version = "0.9.1"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
-readme = "README.md"
+readme = "README.rst"
 license = {file="LICENSE"}
 keywords = [
     "Scaleout",
@@ -36,13 +36,13 @@ dependencies = [
   "numpy>=1.21.6",
   "protobuf~=4.25.2",
   "pymongo",
-  "Flask",
+  "Flask==3.0.3",
   "pyjwt",
   "pyopenssl",
   "psutil",
-  "click==8.0.1",
+  "click==8.1.7",
   "grpcio-health-checking~=1.60.0",
-  "flasgger==0.9.5",
+  "pyyaml",
   "plotly"
 ]
 
@@ -58,7 +58,7 @@ fedn = "cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["fedn"]
 include = ["fedn*"]
 exclude = ["tests", "tests.*"]
 

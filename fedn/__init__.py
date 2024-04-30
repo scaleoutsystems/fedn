@@ -2,7 +2,7 @@ import glob
 import os
 from os.path import basename, dirname, isfile
 
-from fedn.network.api.client import APIClient
+from fedn.fedn.network.api.client import APIClient
 
 # flake8: noqa
 
