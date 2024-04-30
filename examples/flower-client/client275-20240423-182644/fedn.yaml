@@ -1,8 +1,0 @@
-python_env: python_env.yaml
-entry_points:
-  build:
-    command: python entrypoint.py init_seed
-  train:
-    command: python entrypoint.py train
-  validate:
-    command: python entrypoint.py validate
