@@ -35,6 +35,7 @@ class Aggregator(AggregatorBase):
         super().__init__(storage, server, modelservice, round_handler)
 
         self.name = "fedopt"
+        # To store momentum
         self.v = None
         self.m = None
 
@@ -148,7 +149,7 @@ class Aggregator(AggregatorBase):
             model = self.serveropt_adagrad(helper, pseudo_gradient, model_old, parameters)
         else:
             logger.error("Unsupported server optimizer passed to FedOpt.")
-            return
+            return None, data
 
         data['nr_aggregated_models'] = nr_aggregated_models
 

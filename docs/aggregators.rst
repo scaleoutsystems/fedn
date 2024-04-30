@@ -86,17 +86,15 @@ A developer can extend FEDn with his/her own Aggregator(s) by implementing the i
 **on_model_update**
 
 The ``on_model_update`` callback recieves the model update messages from clients (including all metadata) and can be used to perform validation and 
-potential transformation of the model update before it is places on the aggregation queue (see image above). 
-The base class implements a default callback that checks that all metadata assumed by the aggregation algorithms FedAvg and FedOpt 
-is available. The callback could also be used to implement custom pre-processing and additional checks including strategies 
+potential transformation of the model update before it is placed on the aggregation queue (see image above). 
+The base class implements a default callback that checks that all metadata assumed by the aggregation algorithms FedAvg and FedOpt is available. The callback could also be used to implement custom pre-processing and additional checks including strategies 
 to filter out updates that are suspected to be corrupted or malicious. 
 
 **combine_models**
 
 When a certain criteria is met, e.g. if all clients have sent updates, or the round has times out, the ``combine_model_update`` method 
 processes the model update queue, producing an aggregated model. This is the main extension point where the
-numerical details of the aggregation scheme is implemented. The best way to understand how to implement this method
-is to study the built-in aggregation algorithms: 
+numerical details of the aggregation scheme is implemented. The best way to understand how to implement this method is to study the built-in aggregation algorithms: 
 
 - :py:mod:`fedn.network.combiner.aggregators.fedavg` (weighted average of parameters)
 - :py:mod:`fedn.network.combiner.aggregators.fedopt` (compute pseudo-gradients and apply a server-side optmizer)
