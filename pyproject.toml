@@ -52,7 +52,7 @@ documentation = 'https://fedn.readthedocs.io/en/stable/'
 repository = 'https://github.com/scaleoutsystems/fedn'
 
 [project.scripts]
-fedn = "cli:main"
+fedn = "fedn.cli:main"
 
 [tool.setuptools]
 include-package-data = true
