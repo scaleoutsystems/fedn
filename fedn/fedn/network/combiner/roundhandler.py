@@ -1,3 +1,4 @@
+import ast
 import queue
 import random
 import sys
@@ -9,6 +10,7 @@ from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
                                                 serialize_model_to_BytesIO)
 from fedn.utils.helpers.helpers import get_helper
+from fedn.utils.parameters import Parameters
 
 
 class ModelUpdateError(Exception):
@@ -172,8 +174,16 @@ class RoundHandler:
                 delete_models = True
             else:
                 delete_models = False
+
+            if "aggregator_kwargs" in config.keys():
+                dict_parameters = ast.literal_eval(config['aggregator_kwargs'])
+                parameters = Parameters(dict_parameters)
+            else:
+                parameters = None
+
             model, data = self.aggregator.combine_models(helper=helper,
-                                                         delete_models=delete_models)
+                                                         delete_models=delete_models,
+                                                         parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
 

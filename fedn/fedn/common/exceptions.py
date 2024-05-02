@@ -4,3 +4,7 @@ class ModelError(BaseException):
 
 class InvalidClientConfig(BaseException):
     pass
+
+
+class InvalidParameterError(BaseException):
+    pass
