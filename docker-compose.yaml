@@ -72,13 +72,13 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app
+      - ${HOST_REPO_DIR:-.}:/app
     depends_on:
       - minio
       - mongo
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/python fedn/fedn/network/api/server.py"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/python fedn/network/api/server.py"
     ports:
       - 8092:8092
 
@@ -94,7 +94,7 @@ services:
         GRPC_HEALTH_PROBE_VERSION: v0.4.24
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app
+      - ${HOST_REPO_DIR:-.}:/app
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
@@ -124,7 +124,7 @@ services:
         BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app
+      - ${HOST_REPO_DIR:-.}:/app
     entrypoint: [ "sh", "-c" ]
     command:
       - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn run client --init config/settings-client.yaml"
