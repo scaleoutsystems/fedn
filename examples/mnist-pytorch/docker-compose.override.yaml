@@ -3,8 +3,7 @@ version: '3.4'
 
 # Overriding requirements
 
-x-env:
-  &defaults
+x-env: &defaults
   GET_HOSTS_FROM: dns
   FEDN_PACKAGE_EXTRACT_DIR: package
   FEDN_NUM_DATA_SPLITS: 2
@@ -21,7 +20,7 @@ services:
     deploy:
       replicas: 1
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/fedn:/app
 
   client2:
     extends:
@@ -33,4 +32,4 @@ services:
     deploy:
       replicas: 1
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/fedn:/app
