@@ -113,9 +113,9 @@ Create the compute package and seed model as explained above. Then run the follo
 
 This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. You can verify the deployment using these urls:
 
--  `API Server: <http://localhost:5000>`__
--  `Minio: <http://localhost:9000>`__
--  `Mongo Express: <http://localhost:27017>`__
+- API Server: http://localhost:8092/get_controller_status
+- Minio: http://localhost:9000
+- Mongo Express: http://localhost:8081
 
 
 Upload the package and seed model to FEDn controller using the APIClient:
