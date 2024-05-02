@@ -2,5 +2,5 @@ data
 *.npz
 *.tgz
 *.tar.gz
-.mnist-pytorch
+.huggingface_env
 client.yaml

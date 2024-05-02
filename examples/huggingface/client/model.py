@@ -1,7 +1,7 @@
 import collections
 
 import torch
-from transformers import DistilBertForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 
 from fedn.utils.helpers.helpers import get_helper
 
@@ -9,13 +9,13 @@ HELPER_MODULE = 'numpyhelper'
 helper = get_helper(HELPER_MODULE)
 
 
-def compile_model(base_model="distilbert-base-uncased"):
+def compile_model(base_model="google/bert_uncased_L-2_H-128_A-2"):
     """ Compile the pytorch model.
 
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
-    model = DistilBertForSequenceClassification.from_pretrained(base_model)
+    model = AutoModelForSequenceClassification.from_pretrained("google/bert_uncased_L-2_H-128_A-2", num_labels=2)
     return model
 
 

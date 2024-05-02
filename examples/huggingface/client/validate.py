@@ -4,9 +4,8 @@ import sys
 import torch
 from data import load_data
 from model import load_parameters, save_parameters
-from transformers import DistilBertTokenizerFast
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from torch.utils.data import DataLoader
-from transformers import AdamW
 
 from fedn.utils.helpers.helpers import save_metrics
 
@@ -14,7 +13,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-class IMDbDataset(torch.utils.data.Dataset):
+class SpamDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
         self.encodings = encodings
         self.labels = labels
@@ -25,7 +24,13 @@ class IMDbDataset(torch.utils.data.Dataset):
         return item
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.labels) 
+    
+
+def preprocess(text):
+    text = text.lower()
+    text = text.replace("\n", " ")
+    return text
     
 
 def validate(in_model_path, out_json_path, data_path=None):
@@ -39,24 +44,33 @@ def validate(in_model_path, out_json_path, data_path=None):
     :type data_path: str
     """
     # Load data
-    _, _, test_texts, test_labels = load_data(data_path)
+    X_train, y_train = load_data(data_path, is_train=True)
+    X_test, y_test = load_data(data_path, is_train=False)
 
+    # preprocess
+    X_test = [preprocess(text) for text in X_test]
+    X_train = [preprocess(text) for text in X_train]
 
-    # encode
-    tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-    test_encodings = tokenizer(test_texts, truncation=True, padding=True)
-    test_dataset = IMDbDataset(test_encodings, test_labels)
+    # test dataset
+    tokenizer = AutoTokenizer.from_pretrained("google/bert_uncased_L-2_H-128_A-2")
+    train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
+    test_encodings = tokenizer(X_test, truncation=True, padding="max_length", max_length=512)
+    train_dataset = SpamDataset(train_encodings, y_train)
+    test_dataset = SpamDataset(test_encodings, y_test)
 
     # Load model
     model = load_parameters(in_model_path)
     model.eval()
 
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    criterion = torch.nn.CrossEntropyLoss()
 
     with torch.no_grad():
         correct = 0
+        total_loss = 0
         total = 0
         for batch in test_loader:
             input_ids = batch['input_ids'].to(device)
@@ -65,16 +79,46 @@ def validate(in_model_path, out_json_path, data_path=None):
             
             outputs = model(input_ids, attention_mask=attention_mask)
             _, predicted = torch.max(outputs.logits, dim=1) # index of the max logit
+            
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            print("correct: ", correct)
+            loss = criterion(outputs.logits, labels)
+            total_loss += loss.item() * labels.size(0)
 
-    accuracy = correct / total
-    print(f'Accuracy: {accuracy * 100:.2f}%')
+    test_accuracy = correct / total
+    print(f'Accuracy: {test_accuracy * 100:.2f}%')
+
+    test_loss = total_loss / total
+    print("test loss: ", test_loss)
+
+    with torch.no_grad():
+        correct = 0
+        total_loss = 0
+        total = 0
+        for batch in train_loader:
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            
+            outputs = model(input_ids, attention_mask=attention_mask)
+            _, predicted = torch.max(outputs.logits, dim=1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            loss = criterion(outputs.logits, labels)
+            total_loss += loss.item() * labels.size(0)
+    train_accuracy = correct / total
+    print(f'Accuracy: {train_accuracy * 100:.2f}%')
+    
+    train_loss = total_loss / total
+    print("train loss: ", train_loss)
 
     # JSON schema
     report = {
-        "test_accuracy": accuracy
+        "training_loss": train_loss,
+        "training_accuracy": train_accuracy,
+        "test_loss": test_loss, 
+        "test_accuracy": test_accuracy
     }
 
     # Save JSON

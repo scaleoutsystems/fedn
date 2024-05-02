@@ -5,7 +5,7 @@ import sys
 import torch
 from data import load_data
 from model import load_parameters, save_parameters
-from transformers import DistilBertTokenizerFast
+from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from transformers import AdamW
 
@@ -16,7 +16,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-class IMDbDataset(torch.utils.data.Dataset):
+class SpamDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
         self.encodings = encodings
         self.labels = labels
@@ -27,8 +27,12 @@ class IMDbDataset(torch.utils.data.Dataset):
         return item
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.labels) 
     
+def preprocess(text):
+    text = text.lower()
+    text = text.replace("\n", " ")
+    return text
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1, lr=5e-5):
     """ Complete a model update.
@@ -51,12 +55,15 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     :type lr: float
     """
     # Load data
-    train_texts, train_labels, _, _ = load_data(data_path)
+    X_train, y_train = load_data(data_path, is_train=True)
+
+    # preprocess
+    X_train = [preprocess(text) for text in X_train]
 
     # encode
-    tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-    train_encodings = tokenizer(train_texts, truncation=True, padding=True)
-    train_dataset = IMDbDataset(train_encodings, train_labels)
+    tokenizer = AutoTokenizer.from_pretrained("google/bert_uncased_L-2_H-128_A-2")
+    train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
+    train_dataset = SpamDataset(train_encodings, y_train)
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
@@ -68,15 +75,18 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     optim = AdamW(model.parameters(), lr=lr)
-
+    loss_fn = torch.nn.CrossEntropyLoss()
+    
     for epoch in range(epochs):
         for batch in train_loader:
             optim.zero_grad()
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
-            outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
-            loss = outputs[0]
+
+            outputs = model(input_ids, attention_mask)
+
+            loss = loss_fn(outputs.logits, labels)
             print(loss)
             loss.backward()
             optim.step()
