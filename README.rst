@@ -77,8 +77,8 @@ FEDn Studio Deployment options
 
 Several hosting options are available to suit different project settings.
 
--  `Public cloud (multi-tenant SaaS) <https://fedn.scaleoutsystems.com>`__: Use a Scaleout managed multi-tenant deployment in public cloud. 
--   Dedicated cloud (single-tenant SaaS): Scaleout-managed, dedicated deployment in a cloud region of your choice (AWS, GCP, Azure, managed Kubernetes) 
+-  `Public cloud (multi-tenant) <https://fedn.scaleoutsystems.com>`__: Managed multi-tenant deployment in public cloud. 
+-   Dedicated cloud (single-tenant): Managed, dedicated deployment in a cloud region of your choice (AWS, GCP, Azure, managed Kubernetes) 
 -   Self-managed: Set up a self-managed deployment in your VPC or on-premise Kubernets cluster using Helm Chart and container images provided by Scaleout. 
 
 Contact the Scaleout team for information.
