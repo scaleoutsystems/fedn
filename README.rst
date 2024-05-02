@@ -30,53 +30,58 @@ We develop the FEDn framework following these core design principles:
 Features
 =========
 
-Federated machine learning: 
+Core FL framework (this repository): 
 
-- Support for any ML framework (e.g. PyTorch, Tensforflow/Keras and Scikit-learn)
+- Tiered federated learning architecture enabling massive scalability and resilience. 
+- Support for any ML framework (examples for PyTorch, Tensforflow/Keras and Scikit-learn)
 - Extendable via a plug-in architecture (aggregators, load balancers, object storage backends, databases  etc.)
 - Built-in federated algorithms (FedAvg, FedAdam, FedYogi, FedAdaGrad, etc.)
-- CLI and Python API client for running FEDn networks and coordinating experiments. 
+- CLI and Python API.
 - Implement clients in any language (Python, C++, Kotlin etc.)
 - No open ports needed client-side.
+- Flexible deployment of server-side components using Docker / docker compose.   
 
 
 FEDn Studio - From development to FL in production: 
 
--  Leverage Scaleout's free managed service for development and testing in real-world scenarios (SaaS).      
--  Token-based authentication (JWT) and role-based access control (RBAC) for FL clients.  
--  REST API and UI. 
--  Data science dashboard for orchestrating experiments and visualizing results.
--  Admin dashboard for managing the FEDn network and users/clients.
--  View extensive logging and tracing information. 
--  Collaborate with other data-scientists on the project specification in a shared workspace. 
--  Cloud or on-premise deployment (cloud-native design, deploy to any Kubernetes cluster)
+-  Secure deployment of server-side / control-plane on Kubernetes.
+-  UI with dashboards for orchestrating experiments and visualizing results
+-  Team features - collaborate with other users in shared project workspaces. 
+-  Features for the trusted-third party: Manage access to the FL network, FL clients and training progress.
+-  REST API for handling experiments/jobs. 
+-  View and export logging and tracing information. 
+-  Public cloud, dedicated cloud and on-premise deployment options. 
 
 
 Getting started
 ============================
 
-The best way to get started is to take the quickstart tutorial: 
+Get started with FEDn in two steps:  
 
-- `Quickstart <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
+1. Sign up for a `Free FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
+2. Take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
+
+FEDn Studio (SaaS) is free for academic use and personal development / small-scale testing and exploration. For users and teams requiring
+additional project resources, dedicated support or other hosting options, `explore our plans <https://www.scaleoutsystems.com/start#pricing>`__.  
 
 Documentation
 =============
 
-More details about the architecture, deployment, and how to develop your own application and framework extensions (such as custom aggregators) are found in the documentation:
+More details about the architecture, deployment, and how to develop your own application and framework extensions are found in the documentation:
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 
 
-Running your project in FEDn Studio (SaaS or on-premise)
-========================================================
+FEDn Studio Deployment options
+==============================
 
-The FEDn Studio SaaS is free for development, testing and research (one project per user, backend compute resources sized for dev/test):   
+Several hosting options are available to suit different project settings.
 
-- `Register for a free account in FEDn Studio <https://fedn.scaleoutsystems.com/signup/>`__
-- `Take the tutorial to deploy your project on FEDn Studio <https://fedn.readthedocs.io/en/stable/studio.html>`__  
+-  `Public cloud (multi-tenant SaaS) <https://fedn.scaleoutsystems.com>`__: Use a Scaleout managed multi-tenant deployment in public cloud. 
+-   Dedicated cloud (single-tenant SaaS): Scaleout-managed, dedicated deployment in a cloud region of your choice (AWS, GCP, Azure, managed Kubernetes) 
+-   Self-managed: Set up a self-managed deployment in your VPC or on-premise Kubernets cluster using Helm Chart and container images provided by Scaleout. 
 
-Scaleout can also support users to scale up experiments and demonstrators on Studio, by granting custom resource quotas. Additonally, charts are available for self-managed deployment on-premise or in your cloud VPC (all major cloud providers). Contact the Scaleout team for more information.
-
+Contact the Scaleout team for information.
 
 Support
 =================
@@ -84,7 +89,7 @@ Support
 Community support in available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
-Options are available for `Enterprise support <https://www.scaleoutsystems.com/start#pricing>`__.
+Options are available for `Dedicated/custom support <https://www.scaleoutsystems.com/start#pricing>`__.
 
 Making contributions
 ====================
@@ -114,4 +119,4 @@ License
 FEDn is licensed under Apache-2.0 (see `LICENSE <LICENSE>`__ file for
 full information).
 
-Use of FEDn Studio (SaaS) is subject to the `Terms of Use <https://www.scaleoutsystems.com/terms>`__.
+Use of FEDn Studio is subject to the `Terms of Use <https://www.scaleoutsystems.com/terms>`__.
