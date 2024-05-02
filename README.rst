@@ -86,7 +86,7 @@ Contact the Scaleout team for information.
 Support
 =================
 
-Community support in available in our `Discord
+Community support is available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
 Options are available for `Dedicated/custom support <https://www.scaleoutsystems.com/start#pricing>`__.
