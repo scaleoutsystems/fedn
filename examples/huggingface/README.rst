@@ -1,5 +1,5 @@
 Hugging Face Transformer Example
------------------------------
+--------------------------------
 
 This is an example project that demonstrates how one can make use of the Hugging Face Transformers library in FEDn.
 In this example, a pre-trained BERT-tiny model from Hugging Face is fine-tuned to perform spam detection 
@@ -62,10 +62,6 @@ This will create a seed model called 'seed.npz' in the root of the project. This
 
 Using FEDn Studio (recommended)
 -------------------------------
--------------------------------
-
-Setting up the project in FEDn Studio:
---------------------------------------
 
 Follow the instructions to register for FEDN Studio and start a project (https://fedn.readthedocs.io/en/stable/studio.html).
 
@@ -85,11 +81,12 @@ To connect a client, run the following command in your terminal:
 Alternatively, if you prefer to use Docker, run the following:
 
 .. code-block::
-    docker run \
-    -v $PWD/client.yaml:/app/client.yaml \
-    -e CLIENT_NUMBER=0 \
-    -e FEDN_PACKAGE_EXTRACT_DIR=package \
-    ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --secure=True --force-ssl
+
+   docker run \
+   -v $PWD/client.yaml:/app/client.yaml \
+   -e CLIENT_NUMBER=0 \
+   -e FEDN_PACKAGE_EXTRACT_DIR=package \
+   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --secure=True --force-ssl
 
 
 Running the example
@@ -102,7 +99,6 @@ will execute. You can follow the training progress on 'Events' and 'Models', whe
 
 Running FEDn in local development mode:
 ---------------------------------------
----------------------------------------
 
 Create the compute package and seed model as explained above. Then run the following command:
 
@@ -110,9 +106,9 @@ Create the compute package and seed model as explained above. Then run the follo
 .. code-block::
 
    docker-compose \
- -f ../../docker-compose.yaml \
- -f docker-compose.override.yaml \
- up
+   -f ../../docker-compose.yaml \
+   -f docker-compose.override.yaml \
+   up
 
 
 This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. You can verify the deployment using these urls:
@@ -146,6 +142,6 @@ You can clean up by running
 .. code-block::
 
    docker-compose \
- -f ../../docker-compose.yaml \
- -f docker-compose.override.yaml \
- down -v
+   -f ../../docker-compose.yaml \
+   -f docker-compose.override.yaml \
+   down -v
