@@ -20,7 +20,7 @@ services:
     deploy:
       replicas: 1
     volumes:
-      - ${HOST_REPO_DIR:-.}:/app
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
 
   client2:
     extends:
@@ -32,4 +32,4 @@ services:
     deploy:
       replicas: 1
     volumes:
-      - ${HOST_REPO_DIR:-.}:/app
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
