@@ -109,4 +109,3 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
 
 if __name__ == "__main__":
     train(sys.argv[1], sys.argv[2])
-    # train("../seed.npz", "../seed.npz")

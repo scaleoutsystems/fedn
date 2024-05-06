@@ -47,10 +47,10 @@ def split(out_dir='data', n_splits=2):
     y_test = test_data["label"].values
 
     # Reduce data size
-    X_train = X_train[:2000]    
-    y_train = y_train[:2000]
-    X_test = X_test[:200]
-    y_test = y_test[:200]
+    X_train = X_train[:3000]    
+    y_train = y_train[:3000]
+    X_test = X_test[:400]
+    y_test = y_test[:400]
 
     data = {
         'X_train': splitset(X_train, n_splits),
