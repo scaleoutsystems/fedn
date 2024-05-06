@@ -76,7 +76,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('clients'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('clients/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
