@@ -4,7 +4,6 @@
 import cgi
 import os
 import tarfile
-from distutils.dir_util import copy_tree
 
 import requests
 
