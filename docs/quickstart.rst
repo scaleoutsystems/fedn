@@ -34,8 +34,8 @@ Clone the FEDn repository and install the package:
 .. code-block:: bash
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/fedn
-   pip install -e .
+   cd fedn
+   pip install .
 
 It is recommended to use a virtual environment when installing FEDn.
 
