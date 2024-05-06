@@ -23,7 +23,7 @@ class PackageRuntime:
     :type package_dir: str
     """
 
-    def __init__(self, package_path, package_dir):
+    def __init__(self, package_path):
 
         self.dispatch_config = {'entry_points':
                                 {'predict': {'command': 'python3 predict.py'},
@@ -32,7 +32,6 @@ class PackageRuntime:
 
         self.pkg_path = package_path
         self.pkg_name = None
-        self.dir = package_dir
         self.checksum = None
         self.expected_checksum = None
 
@@ -132,17 +131,31 @@ class PackageRuntime:
             )
             return False
 
-        os.getcwd()
         try:
-            os.chdir(self.dir)
-
             if f:
-                f.extractall()
-                logger.info("Successfully extracted compute package content in {}".format(self.dir))
-                return True
+                f.extractall(self.pkg_path)
+                logger.info(
+                    "Successfully extracted compute package content in {}".format(
+                        self.pkg_path
+                    )
+                )
+                # delete the tarball
+                logger.info("Deleting temporary package tarball file.")
+                os.remove(os.path.join(self.pkg_path, self.pkg_name))
+                # search for file fedn.yaml in extracted package
+                for root, dirs, files in os.walk(self.pkg_path):
+                    if "fedn.yaml" in files:
+                        # Get the path to where fedn.yaml is located
+                        logger.info("Found fedn.yaml file in {}".format(root))
+                        return True, root
+
+                logger.error("No fedn.yaml file found in extracted package!")
+                return False, ""
         except Exception:
             logger.error("Error extracting files.")
-            return False
+            # delete the tarball
+            os.remove(os.path.join(self.pkg_path, self.pkg_name))
+            return False, ""
 
     def dispatcher(self, run_path):
         """ Dispatch the compute package
@@ -152,12 +165,8 @@ class PackageRuntime:
         :return: Dispatcher object
         :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
-        from_path = os.path.join(os.getcwd(), 'client')
 
-        # preserve_times=False ensures compatibility with Gramine LibOS
-        copy_tree(from_path, run_path, preserve_times=False)
-
-        self.dispatch_config = _read_yaml_file(os.path.join(run_path, 'fedn.yaml'))
+        self.dispatch_config = _read_yaml_file(os.path.join(run_path, "fedn.yaml"))
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 
         return dispatcher
