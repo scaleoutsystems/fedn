@@ -5,18 +5,17 @@ from transformers import AutoModelForSequenceClassification
 
 from fedn.utils.helpers.helpers import get_helper
 
-MODEL = "google/bert_uncased_L-2_H-128_A-2"
 HELPER_MODULE = 'numpyhelper'
 helper = get_helper(HELPER_MODULE)
 
 
-def compile_model():
+def compile_model(base_model="google/bert_uncased_L-2_H-128_A-2"):
     """ Compile the pytorch model.
 
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL, num_labels=2)
+    model = AutoModelForSequenceClassification.from_pretrained("google/bert_uncased_L-2_H-128_A-2", num_labels=2)
     return model
 
 

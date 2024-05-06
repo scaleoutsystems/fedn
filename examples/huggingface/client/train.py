@@ -11,7 +11,6 @@ from transformers import AdamW
 
 from fedn.utils.helpers.helpers import save_metadata
 
-MODEL = "google/bert_uncased_L-2_H-128_A-2"
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -62,7 +61,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     X_train = [preprocess(text) for text in X_train]
 
     # encode
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    tokenizer = AutoTokenizer.from_pretrained("google/bert_uncased_L-2_H-128_A-2")
     train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
     train_dataset = SpamDataset(train_encodings, y_train)
 
@@ -88,7 +87,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
             outputs = model(input_ids, attention_mask)
 
             loss = loss_fn(outputs.logits, labels)
-            print(loss)
             loss.backward()
             optim.step()
 
@@ -111,3 +109,4 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
 
 if __name__ == "__main__":
     train(sys.argv[1], sys.argv[2])
+    # train("../seed.npz", "../seed.npz")
