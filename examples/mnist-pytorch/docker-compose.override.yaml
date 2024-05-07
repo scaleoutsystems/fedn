@@ -3,8 +3,7 @@ version: '3.4'
 
 # Overriding requirements
 
-x-env:
-  &defaults
+x-env: &defaults
   GET_HOSTS_FROM: dns
   FEDN_PACKAGE_EXTRACT_DIR: package
   FEDN_NUM_DATA_SPLITS: 2
@@ -17,7 +16,7 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/data/clients/1/mnist.pt
+      FEDN_DATA_PATH: /app/package/client/data/clients/1/mnist.pt
     deploy:
       replicas: 1
     volumes:
@@ -29,7 +28,7 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/data/clients/2/mnist.pt
+      FEDN_DATA_PATH: /app/package/client/data/clients/2/mnist.pt
     deploy:
       replicas: 1
     volumes:

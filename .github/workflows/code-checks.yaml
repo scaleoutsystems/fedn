@@ -11,32 +11,9 @@ jobs:
 
       - name: init venv
         run: .devcontainer/bin/init_venv.sh
-      
-      - name: check Python imports
-        run: >
-          .venv/bin/isort . --check --diff 
-          --skip .venv
-          --skip .mnist-keras
-          --skip .mnist-pytorch
-          --skip .huggingface
-          --skip fedn_pb2.py
-          --skip fedn_pb2_grpc.py
 
-      - name: check Python formatting
-        run: >
-          .venv/bin/autopep8 --recursive --diff
-          --exclude .venv
-          --exclude .mnist-keras
-          --exclude .mnist-pytorch
-          --exclude .huggingface
-          --exclude fedn_pb2.py
-          --exclude fedn_pb2_grpc.py
-          .
-
-      - name: run Python linter
-        run: >
-          .venv/bin/flake8 . 
-          --exclude ".venv,.mnist-keras,.mnist-pytorch,.huggingface,fedn_pb2.py,fedn_pb2_grpc.py"
+      - name: Ruff Linting
+        uses: chartboost/ruff-action@v1
 
       - name: check for floating imports
         run: >
