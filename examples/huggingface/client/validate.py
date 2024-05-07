@@ -2,10 +2,10 @@ import os
 import sys
 
 import torch
-from data import load_data
-from model import load_parameters
 from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
+from data import load_data
+from model import load_parameters
 
 from fedn.utils.helpers.helpers import save_metrics
 

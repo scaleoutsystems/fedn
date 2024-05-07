@@ -1,7 +1,8 @@
 import os
+from math import floor
+
 import torch
 from datasets import load_dataset
-from math import floor
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
