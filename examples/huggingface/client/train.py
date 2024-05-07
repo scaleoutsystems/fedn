@@ -2,11 +2,11 @@ import os
 import sys
 
 import torch
+from data import load_data
+from model import load_parameters, save_parameters
 from torch.utils.data import DataLoader
 from transformers import AdamW, AutoTokenizer
 
-from data import load_data
-from model import load_parameters, save_parameters
 from fedn.utils.helpers.helpers import save_metadata
 
 MODEL = "google/bert_uncased_L-2_H-128_A-2"
@@ -22,7 +22,7 @@ class SpamDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-        item['labels'] = torch.tensor(self.labels[idx])
+        item["labels"] = torch.tensor(self.labels[idx])
         return item
 
     def __len__(self):
@@ -35,8 +35,10 @@ def preprocess(text):
     return text
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1, lr=5e-5):
-    """ Complete a model update.
+def train(
+    in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1, lr=5e-5
+):
+    """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
     perform a model update, and write updated paramters
@@ -63,13 +65,15 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
 
     # encode
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
-    train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
+    train_encodings = tokenizer(
+        X_train, truncation=True, padding="max_length", max_length=512
+    )
     train_dataset = SpamDataset(train_encodings, y_train)
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
 
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
     model.train()
 
@@ -81,9 +85,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     for epoch in range(epochs):
         for batch in train_loader:
             optim.zero_grad()
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
-            labels = batch['labels'].to(device)
+            input_ids = batch["input_ids"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+            labels = batch["labels"].to(device)
 
             outputs = model(input_ids, attention_mask)
 
@@ -94,10 +98,10 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        'num_examples': len(train_dataset),
-        'batch_size': batch_size,
-        'epochs': epochs,
-        'lr': lr
+        "num_examples": len(train_dataset),
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "lr": lr,
     }
 
     # Save JSON metadata file (mandatory)
