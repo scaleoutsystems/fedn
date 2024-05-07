@@ -10,9 +10,7 @@ abs_path = os.path.abspath(dir_path)
 
 def load_data(data_path=None, is_train=True):
     if data_path is None:
-        data_path = os.environ.get(
-            "FEDN_DATA_PATH", abs_path + "/data/clients/1/enron_spam.pt"
-        )
+        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/enron_spam.pt")
     data = torch.load(data_path)
     if is_train:
         X = data["X_train"]
@@ -41,10 +39,10 @@ def split(out_dir="data", n_splits=2):
     train_data = dataset["train"].to_pandas()
     test_data = dataset["test"].to_pandas()
 
-    X_train = train_data["text"].values
-    y_train = train_data["label"].values
-    X_test = test_data["text"].values
-    y_test = test_data["label"].values
+    X_train = train_data["text"].to_numpy()
+    y_train = train_data["label"].to_numpy()
+    X_test = test_data["text"].to_numpy()
+    y_test = test_data["label"].to_numpy()
 
     # Reduce data size
     X_train = X_train[:3000]
