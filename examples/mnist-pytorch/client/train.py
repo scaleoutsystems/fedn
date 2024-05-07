@@ -7,6 +7,7 @@ from data import load_data
 from model import load_parameters, save_parameters
 
 from fedn.utils.helpers.helpers import save_metadata
+from torch.utils.data import DataLoader
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -33,20 +34,18 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     :type lr: float
     """
     # Load data
-    x_train, y_train = load_data(data_path)
-
+    chunk_dataset = load_data(data_path)
+    chunk_loader = DataLoader(chunk_dataset, batch_size=batch_size, shuffle=True)
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
 
     # Train
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    n_batches = int(math.ceil(len(x_train) / batch_size))
+    n_batches = int(math.ceil(len(chunk_dataset) / batch_size))
     criterion = torch.nn.NLLLoss()
     for e in range(epochs):  # epoch loop
-        for b in range(n_batches):  # batch loop
-            # Retrieve current batch
-            batch_x = x_train[b * batch_size:(b + 1) * batch_size]
-            batch_y = y_train[b * batch_size:(b + 1) * batch_size]
+        print("start")
+        for b, (batch_x, batch_y) in enumerate(chunk_loader):
             # Train on batch
             optimizer.zero_grad()
             outputs = model(batch_x)
@@ -61,7 +60,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        'num_examples': len(x_train),
+        'num_examples': len(chunk_dataset),
         'batch_size': batch_size,
         'epochs': epochs,
         'lr': lr
