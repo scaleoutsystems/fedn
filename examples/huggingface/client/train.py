@@ -2,8 +2,8 @@ import os
 import sys
 
 import torch
-from transformers import AutoTokenizer, AdamW
 from torch.utils.data import DataLoader
+from transformers import AutoTokenizer, AdamW
 from data import load_data
 from model import load_parameters, save_parameters
 

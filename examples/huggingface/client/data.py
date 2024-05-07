@@ -4,7 +4,6 @@ from math import floor
 import torch
 from datasets import load_dataset
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 
