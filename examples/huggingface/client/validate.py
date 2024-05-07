@@ -4,9 +4,9 @@ import sys
 import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
+
 from data import load_data
 from model import load_parameters
-
 from fedn.utils.helpers.helpers import save_metrics
 
 MODEL = "google/bert_uncased_L-2_H-128_A-2"
@@ -26,14 +26,14 @@ class SpamDataset(torch.utils.data.Dataset):
         return item
 
     def __len__(self):
-        return len(self.labels) 
-    
+        return len(self.labels)
+
 
 def preprocess(text):
     text = text.lower()
     text = text.replace("\n", " ")
     return text
-    
+
 
 def validate(in_model_path, out_json_path, data_path=None):
     """ Validate model.
@@ -79,10 +79,10 @@ def validate(in_model_path, out_json_path, data_path=None):
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
-            
+
             outputs = model(input_ids, attention_mask=attention_mask)
-            _, predicted = torch.max(outputs.logits, dim=1) # index of the max logit
-            
+            _, predicted = torch.max(outputs.logits, dim=1)  # index of the max logit
+
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             loss = criterion(outputs.logits, labels)
@@ -103,7 +103,7 @@ def validate(in_model_path, out_json_path, data_path=None):
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
-            
+
             outputs = model(input_ids, attention_mask=attention_mask)
             _, predicted = torch.max(outputs.logits, dim=1)
 
@@ -111,10 +111,10 @@ def validate(in_model_path, out_json_path, data_path=None):
             correct += (predicted == labels).sum().item()
             loss = criterion(outputs.logits, labels)
             total_loss += loss.item() * labels.size(0)
-    
+
     train_accuracy = correct / total
     print(f'Accuracy: {train_accuracy * 100:.2f}%')
-    
+
     train_loss = total_loss / total
     print("train loss: ", train_loss)
 
@@ -122,7 +122,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     report = {
         "training_loss": train_loss,
         "training_accuracy": train_accuracy,
-        "test_loss": test_loss, 
+        "test_loss": test_loss,
         "test_accuracy": test_accuracy
     }
 

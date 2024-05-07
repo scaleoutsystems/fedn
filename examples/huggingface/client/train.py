@@ -3,10 +3,10 @@ import sys
 
 import torch
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, AdamW
+from transformers import AdamW, AutoTokenizer
+
 from data import load_data
 from model import load_parameters, save_parameters
-
 from fedn.utils.helpers.helpers import save_metadata
 
 MODEL = "google/bert_uncased_L-2_H-128_A-2"
@@ -26,12 +26,14 @@ class SpamDataset(torch.utils.data.Dataset):
         return item
 
     def __len__(self):
-        return len(self.labels) 
-    
+        return len(self.labels)
+
+
 def preprocess(text):
     text = text.lower()
     text = text.replace("\n", " ")
     return text
+
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1, lr=5e-5):
     """ Complete a model update.
@@ -75,7 +77,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
 
     optim = AdamW(model.parameters(), lr=lr)
     loss_fn = torch.nn.CrossEntropyLoss()
-    
+
     for epoch in range(epochs):
         for batch in train_loader:
             optim.zero_grad()
@@ -88,7 +90,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
             loss = loss_fn(outputs.logits, labels)
             loss.backward()
             optim.step()
-
 
     # Metadata needed for aggregation server side
     metadata = {

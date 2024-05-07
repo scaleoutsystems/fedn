@@ -38,14 +38,14 @@ def split(out_dir='data', n_splits=2):
     dataset = load_dataset("SetFit/enron_spam")
     train_data = dataset["train"].to_pandas()
     test_data = dataset["test"].to_pandas()
-    
+
     X_train = train_data["text"].values
     y_train = train_data["label"].values
     X_test = test_data["text"].values
     y_test = test_data["label"].values
 
     # Reduce data size
-    X_train = X_train[:3000]    
+    X_train = X_train[:3000]
     y_train = y_train[:3000]
     X_test = X_test[:500]
     y_test = y_test[:500]
@@ -68,7 +68,7 @@ def split(out_dir='data', n_splits=2):
             'X_test': data['X_test'][i],
             'y_test': data['y_test'][i],
         },
-        f'{subdir}/enron_spam.pt')
+            f'{subdir}/enron_spam.pt')
 
 
 if __name__ == '__main__':
