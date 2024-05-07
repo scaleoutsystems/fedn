@@ -24,9 +24,11 @@ def status_cmd(ctx):
 @click.pass_context
 def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of statuses
     - result: list of statuses
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='statuses')
     headers = {}

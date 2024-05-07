@@ -69,9 +69,11 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
 @click.pass_context
 def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of combiners
     - result: list of combiners
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='combiners')
     headers = {}

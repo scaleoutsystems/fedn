@@ -25,9 +25,11 @@ def round_cmd(ctx):
 @click.pass_context
 def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of rounds
     - result: list of rounds
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='rounds')
     headers = {}

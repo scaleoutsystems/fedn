@@ -25,9 +25,11 @@ def session_cmd(ctx):
 @click.pass_context
 def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of sessions
     - result: list of sessions
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='sessions')
     headers = {}

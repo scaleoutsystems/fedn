@@ -25,9 +25,11 @@ def model_cmd(ctx):
 @click.pass_context
 def list_models(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of models
     - result: list of models
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='models')
     headers = {}

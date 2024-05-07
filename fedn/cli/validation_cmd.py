@@ -24,9 +24,11 @@ def validation_cmd(ctx):
 @click.pass_context
 def list_validations(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of validations
     - result: list of validations
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='validations')
     headers = {}

@@ -52,9 +52,11 @@ def create_cmd(ctx, path, name):
 @click.pass_context
 def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """
-    return:
+    Return:
+    ------
     - count: number of packages
     - result: list of packages
+
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint='packages')
     headers = {}
