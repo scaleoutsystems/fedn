@@ -290,7 +290,8 @@ class Client:
 
     @retry(stop=stop_after_attempt(3))
     def untar_package(self, package_runtime):
-        package_runtime.unpack()
+        _, package_runpath = package_runtime.unpack()
+        return package_runpath
 
     def _initialize_dispatcher(self, config):
         """ Initialize the dispatcher for the client.
@@ -301,8 +302,8 @@ class Client:
         :type config: dict
         :return:
         """
-        if config['remote_compute_context']:
-            pr = PackageRuntime(os.getcwd(), os.getcwd())
+        if config["remote_compute_context"]:
+            pr = PackageRuntime(self.run_path)
 
             retval = None
             tries = 10
@@ -330,11 +331,11 @@ class Client:
                         logger.critical("Validation of local package failed. Client terminating.")
                         self.error_state = True
                         return
-
+            package_runpath = ""
             if retval:
-                self.untar_package(pr)
+                package_runpath = self.untar_package(pr)
 
-            self.dispatcher = pr.dispatcher(self.run_path)
+            self.dispatcher = pr.dispatcher(package_runpath)
             try:
                 logger.info("Initiating Dispatcher with entrypoint set to: startup")
                 activate_cmd = self.dispatcher._get_or_create_python_env()
