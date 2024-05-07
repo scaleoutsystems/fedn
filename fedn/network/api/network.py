@@ -145,7 +145,7 @@ class Network:
         self.statestore.update_client_status(client_data, status, role)
 
     def get_client_info(self):
-        """list available client in statestore.
+        """List available client in statestore.
 
         :return: list of client objects
         :rtype: list(ObjectId)
