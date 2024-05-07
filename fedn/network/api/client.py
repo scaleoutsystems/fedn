@@ -76,7 +76,7 @@ class APIClient:
         if n_max:
             _headers['X-Limit'] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1('clients'), verify=self.verify, headers=_headers)
+        response = requests.get(self._get_url_api_v1('clients/'), verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -563,6 +563,7 @@ class APIClient:
             self,
             id: str = None,
             aggregator: str = 'fedavg',
+            aggregator_kwargs: dict = None,
             model_id:  str = None,
             round_timeout: int = 180,
             rounds: int = 5,
@@ -600,6 +601,7 @@ class APIClient:
         response = requests.post(self._get_url('start_session'), json={
             'session_id': id,
             'aggregator': aggregator,
+            'aggregator_kwargs': aggregator_kwargs,
             'model_id': model_id,
             'round_timeout': round_timeout,
             'rounds': rounds,

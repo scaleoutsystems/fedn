@@ -34,8 +34,8 @@ Clone the FEDn repository and install the package:
 .. code-block:: bash
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/fedn
-   pip install -e .
+   cd fedn
+   pip install .
 
 It is recommended to use a virtual environment when installing FEDn.
 
@@ -114,7 +114,7 @@ For example, to split the data in 10 parts and start a client using the 8th part
 
          export FEDN_PACKAGE_EXTRACT_DIR=package
          export FEDN_NUM_DATA_SPLITS=10
-         export FEDN_DATA_PATH=package/data/clients/8/mnist.pt
+         export FEDN_DATA_PATH=./data/clients/8/mnist.pt
          fedn client start -in client.yaml --secure=True --force-ssl
 
     .. code-tab:: bash
@@ -122,7 +122,7 @@ For example, to split the data in 10 parts and start a client using the 8th part
 
          $env:FEDN_PACKAGE_EXTRACT_DIR="package"
          $env:FEDN_NUM_DATA_SPLITS=10
-         $env:FEDN_DATA_PATH="package/data/clients/8/mnist.pt"
+         $env:FEDN_DATA_PATH="./data/clients/8/mnist.pt"
          fedn run client -in client.yaml --secure=True --force-ssl
 
 

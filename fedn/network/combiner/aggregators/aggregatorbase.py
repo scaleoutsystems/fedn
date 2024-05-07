@@ -34,7 +34,7 @@ class AggregatorBase(ABC):
         self.model_updates = queue.Queue()
 
     @abstractmethod
-    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True):
+    def combine_models(self, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True, parameters=None):
         """Routine for combining model updates. Implemented in subclass.
 
         :param nr_expected_models: Number of expected models. If None, wait for all models.
@@ -47,7 +47,10 @@ class AggregatorBase(ABC):
         :type timeout: int
         :param delete_models: Delete client models after combining.
         :type delete_models: bool
-        :return: A combined model.
+        :param parameters: Additional key-word arguments.
+        :type parameters: dict
+        :return: The global model and metadata
+        :rtype: tuple
         """
         pass
 

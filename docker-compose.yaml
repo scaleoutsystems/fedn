@@ -78,7 +78,7 @@ services:
       - mongo
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/python fedn/fedn/network/api/server.py"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/python fedn/network/api/server.py"
     ports:
       - 8092:8092
 
@@ -97,7 +97,7 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn combiner start --init config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn combiner start --init config/settings-combiner.yaml"
     ports:
       - 12080:12080
     healthcheck:
@@ -127,7 +127,7 @@ services:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn client start --init config/settings-client.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn client start --init config/settings-client.yaml"
     deploy:
       replicas: 0
     depends_on:
