@@ -25,7 +25,6 @@ class Helper(HelperBase):
         :return: Updated incremental weighted average.
         :rtype: list of numpy ndarray
         """
-
         return [np.add(x, n * (y - x) / N) for x, y in zip(m1, m2)]
 
     def add(self, m1, m2, a=1.0, b=1.0):
@@ -38,7 +37,6 @@ class Helper(HelperBase):
         :return: Incremental weighted average of model weights.
         :rtype: list of ndarrays
         """
-
         return [x * a + y * b for x, y in zip(m1, m2)]
 
     def subtract(self, m1, m2, a=1.0, b=1.0):
@@ -63,7 +61,6 @@ class Helper(HelperBase):
         :return: m1/m2.
         :rtype: list of ndarrays
         """
-
         return [np.divide(x, y) for x, y in zip(m1, m2)]
 
     def multiply(self, m1, m2):
@@ -76,7 +73,6 @@ class Helper(HelperBase):
         :return: m1.*m2
         :rtype: list of ndarrays
         """
-
         return [np.multiply(x, y) for (x, y) in zip(m1, m2)]
 
     def sqrt(self, m1):
@@ -89,7 +85,6 @@ class Helper(HelperBase):
         :return: sqrt(m1)
         :rtype: list of ndarrays
         """
-
         return [np.sqrt(x) for x in m1]
 
     def power(self, m1, a):
@@ -102,7 +97,6 @@ class Helper(HelperBase):
         :return: m1.^m2
         :rtype: list of ndarrays
         """
-
         return [np.power(x, a) for x in m1]
 
     def norm(self, m):
@@ -126,7 +120,6 @@ class Helper(HelperBase):
         :return: sign(m)
         :rtype: list of ndarrays
         """
-
         return [np.sign(x) for x in m]
 
     def ones(self, m1, a):
@@ -139,7 +132,6 @@ class Helper(HelperBase):
         :return: list of numpy arrays of the same shape as m1, filled with ones.
         :rtype: list of ndarrays
         """
-
         res = []
         for x in m1:
             res.append(np.ones(np.shape(x)) * a)

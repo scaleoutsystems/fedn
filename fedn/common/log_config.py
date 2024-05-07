@@ -62,8 +62,7 @@ if REMOTE_LOG_SERVER:
 
 
 def set_log_level_from_string(level_str):
-    """
-    Set the log level based on a string input.
+    """Set the log level based on a string input.
     """
     # Mapping of string representation to logging constants
     level_mapping = {
@@ -85,8 +84,7 @@ def set_log_level_from_string(level_str):
 
 
 def set_log_stream(log_file):
-    """
-    Redirect the log stream to a specified file, if log_file is set.
+    """Redirect the log stream to a specified file, if log_file is set.
     """
     if not log_file:
         return

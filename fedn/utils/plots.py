@@ -32,7 +32,6 @@ class Plot:
     # plot metrics from DB
     def _scalar_metrics(self, metrics):
         """Extract all scalar valued metrics from a MODEL_VALIDATON."""
-
         data = json.loads(metrics["data"])
         data = json.loads(data["data"])
 
@@ -48,9 +47,7 @@ class Plot:
         return valid_metrics
 
     def create_table_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         metrics = self.status.find_one({"type": "MODEL_VALIDATION"})
         if metrics is None:
@@ -111,9 +108,7 @@ class Plot:
         return table
 
     def create_timeline_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         trace_data = []
         x = []
@@ -184,9 +179,7 @@ class Plot:
         return timeline
 
     def create_client_training_distribution(self):
-        """
-
-        :return:
+        """:return:
         """
         training = []
         for p in self.status.find({"type": "MODEL_UPDATE"}):
@@ -202,9 +195,7 @@ class Plot:
         return histogram
 
     def create_client_histogram_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         training = []
         for p in self.status.find({"type": "MODEL_UPDATE"}):
@@ -230,9 +221,7 @@ class Plot:
         return histogram_plot
 
     def create_client_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         processing = []
         upload = []
@@ -258,9 +247,7 @@ class Plot:
         return client_plot
 
     def create_combiner_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         waiting = []
         aggregation = []
@@ -292,18 +279,14 @@ class Plot:
         return combiner_plot
 
     def fetch_valid_metrics(self):
-        """
-
-        :return:
+        """:return:
         """
         metrics = self.status.find_one({"type": "MODEL_VALIDATION"})
         valid_metrics = self._scalar_metrics(metrics)
         return valid_metrics
 
     def create_box_plot(self, metric):
-        """
-
-        :param metric:
+        """:param metric:
         :return:
         """
         metrics = self.status.find_one({"type": "MODEL_VALIDATION"})
@@ -361,9 +344,7 @@ class Plot:
         return box
 
     def create_round_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         trace_data = []
         metrics = self.round_time.find_one({"key": "round_time"})
@@ -391,9 +372,7 @@ class Plot:
         return round_t
 
     def create_cpu_plot(self):
-        """
-
-        :return:
+        """:return:
         """
         metrics = self.psutil_usage.find_one({"key": "cpu_mem_usage"})
         if metrics is None:

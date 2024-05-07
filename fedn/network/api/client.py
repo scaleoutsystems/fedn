@@ -497,7 +497,6 @@ class APIClient:
         :return: Session.
         :rtype: dict
         """
-
         response = requests.get(self._get_url_api_v1(f"sessions/{id}"), self.verify, headers=self.headers)
 
         _json = response.json()

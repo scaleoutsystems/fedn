@@ -8,9 +8,7 @@ from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
 @main.group("round")
 @click.pass_context
 def round_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -23,8 +21,7 @@ def round_cmd(ctx):
 @round_cmd.command("list")
 @click.pass_context
 def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of rounds
     - result: list of rounds

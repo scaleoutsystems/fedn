@@ -79,7 +79,6 @@ def make_data(n_min=50, n_max=100):
 
 def train(in_model_path, out_model_path):
     """Train model."""
-
     # Load model
     parameters = load_parameters(in_model_path)
     model = compile_model()

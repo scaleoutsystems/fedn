@@ -8,9 +8,7 @@ from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
 @main.group("status")
 @click.pass_context
 def status_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -23,8 +21,7 @@ def status_cmd(ctx):
 @status_cmd.command("list")
 @click.pass_context
 def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of statuses
     - result: list of statuses

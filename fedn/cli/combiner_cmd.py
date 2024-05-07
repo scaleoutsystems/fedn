@@ -12,9 +12,7 @@ from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, p
 @main.group("combiner")
 @click.pass_context
 def combiner_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -33,9 +31,7 @@ def combiner_cmd(ctx):
 @click.option("-in", "--init", required=False, default=None, help="Path to configuration file to (re)init combiner.")
 @click.pass_context
 def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init):
-    """
-
-    :param ctx:
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:
@@ -76,8 +72,7 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
 @combiner_cmd.command("list")
 @click.pass_context
 def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of combiners
     - result: list of combiners

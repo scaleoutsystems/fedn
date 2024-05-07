@@ -8,7 +8,6 @@ class HelperBase(ABC):
 
     def __init__(self):
         """Initialize helper."""
-
         self.name = self.__class__.__name__
 
     @abstractmethod

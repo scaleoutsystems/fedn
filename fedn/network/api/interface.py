@@ -194,7 +194,6 @@ class API:
         :return: A json response with success or failure message.
         :rtype: :class:`flask.Response`
         """
-
         if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
             return (
                 jsonify(
@@ -307,7 +306,6 @@ class API:
         :return: All compute packages as a json response.
         :rtype: :class:`flask.Response`
         """
-
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
@@ -397,7 +395,6 @@ class API:
         :return: Success or failure boolean, message and the checksum.
         :rtype: bool, str, str
         """
-
         if name is None:
             name, message = self._get_compute_package_name()
             if name is None:
@@ -418,7 +415,6 @@ class API:
         :return: The checksum as a json object.
         :rtype: :py:class:`flask.Response`
         """
-
         success, message, sum = self._create_checksum(name)
         if not success:
             return jsonify({"success": False, "message": message}), 404
@@ -816,7 +812,6 @@ class API:
         :return: The model descendants for the given model as a json response.
         :rtype: :class:`flask.Response`
         """
-
         if model_id is None:
             return jsonify({"success": False, "message": "No model id provided."})
 
@@ -868,8 +863,7 @@ class API:
                 "combiners": combiners,
             }
             payload[id] = info
-        else:
-            return jsonify(payload)
+        return jsonify(payload)
 
     def get_round(self, round_id):
         """Get a round.
@@ -915,7 +909,6 @@ class API:
         :return: The plot data as json response.
         :rtype: :py:class:`flask.Response`
         """
-
         plot = Plot(self.control.statestore)
 
         try:
@@ -942,7 +935,6 @@ class API:
         :return: The combiners data as json response.
         :rtype: :py:class:`flask.Response`
         """
-
         response = self.statestore.list_combiners_data(combiners)
 
         arr = []

@@ -68,7 +68,6 @@ def run_client(online_for=120, name="client"):
     This is repeated for N_CYCLES.
 
     """
-
     conf = copy.deepcopy(client_config)
     conf["name"] = name
 
