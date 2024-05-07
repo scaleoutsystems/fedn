@@ -5,5 +5,5 @@ version: '3.3'
 services:
   combiner:
     volumes:
-      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}:/app
       - ${HOST_REPO_DIR:-.}/config/settings-combiner.yaml:/app/config/settings-combiner.yaml

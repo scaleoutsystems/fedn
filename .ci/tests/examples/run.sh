@@ -11,7 +11,7 @@ helper="$2"
 
 python -m venv ".$example"
 source ".$example/bin/activate"
-".$example/bin/pip" install ./fedn/ fire
+".$example/bin/pip" install . fire
 
 >&2 echo "Start FEDn"
 pushd "examples/$example"

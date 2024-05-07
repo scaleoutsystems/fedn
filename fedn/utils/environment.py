@@ -15,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import yaml
 
 from fedn.utils import PYTHON_VERSION
@@ -31,6 +32,8 @@ class _PythonEnv:
         Represents environment information for FEDn compute packages.
 
         Args:
+        ----
+            name: Name of environment. If unspecified, defaults to fedn_env
             python: Python version for the environment. If unspecified, defaults to the current
                 Python version.
             build_dependencies: List of build dependencies for the environment that must
@@ -38,15 +41,14 @@ class _PythonEnv:
                 defaults to an empty list.
             dependencies: List of dependencies for the environment. If unspecified, defaults to
                 an empty list.
+
         """
         if name is not None and not isinstance(name, str):
             raise TypeError(f"`name` must be a string but got {type(name)}")
         if python is not None and not isinstance(python, str):
             raise TypeError(f"`python` must be a string but got {type(python)}")
         if build_dependencies is not None and not isinstance(build_dependencies, list):
-            raise TypeError(
-                f"`build_dependencies` must be a list but got {type(build_dependencies)}"
-            )
+            raise TypeError(f"`build_dependencies` must be a list but got {type(build_dependencies)}")
         if dependencies is not None and not isinstance(dependencies, list):
             raise TypeError(f"`dependencies` must be a list but got {type(dependencies)}")
         self.name = name or "fedn_env"
