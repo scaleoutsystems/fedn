@@ -10,3 +10,4 @@ docs/*
 **/*.npz
 **/data
 **/*.tgz
+dist

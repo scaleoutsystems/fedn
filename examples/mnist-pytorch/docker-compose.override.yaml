@@ -3,8 +3,7 @@ version: '3.4'
 
 # Overriding requirements
 
-x-env:
-  &defaults
+x-env: &defaults
   GET_HOSTS_FROM: dns
   FEDN_PACKAGE_EXTRACT_DIR: package
   FEDN_NUM_DATA_SPLITS: 2

@@ -8,7 +8,7 @@ ARG GRPC_HEALTH_PROBE_VERSION=""
 ARG REQUIREMENTS=""
 
 # Add FEDn and default configs
-COPY fedn /app/fedn
+COPY . /app
 COPY config/settings-client.yaml.template /app/config/settings-client.yaml
 COPY config/settings-combiner.yaml.template /app/config/settings-combiner.yaml
 COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
@@ -27,6 +27,8 @@ RUN if [ ! -z "$GRPC_HEALTH_PROBE_VERSION" ]; then \
   echo "No grpc_health_probe version specified, skipping installation"; \
   fi
 
+# Setup working directory
+WORKDIR /app
 
 # Create FEDn app directory
 SHELL ["/bin/bash", "-c"]
@@ -39,7 +41,8 @@ RUN mkdir -p /app \
   # Install FEDn and requirements
   && python -m venv /venv \
   && /venv/bin/pip install --upgrade pip \
-  && /venv/bin/pip install --no-cache-dir -e /app/fedn \
+  && /venv/bin/pip install --no-cache-dir setuptools>=65 \
+  && /venv/bin/pip install --no-cache-dir -e . \
   && if [[ ! -z "$REQUIREMENTS" ]]; then \
   /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt; \
   fi \
@@ -47,6 +50,4 @@ RUN mkdir -p /app \
   # Clean up
   && rm -r /app/config/requirements.txt
 
-# Setup working directory
-WORKDIR /app
 ENTRYPOINT [ "/venv/bin/fedn" ]

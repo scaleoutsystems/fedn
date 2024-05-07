@@ -15,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import os
 import subprocess
 import sys
@@ -66,7 +67,9 @@ def _exec_cmd(
     """A convenience wrapper of `subprocess.Popen` for running a command from a Python script.
 
     Args:
+    ----
         cmd: The command to run, as a string or a list of strings.
+        cwd: The current working directory.
         throw_on_error: If True, raises an Exception if the exit code of the program is nonzero.
         extra_env: Extra environment variables to be defined when running the child process.
             If this argument is specified, `kwargs` cannot contain `env`.
@@ -81,6 +84,7 @@ def _exec_cmd(
         kwargs: Keyword arguments (except `text`) passed to `subprocess.Popen`.
 
     Returns:
+    -------
         If synchronous is True, return a `subprocess.CompletedProcess` instance,
         otherwise return a Popen instance.
 
@@ -94,9 +98,7 @@ def _exec_cmd(
         raise ValueError("`extra_env` and `env` cannot be used at the same time")
 
     if capture_output and stream_output:
-        raise ValueError(
-            "`capture_output=True` and `stream_output=True` cannot be specified at the same time"
-        )
+        raise ValueError("`capture_output=True` and `stream_output=True` cannot be specified at the same time")
 
     env = env if extra_env is None else {**os.environ, **extra_env}
 
@@ -108,9 +110,7 @@ def _exec_cmd(
 
     if capture_output or stream_output:
         if kwargs.get("stdout") is not None or kwargs.get("stderr") is not None:
-            raise ValueError(
-                "stdout and stderr arguments may not be used with capture_output or stream_output"
-            )
+            raise ValueError("stdout and stderr arguments may not be used with capture_output or stream_output")
         kwargs["stdout"] = subprocess.PIPE
         if capture_output:
             kwargs["stderr"] = subprocess.PIPE
@@ -148,7 +148,7 @@ def _exec_cmd(
 
 
 def run_process(args, cwd):
-    """ Run a process and log the output.
+    """Run a process and log the output.
 
     :param args: The arguments to the process.
     :type args: list
@@ -156,11 +156,10 @@ def run_process(args, cwd):
     :type cwd: str
     :return:
     """
-    status = subprocess.Popen(
-        args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    status = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def check_io():
-        """ Check stdout/stderr of the child process.
+        """Check stdout/stderr of the child process.
 
         :return:
         """

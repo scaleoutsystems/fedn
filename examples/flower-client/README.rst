@@ -62,7 +62,7 @@ On your local machine / client, start the FEDn client:
 
 .. code-block::
 
-   fedn run client -in client.yaml --secure=True --force-ssl
+   fedn client start -in client.yaml --secure=True --force-ssl
 
 
 Or, if you prefer to use Docker (this might take a long time):

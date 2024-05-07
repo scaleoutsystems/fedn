@@ -1,6 +1,5 @@
 import os
 import shutil
-import tarfile
 import uuid
 
 import click
@@ -12,7 +11,9 @@ from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
+from .client_cmd import validate_client_config
 from .main import main
+from .shared import apply_config
 
 
 def get_statestore_config_from_file(init):
@@ -39,40 +40,6 @@ def check_helper_config_file(config):
     return helper
 
 
-def apply_config(config):
-    """Parse client config from file.
-
-    Override configs from the CLI with settings in config file.
-
-    :param config: Client config (dict).
-    """
-    with open(config['init'], 'r') as file:
-        try:
-            settings = dict(yaml.safe_load(file))
-        except Exception:
-            logger.error('Failed to read config from settings file, exiting.')
-            return
-
-    for key, val in settings.items():
-        config[key] = val
-
-
-def validate_client_config(config):
-    """Validate client configuration.
-
-    :param config: Client config (dict).
-    """
-
-    try:
-        if config['discover_host'] is None or \
-                config['discover_host'] == '':
-            raise InvalidClientConfig("Missing required configuration: discover_host")
-        if 'discover_port' not in config.keys():
-            config['discover_port'] = None
-    except Exception:
-        raise InvalidClientConfig("Could not load config from file. Check config")
-
-
 @main.group('run')
 @click.pass_context
 def run_cmd(ctx):
@@ -81,6 +48,38 @@ def run_cmd(ctx):
     :param ctx:
     """
     pass
+
+
+@run_cmd.command('build')
+@click.option('-p', '--path', required=True, help='Path to package directory containing fedn.yaml')
+@click.pass_context
+def build_cmd(ctx, path):
+    """ Execute 'build' entrypoint in fedn.yaml.
+
+    :param ctx:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, 'fedn.yaml')
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    config = _read_yaml_file(yaml_file)
+    # Check that build is defined in fedn.yaml under entry_points
+    if 'build' not in config['entry_points']:
+        logger.error("No build command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("build")
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
 
 
 @run_cmd.command('client')
@@ -134,13 +133,28 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
               'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
               'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
+              'validator': validator, 'trainer': trainer, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
               'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat, 'verbosity': verbosity}
 
-    if init:
-        apply_config(config)
+    click.echo(
+        click.style(
+                   '\n*** fedn run client is deprecated and will be removed. Please use fedn client start instead. ***\n',
+                   blink=True,
+                   bold=True,
+                   fg='red'
+                )
+    )
 
-    validate_client_config(config)
+    if init:
+        apply_config(init, config)
+        click.echo(f'\nClient configuration loaded from file: {init}')
+        click.echo('Values set in file override defaults and command line arguments...\n')
+
+    try:
+        validate_client_config(config)
+    except InvalidClientConfig as e:
+        click.echo(f'Error: {e}')
+        return
 
     client = Client(config)
     client.run()
@@ -175,76 +189,21 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param init:
     """
     config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-              'init': init}
+              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients}
 
-    if config['init']:
-        apply_config(config)
+    click.echo(
+        click.style(
+                   '\n*** fedn run combiner is deprecated and will be removed. Please use fedn combiner start instead. ***\n',
+                   blink=True,
+                   bold=True,
+                   fg='red'
+                )
+    )
+
+    if init:
+        apply_config(init, config)
+        click.echo(f'\nCombiner configuration loaded from file: {init}')
+        click.echo('Values set in file override defaults and command line arguments...\n')
 
     combiner = Combiner(config)
     combiner.run()
-
-
-@run_cmd.command('build')
-@click.option('-p', '--path', required=True, help='Path to package directory containing fedn.yaml')
-@click.pass_context
-def build_cmd(ctx, path):
-    """ Execute 'build' entrypoint in fedn.yaml.
-
-    :param ctx:
-    :param path: Path to folder containing fedn.yaml
-    :type path: str
-    """
-    path = os.path.abspath(path)
-    yaml_file = os.path.join(path, 'fedn.yaml')
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
-
-    config = _read_yaml_file(yaml_file)
-    # Check that build is defined in fedn.yaml under entry_points
-    if 'build' not in config['entry_points']:
-        logger.error("No build command defined in fedn.yaml")
-        exit(-1)
-
-    dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
-    dispatcher.run_cmd("build")
-
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
-
-
-@main.group('package')
-@click.pass_context
-def package_cmd(ctx):
-    """
-
-    :param ctx:
-    """
-    pass
-
-
-@package_cmd.command('create')
-@click.option('-p', '--path', required=True, help='Path to package directory containing fedn.yaml')
-@click.option('-n', '--name', required=False, default='package.tgz', help='Name of package tarball')
-@click.pass_context
-def create_cmd(ctx, path, name):
-    """ Create compute package.
-
-    Make a tar.gz archive of folder given by --path
-
-    :param ctx:
-    :param path:
-    """
-    path = os.path.abspath(path)
-    yaml_file = os.path.join(path, 'fedn.yaml')
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
-
-    with tarfile.open(name, "w:gz") as tar:
-        tar.add(path, arcname=os.path.basename(path))
-        logger.info(f"Created package {name}")
