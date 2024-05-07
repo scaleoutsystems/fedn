@@ -2,5 +2,5 @@ data
 *.npz
 *.tgz
 *.tar.gz
-.huggingface_env
+.huggingface
 client.yaml

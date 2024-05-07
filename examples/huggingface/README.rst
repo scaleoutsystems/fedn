@@ -75,7 +75,7 @@ To connect a client, run the following command in your terminal:
 
 .. code-block::
 
-   fedn run client -in client.yaml --secure=True --force-ssl
+   fedn client start -in client.yaml --secure=True --force-ssl
    
 
 Alternatively, if you prefer to use Docker, run the following:
@@ -86,7 +86,7 @@ Alternatively, if you prefer to use Docker, run the following:
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
    -e FEDN_PACKAGE_EXTRACT_DIR=package \
-   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --secure=True --force-ssl
+   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 client start -in client.yaml --secure=True --force-ssl
 
 
 Running the example
