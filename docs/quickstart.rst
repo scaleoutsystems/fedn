@@ -115,7 +115,7 @@ For example, to split the data in 10 parts and start a client using the 8th part
          export FEDN_PACKAGE_EXTRACT_DIR=package
          export FEDN_NUM_DATA_SPLITS=10
          export FEDN_DATA_PATH=./data/clients/8/mnist.pt
-         fedn run client -in client.yaml --secure=True --force-ssl
+         fedn client start -in client.yaml --secure=True --force-ssl
 
     .. code-tab:: bash
          :caption: Windows (Powershell)
