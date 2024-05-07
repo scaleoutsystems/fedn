@@ -3,8 +3,7 @@ Code adapted from https://github.com/adap/flower/tree/main/examples/app-pytorch.
 """
 
 from flwr.client import ClientApp, NumPyClient
-from flwr_task import (DEVICE, Net, get_weights, load_data, set_weights, test,
-                       train)
+from flwr_task import DEVICE, Net, get_weights, load_data, set_weights, test, train
 
 
 # Define FlowerClient and client_fn
@@ -12,9 +11,7 @@ class FlowerClient(NumPyClient):
     def __init__(self, cid) -> None:
         super().__init__()
         self.net = Net().to(DEVICE)
-        self.trainloader, self.testloader = load_data(
-            partition_id=int(cid), num_clients=10
-        )
+        self.trainloader, self.testloader = load_data(partition_id=int(cid), num_clients=10)
 
     def get_parameters(self, config):
         return [val.cpu().numpy() for _, val in self.net.state_dict().items()]

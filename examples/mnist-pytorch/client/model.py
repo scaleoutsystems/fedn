@@ -4,16 +4,17 @@ import torch
 
 from fedn.utils.helpers.helpers import get_helper
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)
 
 
 def compile_model():
-    """ Compile the pytorch model.
+    """Compile the pytorch model.
 
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
+
     class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
@@ -32,7 +33,7 @@ def compile_model():
 
 
 def save_parameters(model, out_path):
-    """ Save model paramters to file.
+    """Save model paramters to file.
 
     :param model: The model to serialize.
     :type model: torch.nn.Module
@@ -44,7 +45,7 @@ def save_parameters(model, out_path):
 
 
 def load_parameters(model_path):
-    """ Load model parameters from file and populate model.
+    """Load model parameters from file and populate model.
 
     param model_path: The path to load from.
     :type model_path: str
@@ -60,8 +61,8 @@ def load_parameters(model_path):
     return model
 
 
-def init_seed(out_path='seed.npz'):
-    """ Initialize seed model and save it to file.
+def init_seed(out_path="seed.npz"):
+    """Initialize seed model and save it to file.
 
     :param out_path: The path to save the seed model to.
     :type out_path: str
@@ -72,4 +73,4 @@ def init_seed(out_path='seed.npz'):
 
 
 if __name__ == "__main__":
-    init_seed('../seed.npz')
+    init_seed("../seed.npz")

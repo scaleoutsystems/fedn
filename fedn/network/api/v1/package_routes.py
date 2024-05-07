@@ -1,9 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, get_use_typing,
-                                        mdb)
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -120,9 +118,7 @@ def get_packages():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        packages = package_store.list(
-            limit, skip, sort_key, sort_order, use_typing=True, **kwargs
-        )
+        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
 
         result = [package.__dict__ for package in packages["result"]]
 
@@ -210,9 +206,7 @@ def list_packages():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        packages = package_store.list(
-            limit, skip, sort_key, sort_order, use_typing=True, **kwargs
-        )
+        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
 
         result = [package.__dict__ for package in packages["result"]]
 

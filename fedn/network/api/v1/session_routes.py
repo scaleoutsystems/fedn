@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, mdb)
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -87,9 +86,7 @@ def get_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = sessions["result"]
 
@@ -167,9 +164,7 @@ def list_sessions():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = sessions["result"]
 

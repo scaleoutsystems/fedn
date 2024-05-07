@@ -2,7 +2,8 @@ from enum import Enum
 
 
 class ReducerState(Enum):
-    """ Enum for representing the state of a reducer."""
+    """Enum for representing the state of a reducer."""
+
     setup = 1
     idle = 2
     instructing = 3
@@ -10,7 +11,7 @@ class ReducerState(Enum):
 
 
 def ReducerStateToString(state):
-    """ Convert ReducerState to string.
+    """Convert ReducerState to string.
 
     :param state: The state.
     :type state: :class:`fedn.network.state.ReducerState`
@@ -30,7 +31,7 @@ def ReducerStateToString(state):
 
 
 def StringToReducerState(state):
-    """ Convert string to ReducerState.
+    """Convert string to ReducerState.
 
     :param state: The state as string.
     :type state: str
