@@ -3,9 +3,9 @@ import os
 import sys
 
 import torch
-from data import load_data
 from model import load_parameters, save_parameters
 
+from data import load_data
 from fedn.utils.helpers.helpers import save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(dir_path))
 
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
-    """ Complete a model update.
+    """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
     perform a model update, and write updated paramters
@@ -45,8 +45,8 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     for e in range(epochs):  # epoch loop
         for b in range(n_batches):  # batch loop
             # Retrieve current batch
-            batch_x = x_train[b * batch_size:(b + 1) * batch_size]
-            batch_y = y_train[b * batch_size:(b + 1) * batch_size]
+            batch_x = x_train[b * batch_size : (b + 1) * batch_size]
+            batch_y = y_train[b * batch_size : (b + 1) * batch_size]
             # Train on batch
             optimizer.zero_grad()
             outputs = model(batch_x)
@@ -55,16 +55,15 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
             optimizer.step()
             # Log
             if b % 100 == 0:
-                print(
-                    f"Epoch {e}/{epochs-1} | Batch: {b}/{n_batches-1} | Loss: {loss.item()}")
+                print(f"Epoch {e}/{epochs-1} | Batch: {b}/{n_batches-1} | Loss: {loss.item()}")
 
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        'num_examples': len(x_train),
-        'batch_size': batch_size,
-        'epochs': epochs,
-        'lr': lr
+        "num_examples": len(x_train),
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "lr": lr,
     }
 
     # Save JSON metadata file (mandatory)

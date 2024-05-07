@@ -3,8 +3,7 @@ import datetime
 import time
 import uuid
 
-from tenacity import (retry, retry_if_exception_type, stop_after_delay,
-                      wait_random)
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
@@ -54,10 +53,10 @@ class NoModelException(Exception):
 
 
 class CombinersNotDoneException(Exception):
-    """ Exception class for when model is None """
+    """Exception class for when model is None"""
 
     def __init__(self, message):
-        """ Constructor method.
+        """Constructor method.
 
         :param message: The exception message.
         :type message: str
@@ -108,9 +107,9 @@ class Control(ControlBase):
         last_round = int(self.get_latest_round_id())
 
         for combiner in self.network.get_combiners():
-            combiner.set_aggregator(config['aggregator'])
+            combiner.set_aggregator(config["aggregator"])
 
-        self.set_session_status(config['session_id'], 'Started')
+        self.set_session_status(config["session_id"], "Started")
         # Execute the rounds in this session
         for round in range(1, int(config["rounds"] + 1)):
             # Increment the round number
@@ -129,11 +128,11 @@ class Control(ControlBase):
             config["model_id"] = self.statestore.get_latest_model()
 
         # TODO: Report completion of session
-        self.set_session_status(config['session_id'], 'Finished')
+        self.set_session_status(config["session_id"], "Finished")
         self._state = ReducerState.idle
 
     def round(self, session_config, round_id):
-        """ Execute one global round.
+        """Execute one global round.
 
         : param session_config: The session config.
         : type session_config: dict
@@ -142,11 +141,11 @@ class Control(ControlBase):
 
         """
 
-        self.create_round({'round_id': round_id, 'status': "Pending"})
+        self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
             logger.warning("Round cannot start, no combiners connected!")
-            self.set_round_status(round_id, 'Failed')
+            self.set_round_status(round_id, "Failed")
             return None, self.statestore.get_round(round_id)
 
         # Assemble round config for this global round
@@ -165,11 +164,10 @@ class Control(ControlBase):
         round_start = self.evaluate_round_start_policy(participating_combiners)
 
         if round_start:
-            logger.info("round start policy met, {} participating combiners.".format(
-                len(participating_combiners)))
+            logger.info("round start policy met, {} participating combiners.".format(len(participating_combiners)))
         else:
             logger.warning("Round start policy not met, skipping round!")
-            self.set_round_status(round_id, 'Failed')
+            self.set_round_status(round_id, "Failed")
             return None, self.statestore.get_round(round_id)
 
         # Ask participating combiners to coordinate model updates
@@ -181,18 +179,19 @@ class Control(ControlBase):
         def do_if_round_times_out(result):
             logger.warning("Round timed out!")
 
-        @ retry(wait=wait_random(min=1.0, max=2.0),
-                stop=stop_after_delay(session_config['round_timeout']),
-                retry_error_callback=do_if_round_times_out,
-                retry=retry_if_exception_type(CombinersNotDoneException))
+        @retry(
+            wait=wait_random(min=1.0, max=2.0),
+            stop=stop_after_delay(session_config["round_timeout"]),
+            retry_error_callback=do_if_round_times_out,
+            retry=retry_if_exception_type(CombinersNotDoneException),
+        )
         def combiners_done():
-
             round = self.statestore.get_round(round_id)
-            if 'combiners' not in round:
+            if "combiners" not in round:
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
 
-            if len(round['combiners']) < len(participating_combiners):
+            if len(round["combiners"]) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("All combiners have not yet reported.")
 
@@ -203,11 +202,10 @@ class Control(ControlBase):
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
         # so we need some robustness here.
-        @ retry(wait=wait_random(min=0.1, max=1.0),
-                retry=retry_if_exception_type(KeyError))
+        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.statestore.get_round(round_id)
-            combiners = round['combiners']
+            combiners = round["combiners"]
             return combiners
 
         _ = check_combiners_done_reporting()
@@ -216,7 +214,7 @@ class Control(ControlBase):
         round_valid = self.evaluate_round_validity_policy(round)
         if not round_valid:
             logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
-            self.set_round_status(round_id, 'Failed')
+            self.set_round_status(round_id, "Failed")
             return None, self.statestore.get_round(round_id)
 
         logger.info("Reducing combiner level models...")
@@ -224,12 +222,12 @@ class Control(ControlBase):
         round_data = {}
         try:
             round = self.statestore.get_round(round_id)
-            model, data = self.reduce(round['combiners'])
-            round_data['reduce'] = data
+            model, data = self.reduce(round["combiners"])
+            round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:
             logger.error("Failed to reduce models from combiners, reason: {}".format(e))
-            self.set_round_status(round_id, 'Failed')
+            self.set_round_status(round_id, "Failed")
             return None, self.statestore.get_round(round_id)
 
         # Commit the new global model to the model trail
@@ -237,20 +235,16 @@ class Control(ControlBase):
             logger.info("Committing global model to model trail...")
             tic = time.time()
             model_id = uuid.uuid4()
-            session_id = (
-                session_config["session_id"]
-                if "session_id" in session_config
-                else None
-            )
+            session_id = session_config["session_id"] if "session_id" in session_config else None
             self.commit(model_id, model, session_id)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
             logger.error("Failed to commit model to global model trail.")
-            self.set_round_status(round_id, 'Failed')
+            self.set_round_status(round_id, "Failed")
             return None, self.statestore.get_round(round_id)
 
-        self.set_round_status(round_id, 'Success')
+        self.set_round_status(round_id, "Success")
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
         validate = session_config["validate"]
@@ -261,8 +255,7 @@ class Control(ControlBase):
             combiner_config["task"] = "validation"
             combiner_config["helper_type"] = self.statestore.get_helper()
 
-            validating_combiners = self.get_participating_combiners(
-                combiner_config)
+            validating_combiners = self.get_participating_combiners(combiner_config)
 
             for combiner, combiner_config in validating_combiners:
                 try:
@@ -273,7 +266,7 @@ class Control(ControlBase):
                     pass
 
         self.set_round_data(round_id, round_data)
-        self.set_round_status(round_id, 'Finished')
+        self.set_round_status(round_id, "Finished")
         return model_id, self.statestore.get_round(round_id)
 
     def reduce(self, combiners):
@@ -292,15 +285,15 @@ class Control(ControlBase):
         model = None
 
         for combiner in combiners:
-            name = combiner['name']
-            model_id = combiner['model_id']
+            name = combiner["name"]
+            model_id = combiner["model_id"]
 
             logger.info("Fetching model ({}) from model repository".format(model_id))
 
             try:
                 tic = time.time()
                 data = self.model_repository.get_model(model_id)
-                meta['time_fetch_model'] += (time.time() - tic)
+                meta["time_fetch_model"] += time.time() - tic
             except Exception as e:
                 logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
                 data = None
@@ -373,8 +366,7 @@ class Control(ControlBase):
         combiner_config["helper_type"] = self.statestore.get_framework()
 
         # Select combiners
-        validating_combiners = self.get_participating_combiners(
-            combiner_config)
+        validating_combiners = self.get_participating_combiners(combiner_config)
 
         # Test round start policy
         round_start = self.check_round_start_policy(validating_combiners)

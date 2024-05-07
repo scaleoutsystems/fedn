@@ -3,8 +3,7 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.common.config import (get_modelstorage_config, get_network_config,
-                                get_statestore_config)
+from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 
 api_version = "v1"
 
@@ -58,9 +57,7 @@ def get_typed_list_headers(
     use_typing: bool = get_use_typing(headers)
 
     if sort_order is not None:
-        sort_order = (
-            pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
-        )
+        sort_order = pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
     else:
         sort_order = pymongo.DESCENDING
 

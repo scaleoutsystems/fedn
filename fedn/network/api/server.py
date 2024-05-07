@@ -2,8 +2,7 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import (get_controller_config, get_modelstorage_config,
-                                get_network_config, get_statestore_config)
+from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.v1 import _routes
@@ -23,14 +22,12 @@ app = Flask(__name__)
 for bp in _routes:
     app.register_blueprint(bp)
     if custom_url_prefix:
-        app.register_blueprint(bp,
-                               name=f"{bp.name}_custom",
-                               url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
+        app.register_blueprint(bp, name=f"{bp.name}_custom", url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
 
 
-@app.route('/health', methods=["GET"])
+@app.route("/health", methods=["GET"])
 def health_check():
-    return 'OK', 200
+    return "OK", 200
 
 
 if custom_url_prefix:
@@ -364,9 +361,7 @@ def set_package():
         file = request.files["file"]
     except KeyError:
         return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_compute_package(
-        file=file, helper_type=helper_type, name=name, description=description
-    )
+    return api.set_compute_package(file=file, helper_type=helper_type, name=name, description=description)
 
 
 if custom_url_prefix:
@@ -399,9 +394,7 @@ def list_compute_packages():
     skip = request.args.get("skip", None)
     include_active = request.args.get("include_active", None)
 
-    return api.list_compute_packages(
-        limit=limit, skip=skip, include_active=include_active
-    )
+    return api.list_compute_packages(limit=limit, skip=skip, include_active=include_active)
 
 
 if custom_url_prefix:

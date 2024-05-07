@@ -4,16 +4,16 @@ from abc import ABC, abstractmethod
 
 
 class HelperBase(ABC):
-    """ Abstract class defining helpers. """
+    """Abstract class defining helpers."""
 
     def __init__(self):
-        """ Initialize helper. """
+        """Initialize helper."""
 
         self.name = self.__class__.__name__
 
     @abstractmethod
     def increment_average(self, m1, m2, a, W):
-        """ Compute one increment of incremental weighted averaging.
+        """Compute one increment of incremental weighted averaging.
 
         :param m1: Current model weights in array-like format.
         :param m2: New model weights in array-like format.
@@ -25,7 +25,7 @@ class HelperBase(ABC):
 
     @abstractmethod
     def save(self, model, path):
-        """ Serialize weights to file. The serialized model must be a single binary object.
+        """Serialize weights to file. The serialized model must be a single binary object.
 
         :param model: Weights in array-like format.
         :param path: Path to file.
@@ -35,7 +35,7 @@ class HelperBase(ABC):
 
     @abstractmethod
     def load(self, fh):
-        """ Load weights from file or filelike.
+        """Load weights from file or filelike.
 
         :param fh: file path, filehandle, filelike.
         :return: Weights in array-like format.
@@ -43,10 +43,10 @@ class HelperBase(ABC):
         pass
 
     def get_tmp_path(self):
-        """ Return a temporary output path compatible with save_model, load_model.
+        """Return a temporary output path compatible with save_model, load_model.
 
         :return: Path to file.
         """
-        fd, path = tempfile.mkstemp(suffix='.npz')
+        fd, path = tempfile.mkstemp(suffix=".npz")
         os.close(fd)
         return path

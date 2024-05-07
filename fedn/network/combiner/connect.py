@@ -13,7 +13,8 @@ from fedn.common.log_config import logger
 
 
 class Status(enum.Enum):
-    """ Enum for representing the status of a combiner announcement."""
+    """Enum for representing the status of a combiner announcement."""
+
     Unassigned = 0
     Assigned = 1
     TryAgain = 2
@@ -22,7 +23,7 @@ class Status(enum.Enum):
 
 
 class ConnectorCombiner:
-    """ Connector for annnouncing combiner to the FEDn network.
+    """Connector for annnouncing combiner to the FEDn network.
 
     :param host: host of discovery service
     :type host: str
@@ -45,7 +46,7 @@ class ConnectorCombiner:
     """
 
     def __init__(self, host, port, myhost, fqdn, myport, token, name, secure=False, verify=False):
-        """ Initialize the ConnectorCombiner.
+        """Initialize the ConnectorCombiner.
 
         :param host: The host of the discovery service.
         :type host: str
@@ -73,22 +74,20 @@ class ConnectorCombiner:
         self.myhost = myhost
         self.myport = myport
         self.token = token
-        self.token_scheme = os.environ.get('FEDN_AUTH_SCHEME', 'Bearer')
+        self.token_scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
         self.name = name
         self.secure = secure
         self.verify = verify
 
         if not self.token:
-            self.token = os.environ.get('FEDN_AUTH_TOKEN', None)
+            self.token = os.environ.get("FEDN_AUTH_TOKEN", None)
 
         # for https we assume a an ingress handles permanent redirect (308)
         self.prefix = "http://"
         if port:
-            self.connect_string = "{}{}:{}".format(
-                self.prefix, self.host, self.port)
+            self.connect_string = "{}{}:{}".format(self.prefix, self.host, self.port)
         else:
-            self.connect_string = "{}{}".format(
-                self.prefix, self.host)
+            self.connect_string = "{}{}".format(self.prefix, self.host)
 
         logger.info("Setting connection string to {}".format(self.connect_string))
 
@@ -99,24 +98,21 @@ class ConnectorCombiner:
         :return: Tuple with announcement Status, FEDn network configuration if sucessful, else None.
         :rtype: :class:`fedn.network.combiner.connect.Status`, str
         """
-        payload = {
-            "combiner_id": self.name,
-            "address": self.myhost,
-            "fqdn": self.fqdn,
-            "port": self.myport,
-            "secure_grpc": self.secure
-        }
-        url_prefix = os.environ.get('FEDN_CUSTOM_URL_PREFIX', '')
+        payload = {"combiner_id": self.name, "address": self.myhost, "fqdn": self.fqdn, "port": self.myport, "secure_grpc": self.secure}
+        url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", "")
         try:
-            retval = requests.post(self.connect_string + url_prefix + '/add_combiner', json=payload,
-                                   verify=self.verify,
-                                   headers={'Authorization': f'{self.token_scheme} {self.token}'})
+            retval = requests.post(
+                self.connect_string + url_prefix + "/add_combiner",
+                json=payload,
+                verify=self.verify,
+                headers={"Authorization": f"{self.token_scheme} {self.token}"},
+            )
         except Exception:
             return Status.Unassigned, {}
 
         if retval.status_code == 400:
             # Get error messange from response
-            reason = retval.json()['message']
+            reason = retval.json()["message"]
             return Status.UnMatchedConfig, reason
 
         if retval.status_code == 401:
@@ -124,8 +120,8 @@ class ConnectorCombiner:
             return Status.UnAuthorized, reason
 
         if retval.status_code >= 200 and retval.status_code < 204:
-            if retval.json()['status'] == 'retry':
-                reason = retval.json()['message']
+            if retval.json()["status"] == "retry":
+                reason = retval.json()["message"]
                 return Status.TryAgain, reason
             return Status.Assigned, retval.json()
 

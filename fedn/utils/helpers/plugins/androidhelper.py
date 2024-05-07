@@ -18,9 +18,7 @@ class Helper(HelperBase):
 
     # function to calculate an incremental weighted average of the weights
 
-    def increment_average(
-            self, model, model_next, num_examples, total_examples
-    ):
+    def increment_average(self, model, model_next, num_examples, total_examples):
         """Incremental weighted average of model weights.
 
         :param model: Current model weights.
@@ -40,9 +38,7 @@ class Helper(HelperBase):
         return (1 - w) * model + w * model_next
 
     # function to calculate an incremental weighted average of the weights using numpy.add
-    def increment_average_add(
-        self, model, model_next, num_examples, total_examples
-    ):
+    def increment_average_add(self, model, model_next, num_examples, total_examples):
         """Incremental weighted average of model weights.
 
         :param model: Current model weights.
@@ -59,9 +55,7 @@ class Helper(HelperBase):
         # Incremental weighted average
         w = np.add(
             model,
-            num_examples
-            * (np.array(model_next) - np.array(model))
-            / total_examples,
+            num_examples * (np.array(model_next) - np.array(model)) / total_examples,
         )
         return w
 
@@ -75,7 +69,7 @@ class Helper(HelperBase):
         if not path:
             path = self.get_tmp_path()
 
-        byte_array = struct.pack("f"*len(weights), *weights)
+        byte_array = struct.pack("f" * len(weights), *weights)
         with open(path, "wb") as file:
             file.write(byte_array)
 
@@ -94,7 +88,7 @@ class Helper(HelperBase):
         else:
             byte_data = fh.read()
 
-        weights = np.array(struct.unpack(f'{len(byte_data) // 4}f', byte_data))
+        weights = np.array(struct.unpack(f"{len(byte_data) // 4}f", byte_data))
 
         return weights
 

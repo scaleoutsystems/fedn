@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class LoadBalancerBase(ABC):
-    """ Abstract base class for load balancers.
+    """Abstract base class for load balancers.
 
     :param network: A handle to the network.
     :type network: class: `fedn.network.api.network.Network`
@@ -14,5 +14,5 @@ class LoadBalancerBase(ABC):
 
     @abstractmethod
     def find_combiner(self):
-        """ Find a combiner to connect to. """
+        """Find a combiner to connect to."""
         pass

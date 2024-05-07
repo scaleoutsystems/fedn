@@ -61,9 +61,7 @@ class ControlBase(ABC):
             raise MisconfiguredStorageBackend()
 
         if storage_config["storage_type"] == "S3":
-            self.model_repository = Repository(
-                storage_config["storage_config"]
-            )
+            self.model_repository = Repository(storage_config["storage_config"])
         else:
             logger.error("Unsupported storage backend, exiting.")
             raise UnsupportedStorageBackend()
@@ -92,11 +90,7 @@ class ControlBase(ABC):
         helper_type = self.statestore.get_helper()
         helper = fedn.utils.helpers.helpers.get_helper(helper_type)
         if not helper:
-            raise MisconfiguredHelper(
-                "Unsupported helper type {}, please configure compute_package.helper !".format(
-                    helper_type
-                )
-            )
+            raise MisconfiguredHelper("Unsupported helper type {}, please configure compute_package.helper !".format(helper_type))
         return helper
 
     def get_state(self):
@@ -177,8 +171,8 @@ class ControlBase(ABC):
         else:
             return None
 
-    def create_session(self, config, status='Initialized'):
-        """ Initialize a new session in backend db. """
+    def create_session(self, config, status="Initialized"):
+        """Initialize a new session in backend db."""
 
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
@@ -191,7 +185,7 @@ class ControlBase(ABC):
         self.statestore.set_session_status(session_id, status)
 
     def set_session_status(self, session_id, status):
-        """ Set the round round stats.
+        """Set the round round stats.
 
         :param round_id: The round unique identifier
         :type round_id: str
@@ -201,12 +195,12 @@ class ControlBase(ABC):
         self.statestore.set_session_status(session_id, status)
 
     def create_round(self, round_data):
-        """Initialize a new round in backend db. """
+        """Initialize a new round in backend db."""
 
         self.statestore.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
-        """ Set round data.
+        """Set round data.
 
         :param round_id: The round unique identifier
         :type round_id: str
@@ -216,7 +210,7 @@ class ControlBase(ABC):
         self.statestore.set_round_data(round_id, round_data)
 
     def set_round_status(self, round_id, status):
-        """ Set the round round stats.
+        """Set the round round stats.
 
         :param round_id: The round unique identifier
         :type round_id: str
@@ -226,7 +220,7 @@ class ControlBase(ABC):
         self.statestore.set_round_status(round_id, status)
 
     def set_round_config(self, round_id, round_config):
-        """ Upate round in backend db.
+        """Upate round in backend db.
 
         :param round_id: The round unique identifier
         :type round_id: str
@@ -263,9 +257,7 @@ class ControlBase(ABC):
             logger.info("Saving model file temporarily to disk...")
             outfile_name = helper.save(model)
             logger.info("CONTROL: Uploading model to Minio...")
-            model_id = self.model_repository.set_model(
-                outfile_name, is_file=True
-            )
+            model_id = self.model_repository.set_model(outfile_name, is_file=True)
 
             logger.info("CONTROL: Deleting temporary model file...")
             os.unlink(outfile_name)
@@ -292,16 +284,12 @@ class ControlBase(ABC):
                 self._handle_unavailable_combiner(combiner)
                 continue
 
-            is_participating = self.evaluate_round_participation_policy(
-                combiner_round_config, nr_active_clients
-            )
+            is_participating = self.evaluate_round_participation_policy(combiner_round_config, nr_active_clients)
             if is_participating:
                 combiners.append((combiner, combiner_round_config))
         return combiners
 
-    def evaluate_round_participation_policy(
-        self, compute_plan, nr_active_clients
-    ):
+    def evaluate_round_participation_policy(self, compute_plan, nr_active_clients):
         """Evaluate policy for combiner round-participation.
         A combiner participates if it is responsive and reports enough
         active clients to participate in the round.
@@ -325,7 +313,7 @@ class ControlBase(ABC):
             return False
 
     def evaluate_round_validity_policy(self, round):
-        """ Check if the round is valid.
+        """Check if the round is valid.
 
         At the end of the round, before committing a model to the global model trail,
         we check if the round validity policy has been met. This can involve
@@ -338,9 +326,9 @@ class ControlBase(ABC):
         :rtype: bool
         """
         model_ids = []
-        for combiner in round['combiners']:
+        for combiner in round["combiners"]:
             try:
-                model_ids.append(combiner['model_id'])
+                model_ids.append(combiner["model_id"])
             except KeyError:
                 pass
 
@@ -350,7 +338,7 @@ class ControlBase(ABC):
         return True
 
     def state(self):
-        """ Get the current state of the controller.
+        """Get the current state of the controller.
 
         :return: The state
         :rype: str

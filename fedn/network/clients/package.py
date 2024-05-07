@@ -14,7 +14,7 @@ from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 
 class PackageRuntime:
-    """ PackageRuntime is used to download, validate and unpack compute packages.
+    """PackageRuntime is used to download, validate and unpack compute packages.
 
     :param package_path: path to compute package
     :type package_path: str
@@ -23,11 +23,13 @@ class PackageRuntime:
     """
 
     def __init__(self, package_path):
-
-        self.dispatch_config = {'entry_points':
-                                {'predict': {'command': 'python3 predict.py'},
-                                 'train': {'command': 'python3 train.py'},
-                                 'validate': {'command': 'python3 validate.py'}}}
+        self.dispatch_config = {
+            "entry_points": {
+                "predict": {"command": "python3 predict.py"},
+                "train": {"command": "python3 train.py"},
+                "validate": {"command": "python3 validate.py"},
+            }
+        }
 
         self.pkg_path = package_path
         self.pkg_name = None
@@ -35,7 +37,7 @@ class PackageRuntime:
         self.expected_checksum = None
 
     def download(self, host, port, token, force_ssl=False, secure=False, name=None):
-        """ Download compute package from controller
+        """Download compute package from controller
 
         :param host: host of controller
         :param port: port of controller
@@ -56,18 +58,16 @@ class PackageRuntime:
         if name:
             path = path + "?name={}".format(name)
 
-        with requests.get(path, stream=True, verify=False, headers={'Authorization': f'{FEDN_AUTH_SCHEME} {token}'}) as r:
+        with requests.get(path, stream=True, verify=False, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
             if 200 <= r.status_code < 204:
-
-                params = cgi.parse_header(
-                    r.headers.get('Content-Disposition', ''))[-1]
+                params = cgi.parse_header(r.headers.get("Content-Disposition", ""))[-1]
                 try:
-                    self.pkg_name = params['filename']
+                    self.pkg_name = params["filename"]
                 except KeyError:
                     logger.error("No package returned.")
                     return None
                 r.raise_for_status()
-                with open(os.path.join(self.pkg_path, self.pkg_name), 'wb') as f:
+                with open(os.path.join(self.pkg_path, self.pkg_name), "wb") as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
         if port:
@@ -77,19 +77,18 @@ class PackageRuntime:
 
         if name:
             path = path + "?name={}".format(name)
-        with requests.get(path, verify=False, headers={'Authorization': f'{FEDN_AUTH_SCHEME} {token}'}) as r:
+        with requests.get(path, verify=False, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
             if 200 <= r.status_code < 204:
-
                 data = r.json()
                 try:
-                    self.checksum = data['checksum']
+                    self.checksum = data["checksum"]
                 except Exception:
                     logger.error("Could not extract checksum.")
 
         return True
 
     def validate(self, expected_checksum):
-        """ Validate the package against the checksum provided by the controller
+        """Validate the package against the checksum provided by the controller
 
         :param expected_checksum: checksum provided by the controller
         :return: True if checksums match, False otherwise
@@ -107,37 +106,27 @@ class PackageRuntime:
             return False
 
     def unpack(self):
-        """ Unpack the compute package
+        """Unpack the compute package
 
         :return: True if unpacking was successful, False otherwise
         :rtype: bool
         """
         if self.pkg_name:
             f = None
-            if self.pkg_name.endswith('tar.gz'):
-                f = tarfile.open(os.path.join(
-                    self.pkg_path, self.pkg_name), 'r:gz')
-            if self.pkg_name.endswith('.tgz'):
-                f = tarfile.open(os.path.join(
-                    self.pkg_path, self.pkg_name), 'r:gz')
-            if self.pkg_name.endswith('tar.bz2'):
-                f = tarfile.open(os.path.join(
-                    self.pkg_path, self.pkg_name), 'r:bz2')
+            if self.pkg_name.endswith("tar.gz"):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:gz")
+            if self.pkg_name.endswith(".tgz"):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:gz")
+            if self.pkg_name.endswith("tar.bz2"):
+                f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:bz2")
         else:
-            logger.error(
-                "Failed to unpack compute package, no pkg_name set."
-                "Has the reducer been configured with a compute package?"
-            )
+            logger.error("Failed to unpack compute package, no pkg_name set." "Has the reducer been configured with a compute package?")
             return False
 
         try:
             if f:
                 f.extractall(self.pkg_path)
-                logger.info(
-                    "Successfully extracted compute package content in {}".format(
-                        self.pkg_path
-                    )
-                )
+                logger.info("Successfully extracted compute package content in {}".format(self.pkg_path))
                 # delete the tarball
                 logger.info("Deleting temporary package tarball file.")
                 os.remove(os.path.join(self.pkg_path, self.pkg_name))
@@ -157,7 +146,7 @@ class PackageRuntime:
             return False, ""
 
     def dispatcher(self, run_path):
-        """ Dispatch the compute package
+        """Dispatch the compute package
 
         :param run_path: path to dispatch the compute package
         :type run_path: str

@@ -10,7 +10,6 @@ class CertificateManager:
     """
 
     def __init__(self, directory):
-
         self.directory = directory
         self.certificates = []
         self.allowed = dict()
@@ -28,8 +27,7 @@ class CertificateManager:
         if search:
             return search
         else:
-            cert = Certificate(self.directory, name=name,
-                               cert_name=name + '-cert.pem', key_name=name + '-key.pem')
+            cert = Certificate(self.directory, name=name, cert_name=name + "-cert.pem", key_name=name + "-key.pem")
             cert.gen_keypair()
             self.certificates.append(cert)
             return cert
@@ -53,12 +51,11 @@ class CertificateManager:
 
         """
         for filename in sorted(os.listdir(self.directory)):
-            if filename.endswith('cert.pem'):
-                name = filename.split('-')[0]
-                key_name = name + '-key.pem'
+            if filename.endswith("cert.pem"):
+                name = filename.split("-")[0]
+                key_name = name + "-key.pem"
 
-                c = Certificate(self.directory, name=name,
-                                cert_name=filename, key_name=key_name)
+                c = Certificate(self.directory, name=name, cert_name=filename, key_name=key_name)
                 self.certificates.append(c)
 
     def find(self, name):

@@ -72,10 +72,7 @@ def _validate_virtualenv_is_available():
     on how to install virtualenv.
     """
     if not _is_virtualenv_available():
-        raise Exception(
-            "Could not find the virtualenv binary. Run `pip install virtualenv` to install "
-            "virtualenv."
-        )
+        raise Exception("Could not find the virtualenv binary. Run `pip install virtualenv` to install " "virtualenv.")
 
 
 def _get_virtualenv_extra_env_vars(env_root_dir=None):
@@ -95,9 +92,7 @@ def _get_python_env(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)
 
 
-def _create_virtualenv(
-    python_bin_path, env_dir, python_env, extra_env=None, capture_output=False
-):
+def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, capture_output=False):
     # Created a command to activate the environment
     paths = ("bin", "activate") if _IS_UNIX else ("Scripts", "activate.bat")
     activate_cmd = env_dir.joinpath(*paths)
@@ -110,8 +105,7 @@ def _create_virtualenv(
     with remove_on_error(
         env_dir,
         onerror=lambda e: logger.warning(
-            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, "
-            "removing the environment directory...",
+            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, " "removing the environment directory...",
             repr(e),
             env_dir,
         ),
@@ -127,9 +121,7 @@ def _create_virtualenv(
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_req_file = f"requirements.{uuid.uuid4().hex}.txt"
                 Path(tmpdir).joinpath(tmp_req_file).write_text("\n".join(deps))
-                cmd = _join_commands(
-                    activate_cmd, f"python -m pip install -r {tmp_req_file}"
-                )
+                cmd = _join_commands(activate_cmd, f"python -m pip install -r {tmp_req_file}")
                 _exec_cmd(cmd, capture_output=capture_output, cwd=tmpdir, extra_env=extra_env)
 
     return activate_cmd
@@ -138,20 +130,17 @@ def _create_virtualenv(
 def _read_yaml_file(file_path):
     try:
         cfg = None
-        with open(file_path, 'rb') as config_file:
-
+        with open(file_path, "rb") as config_file:
             cfg = yaml.safe_load(config_file.read())
 
     except Exception as e:
-        logger.error(
-            f"Error trying to read yaml file: {file_path}"
-        )
+        logger.error(f"Error trying to read yaml file: {file_path}")
         raise e
     return cfg
 
 
 class Dispatcher:
-    """ Dispatcher class for compute packages.
+    """Dispatcher class for compute packages.
 
     :param config: The configuration.
     :type config: dict
@@ -160,7 +149,7 @@ class Dispatcher:
     """
 
     def __init__(self, config, project_dir):
-        """ Initialize the dispatcher."""
+        """Initialize the dispatcher."""
         self.config = config
         self.project_dir = project_dir
         self.activate_cmd = ""
@@ -174,10 +163,7 @@ class Dispatcher:
         else:
             python_env_path = os.path.join(self.project_dir, python_env)
             if not os.path.exists(python_env_path):
-                raise Exception(
-                    "Compute package specified python_env file %s, but no such "
-                    "file was found." % python_env_path
-                )
+                raise Exception("Compute package specified python_env file %s, but no such " "file was found." % python_env_path)
             python_env = _get_python_env(python_env_path)
 
         extra_env = _get_virtualenv_extra_env_vars()
@@ -201,10 +187,7 @@ class Dispatcher:
             )
             # Install additional dependencies specified by `requirements_override`
             if pip_requirements_override:
-                logger.info(
-                    "Installing additional dependencies specified by "
-                    f"pip_requirements_override: {pip_requirements_override}"
-                )
+                logger.info("Installing additional dependencies specified by " f"pip_requirements_override: {pip_requirements_override}")
                 cmd = _join_commands(
                     activate_cmd,
                     f"python -m pip install --quiet -U {' '.join(pip_requirements_override)}",
@@ -222,29 +205,23 @@ class Dispatcher:
 
             raise
 
-    def run_cmd(self,
-                cmd_type,
-                capture_output=False,
-                extra_env=None,
-                synchronous=True,
-                stream_output=False
-                ):
-        """ Run a command.
+    def run_cmd(self, cmd_type, capture_output=False, extra_env=None, synchronous=True, stream_output=False):
+        """Run a command.
 
         :param cmd_type: The command type.
         :type cmd_type: str
         :return:
         """
         try:
-            cmdsandargs = cmd_type.split(' ')
+            cmdsandargs = cmd_type.split(" ")
 
-            entry_point = self.config['entry_points'][cmdsandargs[0]]['command']
+            entry_point = self.config["entry_points"][cmdsandargs[0]]["command"]
 
             # remove the first element,  that is not a file but a command
             args = cmdsandargs[1:]
 
             # Join entry point and arguments into a single command as a string
-            entry_point_args = ' '.join(args)
+            entry_point_args = " ".join(args)
             entry_point = f"{entry_point} {entry_point_args}"
 
             if self.activate_cmd:
@@ -252,7 +229,7 @@ class Dispatcher:
             else:
                 cmd = _join_commands(entry_point)
 
-            logger.info('Running command: {}'.format(cmd))
+            logger.info("Running command: {}".format(cmd))
             _exec_cmd(
                 cmd,
                 cwd=self.project_dir,
@@ -263,7 +240,7 @@ class Dispatcher:
                 stream_output=stream_output,
             )
 
-            logger.info('Done executing {}'.format(cmd_type))
+            logger.info("Done executing {}".format(cmd_type))
         except IndexError:
             message = "No such argument or configuration to run."
             logger.error(message)

@@ -8,7 +8,7 @@ from sklearn.neural_network import MLPClassifier
 
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 ARRAY_SIZE = 10000
 
 
@@ -22,7 +22,7 @@ def compile_model(max_iter=1):
 
 
 def save_parameters(model, out_path):
-    """ Save model to disk.
+    """Save model to disk.
 
     :param model: The model to save.
     :type model: torch.nn.Module
@@ -36,7 +36,7 @@ def save_parameters(model, out_path):
 
 
 def load_parameters(model_path):
-    """ Load model from disk.
+    """Load model from disk.
 
     param model_path: The path to load from.
     :type model_path: str
@@ -49,8 +49,8 @@ def load_parameters(model_path):
     return parameters
 
 
-def init_seed(out_path='seed.npz'):
-    """ Initialize seed model.
+def init_seed(out_path="seed.npz"):
+    """Initialize seed model.
 
     :param out_path: The path to save the seed model to.
     :type out_path: str
@@ -61,7 +61,7 @@ def init_seed(out_path='seed.npz'):
 
 
 def make_data(n_min=50, n_max=100):
-    """ Generate / simulate a random number n data points.
+    """Generate / simulate a random number n data points.
 
     n will fall in the interval (n_min, n_max)
 
@@ -78,14 +78,12 @@ def make_data(n_min=50, n_max=100):
 
 
 def train(in_model_path, out_model_path):
-    """ Train model.
-
-    """
+    """Train model."""
 
     # Load model
     parameters = load_parameters(in_model_path)
     model = compile_model()
-    n = len(parameters)//2
+    n = len(parameters) // 2
     model.coefs_ = parameters[:n]
     model.intercepts_ = parameters[n:]
 
@@ -97,7 +95,7 @@ def train(in_model_path, out_model_path):
 
     # Metadata needed for aggregation server side
     metadata = {
-        'num_examples': len(X_train),
+        "num_examples": len(X_train),
     }
 
     # Save JSON metadata file
@@ -108,7 +106,7 @@ def train(in_model_path, out_model_path):
 
 
 def validate(in_model_path, out_json_path):
-    """ Validate model.
+    """Validate model.
 
     :param in_model_path: The path to the input model.
     :type in_model_path: str
@@ -119,7 +117,7 @@ def validate(in_model_path, out_json_path):
     """
     parameters = load_parameters(in_model_path)
     model = compile_model()
-    n = len(parameters)//2
+    n = len(parameters) // 2
     model.coefs_ = parameters[:n]
     model.intercepts_ = parameters[n:]
 
@@ -134,9 +132,5 @@ def validate(in_model_path, out_json_path):
     save_metrics(report, out_json_path)
 
 
-if __name__ == '__main__':
-    fire.Fire({
-        'init_seed': init_seed,
-        'train': train,
-        'validate': validate
-    })
+if __name__ == "__main__":
+    fire.Fire({"init_seed": init_seed, "train": train, "validate": validate})

@@ -7,8 +7,7 @@ import uuid
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
-                                                serialize_model_to_BytesIO)
+from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
@@ -18,7 +17,7 @@ class ModelUpdateError(Exception):
 
 
 class RoundHandler:
-    """ Round handler.
+    """Round handler.
 
     The round handler processes requests from the global controller
     to produce model updates and perform model validations.
@@ -34,7 +33,7 @@ class RoundHandler:
     """
 
     def __init__(self, storage, server, modelservice):
-        """ Initialize the RoundHandler."""
+        """Initialize the RoundHandler."""
 
         self.round_configs = queue.Queue()
         self.storage = storage
@@ -53,12 +52,12 @@ class RoundHandler:
         :rtype: str
         """
         try:
-            round_config['_job_id'] = str(uuid.uuid4())
+            round_config["_job_id"] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
             logger.error("Failed to push round config.")
             raise
-        return round_config['_job_id']
+        return round_config["_job_id"]
 
     def load_model_update(self, helper, model_id):
         """Load model update with id model_id into its memory representation.
@@ -74,8 +73,7 @@ class RoundHandler:
             try:
                 model = load_model_from_BytesIO(model_str.getbuffer(), helper)
             except IOError:
-                logger.warning(
-                    "AGGREGATOR({}): Failed to load model!".format(self.name))
+                logger.warning("AGGREGATOR({}): Failed to load model!".format(self.name))
         else:
             raise ModelUpdateError("Failed to load model.")
 
@@ -108,7 +106,7 @@ class RoundHandler:
         return model_str
 
     def waitforit(self, config, buffer_size=100, polling_interval=0.1):
-        """ Defines the policy for how long the server should wait before starting to aggregate models.
+        """Defines the policy for how long the server should wait before starting to aggregate models.
 
         The policy is as follows:
             1. Wait a maximum of time_window time until the round times out.
@@ -122,7 +120,7 @@ class RoundHandler:
         :type polling_interval: float, optional
         """
 
-        time_window = float(config['round_timeout'])
+        time_window = float(config["round_timeout"])
 
         tt = 0.0
         while tt < time_window:
@@ -143,22 +141,21 @@ class RoundHandler:
         :rtype: model, dict
         """
 
-        logger.info(
-            "ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
+        logger.info("ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
-        meta['nr_expected_updates'] = len(clients)
-        meta['nr_required_updates'] = int(config['clients_required'])
-        meta['timeout'] = float(config['round_timeout'])
+        meta["nr_expected_updates"] = len(clients)
+        meta["nr_required_updates"] = int(config["clients_required"])
+        meta["timeout"] = float(config["round_timeout"])
 
         # Request model updates from all active clients.
         self.server.request_model_update(config, clients=clients)
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
-        if int(config['buffer_size']) == -1:
+        if int(config["buffer_size"]) == -1:
             buffer_size = len(clients)
         else:
-            buffer_size = int(config['buffer_size'])
+            buffer_size = int(config["buffer_size"])
 
         # Wait / block until the round termination policy has been met.
         self.waitforit(config, buffer_size=buffer_size)
@@ -168,27 +165,25 @@ class RoundHandler:
         data = None
 
         try:
-            helper = get_helper(config['helper_type'])
-            logger.info("Config delete_models_storage: {}".format(config['delete_models_storage']))
-            if config['delete_models_storage'] == 'True':
+            helper = get_helper(config["helper_type"])
+            logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
+            if config["delete_models_storage"] == "True":
                 delete_models = True
             else:
                 delete_models = False
 
             if "aggregator_kwargs" in config.keys():
-                dict_parameters = ast.literal_eval(config['aggregator_kwargs'])
+                dict_parameters = ast.literal_eval(config["aggregator_kwargs"])
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
 
-            model, data = self.aggregator.combine_models(helper=helper,
-                                                         delete_models=delete_models,
-                                                         parameters=parameters)
+            model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
 
-        meta['time_combination'] = time.time() - tic
-        meta['aggregation_time'] = data
+        meta["time_combination"] = time.time() - tic
+        meta["aggregation_time"] = data
         return model, meta
 
     def _validation_round(self, config, clients, model_id):
@@ -237,7 +232,7 @@ class RoundHandler:
         self.modelservice.set_model(model, model_id)
 
     def _assign_round_clients(self, n, type="trainers"):
-        """ Obtain a list of clients(trainers or validators) to ask for updates in this round.
+        """Obtain a list of clients(trainers or validators) to ask for updates in this round.
 
         :param n: Size of a random set taken from active trainers(clients), if n > "active trainers" all is used
         :type n: int
@@ -276,30 +271,27 @@ class RoundHandler:
         """
 
         active = self.server.nr_active_trainers()
-        if active >= int(config['clients_required']):
-            logger.info("Number of clients required ({0}) to start round met {1}.".format(
-                config['clients_required'], active))
+        if active >= int(config["clients_required"]):
+            logger.info("Number of clients required ({0}) to start round met {1}.".format(config["clients_required"], active))
             return True
         else:
             logger.info("Too few clients to start round.")
             return False
 
     def execute_validation_round(self, round_config):
-        """ Coordinate validation rounds as specified in config.
+        """Coordinate validation rounds as specified in config.
 
         :param round_config: The round config object.
         :type round_config: dict
         """
-        model_id = round_config['model_id']
-        logger.info(
-            "COMBINER orchestrating validation of model {}".format(model_id))
+        model_id = round_config["model_id"]
+        logger.info("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        validators = self._assign_round_clients(
-            self.server.max_clients, type="validators")
+        validators = self._assign_round_clients(self.server.max_clients, type="validators")
         self._validation_round(round_config, validators, model_id)
 
     def execute_training_round(self, config):
-        """ Coordinates clients to execute training tasks.
+        """Coordinates clients to execute training tasks.
 
         :param config: The round config object.
         :type config: dict
@@ -307,39 +299,37 @@ class RoundHandler:
         :rtype: dict
         """
 
-        logger.info("Processing training round,  job_id {}".format(config['_job_id']))
+        logger.info("Processing training round,  job_id {}".format(config["_job_id"]))
 
         data = {}
-        data['config'] = config
-        data['round_id'] = config['round_id']
+        data["config"] = config
+        data["round_id"] = config["round_id"]
 
         # Download model to update and set in temp storage.
-        self.stage_model(config['model_id'])
+        self.stage_model(config["model_id"])
 
         clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients)
-        data['data'] = meta
+        data["data"] = meta
 
         if model is None:
-            logger.warning(
-                "\t Failed to update global model in round {0}!".format(config['round_id']))
+            logger.warning("\t Failed to update global model in round {0}!".format(config["round_id"]))
 
         if model is not None:
-            helper = get_helper(config['helper_type'])
+            helper = get_helper(config["helper_type"])
             a = serialize_model_to_BytesIO(model, helper)
             model_id = self.storage.set_model(a.read(), is_file=False)
             a.close()
-            data['model_id'] = model_id
+            data["model_id"] = model_id
 
-            logger.info(
-                "TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config['_job_id']))
+            logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config["_job_id"]))
 
         # Delete temp model
-        self.modelservice.temp_model_storage.delete(config['model_id'])
+        self.modelservice.temp_model_storage.delete(config["model_id"])
         return data
 
     def run(self, polling_interval=1.0):
-        """ Main control loop. Execute rounds based on round config on the queue.
+        """Main control loop. Execute rounds based on round config on the queue.
 
         :param polling_interval: The polling interval in seconds for checking if a new job/config is available.
         :type polling_interval: float
@@ -354,23 +344,22 @@ class RoundHandler:
                     round_meta = {}
 
                     if ready:
-                        if round_config['task'] == 'training':
+                        if round_config["task"] == "training":
                             tic = time.time()
                             round_meta = self.execute_training_round(round_config)
-                            round_meta['time_exec_training'] = time.time() - \
-                                tic
-                            round_meta['status'] = "Success"
-                            round_meta['name'] = self.server.id
+                            round_meta["time_exec_training"] = time.time() - tic
+                            round_meta["status"] = "Success"
+                            round_meta["name"] = self.server.id
                             self.server.statestore.set_round_combiner_data(round_meta)
-                        elif round_config['task'] == 'validation' or round_config['task'] == 'inference':
+                        elif round_config["task"] == "validation" or round_config["task"] == "inference":
                             self.execute_validation_round(round_config)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:
                         round_meta = {}
-                        round_meta['status'] = "Failed"
-                        round_meta['reason'] = "Failed to meet client allocation requirements for this round config."
-                        logger.warning("{0}".format(round_meta['reason']))
+                        round_meta["status"] = "Failed"
+                        round_meta["reason"] = "Failed to meet client allocation requirements for this round config."
+                        logger.warning("{0}".format(round_meta["reason"]))
 
                     self.round_configs.task_done()
                 except queue.Empty:

@@ -1,12 +1,9 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, get_use_typing,
-                                        mdb)
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.validation_store import \
-    ValidationStore
+from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 
 bp = Blueprint("validation", __name__, url_prefix=f"/api/{api_version}/validations")
 
@@ -131,20 +128,12 @@ def get_validations():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(
-            request.headers
-        )
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        validations = validation_store.list(
-            limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs
-        )
+        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
-        result = (
-            [validation.__dict__ for validation in validations["result"]]
-            if use_typing
-            else validations["result"]
-        )
+        result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
 
         response = {"count": validations["count"], "result": result}
 
@@ -237,20 +226,12 @@ def list_validations():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(
-            request.headers
-        )
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        validations = validation_store.list(
-            limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs
-        )
+        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
-        result = (
-            [validation.__dict__ for validation in validations["result"]]
-            if use_typing
-            else validations["result"]
-        )
+        result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
 
         response = {"count": validations["count"], "result": result}
 

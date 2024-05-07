@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, mdb)
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -107,9 +106,7 @@ def get_combiners():
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = combiners["result"]
 
@@ -192,9 +189,7 @@ def list_combiners():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        combiners = combiner_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = combiners["result"]
 

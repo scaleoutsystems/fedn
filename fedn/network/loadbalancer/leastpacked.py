@@ -3,7 +3,7 @@ from fedn.network.loadbalancer.loadbalancerbase import LoadBalancerBase
 
 
 class LeastPacked(LoadBalancerBase):
-    """ Load balancer that selects the combiner with the least number of attached training clients.
+    """Load balancer that selects the combiner with the least number of attached training clients.
 
     :param network: A handle to the network.
     :type network: class: `fedn.network.api.network.Network`
@@ -14,7 +14,7 @@ class LeastPacked(LoadBalancerBase):
 
     def find_combiner(self):
         """
-            Find the combiner with the least number of attached clients.
+        Find the combiner with the least number of attached clients.
 
         """
         min_clients = None
