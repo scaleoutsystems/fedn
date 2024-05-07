@@ -3,11 +3,13 @@ import sys
 
 import torch
 from data import load_data
-from model import load_parameters, save_parameters
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from model import load_parameters
+from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 
 from fedn.utils.helpers.helpers import save_metrics
+
+MODEL = "google/bert_uncased_L-2_H-128_A-2"
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -52,7 +54,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     X_train = [preprocess(text) for text in X_train]
 
     # test dataset
-    tokenizer = AutoTokenizer.from_pretrained("google/bert_uncased_L-2_H-128_A-2")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL)
     train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
     test_encodings = tokenizer(X_test, truncation=True, padding="max_length", max_length=512)
     train_dataset = SpamDataset(train_encodings, y_train)
@@ -68,6 +70,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     criterion = torch.nn.CrossEntropyLoss()
 
+    # test set validation
     with torch.no_grad():
         correct = 0
         total_loss = 0
@@ -91,6 +94,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     test_loss = total_loss / total
     print("test loss: ", test_loss)
 
+    # train set validation
     with torch.no_grad():
         correct = 0
         total_loss = 0
@@ -107,6 +111,7 @@ def validate(in_model_path, out_json_path, data_path=None):
             correct += (predicted == labels).sum().item()
             loss = criterion(outputs.logits, labels)
             total_loss += loss.item() * labels.size(0)
+    
     train_accuracy = correct / total
     print(f'Accuracy: {train_accuracy * 100:.2f}%')
     

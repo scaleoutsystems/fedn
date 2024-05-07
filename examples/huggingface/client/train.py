@@ -1,4 +1,3 @@
-import math
 import os
 import sys
 
@@ -11,6 +10,7 @@ from transformers import AdamW
 
 from fedn.utils.helpers.helpers import save_metadata
 
+MODEL = "google/bert_uncased_L-2_H-128_A-2"
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -61,7 +61,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     X_train = [preprocess(text) for text in X_train]
 
     # encode
-    tokenizer = AutoTokenizer.from_pretrained("google/bert_uncased_L-2_H-128_A-2")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL)
     train_encodings = tokenizer(X_train, truncation=True, padding="max_length", max_length=512)
     train_dataset = SpamDataset(train_encodings, y_train)
 

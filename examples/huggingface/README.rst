@@ -75,7 +75,7 @@ To connect a client, run the following command in your terminal:
 
 .. code-block::
 
-   fedn run client -in client.yaml -secure=True -force-ssl
+   fedn run client -in client.yaml --secure=True --force-ssl
    
 
 Alternatively, if you prefer to use Docker, run the following:

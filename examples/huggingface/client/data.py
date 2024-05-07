@@ -49,8 +49,8 @@ def split(out_dir='data', n_splits=2):
     # Reduce data size
     X_train = X_train[:3000]    
     y_train = y_train[:3000]
-    X_test = X_test[:400]
-    y_test = y_test[:400]
+    X_test = X_test[:500]
+    y_test = y_test[:500]
 
     data = {
         'X_train': splitset(X_train, n_splits),
