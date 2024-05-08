@@ -4,7 +4,7 @@ import sys
 import sphinx_rtd_theme  # noqa: F401
 
 # Insert path
-sys.path.insert(0, os.path.abspath('../fedn'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # Project info
 project = 'FEDn'
