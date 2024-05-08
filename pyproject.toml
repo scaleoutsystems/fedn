@@ -178,6 +178,7 @@ lint.ignore = [
   "B007", # Loop control variable `v` not used within loop body
   "N806", # Variable `X_test` in function should be lowercase
   "SIM103", # Return the condition directly
+  "I001", # [*] Import block is un-sorted or un-formatted
 
   # unsafe?
   "S104", # Possible binding to all interfaces
