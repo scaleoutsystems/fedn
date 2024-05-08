@@ -19,6 +19,17 @@ However, during development of a new model it will be necessary to reinitialize.
 
    2. Restart the clients. 
 
+Q: Can I skip fetching the remote package and instead use a local folder when developing the compute package
+------------------------------------------------------------------------------------------------------------
+
+Yes, to facilitate interactive development of the compute package you can start a client that uses a local folder 'client' in your current working directory by: 
+
+.. code-block:: bash
+
+    fedn client start --remote=False -in client.yaml 
+
+
+Note that in production federations this options should in most cases be disallowed. 
 
 Q: How can other aggregation algorithms can be defined?
 -------------------------------------------------------
@@ -45,7 +56,7 @@ Yes! You can toggle which message streams a client subscibes to when starting th
 
 .. code-block:: bash
 
-    fedn run client --trainer=False -in client.yaml 
+    fedn client start --trainer=False -in client.yaml 
 
 
 Q: How do you approach the question of output privacy? 

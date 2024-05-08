@@ -5,9 +5,9 @@ Code adapted from https://github.com/adap/flower/tree/main/examples/app-pytorch.
 from collections import OrderedDict
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 from flwr_datasets import FederatedDataset
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Normalize, ToTensor
 from tqdm import tqdm
@@ -42,9 +42,7 @@ def load_data(partition_id, num_clients):
     partition = fds.load_partition(partition_id)
     # Divide data on each node: 80% train, 20% test
     partition_train_test = partition.train_test_split(test_size=0.2)
-    pytorch_transforms = Compose(
-        [ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-    )
+    pytorch_transforms = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     def apply_transforms(batch):
         """Apply transforms to the partition from FederatedDataset."""

@@ -2,7 +2,7 @@ import click
 
 CONTEXT_SETTINGS = dict(
     # Support -h as a shortcut for --help
-    help_option_names=['-h', '--help'],
+    help_option_names=["-h", "--help"],
 )
 
 
