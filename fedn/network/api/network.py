@@ -113,7 +113,6 @@ class Network:
         :type client: dict
         :return: None
         """
-
         if self.get_client(client["name"]):
             return
 

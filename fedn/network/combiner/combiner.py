@@ -59,7 +59,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def __init__(self, config):
         """Initialize Combiner server."""
-
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
 
@@ -327,11 +326,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
-            else:
-                # If client has changed status, update statestore
-                if status == "online":
-                    self.clients[client]["status"] = "offline"
-                    clients["update_offline_clients"].append(client)
+            elif status == "online":
+                self.clients[client]["status"] = "offline"
+                clients["update_offline_clients"].append(client)
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             self.statestore.update_client_status(clients["update_active_clients"], "online")
@@ -369,7 +366,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-
         self.statestore.report_status(status)
 
     def _flush_model_update_queue(self):
@@ -377,7 +373,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         :return: True if successful, else False
         """
-
         q = self.round_handler.aggregator.model_updates
         try:
             with q.mutex:
@@ -588,7 +583,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
-
         client = response.sender
         metadata = context.invocation_metadata()
         if metadata:
@@ -643,7 +637,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-
         self.statestore.report_validation(validation)
 
     def SendModelValidation(self, request, context):
@@ -668,7 +661,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     def run(self):
         """Start the server."""
-
         logger.info("COMBINER: {} started, ready for gRPC requests.".format(self.id))
         try:
             while True:

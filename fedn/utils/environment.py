@@ -1,5 +1,4 @@
-"""
-Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
+"""Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
 with modifications made by Scaleout Systems AB.
 Copyright (c) 2018 Databricks, Inc.
 
@@ -28,8 +27,7 @@ class _PythonEnv:
     BUILD_PACKAGES = ("pip", "setuptools", "wheel")
 
     def __init__(self, name=None, python=None, build_dependencies=None, dependencies=None):
-        """
-        Represents environment information for FEDn compute packages.
+        """Represents environment information for FEDn compute packages.
 
         Args:
         ----

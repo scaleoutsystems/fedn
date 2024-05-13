@@ -19,7 +19,6 @@ class MINIORepository(RepositoryBase):
         :param config: Dictionary containing configuration for credentials and bucket names.
         :type config: dict
         """
-
         super().__init__()
         self.name = "MINIORepository"
 
@@ -91,7 +90,6 @@ class MINIORepository(RepositoryBase):
         :param bucket: Buckets to delete from
         :type bucket: str
         """
-
         try:
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:

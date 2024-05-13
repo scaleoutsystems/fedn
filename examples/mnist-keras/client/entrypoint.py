@@ -135,7 +135,6 @@ def validate(in_model_path, out_json_path, data_path=None):
     :param data_path: The path to the data file.
     :type data_path: str
     """
-
     # Load data
     x_train, y_train = load_data(data_path)
     x_test, y_test = load_data(data_path, is_train=False)

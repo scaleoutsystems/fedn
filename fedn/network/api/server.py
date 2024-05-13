@@ -105,7 +105,6 @@ def list_models():
     Returns:
         _type_: json
     """
-
     session_id = request.args.get("session_id", None)
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
@@ -161,7 +160,6 @@ def list_clients():
     return: All clients as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
     status = request.args.get("status", None)
@@ -202,7 +200,6 @@ def list_combiners():
     return: All combiners as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
 
@@ -389,7 +386,6 @@ def list_compute_packages():
     return: The compute package as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
     include_active = request.args.get("include_active", None)
@@ -596,7 +592,6 @@ def add_client():
     return: The response from control.
     rtype: json
     """
-
     json_data = request.get_json()
     remote_addr = request.remote_addr
     try:
@@ -617,7 +612,6 @@ def list_combiners_data():
     return: The response from control.
     rtype: json
     """
-
     json_data = request.get_json()
 
     # expects a list of combiner names (strings) in an array
@@ -640,7 +634,6 @@ def get_plot_data():
     """Get plot data from the statestore.
     rtype: json
     """
-
     try:
         feature = request.args.get("feature", None)
         response = api.get_plot_data(feature=feature)

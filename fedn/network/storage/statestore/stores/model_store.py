@@ -19,14 +19,14 @@ class Model:
         self.session_id = session_id
         self.committed_at = committed_at
 
-    def from_dict(data: dict) -> 'Model':
+    def from_dict(data: dict) -> "Model":
         return Model(
-            id=str(data['_id']),
-            key=data['key'] if 'key' in data else None,
-            model=data['model'] if 'model' in data else None,
-            parent_model=data['parent_model'] if 'parent_model' in data else None,
-            session_id=data['session_id'] if 'session_id' in data else None,
-            committed_at=data['committed_at'] if 'committed_at' in data else None
+            id=str(data["_id"]),
+            key=data["key"] if "key" in data else None,
+            model=data["model"] if "model" in data else None,
+            parent_model=data["parent_model"] if "parent_model" in data else None,
+            session_id=data["session_id"] if "session_id" in data else None,
+            committed_at=data["committed_at"] if "committed_at" in data else None
         )
 
 
@@ -46,9 +46,9 @@ class ModelStore(Store[Model]):
         kwargs = {"key": "models"}
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
-            kwargs['_id'] = id_obj
+            kwargs["_id"] = id_obj
         else:
-            kwargs['model'] = id
+            kwargs["model"] = id
 
         document = self.database[self.collection].find_one(kwargs)
 
@@ -83,13 +83,13 @@ class ModelStore(Store[Model]):
             example: {"key": "models"}
         return: A dictionary with the count and the result
         """
-        kwargs['key'] = "models"
+        kwargs["key"] = "models"
 
         response = super().list(limit, skip, sort_key or "committed_at", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Model.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Model.from_dict(item) for item in response["result"]] if use_typing else response["result"]
         return {
-            "count": response['count'],
+            "count": response["count"],
             "result": result
         }
 
@@ -107,9 +107,9 @@ class ModelStore(Store[Model]):
         kwargs = {"key": "models"}
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
-            kwargs['_id'] = id_obj
+            kwargs["_id"] = id_obj
         else:
-            kwargs['model'] = id
+            kwargs["model"] = id
 
         model: object = self.database[self.collection].find_one(kwargs)
 
@@ -150,9 +150,9 @@ class ModelStore(Store[Model]):
         kwargs = {"key": "models"}
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
-            kwargs['_id'] = id_obj
+            kwargs["_id"] = id_obj
         else:
-            kwargs['model'] = id
+            kwargs["model"] = id
 
         model: object = self.database[self.collection].find_one(kwargs)
 
@@ -191,5 +191,5 @@ class ModelStore(Store[Model]):
             example: {"key": "models"}
         return: The count (int)
         """
-        kwargs['key'] = "models"
+        kwargs["key"] = "models"
         return super().count(**kwargs)

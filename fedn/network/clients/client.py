@@ -114,7 +114,6 @@ class Client:
         :return: A configuration dictionary containing connection information for combiner.
         :rtype: dict
         """
-
         logger.info("Initiating assignment request.")
         while True:
             status, response = self.connector.assign()
@@ -179,10 +178,9 @@ class Client:
         :param combiner_config: connection information for the combiner.
         :type combiner_config: dict
         """
-
         if self._connected:
             logger.info("Client is already attached. ")
-            return None
+            return
 
         # TODO use the combiner_config['certificate'] for setting up secure comms'
         host = combiner_config["host"]
@@ -257,7 +255,6 @@ class Client:
         :type combiner_config: dict
         :return:
         """
-
         if "helper_type" in combiner_config.keys():
             self.helper = get_helper(combiner_config["helper_type"])
 
@@ -268,7 +265,6 @@ class Client:
         | the discovery service (controller) and settings governing e.g.
         | client-combiner assignment behavior.
         """
-
         # Start sending heartbeats to the combiner.
         threading.Thread(target=self._send_heartbeat, kwargs={"update_frequency": config["heartbeat_interval"]}, daemon=True).start()
 
@@ -420,7 +416,6 @@ class Client:
         :return: None
         :rtype: None
         """
-
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
@@ -489,7 +484,6 @@ class Client:
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
-
         self.send_status("\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
         self.state = ClientState.training
 
@@ -740,7 +734,6 @@ class Client:
         :param request: The request message.
         :type request: fedn.Request
         """
-
         if not self._connected:
             logger.info("SendStatus: Client disconnected.")
             return

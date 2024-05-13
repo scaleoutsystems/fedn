@@ -4,8 +4,7 @@ from .certificate import Certificate
 
 
 class CertificateManager:
-    """
-    Utility to handle certificates for both Reducer and Combiner services.
+    """Utility to handle certificates for both Reducer and Combiner services.
 
     """
 
@@ -16,8 +15,7 @@ class CertificateManager:
         self.load_all()
 
     def get_or_create(self, name):
-        """
-        Look for an existing certificate, if not found, generate a self-signed certificate based on name.
+        """Look for an existing certificate, if not found, generate a self-signed certificate based on name.
 
         :param name: The name used when issuing the certificate.
         :return: A certificate
@@ -33,8 +31,7 @@ class CertificateManager:
             return cert
 
     def add(self, certificate):
-        """
-        Add certificate to certificate list.
+        """Add certificate to certificate list.
 
         :param certificate:
         :return: Success status (True, False)
@@ -46,8 +43,7 @@ class CertificateManager:
         return False
 
     def load_all(self):
-        """
-        Load all certificates and add to certificates list.
+        """Load all certificates and add to certificates list.
 
         """
         for filename in sorted(os.listdir(self.directory)):
@@ -59,9 +55,7 @@ class CertificateManager:
                 self.certificates.append(c)
 
     def find(self, name):
-        """
-
-        :param name: Name of certificate
+        """:param name: Name of certificate
         :return: certificate if successful, else None
         """
         for cert in self.certificates:

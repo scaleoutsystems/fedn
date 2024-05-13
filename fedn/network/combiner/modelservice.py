@@ -112,7 +112,6 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A BytesIO object containing the model.
         :rtype: :class:`io.BytesIO`, None if model does not exist.
         """
-
         data = BytesIO()
         data.seek(0, 0)
 

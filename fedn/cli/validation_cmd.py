@@ -8,9 +8,7 @@ from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
 @main.group("validation")
 @click.pass_context
 def validation_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -23,8 +21,7 @@ def validation_cmd(ctx):
 @validation_cmd.command("list")
 @click.pass_context
 def list_validations(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of validations
     - result: list of validations

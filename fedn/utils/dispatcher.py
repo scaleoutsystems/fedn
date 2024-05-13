@@ -1,5 +1,4 @@
-"""
-Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
+"""Portions of this code are derived from the Apache 2.0 licensed project mlflow (https://mlflow.org/).,
 with modifications made by Scaleout Systems AB.
 Copyright (c) 2018 Databricks, Inc.
 
@@ -60,15 +59,13 @@ def _install_python(version, pyenv_root=None, capture_output=False):
 
 
 def _is_virtualenv_available():
-    """
-    Returns True if virtualenv is available, otherwise False.
+    """Returns True if virtualenv is available, otherwise False.
     """
     return shutil.which("virtualenv") is not None
 
 
 def _validate_virtualenv_is_available():
-    """
-    Validates virtualenv is available. If not, throws an `Exception` with a brief instruction
+    """Validates virtualenv is available. If not, throws an `Exception` with a brief instruction
     on how to install virtualenv.
     """
     if not _is_virtualenv_available():
@@ -85,8 +82,7 @@ def _get_virtualenv_extra_env_vars(env_root_dir=None):
 
 
 def _get_python_env(python_env_file):
-    """
-    Parses a python environment file and returns a dictionary with the parsed content.
+    """Parses a python environment file and returns a dictionary with the parsed content.
     """
     if os.path.exists(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)

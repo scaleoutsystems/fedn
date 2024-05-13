@@ -21,8 +21,7 @@ envs = [
 @main.group("config", invoke_without_command=True)
 @click.pass_context
 def config_cmd(ctx):
-    """
-    - Configuration commands for the FEDn CLI.
+    """- Configuration commands for the FEDn CLI.
     """
     if ctx.invoked_subcommand is None:
         click.echo("\n--- FEDn Cli Configuration ---\n")

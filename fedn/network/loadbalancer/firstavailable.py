@@ -13,7 +13,6 @@ class LeastPacked(LoadBalancerBase):
 
     def find_combiner(self):
         """Find the first available combiner."""
-
         for combiner in self.network.get_combiners():
             if combiner.allowing_clients():
                 return combiner

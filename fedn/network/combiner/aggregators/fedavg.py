@@ -21,7 +21,6 @@ class Aggregator(AggregatorBase):
 
     def __init__(self, storage, server, modelservice, round_handler):
         """Constructor method"""
-
         super().__init__(storage, server, modelservice, round_handler)
 
         self.name = "fedavg"
@@ -41,10 +40,9 @@ class Aggregator(AggregatorBase):
         :return: The global model and metadata
         :rtype: tuple
         """
-
         data = {}
-        data['time_model_load'] = 0.0
-        data['time_model_aggregation'] = 0.0
+        data["time_model_load"] = 0.0
+        data["time_model_aggregation"] = 0.0
 
         model = None
         nr_aggregated_models = 0
@@ -67,13 +65,13 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
                 # Increment total number of examples
-                total_examples += metadata['num_examples']
+                total_examples += metadata["num_examples"]
 
                 if nr_aggregated_models == 0:
                     model = model_next
                 else:
                     model = helper.increment_average(
-                        model, model_next, metadata['num_examples'], total_examples)
+                        model, model_next, metadata["num_examples"], total_examples)
 
                 nr_aggregated_models += 1
                 # Delete model from storage
@@ -87,7 +85,7 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        data['nr_aggregated_models'] = nr_aggregated_models
+        data["nr_aggregated_models"] = nr_aggregated_models
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data

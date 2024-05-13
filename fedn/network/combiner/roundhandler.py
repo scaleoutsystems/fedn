@@ -34,7 +34,6 @@ class RoundHandler:
 
     def __init__(self, storage, server, modelservice):
         """Initialize the RoundHandler."""
-
         self.round_configs = queue.Queue()
         self.storage = storage
         self.server = server
@@ -67,7 +66,6 @@ class RoundHandler:
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """
-
         model_str = self.load_model_update_str(model_id)
         if model_str:
             try:
@@ -119,7 +117,6 @@ class RoundHandler:
         :param polling_interval: The polling interval, defaults to 0.1
         :type polling_interval: float, optional
         """
-
         time_window = float(config["round_timeout"])
 
         tt = 0.0
@@ -140,7 +137,6 @@ class RoundHandler:
         :return: an aggregated model and associated metadata
         :rtype: model, dict
         """
-
         logger.info("ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
@@ -208,7 +204,6 @@ class RoundHandler:
         :param retry: Number of retries, defaults to 2
         :type retry: int, optional
         """
-
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.temp_model_storage.exist(model_id):
             logger.info("Model already exists in memory, skipping model staging.")
@@ -241,7 +236,6 @@ class RoundHandler:
         :return: Set of clients
         :rtype: list
         """
-
         if type == "validators":
             clients = self.server.get_active_validators()
         elif type == "trainers":
@@ -269,7 +263,6 @@ class RoundHandler:
         :return: True if the required number of clients are available, False otherwise.
         :rtype: bool
         """
-
         active = self.server.nr_active_trainers()
         if active >= int(config["clients_required"]):
             logger.info("Number of clients required ({0}) to start round met {1}.".format(config["clients_required"], active))
@@ -298,7 +291,6 @@ class RoundHandler:
         :return: metadata about the training round.
         :rtype: dict
         """
-
         logger.info("Processing training round,  job_id {}".format(config["_job_id"]))
 
         data = {}

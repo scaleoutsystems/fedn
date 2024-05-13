@@ -73,7 +73,6 @@ class Repository:
         :type compute_pacakge: BytesIO or str file name.
         :param is_file: True if model is a file name, else False
         """
-
         try:
             self.client.set_artifact(str(name), compute_package, bucket=self.context_bucket, is_file=is_file)
         except Exception:
@@ -100,7 +99,6 @@ class Repository:
         :param compute_package: The name of the compute_package
         :type compute_package: str
         """
-
         try:
             self.client.delete_artifact(compute_package, bucket=[self.context_bucket])
         except Exception:

@@ -153,7 +153,6 @@ class PackageRuntime:
         :return: Dispatcher object
         :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
-
         self.dispatch_config = _read_yaml_file(os.path.join(run_path, "fedn.yaml"))
         dispatcher = Dispatcher(self.dispatch_config, run_path)
 

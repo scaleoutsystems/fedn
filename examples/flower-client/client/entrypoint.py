@@ -14,7 +14,6 @@ flwr_adapter = FlwrClientAppAdapter(app)
 
 def _get_node_id():
     """Get client number from environment variable."""
-
     number = os.environ.get("CLIENT_NUMBER", "0")
     return int(number)
 
