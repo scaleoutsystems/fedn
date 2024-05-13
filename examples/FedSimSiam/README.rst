@@ -28,7 +28,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-pytorch
+   cd fedn/examples/FedSimSiam
 
 Create the compute package:
 
