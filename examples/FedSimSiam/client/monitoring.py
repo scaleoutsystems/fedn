@@ -1,5 +1,6 @@
-""" knn monitor as in InstDisc https://arxiv.org/abs/1805.01978
-    implementation follows http://github.com/zhirongw/lemniscate.pytorch and https://github.com/leftthomas/SimCLR
+""" 
+knn monitor as in InstDisc https://arxiv.org/abs/1805.01978.
+This implementation follows http://github.com/zhirongw/lemniscate.pytorch and https://github.com/leftthomas/SimCLR
 """
 import torch.nn.functional as F
 import torch
@@ -36,7 +37,7 @@ def knn_monitor(net, memory_data_loader, test_data_loader, epoch, k=200, t=0.1, 
 
             total_num += data.size(0)
             total_top1 += (pred_labels[:, 0] == target).float().sum().item()
-    return total_top1 / total_num  # * 100
+    return total_top1 / total_num
 
 
 def knn_predict(feature, feature_bank, feature_labels, classes, knn_k, knn_t):

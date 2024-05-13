@@ -95,15 +95,12 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     device = torch.device(
         'cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = model.to(device)
+
     model.train()
 
-    # optimizer = optim.SGD(model.parameters(), lr=0.03,
-    #                       momentum=0.9, weight_decay=0.0005)
-
     optimizer, lr_scheduler = init_lrscheduler(
-        model, 500, trainloader)  # TODO: Change num epochs
+        model, 500, trainloader)
 
-    print("starting training with lr ", optimizer.param_groups[0]['lr'])
     for epoch in range(epochs):
         for idx, data in enumerate(trainloader):
             images = data[0]
@@ -115,8 +112,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
-
-    print('last learning rate: ', optimizer.param_groups[0]['lr'])
 
     # Metadata needed for aggregation server side
     metadata = {
