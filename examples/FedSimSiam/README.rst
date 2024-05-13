@@ -1,5 +1,5 @@
-FEDn Project: MNIST (PyTorch)
------------------------------
+FEDn Project: FedSimSiam on CIFAR-10
+------------------------------------
 
 This is an example FEDn Project that runs the federated self-supervised learning algorithm FedSimSiam on 
 the CIFAR-10 dataset. This is a standard example often used for benchmarking. To be able to run this example, you 
