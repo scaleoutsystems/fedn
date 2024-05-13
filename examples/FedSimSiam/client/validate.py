@@ -1,16 +1,15 @@
 import os
 import sys
 
-import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
 import numpy as np
-from PIL import Image
-
+import torch
+from data import load_knn_monitoring_dataset
 from model import load_parameters
-from data import load_data, load_knn_monitoring_dataset
-from monitoring import *
+from monitoring import knn_monitor
+from PIL import Image
+from torch.utils.data import Dataset
+from torchvision import transforms
+
 from fedn.utils.helpers.helpers import save_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

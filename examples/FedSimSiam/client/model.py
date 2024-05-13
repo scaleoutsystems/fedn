@@ -1,9 +1,9 @@
-import torch.nn.functional as F
-from torchvision.models import resnet18
-import torch.nn as nn
 import collections
 
 import torch
+import torch.nn.functional as f
+from torch import nn
+from torchvision.models import resnet18
 
 from fedn.utils.helpers.helpers import get_helper
 
@@ -14,12 +14,12 @@ helper = get_helper(HELPER_MODULE)
 def D(p, z, version='simplified'):  # negative cosine similarity
     if version == 'original':
         z = z.detach()  # stop gradient
-        p = F.normalize(p, dim=1)  # l2-normalize
-        z = F.normalize(z, dim=1)  # l2-normalize
+        p = f.normalize(p, dim=1)  # l2-normalize
+        z = f.normalize(z, dim=1)  # l2-normalize
         return -(p*z).sum(dim=1).mean()
 
     elif version == 'simplified':  # same thing, much faster. Scroll down, speed test in __main__
-        return - F.cosine_similarity(p, z.detach(), dim=-1).mean()
+        return - f.cosine_similarity(p, z.detach(), dim=-1).mean()
     else:
         raise Exception
 

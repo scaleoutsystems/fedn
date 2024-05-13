@@ -1,11 +1,10 @@
 import os
 from math import floor
 
+import numpy as np
 import torch
 import torchvision
-import torchvision.transforms as transforms
-import numpy as np
-import os
+from torchvision import transforms
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)

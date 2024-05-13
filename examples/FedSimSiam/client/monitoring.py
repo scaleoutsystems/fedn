@@ -1,23 +1,22 @@
-""" 
-knn monitor as in InstDisc https://arxiv.org/abs/1805.01978.
+""" knn monitor as in InstDisc https://arxiv.org/abs/1805.01978.
 This implementation follows http://github.com/zhirongw/lemniscate.pytorch and https://github.com/leftthomas/SimCLR
 """
-import torch.nn.functional as F
 import torch
+import torch.nn.functional as f
 
 
-def knn_monitor(net, memory_data_loader, test_data_loader, epoch, k=200, t=0.1, hide_progress=False):
+def knn_monitor(net, memory_data_loader, test_data_loader, k=200, t=0.1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = net.to(device)
     net.eval()
     classes = len(memory_data_loader.dataset.classes)
-    total_top1, total_top5, total_num, feature_bank = 0.0, 0.0, 0, []
+    total_top1, total_num, feature_bank = 0.0, 0, []
     with torch.no_grad():
         # generate feature bank
         for data, target in memory_data_loader:
             # feature = net(data.cuda(non_blocking=True))
             feature = net(data.to(device))
-            feature = F.normalize(feature, dim=1)
+            feature = f.normalize(feature, dim=1)
             feature_bank.append(feature)
         # [D, N]
         feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
@@ -26,11 +25,10 @@ def knn_monitor(net, memory_data_loader, test_data_loader, epoch, k=200, t=0.1, 
             memory_data_loader.dataset.targets, device=feature_bank.device)
         # loop test data to predict the label by weighted knn search
         for data, target in test_data_loader:
-            # data, target = data.cuda(
-            #     non_blocking=True), target.cuda(non_blocking=True)
-            data, target = data.to(device), target.to(device)
+            data, target = data.cuda(
+                non_blocking=True), target.cuda(non_blocking=True)
             feature = net(data)
-            feature = F.normalize(feature, dim=1)
+            feature = f.normalize(feature, dim=1)
 
             pred_labels = knn_predict(
                 feature, feature_bank, feature_labels, classes, k, t)

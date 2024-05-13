@@ -1,8 +1,8 @@
-import torch
 import numpy as np
+import torch
 
 
-class LR_Scheduler(object):
+class LrScheduler(object):
     def __init__(self, optimizer, warmup_epochs, warmup_lr, num_epochs, base_lr, final_lr, iter_per_epoch, constant_predictor_lr=False):
         self.base_lr = base_lr
         self.constant_predictor_lr = constant_predictor_lr
@@ -69,7 +69,7 @@ def init_lrscheduler(model, total_epochs, dataloader):
         momentum=momentum,
         weight_decay=weight_decay)
 
-    lr_scheduler = LR_Scheduler(
+    lr_scheduler = LrScheduler(
         optimizer, warmup_epochs, warmup_lr*batch_size/256,
         total_epochs, base_lr*batch_size/256, final_lr*batch_size/256,
         len(dataloader),

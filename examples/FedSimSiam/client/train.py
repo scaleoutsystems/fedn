@@ -1,17 +1,13 @@
 import os
 import sys
 
-import torch
-from torch.utils.data import Dataset
-from torchvision import transforms
-from PIL import Image
-import torch
-from torch.utils.data import DataLoader
 import numpy as np
-import torch.optim as optim
-
+import torch
 from data import load_data
 from model import load_parameters, save_parameters
+from PIL import Image
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
 from utils import init_lrscheduler
 
 from fedn.utils.helpers.helpers import save_metadata
