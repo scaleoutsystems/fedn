@@ -7,18 +7,18 @@ from torchvision.models import resnet18
 
 from fedn.utils.helpers.helpers import get_helper
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)
 
 
-def D(p, z, version='simplified'):  # negative cosine similarity
-    if version == 'original':
+def D(p, z, version="simplified"):  # negative cosine similarity
+    if version == "original":
         z = z.detach()  # stop gradient
         p = f.normalize(p, dim=1)  # l2-normalize
         z = f.normalize(z, dim=1)  # l2-normalize
         return -(p*z).sum(dim=1).mean()
 
-    elif version == 'simplified':  # same thing, much faster. Scroll down, speed test in __main__
+    elif version == "simplified":  # same thing, much faster. Scroll down, speed test in __main__
         return - f.cosine_similarity(p, z.detach(), dim=-1).mean()
     else:
         raise Exception
@@ -84,7 +84,7 @@ class SimSiam(nn.Module):
         z1, z2 = f(x1), f(x2)
         p1, p2 = h(z1), h(z2)
         L = D(p1, z2) / 2 + D(p2, z1) / 2
-        return {'loss': L}
+        return {"loss": L}
 
 
 def compile_model():
@@ -129,7 +129,7 @@ def load_parameters(model_path):
     return model
 
 
-def init_seed(out_path='seed.npz'):
+def init_seed(out_path="seed.npz"):
     """ Initialize seed model and save it to file.
 
     :param out_path: The path to save the seed model to.
@@ -141,4 +141,4 @@ def init_seed(out_path='seed.npz'):
 
 
 if __name__ == "__main__":
-    init_seed('../seed.npz')
+    init_seed("../seed.npz")

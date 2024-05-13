@@ -43,7 +43,7 @@ def validate(in_model_path, out_json_path, data_path=None):
 
     model = load_parameters(in_model_path)
     device = torch.device(
-        'cuda') if torch.cuda.is_available() else torch.device('cpu')
+        "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     knn_accuracy = knn_monitor(model.encoder, memory_loader, test_loader, device, k=min(
         25, len(memory_loader.dataset)))

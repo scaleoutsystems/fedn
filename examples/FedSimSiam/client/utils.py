@@ -21,10 +21,10 @@ class LrScheduler(object):
     def step(self):
         for param_group in self.optimizer.param_groups:
 
-            if self.constant_predictor_lr and param_group['name'] == 'predictor':
-                param_group['lr'] = self.base_lr
+            if self.constant_predictor_lr and param_group["name"] == "predictor":
+                param_group["lr"] = self.base_lr
             else:
-                lr = param_group['lr'] = self.lr_schedule[self.iter]
+                lr = param_group["lr"] = self.lr_schedule[self.iter]
 
         self.iter += 1
         self.current_lr = lr
@@ -36,18 +36,18 @@ class LrScheduler(object):
 
 def get_optimizer(name, model, lr, momentum, weight_decay):
 
-    predictor_prefix = ('module.predictor', 'predictor')
+    predictor_prefix = ("module.predictor", "predictor")
     parameters = [{
-        'name': 'base',
-        'params': [param for name, param in model.named_parameters() if not name.startswith(predictor_prefix)],
-        'lr': lr
+        "name": "base",
+        "params": [param for name, param in model.named_parameters() if not name.startswith(predictor_prefix)],
+        "lr": lr
     }, {
-        'name': 'predictor',
-        'params': [param for name, param in model.named_parameters() if name.startswith(predictor_prefix)],
-        'lr': lr
+        "name": "predictor",
+        "params": [param for name, param in model.named_parameters() if name.startswith(predictor_prefix)],
+        "lr": lr
     }]
 
-    if name == 'sgd':
+    if name == "sgd":
         optimizer = torch.optim.SGD(
             parameters, lr=lr, momentum=momentum, weight_decay=weight_decay)
 
@@ -64,7 +64,7 @@ def init_lrscheduler(model, total_epochs, dataloader):
     batch_size = 64
 
     optimizer = get_optimizer(
-        'sgd', model,
+        "sgd", model,
         lr=base_lr*batch_size/256,
         momentum=momentum,
         weight_decay=weight_decay)
