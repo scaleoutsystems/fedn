@@ -17,9 +17,7 @@ from .shared import apply_config
 
 
 def get_statestore_config_from_file(init):
-    """
-
-    :param init:
+    """:param init:
     :return:
     """
     with open(init, "r") as file:
@@ -43,9 +41,7 @@ def check_helper_config_file(config):
 @main.group("run")
 @click.pass_context
 def run_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -125,9 +121,7 @@ def client_cmd(
     reconnect_after_missed_heartbeat,
     verbosity,
 ):
-    """
-
-    :param ctx:
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:
@@ -201,9 +195,7 @@ def client_cmd(
 @click.option("-in", "--init", required=False, default=None, help="Path to configuration file to (re)init combiner.")
 @click.pass_context
 def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init):
-    """
-
-    :param ctx:
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:

@@ -8,9 +8,7 @@ from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
 @main.group("session")
 @click.pass_context
 def session_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -23,8 +21,7 @@ def session_cmd(ctx):
 @session_cmd.command("list")
 @click.pass_context
 def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of sessions
     - result: list of sessions

@@ -41,9 +41,7 @@ class TempModelStorage(ModelStorage):
         return obj
 
     def get_ptr(self, model_id):
-        """
-
-        :param model_id:
+        """:param model_id:
         :return:
         """
         try:

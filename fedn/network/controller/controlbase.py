@@ -113,17 +113,13 @@ class ControlBase(ABC):
             return False
 
     def get_model_info(self):
-        """
-
-        :return:
+        """:return:
         """
         return self.statestore.get_model_trail()
 
     # TODO: remove use statestore.get_events() instead
     def get_events(self):
-        """
-
-        :return:
+        """:return:
         """
         return self.statestore.get_events()
 
@@ -139,9 +135,7 @@ class ControlBase(ABC):
         return round
 
     def get_compute_package_name(self):
-        """
-
-        :return:
+        """:return:
         """
         definition = self.statestore.get_compute_package()
         if definition:
@@ -159,9 +153,7 @@ class ControlBase(ABC):
         self.model_repository.set_compute_package(filename, path)
 
     def get_compute_package(self, compute_package=""):
-        """
-
-        :param compute_package:
+        """:param compute_package:
         :return:
         """
         if compute_package == "":
@@ -173,7 +165,6 @@ class ControlBase(ABC):
 
     def create_session(self, config, status="Initialized"):
         """Initialize a new session in backend db."""
-
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
             config["session_id"] = str(session_id)
@@ -196,7 +187,6 @@ class ControlBase(ABC):
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
-
         self.statestore.create_round(round_data)
 
     def set_round_data(self, round_id, round_data):
@@ -251,7 +241,6 @@ class ControlBase(ABC):
         :param session_id: Unique identifier for the session
         :type session_id: str
         """
-
         helper = self.get_helper()
         if model is not None:
             logger.info("Saving model file temporarily to disk...")

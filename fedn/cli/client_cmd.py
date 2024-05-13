@@ -15,7 +15,6 @@ def validate_client_config(config):
 
     :param config: Client config (dict).
     """
-
     try:
         if config["discover_host"] is None or config["discover_host"] == "":
             raise InvalidClientConfig("Missing required configuration: discover_host")
@@ -28,9 +27,7 @@ def validate_client_config(config):
 @main.group("client")
 @click.pass_context
 def client_cmd(ctx):
-    """
-
-    :param ctx:
+    """:param ctx:
     """
     pass
 
@@ -43,8 +40,7 @@ def client_cmd(ctx):
 @client_cmd.command("list")
 @click.pass_context
 def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """
-    Return:
+    """Return:
     ------
     - count: number of clients
     - result: list of clients
@@ -114,9 +110,7 @@ def client_cmd(
     reconnect_after_missed_heartbeat,
     verbosity,
 ):
-    """
-
-    :param ctx:
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:

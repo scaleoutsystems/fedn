@@ -31,9 +31,7 @@ class MemoryModelStorage(ModelStorage):
         return obj
 
     def get_ptr(self, model_id):
-        """
-
-        :param model_id:
+        """:param model_id:
         :return:
         """
         return self.models[model_id]

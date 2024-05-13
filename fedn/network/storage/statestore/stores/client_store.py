@@ -18,16 +18,16 @@ class Client:
         self.updated_at = updated_at
         self.last_seen = last_seen
 
-    def from_dict(data: dict) -> 'Client':
+    def from_dict(data: dict) -> "Client":
         return Client(
-            id=str(data['_id']),
-            name=data['name'] if 'name' in data else None,
-            combiner=data['combiner'] if 'combiner' in data else None,
-            combiner_preferred=data['combiner_preferred'] if 'combiner_preferred' in data else None,
-            ip=data['ip'] if 'ip' in data else None,
-            status=data['status'] if 'status' in data else None,
-            updated_at=data['updated_at'] if 'updated_at' in data else None,
-            last_seen=data['last_seen'] if 'last_seen' in data else None
+            id=str(data["_id"]),
+            name=data["name"] if "name" in data else None,
+            combiner=data["combiner"] if "combiner" in data else None,
+            combiner_preferred=data["combiner_preferred"] if "combiner_preferred" in data else None,
+            ip=data["ip"] if "ip" in data else None,
+            status=data["status"] if "status" in data else None,
+            updated_at=data["updated_at"] if "updated_at" in data else None,
+            last_seen=data["last_seen"] if "last_seen" in data else None
         )
 
 
@@ -74,7 +74,7 @@ class ClientStore(Store[Client]):
         """
         response = super().list(limit, skip, sort_key or "last_seen", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Client.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Client.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
         return {
             "count": response["count"],

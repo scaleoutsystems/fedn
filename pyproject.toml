@@ -177,21 +177,8 @@ lint.ignore = [
   "PLW1508", # Invalid type for environment variable default; expected `str` or `None`
   "B007", # Loop control variable `v` not used within loop body
   "N806", # Variable `X_test` in function should be lowercase
-  
-  # solved with --fix
-  "Q000", # [*] Single quotes found but double quotes preferred
-  "D212", # [*] Multi-line docstring summary should start at the first line
-  "D213", # [*] Multi-line docstring summary should start at the second line
-  "D202", # [*] No blank lines allowed after function docstring (found 1)
-  "D209", # [*] Multi-line docstring closing quotes should be on a separate line
-  "D204", # [*] 1 blank line required after class docstring
-  "SIM114", # [*] Combine `if` branches using logical `or` operator
-  "D208", # [*] Docstring is over-indented
-  "I001", # [*] Import block is un-sorted or un-formatted
   "SIM103", # Return the condition directly
-  "PLR5501", # [*] Use `elif` instead of `else` then `if`, to reduce indentation
-  "RET501", # [*] Do not explicitly `return None` in function if it is the only possible return value
-  "PLW0120", # [*] `else` clause on loop without a `break` statement; remove the `else` and dedent its contents
+  "I001", # [*] Import block is un-sorted or un-formatted
 
   # unsafe?
   "S104", # Possible binding to all interfaces

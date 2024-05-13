@@ -9,8 +9,7 @@ from fedn.common.log_config import logger
 
 
 class Certificate:
-    """
-    Utility to generate unsigned certificates.
+    """Utility to generate unsigned certificates.
 
     """
 
@@ -37,8 +36,7 @@ class Certificate:
     def gen_keypair(
         self,
     ):
-        """
-        Generate keypair.
+        """Generate keypair.
 
         """
         key = crypto.PKey()
@@ -65,9 +63,7 @@ class Certificate:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
     def set_keypair_raw(self, certificate, privatekey):
-        """
-
-        :param certificate:
+        """:param certificate:
         :param privatekey:
         """
         with open(self.key_path, "wb") as keyfile:
@@ -77,9 +73,7 @@ class Certificate:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate))
 
     def get_keypair_raw(self):
-        """
-
-        :return:
+        """:return:
         """
         with open(self.key_path, "rb") as keyfile:
             key_buf = keyfile.read()
@@ -88,9 +82,7 @@ class Certificate:
         return copy.deepcopy(cert_buf), copy.deepcopy(key_buf)
 
     def get_key(self):
-        """
-
-        :return:
+        """:return:
         """
         with open(self.key_path, "rb") as keyfile:
             key_buf = keyfile.read()
@@ -98,9 +90,7 @@ class Certificate:
         return key
 
     def get_cert(self):
-        """
-
-        :return:
+        """:return:
         """
         with open(self.cert_path, "rb") as certfile:
             cert_buf = certfile.read()

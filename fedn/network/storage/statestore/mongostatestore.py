@@ -140,7 +140,6 @@ class MongoStateStore:
         :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
         :return: Dictionary of sessions in result (array of session objects) and count.
         """
-
         result = None
 
         if limit is not None and skip is not None:
@@ -175,7 +174,6 @@ class MongoStateStore:
         :type model_id: str
         :return:
         """
-
         committed_at = datetime.now()
         current_model = self.model.find_one({"key": "current_model"})
         parent_model = None
@@ -214,7 +212,6 @@ class MongoStateStore:
         :return: The initial model id. None if no model is found.
         :rtype: str
         """
-
         result = self.model.find_one({"key": "model_trail"}, sort=[("committed_at", pymongo.ASCENDING)])
         if result is None:
             return None
@@ -252,7 +249,6 @@ class MongoStateStore:
         :type model_id: str
         :return:
         """
-
         try:
             committed_at = datetime.now()
 
@@ -273,7 +269,6 @@ class MongoStateStore:
         :return: The id of the most recent round.
         :rtype: ObjectId
         """
-
         return self.rounds.find_one(sort=[("_id", pymongo.DESCENDING)])
 
     def get_round(self, id):
@@ -284,7 +279,6 @@ class MongoStateStore:
         :return: round with id, reducer and combiners
         :rtype: ObjectId
         """
-
         return self.rounds.find_one({"round_id": str(id)})
 
     def get_rounds(self):
@@ -293,7 +287,6 @@ class MongoStateStore:
         :return: All rounds.
         :rtype: ObjectId
         """
-
         return self.rounds.find()
 
     def get_validations(self, **kwargs):
@@ -304,7 +297,6 @@ class MongoStateStore:
         :return: validations matching query
         :rtype: ObjectId
         """
-
         result = self.control.validations.find(kwargs)
         return result
 
@@ -316,7 +308,6 @@ class MongoStateStore:
         :return: True if successful.
         :rtype: bool
         """
-
         try:
             find = {"id": id}
             projection = {"_id": False, "key": False}
@@ -344,7 +335,6 @@ class MongoStateStore:
         :return: True if successful.
         :rtype: bool
         """
-
         obj = {
             "file_name": file_name,
             "storage_file_name": storage_file_name,
@@ -396,7 +386,6 @@ class MongoStateStore:
         :return: Dictionary of compute packages in result and count.
         :rtype: dict
         """
-
         result = None
         count = None
 
@@ -544,7 +533,6 @@ class MongoStateStore:
         :return: List of model descendants.
         :rtype: list
         """
-
         model: object = self.model.find_one({"key": "models", "model": model_id})
         current_model_id: str = model["model"] if model is not None else None
         result: list = []
@@ -684,7 +672,6 @@ class MongoStateStore:
         :return: Dictionary of combiners in result and count.
         :rtype: dict
         """
-
         result = None
         count = None
 
@@ -713,7 +700,6 @@ class MongoStateStore:
         :type combiner_data: dict
         :return:
         """
-
         combiner_data["updated_at"] = str(datetime.now())
         self.combiners.update_one({"name": combiner_data["name"]}, {"$set": combiner_data}, True)
 
@@ -769,7 +755,6 @@ class MongoStateStore:
         :type status: str
         :param sort_key: The key to sort by.
         """
-
         result = None
         count = None
 
@@ -806,7 +791,6 @@ class MongoStateStore:
         :return: list of combiner data.
         :rtype: list(ObjectId)
         """
-
         result = None
 
         try:

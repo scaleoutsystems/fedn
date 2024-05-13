@@ -67,8 +67,7 @@ class ConnectorClient:
         logger.info("Setting connection string to {}.".format(self.connect_string))
 
     def assign(self):
-        """
-        Connect client to FEDn network discovery service, ask for combiner assignment.
+        """Connect client to FEDn network discovery service, ask for combiner assignment.
 
         :return: Tuple with assingment status, combiner connection information if sucessful, else None.
         :rtype: tuple(:class:`fedn.network.clients.connect.Status`, str)
@@ -127,8 +126,7 @@ class ConnectorClient:
         return Status.Unassigned, None
 
     def refresh_token(self):
-        """
-        Refresh client token.
+        """Refresh client token.
 
         :return: Tuple with assingment status, combiner connection information if sucessful, else None.
         :rtype: tuple(:class:`fedn.network.clients.connect.Status`, str)

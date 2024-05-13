@@ -65,8 +65,7 @@ def get_client_package_dir(path: str) -> str:
 
 # Print response from api (list of entities)
 def print_response(response, entity_name: str):
-    """
-    Prints the api response to the cli.
+    """Prints the api response to the cli.
     :param response:
         type: array
         description: list of entities

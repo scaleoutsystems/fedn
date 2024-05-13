@@ -75,7 +75,6 @@ class Control(ControlBase):
 
     def __init__(self, statestore):
         """Constructor method."""
-
         super().__init__(statestore)
         self.name = "DefaultControl"
 
@@ -88,7 +87,6 @@ class Control(ControlBase):
         :type config: dict
 
         """
-
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -140,7 +138,6 @@ class Control(ControlBase):
         : type round_id: str
 
         """
-
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -275,7 +272,6 @@ class Control(ControlBase):
         : param combiners: dict of combiner names(key) and model IDs(value) to reduce
         : type combiners: dict
         """
-
         meta = {}
         meta["time_fetch_model"] = 0.0
         meta["time_load_model"] = 0.0
@@ -322,7 +318,6 @@ class Control(ControlBase):
 
         : param config: configuration for the inference round
         """
-
         # Check/set instucting state
         if self.__state == ReducerState.instructing:
             logger.info("Already set in INSTRUCTING state")
@@ -350,7 +345,6 @@ class Control(ControlBase):
 
         : param config: configuration for the inference round
         """
-
         # Init meta
         round_data = {}
 

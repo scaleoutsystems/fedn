@@ -4,8 +4,7 @@ import grpc
 from grpc_health.v1 import health, health_pb2_grpc
 
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.grpc.auth import JWTInterceptor
 
 
@@ -14,8 +13,8 @@ class Server:
 
     def __init__(self, servicer, modelservicer, config):
 
-        set_log_level_from_string(config.get('verbosity', "INFO"))
-        set_log_stream(config.get('logfile', None))
+        set_log_level_from_string(config.get("verbosity", "INFO"))
+        set_log_stream(config.get("logfile", None))
 
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=350), interceptors=[JWTInterceptor()])
         self.certificate = None
@@ -34,15 +33,15 @@ class Server:
 
         health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
-        if config['secure']:
+        if config["secure"]:
             logger.info(f'Creating secure gRPCS server using certificate: {config["certificate"]}')
             server_credentials = grpc.ssl_server_credentials(
-                ((config['key'], config['certificate'],),))
+                ((config["key"], config["certificate"],),))
             self.server.add_secure_port(
-                '[::]:' + str(config['port']), server_credentials)
+                "[::]:" + str(config["port"]), server_credentials)
         else:
             logger.info("Creating gRPC server")
-            self.server.add_insecure_port('[::]:' + str(config['port']))
+            self.server.add_insecure_port("[::]:" + str(config["port"]))
 
     def start(self):
         """ Start the gRPC server."""

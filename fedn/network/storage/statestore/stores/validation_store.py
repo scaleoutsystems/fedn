@@ -29,17 +29,17 @@ class Validation:
         self.sender = sender
         self.receiver = receiver
 
-    def from_dict(data: dict) -> 'Validation':
+    def from_dict(data: dict) -> "Validation":
         return Validation(
-            id=str(data['_id']),
-            model_id=data['modelId'] if 'modelId' in data else None,
-            data=data['data'] if 'data' in data else None,
-            correlation_id=data['correlationId'] if 'correlationId' in data else None,
-            timestamp=data['timestamp'] if 'timestamp' in data else None,
-            session_id=data['sessionId'] if 'sessionId' in data else None,
-            meta=data['meta'] if 'meta' in data else None,
-            sender=data['sender'] if 'sender' in data else None,
-            receiver=data['receiver'] if 'receiver' in data else None
+            id=str(data["_id"]),
+            model_id=data["modelId"] if "modelId" in data else None,
+            data=data["data"] if "data" in data else None,
+            correlation_id=data["correlationId"] if "correlationId" in data else None,
+            timestamp=data["timestamp"] if "timestamp" in data else None,
+            session_id=data["sessionId"] if "sessionId" in data else None,
+            meta=data["meta"] if "meta" in data else None,
+            sender=data["sender"] if "sender" in data else None,
+            receiver=data["receiver"] if "receiver" in data else None
         )
 
 
@@ -89,8 +89,8 @@ class ValidationStore(Store[Validation]):
         """
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Validation.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Validation.from_dict(item) for item in response["result"]] if use_typing else response["result"]
         return {
-            "count": response['count'],
+            "count": response["count"],
             "result": result
         }

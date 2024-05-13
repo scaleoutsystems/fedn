@@ -67,7 +67,6 @@ class ConnectorCombiner:
         :param verify: Verify the connection to the discovery service.
         :type verify: bool
         """
-
         self.host = host
         self.fqdn = fqdn
         self.port = port
@@ -92,8 +91,7 @@ class ConnectorCombiner:
         logger.info("Setting connection string to {}".format(self.connect_string))
 
     def announce(self):
-        """
-        Announce combiner to FEDn network via discovery service (REST-API).
+        """Announce combiner to FEDn network via discovery service (REST-API).
 
         :return: Tuple with announcement Status, FEDn network configuration if sucessful, else None.
         :rtype: :class:`fedn.network.combiner.connect.Status`, str

@@ -113,7 +113,6 @@ class CombinerInterface:
         :return: A dictionary with the combiner configuration.
         :rtype: dict
         """
-
         data = {
             "parent": self.parent,
             "name": self.name,
@@ -168,7 +167,6 @@ class CombinerInterface:
 
     def flush_model_update_queue(self):
         """Reset the model update queue on the combiner."""
-
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
 
@@ -188,7 +186,6 @@ class CombinerInterface:
         :param aggregator: The name of the aggregator module.
         :type config: str
         """
-
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
 
@@ -240,7 +237,6 @@ class CombinerInterface:
         :return: A file-like object containing the model.
         :rtype: :class:`io.BytesIO`, None if the model is not available.
         """
-
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         modelservice = rpc.ModelServiceStub(channel)
 

@@ -6,7 +6,7 @@ from pymongo.database import Database
 
 from .shared import EntityNotFound, from_document
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Store(Generic[T]):
@@ -23,7 +23,7 @@ class Store(Generic[T]):
         return: The entity
         """
         id_obj = ObjectId(id)
-        document = self.database[self.collection].find_one({'_id': id_obj})
+        document = self.database[self.collection].find_one({"_id": id_obj})
 
         if document is None:
             raise EntityNotFound(f"Entity with id {id} not found")
