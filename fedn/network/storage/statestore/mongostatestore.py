@@ -61,7 +61,7 @@ class MongoStateStore:
         self.init_index()
 
     def connect(self):
-        """ Establish client connection to MongoDB.
+        """Establish client connection to MongoDB.
 
         :param config: Dictionary containing connection strings and security credentials.
         :type config: dict
@@ -125,11 +125,7 @@ class MongoStateStore:
                 True,
             )
         else:
-            logger.info(
-                "Not updating state, already in {}".format(
-                    ReducerStateToString(state)
-                )
-            )
+            logger.info("Not updating state, already in {}".format(ReducerStateToString(state)))
 
     def get_sessions(self, limit=None, skip=None, sort_key="_id", sort_order=pymongo.DESCENDING):
         """Get all sessions.
@@ -144,20 +140,15 @@ class MongoStateStore:
         :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
         :return: Dictionary of sessions in result (array of session objects) and count.
         """
-
         result = None
 
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
 
-            result = self.sessions.find().limit(limit).skip(skip).sort(
-                sort_key, sort_order
-            )
+            result = self.sessions.find().limit(limit).skip(skip).sort(sort_key, sort_order)
         else:
-            result = self.sessions.find().sort(
-                sort_key, sort_order
-            )
+            result = self.sessions.find().sort(sort_key, sort_order)
 
         count = self.sessions.count_documents({})
 
@@ -183,7 +174,6 @@ class MongoStateStore:
         :type model_id: str
         :return:
         """
-
         committed_at = datetime.now()
         current_model = self.model.find_one({"key": "current_model"})
         parent_model = None
@@ -204,9 +194,7 @@ class MongoStateStore:
             }
         )
 
-        self.model.update_one(
-            {"key": "current_model"}, {"$set": {"model": model_id}}, True
-        )
+        self.model.update_one({"key": "current_model"}, {"$set": {"model": model_id}}, True)
         self.model.update_one(
             {"key": "model_trail"},
             {
@@ -224,10 +212,7 @@ class MongoStateStore:
         :return: The initial model id. None if no model is found.
         :rtype: str
         """
-
-        result = self.model.find_one(
-            {"key": "model_trail"}, sort=[("committed_at", pymongo.ASCENDING)]
-        )
+        result = self.model.find_one({"key": "model_trail"}, sort=[("committed_at", pymongo.ASCENDING)])
         if result is None:
             return None
 
@@ -264,18 +249,13 @@ class MongoStateStore:
         :type model_id: str
         :return:
         """
-
         try:
-
             committed_at = datetime.now()
 
             existing_model = self.model.find_one({"key": "models", "model": model_id})
 
             if existing_model is not None:
-
-                self.model.update_one(
-                    {"key": "current_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True
-                )
+                self.model.update_one({"key": "current_model"}, {"$set": {"model": model_id, "committed_at": committed_at, "session_id": None}}, True)
 
                 return True
         except Exception as e:
@@ -289,7 +269,6 @@ class MongoStateStore:
         :return: The id of the most recent round.
         :rtype: ObjectId
         """
-
         return self.rounds.find_one(sort=[("_id", pymongo.DESCENDING)])
 
     def get_round(self, id):
@@ -300,7 +279,6 @@ class MongoStateStore:
         :return: round with id, reducer and combiners
         :rtype: ObjectId
         """
-
         return self.rounds.find_one({"round_id": str(id)})
 
     def get_rounds(self):
@@ -309,7 +287,6 @@ class MongoStateStore:
         :return: All rounds.
         :rtype: ObjectId
         """
-
         return self.rounds.find()
 
     def get_validations(self, **kwargs):
@@ -320,7 +297,6 @@ class MongoStateStore:
         :return: validations matching query
         :rtype: ObjectId
         """
-
         result = self.control.validations.find(kwargs)
         return result
 
@@ -332,9 +308,7 @@ class MongoStateStore:
         :return: True if successful.
         :rtype: bool
         """
-
         try:
-
             find = {"id": id}
             projection = {"_id": False, "key": False}
 
@@ -345,9 +319,7 @@ class MongoStateStore:
 
             doc["key"] = "active"
 
-            self.control.package.replace_one(
-                {"key": "active"}, doc
-            )
+            self.control.package.replace_one({"key": "active"}, doc)
 
         except Exception as e:
             logger.error("ERROR: {}".format(e))
@@ -363,7 +335,6 @@ class MongoStateStore:
         :return: True if successful.
         :rtype: bool
         """
-
         obj = {
             "file_name": file_name,
             "storage_file_name": storage_file_name,
@@ -376,9 +347,7 @@ class MongoStateStore:
 
         self.control.package.update_one(
             {"key": "active"},
-            {
-                "$set": obj
-            },
+            {"$set": obj},
             True,
         )
 
@@ -395,7 +364,6 @@ class MongoStateStore:
         :rtype: ObjectID
         """
         try:
-
             find = {"key": "active"}
             projection = {"key": False, "_id": False}
             ret = self.control.package.find_one(find, projection)
@@ -418,7 +386,6 @@ class MongoStateStore:
         :return: Dictionary of compute packages in result and count.
         :rtype: dict
         """
-
         result = None
         count = None
 
@@ -449,9 +416,7 @@ class MongoStateStore:
         :type helper: str
         :return:
         """
-        self.control.package.update_one(
-            {"key": "active"}, {"$set": {"helper": helper}}, True
-        )
+        self.control.package.update_one({"key": "active"}, {"$set": {"helper": helper}}, True)
 
     def get_helper(self):
         """Get the active helper package.
@@ -466,9 +431,7 @@ class MongoStateStore:
         #    ret = self.control.config.find_one({'key': 'round_config'})
         try:
             retcheck = ret["helper"]
-            if (
-                retcheck == "" or retcheck == " "
-            ):  # ugly check for empty string
+            if retcheck == "" or retcheck == " ":  # ugly check for empty string
                 return None
             return retcheck
         except (KeyError, IndexError):
@@ -495,11 +458,7 @@ class MongoStateStore:
         """
         result = None
 
-        find_option = (
-            {"key": "models"}
-            if session_id is None
-            else {"key": "models", "session_id": session_id}
-        )
+        find_option = {"key": "models"} if session_id is None else {"key": "models", "session_id": session_id}
 
         projection = {"_id": False, "key": False}
 
@@ -507,17 +466,10 @@ class MongoStateStore:
             limit = int(limit)
             skip = int(skip)
 
-            result = (
-                self.model.find(find_option, projection)
-                .limit(limit)
-                .skip(skip)
-                .sort(sort_key, sort_order)
-            )
+            result = self.model.find(find_option, projection).limit(limit).skip(skip).sort(sort_key, sort_order)
 
         else:
-            result = self.model.find(find_option, projection).sort(
-                sort_key, sort_order
-            )
+            result = self.model.find(find_option, projection).sort(sort_key, sort_order)
 
         count = self.model.count_documents(find_option)
 
@@ -581,7 +533,6 @@ class MongoStateStore:
         :return: List of model descendants.
         :rtype: list
         """
-
         model: object = self.model.find_one({"key": "models", "model": model_id})
         current_model_id: str = model["model"] if model is not None else None
         result: list = []
@@ -625,9 +576,7 @@ class MongoStateStore:
         projection = {"_id": False}
 
         if not kwargs:
-            result = self.control.status.find({}, projection).sort(
-                "timestamp", pymongo.DESCENDING
-            )
+            result = self.control.status.find({}, projection).sort("timestamp", pymongo.DESCENDING)
             count = self.control.status.count_documents({})
         else:
             limit = kwargs.pop("limit", None)
@@ -636,16 +585,9 @@ class MongoStateStore:
             if limit is not None and skip is not None:
                 limit = int(limit)
                 skip = int(skip)
-                result = (
-                    self.control.status.find(kwargs, projection)
-                    .sort("timestamp", pymongo.DESCENDING)
-                    .limit(limit)
-                    .skip(skip)
-                )
+                result = self.control.status.find(kwargs, projection).sort("timestamp", pymongo.DESCENDING).limit(limit).skip(skip)
             else:
-                result = self.control.status.find(kwargs, projection).sort(
-                    "timestamp", pymongo.DESCENDING
-                )
+                result = self.control.status.find(kwargs, projection).sort("timestamp", pymongo.DESCENDING)
 
             count = self.control.status.count_documents(kwargs)
 
@@ -661,9 +603,7 @@ class MongoStateStore:
         :rtype: ObjectID
         """
         try:
-            ret = self.storage.find(
-                {"status": "enabled"}, projection={"_id": False}
-            )
+            ret = self.storage.find({"status": "enabled"}, projection={"_id": False})
             return ret[0]
         except (KeyError, IndexError):
             return None
@@ -678,9 +618,7 @@ class MongoStateStore:
         config = copy.deepcopy(config)
         config["updated_at"] = str(datetime.now())
         config["status"] = "enabled"
-        self.storage.update_one(
-            {"storage_type": config["storage_type"]}, {"$set": config}, True
-        )
+        self.storage.update_one({"storage_type": config["storage_type"]}, {"$set": config}, True)
 
     def set_reducer(self, reducer_data):
         """Set the reducer in the statestore.
@@ -690,9 +628,7 @@ class MongoStateStore:
         :return:
         """
         reducer_data["updated_at"] = str(datetime.now())
-        self.reducer.update_one(
-            {"name": reducer_data["name"]}, {"$set": reducer_data}, True
-        )
+        self.reducer.update_one({"name": reducer_data["name"]}, {"$set": reducer_data}, True)
 
     def get_reducer(self):
         """Get reducer.config.
@@ -736,7 +672,6 @@ class MongoStateStore:
         :return: Dictionary of combiners in result and count.
         :rtype: dict
         """
-
         result = None
         count = None
 
@@ -765,11 +700,8 @@ class MongoStateStore:
         :type combiner_data: dict
         :return:
         """
-
         combiner_data["updated_at"] = str(datetime.now())
-        self.combiners.update_one(
-            {"name": combiner_data["name"]}, {"$set": combiner_data}, True
-        )
+        self.combiners.update_one({"name": combiner_data["name"]}, {"$set": combiner_data}, True)
 
     def delete_combiner(self, combiner):
         """Delete a combiner from statestore.
@@ -793,9 +725,7 @@ class MongoStateStore:
         :return:
         """
         client_data["updated_at"] = str(datetime.now())
-        self.clients.update_one(
-            {"name": client_data["name"]}, {"$set": client_data}, True
-        )
+        self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
 
     def get_client(self, name):
         """Get client by name.
@@ -825,7 +755,6 @@ class MongoStateStore:
         :type status: str
         :param sort_key: The key to sort by.
         """
-
         result = None
         count = None
 
@@ -862,19 +791,18 @@ class MongoStateStore:
         :return: list of combiner data.
         :rtype: list(ObjectId)
         """
-
         result = None
 
         try:
-
-            pipeline = [
-                {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
-                {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
-            ] if combiners is not None else [
-                {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}
-            ]
+            pipeline = (
+                [
+                    {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
+                    {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+                    {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}},
+                ]
+                if combiners is not None
+                else [{"$group": {"_id": "$combiner", "count": {"$sum": 1}}}, {"$sort": {sort_key: sort_order, "_id": pymongo.ASCENDING}}]
+            )
 
             result = self.clients.aggregate(pipeline)
 
@@ -911,7 +839,7 @@ class MongoStateStore:
             self.status.drop()
 
     def create_session(self, id=None):
-        """ Create a new session object.
+        """Create a new session object.
 
         :param id: The ID of the created session.
         :type id: uuid, str
@@ -919,11 +847,11 @@ class MongoStateStore:
         """
         if not id:
             id = uuid.uuid4()
-        data = {'session_id': str(id)}
+        data = {"session_id": str(id)}
         self.sessions.insert_one(data)
 
     def create_round(self, round_data):
-        """ Create a new round.
+        """Create a new round.
 
         :param round_data: Dictionary with round data.
         :type round_data: dict
@@ -939,8 +867,7 @@ class MongoStateStore:
         :param config: Session configuration
         :type config: dict
         """
-        self.sessions.update_one({'session_id': str(id)}, {
-            '$push': {'session_config': config}}, True)
+        self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
 
     def set_session_status(self, id, status):
         """Set session status.
@@ -949,8 +876,7 @@ class MongoStateStore:
         :type round_id: str
         :param round_status: The status of the session.
         """
-        self.sessions.update_one({'session_id': str(id)}, {
-            '$set': {'status': status}}, True)
+        self.sessions.update_one({"session_id": str(id)}, {"$set": {"status": status}}, True)
 
     def set_round_combiner_data(self, data):
         """Set combiner round controller data.
@@ -958,8 +884,7 @@ class MongoStateStore:
         :param data: The combiner data
         :type data: dict
         """
-        self.rounds.update_one({'round_id': str(data['round_id'])}, {
-            '$push': {'combiners': data}}, True)
+        self.rounds.update_one({"round_id": str(data["round_id"])}, {"$push": {"combiners": data}}, True)
 
     def set_round_config(self, round_id, round_config):
         """Set round configuration.
@@ -969,8 +894,7 @@ class MongoStateStore:
         :param round_config: The round configuration
         :type round_config: dict
         """
-        self.rounds.update_one({'round_id': round_id}, {
-            '$set': {'round_config': round_config}}, True)
+        self.rounds.update_one({"round_id": round_id}, {"$set": {"round_config": round_config}}, True)
 
     def set_round_status(self, round_id, round_status):
         """Set round status.
@@ -979,8 +903,7 @@ class MongoStateStore:
         :type round_id: str
         :param round_status: The status of the round.
         """
-        self.rounds.update_one({'round_id': round_id}, {
-            '$set': {'status': round_status}}, True)
+        self.rounds.update_one({"round_id": round_id}, {"$set": {"status": round_status}}, True)
 
     def set_round_data(self, round_id, round_data):
         """Update round metadata
@@ -990,11 +913,10 @@ class MongoStateStore:
         :param round_data: The round metadata
         :type round_data: dict
         """
-        self.rounds.update_one({'round_id': round_id}, {
-            '$set': {'round_data': round_data}}, True)
+        self.rounds.update_one({"round_id": round_id}, {"$set": {"round_data": round_data}}, True)
 
     def update_client_status(self, clients, status):
-        """ Update client status in statestore.
+        """Update client status in statestore.
         :param client_name: The client name
         :type client_name: str
         :param status: The client status

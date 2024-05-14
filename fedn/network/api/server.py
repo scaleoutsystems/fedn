@@ -2,8 +2,7 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import (get_controller_config, get_modelstorage_config,
-                                get_network_config, get_statestore_config)
+from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.v1 import _routes
@@ -23,14 +22,12 @@ app = Flask(__name__)
 for bp in _routes:
     app.register_blueprint(bp)
     if custom_url_prefix:
-        app.register_blueprint(bp,
-                               name=f"{bp.name}_custom",
-                               url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
+        app.register_blueprint(bp, name=f"{bp.name}_custom", url_prefix=f"{custom_url_prefix}{bp.url_prefix}")
 
 
-@app.route('/health', methods=["GET"])
+@app.route("/health", methods=["GET"])
 def health_check():
-    return 'OK', 200
+    return "OK", 200
 
 
 if custom_url_prefix:
@@ -108,7 +105,6 @@ def list_models():
     Returns:
         _type_: json
     """
-
     session_id = request.args.get("session_id", None)
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
@@ -164,7 +160,6 @@ def list_clients():
     return: All clients as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
     status = request.args.get("status", None)
@@ -205,7 +200,6 @@ def list_combiners():
     return: All combiners as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
 
@@ -364,9 +358,7 @@ def set_package():
         file = request.files["file"]
     except KeyError:
         return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_compute_package(
-        file=file, helper_type=helper_type, name=name, description=description
-    )
+    return api.set_compute_package(file=file, helper_type=helper_type, name=name, description=description)
 
 
 if custom_url_prefix:
@@ -394,14 +386,11 @@ def list_compute_packages():
     return: The compute package as a json object.
     rtype: json
     """
-
     limit = request.args.get("limit", None)
     skip = request.args.get("skip", None)
     include_active = request.args.get("include_active", None)
 
-    return api.list_compute_packages(
-        limit=limit, skip=skip, include_active=include_active
-    )
+    return api.list_compute_packages(limit=limit, skip=skip, include_active=include_active)
 
 
 if custom_url_prefix:
@@ -603,7 +592,6 @@ def add_client():
     return: The response from control.
     rtype: json
     """
-
     json_data = request.get_json()
     remote_addr = request.remote_addr
     try:
@@ -624,7 +612,6 @@ def list_combiners_data():
     return: The response from control.
     rtype: json
     """
-
     json_data = request.get_json()
 
     # expects a list of combiner names (strings) in an array
@@ -647,7 +634,6 @@ def get_plot_data():
     """Get plot data from the statestore.
     rtype: json
     """
-
     try:
         feature = request.args.get("feature", None)
         response = api.get_plot_data(feature=feature)

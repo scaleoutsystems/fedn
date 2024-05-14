@@ -86,8 +86,8 @@ class AggregatorBase(ABC):
         :return: True if the model update is valid, False otherwise.
         :rtype: bool
         """
-        data = json.loads(model_update.meta)['training_metadata']
-        if 'num_examples' not in data.keys():
+        data = json.loads(model_update.meta)["training_metadata"]
+        if "num_examples" not in data.keys():
             logger.error("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
             return False
         return True
@@ -120,21 +120,21 @@ class AggregatorBase(ABC):
         model = self.round_handler.load_model_update(helper, model_id)
         # Get relevant metadata
         metadata = json.loads(model_update.meta)
-        if 'config' in metadata.keys():
+        if "config" in metadata.keys():
             # Used in Python client
-            config = json.loads(metadata['config'])
+            config = json.loads(metadata["config"])
         else:
             # Used in C++ client
             config = json.loads(model_update.config)
-        training_metadata = metadata['training_metadata']
-        training_metadata['round_id'] = config['round_id']
+        training_metadata = metadata["training_metadata"]
+        training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
     def get_state(self):
         """ Get the state of the aggregator's queue, including the number of model updates."""
         state = {
-            'queue_len': self.model_updates.qsize()
+            "queue_len": self.model_updates.qsize()
         }
         return state
 

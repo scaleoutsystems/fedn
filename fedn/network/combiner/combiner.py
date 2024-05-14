@@ -12,8 +12,7 @@ from enum import Enum
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundHandler
@@ -21,11 +20,12 @@ from fedn.network.grpc.server import Server
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
-VALID_NAME_REGEX = '^[a-zA-Z0-9_-]*$'
+VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
 
 class Role(Enum):
-    """ Enum for combiner roles. """
+    """Enum for combiner roles."""
+
     WORKER = 1
     COMBINER = 2
     REDUCER = 3
@@ -33,7 +33,7 @@ class Role(Enum):
 
 
 def role_to_proto_role(role):
-    """ Convert a Role to a proto Role.
+    """Convert a Role to a proto Role.
 
     :param role: the role to convert
     :type role: :class:`fedn.network.combiner.server.Role`
@@ -51,17 +51,16 @@ def role_to_proto_role(role):
 
 
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
-    """ Combiner gRPC server.
+    """Combiner gRPC server.
 
     :param config: configuration for the combiner
     :type config: dict
     """
 
     def __init__(self, config):
-        """ Initialize Combiner server."""
-
-        set_log_level_from_string(config.get('verbosity', "INFO"))
-        set_log_stream(config.get('logfile', None))
+        """Initialize Combiner server."""
+        set_log_level_from_string(config.get("verbosity", "INFO"))
+        set_log_stream(config.get("logfile", None))
 
         # Client queues
         self.clients = {}
@@ -69,24 +68,26 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.modelservice = ModelService()
 
         # Validate combiner name
-        match = re.search(VALID_NAME_REGEX, config['name'])
+        match = re.search(VALID_NAME_REGEX, config["name"])
         if not match:
-            raise ValueError('Unallowed character in combiner name. Allowed characters: a-z, A-Z, 0-9, _, -.')
+            raise ValueError("Unallowed character in combiner name. Allowed characters: a-z, A-Z, 0-9, _, -.")
 
-        self.id = config['name']
+        self.id = config["name"]
         self.role = Role.COMBINER
-        self.max_clients = config['max_clients']
+        self.max_clients = config["max_clients"]
 
         # Connector to announce combiner to discover service (reducer)
-        announce_client = ConnectorCombiner(host=config['discover_host'],
-                                            port=config['discover_port'],
-                                            myhost=config['host'],
-                                            fqdn=config['fqdn'],
-                                            myport=config['port'],
-                                            token=config['token'],
-                                            name=config['name'],
-                                            secure=config['secure'],
-                                            verify=config['verify'])
+        announce_client = ConnectorCombiner(
+            host=config["discover_host"],
+            port=config["discover_port"],
+            myhost=config["host"],
+            fqdn=config["fqdn"],
+            myport=config["port"],
+            token=config["token"],
+            name=config["name"],
+            secure=config["secure"],
+            verify=config["verify"],
+        )
 
         while True:
             # Announce combiner to discover service
@@ -107,27 +108,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 logger.info("Status.UnMatchedConfig")
                 sys.exit("Exiting: Missing config")
 
-        cert = announce_config['certificate']
-        key = announce_config['key']
+        cert = announce_config["certificate"]
+        key = announce_config["key"]
 
-        if announce_config['certificate']:
-            cert = base64.b64decode(announce_config['certificate'])  # .decode('utf-8')
-            key = base64.b64decode(announce_config['key'])  # .decode('utf-8')
+        if announce_config["certificate"]:
+            cert = base64.b64decode(announce_config["certificate"])  # .decode('utf-8')
+            key = base64.b64decode(announce_config["key"])  # .decode('utf-8')
 
         # Set up gRPC server configuration
-        grpc_config = {'port': config['port'],
-                       'secure': config['secure'],
-                       'certificate': cert,
-                       'key': key}
+        grpc_config = {"port": config["port"], "secure": config["secure"], "certificate": cert, "key": key}
 
         # Set up model repository
-        self.repository = Repository(
-            announce_config['storage']['storage_config'])
+        self.repository = Repository(announce_config["storage"]["storage_config"])
 
-        self.statestore = MongoStateStore(
-            announce_config['statestore']['network_id'],
-            announce_config['statestore']['mongo_config']
-        )
+        self.statestore = MongoStateStore(announce_config["statestore"]["network_id"], announce_config["statestore"]["mongo_config"])
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)
 
@@ -144,7 +138,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.server.start()
 
     def __whoami(self, client, instance):
-        """ Set the client id and role in a proto message.
+        """Set the client id and role in a proto message.
 
         :param client: the client to set the id and role for
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
@@ -158,7 +152,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return client
 
     def request_model_update(self, config, clients=[]):
-        """ Ask clients to update the current global model.
+        """Ask clients to update the current global model.
 
         :param config: the model configuration to send to clients
         :type config: dict
@@ -168,12 +162,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         # The request to be added to the client queue
         request = fedn.TaskRequest()
-        request.model_id = config['model_id']
+        request.model_id = config["model_id"]
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
         request.data = json.dumps(config)
         request.type = fedn.StatusType.MODEL_UPDATE
-        request.session_id = config['session_id']
+        request.session_id = config["session_id"]
 
         request.sender.name = self.id
         request.sender.role = fedn.COMBINER
@@ -187,14 +181,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
         if len(clients) < 20:
-            logger.info("Sent model update request for model {} to clients {}".format(
-                request.model_id, clients))
+            logger.info("Sent model update request for model {} to clients {}".format(request.model_id, clients))
         else:
-            logger.info("Sent model update request for model {} to {} clients".format(
-                request.model_id, len(clients)))
+            logger.info("Sent model update request for model {} to {} clients".format(request.model_id, len(clients)))
 
     def request_model_validation(self, model_id, config, clients=[]):
-        """ Ask clients to validate the current global model.
+        """Ask clients to validate the current global model.
 
         :param model_id: the model id to validate
         :type model_id: str
@@ -225,14 +217,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
         if len(clients) < 20:
-            logger.info("Sent model validation request for model {} to clients {}".format(
-                request.model_id, clients))
+            logger.info("Sent model validation request for model {} to clients {}".format(request.model_id, clients))
         else:
-            logger.info("Sent model validation request for model {} to {} clients".format(
-                request.model_id, len(clients)))
+            logger.info("Sent model validation request for model {} to {} clients".format(request.model_id, len(clients)))
 
     def get_active_trainers(self):
-        """ Get a list of active trainers.
+        """Get a list of active trainers.
 
         :return: the list of active trainers
         :rtype: list
@@ -241,7 +231,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return trainers
 
     def get_active_validators(self):
-        """ Get a list of active validators.
+        """Get a list of active validators.
 
         :return: the list of active validators
         :rtype: list
@@ -250,7 +240,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return validators
 
     def nr_active_trainers(self):
-        """ Get the number of active trainers.
+        """Get the number of active trainers.
 
         :return: the number of active trainers
         :rtype: int
@@ -260,7 +250,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     ####################################################################################################################
 
     def __join_client(self, client):
-        """ Add a client to the list of active clients.
+        """Add a client to the list of active clients.
 
         :param client: the client to add
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
@@ -270,7 +260,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             self.clients[client.name] = {"lastseen": datetime.now(), "status": "offline"}
 
     def _subscribe_client_to_queue(self, client, queue_name):
-        """ Subscribe a client to the queue.
+        """Subscribe a client to the queue.
 
         :param client: the client to subscribe
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
@@ -282,7 +272,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             self.clients[client.name][queue_name] = queue.Queue()
 
     def __get_queue(self, client, queue_name):
-        """ Get the queue for a client.
+        """Get the queue for a client.
 
         :param client: the client to get the queue for
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
@@ -299,7 +289,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             raise
 
     def _list_subscribed_clients(self, queue_name):
-        """ List all clients subscribed to a queue.
+        """List all clients subscribed to a queue.
 
         :param queue_name: the name of the queue
         :type queue_name: str
@@ -313,7 +303,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return subscribed_clients
 
     def _list_active_clients(self, channel):
-        """ List all clients that have sent a status message in the last 10 seconds.
+        """List all clients that have sent a status message in the last 10 seconds.
 
         :param channel: the name of the channel
         :type channel: str
@@ -336,11 +326,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
-            else:
-                # If client has changed status, update statestore
-                if status == "online":
-                    self.clients[client]["status"] = "offline"
-                    clients["update_offline_clients"].append(client)
+            elif status == "online":
+                self.clients[client]["status"] = "offline"
+                clients["update_offline_clients"].append(client)
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             self.statestore.update_client_status(clients["update_active_clients"], "online")
@@ -350,14 +338,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return clients["active_clients"]
 
     def _deamon_thread_client_status(self, timeout=10):
-        """ Deamon thread that checks for inactive clients and updates statestore. """
+        """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             time.sleep(timeout)
             # TODO: Also update validation clients
             self._list_active_clients(fedn.Queue.TASK_QUEUE)
 
     def _put_request_to_client_queue(self, request, queue_name):
-        """ Get a client specific queue and add a request to it.
+        """Get a client specific queue and add a request to it.
         The client is identified by the request.receiver.
 
         :param request: the request to send
@@ -369,19 +357,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             q = self.__get_queue(request.receiver, queue_name)
             q.put(request)
         except Exception as e:
-            logger.error("Failed to put request to client queue {} for client {}: {}".format(
-                queue_name,
-                request.receiver.name,
-                str(e)))
+            logger.error("Failed to put request to client queue {} for client {}: {}".format(queue_name, request.receiver.name, str(e)))
             raise
 
     def _send_status(self, status):
-        """ Report a status to backend db.
+        """Report a status to backend db.
 
         :param status: the status to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-
         self.statestore.report_status(status)
 
     def _flush_model_update_queue(self):
@@ -389,7 +373,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         :return: True if successful, else False
         """
-
         q = self.round_handler.aggregator.model_updates
         try:
             with q.mutex:
@@ -406,7 +389,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     # Controller Service
 
     def Start(self, control: fedn.ControlRequest, context):
-        """ Start a round of federated learning"
+        """Start a round of federated learning"
 
         :param control: the control request
         :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
@@ -434,7 +417,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def SetAggregator(self, control: fedn.ControlRequest, context):
-        """ Set the active aggregator.
+        """Set the active aggregator.
 
         :param control: the control request
         :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
@@ -451,14 +434,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         response = fedn.ControlResponse()
         if status:
-            response.message = 'Success'
+            response.message = "Success"
         else:
-            response.message = 'Failed'
+            response.message = "Failed"
 
         return response
 
     def FlushAggregationQueue(self, control: fedn.ControlRequest, context):
-        """ Flush the queue.
+        """Flush the queue.
 
         :param control: the control request
         :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
@@ -472,16 +455,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         response = fedn.ControlResponse()
         if status:
-            response.message = 'Success'
+            response.message = "Success"
         else:
-            response.message = 'Failed'
+            response.message = "Failed"
 
         return response
 
     ##############################################################################
 
     def Stop(self, control: fedn.ControlRequest, context):
-        """ TODO: Not yet implemented.
+        """TODO: Not yet implemented.
 
         :param control: the control request
         :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
@@ -497,7 +480,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     #####################################################################################################################
 
     def SendStatus(self, status: fedn.Status, context):
-        """ A client RPC endpoint that accepts status messages.
+        """A client RPC endpoint that accepts status messages.
 
         :param status: the status message
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
@@ -514,7 +497,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def ListActiveClients(self, request: fedn.ListClientsRequest, context):
-        """ RPC endpoint that returns a ClientList containing the names of all active clients.
+        """RPC endpoint that returns a ClientList containing the names of all active clients.
             An active client has sent a status message / responded to a heartbeat
             request in the last 10 seconds.
 
@@ -538,7 +521,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return clients
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):
-        """ RPC endpoint that returns a ConnectionResponse indicating whether the server
+        """RPC endpoint that returns a ConnectionResponse indicating whether the server
         is accepting clients or not.
 
         :param request: the request (unused)
@@ -549,8 +532,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ConnectionResponse`
         """
         response = fedn.ConnectionResponse()
-        active_clients = self._list_active_clients(
-            fedn.Queue.TASK_QUEUE)
+        active_clients = self._list_active_clients(fedn.Queue.TASK_QUEUE)
 
         try:
             requested = int(self.max_clients)
@@ -569,7 +551,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def SendHeartbeat(self, heartbeat: fedn.Heartbeat, context):
-        """ RPC that lets clients send a hearbeat, notifying the server that
+        """RPC that lets clients send a hearbeat, notifying the server that
             the client is available.
 
         :param heartbeat: the heartbeat
@@ -594,29 +576,26 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     # Combiner Service
 
     def TaskStream(self, response, context):
-        """ A server stream RPC endpoint (Update model). Messages from client stream.
+        """A server stream RPC endpoint (Update model). Messages from client stream.
 
         :param response: the response
         :type response: :class:`fedn.network.grpc.fedn_pb2.ModelUpdateRequest`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         """
-
         client = response.sender
         metadata = context.invocation_metadata()
         if metadata:
             metadata = dict(metadata)
-            logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata['client']))
+            logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata["client"]))
 
-        status = fedn.Status(
-            status="Client {} connecting to TaskStream.".format(client.name))
+        status = fedn.Status(status="Client {} connecting to TaskStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.timestamp.GetCurrentTime()
 
         self.__whoami(status.sender, self)
 
-        self._subscribe_client_to_queue(
-            client, fedn.Queue.TASK_QUEUE)
+        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
         self._send_status(status)
@@ -637,7 +616,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
 
     def SendModelUpdate(self, request, context):
-        """ Send a model update response.
+        """Send a model update response.
 
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.ModelUpdate`
@@ -649,8 +628,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.round_handler.aggregator.on_model_update(request)
 
         response = fedn.Response()
-        response.response = "RECEIVED ModelUpdate {} from client  {}".format(
-            response, response.sender.name)
+        response.response = "RECEIVED ModelUpdate {} from client  {}".format(response, response.sender.name)
         return response  # TODO Fill later
 
     def register_model_validation(self, validation):
@@ -659,11 +637,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-
         self.statestore.report_validation(validation)
 
     def SendModelValidation(self, request, context):
-        """ Send a model validation response.
+        """Send a model validation response.
 
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
@@ -677,17 +654,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.register_model_validation(request)
 
         response = fedn.Response()
-        response.response = "RECEIVED ModelValidation {} from client  {}".format(
-            response, response.sender.name)
+        response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
         return response
 
     ####################################################################################################################
 
     def run(self):
-        """ Start the server."""
-
-        logger.info("COMBINER: {} started, ready for gRPC requests.".format(
-            self.id))
+        """Start the server."""
+        logger.info("COMBINER: {} started, ready for gRPC requests.".format(self.id))
         try:
             while True:
                 signal.pause()

@@ -16,12 +16,12 @@ class Session:
         self.status = status
         self.session_config = session_config
 
-    def from_dict(data: dict) -> 'Session':
+    def from_dict(data: dict) -> "Session":
         return Session(
-            id=str(data['_id']),
-            session_id=data['session_id'] if 'session_id' in data else None,
-            status=data['status'] if 'status' in data else None,
-            session_config=data['session_config'] if 'session_config' in data else None
+            id=str(data["_id"]),
+            session_id=data["session_id"] if "session_id" in data else None,
+            status=data["status"] if "status" in data else None,
+            session_config=data["session_config"] if "session_config" in data else None
         )
 
 
@@ -40,9 +40,9 @@ class SessionStore(Store[Session]):
         """
         if ObjectId.is_valid(id):
             id_obj = ObjectId(id)
-            document = self.database[self.collection].find_one({'_id': id_obj})
+            document = self.database[self.collection].find_one({"_id": id_obj})
         else:
-            document = self.database[self.collection].find_one({'session_id': id})
+            document = self.database[self.collection].find_one({"session_id": id})
 
         if document is None:
             raise EntityNotFound(f"Entity with (id | session_id) {id} not found")
@@ -82,7 +82,7 @@ class SessionStore(Store[Session]):
         """
         response = super().list(limit, skip, sort_key or "session_id", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Session.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Session.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
         return {
             "count": response["count"],

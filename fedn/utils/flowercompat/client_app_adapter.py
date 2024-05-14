@@ -1,16 +1,27 @@
 from typing import Tuple
 
 from flwr.client import ClientApp
-from flwr.common import (Context, EvaluateIns, FitIns, GetParametersIns,
-                         Message, MessageType, MessageTypeLegacy, Metadata,
-                         NDArrays, ndarrays_to_parameters,
-                         parameters_to_ndarrays)
-from flwr.common.recordset_compat import (evaluateins_to_recordset,
-                                          fitins_to_recordset,
-                                          getparametersins_to_recordset,
-                                          recordset_to_evaluateres,
-                                          recordset_to_fitres,
-                                          recordset_to_getparametersres)
+from flwr.common import (
+    Context,
+    EvaluateIns,
+    FitIns,
+    GetParametersIns,
+    Message,
+    MessageType,
+    MessageTypeLegacy,
+    Metadata,
+    NDArrays,
+    ndarrays_to_parameters,
+    parameters_to_ndarrays,
+)
+from flwr.common.recordset_compat import (
+    evaluateins_to_recordset,
+    fitins_to_recordset,
+    getparametersins_to_recordset,
+    recordset_to_evaluateres,
+    recordset_to_fitres,
+    recordset_to_getparametersres,
+)
 
 
 class FlwrClientAppAdapter:
@@ -21,23 +32,21 @@ class FlwrClientAppAdapter:
 
     def init_parameters(self, partition_id: int, config: dict = {}):
         # Construct a get_parameters message for the ClientApp
-        message, context = self._construct_message(
-            MessageTypeLegacy.GET_PARAMETERS, [], partition_id, config
-        )
+        message, context = self._construct_message(MessageTypeLegacy.GET_PARAMETERS, [], partition_id, config)
         # Call client app with train message
         client_return_message = self.app(message, context)
         # return NDArrays of clients parameters
         parameters = self._parse_get_parameters_message(client_return_message)
         if len(parameters) == 0:
-            raise ValueError("The 'parameters' list is empty. Ensure your flower \
-                             client has implemented a get_parameters() function.")
+            raise ValueError(
+                "The 'parameters' list is empty. Ensure your flower \
+                             client has implemented a get_parameters() function."
+            )
         return parameters
 
     def train(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct a train message for the ClientApp with given parameters
-        message, context = self._construct_message(
-            MessageType.TRAIN, parameters, partition_id, config
-        )
+        message, context = self._construct_message(MessageType.TRAIN, parameters, partition_id, config)
         # Call client app with train message
         client_return_message = self.app(message, context)
         # Parse return message
@@ -46,9 +55,7 @@ class FlwrClientAppAdapter:
 
     def evaluate(self, parameters: NDArrays, partition_id: int, config: dict = {}):
         # Construct an evaluate message for the ClientApp with given parameters
-        message, context = self._construct_message(
-            MessageType.EVALUATE, parameters, partition_id, config
-        )
+        message, context = self._construct_message(MessageType.EVALUATE, parameters, partition_id, config)
         # Call client app with evaluate message
         client_return_message = self.app(message, context)
         # Parse return message

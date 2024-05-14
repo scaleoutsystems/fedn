@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)
 
 NUM_CLASSES = 10
@@ -17,13 +17,13 @@ abs_path = os.path.abspath(dir_path)
 
 
 def _get_data_path():
-    data_path = os.environ.get('FEDN_DATA_PATH', abs_path + '/data/clients/1/mnist.npz')
+    data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/mnist.npz")
 
     return data_path
 
 
 def compile_model(img_rows=28, img_cols=28):
-    """ Compile the TF model.
+    """Compile the TF model.
 
     param: img_rows: The number of rows in the image
     type: img_rows: int
@@ -38,13 +38,11 @@ def compile_model(img_rows=28, img_cols=28):
     # Define model
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Flatten(input_shape=input_shape))
-    model.add(tf.keras.layers.Dense(64, activation='relu'))
+    model.add(tf.keras.layers.Dense(64, activation="relu"))
     model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(32, activation='relu'))
-    model.add(tf.keras.layers.Dense(NUM_CLASSES, activation='softmax'))
-    model.compile(loss=tf.keras.losses.categorical_crossentropy,
-                  optimizer=tf.keras.optimizers.Adam(),
-                  metrics=['accuracy'])
+    model.add(tf.keras.layers.Dense(32, activation="relu"))
+    model.add(tf.keras.layers.Dense(NUM_CLASSES, activation="softmax"))
+    model.compile(loss=tf.keras.losses.categorical_crossentropy, optimizer=tf.keras.optimizers.Adam(), metrics=["accuracy"])
 
     return model
 
@@ -57,14 +55,14 @@ def load_data(data_path, is_train=True):
         data = np.load(data_path)
 
     if is_train:
-        X = data['x_train']
-        y = data['y_train']
+        X = data["x_train"]
+        y = data["y_train"]
     else:
-        X = data['x_test']
-        y = data['y_test']
+        X = data["x_test"]
+        y = data["y_test"]
 
     # Normalize
-    X = X.astype('float32')
+    X = X.astype("float32")
     X = np.expand_dims(X, -1)
     X = X / 255
     y = tf.keras.utils.to_categorical(y, NUM_CLASSES)
@@ -72,8 +70,8 @@ def load_data(data_path, is_train=True):
     return X, y
 
 
-def init_seed(out_path='../seed.npz'):
-    """ Initialize seed model and save it to file.
+def init_seed(out_path="../seed.npz"):
+    """Initialize seed model and save it to file.
 
     :param out_path: The path to save the seed model to.
     :type out_path: str
@@ -83,7 +81,7 @@ def init_seed(out_path='../seed.npz'):
 
 
 def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1):
-    """ Complete a model update.
+    """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
     perform a model update, and write updated paramters
@@ -114,9 +112,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        'num_examples': len(x_train),
-        'batch_size': batch_size,
-        'epochs': epochs,
+        "num_examples": len(x_train),
+        "batch_size": batch_size,
+        "epochs": epochs,
     }
 
     # Save JSON metadata file (mandatory)
@@ -128,7 +126,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
 
 def validate(in_model_path, out_json_path, data_path=None):
-    """ Validate model.
+    """Validate model.
 
     :param in_model_path: The path to the input model.
     :type in_model_path: str
@@ -137,7 +135,6 @@ def validate(in_model_path, out_json_path, data_path=None):
     :param data_path: The path to the data file.
     :type data_path: str
     """
-
     # Load data
     x_train, y_train = load_data(data_path)
     x_test, y_test = load_data(data_path, is_train=False)
@@ -182,14 +179,16 @@ def predict(in_model_path, out_json_path, data_path=None):
 
     # Save JSON
     with open(out_json_path, "w") as fh:
-        fh.write(json.dumps({'predictions': y_pred.tolist()}))
+        fh.write(json.dumps({"predictions": y_pred.tolist()}))
 
 
-if __name__ == '__main__':
-    fire.Fire({
-        'init_seed': init_seed,
-        'train': train,
-        'validate': validate,
-        'predict': predict,
-        '_get_data_path': _get_data_path,  # for testing
-    })
+if __name__ == "__main__":
+    fire.Fire(
+        {
+            "init_seed": init_seed,
+            "train": train,
+            "validate": validate,
+            "predict": predict,
+            "_get_data_path": _get_data_path,  # for testing
+        }
+    )

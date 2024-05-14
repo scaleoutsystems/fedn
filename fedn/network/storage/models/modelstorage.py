@@ -2,10 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class ModelStorage(ABC):
-
     @abstractmethod
     def exist(self, model_id):
-        """ Check if model exists in storage
+        """Check if model exists in storage
 
         :param model_id: The model id
         :type model_id: str
@@ -16,7 +15,7 @@ class ModelStorage(ABC):
 
     @abstractmethod
     def get(self, model_id):
-        """ Get model from storage
+        """Get model from storage
 
         :param model_id: The model id
         :type model_id: str
@@ -27,7 +26,7 @@ class ModelStorage(ABC):
 
     @abstractmethod
     def get_model_metadata(self, model_id):
-        """ Get model metadata from storage
+        """Get model metadata from storage
 
         :param model_id: The model id
         :type model_id: str
@@ -38,7 +37,7 @@ class ModelStorage(ABC):
 
     @abstractmethod
     def set_model_metadata(self, model_id, model_metadata):
-        """ Set model metadata in storage
+        """Set model metadata in storage
 
         :param model_id: The model id
         :type model_id: str
@@ -51,7 +50,7 @@ class ModelStorage(ABC):
 
     @abstractmethod
     def delete(self, model_id):
-        """ Delete model from storage
+        """Delete model from storage
 
         :param model_id: The model id
         :type model_id: str
@@ -62,7 +61,7 @@ class ModelStorage(ABC):
 
     @abstractmethod
     def delete_all(self):
-        """ Delete all models from storage
+        """Delete all models from storage
 
         :return: True if successful, False otherwise
         :rtype: bool

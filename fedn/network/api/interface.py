@@ -10,8 +10,7 @@ from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
-from fedn.network.combiner.interfaces import (CombinerInterface,
-                                              CombinerUnavailableError)
+from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 from fedn.utils.plots import Plot
@@ -36,9 +35,7 @@ class API:
         data = {"name": self.name}
         return data
 
-    def _allowed_file_extension(
-        self, filename, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}
-    ):
+    def _allowed_file_extension(self, filename, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}):
         """Check if file extension is allowed.
 
         :param filename: The filename to check.
@@ -170,11 +167,10 @@ class API:
         info = session_object["session_config"][0]
         status = session_object["status"]
         payload[id] = info
-        payload['status'] = status
+        payload["status"] = status
         return jsonify(payload)
 
     def set_active_compute_package(self, id: str):
-
         success = self.statestore.set_active_compute_package(id)
 
         if not success:
@@ -198,17 +194,12 @@ class API:
         :return: A json response with success or failure message.
         :rtype: :class:`flask.Response`
         """
-
-        if (
-            self.control.state() == ReducerState.instructing
-            or self.control.state() == ReducerState.monitoring
-        ):
+        if self.control.state() == ReducerState.instructing or self.control.state() == ReducerState.monitoring:
             return (
                 jsonify(
                     {
                         "success": False,
-                        "message": "Reducer is in instructing or monitoring state."
-                        "Cannot set compute package.",
+                        "message": "Reducer is in instructing or monitoring state." "Cannot set compute package.",
                     }
                 ),
                 400,
@@ -288,9 +279,7 @@ class API:
         result = self.statestore.get_compute_package()
         if result is None:
             return (
-                jsonify(
-                    {"success": False, "message": "No compute package found."}
-                ),
+                jsonify({"success": False, "message": "No compute package found."}),
                 404,
             )
 
@@ -317,7 +306,6 @@ class API:
         :return: All compute packages as a json response.
         :rtype: :class:`flask.Response`
         """
-
         if limit is not None and skip is not None:
             limit = int(limit)
             skip = int(skip)
@@ -327,9 +315,7 @@ class API:
         result = self.statestore.list_compute_packages(limit, skip)
         if result is None:
             return (
-                jsonify(
-                    {"success": False, "message": "No compute packages found."}
-                ),
+                jsonify({"success": False, "message": "No compute packages found."}),
                 404,
             )
 
@@ -386,9 +372,7 @@ class API:
             mutex = threading.Lock()
             mutex.acquire()
             # TODO: make configurable, perhaps in config.py or package.py
-            return send_from_directory(
-                "/app/client/package/", name, as_attachment=True
-            )
+            return send_from_directory("/app/client/package/", name, as_attachment=True)
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
@@ -397,9 +381,7 @@ class API:
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
-                return send_from_directory(
-                    "/app/client/package/", name, as_attachment=True
-                )
+                return send_from_directory("/app/client/package/", name, as_attachment=True)
             except Exception:
                 raise
         finally:
@@ -413,14 +395,11 @@ class API:
         :return: Success or failure boolean, message and the checksum.
         :rtype: bool, str, str
         """
-
         if name is None:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = os.path.join(
-            "/app/client/package/", name
-        )  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = os.path.join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
@@ -436,7 +415,6 @@ class API:
         :return: The checksum as a json object.
         :rtype: :py:class:`flask.Response`
         """
-
         success, message, sum = self._create_checksum(name)
         if not success:
             return jsonify({"success": False, "message": message}), 404
@@ -505,9 +483,7 @@ class API:
             payload[id] = info
         return jsonify(payload)
 
-    def add_combiner(
-        self, combiner_id, secure_grpc, address, remote_addr, fqdn, port
-    ):
+    def add_combiner(self, combiner_id, secure_grpc, address, remote_addr, fqdn, port):
         """Add a combiner to the network.
 
         :param combiner_id: The combiner id to add.
@@ -540,9 +516,7 @@ class API:
         combiner = self.control.network.get_combiner(combiner_id)
         if not combiner:
             if secure_grpc == "True":
-                certificate, key = self.certificate_manager.get_or_create(
-                    address
-                ).get_keypair_raw()
+                certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
                 _ = base64.b64encode(certificate)
                 _ = base64.b64encode(key)
 
@@ -566,9 +540,7 @@ class API:
         # Check combiner now exists
         combiner = self.control.network.get_combiner(combiner_id)
         if not combiner:
-            return jsonify(
-                {"success": False, "message": "Combiner not added."}
-            )
+            return jsonify({"success": False, "message": "Combiner not added."})
 
         payload = {
             "success": True,
@@ -623,9 +595,7 @@ class API:
             combiner = self.control.network.find_available_combiner()
             if combiner is None:
                 return (
-                    jsonify(
-                        {"success": False, "message": "No combiner available."}
-                    ),
+                    jsonify({"success": False, "message": "No combiner available."}),
                     400,
                 )
 
@@ -691,9 +661,7 @@ class API:
             logger.debug(e)
             return jsonify({"success": False, "message": e})
 
-        return jsonify(
-            {"success": True, "message": "Initial model added successfully."}
-        )
+        return jsonify({"success": True, "message": "Initial model added successfully."})
 
     def get_latest_model(self):
         """Get the latest model from the statestore.
@@ -706,9 +674,7 @@ class API:
             payload = {"model_id": model_id}
             return jsonify(payload)
         else:
-            return jsonify(
-                {"success": False, "message": "No initial model set."}
-            )
+            return jsonify({"success": False, "message": "No initial model set."})
 
     def set_current_model(self, model_id: str):
         """Set the active model in the statestore.
@@ -745,7 +711,6 @@ class API:
         include_active: bool = include_active == "true"
 
         if include_active:
-
             latest_model = self.statestore.get_latest_model()
 
             arr = [
@@ -801,9 +766,7 @@ class API:
         if model_info:
             return jsonify(model_info)
         else:
-            return jsonify(
-                {"success": False, "message": "No model trail available."}
-            )
+            return jsonify({"success": False, "message": "No model trail available."})
 
     def get_model_ancestors(self, model_id: str, limit: str = None):
         """Get the model ancestors for a given model.
@@ -816,15 +779,12 @@ class API:
         :rtype: :class:`flask.Response`
         """
         if model_id is None:
-            return jsonify(
-                {"success": False, "message": "No model id provided."}
-            )
+            return jsonify({"success": False, "message": "No model id provided."})
 
         limit: int = int(limit) if limit is not None else 10  # if limit is None, default to 10
 
         response = self.statestore.get_model_ancestors(model_id, limit)
         if response:
-
             arr: list = []
 
             for element in response:
@@ -840,9 +800,7 @@ class API:
 
             return jsonify(result)
         else:
-            return jsonify(
-                {"success": False, "message": "No model ancestors available."}
-            )
+            return jsonify({"success": False, "message": "No model ancestors available."})
 
     def get_model_descendants(self, model_id: str, limit: str = None):
         """Get the model descendants for a given model.
@@ -854,18 +812,14 @@ class API:
         :return: The model descendants for the given model as a json response.
         :rtype: :class:`flask.Response`
         """
-
         if model_id is None:
-            return jsonify(
-                {"success": False, "message": "No model id provided."}
-            )
+            return jsonify({"success": False, "message": "No model id provided."})
 
         limit: int = int(limit) if limit is not None else 10
 
         response: list = self.statestore.get_model_descendants(model_id, limit)
 
         if response:
-
             arr: list = []
 
             for element in response:
@@ -881,9 +835,7 @@ class API:
 
             return jsonify(result)
         else:
-            return jsonify(
-                {"success": False, "message": "No model descendants available."}
-            )
+            return jsonify({"success": False, "message": "No model descendants available."})
 
     def get_all_rounds(self):
         """Get all rounds.
@@ -911,8 +863,7 @@ class API:
                 "combiners": combiners,
             }
             payload[id] = info
-        else:
-            return jsonify(payload)
+        return jsonify(payload)
 
     def get_round(self, round_id):
         """Get a round.
@@ -926,8 +877,8 @@ class API:
         if round_object is None:
             return jsonify({"success": False, "message": "Round not found."})
         payload = {
-            'round_id': round_object['round_id'],
-            'combiners': round_object['combiners'],
+            "round_id": round_object["round_id"],
+            "combiners": round_object["combiners"],
         }
         return jsonify(payload)
 
@@ -958,7 +909,6 @@ class API:
         :return: The plot data as json response.
         :rtype: :py:class:`flask.Response`
         """
-
         plot = Plot(self.control.statestore)
 
         try:
@@ -985,14 +935,12 @@ class API:
         :return: The combiners data as json response.
         :rtype: :py:class:`flask.Response`
         """
-
         response = self.statestore.list_combiners_data(combiners)
 
         arr = []
 
         # order list by combiner name
         for element in response:
-
             obj = {
                 "combiner": element["_id"],
                 "count": element["count"],
@@ -1007,7 +955,7 @@ class API:
     def start_session(
         self,
         session_id,
-        aggregator='fedavg',
+        aggregator="fedavg",
         aggregator_kwargs=None,
         model_id=None,
         rounds=5,
@@ -1047,15 +995,11 @@ class API:
         # Check if session already exists
         session = self.statestore.get_session(session_id)
         if session:
-            return jsonify(
-                {"success": False, "message": "Session already exists."}
-            )
+            return jsonify({"success": False, "message": "Session already exists."})
 
         # Check if session is running
         if self.control.state() == ReducerState.monitoring:
-            return jsonify(
-                {"success": False, "message": "A session is already running."}
-            )
+            return jsonify({"success": False, "message": "A session is already running."})
 
         # Check if compute package is set
         if not self.statestore.get_compute_package():
@@ -1123,9 +1067,7 @@ class API:
         }
 
         # Start session
-        threading.Thread(
-            target=self.control.session, args=(session_config,)
-        ).start()
+        threading.Thread(target=self.control.session, args=(session_config,)).start()
 
         # Return success response
         return jsonify(

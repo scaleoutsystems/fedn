@@ -14,7 +14,6 @@ flwr_adapter = FlwrClientAppAdapter(app)
 
 def _get_node_id():
     """Get client number from environment variable."""
-
     number = os.environ.get("CLIENT_NUMBER", "0")
     return int(number)
 
@@ -56,9 +55,7 @@ def train(in_model_path, out_model_path):
     parameters_np = helper.load(in_model_path)
 
     # Train on flower client
-    params, num_examples = flwr_adapter.train(
-        parameters=parameters_np, partition_id=_get_node_id(), config={}
-    )
+    params, num_examples = flwr_adapter.train(parameters=parameters_np, partition_id=_get_node_id(), config={})
 
     # Metadata needed for aggregation server side
     metadata = {

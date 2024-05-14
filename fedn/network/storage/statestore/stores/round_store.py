@@ -15,14 +15,14 @@ class Round:
         self.combiners = combiners
         self.round_data = round_data
 
-    def from_dict(data: dict) -> 'Round':
+    def from_dict(data: dict) -> "Round":
         return Round(
-            id=str(data['_id']),
-            round_id=data['round_id'] if 'round_id' in data else None,
-            status=data['status'] if 'status' in data else None,
-            round_config=data['round_config'] if 'round_config' in data else None,
-            combiners=data['combiners'] if 'combiners' in data else None,
-            round_data=data['round_data'] if 'round_data' in data else None
+            id=str(data["_id"]),
+            round_id=data["round_id"] if "round_id" in data else None,
+            status=data["status"] if "status" in data else None,
+            round_config=data["round_config"] if "round_config" in data else None,
+            combiners=data["combiners"] if "combiners" in data else None,
+            round_data=data["round_data"] if "round_data" in data else None
         )
 
 
@@ -70,7 +70,7 @@ class RoundStore(Store[Round]):
         """
         response = super().list(limit, skip, sort_key or "round_id", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Round.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Round.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
         return {
             "count": response["count"],

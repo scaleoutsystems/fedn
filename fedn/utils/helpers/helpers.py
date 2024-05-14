@@ -5,7 +5,7 @@ HELPER_PLUGIN_PATH = "fedn.utils.helpers.plugins.{}"
 
 
 def get_helper(helper_module_name):
-    """ Return an instance of the helper class.
+    """Return an instance of the helper class.
 
     :param helper_module_name: The name of the helper plugin module.
     :type helper_module_name: str
@@ -18,24 +18,24 @@ def get_helper(helper_module_name):
 
 
 def save_metadata(metadata, filename):
-    """ Save metadata to file.
+    """Save metadata to file.
 
     :param metadata: The metadata to save.
     :type metadata: dict
     :param filename: The name of the file to save to.
     :type filename: str
     """
-    with open(filename+'-metadata', 'w') as outfile:
+    with open(filename + "-metadata", "w") as outfile:
         json.dump(metadata, outfile)
 
 
 def save_metrics(metrics, filename):
-    """ Save metrics to file.
+    """Save metrics to file.
 
     :param metrics: The metrics to save.
     :type metrics: dict
     :param filename: The name of the file to save to.
     :type filename: str
     """
-    with open(filename, 'w') as outfile:
+    with open(filename, "w") as outfile:
         json.dump(metrics, outfile)

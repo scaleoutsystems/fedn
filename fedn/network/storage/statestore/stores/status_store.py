@@ -31,18 +31,18 @@ class Status:
         self.session_id = session_id
         self.sender = sender
 
-    def from_dict(data: dict) -> 'Status':
+    def from_dict(data: dict) -> "Status":
         return Status(
-            id=str(data['_id']),
-            status=data['status'] if 'status' in data else None,
-            timestamp=data['timestamp'] if 'timestamp' in data else None,
-            log_level=data['logLevel'] if 'logLevel' in data else None,
-            data=data['data'] if 'data' in data else None,
-            correlation_id=data['correlationId'] if 'correlationId' in data else None,
-            type=data['type'] if 'type' in data else None,
-            extra=data['extra'] if 'extra' in data else None,
-            session_id=data['sessionId'] if 'sessionId' in data else None,
-            sender=data['sender'] if 'sender' in data else None
+            id=str(data["_id"]),
+            status=data["status"] if "status" in data else None,
+            timestamp=data["timestamp"] if "timestamp" in data else None,
+            log_level=data["logLevel"] if "logLevel" in data else None,
+            data=data["data"] if "data" in data else None,
+            correlation_id=data["correlationId"] if "correlationId" in data else None,
+            type=data["type"] if "type" in data else None,
+            extra=data["extra"] if "extra" in data else None,
+            session_id=data["sessionId"] if "sessionId" in data else None,
+            sender=data["sender"] if "sender" in data else None
         )
 
 
@@ -91,6 +91,6 @@ class StatusStore(Store[Status]):
         """
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Status.from_dict(item) for item in response['result']] if use_typing else response['result']
+        result = [Status.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {'count': response['count'], 'result': result}
+        return {"count": response["count"], "result": result}

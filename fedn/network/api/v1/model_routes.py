@@ -4,10 +4,7 @@ import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_limit,
-                                        get_post_data_to_kwargs, get_reverse,
-                                        get_typed_list_headers, mdb,
-                                        modelstorage_config)
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb, modelstorage_config
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.statestore.stores.model_store import ModelStore
@@ -112,9 +109,7 @@ def get_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = models["result"]
 
@@ -199,9 +194,7 @@ def list_models():
         limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.list(
-            limit, skip, sort_key, sort_order, use_typing=False, **kwargs
-        )
+        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
 
         result = models["result"]
 
@@ -466,7 +459,7 @@ def get_ancestors(id: str):
     try:
         limit = get_limit(request.headers)
         reverse = get_reverse(request.headers)
-        include_self_param: str = request.args.get('include_self')
+        include_self_param: str = request.args.get("include_self")
 
         include_self: bool = include_self_param and include_self_param.lower() == "true"
 

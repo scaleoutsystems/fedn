@@ -55,18 +55,17 @@ class Aggregator(AggregatorBase):
         :return: The global model and metadata
         :rtype: tuple
         """
-
         data = {}
-        data['time_model_load'] = 0.0
-        data['time_model_aggregation'] = 0.0
+        data["time_model_load"] = 0.0
+        data["time_model_aggregation"] = 0.0
 
         # Define parameter schema
         parameter_schema = {
-            'serveropt': str,
-            'learning_rate': float,
-            'beta1': float,
-            'beta2': float,
-            'tau': float,
+            "serveropt": str,
+            "learning_rate": float,
+            "beta1": float,
+            "beta2": float,
+            "tau": float,
         }
 
         try:
@@ -77,11 +76,11 @@ class Aggregator(AggregatorBase):
 
         # Default hyperparameters. Note that these may need fine tuning.
         default_parameters = {
-            'serveropt': 'adam',
-            'learning_rate': 1e-3,
-            'beta1': 0.9,
-            'beta2': 0.99,
-            'tau': 1e-4,
+            "serveropt": "adam",
+            "learning_rate": 1e-3,
+            "beta1": 0.9,
+            "beta2": 0.99,
+            "tau": 1e-4,
         }
 
         # Validate parameters
@@ -119,7 +118,7 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Processing model update {}".format(self.name, model_update.model_update_id))
 
                 # Increment total number of examples
-                total_examples += metadata['num_examples']
+                total_examples += metadata["num_examples"]
 
                 if nr_aggregated_models == 0:
                     model_old = self.round_handler.load_model_update(helper, model_update.model_id)
@@ -127,7 +126,7 @@ class Aggregator(AggregatorBase):
                 else:
                     pseudo_gradient_next = helper.subtract(model_next, model_old)
                     pseudo_gradient = helper.increment_average(
-                        pseudo_gradient, pseudo_gradient_next, metadata['num_examples'], total_examples)
+                        pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
 
                 nr_aggregated_models += 1
                 # Delete model from storage
@@ -141,17 +140,17 @@ class Aggregator(AggregatorBase):
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
                 self.model_updates.task_done()
 
-        if parameters['serveropt'] == 'adam':
+        if parameters["serveropt"] == "adam":
             model = self.serveropt_adam(helper, pseudo_gradient, model_old, parameters)
-        elif parameters['serveropt'] == 'yogi':
+        elif parameters["serveropt"] == "yogi":
             model = self.serveropt_yogi(helper, pseudo_gradient, model_old, parameters)
-        elif parameters['serveropt'] == 'adagrad':
+        elif parameters["serveropt"] == "adagrad":
             model = self.serveropt_adagrad(helper, pseudo_gradient, model_old, parameters)
         else:
             logger.error("Unsupported server optimizer passed to FedOpt.")
             return None, data
 
-        data['nr_aggregated_models'] = nr_aggregated_models
+        data["nr_aggregated_models"] = nr_aggregated_models
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data
@@ -170,10 +169,10 @@ class Aggregator(AggregatorBase):
         :return: new model weights.
         :rtype: as defined by helper.
         """
-        beta1 = parameters['beta1']
-        beta2 = parameters['beta2']
-        learning_rate = parameters['learning_rate']
-        tau = parameters['tau']
+        beta1 = parameters["beta1"]
+        beta2 = parameters["beta2"]
+        learning_rate = parameters["learning_rate"]
+        tau = parameters["tau"]
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
@@ -206,11 +205,10 @@ class Aggregator(AggregatorBase):
         :return: new model weights.
         :rtype: as defined by helper.
         """
-
-        beta1 = parameters['beta1']
-        beta2 = parameters['beta2']
-        learning_rate = parameters['learning_rate']
-        tau = parameters['tau']
+        beta1 = parameters["beta1"]
+        beta2 = parameters["beta2"]
+        learning_rate = parameters["learning_rate"]
+        tau = parameters["tau"]
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
@@ -245,10 +243,9 @@ class Aggregator(AggregatorBase):
         :return: new model weights.
         :rtype: as defined by helper.
         """
-
-        beta1 = parameters['beta1']
-        learning_rate = parameters['learning_rate']
-        tau = parameters['tau']
+        beta1 = parameters["beta1"]
+        learning_rate = parameters["learning_rate"]
+        tau = parameters["tau"]
 
         if not self.v:
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))

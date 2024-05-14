@@ -2,7 +2,7 @@ import hashlib
 
 
 def sha(fname):
-    """ Calculate the sha256 checksum of a file. Used for computing checksums of compute packages.
+    """Calculate the sha256 checksum of a file. Used for computing checksums of compute packages.
 
     :param fname: The file path.
     :type fname: str
