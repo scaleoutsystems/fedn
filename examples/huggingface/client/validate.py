@@ -55,20 +55,13 @@ def validate(in_model_path, out_json_path, data_path=None):
 
     # test dataset
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
-    train_encodings = tokenizer(
-        X_train, truncation=True, padding="max_length", max_length=512
-    )
-    test_encodings = tokenizer(
-        X_test, truncation=True, padding="max_length", max_length=512
-    )
-    train_dataset = SpamDataset(train_encodings, y_train)
+    test_encodings = tokenizer(X_test, truncation=True, padding="max_length", max_length=512)
     test_dataset = SpamDataset(test_encodings, y_test)
 
     # Load model
     model = load_parameters(in_model_path)
     model.eval()
 
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
