@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from bson import ObjectId
@@ -52,8 +52,8 @@ class SessionStore(Store[Session]):
     def update(self, id: str, item: Session) -> bool:
         raise NotImplementedError("Update not implemented for SessionStore")
 
-    def add(self, item: Session) -> bool:
-        raise NotImplementedError("Add not implemented for SessionStore")
+    def add(self, item: Session)-> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for SessionStore")
