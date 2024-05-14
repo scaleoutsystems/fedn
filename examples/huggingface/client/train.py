@@ -30,6 +30,11 @@ class SpamDataset(torch.utils.data.Dataset):
 
 
 def preprocess(text):
+    """Preprocesses text input.
+
+    :param text: The text to preprocess.
+    :type text: str
+    """
     text = text.lower()
     text = text.replace("\n", " ")
     return text
@@ -80,7 +85,7 @@ def train(
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     optim = AdamW(model.parameters(), lr=lr)
-    loss_fn = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss()
 
     for epoch in range(epochs):
         for batch in train_loader:
@@ -91,7 +96,8 @@ def train(
 
             outputs = model(input_ids, attention_mask)
 
-            loss = loss_fn(outputs.logits, labels)
+            loss = criterion(outputs.logits, labels)
+            print("loss: ", loss.item())
             loss.backward()
             optim.step()
 

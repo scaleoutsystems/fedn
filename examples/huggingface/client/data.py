@@ -44,11 +44,11 @@ def split(out_dir="data", n_splits=2):
     X_test = test_data["text"].to_numpy()
     y_test = test_data["label"].to_numpy()
 
-    # Reduce data size
-    X_train = X_train[:3000]
-    y_train = y_train[:3000]
-    X_test = X_test[:500]
-    y_test = y_test[:500]
+    # Reduce data size for faster training
+    X_train = X_train[:5000]
+    y_train = y_train[:5000]
+    X_test = X_test[:700]
+    y_test = y_test[:700]
 
     data = {
         "X_train": splitset(X_train, n_splits),

@@ -98,34 +98,8 @@ def validate(in_model_path, out_json_path, data_path=None):
     test_loss = total_loss / total
     print("test loss: ", test_loss)
 
-    # train set validation
-    with torch.no_grad():
-        correct = 0
-        total_loss = 0
-        total = 0
-        for batch in train_loader:
-            input_ids = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-
-            outputs = model(input_ids, attention_mask=attention_mask)
-            _, predicted = torch.max(outputs.logits, dim=1)
-
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-            loss = criterion(outputs.logits, labels)
-            total_loss += loss.item() * labels.size(0)
-
-    train_accuracy = correct / total
-    print(f"Accuracy: {train_accuracy * 100:.2f}%")
-
-    train_loss = total_loss / total
-    print("train loss: ", train_loss)
-
     # JSON schema
     report = {
-        "training_loss": train_loss,
-        "training_accuracy": train_accuracy,
         "test_loss": test_loss,
         "test_accuracy": test_accuracy,
     }
