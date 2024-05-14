@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
@@ -49,7 +49,7 @@ class ClientStore(Store[Client]):
     def update(self, id: str, item: Client) -> bool:
         raise NotImplementedError("Update not implemented for ClientStore")
 
-    def add(self, item: Client) -> bool:
+    def add(self, item: Client)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for ClientStore")
 
     def delete(self, id: str) -> bool:

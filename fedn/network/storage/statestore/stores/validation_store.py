@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
@@ -62,7 +62,7 @@ class ValidationStore(Store[Validation]):
     def update(self, id: str, item: Validation) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
-    def add(self, item: Validation) -> bool:
+    def add(self, item: Validation)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for ValidationStore")
 
     def delete(self, id: str) -> bool:

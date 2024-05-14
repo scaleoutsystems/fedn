@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from bson import ObjectId
@@ -60,7 +60,7 @@ class ModelStore(Store[Model]):
     def update(self, id: str, item: Model) -> bool:
         raise NotImplementedError("Update not implemented for ModelStore")
 
-    def add(self, item: Model) -> bool:
+    def add(self, item: Model)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for ModelStore")
 
     def delete(self, id: str) -> bool:

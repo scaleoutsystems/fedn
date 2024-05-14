@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
@@ -65,7 +65,7 @@ class StatusStore(Store[Status]):
     def update(self, id: str, item: Status) -> bool:
         raise NotImplementedError("Update not implemented for StatusStore")
 
-    def add(self, item: Status) -> bool:
+    def add(self, item: Status)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for StatusStore")
 
     def delete(self, id: str) -> bool:

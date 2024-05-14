@@ -304,3 +304,45 @@ def get_session(id: str):
         return jsonify({"message": str(e)}), 404
     except Exception as e:
         return jsonify({"message": str(e)}), 500
+
+@bp.route("/", methods=["POST"])
+@jwt_auth_required(role="admin")
+def post():
+    """Create session
+    Creates a new session based on the provided data.
+    ---
+    tags:
+        - Sessions
+    parameters:
+      - name: session
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            session_id:
+              type: string
+            session_config:
+              type: object
+    responses:
+        201:
+            description: The created session
+            schema:
+                $ref: '#/definitions/Session'
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        successful, result = session_store.add(data)
+        response = result
+        status_code: int = 201 if successful else 400
+
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
