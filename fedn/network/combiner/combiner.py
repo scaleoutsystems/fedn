@@ -337,7 +337,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         return clients["active_clients"]
 
-    def _deamon_thread_client_status(self, timeout=10):
+    def _deamon_thread_client_status(self, timeout=5):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             time.sleep(timeout)
