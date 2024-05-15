@@ -64,8 +64,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Client queues
         self.clients = {}
-
-        self.modelservice = ModelService()
+        
 
         # Validate combiner name
         match = re.search(VALID_NAME_REGEX, config["name"])
@@ -122,6 +121,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = Repository(announce_config["storage"]["storage_config"])
 
         self.statestore = MongoStateStore(announce_config["statestore"]["network_id"], announce_config["statestore"]["mongo_config"])
+        
+        # Fetch all clients previously connected to the combiner
+        # If a client and a combiner goes down at the same time,
+        # the client will be stuck listed as "online" in the statestore.
+        # Set the status to offline for previous clients.
+        previous_clients = self.statestore.clients.find({"combiner": config["name"]})
+        for client in previous_clients:
+            self.statestore.set_client({"name": client["name"], "status": "offline"})
+
+        print("Previous clients: {}".format(self.clients))
+
+        self.modelservice = ModelService()
+        
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)
 
@@ -316,10 +328,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "update_active_clients": [],
             "update_offline_clients": [],
         }
+        print(self._list_subscribed_clients(channel))
         for client in self._list_subscribed_clients(channel):
             status = self.clients[client]["status"]
+            print("Client: {}, status={}".format(client, status))
             now = datetime.now()
             then = self.clients[client]["lastseen"]
+            print("Time since seen: {}".format(now - then))
             if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
                 # If client has changed status, update statestore
@@ -331,13 +346,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 clients["update_offline_clients"].append(client)
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
+            print("Updating active clients: {}".format(clients["update_active_clients"]))
             self.statestore.update_client_status(clients["update_active_clients"], "online")
         if len(clients["update_offline_clients"]) > 0:
+            print("Updating offline clients: {}".format(clients["update_offline_clients"]))
             self.statestore.update_client_status(clients["update_offline_clients"], "offline")
 
         return clients["active_clients"]
 
-    def _deamon_thread_client_status(self, timeout=5):
+    def _deamon_thread_client_status(self, timeout=10):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             time.sleep(timeout)
@@ -599,6 +616,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
         self._send_status(status)
+
+        # Set client status to online
+        self.clients[client.name]["status"] = "online"
+        self.statestore.set_client({"name": client.name, "status": "online"})
 
         # Keep track of the time context has been active
         start_time = time.time()
