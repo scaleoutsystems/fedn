@@ -1,3 +1,5 @@
+import datetime
+import uuid
 from typing import Any, Dict, List, Tuple
 
 import pymongo
@@ -30,9 +32,6 @@ class SessionStore(Store[Session]):
         super().__init__(database, collection)
 
     def _validate_session_config(self, session_config: dict) -> Tuple[bool, str]:
-        if "session_id" not in session_config or session_config["session_id"] == "":
-            return False, "session_config.session_id is required"
-
         if "aggregator" not in session_config:
             return False, "session_config.aggregator is required"
 
@@ -81,29 +80,21 @@ class SessionStore(Store[Session]):
         return True, ""
 
     def _validate(self, item: Session) -> Tuple[bool, str]:
-        if "session_id" not in item or item["session_id"] == "":
-            return False, "session_id is required"
-
-        if not isinstance(item["session_id"], str):
-            return False, "session_id must be a string"
-
         if "session_config" not in item or item["session_config"] is None:
             return False, "session_config is required"
         elif not isinstance(item["session_config"], dict):
             return False, "session_config must be a dict"
 
         session_config = item["session_config"]
-        session_id = item["session_id"]
 
-        success, result =  self._validate_session_config(session_config)
+        return  self._validate_session_config(session_config)
 
-        if not success:
-            return False, result
+    def _complement(self, item: Session):
+        item["status"] = "Created"
+        item["committed_at"] = datetime.datetime.now()
 
-        if session_id != session_config["session_id"]:
-            return False, "session_id must match session_config.session_id"
-
-        return True, ""
+        if "session_id" not in item or item["session_id"] == "" or not isinstance(item["session_id"], str):
+            item["session_id"] = str(uuid.uuid4())
 
 
     def get(self, id: str, use_typing: bool = False) -> Session:
@@ -139,6 +130,8 @@ class SessionStore(Store[Session]):
         valid, message = self._validate(item)
         if not valid:
             return False, message
+
+        self._complement(item)
 
         return super().add(item)
 
