@@ -130,8 +130,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in previous_clients:
             self.statestore.set_client({"name": client["name"], "status": "offline"})
 
-        print("Previous clients: {}".format(self.clients))
-
         self.modelservice = ModelService()
         
         # Create gRPC server
@@ -328,13 +326,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "update_active_clients": [],
             "update_offline_clients": [],
         }
-        print(self._list_subscribed_clients(channel))
         for client in self._list_subscribed_clients(channel):
             status = self.clients[client]["status"]
-            print("Client: {}, status={}".format(client, status))
             now = datetime.now()
             then = self.clients[client]["lastseen"]
-            print("Time since seen: {}".format(now - then))
             if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
                 # If client has changed status, update statestore
@@ -346,15 +341,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 clients["update_offline_clients"].append(client)
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
-            print("Updating active clients: {}".format(clients["update_active_clients"]))
             self.statestore.update_client_status(clients["update_active_clients"], "online")
         if len(clients["update_offline_clients"]) > 0:
-            print("Updating offline clients: {}".format(clients["update_offline_clients"]))
             self.statestore.update_client_status(clients["update_offline_clients"], "offline")
 
         return clients["active_clients"]
 
-    def _deamon_thread_client_status(self, timeout=10):
+    def _deamon_thread_client_status(self, timeout=5):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             time.sleep(timeout)
