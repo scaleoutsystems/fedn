@@ -29,6 +29,83 @@ class SessionStore(Store[Session]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
+    def _validate_session_config(self, session_config: dict) -> Tuple[bool, str]:
+        if "session_id" not in session_config or session_config["session_id"] == "":
+            return False, "session_config.session_id is required"
+
+        if "aggregator" not in session_config:
+            return False, "session_config.aggregator is required"
+
+        if "round_timeout" not in session_config:
+            return False, "session_config.round_timeout is required"
+
+        if not isinstance(session_config["round_timeout"], int):
+            return False, "session_config.round_timeout must be an integer"
+
+        if "buffer_size" not in session_config:
+            return False, "session_config.buffer_size is required"
+
+        if not isinstance(session_config["buffer_size"], int):
+            return False, "session_config.buffer_size must be an integer"
+
+        if "model_id" not in session_config or session_config["model_id"] == "":
+            return False, "session_config.model_id is required"
+
+        if not isinstance(session_config["model_id"], str):
+            return False, "session_config.model_id must be a string"
+
+        if "delete_models_storage" not in session_config:
+            return False, "session_config.delete_models_storage is required"
+
+        if not isinstance(session_config["delete_models_storage"], bool):
+            return False, "session_config.delete_models_storage must be a boolean"
+
+        if "clients_required" not in session_config:
+            return False, "session_config.clients_required is required"
+
+        if not isinstance(session_config["clients_required"], int):
+            return False, "session_config.clients_required must be an integer"
+
+        if "validate" not in session_config:
+            return False, "session_config.validate is required"
+
+        if not isinstance(session_config["validate"], bool):
+            return False, "session_config.validate must be a boolean"
+
+        if "helper_type" not in session_config:
+            return False, "session_config.helper_type is required"
+
+        if not isinstance(session_config["helper_type"], str):
+            return False, "session_config.helper_type must be a string"
+
+        return True, ""
+
+    def _validate(self, item: Session) -> Tuple[bool, str]:
+        if "session_id" not in item or item["session_id"] == "":
+            return False, "session_id is required"
+
+        if not isinstance(item["session_id"], str):
+            return False, "session_id must be a string"
+
+        if "session_config" not in item or item["session_config"] is None:
+            return False, "session_config is required"
+        elif not isinstance(item["session_config"], dict):
+            return False, "session_config must be a dict"
+
+        session_config = item["session_config"]
+        session_id = item["session_id"]
+
+        success, result =  self._validate_session_config(session_config)
+
+        if not success:
+            return False, result
+
+        if session_id != session_config["session_id"]:
+            return False, "session_id must match session_config.session_id"
+
+        return True, ""
+
+
     def get(self, id: str, use_typing: bool = False) -> Session:
         """Get an entity by id
         param id: The id of the entity
@@ -53,6 +130,16 @@ class SessionStore(Store[Session]):
         raise NotImplementedError("Update not implemented for SessionStore")
 
     def add(self, item: Session)-> Tuple[bool, Any]:
+        """Add an entity
+        param item: The entity to add
+            type: Session
+            description: The entity to add
+        return: A tuple with a boolean indicating success and the entity
+        """
+        valid, message = self._validate(item)
+        if not valid:
+            return False, message
+
         return super().add(item)
 
     def delete(self, id: str) -> bool:
