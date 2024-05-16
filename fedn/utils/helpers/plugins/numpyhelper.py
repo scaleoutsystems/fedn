@@ -1,3 +1,7 @@
+import os
+import tempfile
+from io import BytesIO
+
 import numpy as np
 
 from fedn.utils.helpers.helperbase import HelperBase
@@ -137,33 +141,72 @@ class Helper(HelperBase):
             res.append(np.ones(np.shape(x)) * a)
         return res
 
-    def save(self, weights, path=None):
+    def save(self, weights, path=None, file_type="npz"):
         """Serialize weights to file. The serialized model must be a single binary object.
 
         :param weights: List of weights in numpy format.
         :param path: Path to file.
+        :param file_type: File type to save to. Can be 'npz' or 'raw_binary'. Default is 'npz'.
         :return: Path to file.
         """
-        if not path:
-            path = self.get_tmp_path()
+        self.check_supported_file_type(file_type)
 
-        weights_dict = {}
-        for i, w in enumerate(weights):
-            weights_dict[str(i)] = w
+        if file_type == "npz":
+            if not path:
+                path = self.get_tmp_path()
 
-        np.savez_compressed(path, **weights_dict)
+            weights_dict = {}
+            for i, w in enumerate(weights):
+                weights_dict[str(i)] = w
 
-        return path
+            np.savez_compressed(path, **weights_dict)
+            return path
+        else:
+            if not path:
+                path = self.get_tmp_path(suffix=".bin")
+            weights = np.concatenate(weights)
+            weights.tofile(path)
+            return path
 
-    def load(self, fh):
+    def load(self, path, file_type="npz"):
         """Load weights from file or filelike.
 
-        :param fh: file path, filehandle, filelike.
+        :param path: file path, filehandle, filelike.
         :return: List of weights in numpy format.
         """
-        a = np.load(fh)
-
+        self.check_supported_file_type(file_type)
         weights = []
-        for i in range(len(a.files)):
-            weights.append(a[str(i)])
+        if file_type == "npz":
+            a = np.load(path)
+            for i in range(len(a.files)):
+                weights.append(a[str(i)])
+        else:
+            if isinstance(path, BytesIO):
+                a = np.frombuffer(path.read(), dtype=np.float64)
+            else:
+                a = np.fromfile(path, dtype=np.float64)
+            weights.append(a)
         return weights
+
+    def get_tmp_path(self, suffix=".npz"):
+        """Return a temporary output path compatible with save_model, load_model.
+
+        :param suffix: File suffix.
+        :return: Path to file.
+        """
+        fd, path = tempfile.mkstemp(suffix=suffix)
+        os.close(fd)
+        return path
+
+    def check_supported_file_type(self, file_type):
+        """Check if the file type is supported.
+
+        :param file_type: File type to check.
+        :type file_type: str
+        :return: True if supported, False otherwise.
+        :rtype: bool
+        """
+        supported_file_types = ["npz", "raw_binary"]
+        if file_type not in supported_file_types:
+            raise ValueError("File type not supported. Supported types are: {}".format(supported_file_types))
+        return True
