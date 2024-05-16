@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
-from fedn.network.api.v1 import _routes
+from fedn.network.api.v1 import _routes, session_store
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 
@@ -39,7 +39,16 @@ def start_session_v2():
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
 
-        control.start_session(session_id, rounds)
+        if not session_id or session_id == "":
+            return jsonify({"message": "Session ID is required"}), 400
+
+        if not rounds or rounds == "":
+            return jsonify({"message": "Rounds is required"}), 400
+
+        if not isinstance(rounds, int):
+            return jsonify({"message": "Rounds must be an integer"}), 400
+
+        _ = session_store.get(session_id, use_typing=False)
 
         threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
 
