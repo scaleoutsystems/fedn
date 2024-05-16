@@ -78,6 +78,60 @@ class Control(ControlBase):
         super().__init__(statestore)
         self.name = "DefaultControl"
 
+    def start_session(self, session_id: str, rounds: int):
+        if self._state == ReducerState.instructing:
+            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
+            return
+
+        if not self.statestore.get_latest_model():
+            logger.warning("No model in model chain, please provide a seed model!")
+            return
+
+        self._state = ReducerState.instructing
+
+        session = self.statestore.get_session(session_id)
+
+        if not session:
+            logger.error("Session not found.")
+            return
+
+        session_config = session["session_config"]
+
+        if not session_config or not isinstance(session_config, dict):
+            logger.error("Session not properly configured.")
+            return
+
+        self._state = ReducerState.monitoring
+
+        last_round = int(self.get_latest_round_id())
+
+        aggregator = session_config["aggregator"]
+
+        session_config["session_id"] = session_id
+
+        for combiner in self.network.get_combiners():
+            combiner.set_aggregator(aggregator)
+
+        self.set_session_status(session_id, "Started")
+
+        for round in range(1, rounds + 1):
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
+            try:
+                _, round_data = self.round(session_config, str(current_round))
+            except TypeError as e:
+                logger.error("Failed to execute round: {0}".format(e))
+
+            logger.info("Round completed with status {}".format(round_data["status"]))
+
+            session_config["model_id"] = self.statestore.get_latest_model()
+
+        self.set_session_status(session_id, "Finished")
+        self._state = ReducerState.idle
+
     def session(self, config):
         """Execute a new training session. A session consists of one
             or several global rounds. All rounds in the same session

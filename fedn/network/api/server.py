@@ -1,4 +1,5 @@
 import os
+import threading
 
 from flask import Flask, jsonify, request
 
@@ -28,6 +29,23 @@ for bp in _routes:
 @app.route("/health", methods=["GET"])
 def health_check():
     return "OK", 200
+
+
+@app.route("/api/v1/sessions/start", methods=["POST"])
+@jwt_auth_required(role="admin")
+def start_session_v2():
+    try:
+        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        session_id: str = data.get("session_id")
+        rounds: int = data.get("rounds", "")
+
+        control.start_session(session_id, rounds)
+
+        threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
+
+        return jsonify({"message": "Session started"}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 if custom_url_prefix:
