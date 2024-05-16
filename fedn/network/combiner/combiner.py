@@ -65,7 +65,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Client queues
         self.clients = {}
 
-        self.modelservice = ModelService()
 
         # Validate combiner name
         match = re.search(VALID_NAME_REGEX, config["name"])
@@ -122,6 +121,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.repository = Repository(announce_config["storage"]["storage_config"])
 
         self.statestore = MongoStateStore(announce_config["statestore"]["network_id"], announce_config["statestore"]["mongo_config"])
+
+        # Fetch all clients previously connected to the combiner
+        # If a client and a combiner goes down at the same time,
+        # the client will be stuck listed as "online" in the statestore.
+        # Set the status to offline for previous clients.
+        previous_clients = self.statestore.clients.find({"combiner": config["name"]})
+        for client in previous_clients:
+            self.statestore.set_client({"name": client["name"], "status": "offline"})
+
+        self.modelservice = ModelService()
+
         # Create gRPC server
         self.server = Server(self, self.modelservice, grpc_config)
 
@@ -599,6 +609,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
         self._send_status(status)
+
+        # Set client status to online
+        self.clients[client.name]["status"] = "online"
+        self.statestore.set_client({"name": client.name, "status": "online"})
 
         # Keep track of the time context has been active
         start_time = time.time()
