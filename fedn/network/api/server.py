@@ -1,21 +1,13 @@
 import os
-import threading
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
-from fedn.network.api.v1 import _routes, session_store
-from fedn.network.controller.control import Control
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
+from fedn.network.api.v1 import _routes
+from fedn.network.api.shared import statestore, control
 
-statestore_config = get_statestore_config()
-network_id = get_network_config()
-modelstorage_config = get_modelstorage_config()
-statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
-statestore.set_storage_backend(modelstorage_config)
-control = Control(statestore=statestore)
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
@@ -29,32 +21,6 @@ for bp in _routes:
 @app.route("/health", methods=["GET"])
 def health_check():
     return "OK", 200
-
-
-@app.route("/api/v1/sessions/start", methods=["POST"])
-@jwt_auth_required(role="admin")
-def start_session_v2():
-    try:
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
-        session_id: str = data.get("session_id")
-        rounds: int = data.get("rounds", "")
-
-        if not session_id or session_id == "":
-            return jsonify({"message": "Session ID is required"}), 400
-
-        if not rounds or rounds == "":
-            return jsonify({"message": "Rounds is required"}), 400
-
-        if not isinstance(rounds, int):
-            return jsonify({"message": "Rounds must be an integer"}), 400
-
-        _ = session_store.get(session_id, use_typing=False)
-
-        threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
-
-        return jsonify({"message": "Session started"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
 
 
 if custom_url_prefix:
