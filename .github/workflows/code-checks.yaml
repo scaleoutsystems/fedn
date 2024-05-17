@@ -21,6 +21,7 @@ jobs:
           --exclude-dir='.venv' 
           --exclude-dir='.mnist-pytorch' 
           --exclude-dir='.mnist-keras' 
+          --exclude-dir='.huggingface'
           --exclude-dir='docs'
           --exclude-dir='flower-client'
           --exclude='tests.py'
