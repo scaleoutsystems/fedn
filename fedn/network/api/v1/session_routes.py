@@ -7,7 +7,7 @@ from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from .model_routes import model_store
-from ..shared import control
+from fedn.network.api.shared import control
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 

@@ -3,7 +3,7 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from ..shared import statestore_config, network_id
+from fedn.network.api.shared import statestore_config, network_id
 
 api_version = "v1"
 
