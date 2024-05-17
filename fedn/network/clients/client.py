@@ -456,11 +456,11 @@ class Client:
                     details = e.details()
                     if details == "Token expired":
                         logger.warning("GRPC TaskStream: Token expired. Reconnecting.")
-                        self.detach()
+                        self.disconnect()
 
                 if status_code == grpc.StatusCode.CANCELLED:
-                    # Expected if the client is detached
-                    logger.critical("GRPC TaskStream: Client detached from combiner. Atempting to reconnect.")
+                    # Expected if the client is disconnected
+                    logger.critical("GRPC TaskStream: Client disconnected from combiner. Trying to reconnect.")
 
                 else:
                     # Log the error and continue
@@ -690,7 +690,7 @@ class Client:
 
         :param update_frequency: The frequency of the heartbeat in seconds.
         :type update_frequency: float
-        :return: None if the client is detached.
+        :return: None if the client is disconnected.
         :rtype: None
         """
         while True:
