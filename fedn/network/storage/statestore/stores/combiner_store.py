@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from bson import ObjectId
@@ -82,7 +82,7 @@ class CombinerStore(Store[Combiner]):
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerStore")
 
-    def add(self, item: Combiner) -> bool:
+    def add(self, item: Combiner)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for CombinerStore")
 
     def delete(self, id: str) -> bool:

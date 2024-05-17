@@ -2,19 +2,12 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.v1 import _routes
-from fedn.network.controller.control import Control
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
+from fedn.network.api.shared import statestore, control
 
-statestore_config = get_statestore_config()
-network_id = get_network_config()
-modelstorage_config = get_modelstorage_config()
-statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
-statestore.set_storage_backend(modelstorage_config)
-control = Control(statestore=statestore)
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)

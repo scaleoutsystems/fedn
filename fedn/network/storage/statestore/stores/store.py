@@ -1,4 +1,4 @@
-from typing import Dict, Generic, List, TypeVar
+from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
 import pymongo
 from bson import ObjectId
@@ -33,8 +33,14 @@ class Store(Generic[T]):
     def update(self, id: str, item: T) -> bool:
         pass
 
-    def add(self, item: T) -> bool:
-        pass
+    def add(self, item: T) -> Tuple[bool, Any]:
+        try:
+            result = self.database[self.collection].insert_one(item)
+            id = result.inserted_id
+            document = self.database[self.collection].find_one({"_id": id})
+            return True, from_document(document)
+        except Exception as e:
+            return False, str(e)
 
     def delete(self, id: str) -> bool:
         pass

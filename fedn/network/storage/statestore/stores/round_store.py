@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
@@ -44,7 +44,7 @@ class RoundStore(Store[Round]):
     def update(self, id: str, item: Round) -> bool:
         raise NotImplementedError("Update not implemented for RoundStore")
 
-    def add(self, item: Round) -> bool:
+    def add(self, item: Round)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for RoundStore")
 
     def delete(self, id: str) -> bool:

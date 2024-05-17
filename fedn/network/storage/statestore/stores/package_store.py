@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
@@ -94,7 +94,7 @@ class PackageStore(Store[Package]):
     def update(self, id: str, item: Package) -> bool:
         raise NotImplementedError("Update not implemented for PackageStore")
 
-    def add(self, item: Package) -> bool:
+    def add(self, item: Package)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for PackageStore")
 
     def delete(self, id: str) -> bool:
