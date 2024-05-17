@@ -1,5 +1,3 @@
-import os
-import tempfile
 from abc import ABC, abstractmethod
 
 
@@ -40,12 +38,3 @@ class HelperBase(ABC):
         :return: Weights in array-like format.
         """
         pass
-
-    def get_tmp_path(self):
-        """Return a temporary output path compatible with save_model, load_model.
-
-        :return: Path to file.
-        """
-        fd, path = tempfile.mkstemp(suffix=".npz")
-        os.close(fd)
-        return path
