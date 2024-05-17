@@ -377,7 +377,7 @@ def start_session():
             return jsonify({"message": "Rounds must be an integer"}), 400
 
         session = session_store.get(session_id, use_typing=False)
-        
+
         session_config = session["session_config"]
         model_id = session_config["model_id"]
 
