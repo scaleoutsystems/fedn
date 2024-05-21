@@ -50,7 +50,7 @@ def get_classes(data_path):
     class_names = sorted(x for x in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, x)))
     return(class_names)
 
-def load_data(data_path, is_train=True):
+def load_data(data_path, sample_size=None, is_train=True):
     """Load data from disk.
 
     :param data_path: Path to data directory.
@@ -64,7 +64,6 @@ def load_data(data_path, is_train=True):
         data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/MedNIST") 
     
     class_names =   get_classes(data_path)
-
     num_class = len(class_names)
     
     image_files_all = [
@@ -72,9 +71,14 @@ def load_data(data_path, is_train=True):
         for i in range(num_class)
     ]
 
-    # To make the dataset small, we are using 100 images of each class.
-    sample_size = 100
-    image_files = [random.sample(inner_list, sample_size) for inner_list in image_files_all] 
+    # To make the dataset small, we are using sample_size=100 images of each class.
+    
+    if sample_size is None:
+
+       image_files = image_files_all
+        
+    else:  
+        image_files = [random.sample(inner_list, sample_size) for inner_list in image_files_all] 
     
     num_each = [len(image_files[i]) for i in range(num_class)]
     image_files_list = []
@@ -91,30 +95,26 @@ def load_data(data_path, is_train=True):
     print(f"Label counts: {num_each}")
  
     val_frac = 0.1
-    test_frac = 0.1
+    #test_frac = 0.1
     length = len(image_files_list)
     indices = np.arange(length)
     np.random.shuffle(indices)
 
-    test_split = int(test_frac * length)
-    val_split = int(val_frac * length) + test_split
-    test_indices = indices[:test_split]
-    val_indices = indices[test_split:val_split]
+    val_split = int(val_frac * length)
+    val_indices = indices[:val_split]
     train_indices = indices[val_split:]
 
     train_x = [image_files_list[i] for i in train_indices]
     train_y = [image_class[i] for i in train_indices]
     val_x = [image_files_list[i] for i in val_indices]
     val_y = [image_class[i] for i in val_indices]
-    test_x = [image_files_list[i] for i in test_indices]
-    test_y = [image_class[i] for i in test_indices]
 
-    print(f"Training count: {len(train_x)}, Validation count: " f"{len(val_x)}, Test count: {len(test_x)}")
+    print(f"Training count: {len(train_x)}, Validation count: " f"{len(val_x)}")
 
     if is_train:
-        return train_x, train_y, val_x, val_y
+        return train_x, train_y
     else:
-        return test_x, test_y
+        return val_x, val_y
 
 
 if __name__ == "__main__":

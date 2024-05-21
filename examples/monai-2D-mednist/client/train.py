@@ -2,9 +2,10 @@ import math
 import os
 import sys
 
+import yaml
+
 import torch
 from model import load_parameters, save_parameters
-from monai.metrics import ROCAUCMetric
 from data import load_data, get_classes
 from fedn.utils.helpers.helpers import save_metadata
 
@@ -28,7 +29,7 @@ from monai.utils import set_determinism
 import numpy as np
 from monai.data import decollate_batch, DataLoader
 
-def pre_training_settings(num_class, batch_size, train_x, train_y, val_x, val_y):
+def pre_training_settings(num_class, batch_size, train_x, train_y, num_workers=2): 
 
     train_transforms = Compose(
         [
@@ -41,10 +42,6 @@ def pre_training_settings(num_class, batch_size, train_x, train_y, val_x, val_y)
         ]
     )
 
-    val_transforms = Compose([LoadImage(image_only=True), EnsureChannelFirst(), ScaleIntensity()])
-
-    y_pred_trans = Compose([Activations(softmax=True)])
-    y_trans = Compose([AsDiscrete(to_onehot=num_class)])
 
     class MedNISTDataset(torch.utils.data.Dataset):
         def __init__(self, image_files, labels, transforms):
@@ -60,15 +57,12 @@ def pre_training_settings(num_class, batch_size, train_x, train_y, val_x, val_y)
 
 
     train_ds = MedNISTDataset(train_x, train_y, train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers )
 
-    val_ds = MedNISTDataset(val_x, val_y, val_transforms)
-    val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=2)
-
-    return train_ds, train_loader, val_ds, val_loader, y_pred_trans, y_trans
+    return train_ds, train_loader 
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
+def train(in_model_path, out_model_path, data_path=None, client_settings_path=None):
     """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -81,21 +75,31 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     :type out_model_path: str
     :param data_path: The path to the data directory.
     :type data_path: str
-    :param batch_size: The batch size to use.
-    :type batch_size: int
-    :param epochs: The number of epochs to train.
-    :type epochs: int
-    :param lr: The learning rate to use.
-    :type lr: float
+    :param client_settings_path: path to a local client settings file.
+    :type client_settings_path: str
     """
-    max_epochs = epochs
-    val_interval = 1
-    auc_metric = ROCAUCMetric()
+    
+    if client_settings_path is None:
+        client_settings_path = os.environ.get("FEDN_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
 
+    with open(client_settings_path, 'r') as fh: # Used by CJG for local training
+
+        try:
+            client_settings = dict(yaml.safe_load(fh))
+        except yaml.YAMLError as e:
+            raise
+    batch_size = client_settings['batch_size']
+    max_epochs = client_settings['local_epochs']
+    num_workers = client_settings['num_workers']
+    sample_size = client_settings['sample_size']
+    lr = client_settings['lr']
+
+    #val_interval = 1
     num_class = len(get_classes(data_path))
+
     # Load data
-    x_train, y_train, x_val, y_val = load_data(data_path)
-    train_ds, train_loader, val_ds, val_loader, y_pred_trans, y_trans = pre_training_settings(num_class, batch_size, x_train, y_train, x_val, y_val)
+    x_train, y_train  = load_data(data_path, sample_size)
+    train_ds, train_loader = pre_training_settings(num_class, batch_size, x_train, y_train, num_workers)
     
 
     # Load parmeters and initialize model
@@ -133,52 +137,14 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
         epoch_loss_values.append(epoch_loss)
         print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
 
-        if (epoch + 1) % val_interval == 0:
-            model.eval()
-            with torch.no_grad():
-                y_pred = torch.tensor([], dtype=torch.float32, device=device)
-                y = torch.tensor([], dtype=torch.long, device=device)
-                for val_data in val_loader:
-                    val_images, val_labels = (
-                        val_data[0].to(device),
-                        val_data[1].to(device),
-                    )
-                    y_pred = torch.cat([y_pred, model(val_images)], dim=0)
-                    y = torch.cat([y, val_labels], dim=0)
-                y_onehot = [y_trans(i) for i in decollate_batch(y, detach=False)]
-                y_pred_act = [y_pred_trans(i) for i in decollate_batch(y_pred)]
-                auc_metric(y_pred_act, y_onehot)
-                result = auc_metric.aggregate()
-                auc_metric.reset()
-                del y_pred_act, y_onehot
-                metric_values.append(result)
-                acc_value = torch.eq(y_pred.argmax(dim=1), y)
-                acc_metric = acc_value.sum().item() / len(acc_value)
-                if result > best_metric:
-                    best_metric = result
-                    best_metric_epoch = epoch + 1
-                    torch.save(model.state_dict(), os.path.join("best_metric_model.pth"))
-                    print("saved new best metric model")
-                print(
-                    f"current epoch: {epoch + 1} current AUC: {result:.4f}"
-                    f" current accuracy: {acc_metric:.4f}"
-                    f" best AUC: {best_metric:.4f}"
-                    f" at epoch: {best_metric_epoch}"
-                )
-                #writer.add_scalar("val_accuracy", acc_metric, epoch + 1)
-
-    print(f"train completed, best_metric: {best_metric:.4f} " f"at epoch: {best_metric_epoch}")
-    #writer.close()
-
-
-    #print(f"Epoch {e}/{epochs-1} | Batch: {b}/{n_batches-1} | Loss: {loss.item()}")
+    print(f"train completed!")
 
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
         "num_examples": len(x_train),
         "batch_size": batch_size,
-        "epochs": epochs,
+        "epochs": max_epochs,
         "lr": lr,
     }
 
