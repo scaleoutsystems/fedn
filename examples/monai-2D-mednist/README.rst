@@ -1,13 +1,15 @@
-FEDn Project: MNIST (PyTorch)
+FEDn Project: MonAI 2D Classification with the MedNIST Dataset (PyTorch)
 -----------------------------
 
-This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 
+This is an example FEDn Project based on the  MonAI 2D Classification with the MedNIST Dataset. 
 The example is intented as a minimalistic quickstart and automates the handling of training data
-by letting the client download and create its partition of the dataset as it starts up.
+by letting the client download and create its partition of the dataset as it starts up. 
 
-   **Note: These instructions are geared towards users seeking to learn how to work 
-   with FEDn in local development mode using Docker/docker-compose. We recommend all new users 
-   to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
+Links: 
+   
+   MonAI: https://monai.io/
+   Oreginal example notebook: https://github.com/Project-MONAI/tutorials/blob/main/2d_classification/mednist_tutorial.ipynb
+   MedNIST dataset: https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/MedNIST.tar.gz 
 
 Prerequisites
 -------------
@@ -36,7 +38,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-pytorch
+   cd fedn/examples/monai-2D-mednist
 
 Create the compute package:
 
@@ -60,23 +62,7 @@ Using FEDn Studio
 Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using token authentication): `Studio guide <https://fedn.readthedocs.io/en/stable/studio.html>`__.
 On the step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
-
-Modifing the data split:
-========================
-
-The default traning and test data  for this example is downloaded and split direcly by the client when it starts up (see 'startup' entrypoint). 
-The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
-For example, to split the data in 10 parts and start a client using the 8th partiton:
-
-.. code-block::
-
-   export FEDN_PACKAGE_EXTRACT_DIR=package
-   export FEDN_NUM_DATA_SPLITS=10
-   export FEDN_DATA_PATH=./data/clients/8/mnist.pt
-   fedn client start -in client.yaml --secure=True --force-ssl
-
-The default is to split the data into 2 partitions and use the first partition. 
-
+*** The following instructions are only for SDK-based client communication and for local development environments using Docker. ***
 
 Connecting clients using Docker:
 ================================
@@ -89,8 +75,8 @@ For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalle
      -v $PWD/client.yaml:/app/client.yaml \
      -e FEDN_PACKAGE_EXTRACT_DIR=package \
      -e FEDN_NUM_DATA_SPLITS=2 \
-     -e FEDN_DATA_PATH=/app/package/data/clients/1/mnist.pt \
-     ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
+     -e FEDN_DATA_PATH=/app/package/data/ \
+     monai-2d-class-fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
 
 
 Local development mode using Docker/docker compose
@@ -134,7 +120,7 @@ Automate experimentation with several clients
 
 If you want to scale the number of clients, you can do so by modifying ``docker-compose.override.yaml``. For example, 
 in order to run with 3 clients, change the environment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client 
-by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data/clients/3/mnist.pt``
+by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data3/``
 
 
 Access message logs and validation data from MongoDB  
