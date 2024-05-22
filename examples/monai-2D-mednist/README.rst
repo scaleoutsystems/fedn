@@ -62,8 +62,7 @@ Using FEDn Studio
 Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using token authentication): `Studio guide <https://fedn.readthedocs.io/en/stable/studio.html>`__.
 On the step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
-> [!NOTE]
-> The following instructions are only for SDK-based client communication and for local development environments using Docker.
+**NOTE: The following instructions are only for SDK-based client communication and for local development environments using Docker.**
 
 Connecting clients using Docker:
 ================================
