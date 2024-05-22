@@ -1,5 +1,5 @@
 FEDn Project: MonAI 2D Classification with the MedNIST Dataset (PyTorch)
------------------------------
+------------------------------------------------------------------------
 
 This is an example FEDn Project based on the  MonAI 2D Classification with the MedNIST Dataset. 
 The example is intented as a minimalistic quickstart and automates the handling of training data
