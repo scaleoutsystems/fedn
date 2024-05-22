@@ -137,7 +137,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
         epoch_loss_values.append(epoch_loss)
         print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
 
-    print(f"train completed!")
+    print(f"training completed!")
 
     # Metadata needed for aggregation server side
     metadata = {
