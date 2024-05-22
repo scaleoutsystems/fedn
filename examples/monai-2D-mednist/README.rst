@@ -7,9 +7,9 @@ by letting the client download and create its partition of the dataset as it sta
 
 Links: 
    
-   MonAI: https://monai.io/
-   Oreginal example notebook: https://github.com/Project-MONAI/tutorials/blob/main/2d_classification/mednist_tutorial.ipynb
-   MedNIST dataset: https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/MedNIST.tar.gz 
+-  MonAI: https://monai.io/
+-  Oreginal example notebook: https://github.com/Project-MONAI/tutorials/blob/main/2d_classification/mednist_tutorial.ipynb
+-  MedNIST dataset: https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/MedNIST.tar.gz 
 
 Prerequisites
 -------------
