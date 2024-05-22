@@ -129,6 +129,7 @@ class PackageRuntime:
                 logger.info("Successfully extracted compute package content in {}".format(self.pkg_path))
                 # delete the tarball
                 logger.info("Deleting temporary package tarball file.")
+                f.close()
                 os.remove(os.path.join(self.pkg_path, self.pkg_name))
                 # search for file fedn.yaml in extracted package
                 for root, dirs, files in os.walk(self.pkg_path):
