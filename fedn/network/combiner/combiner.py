@@ -12,10 +12,11 @@ from enum import Enum
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
-from fedn.network.combiner.roundhandler import RoundHandler
+from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.grpc.server import Server
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.mongostatestore import MongoStateStore
@@ -161,7 +162,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.role = role_to_proto_role(instance.role)
         return client
 
-    def request_model_update(self, config, clients=[]):
+    def request_model_update(self, session_id, model_id, config, clients=[]):
         """Ask clients to update the current global model.
 
         :param config: the model configuration to send to clients
@@ -170,32 +171,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        # The request to be added to the client queue
-        request = fedn.TaskRequest()
-        request.model_id = config["model_id"]
-        request.correlation_id = str(uuid.uuid4())
-        request.timestamp = str(datetime.now())
-        request.data = json.dumps(config)
-        request.type = fedn.StatusType.MODEL_UPDATE
-        request.session_id = config["session_id"]
-
-        request.sender.name = self.id
-        request.sender.role = fedn.COMBINER
-
-        if len(clients) == 0:
-            clients = self.get_active_trainers()
-
-        for client in clients:
-            request.receiver.name = client
-            request.receiver.role = fedn.WORKER
-            self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
+        request, clients = self._send_request_type(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
 
         if len(clients) < 20:
             logger.info("Sent model update request for model {} to clients {}".format(request.model_id, clients))
         else:
             logger.info("Sent model update request for model {} to {} clients".format(request.model_id, len(clients)))
 
-    def request_model_validation(self, model_id, config, clients=[]):
+    def request_model_validation(self, session_id, model_id, clients=[]):
         """Ask clients to validate the current global model.
 
         :param model_id: the model id to validate
@@ -206,30 +189,76 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        # The request to be added to the client queue
+        request, clients = self._send_request_type(fedn.StatusType.MODEL_VALIDATION, session_id, model_id, clients)
+
+        if len(clients) < 20:
+            logger.info("Sent model validation request for model {} to clients {}".format(request.model_id, clients))
+        else:
+            logger.info("Sent model validation request for model {} to {} clients".format(request.model_id, len(clients)))
+
+    def request_model_inference(self, session_id: str, model_id: str, clients: list=[]) -> None:
+        """Ask clients to perform inference on the model.
+
+        :param model_id: the model id to perform inference on
+        :type model_id: str
+        :param config: the model configuration to send to clients
+        :type config: dict
+        :param clients: the clients to send the request to
+        :type clients: list
+
+        """
+        request, clients = self._send_request_type(fedn.StatusType.INFERENCE, session_id, model_id, clients)
+
+        if len(clients) < 20:
+            logger.info("Sent model inference request for model {} to clients {}".format(request.model_id, clients))
+        else:
+            logger.info("Sent model inference request for model {} to {} clients".format(request.model_id, len(clients)))
+
+    def _send_request_type(self, request_type, session_id, model_id, config=None, clients=[]):
+        """Send a request of a specific type to clients.
+
+        :param request_type: the type of request
+        :type request_type: :class:`fedn.network.grpc.fedn_pb2.StatusType`
+        :param model_id: the model id to send in the request
+        :type model_id: str
+        :param config: the model configuration to send to clients
+        :type config: dict
+        :param clients: the clients to send the request to
+        :type clients: list
+        :return: the request and the clients
+        :rtype: tuple
+        """
         request = fedn.TaskRequest()
         request.model_id = model_id
         request.correlation_id = str(uuid.uuid4())
         request.timestamp = str(datetime.now())
-        # request.is_inference = (config['task'] == 'inference')
-        request.type = fedn.StatusType.MODEL_VALIDATION
+        request.type = request_type
+        request.session_id = session_id
 
         request.sender.name = self.id
         request.sender.role = fedn.COMBINER
-        request.session_id = config["session_id"]
 
-        if len(clients) == 0:
-            clients = self.get_active_validators()
+        if request_type == fedn.StatusType.MODEL_UPDATE:
+            request.data = json.dumps(config)
+            if len(clients) == 0:
+                clients = self.get_active_trainers()
+        elif request_type == fedn.StatusType.MODEL_VALIDATION:
+            if len(clients) == 0:
+                clients = self.get_active_validators()
+        elif request_type == fedn.StatusType.INFERENCE:
+            request.data = json.dumps(config)
+            if len(clients) == 0:
+                # TODO: add inference clients type
+                clients = self.get_active_validators()
+        
+        # TODO: if inference, request.data should be user-defined data/parameters
 
         for client in clients:
             request.receiver.name = client
             request.receiver.role = fedn.WORKER
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
-        if len(clients) < 20:
-            logger.info("Sent model validation request for model {} to clients {}".format(request.model_id, clients))
-        else:
-            logger.info("Sent model validation request for model {} to {} clients".format(request.model_id, len(clients)))
+        return request, clients
 
     def get_active_trainers(self):
         """Get a list of active trainers.
@@ -410,7 +439,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("grpc.Combiner.Start: Starting round")
 
-        config = {}
+        config = RoundConfig()
         for parameter in control.parameter:
             config.update({parameter.key: parameter.value})
 

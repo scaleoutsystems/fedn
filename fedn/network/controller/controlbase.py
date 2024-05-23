@@ -7,6 +7,7 @@ import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
 from fedn.network.api.network import Network
 from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 
@@ -163,7 +164,7 @@ class ControlBase(ABC):
         else:
             return None
 
-    def create_session(self, config, status="Initialized"):
+    def create_session(self, config: RoundConfig, status: str="Initialized") -> None:
         """Initialize a new session in backend db."""
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()
@@ -209,7 +210,7 @@ class ControlBase(ABC):
         """
         self.statestore.set_round_status(round_id, status)
 
-    def set_round_config(self, round_id, round_config):
+    def set_round_config(self, round_id, round_config: RoundConfig):
         """Upate round in backend db.
 
         :param round_id: The round unique identifier
@@ -223,7 +224,7 @@ class ControlBase(ABC):
         """Ask Combiner server to produce a model update.
 
         :param combiners: A list of combiners
-        :type combiners: tuple (combiner, comboner_round_config)
+        :type combiners: tuple (combiner, combiner_round_config)
         """
         cl = []
         for combiner, combiner_round_config in combiners:
@@ -273,22 +274,23 @@ class ControlBase(ABC):
                 self._handle_unavailable_combiner(combiner)
                 continue
 
-            is_participating = self.evaluate_round_participation_policy(combiner_round_config, nr_active_clients)
+            clients_required = int(combiner_round_config["clients_required"])
+            is_participating = self.evaluate_round_participation_policy(clients_required, nr_active_clients)
             if is_participating:
                 combiners.append((combiner, combiner_round_config))
         return combiners
 
-    def evaluate_round_participation_policy(self, compute_plan, nr_active_clients):
+    def evaluate_round_participation_policy(self, clients_required: int, nr_active_clients: int) -> bool:
         """Evaluate policy for combiner round-participation.
         A combiner participates if it is responsive and reports enough
         active clients to participate in the round.
         """
-        if int(compute_plan["clients_required"]) <= nr_active_clients:
+        if clients_required <= nr_active_clients:
             return True
         else:
             return False
 
-    def evaluate_round_start_policy(self, combiners):
+    def evaluate_round_start_policy(self, combiners: list):
         """Check if the policy to start a round is met.
 
         :param combiners: A list of combiners

@@ -86,9 +86,11 @@ class AggregatorBase(ABC):
         :return: True if the model update is valid, False otherwise.
         :rtype: bool
         """
-        data = json.loads(model_update.meta)["training_metadata"]
-        if "num_examples" not in data.keys():
-            logger.error("AGGREGATOR({}): Model validation failed, num_examples missing in metadata.".format(self.name))
+        try:
+            data = json.loads(model_update.meta)["training_metadata"]
+            num_examples = data["num_examples"]
+        except KeyError as e:
+            logger.error("AGGREGATOR({}): Invalid model update, missing metadata.".format(self.name))
             return False
         return True
 

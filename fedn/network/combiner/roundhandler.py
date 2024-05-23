@@ -4,14 +4,64 @@ import random
 import sys
 import time
 import uuid
+from typing import TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
+from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
+                                                serialize_model_to_BytesIO)
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
 
+class RoundConfig(TypedDict):
+    """Round configuration.
+    
+    :param _job_id: A universally unique identifier for the round. Set by Combiner.
+    :type _job_id: str
+    :param committed_at: The time the round was committed. Set by Controller.
+    :type committed_at: str
+    :param task: The task to perform in the round. Set by Controller. Supported tasks are "training", "validation", and "inference".
+    :type task: str
+    :param round_id: The round identifier as str(int)
+    :type round_id: str
+    :param round_timeout: The round timeout in seconds. Set by user interfaces or Controller.
+    :type round_timeout: str
+    :param rounds: The number of rounds. Set by user interfaces.
+    :param model_id: The model identifier. Set by user interfaces or Controller (get_latest_model).
+    :type model_id: str
+    :param model_version: The model version. Currently not used.
+    :type model_version: str
+    :param model_type: The model type. Currently not used.
+    :type model_type: str
+    :param model_size: The size of the model. Currently not used.
+    :type model_size: int
+    :param model_parameters: The model parameters. Currently not used.
+    :type model_parameters: dict
+    :param model_metadata: The model metadata. Currently not used.
+    :type model_metadata: dict
+    :param session_id: The session identifier. Set by (Controller?).
+    :type session_id: str
+    :param helper_type: The helper type.
+    :type helper_type: str
+    :param aggregator: The aggregator type.
+    :type aggregator: str
+    """
+    _job_id: str
+    committed_at: str
+    task: str
+    round_id: str
+    round_timeout: str
+    rounds: int
+    model_id: str
+    model_version: str
+    model_type: str
+    model_size: int
+    model_parameters: dict
+    model_metadata: dict
+    session_id: str
+    helper_type: str
+    aggregator: str
 class ModelUpdateError(Exception):
     pass
 
@@ -42,7 +92,7 @@ class RoundHandler:
     def set_aggregator(self, aggregator):
         self.aggregator = get_aggregator(aggregator, self.storage, self.server, self.modelservice, self)
 
-    def push_round_config(self, round_config):
+    def push_round_config(self, round_config: RoundConfig) -> str:
         """Add a round_config (job description) to the inbox.
 
         :param round_config: A dict containing the round configuration (from global controller).
@@ -144,8 +194,11 @@ class RoundHandler:
         meta["nr_required_updates"] = int(config["clients_required"])
         meta["timeout"] = float(config["round_timeout"])
 
+        session_id = config["session_id"]
+        model_id = config["model_id"]
+
         # Request model updates from all active clients.
-        self.server.request_model_update(config, clients=clients)
+        self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
         if int(config["buffer_size"]) == -1:
@@ -182,7 +235,7 @@ class RoundHandler:
         meta["aggregation_time"] = data
         return model, meta
 
-    def _validation_round(self, config, clients, model_id):
+    def _validation_round(self, session_id, model_id, clients):
         """Send model validation requests to clients.
 
         :param config: The round config object (passed to the client).
@@ -192,7 +245,19 @@ class RoundHandler:
         :param model_id: The ID of the model to validate
         :type model_id: str
         """
-        self.server.request_model_validation(model_id, config, clients)
+        self.server.request_model_validation(session_id, model_id, clients=clients)
+    
+    def _inference_round(self, session_id: str, model_id: str, clients: list):
+        """Send model inference requests to clients.
+
+        :param config: The round config object (passed to the client).
+        :type config: dict
+        :param clients: clients to send inference requests to
+        :type clients: list
+        :param model_id: The ID of the model to use for inference
+        :type model_id: str
+        """
+        self.server.request_model_inference(session_id, model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download a model from persistent storage and set in modelservice.
@@ -271,17 +336,28 @@ class RoundHandler:
             logger.info("Too few clients to start round.")
             return False
 
-    def execute_validation_round(self, round_config):
+    def execute_validation_round(self, session_id, model_id):
         """Coordinate validation rounds as specified in config.
 
         :param round_config: The round config object.
         :type round_config: dict
         """
-        model_id = round_config["model_id"]
         logger.info("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
         validators = self._assign_round_clients(self.server.max_clients, type="validators")
-        self._validation_round(round_config, validators, model_id)
+        self._validation_round(session_id, model_id, validators)
+    
+    def execute_inference_round(self, session_id: str, model_id: str) -> None:
+        """Coordinate inference rounds as specified in config.
+
+        :param round_config: The round config object.
+        :type round_config: dict
+        """
+        logger.info("COMBINER orchestrating inference using model {}".format(model_id))
+        self.stage_model(model_id)
+        # TODO: Implement inference client type
+        clients = self._assign_round_clients(self.server.max_clients, type="validators")
+        self._inference_round(session_id, model_id, clients)
 
     def execute_training_round(self, config):
         """Coordinates clients to execute training tasks.
@@ -330,6 +406,8 @@ class RoundHandler:
             while True:
                 try:
                     round_config = self.round_configs.get(block=False)
+                    session_id = round_config["session_id"]
+                    model_id = round_config["model_id"]
 
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
@@ -343,8 +421,10 @@ class RoundHandler:
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             self.server.statestore.set_round_combiner_data(round_meta)
-                        elif round_config["task"] == "validation" or round_config["task"] == "inference":
-                            self.execute_validation_round(round_config)
+                        elif round_config["task"] == "validation":
+                            self.execute_validation_round(session_id, model_id)
+                        elif  round_config["task"] == "inference":
+                            logger.info("Inference task not yet implemented.")
                         else:
                             logger.warning("config contains unkown task type.")
                     else:
