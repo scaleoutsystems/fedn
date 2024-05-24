@@ -202,12 +202,13 @@ class Control(ControlBase):
             logger.warning("Inference round cannot start, no combiners connected!")
             return
         
-        if not config["model_id"]:
+        if not "model_id" in config.keys():
             config["model_id"]= self.statestore.get_latest_model()
         
         config["committed_at"] = datetime.datetime.now()
         config["task"] = "inference"
         config["rounds"] = str(1)
+        config["clients_required"] = 1
 
         participating_combiners = self.get_participating_combiners(config)
 

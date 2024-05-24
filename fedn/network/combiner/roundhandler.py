@@ -424,7 +424,7 @@ class RoundHandler:
                         elif round_config["task"] == "validation":
                             self.execute_validation_round(session_id, model_id)
                         elif  round_config["task"] == "inference":
-                            logger.info("Inference task not yet implemented.")
+                            self.execute_inference_round(session_id, model_id)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:
