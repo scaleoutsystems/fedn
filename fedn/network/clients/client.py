@@ -709,6 +709,7 @@ class Client:
                     )
                     if self._missed_heartbeat > self.config["reconnect_after_missed_heartbeat"]:
                         self.disconnect()
+                        self._missed_heartbeat = 0
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == "Token expired":
