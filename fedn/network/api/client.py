@@ -571,7 +571,7 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "numpyhelper",
+        helper: str = "",
         min_clients: int = 1,
         requested_clients: int = 8,
     ):
