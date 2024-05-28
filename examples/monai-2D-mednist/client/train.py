@@ -59,7 +59,7 @@ def pre_training_settings(num_class, batch_size, train_x, train_y, num_workers=2
     train_ds = MedNISTDataset(train_x, train_y, train_transforms)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers )
 
-    return train_ds, train_loader 
+    return train_loader
 
 
 def train(in_model_path, out_model_path, data_path=None, client_settings_path=None):
@@ -94,25 +94,20 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     sample_size = client_settings['sample_size']
     lr = client_settings['lr']
 
-    #val_interval = 1
     num_class = len(get_classes(data_path))
 
     # Load data
-    x_train, y_train  = load_data(data_path, sample_size)
-    train_ds, train_loader = pre_training_settings(num_class, batch_size, x_train, y_train, num_workers)
-    
+    x_train, y_train = load_data(data_path, sample_size)
+    train_loader = pre_training_settings(num_class, batch_size, x_train, y_train, num_workers)
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
     optimizer = torch.optim.Adam(model.parameters(), 1e-5)
     loss_function = torch.nn.CrossEntropyLoss()
+
     # Train
-    
-    best_metric = -1
-    best_metric_epoch = -1
     epoch_loss_values = []
-    metric_values = []
     # writer = SummaryWriter()
 
     for epoch in range(max_epochs):
@@ -130,9 +125,8 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            print(f"{step}/{len(train_ds) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
-            epoch_len = len(train_ds) // train_loader.batch_size
-            # writer.add_scalar("train_loss", loss.item(), epoch_len * epoch + step)
+            print(f"{step}/{len(sample_size) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
+
         epoch_loss /= step
         epoch_loss_values.append(epoch_loss)
         print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")

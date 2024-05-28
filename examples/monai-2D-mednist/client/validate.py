@@ -36,18 +36,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-def pre_validation_settings(num_class, batch_size, train_x, train_y, val_x, val_y, num_workers=2):
-
-    train_transforms = Compose(
-        [
-            LoadImage(image_only=True),
-            EnsureChannelFirst(),
-            ScaleIntensity(),
-            RandRotate(range_x=np.pi / 12, prob=0.5, keep_size=True),
-            RandFlip(spatial_axis=0, prob=0.5),
-            RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.5),
-        ]
-    )
+def pre_validation_settings(batch_size, train_x, train_y, val_x, val_y, num_workers=2):
 
     val_transforms = Compose([LoadImage(image_only=True), EnsureChannelFirst(), ScaleIntensity()])
 
@@ -63,13 +52,11 @@ def pre_validation_settings(num_class, batch_size, train_x, train_y, val_x, val_
         def __getitem__(self, index):
             return self.transforms(self.image_files[index]), self.labels[index]
 
-    train_ds = MedNISTDataset(train_x, train_y, val_transforms)
-    train_loader = DataLoader(train_ds, batch_size=batch_size, num_workers=num_workers)
 
     val_ds = MedNISTDataset(val_x, val_y, val_transforms)
     val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=num_workers)
 
-    return train_ds, train_loader, val_ds, val_loader
+    return val_loader
 
 
 
@@ -103,9 +90,8 @@ def validate(in_model_path, out_json_path, data_path=None, client_settings_path=
     # Load data
     x_train, y_train = load_data(data_path, sample_size)
     x_val, y_val = load_data(data_path, sample_size, is_train=False)
-   
-    num_class = len(get_classes(data_path))
-    train_ds, train_loader, val_ds, val_loader = pre_validation_settings(num_class, batch_size,  x_train, y_train, x_val, y_val, num_workers)
+
+    val_loader = pre_validation_settings(batch_size,  x_train, y_train, x_val, y_val, num_workers)
 
     # Load model
     model = load_parameters(in_model_path)
