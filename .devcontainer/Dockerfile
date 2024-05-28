@@ -1,14 +1,10 @@
-ARG BASE_IMG
-FROM $BASE_IMG
+FROM python:3.10-slim
 
 # Non-root user with sudo access
 ARG USERNAME=default
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Versioning
-ARG DOCKER_VERSION=19.03.9
-ARG COMPOSE_VERSION=1.29.2
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -27,13 +23,7 @@ RUN apt-get --allow-releaseinfo-change update \
   curl \
   git \
   vim \
-  #
-  # Install docker binaries
-  && curl -L https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz | tar xvz docker/docker \
-  && cp docker/docker /usr/local/bin \
-  && rm -R docker \
-  && curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose \
-  && chmod +x /usr/local/bin/docker-compose \
+  ssh \
   #
   # Create a non-root user to use if preferred
   && groupadd --gid $USER_GID $USERNAME \
