@@ -6,7 +6,7 @@ import yaml
 
 import torch
 from model import load_parameters, save_parameters
-from data import load_data, get_classes
+from data import load_data, get_classes, MedNISTDataset
 from fedn.utils.helpers.helpers import save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -29,37 +29,16 @@ from monai.utils import set_determinism
 import numpy as np
 from monai.data import decollate_batch, DataLoader
 
-def pre_training_settings(num_class, batch_size, train_x, train_y, num_workers=2): 
-
-    train_transforms = Compose(
-        [
-            LoadImage(image_only=True),
-            EnsureChannelFirst(),
-            ScaleIntensity(),
-            RandRotate(range_x=np.pi / 12, prob=0.5, keep_size=True),
-            RandFlip(spatial_axis=0, prob=0.5),
-            RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.5),
-        ]
-    )
-
-
-    class MedNISTDataset(torch.utils.data.Dataset):
-        def __init__(self, image_files, labels, transforms):
-            self.image_files = image_files
-            self.labels = labels
-            self.transforms = transforms
-
-        def __len__(self):
-            return len(self.image_files)
-
-        def __getitem__(self, index):
-            return self.transforms(self.image_files[index]), self.labels[index]
-
-
-    train_ds = MedNISTDataset(train_x, train_y, train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers )
-
-    return train_loader
+train_transforms = Compose(
+    [
+        LoadImage(image_only=True),
+        EnsureChannelFirst(),
+        ScaleIntensity(),
+        RandRotate(range_x=np.pi / 12, prob=0.5, keep_size=True),
+        RandFlip(spatial_axis=0, prob=0.5),
+        RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.5)
+    ]
+)
 
 
 def train(in_model_path, out_model_path, data_path=None, client_settings_path=None):
@@ -82,23 +61,36 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     if client_settings_path is None:
         client_settings_path = os.environ.get("FEDN_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
 
+    print("client_settings_path: ", client_settings_path)
     with open(client_settings_path, 'r') as fh: # Used by CJG for local training
 
         try:
             client_settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError as e:
             raise
+
+
+    print("client settings: ", client_settings)
     batch_size = client_settings['batch_size']
     max_epochs = client_settings['local_epochs']
     num_workers = client_settings['num_workers']
-    sample_size = client_settings['sample_size']
+    split_index = client_settings['split_index']
     lr = client_settings['lr']
 
-    num_class = len(get_classes(data_path))
+    if data_path is None:
+        data_path = os.environ.get("FEDN_DATA_PATH")
 
-    # Load data
-    x_train, y_train = load_data(data_path, sample_size)
-    train_loader = pre_training_settings(num_class, batch_size, x_train, y_train, num_workers)
+
+    with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), 'r') as file:
+        clients = yaml.safe_load(file)
+
+    image_list = clients['client ' + str(split_index)]['train']
+
+    train_ds = MedNISTDataset(data_path='data/MedNIST', transforms=train_transforms,
+                              image_files=image_list)
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
@@ -125,7 +117,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            print(f"{step}/{len(sample_size) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
+            print(f"{step}/{len(train_loader) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
 
         epoch_loss /= step
         epoch_loss_values.append(epoch_loss)
@@ -136,7 +128,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        "num_examples": len(x_train),
+        "num_examples": len(train_loader),
         "batch_size": batch_size,
         "epochs": max_epochs,
         "lr": lr,

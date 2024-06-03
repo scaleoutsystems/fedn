@@ -6,9 +6,47 @@ import numpy as np
 import torch
 import torchvision
 from monai.apps import download_and_extract
+from torch.utils.data import Dataset as Dataset_
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
+
+import yaml
+
+import numpy as np
+
+DATA_CLASSES = {'AbdomenCT': 0, 'BreastMRI': 1, 'CXR': 2, 'ChestCT': 3, 'Hand': 4, 'HeadCT': 5}
+
+
+def split_data(data_path='data/MedNIST', splits=100, validation_split=0.9):
+    # create clients
+    clients = {'client ' + str(i): {"train": [], "validation": []} for i in range(splits)}
+    # print("clients: ", clients)
+
+    for class_ in os.listdir(data_path):
+        if os.path.isdir(os.path.join(data_path, class_)):
+            # print("class_: ", class_)
+            patients_in_class = [os.path.join(class_, patient) for patient in
+                                 os.listdir(os.path.join(data_path, class_))]
+            # print(patients_in_class)
+            np.random.shuffle(patients_in_class)
+            chops = np.int32(np.linspace(0, len(patients_in_class), splits + 1))
+            for split in range(splits):
+                # print("split ", split)
+                p = patients_in_class[chops[split]:chops[split + 1]]
+                valsplit = np.int32(len(p) * validation_split)
+                # print("'client ' + str(split): " 'client ' + str(split))
+                # print("p[:valsplit]: ", p[:valsplit])
+                # clients['client' + str(split)]["train"] = 3
+
+                clients['client ' + str(split)]["train"] += p[:valsplit]
+                clients['client ' + str(split)]["validation"] += p[valsplit:]
+
+    with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), 'w') as file:
+        yaml.dump(clients, file, default_flow_style=False)
+
+
+
 
 
 def get_data(out_dir="data"):
@@ -37,6 +75,10 @@ def get_data(out_dir="data"):
         else:
             print('files already exist.')
 
+    split_data()
+
+
+
 def get_classes(data_path):
     """Get a list of classes from the dataset
     
@@ -49,6 +91,12 @@ def get_classes(data_path):
 
     class_names = sorted(x for x in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, x)))
     return(class_names)
+
+
+
+
+
+
 
 def load_data(data_path, sample_size=None, is_train=True):
     """Load data from disk.
@@ -114,11 +162,26 @@ def load_data(data_path, sample_size=None, is_train=True):
     if is_train:
         return train_x, train_y
     else:
-        return val_x, val_y
+        return val_x, val_y, class_names
 
+
+
+class MedNISTDataset(torch.utils.data.Dataset):
+    def __init__(self, data_path, image_files, transforms):
+        self.data_path = data_path
+        self.image_files = image_files
+        self.transforms = transforms
+
+    def __len__(self):
+        return len(self.image_files)
+
+    def __getitem__(self, index):
+
+        return (self.transforms(os.path.join(self.data_path,self.image_files[index])),
+                DATA_CLASSES[os.path.dirname(self.image_files[index])])
 
 if __name__ == "__main__":
     # Prepare data if not already done
-    if not os.path.exists(abs_path + "/data"):
-        get_data()
+    #if not os.path.exists(abs_path + "/data"):
+    get_data()
         #load_data('./data')
