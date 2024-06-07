@@ -963,7 +963,7 @@ class API:
         round_buffer_size=-1,
         delete_models=True,
         validate=True,
-        helper="numpyhelper",
+        helper="",
         min_clients=1,
         requested_clients=8,
     ):
@@ -1002,13 +1002,17 @@ class API:
             return jsonify({"success": False, "message": "A session is already running."})
 
         # Check if compute package is set
-        if not self.statestore.get_compute_package():
+        package = self.statestore.get_compute_package()
+        if not package:
             return jsonify(
                 {
                     "success": False,
                     "message": "No compute package set. Set compute package before starting session.",
                 }
             )
+        if not helper:
+            # get helper from compute package
+            helper = package["helper"]
 
         # Check that initial (seed) model is set
         if not self.statestore.get_initial_model():
