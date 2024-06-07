@@ -1,7 +1,7 @@
 lr: 0.01
-batch_size: 256
+batch_size: 32
 local_epochs: 10
 num_workers: 1
-sample_size: 100
-split_index: 0
+sample_size: 30
+split_index: 4 
 

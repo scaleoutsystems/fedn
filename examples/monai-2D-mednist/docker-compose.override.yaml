@@ -16,10 +16,12 @@ services:
     environment:
       <<: *defaults
       FEDN_DATA_PATH: /app/package/client/data/MedNIST
+      FEDN_CLIENT_SETTINGS_PATH: /app/client_settings.yaml  
     deploy:
       replicas: 1
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/examples/monai-2D-mednist/client_settings.yaml:/app/client_settings.yaml  
 
   client2:
     extends:

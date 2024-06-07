@@ -62,7 +62,20 @@ Using FEDn Studio
 Follow the guide here to set up your FEDn Studio project and learn how to connect clients (using token authentication): `Studio guide <https://fedn.readthedocs.io/en/stable/studio.html>`__.
 On the step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
+Connecting clients:
+===================
+
+**NOTE: In case a different data path needs to be set, use the env variable FEDN_DATA_PATH.**
+
+.. code-block::
+
+   export FEDN_PACKAGE_EXTRACT_DIR=package
+   export FEDN_CLIENT_SETTINGS_PATH=./client_settings.yaml
+   fedn client start -in client.yaml --secure=True --force-ssl
+
+
   **NOTE: The following instructions are only for SDK-based client communication and for local development environments using Docker.**
+
 
 Connecting clients using Docker:
 ================================
@@ -73,10 +86,10 @@ For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalle
 
    docker run \
      -v $PWD/client.yaml:/app/client.yaml \
+     -v $PWD/client_settings.yaml:/app/client_settings.yaml \
      -e FEDN_PACKAGE_EXTRACT_DIR=package \
-     -e FEDN_NUM_DATA_SPLITS=2 \
-     -e FEDN_DATA_PATH=/app/package/data/ \
-     monai-2d-class-fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
+     -e FEDN_CLIENT_SETTINGS_PATH=/app/client_settings.yaml \
+     ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
 
 
 Local development mode using Docker/docker compose
