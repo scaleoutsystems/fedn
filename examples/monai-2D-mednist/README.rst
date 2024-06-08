@@ -70,7 +70,7 @@ Connecting clients:
 .. code-block::
 
    export FEDN_PACKAGE_EXTRACT_DIR=package
-   export FEDN_DATA_PATH=data
+   export FEDN_DATA_PATH=./data
    export FEDN_CLIENT_SETTINGS_PATH=<full_path_to_the_dir>/client_settings.yaml
    fedn client start -in client.yaml --secure=True --force-ssl
 
