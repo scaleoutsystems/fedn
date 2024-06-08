@@ -1,6 +1,0 @@
-lr: 0.01
-batch_size: 30
-local_epochs: 1
-num_workers: 1
-sample_size: 100
-

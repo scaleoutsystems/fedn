@@ -4,4 +4,3 @@ local_epochs: 10
 num_workers: 1
 sample_size: 30
 split_index: 4 
-
