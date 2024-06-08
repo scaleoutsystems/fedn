@@ -73,10 +73,6 @@ Connecting clients:
    export FEDN_CLIENT_SETTINGS_PATH=./client_settings.yaml
    fedn client start -in client.yaml --secure=True --force-ssl
 
-
-  **NOTE: The following instructions are only for SDK-based client communication and for local development environments using Docker.**
-
-
 Connecting clients using Docker:
 ================================
 
@@ -90,6 +86,9 @@ For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalle
      -e FEDN_PACKAGE_EXTRACT_DIR=package \
      -e FEDN_CLIENT_SETTINGS_PATH=/app/client_settings.yaml \
      ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --force-ssl --secure=True
+
+
+**NOTE: The following instructions are only for SDK-based client communication and for local development environments using Docker.**
 
 
 Local development mode using Docker/docker compose
