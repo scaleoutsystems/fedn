@@ -1,0 +1,8 @@
+setuptools
+wheel==0.37.1
+torch==2.2.1
+torchvision==0.17.1
+fedn==0.9.0
+monai-weekly[pillow, tqdm]
+scikit-learn
+tensorboard   
