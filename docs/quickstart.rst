@@ -123,7 +123,7 @@ For example, to split the data in 10 parts and start a client using the 8th part
          $env:FEDN_PACKAGE_EXTRACT_DIR="package"
          $env:FEDN_NUM_DATA_SPLITS=10
          $env:FEDN_DATA_PATH="./data/clients/8/mnist.pt"
-         fedn run client -in client.yaml --secure=True --force-ssl
+         fedn client start -in client.yaml --secure=True --force-ssl
 
 
 Start a training session
