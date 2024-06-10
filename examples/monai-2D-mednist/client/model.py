@@ -3,8 +3,6 @@ import collections
 import torch
 from monai.networks.nets import DenseNet121
 
-
-
 from fedn.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
@@ -17,9 +15,7 @@ def compile_model():
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
- 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #model = DenseNet121(spatial_dims=2, in_channels=1, out_channels=num_classes).to(device)
     model = DenseNet121(spatial_dims=2, in_channels=1, out_channels=6).to(device)
     return model
 

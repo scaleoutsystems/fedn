@@ -1,33 +1,27 @@
-import math
 import os
 import sys
 
-import yaml
-
 import torch
+import yaml
+from data import MedNISTDataset
 from model import load_parameters, save_parameters
-from data import load_data, get_classes, MedNISTDataset
+
 from fedn.utils.helpers.helpers import save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
-from monai.data import decollate_batch, DataLoader
-from monai.networks.nets import DenseNet121
+import numpy as np
+from monai.data import DataLoader
 from monai.transforms import (
-    Activations,
-    EnsureChannelFirst,
-    AsDiscrete,
     Compose,
+    EnsureChannelFirst,
     LoadImage,
     RandFlip,
     RandRotate,
     RandZoom,
     ScaleIntensity,
 )
-from monai.utils import set_determinism
-import numpy as np
-from monai.data import decollate_batch, DataLoader
 
 train_transforms = Compose(
     [
@@ -36,7 +30,7 @@ train_transforms = Compose(
         ScaleIntensity(),
         RandRotate(range_x=np.pi / 12, prob=0.5, keep_size=True),
         RandFlip(spatial_axis=0, prob=0.5),
-        RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.5)
+        RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.5),
     ]
 )
 
@@ -57,44 +51,38 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     :param client_settings_path: path to a local client settings file.
     :type client_settings_path: str
     """
-    
     if client_settings_path is None:
         client_settings_path = os.environ.get("FEDN_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
 
     print("client_settings_path: ", client_settings_path)
-    with open(client_settings_path, 'r') as fh: # Used by CJG for local training
-
+    with open(client_settings_path, "r") as fh:  # Used by CJG for local training
         try:
             client_settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError as e:
             raise
 
-
     print("client settings: ", client_settings)
-    batch_size = client_settings['batch_size']
-    max_epochs = client_settings['local_epochs']
-    num_workers = client_settings['num_workers']
-    split_index = client_settings['split_index']
-    lr = client_settings['lr']
+    batch_size = client_settings["batch_size"]
+    max_epochs = client_settings["local_epochs"]
+    num_workers = client_settings["num_workers"]
+    split_index = client_settings["split_index"]
+    lr = client_settings["lr"]
 
     if data_path is None:
         data_path = os.environ.get("FEDN_DATA_PATH")
 
-
-    with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), 'r') as file:
+    with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), "r") as file:
         clients = yaml.safe_load(file)
 
-    image_list = clients['client ' + str(split_index)]['train']
+    image_list = clients["client " + str(split_index)]["train"]
 
-    train_ds = MedNISTDataset(data_path='data/MedNIST', transforms=train_transforms,
-                              image_files=image_list)
+    train_ds = MedNISTDataset(data_path="data/MedNIST", transforms=train_transforms, image_files=image_list)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
-
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     optimizer = torch.optim.Adam(model.parameters(), 1e-5)
     loss_function = torch.nn.CrossEntropyLoss()
 
