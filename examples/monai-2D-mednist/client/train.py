@@ -1,17 +1,11 @@
 import os
 import sys
 
+import numpy as np
 import torch
 import yaml
 from data import MedNISTDataset
 from model import load_parameters, save_parameters
-
-from fedn.utils.helpers.helpers import save_metadata
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.abspath(dir_path))
-
-import numpy as np
 from monai.data import DataLoader
 from monai.transforms import (
     Compose,
@@ -22,6 +16,12 @@ from monai.transforms import (
     RandZoom,
     ScaleIntensity,
 )
+
+from fedn.utils.helpers.helpers import save_metadata
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(dir_path))
+
 
 train_transforms = Compose(
     [
@@ -58,7 +58,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     with open(client_settings_path, "r") as fh:  # Used by CJG for local training
         try:
             client_settings = dict(yaml.safe_load(fh))
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             raise
 
     print("client settings: ", client_settings)
@@ -111,7 +111,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
         epoch_loss_values.append(epoch_loss)
         print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
 
-    print(f"training completed!")
+    print("training completed!")
 
     # Metadata needed for aggregation server side
     metadata = {

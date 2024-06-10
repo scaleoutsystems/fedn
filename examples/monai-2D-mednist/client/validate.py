@@ -40,7 +40,7 @@ def validate(in_model_path, out_json_path, data_path=None, client_settings_path=
     with open(client_settings_path, "r") as fh:  # Used by CJG for local training
         try:
             client_settings = dict(yaml.safe_load(fh))
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             raise
 
     num_workers = client_settings["num_workers"]
