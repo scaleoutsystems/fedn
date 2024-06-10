@@ -4,12 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, mdb)
-from fedn.network.storage.statestore.stores.session_store import SessionStore
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
-
-from .model_routes import model_store
+from fedn.network.api.v1.shared import api_version
 
 bp = Blueprint("inference", __name__, url_prefix=f"/api/{api_version}/infer")
 
@@ -32,8 +27,8 @@ def start_session():
 
         session_config = {"session_id": session_id}
 
-        threading.Thread(target=control.inference_session, kwargs={"config":session_config}).start()
+        threading.Thread(target=control.inference_session, kwargs={"config": session_config}).start()
 
-        return jsonify({"message": "Session started"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"message": "Inference session started"}), 200
+    except Exception:
+        return jsonify({"message": "Failed to start inference session"}), 500
