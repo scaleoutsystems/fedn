@@ -50,7 +50,13 @@ FEDn Studio - From development to FL in production:
 -  Features for the trusted-third party: Manage access to the FL network, FL clients and training progress.
 -  REST API for handling experiments/jobs. 
 -  View and export logging and tracing information. 
--  Public cloud, dedicated cloud and on-premise deployment options. 
+-  Public cloud, dedicated cloud and on-premise deployment options.
+
+Available clients:
+
+- Python client (this repository)
+- C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
+- Android Kotlin client (`FEDn Kotlin client <https://github.com/scaleoutsystems/fedn-android-client>`__)
 
 
 Getting started

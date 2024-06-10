@@ -4,6 +4,7 @@
 tmp/*
 test/*
 docs/*
+examples/*
 **/.venv
 **/.mnist-keras
 **/.mnist-pytorch

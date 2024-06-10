@@ -10,8 +10,8 @@ import threading
 import time
 import uuid
 from datetime import datetime
-from distutils.dir_util import copy_tree
 from io import BytesIO
+from shutil import copytree
 
 import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -22,11 +22,13 @@ from tenacity import retry, stop_after_attempt
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
-from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
+from fedn.network.combiner.modelservice import (get_tmp_path,
+                                                upload_request_generator)
 from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
@@ -340,7 +342,7 @@ class Client:
             }
             from_path = os.path.join(os.getcwd(), "client")
 
-            copy_tree(from_path, self.run_path)
+            copytree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
         # Get or create python environment
         activate_cmd = self.dispatcher._get_or_create_python_env()
@@ -709,6 +711,7 @@ class Client:
                     )
                     if self._missed_heartbeat > self.config["reconnect_after_missed_heartbeat"]:
                         self.disconnect()
+                        self._missed_heartbeat = 0
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == "Token expired":

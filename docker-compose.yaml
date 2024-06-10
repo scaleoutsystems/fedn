@@ -107,7 +107,7 @@ services:
           "/bin/grpc_health_probe",
           "-addr=localhost:12080"
         ]
-      interval: 2s
+      interval: 20s
       timeout: 10s
       retries: 5
     depends_on:
