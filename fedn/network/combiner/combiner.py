@@ -12,8 +12,7 @@ from enum import Enum
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
@@ -65,7 +64,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Client queues
         self.clients = {}
-
 
         # Validate combiner name
         match = re.search(VALID_NAME_REGEX, config["name"])
@@ -196,7 +194,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model validation request for model {} to {} clients".format(request.model_id, len(clients)))
 
-    def request_model_inference(self, session_id: str, model_id: str, clients: list=[]) -> None:
+    def request_model_inference(self, session_id: str, model_id: str, clients: list = []) -> None:
         """Ask clients to perform inference on the model.
 
         :param model_id: the model id to perform inference on
@@ -250,7 +248,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if len(clients) == 0:
                 # TODO: add inference clients type
                 clients = self.get_active_validators()
-        
+
         # TODO: if inference, request.data should be user-defined data/parameters
 
         for client in clients:

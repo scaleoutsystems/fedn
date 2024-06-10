@@ -8,15 +8,14 @@ from typing import TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.network.combiner.modelservice import (load_model_from_BytesIO,
-                                                serialize_model_to_BytesIO)
+from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
 
 class RoundConfig(TypedDict):
     """Round configuration.
-    
+
     :param _job_id: A universally unique identifier for the round. Set by Combiner.
     :type _job_id: str
     :param committed_at: The time the round was committed. Set by Controller.
@@ -47,6 +46,7 @@ class RoundConfig(TypedDict):
     :param aggregator: The aggregator type.
     :type aggregator: str
     """
+
     _job_id: str
     committed_at: str
     task: str
@@ -62,6 +62,8 @@ class RoundConfig(TypedDict):
     session_id: str
     helper_type: str
     aggregator: str
+
+
 class ModelUpdateError(Exception):
     pass
 
@@ -246,7 +248,7 @@ class RoundHandler:
         :type model_id: str
         """
         self.server.request_model_validation(session_id, model_id, clients=clients)
-    
+
     def _inference_round(self, session_id: str, model_id: str, clients: list):
         """Send model inference requests to clients.
 
@@ -346,7 +348,7 @@ class RoundHandler:
         self.stage_model(model_id)
         validators = self._assign_round_clients(self.server.max_clients, type="validators")
         self._validation_round(session_id, model_id, validators)
-    
+
     def execute_inference_round(self, session_id: str, model_id: str) -> None:
         """Coordinate inference rounds as specified in config.
 
@@ -423,7 +425,7 @@ class RoundHandler:
                             self.server.statestore.set_round_combiner_data(round_meta)
                         elif round_config["task"] == "validation":
                             self.execute_validation_round(session_id, model_id)
-                        elif  round_config["task"] == "inference":
+                        elif round_config["task"] == "inference":
                             self.execute_inference_round(session_id, model_id)
                         else:
                             logger.warning("config contains unkown task type.")

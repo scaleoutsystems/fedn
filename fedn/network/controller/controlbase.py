@@ -114,14 +114,12 @@ class ControlBase(ABC):
             return False
 
     def get_model_info(self):
-        """:return:
-        """
+        """:return:"""
         return self.statestore.get_model_trail()
 
     # TODO: remove use statestore.get_events() instead
     def get_events(self):
-        """:return:
-        """
+        """:return:"""
         return self.statestore.get_events()
 
     def get_latest_round_id(self):
@@ -136,8 +134,7 @@ class ControlBase(ABC):
         return round
 
     def get_compute_package_name(self):
-        """:return:
-        """
+        """:return:"""
         definition = self.statestore.get_compute_package()
         if definition:
             try:
@@ -164,7 +161,7 @@ class ControlBase(ABC):
         else:
             return None
 
-    def create_session(self, config: RoundConfig, status: str="Initialized") -> None:
+    def create_session(self, config: RoundConfig, status: str = "Initialized") -> None:
         """Initialize a new session in backend db."""
         if "session_id" not in config.keys():
             session_id = uuid.uuid4()

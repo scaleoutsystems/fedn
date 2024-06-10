@@ -2,10 +2,8 @@ import copy
 import datetime
 import time
 import uuid
-from typing import TypedDict
 
-from tenacity import (retry, retry_if_exception_type, stop_after_delay,
-                      wait_random)
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
@@ -185,7 +183,7 @@ class Control(ControlBase):
         # TODO: Report completion of session
         self.set_session_status(config["session_id"], "Finished")
         self._state = ReducerState.idle
-    
+
     def inference_session(self, config: RoundConfig) -> None:
         """Execute a new inference session.
 
@@ -193,7 +191,6 @@ class Control(ControlBase):
         :type config: InferenceConfig
         :return: None
         """
-
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -201,10 +198,10 @@ class Control(ControlBase):
         if len(self.network.get_combiners()) < 1:
             logger.warning("Inference round cannot start, no combiners connected!")
             return
-        
-        if not "model_id" in config.keys():
-            config["model_id"]= self.statestore.get_latest_model()
-        
+
+        if "model_id" not in config.keys():
+            config["model_id"] = self.statestore.get_latest_model()
+
         config["committed_at"] = datetime.datetime.now()
         config["task"] = "inference"
         config["rounds"] = str(1)
@@ -216,7 +213,7 @@ class Control(ControlBase):
         round_start = self.evaluate_round_start_policy(participating_combiners)
 
         if round_start:
-            logger.info("Inference round start policy met, {} participating combiners.".format(len(participating_combiners)))    
+            logger.info("Inference round start policy met, {} participating combiners.".format(len(participating_combiners)))
             for combiner, _ in participating_combiners:
                 combiner.submit(config)
                 logger.info("Inference round submitted to combiner {}".format(combiner))
