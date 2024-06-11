@@ -8,6 +8,7 @@ import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.network.combiner.roundhandler import RoundConfig
 
 
 class CombinerUnavailableError(Exception):
@@ -202,7 +203,7 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, config):
+    def submit(self, config: RoundConfig):
         """Submit a compute plan to the combiner.
 
         :param config: The job configuration.
