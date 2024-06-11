@@ -1,13 +1,10 @@
 # Label pull requests based on file paths, titles, or branch names
 docs:
-  - 'docs/**'
-  - title: /^Docs\//
-  - head: /docs\//
+- changed-files:
+  - any-glob-to-any-file: ['docs/**','**/*.md']
 
 feature:
-  - title: /^Feature\//
-  - head: /feature\//
+  - head-branch: ['^feature', 'feature']
 
 fix:
-  - title: /^(Bug|Bugfix|Fix)\//
-  - head: /(bug|bugfix|fix)\//
+  - head-branch: ['^bug', 'bug', '^fix', 'fix']
