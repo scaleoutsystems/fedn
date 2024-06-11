@@ -25,8 +25,8 @@ jobs:
         if: ${{ github.event.pull_request.changed_files != '' }}
         run: |
           PATCH_THRESHOLD=10
-          MINOR_THRESHOLD=200
-          MAJOR_THRESHOLD=500
+          MINOR_THRESHOLD=500
+          MAJOR_THRESHOLD=1000
 
           TOTAL_CHANGES=$(($ADDITIONS + $DELETIONS))
 
@@ -37,7 +37,7 @@ jobs:
           elif [ "$TOTAL_CHANGES" -le "$MINOR_THRESHOLD" ]; then
             LABEL="minor"
           else
-            LABEL="major"
+            LABEL="minor"
           fi
 
           echo "Applying label: $LABEL"
