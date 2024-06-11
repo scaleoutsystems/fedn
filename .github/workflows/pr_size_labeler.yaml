@@ -21,6 +21,7 @@ jobs:
           echo "ADDITIONS=$ADDITIONS" >> $GITHUB_ENV
           echo "DELETIONS=$DELETIONS" >> $GITHUB_ENV
 
+        # OBS that we are cuurently not on a stable version, thus major is disabled for now
       - name: Apply Labels Based on Size
         if: ${{ github.event.pull_request.changed_files != '' }}
         run: |
