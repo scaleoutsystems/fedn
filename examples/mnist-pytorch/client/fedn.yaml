@@ -8,3 +8,5 @@ entry_points:
     command: python train.py
   validate:
     command: python validate.py
+  predict:
+    command: python predict.py

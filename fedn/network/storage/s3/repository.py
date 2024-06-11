@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from fedn.common.log_config import logger
@@ -10,12 +11,17 @@ class Repository:
     def __init__(self, config):
         self.model_bucket = config["storage_bucket"]
         self.context_bucket = config["context_bucket"]
+        try:
+            self.inference_bucket = config["inference_bucket"]
+        except KeyError:
+            self.inference_bucket = "fedn-inference"
 
         # TODO: Make a plug-in solution
         self.client = MINIORepository(config)
 
         self.client.create_bucket(self.context_bucket)
         self.client.create_bucket(self.model_bucket)
+        self.client.create_bucket(self.inference_bucket)
 
     def get_model(self, model_id):
         """Retrieve a model with id model_id.
@@ -104,3 +110,31 @@ class Repository:
         except Exception:
             logger.error("Failed to delete compute_package from repository.")
             raise
+
+    def presigned_put_url(self, bucket: str, object_name: str, expires: datetime.timedelta = datetime.timedelta(hours=1)):
+        """Generate a presigned URL for an upload object request.
+
+        :param bucket: The bucket name
+        :type bucket: str
+        :param object_name: The object name
+        :type object_name: str
+        :param expires: The time the URL is valid
+        :type expires: datetime.timedelta
+        :return: The URL
+        :rtype: str
+        """
+        return self.client.client.presigned_put_object(bucket, object_name, expires)
+
+    def presigned_get_url(self, bucket: str, object_name: str, expires: datetime.timedelta = datetime.timedelta(hours=1)) -> str:
+        """Generate a presigned URL for a download object request.
+
+        :param bucket: The bucket name
+        :type bucket: str
+        :param object_name: The object name
+        :type object_name: str
+        :param expires: The time the URL is valid
+        :type expires: datetime.timedelta
+        :return: The URL
+        :rtype: str
+        """
+        return self.client.client.presigned_get_object(bucket, object_name, expires)

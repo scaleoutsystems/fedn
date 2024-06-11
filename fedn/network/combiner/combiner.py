@@ -244,16 +244,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if len(clients) == 0:
                 clients = self.get_active_validators()
         elif request_type == fedn.StatusType.INFERENCE:
-            request.data = json.dumps(config)
             if len(clients) == 0:
                 # TODO: add inference clients type
                 clients = self.get_active_validators()
 
-        # TODO: if inference, request.data should be user-defined data/parameters
-
         for client in clients:
             request.receiver.name = client
             request.receiver.role = fedn.WORKER
+            if request_type == fedn.StatusType.INFERENCE:
+                presigned_url = self.repository.presigned_put_url(self.repository.inference_bucket, f"{client}/{session_id}")
+                # TODO: in inference, request.data should also contain user-defined data/parameters
+                request.data = json.dumps({"presigned_url": presigned_url})
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
         return request, clients
