@@ -1,0 +1,13 @@
+# Label pull requests based on file paths, titles, or branch names
+docs:
+  - 'docs/**'
+  - title: /^Docs\//
+  - head: /docs\//
+
+feature:
+  - title: /^Feature\//
+  - head: /feature\//
+
+fix:
+  - title: /^(Bug|Bugfix|Fix)\//
+  - head: /(bug|bugfix|fix)\//
