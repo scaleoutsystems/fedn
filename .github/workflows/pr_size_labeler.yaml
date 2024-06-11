@@ -25,7 +25,7 @@ jobs:
         if: ${{ github.event.pull_request.changed_files != '' }}
         run: |
           PATCH_THRESHOLD=10
-          MINOR_THRESHOLD=100
+          MINOR_THRESHOLD=200
           MAJOR_THRESHOLD=500
 
           TOTAL_CHANGES=$(($ADDITIONS + $DELETIONS))
