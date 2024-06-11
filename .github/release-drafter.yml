@@ -19,6 +19,7 @@ change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add
 exclude-labels:
   - 'dependencies'
   - 'docs'
+  - 'github'
 version-resolver:
   major:
     labels:
