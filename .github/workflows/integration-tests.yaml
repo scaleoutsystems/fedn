@@ -2,11 +2,17 @@ name: "integration tests"
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
       - master
       - develop
       - "release/**"
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
       - "**"
 
