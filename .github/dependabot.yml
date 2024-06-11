@@ -16,19 +16,3 @@ updates:
     #ignore:
     #  - dependency-name: "example-package"
     #    versions: ["< 1.0.0"]
-
-  - package-ecosystem: "poetry"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "Wrede"
-      - "stefanhellander"
-    #ignore:
-    #  - dependency-name: "example-package"
-    #    versions: ["< 1.0.0"]
