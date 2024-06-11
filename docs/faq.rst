@@ -52,7 +52,7 @@ see the section about model marshaling:
 Q: Can I start a client listening only to training requests or only on validation requests?:
 --------------------------------------------------------------------------------------------
 
-Yes! You can toggle which message streams a client subscibes to when starting the client. For example, to start a pure validation client: 
+Yes! You can toggle which message streams a client subscribes to when starting the client. For example, to start a pure validation client: 
 
 .. code-block:: bash
 
@@ -62,12 +62,12 @@ Yes! You can toggle which message streams a client subscibes to when starting th
 Q: How do you approach the question of output privacy? 
 ----------------------------------------------------------------------------------
 
-We take security in (federated) machine learning seriously. Federated learning is a foundational technology that impoves input privacy 
+We take security in (federated) machine learning seriously. Federated learning is a foundational technology that improves input privacy 
 in machine learning by allowing datasets to stay local and private, and not copied to a server. FEDn is designed to provide an industry grade
-implementation of the core communication and aggregration layers of federated learning, as well as configurable modules for traceability, logging
+implementation of the core communication and aggregation layers of federated learning, as well as configurable modules for traceability, logging
 etc, to allow the developer balance between privacy and auditability. With `FEDn Studio <https://scaleoutsystems.com/framework>`__ we add 
 functionality for user authentication, authorization, and federated client identity management. As such, The FEDn Framework provides
-a comprehensive software suite for implemeting secure federated learning following industry best-practices.     
+a comprehensive software suite for implementing secure federated learning following industry best-practices.     
 
 Going beyond input privacy, there are several additional considerations relating to output privacy and potential attacks on (federated) machine learning systems. 
 For an introduction to the topic, see this blog post: 
