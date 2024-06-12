@@ -4,8 +4,8 @@ import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb
 from fedn.network.api.shared import modelstorage_config
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.statestore.stores.model_store import ModelStore
@@ -346,6 +346,128 @@ def get_model(id: str):
         response = model
 
         return jsonify(response), 200
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/<string:id>", methods=["PATCH"])
+@jwt_auth_required(role="admin")
+def patch_model(id: str):
+    """Patch model
+    Updates a model based on the provided id. Only the fields that are present in the request will be updated.
+    ---
+    tags:
+        - Models
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or model property of the model
+        - name: model
+            in: body
+            required: true
+            type: object
+            description: The model data to update
+    responses:
+        200:
+            description: The updated model
+            schema:
+                $ref: '#/definitions/Model'
+        404:
+            description: The model was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        model = model_store.get(id, use_typing=False)
+
+        data = request.get_json()
+        _id = model["id"]
+
+        # Update the model with the new data
+        # Only update the fields that are present in the request
+        for key, value in data.items():
+            if key in ["_id", "model"]:
+                continue
+            model[key] = value
+
+        success = model_store.update(_id, model)
+
+        if success:
+            response = model
+            return jsonify(response), 200
+
+        return jsonify({"message": "Failed to update model"}), 500
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@bp.route("/<string:id>", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def put_model(id: str):
+    """Patch model
+    Updates a model based on the provided id. All fields will be updated with the new data.
+    ---
+    tags:
+        - Models
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or model property of the model
+        - name: model
+            in: body
+            required: true
+            type: object
+            description: The model data to update
+    responses:
+        200:
+            description: The updated model
+            schema:
+                $ref: '#/definitions/Model'
+        404:
+            description: The model was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        model = model_store.get(id, use_typing=False)
+        data = request.get_json()
+        _id = model["id"]
+
+        success = model_store.update(_id, data)
+
+        if success:
+            response = model
+            return jsonify(response), 200
+
+        return jsonify({"message": "Failed to update model"}), 500
     except EntityNotFound as e:
         return jsonify({"message": str(e)}), 404
     except Exception as e:
