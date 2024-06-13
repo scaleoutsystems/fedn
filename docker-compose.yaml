@@ -113,6 +113,36 @@ services:
     depends_on:
       - api-server
 
+  hooks:
+    environment:
+      - PYTHONUNBUFFERED=0
+      - GET_HOSTS_FROM=dns
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/user-hooks:/app/user-hooks
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn hooks start --init config/settings-user-hooks.yaml"
+    ports:
+      - 12081:12081
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/grpc_health_probe",
+          "-addr=localhost:12081"
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - combiner
+
   # Client
   client:
     environment:

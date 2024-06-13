@@ -11,6 +11,7 @@ ARG REQUIREMENTS=""
 COPY . /app
 COPY config/settings-client.yaml.template /app/config/settings-client.yaml
 COPY config/settings-combiner.yaml.template /app/config/settings-combiner.yaml
+COPY config/settings-hooks.yaml.template /app/config/settings-hooks.yaml
 COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
 COPY $REQUIREMENTS /app/config/requirements.txt
 
