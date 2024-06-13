@@ -19,6 +19,11 @@ Start by creating an account in FEDn Studio and set up a project by following th
 Install FEDn
 ------------
 
+Client node: A physical or virtual machine (MacOSx Linux or Windows) used to perform initial steps.
+Training clients: Software processes responsible for executing training tasks. A single client node can run one or multiple training clients concurrently.
+
+The following steps will be performed on the client node to setup the training environment:
+
 **Using pip**
 
 Install the FEDn package using pip:
@@ -41,17 +46,18 @@ It is recommended to use a virtual environment when installing FEDn.
 
 .. _package-creation:
 
-Initialize FEDn with the client code bundle and seed model 
+Initialize FEDn with the compute package and seed model 
 ----------------------------------------------------------
 
-Next, we will prepare the client. The key part of a FEDn Project is the client definition - 
+Next, we will prepare the training client. The key part of a FEDn Project is the client definition - 
 code that contains entrypoints for training and (optionally) validating a model update on the client. 
+
+[!NOTE] The preparation of the compute package and seed model is a one-time requirement. All training clients use the same compute package and seed model. 
 
 Locate into ``examples/mnist-pytorch`` and familiarize yourself with the project structure. The dependencies needed in the client environment are specified 
 in ``client/python_env.yaml``. 
 
-In order to train a federated model using FEDn, your Studio project needs to be initialized with a compute package and a seed model. The compute package is a bundle
-of the client specification, and the seed model is a first version of the global model.  
+In order to train a federated model using FEDn, your Studio project needs to be initialized with a compute package and a seed model. The compute package is a bundle of the client specification, and the seed model is a first version of the global model.  
 
 Create a package of the fedn project (assumes your current working directory is in the root of the project /examples/mnist-pytorch):
 
@@ -67,7 +73,7 @@ Next, run the build entrypoint defined in ``client/fedn.yaml`` to build the mode
 
    fedn run build --path client
 
-This will create a seed model called 'seed.npz' in the root of the project. We will now upload these to your Studio project using the FEDn APIClient. 
+This will create a seed model called 'seed.npz' in the root ``/mnist-pytorch`` of the project. We will now upload these to your Studio project using the FEDn APIClient. 
 
 **Upload the package and seed model**
 
@@ -88,10 +94,10 @@ Upload the package and seed model using the APIClient:
    >>> client.set_active_model("seed.npz")
 
 
-Configure and attach clients
-----------------------------
+Configure and attach training clients
+-------------------------------------
 
-Each local client needs an access token in order to connect. These tokens are issued from your Studio Project. Go to the 'Clients' tab and click 'Connect client'.
+Each local training client needs an access token in order to connect. These tokens are issued from your Studio Project. Go to the 'Clients' tab and click 'Connect client'.
 Download a client configuration file and save it to the root of the examples/mnist-pytorch folder. Rename the file to 'client.yaml'.
 Then start the client by running the following command in the root of the project:
 
