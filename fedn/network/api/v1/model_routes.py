@@ -117,8 +117,8 @@ def get_models():
         response = {"count": models["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -202,8 +202,8 @@ def list_models():
         response = {"count": models["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -250,8 +250,8 @@ def get_models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -302,8 +302,8 @@ def models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -346,10 +346,10 @@ def get_model(id: str):
         response = model
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["PATCH"])
@@ -411,10 +411,10 @@ def patch_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": "Failed to update model"}), 500
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["PUT"])
@@ -468,10 +468,10 @@ def put_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": "Failed to update model"}), 500
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>/descendants", methods=["GET"])
@@ -522,10 +522,10 @@ def get_descendants(id: str):
         response = descendants
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>/ancestors", methods=["GET"])
@@ -591,10 +591,10 @@ def get_ancestors(id: str):
         response = ancestors
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>/download", methods=["GET"])
@@ -639,10 +639,10 @@ def download(id: str):
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>/parameters", methods=["GET"])
@@ -703,7 +703,7 @@ def get_parameters(id: str):
             return jsonify(array=weights), 200
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
