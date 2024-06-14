@@ -12,7 +12,7 @@ copyright = "2021, Scaleout Systems AB"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.9.6"
+release = "0.10.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -24,7 +24,7 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
-    "sphinx_code_tabs"
+    "sphinx_code_tabs",
 ]
 
 # The master toctree document.
@@ -71,15 +71,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -89,24 +86,18 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "fedn.tex", "FEDn Documentation",
-     "Scaleout Systems AB", "manual"),
+    (master_doc, "fedn.tex", "FEDn Documentation", "Scaleout Systems AB", "manual"),
 ]
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "fedn", "FEDn Documentation",
-     [author], 1)
-]
+man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation",
-     author, "fedn", "One line description of project.",
-     "Miscellaneous"),
+    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.
