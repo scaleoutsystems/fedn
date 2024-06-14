@@ -445,9 +445,9 @@ class Client:
                             self.inbox.put(("validate", request))
                         elif request.type == fedn.StatusType.INFERENCE and self.config["validator"]:
                             logger.info("Received inference request for model_id {}".format(request.model_id))
-                            presined_url = json.loads(request.data)
-                            presined_url = presined_url["presigned_url"]
-                            logger.info("Inference presigned URL: {}".format(presined_url))
+                            presigned_url = json.loads(request.data)
+                            presigned_url = presigned_url["presigned_url"]
+                            logger.info("Inference presigned URL: {}".format(presigned_url))
                             self.inbox.put(("infer", request))
                         else:
                             logger.error("Unknown request type: {}".format(request.type))
