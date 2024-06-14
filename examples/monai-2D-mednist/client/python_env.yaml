@@ -2,7 +2,7 @@ name: monai-2d-mdnist
 build_dependencies:
   - pip
   - setuptools
-  - wheel==0.37.1
+  - wheel
 dependencies:
   - torch==2.2.1
   - torchvision==0.17.1
