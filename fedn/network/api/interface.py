@@ -232,7 +232,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file_path = safe_join("/app/client/package/", storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -399,7 +399,7 @@ class API:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = os.path.join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = safe_join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
