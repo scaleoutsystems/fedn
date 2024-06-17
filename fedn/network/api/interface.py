@@ -1,6 +1,5 @@
 import base64
 import copy
-import os
 import threading
 import uuid
 from io import BytesIO
