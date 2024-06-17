@@ -657,7 +657,7 @@ class API:
             self.control.commit(file.filename, model)
         except Exception as e:
             logger.debug(e)
-            return jsonify({"success": False, "message": e})
+            return jsonify({"success": False, "message": "Failed to add initial model."})
 
         return jsonify({"success": True, "message": "Initial model added successfully."})
 

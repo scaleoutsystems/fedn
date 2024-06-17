@@ -138,8 +138,8 @@ def get_validations():
         response = {"count": validations["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -236,8 +236,8 @@ def list_validations():
         response = {"count": validations["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -302,8 +302,8 @@ def get_validations_count():
         count = validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -367,8 +367,8 @@ def validations_count():
         count = validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -412,7 +412,7 @@ def get_validation(id: str):
         response = validation.__dict__ if use_typing else validation
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500

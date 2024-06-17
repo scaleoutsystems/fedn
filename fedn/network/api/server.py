@@ -5,9 +5,8 @@ from flask import Flask, jsonify, request
 from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
+from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
-from fedn.network.api.shared import statestore, control
-
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
@@ -569,8 +568,10 @@ def add_combiner():
     remote_addr = request.remote_addr
     try:
         response = api.add_combiner(**json_data, remote_addr=remote_addr)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -589,8 +590,10 @@ def add_client():
     remote_addr = request.remote_addr
     try:
         response = api.add_client(**json_data, remote_addr=remote_addr)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -612,8 +615,10 @@ def list_combiners_data():
 
     try:
         response = api.list_combiners_data(combiners)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -630,8 +635,10 @@ def get_plot_data():
     try:
         feature = request.args.get("feature", None)
         response = api.get_plot_data(feature=feature)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
