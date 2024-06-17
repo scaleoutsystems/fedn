@@ -4,7 +4,8 @@ import threading
 import uuid
 from io import BytesIO
 
-from flask import jsonify, safe_join, send_from_directory
+from flask import jsonify, send_from_directory
+from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
