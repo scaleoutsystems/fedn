@@ -3,11 +3,12 @@ import threading
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
+
 from .model_routes import model_store
-from fedn.network.api.shared import control
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -97,8 +98,8 @@ def get_sessions():
         response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -175,8 +176,8 @@ def list_sessions():
         response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -216,8 +217,8 @@ def get_sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -261,8 +262,8 @@ def sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -304,10 +305,10 @@ def get_session(id: str):
         response = session
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/", methods=["POST"])
@@ -349,8 +350,8 @@ def post():
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/start", methods=["POST"])
@@ -386,5 +387,5 @@ def start_session():
         threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
 
         return jsonify({"message": "Session started"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
