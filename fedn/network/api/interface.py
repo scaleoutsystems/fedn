@@ -5,7 +5,7 @@ import threading
 import uuid
 from io import BytesIO
 
-from flask import jsonify, send_from_directory
+from flask import jsonify, safe_join, send_from_directory
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
@@ -377,7 +377,7 @@ class API:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = safe_join("/app/client/package/", name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
