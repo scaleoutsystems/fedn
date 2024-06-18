@@ -62,6 +62,8 @@ class Client:
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
 
+        self.id = config["client_id"] or str(uuid.uuid4())
+
         self.connector = ConnectorClient(
             host=config["discover_host"],
             port=config["discover_port"],
@@ -71,7 +73,7 @@ class Client:
             force_ssl=config["force_ssl"],
             verify=config["verify"],
             combiner=config["preferred_combiner"],
-            id=config["client_id"],
+            id=self.id,
         )
 
         # Validate client name
@@ -419,6 +421,7 @@ class Client:
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
         r.sender.role = fedn.WORKER
+        r.sender.client_id = self.id
         # Add client to metadata
         self._add_grpc_metadata("client", self.name)
 

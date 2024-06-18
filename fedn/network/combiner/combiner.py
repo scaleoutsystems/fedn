@@ -186,7 +186,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients = self.get_active_trainers()
 
         for client in clients:
-            request.receiver.name = client
+            request.receiver.client_id = client
             request.receiver.role = fedn.WORKER
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
@@ -222,7 +222,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             clients = self.get_active_validators()
 
         for client in clients:
-            request.receiver.name = client
+            request.receiver.client_id = client
             request.receiver.role = fedn.WORKER
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
 
@@ -265,9 +265,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param client: the client to add
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         """
-        if client.id not in self.clients.keys():
+        if client.client_id not in self.clients.keys():
             # The status is set to offline by default, and will be updated once _list_active_clients is called.
-            self.clients[client.id] = {"lastseen": datetime.now(), "status": "offline"}
+            self.clients[client.client_id] = {"lastseen": datetime.now(), "status": "offline"}
 
     def _subscribe_client_to_queue(self, client, queue_name):
         """Subscribe a client to the queue.
@@ -278,8 +278,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type queue_name: str
         """
         self.__join_client(client)
-        if queue_name not in self.clients[client.id].keys():
-            self.clients[client.id][queue_name] = queue.Queue()
+        if queue_name not in self.clients[client.client_id].keys():
+            self.clients[client.client_id][queue_name] = queue.Queue()
 
     def __get_queue(self, client, queue_name):
         """Get the queue for a client.
@@ -294,7 +294,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :raises KeyError: if the queue does not exist
         """
         try:
-            return self.clients[client.name][queue_name]
+            return self.clients[client.client_id][queue_name]
         except KeyError:
             raise
 
@@ -611,7 +611,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._send_status(status)
 
         # Set client status to online
-        self.clients[client.name]["status"] = "online"
+        self.clients[client.client_id]["status"] = "online"
         self.statestore.set_client({"name": client.name, "status": "online"})
 
         # Keep track of the time context has been active
@@ -619,7 +619,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         while context.is_active():
             # Check if the context has been active for more than 10 seconds
             if time.time() - start_time > 10:
-                self.clients[client.name]["lastseen"] = datetime.now()
+                self.clients[client.client_id]["lastseen"] = datetime.now()
                 # Reset the start time
                 start_time = time.time()
             try:
