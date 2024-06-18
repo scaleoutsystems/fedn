@@ -1,6 +1,6 @@
 import os
 import random
-
+import sys
 import numpy as np
 import PIL
 import torch
@@ -33,7 +33,7 @@ def split_data(data_path="data/MedNIST", splits=100, validation_split=0.9):
         yaml.dump(clients, file, default_flow_style=False)
 
 
-def get_data(out_dir="data"):
+def get_data(out_dir="data", data_splits=10):
     """Get data from the external repository.
 
     :param out_dir: Path to data directory. If doesn't
@@ -58,7 +58,7 @@ def get_data(out_dir="data"):
         else:
             print("files already exist.")
 
-    split_data()
+    split_data(splits=data_splits)
 
 
 def get_classes(data_path):
@@ -145,6 +145,7 @@ class MedNISTDataset(torch.utils.data.Dataset):
         return len(self.image_files)
 
     def __getitem__(self, index):
+        print("__getitem__ path: ", os.path.join(self.data_path, self.image_files[index]))
         return (self.transforms(os.path.join(self.data_path, self.image_files[index])), DATA_CLASSES[os.path.dirname(self.image_files[index])])
 
 

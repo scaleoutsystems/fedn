@@ -65,19 +65,21 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     batch_size = client_settings["batch_size"]
     max_epochs = client_settings["local_epochs"]
     num_workers = client_settings["num_workers"]
-    split_index = client_settings["split_index"]
+    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX")#client_settings["split_index"]
+    print("split index: ", split_index)
     lr = client_settings["lr"]
 
     if data_path is None:
         data_path = os.environ.get("FEDN_DATA_PATH")
-
+    print("os.path.join(os.path.dirname(data_path), data_splits.yaml: ", os.path.join(os.path.dirname(data_path), "data_splits.yaml"))
     with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), "r") as file:
         clients = yaml.safe_load(file)
 
     image_list = clients["client " + str(split_index)]["train"]
-
-    train_ds = MedNISTDataset(data_path="data/MedNIST", transforms=train_transforms, image_files=image_list)
-
+    print("image_list len: ", len(image_list))
+    train_ds = MedNISTDataset(data_path="app/data/MedNIST", transforms=train_transforms, image_files=image_list)
+    print("train_ds len: ", len(train_ds))
+    print("batch_size: ", batch_size, ", num_workers: ", num_workers)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     # Load parmeters and initialize model
