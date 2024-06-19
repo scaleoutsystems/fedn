@@ -73,7 +73,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
 
     image_list = clients["client " + str(split_index)]["train"]
 
-    train_ds = MedNISTDataset(data_path=data_path, transforms=train_transforms, image_files=image_list)
+    train_ds = MedNISTDataset(data_path=data_path+'/MedNIST/', transforms=train_transforms, image_files=image_list)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     # Load parmeters and initialize model
