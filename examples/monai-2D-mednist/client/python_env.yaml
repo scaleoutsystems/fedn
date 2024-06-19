@@ -1,4 +1,4 @@
-name: huggingface
+name: monai-2d-mdnist
 build_dependencies:
   - pip
   - setuptools
@@ -7,5 +7,6 @@ dependencies:
   - torch==2.2.1
   - torchvision==0.17.1
   - fedn==0.9.0
-  - transformers==4.39.3
-  - datasets==2.19.0
+  - monai-weekly[pillow, tqdm]
+  - scikit-learn
+  - tensorboard   

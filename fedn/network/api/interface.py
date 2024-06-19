@@ -1,11 +1,11 @@
 import base64
 import copy
-import os
 import threading
 import uuid
 from io import BytesIO
 
 from flask import jsonify, send_from_directory
+from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
@@ -232,7 +232,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file_path = safe_join("/app/client/package/", storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -377,7 +377,7 @@ class API:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = safe_join("/app/client/package/", name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
@@ -399,7 +399,7 @@ class API:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = os.path.join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = safe_join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
@@ -626,8 +626,6 @@ class API:
             "certificate": cert,
             "helper_type": self.control.statestore.get_helper(),
         }
-        logger.info(f"Sending payload: {payload}")
-
         return jsonify(payload)
 
     def get_initial_model(self):
@@ -659,7 +657,7 @@ class API:
             self.control.commit(file.filename, model)
         except Exception as e:
             logger.debug(e)
-            return jsonify({"success": False, "message": e})
+            return jsonify({"success": False, "message": "Failed to add initial model."})
 
         return jsonify({"success": True, "message": "Initial model added successfully."})
 
@@ -963,7 +961,7 @@ class API:
         round_buffer_size=-1,
         delete_models=True,
         validate=True,
-        helper="numpyhelper",
+        helper="",
         min_clients=1,
         requested_clients=8,
     ):
@@ -1002,13 +1000,17 @@ class API:
             return jsonify({"success": False, "message": "A session is already running."})
 
         # Check if compute package is set
-        if not self.statestore.get_compute_package():
+        package = self.statestore.get_compute_package()
+        if not package:
             return jsonify(
                 {
                     "success": False,
                     "message": "No compute package set. Set compute package before starting session.",
                 }
             )
+        if not helper:
+            # get helper from compute package
+            helper = package["helper"]
 
         # Check that initial (seed) model is set
         if not self.statestore.get_initial_model():

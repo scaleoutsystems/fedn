@@ -10,10 +10,11 @@ import threading
 import time
 import uuid
 from datetime import datetime
-from distutils.dir_util import copy_tree
 from io import BytesIO
+from shutil import copytree
 
 import grpc
+import requests
 from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
 from OpenSSL import SSL
@@ -342,7 +343,7 @@ class Client:
             }
             from_path = os.path.join(os.getcwd(), "client")
 
-            copy_tree(from_path, self.run_path)
+            copytree(from_path, self.run_path)
             self.dispatcher = Dispatcher(dispatch_config, self.run_path)
         # Get or create python environment
         activate_cmd = self.dispatcher._get_or_create_python_env()
@@ -439,12 +440,18 @@ class Client:
                             request=request,
                             sesssion_id=request.session_id,
                         )
-                        logger.info("Received model update request of type {} for model_id {}".format(request.type, request.model_id))
+                        logger.info("Received task request of type {} for model_id {}".format(request.type, request.model_id))
 
                         if request.type == fedn.StatusType.MODEL_UPDATE and self.config["trainer"]:
                             self.inbox.put(("train", request))
                         elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config["validator"]:
                             self.inbox.put(("validate", request))
+                        elif request.type == fedn.StatusType.INFERENCE and self.config["validator"]:
+                            logger.info("Received inference request for model_id {}".format(request.model_id))
+                            presigned_url = json.loads(request.data)
+                            presigned_url = presigned_url["presigned_url"]
+                            logger.info("Inference presigned URL: {}".format(presigned_url))
+                            self.inbox.put(("infer", request))
                         else:
                             logger.error("Unknown request type: {}".format(request.type))
 
@@ -587,6 +594,51 @@ class Client:
         self.state = ClientState.idle
         return validation
 
+    def _process_inference_request(self, model_id: str, session_id: str, presigned_url: str):
+        """Process an inference request.
+
+        :param model_id: The model id of the model to be used for inference.
+        :type model_id: str
+        :param session_id: The id of the current session.
+        :type session_id: str
+        :param presigned_url: The presigned URL for the data to be used for inference.
+        :type presigned_url: str
+        :return: None
+        """
+        self.send_status(f"Processing inference request for model_id {model_id}", sesssion_id=session_id)
+        try:
+            model = self.get_model_from_combiner(str(model_id))
+            if model is None:
+                logger.error("Could not retrieve model from combiner. Aborting inference request.")
+                return
+            inpath = self.helper.get_tmp_path()
+
+            with open(inpath, "wb") as fh:
+                fh.write(model.getbuffer())
+
+            outpath = get_tmp_path()
+            self.dispatcher.run_cmd(f"predict {inpath} {outpath}")
+
+            # Upload the inference result to the presigned URL
+            with open(outpath, "rb") as fh:
+                response = requests.put(presigned_url, data=fh.read())
+
+            os.unlink(inpath)
+            os.unlink(outpath)
+
+            if response.status_code != 200:
+                logger.warning("Inference upload failed with status code {}".format(response.status_code))
+                self.state = ClientState.idle
+                return
+
+        except Exception as e:
+            logger.warning("Inference failed with exception {}".format(e))
+            self.state = ClientState.idle
+            return
+
+        self.state = ClientState.idle
+        return
+
     def process_request(self):
         """Process training and validation tasks."""
         while True:
@@ -683,6 +735,22 @@ class Client:
 
                     self.state = ClientState.idle
                     self.inbox.task_done()
+                elif task_type == "infer":
+                    self.state = ClientState.inferencing
+                    try:
+                        presigned_url = json.loads(request.data)
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to decode inference request data: {e}")
+                        self.state = ClientState.idle
+                        continue
+
+                    if "presigned_url" not in presigned_url:
+                        logger.error("Inference request missing presigned_url.")
+                        self.state = ClientState.idle
+                        continue
+                    presigned_url = presigned_url["presigned_url"]
+                    _ = self._process_inference_request(request.model_id, request.session_id, presigned_url)
+                    self.state = ClientState.idle
             except queue.Empty:
                 pass
             except grpc.RpcError as e:
@@ -712,6 +780,7 @@ class Client:
                     )
                     if self._missed_heartbeat > self.config["reconnect_after_missed_heartbeat"]:
                         self.disconnect()
+                        self._missed_heartbeat = 0
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == "Token expired":

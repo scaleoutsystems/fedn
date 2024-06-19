@@ -30,8 +30,16 @@ class Store(Generic[T]):
 
         return from_document(document) if not use_typing else document
 
-    def update(self, id: str, item: T) -> bool:
-        pass
+    def update(self, id: str, item: T) -> Tuple[bool, Any]:
+        try:
+            result = self.database[self.collection].update_one({"_id": ObjectId(id)}, {"$set": item})
+            if result.modified_count == 1:
+                document = self.database[self.collection].find_one({"_id": ObjectId(id)})
+                return True, from_document(document)
+            else:
+                return False, "Entity not found"
+        except Exception as e:
+            return False, str(e)
 
     def add(self, item: T) -> Tuple[bool, Any]:
         try:

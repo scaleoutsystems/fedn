@@ -9,10 +9,9 @@ from fedn.network.grpc.auth import JWTInterceptor
 
 
 class Server:
-    """ Class for configuring and launching the gRPC server."""
+    """Class for configuring and launching the gRPC server."""
 
     def __init__(self, servicer, modelservicer, config):
-
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
 
@@ -34,21 +33,26 @@ class Server:
         health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         if config["secure"]:
-            logger.info(f'Creating secure gRPCS server using certificate: {config["certificate"]}')
+            logger.info("Creating secure gRPCS server using certificate")
             server_credentials = grpc.ssl_server_credentials(
-                ((config["key"], config["certificate"],),))
-            self.server.add_secure_port(
-                "[::]:" + str(config["port"]), server_credentials)
+                (
+                    (
+                        config["key"],
+                        config["certificate"],
+                    ),
+                )
+            )
+            self.server.add_secure_port("[::]:" + str(config["port"]), server_credentials)
         else:
             logger.info("Creating gRPC server")
             self.server.add_insecure_port("[::]:" + str(config["port"]))
 
     def start(self):
-        """ Start the gRPC server."""
+        """Start the gRPC server."""
         logger.info("gRPC Server started")
         self.server.start()
 
     def stop(self):
-        """ Stop the gRPC server."""
+        """Stop the gRPC server."""
         logger.info("gRPC Server stopped")
         self.server.stop(0)

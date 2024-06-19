@@ -8,6 +8,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_rand
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.modelservice import load_model_from_BytesIO
+from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
 
@@ -78,7 +79,7 @@ class Control(ControlBase):
         super().__init__(statestore)
         self.name = "DefaultControl"
 
-    def start_session(self, session_id: str, rounds: int):
+    def start_session(self, session_id: str, rounds: int) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -132,7 +133,7 @@ class Control(ControlBase):
         self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
 
-    def session(self, config):
+    def session(self, config: RoundConfig) -> None:
         """Execute a new training session. A session consists of one
             or several global rounds. All rounds in the same session
             have the same round_config.
@@ -183,7 +184,41 @@ class Control(ControlBase):
         self.set_session_status(config["session_id"], "Finished")
         self._state = ReducerState.idle
 
-    def round(self, session_config, round_id):
+    def inference_session(self, config: RoundConfig) -> None:
+        """Execute a new inference session.
+
+        :param config: The round config.
+        :type config: InferenceConfig
+        :return: None
+        """
+        if self._state == ReducerState.instructing:
+            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
+            return
+
+        if len(self.network.get_combiners()) < 1:
+            logger.warning("Inference round cannot start, no combiners connected!")
+            return
+
+        if "model_id" not in config.keys():
+            config["model_id"] = self.statestore.get_latest_model()
+
+        config["committed_at"] = datetime.datetime.now()
+        config["task"] = "inference"
+        config["rounds"] = str(1)
+        config["clients_required"] = 1
+
+        participating_combiners = self.get_participating_combiners(config)
+
+        # Check if the policy to start the round is met, Default is number of combiners > 0
+        round_start = self.evaluate_round_start_policy(participating_combiners)
+
+        if round_start:
+            logger.info("Inference round start policy met, {} participating combiners.".format(len(participating_combiners)))
+            for combiner, _ in participating_combiners:
+                combiner.submit(config)
+                logger.info("Inference round submitted to combiner {}".format(combiner))
+
+    def round(self, session_config: RoundConfig, round_id: str):
         """Execute one global round.
 
         : param session_config: The session config.

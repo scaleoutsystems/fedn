@@ -101,8 +101,8 @@ def get_rounds():
         response = {"count": rounds["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -180,8 +180,8 @@ def list_rounds():
         response = {"count": rounds["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -221,8 +221,8 @@ def get_rounds_count():
         count = round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -266,8 +266,8 @@ def rounds_count():
         count = round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -309,7 +309,7 @@ def get_round(id: str):
         response = round
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500

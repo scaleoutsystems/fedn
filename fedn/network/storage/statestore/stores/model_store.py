@@ -57,8 +57,24 @@ class ModelStore(Store[Model]):
 
         return Model.from_dict(document) if use_typing else from_document(document)
 
-    def update(self, id: str, item: Model) -> bool:
-        raise NotImplementedError("Update not implemented for ModelStore")
+    def _validate(self, item: Model) -> Tuple[bool, str]:
+        if "model" not in item or not item["model"]:
+            return False, "Model is required"
+
+        return True, ""
+
+    def _complement(self, item: Model) -> Model:
+        if "key" not in item or item["key"] is None:
+            item["key"] = "models"
+
+    def update(self, id: str, item: Model) -> Tuple[bool, Any]:
+        valid, message = self._validate(item)
+        if not valid:
+            return False, message
+
+        self._complement(item)
+
+        return super().update(id, item)
 
     def add(self, item: Model)-> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for ModelStore")

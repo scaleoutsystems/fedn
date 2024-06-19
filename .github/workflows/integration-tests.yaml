@@ -1,14 +1,20 @@
 name: "integration tests"
 
-on: 
+on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
-        - master
-        - develop
-        - 'release/**'
+      - master
+      - develop
+      - "release/**"
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
-      - '**'
+      - "**"
 
 jobs:
   integration-tests:
@@ -17,7 +23,7 @@ jobs:
         to_test:
           - "mnist-keras numpyhelper"
           - "mnist-pytorch numpyhelper"
-        python_version: ["3.8","3.9","3.10", "3.11"]
+        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         os:
           - ubuntu-22.04
     runs-on: ${{ matrix.os }}
@@ -28,7 +34,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python_version }}
-      
+
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
 
