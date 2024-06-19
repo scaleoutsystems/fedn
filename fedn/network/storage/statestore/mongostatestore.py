@@ -924,7 +924,7 @@ class MongoStateStore:
         :return: None
         """
         datetime_now = datetime.now()
-        filter_query = {"name": {"$in": clients}}
+        filter_query = {"client_id": {"$in": clients}}
 
         update_query = {"$set": {"last_seen": datetime_now, "status": status}}
         self.clients.update_many(filter_query, update_query)
