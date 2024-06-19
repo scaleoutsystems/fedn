@@ -97,6 +97,5 @@ class MedNISTDataset(torch.utils.data.Dataset):
         return (self.transforms(os.path.join(self.data_path, self.image_files[index])), DATA_CLASSES[os.path.dirname(self.image_files[index])])
 
 
-if __name__ == "__main__":
-    # Prepare data if not already done
-    get_data()
+
+
