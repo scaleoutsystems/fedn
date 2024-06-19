@@ -145,7 +145,6 @@ class MedNISTDataset(torch.utils.data.Dataset):
         return len(self.image_files)
 
     def __getitem__(self, index):
-        print("__getitem__ path: ", os.path.join(self.data_path, self.image_files[index]))
         return (self.transforms(os.path.join(self.data_path, self.image_files[index])), DATA_CLASSES[os.path.dirname(self.image_files[index])])
 
 

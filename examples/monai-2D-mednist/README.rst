@@ -24,21 +24,6 @@ If using pseudo-distributed mode with docker-compose:
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
-Download and Prepare the data
--------------------------------------------
-
-Install monai
-
-.. code-block::
-
-   pip install monai
-
-Download and divide the data into parts. Set the number of
-data parts as an arguments python prepare_data.py NR-OF-DATAPARTS. In the
-below command we divide the dataset into 10 parts.
-.. code-block::
-
-    python prepare_data.py 10
 
 Creating the compute package and seed model
 -------------------------------------------
@@ -71,6 +56,24 @@ Next, generate a seed model (the first model in a global model trail):
    fedn run build --path client
 
 This will create a seed model called 'seed.npz' in the root of the project. This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
+
+Download and Prepare the data
+-------------------------------------------
+
+Install monai
+
+.. code-block::
+
+   pip install monai
+
+Download and divide the data into parts. Set the number of
+data parts as an arguments python prepare_data.py NR-OF-DATAPARTS. In the
+below command we divide the dataset into 10 parts.
+.. code-block::
+
+    python prepare_data.py 10
+
+
 
 Using FEDn Studio
 -----------------
