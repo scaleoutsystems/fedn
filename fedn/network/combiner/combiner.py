@@ -128,7 +128,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Set the status to offline for previous clients.
         previous_clients = self.statestore.clients.find({"combiner": config["name"]})
         for client in previous_clients:
-            self.statestore.set_client({"name": client["name"], "status": "offline"})
+            self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
 
         self.modelservice = ModelService()
 
@@ -575,7 +575,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
         self.__join_client(client)
-        self.clients[client.name]["lastseen"] = datetime.now()
+        self.clients[client.client_id]["lastseen"] = datetime.now()
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -612,7 +612,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set client status to online
         self.clients[client.client_id]["status"] = "online"
-        self.statestore.set_client({"name": client.name, "status": "online"})
+        self.statestore.set_client({"name": client.name, "status": "online", "client_id": client.client_id})
 
         # Keep track of the time context has been active
         start_time = time.time()
