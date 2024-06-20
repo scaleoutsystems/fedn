@@ -389,3 +389,124 @@ def start_session():
         return jsonify({"message": "Session started"}), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+@bp.route("/<string:id>", methods=["PATCH"])
+@jwt_auth_required(role="admin")
+def patch_session(id: str):
+    """Patch session
+    Updates a session based on the provided id. Only the fields that are present in the request will be updated.
+    ---
+    tags:
+        - Sessions
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or session property of the session
+        - name: session
+            in: body
+            required: true
+            type: object
+            description: The session data to update
+    responses:
+        200:
+            description: The updated session
+            schema:
+                $ref: '#/definitions/Session'
+        404:
+            description: The session was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        session = session_store.get(id, use_typing=False)
+
+        data = request.get_json()
+        _id = session["id"]
+
+        # Update the session with the new data
+        # Only update the fields that are present in the request
+        for key, value in data.items():
+            if key in ["_id", "session_id"]:
+                continue
+            session[key] = value
+
+        success, message = session_store.update(_id, session)
+
+        if success:
+            response = session
+            return jsonify(response), 200
+
+        return jsonify({"message": f"Failed to update session: {message}"}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def put_session(id: str):
+    """Put session
+    Updates a session based on the provided id. All fields will be updated with the new data.
+    ---
+    tags:
+        - Sessions
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or session property of the session
+        - name: session
+            in: body
+            required: true
+            type: object
+            description: The session data to update
+    responses:
+        200:
+            description: The updated session
+            schema:
+                $ref: '#/definitions/Session'
+        404:
+            description: The session was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        session = session_store.get(id, use_typing=False)
+        data = request.get_json()
+        _id = session["id"]
+
+        success, message = session_store.update(_id, data)
+
+        if success:
+            response = session
+            return jsonify(response), 200
+
+        return jsonify({"message": f"Failed to update session: {message}"}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
