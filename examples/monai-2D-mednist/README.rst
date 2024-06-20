@@ -60,7 +60,7 @@ This will create a seed model called 'seed.npz' in the root of the project. This
 Download and Prepare the data
 -------------------------------------------
 
-Install monai
+Install requirements:
 
 .. code-block::
 
@@ -157,7 +157,7 @@ Automate experimentation with several clients
 
 If you want to scale the number of clients, you can do so by modifying ``docker-compose.override.yaml``. For example,
 in order to run with 3 clients, change the environment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client
-by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data3/``
+by copying ``client1``.
 
 
 Access message logs and validation data from MongoDB  
