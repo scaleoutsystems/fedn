@@ -404,13 +404,13 @@ def patch_model(id: str):
                 continue
             model[key] = value
 
-        success = model_store.update(_id, model)
+        success, message = model_store.update(_id, model)
 
         if success:
             response = model
             return jsonify(response), 200
 
-        return jsonify({"message": "Failed to update model"}), 500
+        return jsonify({"message": f"Failed to update model: {message}"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception:
@@ -420,7 +420,7 @@ def patch_model(id: str):
 @bp.route("/<string:id>", methods=["PUT"])
 @jwt_auth_required(role="admin")
 def put_model(id: str):
-    """Patch model
+    """Put model
     Updates a model based on the provided id. All fields will be updated with the new data.
     ---
     tags:
@@ -461,13 +461,13 @@ def put_model(id: str):
         data = request.get_json()
         _id = model["id"]
 
-        success = model_store.update(_id, data)
+        success, message = model_store.update(_id, data)
 
         if success:
             response = model
             return jsonify(response), 200
 
-        return jsonify({"message": "Failed to update model"}), 500
+        return jsonify({"message": f"Failed to update model: {message}"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception:
