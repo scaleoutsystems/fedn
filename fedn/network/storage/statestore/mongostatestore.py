@@ -168,6 +168,17 @@ class MongoStateStore:
         """
         return self.sessions.find_one({"session_id": session_id})
 
+    def get_session_status(self, session_id):
+        """Get the session status.
+
+        :param session_id: The session id.
+        :type session_id: str
+        :return: The session status.
+        :rtype: str
+        """
+        session = self.sessions.find_one({"session_id": session_id})
+        return session["status"]
+
     def set_latest_model(self, model_id, session_id=None):
         """Set the latest model id.
 
