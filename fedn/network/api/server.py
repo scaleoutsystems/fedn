@@ -625,26 +625,6 @@ def list_combiners_data():
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
-
-@app.route("/get_plot_data", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_plot_data():
-    """Get plot data from the statestore.
-    rtype: json
-    """
-    try:
-        feature = request.args.get("feature", None)
-        response = api.get_plot_data(feature=feature)
-    except TypeError:
-        return jsonify({"success": False, "message": "Invalid data provided"}), 400
-    except Exception:
-        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
-    return response
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_plot_data", view_func=get_plot_data, methods=["GET"])
-
 if __name__ == "__main__":
     config = get_controller_config()
     port = config["port"]
