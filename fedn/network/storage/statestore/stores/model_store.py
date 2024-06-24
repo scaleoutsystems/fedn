@@ -209,3 +209,14 @@ class ModelStore(Store[Model]):
         """
         kwargs["key"] = "models"
         return super().count(**kwargs)
+
+    def get_active(self) -> str:
+        """Get the active model
+        return: The active model id (str)
+        """
+        active_model = self.database[self.collection].find_one({"key": "current_model"})
+
+        if active_model is None:
+            raise EntityNotFound("Active model not found")
+
+        return active_model["model"]

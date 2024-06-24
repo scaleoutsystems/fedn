@@ -598,6 +598,7 @@ def get_ancestors(id: str):
 
 
 @bp.route("/<string:id>/download", methods=["GET"])
+@jwt_auth_required(role="admin")
 def download(id: str):
     """Download
     Downloads the model file of the provided id.
@@ -646,6 +647,7 @@ def download(id: str):
 
 
 @bp.route("/<string:id>/parameters", methods=["GET"])
+@jwt_auth_required(role="admin")
 def get_parameters(id: str):
     """Download
     Downloads parameters of the model of the provided id.
@@ -705,5 +707,38 @@ def get_parameters(id: str):
             return jsonify({"message": "No model storage configured"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/active", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_active_model():
+    """Get active model
+    Retrieves the active model (id).
+    ---
+    tags:
+        - Models
+    responses:
+        200:
+            description: The active model id
+            schema:
+                type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        active_model = model_store.get_active()
+
+        response = active_model
+
+        return jsonify(response), 200
+    except EntityNotFound:
+        return jsonify({"message": "No active model found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
