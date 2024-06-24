@@ -45,7 +45,7 @@ def validate(in_model_path, out_json_path, data_path=None, client_settings_path=
 
     num_workers = client_settings["num_workers"]
     batch_size = client_settings["batch_size"]
-    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX") 
+    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX")
 
     if data_path is None:
         data_path = os.environ.get("FEDN_DATA_PATH")

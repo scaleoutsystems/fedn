@@ -62,7 +62,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     batch_size = client_settings["batch_size"]
     max_epochs = client_settings["local_epochs"]
     num_workers = client_settings["num_workers"]
-    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX") 
+    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX")
     lr = client_settings["lr"]
 
     if data_path is None:
