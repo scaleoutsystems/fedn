@@ -67,6 +67,20 @@ class CombinersNotDoneException(Exception):
         super().__init__(self.message)
 
 
+class SessionTerminatedException(Exception):
+    """Exception class for when session is terminated"""
+
+    def __init__(self, message):
+        """Constructor method.
+
+        :param message: The exception message.
+        :type message: str
+
+        """
+        self.message = message
+        super().__init__(self.message)
+
+
 class Control(ControlBase):
     """Controller, implementing the overall global training, validation and inference logic.
 
@@ -122,6 +136,9 @@ class Control(ControlBase):
                 current_round = round
 
             try:
+                if self.get_session_status(session_id) == "Terminated":
+                    logger.info("Session terminated.")
+                    break
                 _, round_data = self.round(session_config, str(current_round))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
@@ -130,7 +147,8 @@ class Control(ControlBase):
 
             session_config["model_id"] = self.statestore.get_latest_model()
 
-        self.set_session_status(session_id, "Finished")
+        if self.get_session_status(session_id) == "Started":
+            self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
 
     def session(self, config: RoundConfig) -> None:
@@ -172,6 +190,9 @@ class Control(ControlBase):
                 current_round = round
 
             try:
+                if self.get_session_status(config["session_id"]) == "Terminated":
+                    logger.info("Session terminated.")
+                    break
                 _, round_data = self.round(config, str(current_round))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
@@ -181,7 +202,8 @@ class Control(ControlBase):
             config["model_id"] = self.statestore.get_latest_model()
 
         # TODO: Report completion of session
-        self.set_session_status(config["session_id"], "Finished")
+        if self.get_session_status(config["session_id"]) == "Started":
+            self.set_session_status(config["session_id"], "Finished")
         self._state = ReducerState.idle
 
     def inference_session(self, config: RoundConfig) -> None:
@@ -227,6 +249,7 @@ class Control(ControlBase):
         : type round_id: str
 
         """
+        session_id = session_config["session_id"]
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -239,7 +262,7 @@ class Control(ControlBase):
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
-        round_config["session_id"] = session_config["session_id"]
+        round_config["session_id"] = session_id
 
         self.set_round_config(round_id, round_config)
 
@@ -264,6 +287,7 @@ class Control(ControlBase):
         # or round times out.
         def do_if_round_times_out(result):
             logger.warning("Round timed out!")
+            return True
 
         @retry(
             wait=wait_random(min=1.0, max=2.0),
@@ -273,6 +297,10 @@ class Control(ControlBase):
         )
         def combiners_done():
             round = self.statestore.get_round(round_id)
+            session_status = self.get_session_status(session_id)
+            if session_status == "Terminated":
+                self.set_round_status(round_id, "Terminated")
+                return False
             if "combiners" not in round:
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
@@ -283,7 +311,9 @@ class Control(ControlBase):
 
             return True
 
-        combiners_done()
+        combiners_are_done = combiners_done()
+        if not combiners_are_done:
+            return None, self.statestore.get_round(round_id)
 
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,

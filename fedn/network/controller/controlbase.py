@@ -183,6 +183,16 @@ class ControlBase(ABC):
         """
         self.statestore.set_session_status(session_id, status)
 
+    def get_session_status(self, session_id):
+        """Get the status of a session.
+
+        :param session_id: The session unique identifier
+        :type session_id: str
+        :return: The status
+        :rtype: str
+        """
+        return self.statestore.get_session_status(session_id)
+
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
         self.statestore.create_round(round_data)
