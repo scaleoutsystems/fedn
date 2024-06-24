@@ -13,7 +13,6 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
-from fedn.utils.plots import Plot
 
 __all__ = ("API",)
 
@@ -900,30 +899,6 @@ class API:
             if success:
                 payload["checksum"] = checksum_str
         return jsonify(payload)
-
-    def get_plot_data(self, feature=None):
-        """Get plot data.
-
-        :return: The plot data as json response.
-        :rtype: :py:class:`flask.Response`
-        """
-        plot = Plot(self.control.statestore)
-
-        try:
-            valid_metrics = plot.fetch_valid_metrics()
-            feature = feature or valid_metrics[0]
-            box_plot = plot.create_box_plot(feature)
-        except Exception as e:
-            valid_metrics = None
-            box_plot = None
-            logger.debug(e)
-
-        result = {
-            "valid_metrics": valid_metrics,
-            "box_plot": box_plot,
-        }
-
-        return jsonify(result)
 
     def list_combiners_data(self, combiners):
         """Get combiners data.
