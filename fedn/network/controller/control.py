@@ -137,6 +137,7 @@ class Control(ControlBase):
 
             try:
                 if self.get_session_status(session_id) == "Terminated":
+                    logger.info("Session terminated.")
                     break
                 _, round_data = self.round(session_config, str(current_round))
             except TypeError as e:
@@ -190,6 +191,7 @@ class Control(ControlBase):
 
             try:
                 if self.get_session_status(config["session_id"]) == "Terminated":
+                    logger.info("Session terminated.")
                     break
                 _, round_data = self.round(config, str(current_round))
             except TypeError as e:
@@ -284,11 +286,8 @@ class Control(ControlBase):
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
         def do_if_round_times_out(result):
-            if isinstance(result.outcome.exception(), SessionTerminatedException):
-                logger.warning("Session terminated!")
-                return None, self.statestore.get_round(round_id)
-            else:
-                logger.warning("Round timed out!")
+            logger.warning("Round timed out!")
+            return True
 
         @retry(
             wait=wait_random(min=1.0, max=2.0),
@@ -300,7 +299,8 @@ class Control(ControlBase):
             round = self.statestore.get_round(round_id)
             session_status = self.get_session_status(session_id)
             if session_status == "Terminated":
-                raise SessionTerminatedException("Session terminated!")
+                self.set_round_status(round_id, "Terminated")
+                return False
             if "combiners" not in round:
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
@@ -311,7 +311,9 @@ class Control(ControlBase):
 
             return True
 
-        _ = combiners_done()
+        combiners_are_done = combiners_done()
+        if not combiners_are_done:
+            return None, self.statestore.get_round(round_id)
 
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
