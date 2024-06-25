@@ -81,6 +81,7 @@ class MongoStateStore:
 
     def init_index(self):
         self.package.create_index([("id", pymongo.DESCENDING)])
+        self.clients.create_index([("client_id", pymongo.DESCENDING)])
 
     def is_inited(self):
         """Check if the statestore is intialized.
@@ -726,18 +727,18 @@ class MongoStateStore:
         :return:
         """
         client_data["updated_at"] = str(datetime.now())
-        self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+        self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
 
-    def get_client(self, name):
-        """Get client by name.
+    def get_client(self, client_id):
+        """Get client by client_id.
 
-        :param name: name of client to get.
-        :type name: str
+        :param client_id: client_id of client to get.
+        :type client_id: str
         :return: The client. None if not found.
         :rtype: ObjectId
         """
         try:
-            ret = self.clients.find({"key": name})
+            ret = self.clients.find({"key": client_id})
             if list(ret) == []:
                 return None
             else:
