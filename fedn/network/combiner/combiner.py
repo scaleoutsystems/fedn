@@ -127,7 +127,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Set the status to offline for previous clients.
         previous_clients = self.statestore.clients.find({"combiner": config["name"]})
         for client in previous_clients:
-            self.statestore.set_client({"name": client["name"], "status": "offline"})
+            self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
 
         self.modelservice = ModelService()
 
@@ -244,7 +244,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
             request.sender.name = self.id
             request.sender.role = fedn.COMBINER
-            request.receiver.name = client
+            request.receiver.client_id = client
             request.receiver.role = fedn.WORKER
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.INFERENCE:
@@ -290,9 +290,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param client: the client to add
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         """
-        if client.name not in self.clients.keys():
+        if client.client_id not in self.clients.keys():
             # The status is set to offline by default, and will be updated once _list_active_clients is called.
-            self.clients[client.name] = {"lastseen": datetime.now(), "status": "offline"}
+            self.clients[client.client_id] = {"last_seen": datetime.now(), "status": "offline"}
 
     def _subscribe_client_to_queue(self, client, queue_name):
         """Subscribe a client to the queue.
@@ -303,8 +303,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type queue_name: str
         """
         self.__join_client(client)
-        if queue_name not in self.clients[client.name].keys():
-            self.clients[client.name][queue_name] = queue.Queue()
+        if queue_name not in self.clients[client.client_id].keys():
+            self.clients[client.client_id][queue_name] = queue.Queue()
 
     def __get_queue(self, client, queue_name):
         """Get the queue for a client.
@@ -319,7 +319,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :raises KeyError: if the queue does not exist
         """
         try:
-            return self.clients[client.name][queue_name]
+            return self.clients[client.client_id][queue_name]
         except KeyError:
             raise
 
@@ -354,7 +354,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in self._list_subscribed_clients(channel):
             status = self.clients[client]["status"]
             now = datetime.now()
-            then = self.clients[client]["lastseen"]
+            then = self.clients[client]["last_seen"]
             if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
                 # If client has changed status, update statestore
@@ -600,7 +600,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
         self.__join_client(client)
-        self.clients[client.name]["lastseen"] = datetime.now()
+        self.clients[client.client_id]["last_seen"] = datetime.now()
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -636,15 +636,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._send_status(status)
 
         # Set client status to online
-        self.clients[client.name]["status"] = "online"
-        self.statestore.set_client({"name": client.name, "status": "online"})
+        self.clients[client.client_id]["status"] = "online"
+        self.statestore.set_client({"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()})
 
         # Keep track of the time context has been active
         start_time = time.time()
         while context.is_active():
             # Check if the context has been active for more than 10 seconds
             if time.time() - start_time > 10:
-                self.clients[client.name]["lastseen"] = datetime.now()
+                self.clients[client.client_id]["last_seen"] = datetime.now()
                 # Reset the start time
                 start_time = time.time()
             try:

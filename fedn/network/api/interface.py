@@ -553,7 +553,7 @@ class API:
 
         return jsonify(payload)
 
-    def add_client(self, client_id, preferred_combiner, remote_addr):
+    def add_client(self, client_id, preferred_combiner, remote_addr, name):
         """Add a client to the network.
 
         :param client_id: The client id to add.
@@ -599,7 +599,8 @@ class API:
                 )
 
         client_config = {
-            "name": client_id,
+            "client_id": client_id,
+            "name": name,
             "combiner_preferred": preferred_combiner,
             "combiner": combiner.name,
             "ip": remote_addr,
