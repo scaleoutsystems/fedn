@@ -22,7 +22,6 @@ from fedn.utils.helpers.helpers import save_metadata
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
-
 train_transforms = Compose(
     [
         LoadImage(image_only=True),
@@ -54,18 +53,16 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     if client_settings_path is None:
         client_settings_path = os.environ.get("FEDN_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
 
-    print("client_settings_path: ", client_settings_path)
     with open(client_settings_path, "r") as fh:  # Used by CJG for local training
         try:
             client_settings = dict(yaml.safe_load(fh))
         except yaml.YAMLError:
             raise
 
-    print("client settings: ", client_settings)
     batch_size = client_settings["batch_size"]
     max_epochs = client_settings["local_epochs"]
     num_workers = client_settings["num_workers"]
-    split_index = client_settings["split_index"]
+    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX")
     lr = client_settings["lr"]
 
     if data_path is None:
@@ -76,8 +73,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
 
     image_list = clients["client " + str(split_index)]["train"]
 
-    train_ds = MedNISTDataset(data_path="data/MedNIST", transforms=train_transforms, image_files=image_list)
-
+    train_ds = MedNISTDataset(data_path=data_path+"/MedNIST/", transforms=train_transforms, image_files=image_list)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     # Load parmeters and initialize model
