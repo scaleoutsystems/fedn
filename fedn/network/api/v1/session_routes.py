@@ -5,6 +5,8 @@ from flask import Blueprint, jsonify, request
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
+from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -354,6 +356,18 @@ def post():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
+def _get_number_of_available_clients():
+    result = 0
+    for combiner in control.network.get_combiners():
+        try:
+            nr_active_clients = len(combiner.list_active_clients())
+            result = result + int(nr_active_clients)
+        except CombinerUnavailableError:
+            return 0
+
+    return result
+
+
 @bp.route("/start", methods=["POST"])
 @jwt_auth_required(role="admin")
 def start_session():
@@ -367,24 +381,30 @@ def start_session():
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
+        round_timeout: int = data.get("round_timeout", None)
 
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
-
-        if not rounds or rounds == "":
-            return jsonify({"message": "Rounds is required"}), 400
-
-        if not isinstance(rounds, int):
-            return jsonify({"message": "Rounds must be an integer"}), 400
 
         session = session_store.get(session_id, use_typing=False)
 
         session_config = session["session_config"]
         model_id = session_config["model_id"]
+        min_clients = session_config["clients_required"]
+
+        if control.state() == ReducerState.monitoring:
+            return jsonify({"message": "A session is already running."})
+
+        if not rounds or not isinstance(rounds, int):
+            rounds = session_config["rounds"]
+        nr_available_clients = _get_number_of_available_clients()
+
+        if nr_available_clients < min_clients:
+            return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
         _ = model_store.get(model_id, use_typing=False)
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 
         return jsonify({"message": "Session started"}), 200
     except Exception:
