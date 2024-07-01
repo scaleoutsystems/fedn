@@ -7,21 +7,30 @@ Getting started with FEDn
    
 **Prerequisites**
 
--  `Python >=3.8, <=3.11 <https://www.python.org/downloads>`__
+-  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
 -  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
 
 
 Set up a FEDn Studio Project
 ----------------------------
 
-Start by creating an account in FEDn Studio and set up a project by following the instruction here: :ref:`studio`.
+Start by creating an account in Studio. Head over to `fedn.scaleoutsystems.com/signup <https://fedn.scaleoutsystems.com/signup/>`_  and sign up.
+
+Logged into Studio, do: 
+
+1. Click on the "New Project" button in the top right corner of the screen.
+2. Continue by clicking the "Create button". The FEDn template contains all the services necessary to start a federation.
+3. Enter the project name (mandatory). The project description is optional.
+4. Click the "Create" button to create the project.
+
+You Studio project provides all server side components. Next, you will set up your local machine / client and create a FEDn project.
 
 Install FEDn
 ------------
 
 **Using pip**
 
-Install the FEDn package using pip:
+On you local machine/client, install the FEDn package using pip:
 
 .. code-block:: bash
 
@@ -101,10 +110,10 @@ Then start the client by running the following command in the root of the projec
 
 Repeat the above for the number of clients you want to use. A normal laptop should be able to handle several clients for this example.
 
-**Modifing the data split:**
+**Modifying the data split:**
 
 The default traning and test data for this example (MNIST) is for convenience downloaded and split by the client when it starts up (see 'startup' entrypoint). 
-The number of splits and which split used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
+The number of splits and which split is used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
 For example, to split the data in 10 parts and start a client using the 8th partiton:
 
 .. tabs::
@@ -188,81 +197,3 @@ With you first FEDn federation set up, we suggest that you take a close look at 
 and how you develop your own FEDn projects:
 
 - :ref:`projects-label`
-
-
-Local development deployment (using docker compose)
-----------------------------------------------------------
-
-.. note::
-   These instructions are for users wanting to set up a local development deployment of FEDn (wihout Studio).
-   This requires basic knowledge of Docker and docker-compose. 
-   The main use-case for this is rapid iteration while developing the FEDn Project, 
-   development of aggregator plugins, etc. 
-
-Follow the steps above to install FEDn, generate 'package.tgz' and 'seed.tgz'. Then, instead of 
-using a Studio project for a managed FEDn server-side, start a local FEDn network
-using docker-compose:
-
-.. code-block::
-
-   docker compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    up
-
-This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. 
-You can verify the deployment using these urls: 
-
-- API Server: http://localhost:8092/get_controller_status
-- Minio: http://localhost:9000
-- Mongo Express: http://localhost:8081
-
-Upload the package and seed model to FEDn controller using the APIClient. In Python:
-
-.. code-block::
-
-   from fedn import APIClient
-   client = APIClient(host="localhost", port=8092)
-   client.set_active_package("package.tgz", helper="numpyhelper")
-   client.set_active_model("seed.npz")
-
-You can now start a training session with 5 rounds (default): 
-
-.. code-block::
-
-   client.start_session()
-
-**Automate experimentation with several clients**  
-
-If you want to scale the number of clients, you can do so by modifying ``docker-compose.override.yaml``. For example, 
-in order to run with 3 clients, change the environment variable ``FEDN_NUM_DATA_SPLITS`` to 3, and add one more client 
-by copying ``client1`` and setting ``FEDN_DATA_PATH`` to ``/app/package/data/clients/3/mnist.pt``
-
-
-**Access message logs and validation data from MongoDB**  
-
-You can access and download event logs and validation data via the API, and you can also as a developer obtain 
-the MongoDB backend data using pymongo or via the MongoExpress interface: 
-
-- http://localhost:8081/db/fedn-network/ 
-
-The credentials are as set in docker-compose.yaml in the root of the repository. 
-
-**Access global models**  
-
-You can obtain global model updates from the 'fedn-models' bucket in Minio: 
-
-- http://localhost:9000
-
-**Reset the FEDn deployment**   
-
-To purge all data from a deployment incuding all session and round data, access the MongoExpress UI interface and 
-delete the entire ``fedn-network`` collection. Then restart all services. 
-
-**Clean up**
-
-You can clean up by running 
-
-.. code-block::
-
-   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml down -v

@@ -8,7 +8,7 @@ This is a TF/Keras version of the Quickstart Tutorial (PyTorch) FEDn Project. Fo
 Prerequisites
 -------------------------------------------
 
--  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
+-  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
 
 Creating the compute package and seed model
 -------------------------------------------
@@ -24,7 +24,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-pytorch
+   cd fedn/examples/mnist-keras
 
 Create the compute package:
 
@@ -42,13 +42,9 @@ Next, generate a seed model (the first model in a global model trail):
 
 This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
-Using FEDn Studio
-------------------
+Running the project on FEDn
+----------------------------
 
-To set up your FEDn Studio project and learn how to connect clients (using JWT token authentication), follow this guide: https://fedn.readthedocs.io/en/latest/studio.html. On the 
+To set up your FEDn Studio project and connect clients, follow this guide: https://fedn.readthedocs.io/en/latest/studio.html. On the 
 step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
 
-Using pseudo-distributed mode (local development)
--------------------------------------------------
-
-See the PyTorch version of this example for detailed instructions on how to deploy FEDn in `local development mode <../mnist-pytorch/README.rst>`_.
