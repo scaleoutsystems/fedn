@@ -1,6 +1,6 @@
 .. _projects-label:
 
-FEDn Projects
+Creating your own FEDn Projects
 ================================================
 
 A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
