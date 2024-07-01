@@ -9,14 +9,14 @@
    :caption: Documentation
    
    quickstart
-   apiclient
    projects
    studio
+   apiclient
    architecture
    aggregators
    helpers
    auth
-   distributed
+   developer
    
 .. toctree::
    :maxdepth: 1
