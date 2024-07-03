@@ -93,7 +93,7 @@ class Control(ControlBase):
         super().__init__(statestore)
         self.name = "DefaultControl"
 
-    def start_session(self, session_id: str, rounds: int) -> None:
+    def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -115,6 +115,9 @@ class Control(ControlBase):
         if not session_config or not isinstance(session_config, dict):
             logger.error("Session not properly configured.")
             return
+
+        if round_timeout is not None:
+            session_config["round_timeout"] = round_timeout
 
         self._state = ReducerState.monitoring
 
@@ -150,6 +153,8 @@ class Control(ControlBase):
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
+
+        self.set_session_config(session_id, session_config)
 
     def session(self, config: RoundConfig) -> None:
         """Execute a new training session. A session consists of one

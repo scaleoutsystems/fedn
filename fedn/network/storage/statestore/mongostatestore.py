@@ -882,6 +882,17 @@ class MongoStateStore:
         """
         self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
 
+    # Added to accomodate new session config structure
+    def set_session_config_v2(self, id: str, config: RoundConfig) -> None:
+        """Set the session configuration.
+
+        :param id: The session id
+        :type id: str
+        :param config: Session configuration
+        :type config: dict
+        """
+        self.sessions.update_one({"session_id": str(id)}, {"$set": {"session_config": config}}, True)
+
     def set_session_status(self, id, status):
         """Set session status.
 
