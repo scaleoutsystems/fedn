@@ -9,7 +9,7 @@ CONTEXT_SETTINGS = dict(
 try:
     version = importlib.metadata.version("fedn")
 except importlib.metadata.PackageNotFoundError:
-    version = 'unknown'
+    version = "unknown"
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version)
 @click.pass_context
