@@ -7,7 +7,7 @@ CONTEXT_SETTINGS = dict(
 
 # Dynamically get the version of the package
 try:
-    version = importlib.metadata.version('fedn')
+    version = importlib.metadata.version("fedn")
 except importlib.metadata.PackageNotFoundError:
     version = 'unknown'
 @click.group(context_settings=CONTEXT_SETTINGS)
