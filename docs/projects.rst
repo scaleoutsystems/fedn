@@ -1,7 +1,10 @@
 .. _projects-label:
 
-Creating your own FEDn Projects
+Building your own projects
 ================================================
+
+This guide explains how a FEDn project is structured, and details how to develop your own
+projects for your own use-cases. 
 
 A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
 a project is a directory of files (often a Git repository), containing your machine learning code, FEDn entry points, and a specification 
@@ -28,9 +31,9 @@ We recommend that projects have roughly the following folder and file structure:
 | └ Dockerfile / docker-compose.yaml
 |
 
-The "client" folder is referred to as the *compute package*. The file fedn.yaml is the FEDn Project File. It informs the FEDn Client of the code entry points to execute when computing model updates (local training) and validating models (optionally) . 
-When deploying the project to FEDn, the client folder will be compressed as a .tgz bundle and uploaded to the FEDn controller. FEDn can then manage the distribution of the compute package to each client/data provider when they connect. 
-Upon recipt of the bundle, the client will unpack it and stage it locally.
+The ``client`` folder is commonly referred to as the *compute package*. The file ``fedn.yaml`` is the FEDn Project File. It contains information about the ``entry points``. The entry points are used by the client to compute model updates (local training) and local validations (optional) . 
+To run a project in FEDn, the client folder is compressed as a .tgz bundle and pushed to the FEDn controller. FEDn then manages the distribution of the compute package to each client. 
+Upon recipt of the package, a client will unpack it and stage it locally.
 
 .. image:: img/ComputePackageOverview.png
    :alt: Compute package overview
@@ -62,11 +65,12 @@ what environment to execute those entrypoints in.
 
 Environment
 ^^^^^^^^^^^
- 
-The software environment to be used to exectute the entry points. This should specify all client side dependencies of the project. 
-FEDn currently supports Virtualenv environments, with packages on PyPI. When a project specifies a **python_env**, the FEDn 
-client will create an isolated virtual environment and install the project dependencies into it before starting up the client.  
 
+It is assumed that all entry points are executable within the client runtime environment. As a user, you have two main options 
+to specify the environment: 
+
+    1. Provide a ``python_env`` in the ``fedn.yaml`` file. In this case, FEDn will create an isolated virtual environment and install the project dependencies into it before starting up the client. FEDn currently supports Virtualenv environments, with packages on PyPI. 
+    2. Manage the environment manually. Here you have several options, such as managing your own virtualenv, running in a Docker container, etc. Remove the ``python_env`` tag from ``fedn.yaml`` to handle the environment manually.  
 
 Entry Points
 ^^^^^^^^^^^^
@@ -75,7 +79,7 @@ There are up to four Entry Points to be specified.
 
 **Build Entrypoint (build, optional):**
 
-This entrypoint is usually called **once** for building artifacts such as initial seed models. However, it not limited to artifacts, and can be used for any kind of setup that needs to be done before the client starts up.
+This entrypoint is intended to be called **once** for building artifacts such as initial seed models. However, it not limited to artifacts, and can be used for any kind of setup that needs to be done before the client starts up.
 
 **Startup Entrypoint (startup, optional):**
 

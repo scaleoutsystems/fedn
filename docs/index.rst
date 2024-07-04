@@ -3,13 +3,13 @@
    :caption: Introduction
    
    introduction
+   quickstart
+   projects
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
    
-   quickstart
-   projects
    studio
    apiclient
    architecture
