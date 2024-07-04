@@ -2,9 +2,6 @@ import os
 
 import yaml
 
-global STATESTORE_CONFIG
-global MODELSTORAGE_CONFIG
-
 SECRET_KEY = os.environ.get("FEDN_JWT_SECRET_KEY", False)
 FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_KEY", False)
 FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE", False)
