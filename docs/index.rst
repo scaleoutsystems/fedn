@@ -10,7 +10,6 @@
    :maxdepth: 1
    :caption: Documentation
    
-   studio
    apiclient
    architecture
    aggregators
