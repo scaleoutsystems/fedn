@@ -1,6 +1,6 @@
 .. _projects-label:
 
-Building your own projects
+Develop your own project
 ================================================
 
 This guide explains how a FEDn project is structured, and details how to develop your own
@@ -44,7 +44,7 @@ The above figure provides a logical view of how FEDn uses the compute package (c
 recieves a model update request, it calls upon a Dispatcher that looks up entry point definitions 
 in the compute package from the FEDn Project File. 
 
-FEDn Project File (fedn.yaml)
+The Project File (fedn.yaml)
 ------------------------------
 
 FEDn uses on a project file named 'fedn.yaml' to specify which entrypoints to execute when the client recieves a training or validation request, and 

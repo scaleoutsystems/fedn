@@ -3,7 +3,7 @@ Getting started with FEDn
 
 .. note::
    This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers. 
-   To learn about FEDn Projects in order to develop your own federated machine learning projects, see :ref:`projects-label`. 
+   To learn how to develop your own project from scratch, see :ref:`projects-label`. 
    
 **Prerequisites**
 
@@ -11,8 +11,8 @@ Getting started with FEDn
 -  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
 
 
-Start a FEDn Studio Project
-----------------------------
+1. Start a FEDn Studio Project
+------------------------------
 
 Start by creating an account in Studio. Head over to `fedn.scaleoutsystems.com/signup <https://fedn.scaleoutsystems.com/signup/>`_  and sign up.
 
@@ -28,8 +28,8 @@ Logged into Studio, do:
 When these steps are complete, you will see a Studio project similar to the above image. The Studio project provides all server side components of FEDn needed to manage 
 federated training. We will use this project in a later stage to run the federated experiments. But first, we will set up the local client.
 
-Install FEDn on your client
-----------------------------
+2. Install FEDn on your client
+-------------------------------
 
 **Using pip**
 
@@ -53,24 +53,23 @@ It is recommended to use a virtual environment when installing FEDn.
 
 .. _package-creation:
 
-
-Create the compute package and seed model
---------------------------------------------
-
 Next, we will prepare the client. For illustrative purposes, we use one of the pre-defined projects in the FEDn repository, ``minst-pytorch``. 
 
-In order to train a federated model using FEDn, your Studio project needs to be initialized with a ``compute package`` and a ``seed model``. The compute package is a code bundle containing the 
-code used by the client to execute local training and local validation. The seed model is a first version of the global model.  
+3. Create the compute package and seed model
+--------------------------------------------
 
+In order to train a federated model using FEDn, your Studio project needs to be initialized with a ``compute package`` and a ``seed model``. The compute package is a code bundle containing the 
+code used by the client to execute local training and local validation. The seed model is a first version of the global model. For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
+ 
 Locate into ``examples/mnist-pytorch`` folder in the cloned fedn repository. The compute package is located in the folder ``client``.
 
-Create a package of the fedn project. Standing in ``examples/mnist-pytorch``: 
+Create a compute package: 
 
 .. code-block::
 
    fedn package create --path client
 
-This will create a package called ``package.tgz`` in the root of the project.
+This will create a file called ``package.tgz`` in the root of the project.
 
 Next, create the seed model: 
 
@@ -78,12 +77,13 @@ Next, create the seed model:
 
    fedn run build --path client
 
-This will create a seed model called ``seed.npz`` in the root of the project. We will now upload these to your Studio project using the FEDn APIClient. 
+This will create a file called ``seed.npz`` in the root of the project. 
 
-For a detailed explaination of the FEDn Project with instructions for how to create your own project, see this guide: :ref:`projects-label`
+Next will now upload these files to your Studio project:  
 
-Initialize your FEDn Studio Project
-------------------------------------
+
+4. Initialize your FEDn Studio Project
+--------------------------------------
 
 In the Studio UI, navigate to the project you created above and click on the "Sessions" tab. Click on the "New Session" button. Under the "Compute package" tab, select a name and upload the generated package file. Under the "Seed model" tab, upload the generated seed file:
 
@@ -110,23 +110,30 @@ Upload the package and seed model using the APIClient:
    >>> client.set_active_model("seed.npz")
 
 
-Configure and attach clients
-----------------------------
+5. Configure and attach clients
+-------------------------------
 
-Each local client needs an access token in order to connect. These tokens are issued from your Studio Project. Go to the Clients' tab and click 'Connect client'.
-Download a client configuration file and save it to the root of the ``examples/mnist-pytorch folder``. Rename the file to 'client.yaml'.
-Then start the client by running the following command:
+**Generate an access token for the client (in Studio)**
+
+Each local client needs an access token in order to connect securely to the FEDn server. These tokens are issued from your Studio Project. 
+Go to the Clients' tab and click 'Connect client'. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch folder``. 
+Rename the file to 'client.yaml'. 
+
+**Start the client (on your local machine)** 
+
+Now we can start the client by running the following command:
 
 .. code-block::
 
    fedn run client -in client.yaml --secure=True --force-ssl
 
-Repeat the above for the number of clients you want to use. A normal laptop should be able to handle several clients for this example.
+Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
+A normal laptop should be able to handle several clients for this example.
 
 **Modifying the data split (multiple-clients, optional):**
 
-The default traning and test data for this example (MNIST) is for convenience downloaded and split by the client when it starts up (see 'startup' entrypoint). 
-The number of splits and which split is used by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
+The default traning and test data for this particular example (mnist-pytorch) is for convenience downloaded and split automatically by the client when it starts up (see the 'startup' entrypoint). 
+The number of splits and which split to use by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
 For example, to split the data in 10 parts and start a client using the 8th partiton:
 
 .. tabs::
@@ -148,20 +155,23 @@ For example, to split the data in 10 parts and start a client using the 8th part
          fedn client start -in client.yaml --secure=True --force-ssl
 
 
-Start a training session
-------------------------
+6. Start a training session
+---------------------------
 
-In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the "Start session" tab and enter your desirable settings (or use default) and hit the "Start run" button. In the terminal where your are running your client you should now see some activity. When the round is completed, you can see the results in the FEDn Studio UI on the "Models" page.
+In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example) and hit the "Start run" button.
+In the terminal where your are running your client you should now see some activity. When a round is completed, you can see the results on the "Models" page.
 
 **Watch the training progress**
 
-Once a training session is started, you can monitor the progress of the training by navigating to "Sessions" and click on the "Open" button of the active session. The session page will list the models as soon as they are generated. To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model weights and get validation metrics.
-
-To get an overview of how the models have evolved over time, navigate to the "Models" tab in the sidebar. Here you can see a list of all models generated across sessions along with a graph showing some metrics of how the models are performing.
+Once a training session is started, you can monitor the progress of the training by navigating to "Sessions" and click on the "Open" button of the active session. The session page will list the models as soon as they are generated. 
+To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model weights and get validation metrics.
 
 .. image:: img/studio_model_overview.png
 
 .. _studio-api:
+
+Congratulations, you have now completed your first federated training session with FEDn! Below you find additional information that can
+be useful as you progress in your federated learning journey.
 
 **Control training sessions using the Python APIClient**
 
@@ -182,8 +192,7 @@ You can also issue training sessions using the APIClient:
 
 Please see :py:mod:`fedn.network.api` for more details on how to use the APIClient. 
 
-Access model updates  
---------------------
+**Downloading global model updates**  
 
 .. note::
    In FEDn Studio, you can access global model updates by going to the 'Models' or 'Sessions' tab. Here you can download model updates, metrics (as csv) and view the model trail.
@@ -197,8 +206,7 @@ You can also access global model updates via the APIClient:
    >>> client.download_model("<model-id>", path="model.npz")
 
 
-Connecting clients using Docker
---------------------------------
+**Connecting clients using Docker**
 
 You can also use Docker to containerize the client. 
 For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalled.
@@ -214,8 +222,7 @@ To start a client using Docker:
      ghcr.io/scaleoutsystems/fedn/fedn:0.10.0 run client -in client.yaml --force-ssl --secure=True
 
 
-Where to go from here?
-------------------------
+**Where to go from here?**
 
 With you first FEDn federated project set up, we suggest that you take a close look at how a FEDn project is structured
 and how you develop your own FEDn projects:
