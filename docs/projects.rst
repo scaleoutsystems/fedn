@@ -63,8 +63,7 @@ what environment to execute those entrypoints in.
             command: python validate.py
 
 
-Environment
-^^^^^^^^^^^
+**Environment**
 
 It is assumed that all entry points are executable within the client runtime environment. As a user, you have two main options 
 to specify the environment: 
@@ -72,14 +71,20 @@ to specify the environment:
     1. Provide a ``python_env`` in the ``fedn.yaml`` file. In this case, FEDn will create an isolated virtual environment and install the project dependencies into it before starting up the client. FEDn currently supports Virtualenv environments, with packages on PyPI. 
     2. Manage the environment manually. Here you have several options, such as managing your own virtualenv, running in a Docker container, etc. Remove the ``python_env`` tag from ``fedn.yaml`` to handle the environment manually.  
 
-Entry Points
-^^^^^^^^^^^^
+**Entry Points**
 
 There are up to four Entry Points to be specified.
 
 **Build Entrypoint (build, optional):**
 
 This entrypoint is intended to be called **once** for building artifacts such as initial seed models. However, it not limited to artifacts, and can be used for any kind of setup that needs to be done before the client starts up.
+
+To invoke the build entrypoint using the CLI: 
+
+.. code-block:: bash
+    fedn build --
+
+
 
 **Startup Entrypoint (startup, optional):**
 
@@ -111,8 +116,7 @@ model on local test/validation data. It should read a model update from file, va
 
  The validate entrypoint is optional. 
 
-Example train entry point
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Example train entry point**
 
 Below is an example training entry point taken from the PyTorch getting stated project. 
 
@@ -206,7 +210,7 @@ using the pytorch helper module. The fifth function (_init_seed) is used to init
 The seventh function (_validate) is used to validate the model, again observe the two first arguments which will be set by the FEDn client.
 
 
-Packaging for distribution
+Build a compute package 
 --------------------------
 To deploy a project to FEDn (Studio or pseudo-local) we simply compress the *client* folder as .tgz file. using fedn command line tool or manually:
 
@@ -227,15 +231,15 @@ by looking at the code above. Here we assume that the dataset is present in a fi
 the exection of entrypoint.py. Then, independent on the preferred way to run the client (native, Docker, K8s etc) this structure needs to be maintained for this particular 
 compute package. Note however, that there are many ways to accompish this on a local operational level.
 
-Testing the entry points before deploying the package to FEDn
---------------------------------------------------------------
+Testing the entry points locally
+---------------------------------
 
-We recommend you to test your code before deploying it to FEDn for distibution to clients. You can conveniently test *train* and *validate* by:
+We recommend you to test your entrypoints locally before uploading the compute package to Studio. You can test *train* and *validate* by (example for the mnist-keras 
+project):
 
 .. code-block:: bash
 
     python train.py ../seed.npz ../model_update.npz --data_path ../data/mnist.npz
     python validate.py ../model_update.npz ../validation.json --data_path ../data/mnist.npz
 
-Once everything works as expected you can start the federated network, upload the .tgz compute package and the initial model (use :py:meth:`fedn.network.api.client.APIClient.set_initial_model` for uploading an initial model). 
-
+Note that we here assume execution in the correct Python environment. 
