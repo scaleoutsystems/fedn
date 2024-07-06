@@ -98,9 +98,7 @@ It is also possible to upload a package and seed model using the Python API Clie
    Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient below.
    The controller host can be found on the main Dashboard in FEDn Studio.
 
-   You can also upload the file via the FEDn Studio UI. Please see :ref:`studio-upload-files` for more details.
-
-Upload the package and seed model using the APIClient:
+To upload the package and seed model using the APIClient:
 
 .. code:: python
 
@@ -223,6 +221,7 @@ To start a client using Docker:
 
 
 **Where to go from here?**
+--------------------------
 
 With you first FEDn federated project set up, we suggest that you take a close look at how a FEDn project is structured
 and how you develop your own FEDn projects:
