@@ -12,8 +12,7 @@ from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, p
 @main.group("combiner")
 @click.pass_context
 def combiner_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
 
 

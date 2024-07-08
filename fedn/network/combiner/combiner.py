@@ -1,24 +1,21 @@
-import base64
 import json
 import queue
 import re
 import signal
-import sys
 import threading
 import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import TypedDict
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
-from fedn.network.combiner.connect import ConnectorCombiner, Status
-from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.grpc.server import Server
-from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
+from fedn.network.combiner.shared import repository, statestore
+from fedn.network.grpc.server import Server, ServerConfig
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -50,6 +47,28 @@ def role_to_proto_role(role):
         return fedn.OTHER
 
 
+class CombinerConfig(TypedDict):
+    """Configuration for the combiner."""
+
+    discover_host: str
+    discover_port: int
+    token: str
+    host: str
+    port: int
+    ip: str
+    parent: str
+    fqdn: str
+    name: str
+    secure: bool
+    verify: bool
+    cert_path: str
+    key_path: str
+    max_clients: int
+    network_id: str
+    logfile: str
+    verbosity: str
+
+
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """Combiner gRPC server.
 
@@ -75,51 +94,54 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.max_clients = config["max_clients"]
 
         # Connector to announce combiner to discover service (reducer)
-        announce_client = ConnectorCombiner(
-            host=config["discover_host"],
-            port=config["discover_port"],
-            myhost=config["host"],
-            fqdn=config["fqdn"],
-            myport=config["port"],
-            token=config["token"],
-            name=config["name"],
-            secure=config["secure"],
-            verify=config["verify"],
-        )
+        # announce_client = ConnectorCombiner(
+        #     host=config["discover_host"],
+        #     port=config["discover_port"],
+        #     myhost=config["host"],
+        #     fqdn=config["fqdn"],
+        #     myport=config["port"],
+        #     token=config["token"],
+        #     name=config["name"],
+        #     secure=config["secure"],
+        #     verify=config["verify"],
+        # )
 
-        while True:
-            # Announce combiner to discover service
-            status, response = announce_client.announce()
-            if status == Status.TryAgain:
-                logger.info(response)
-                time.sleep(5)
-            elif status == Status.Assigned:
-                announce_config = response
-                logger.info("COMBINER {0}: Announced successfully".format(self.id))
-                break
-            elif status == Status.UnAuthorized:
-                logger.info(response)
-                logger.info("Status.UnAuthorized")
-                sys.exit("Exiting: Unauthorized")
-            elif status == Status.UnMatchedConfig:
-                logger.info(response)
-                logger.info("Status.UnMatchedConfig")
-                sys.exit("Exiting: Missing config")
-
-        cert = announce_config["certificate"]
-        key = announce_config["key"]
-
-        if announce_config["certificate"]:
-            cert = base64.b64decode(announce_config["certificate"])  # .decode('utf-8')
-            key = base64.b64decode(announce_config["key"])  # .decode('utf-8')
-
-        # Set up gRPC server configuration
-        grpc_config = {"port": config["port"], "secure": config["secure"], "certificate": cert, "key": key}
+        # while True:
+        #     # Announce combiner to discover service
+        #     status, response = announce_client.announce()
+        #     if status == Status.TryAgain:
+        #         logger.info(response)
+        #         time.sleep(5)
+        #     elif status == Status.Assigned:
+        #         announce_config = response
+        #         logger.info("COMBINER {0}: Announced successfully".format(self.id))
+        #         break
+        #     elif status == Status.UnAuthorized:
+        #         logger.info(response)
+        #         logger.info("Status.UnAuthorized")
+        #         sys.exit("Exiting: Unauthorized")
+        #     elif status == Status.UnMatchedConfig:
+        #         logger.info(response)
+        #         logger.info("Status.UnMatchedConfig")
+        #         sys.exit("Exiting: Missing config")
 
         # Set up model repository
-        self.repository = Repository(announce_config["storage"]["storage_config"])
+        self.repository = repository
 
-        self.statestore = MongoStateStore(announce_config["statestore"]["network_id"], announce_config["statestore"]["mongo_config"])
+        self.statestore = statestore
+
+        from fedn.network.combiner.interfaces import CombinerInterface
+
+        # Add combiner to statestore
+        interface_config = {
+            "port": config["port"],
+            "fqdn": config["fqdn"],
+            "name": config["name"],
+            "address": config["host"],
+            "parent": "localhost",
+            "ip": "",
+        }
+        self.statestore.set_combiner(interface_config)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,
@@ -129,13 +151,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in previous_clients:
             self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
 
-        self.modelservice = ModelService()
+        # Set up gRPC server configuration
+        if config["secure"]:
+            cert = Certificate(key_path=config["key_path"], cert_path=config["cert_path"])
+            certificate, key = cert.get_keypair_raw()
+            grpc_server_config = ServerConfig(port=config["port"], secure=True, key=key, certificate=certificate)
+        else:
+            grpc_server_config = ServerConfig(port=config["port"], secure=False)
 
         # Create gRPC server
-        self.server = Server(self, self.modelservice, grpc_config)
+        self.server = Server(self, grpc_server_config)
 
         # Set up round controller
-        self.round_handler = RoundHandler(self.repository, self, self.modelservice)
+        self.round_handler = RoundHandler(self)
 
         # Start thread for round controller
         threading.Thread(target=self.round_handler.run, daemon=True).start()

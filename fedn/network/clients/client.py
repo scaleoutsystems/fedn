@@ -198,13 +198,7 @@ class Client:
             port = 443
         logger.info(f"Initiating connection to combiner host at: {host}:{port}")
 
-        if combiner_config["certificate"]:
-            logger.info("Utilizing CA certificate for GRPC channel authentication.")
-            secure = True
-            cert = base64.b64decode(combiner_config["certificate"])  # .decode('utf-8')
-            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+        if os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             secure = True
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
@@ -235,8 +229,6 @@ class Client:
         self.modelStub = rpc.ModelServiceStub(channel)
 
         logger.info("Successfully established {} connection to {}:{}".format("secure" if secure else "insecure", host, port))
-
-        logger.info("Using {} compute package.".format(combiner_config["package"]))
 
         self._connected = True
 
@@ -292,9 +284,8 @@ class Client:
         :type config: dict
         :return:
         """
+        pr = PackageRuntime(self.run_path)
         if config["remote_compute_context"]:
-            pr = PackageRuntime(self.run_path)
-
             retval = None
             tries = 10
 
@@ -333,18 +324,8 @@ class Client:
                 logger.error(f"Caught exception: {type(e).__name__}")
 
         else:
-            # TODO: Deprecate
-            dispatch_config = {
-                "entry_points": {
-                    "predict": {"command": "python3 predict.py"},
-                    "train": {"command": "python3 train.py"},
-                    "validate": {"command": "python3 validate.py"},
-                }
-            }
             from_path = os.path.join(os.getcwd(), "client")
-
-            copytree(from_path, self.run_path)
-            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+            self.dispatcher = pr.dispatcher(from_path)
         # Get or create python environment
         activate_cmd = self.dispatcher._get_or_create_python_env()
         if activate_cmd:

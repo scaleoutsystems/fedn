@@ -625,8 +625,13 @@ def list_combiners_data():
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
-if __name__ == "__main__":
+
+def start():
     config = get_controller_config()
     port = config["port"]
     debug = config["debug"]
     app.run(debug=debug, port=port, host="0.0.0.0")
+
+
+if __name__ == "__main__":
+    start()

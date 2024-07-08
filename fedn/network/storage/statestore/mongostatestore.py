@@ -6,7 +6,6 @@ import pymongo
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.log_config import logger
-from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
 
@@ -872,7 +871,7 @@ class MongoStateStore:
         # TODO: Add check if round_id already exists
         self.rounds.insert_one(round_data)
 
-    def set_session_config(self, id: str, config: RoundConfig) -> None:
+    def set_session_config(self, id: str, config) -> None:
         """Set the session configuration.
 
         :param id: The session id
@@ -883,7 +882,7 @@ class MongoStateStore:
         self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
 
     # Added to accomodate new session config structure
-    def set_session_config_v2(self, id: str, config: RoundConfig) -> None:
+    def set_session_config_v2(self, id: str, config) -> None:
         """Set the session configuration.
 
         :param id: The session id
@@ -910,7 +909,7 @@ class MongoStateStore:
         """
         self.rounds.update_one({"round_id": str(data["round_id"])}, {"$push": {"combiners": data}}, True)
 
-    def set_round_config(self, round_id, round_config: RoundConfig):
+    def set_round_config(self, round_id, round_config):
         """Set round configuration.
 
         :param round_id: The round unique identifier
