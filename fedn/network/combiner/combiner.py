@@ -12,7 +12,8 @@ from enum import Enum
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.combiner.connect import ConnectorCombiner, Status
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
@@ -701,9 +702,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def run(self):
         """Start the server."""
         logger.info("COMBINER: {} started, ready for gRPC requests.".format(self.id))
-        try:
-            while True:
-                signal.pause()
-        except (KeyboardInterrupt, SystemExit):
-            pass
+        
+        def handle_signal(signum, frame):
+            logger.warning(f"Received signal {signum}, shutting down gracefully.")
+            self.server.stop(0)  # Add a timeout if necessary
+            logger.warning("Server stopped.")
+            exit(0)
+
+        signal.signal(signal.SIGINT, handle_signal)  # Handle Ctrl-C
+        signal.signal(signal.SIGTERM, handle_signal)  # Handle Docker stop
+        
+        # try:
+        logger.warning("STARTING UP")
+        while True:
+            signal.pause()
+        # except (KeyboardInterrupt, SystemExit):
+        #     pass
         self.server.stop()

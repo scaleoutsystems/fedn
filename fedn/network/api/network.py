@@ -54,7 +54,12 @@ class Network:
                 cert = None
                 key = None
 
-            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, key=key, ip=c["ip"]))
+            if c["status"]:
+                status = c["status"]
+            else:
+                status = "offline"
+
+            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, key=key, ip=c["ip"], status=status))
 
         return combiners
 

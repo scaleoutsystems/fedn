@@ -81,7 +81,7 @@ class CombinerInterface:
     :type config: dict
     """
 
-    def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
+    def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None, status="offline"):
         """Initialize the combiner interface."""
         self.parent = parent
         self.name = name
@@ -91,6 +91,7 @@ class CombinerInterface:
         self.certificate = certificate
         self.key = key
         self.ip = ip
+        self.status = status
 
         if not config:
             self.config = {"max_clients": 8}
@@ -124,6 +125,7 @@ class CombinerInterface:
             "certificate": None,
             "key": None,
             "config": self.config,
+            "status": self.status
         }
 
         if self.certificate:

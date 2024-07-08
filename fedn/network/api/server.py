@@ -1,6 +1,10 @@
 import os
+import threading
+import time
 
+import grpc
 from flask import Flask, jsonify, request
+from grpc_health.v1 import health_pb2, health_pb2_grpc
 
 from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
@@ -625,8 +629,66 @@ def list_combiners_data():
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
+
+def check_health(host, fqdn, port):
+    # Server address and port
+    server_address = f"{fqdn}:{port}"
+
+    # Create the gRPC channel
+    channel = grpc.secure_channel(server_address, grpc.ssl_channel_credentials())
+
+    # Add the metadata
+    metadata = [('grpc-server', host)]
+
+    # Create the health check stub
+    stub = health_pb2_grpc.HealthStub(channel)
+
+    # Create the health check request
+    request = health_pb2.HealthCheckRequest(service='')
+
+    try:
+        # Make the health check request
+        response = stub.Check(request, metadata=metadata)
+        return response.status
+    except grpc.RpcError:
+        print('Health check failed.')
+
+    return 0
+
+
+def monitor_combiners():
+    while True:
+        with app.app_context():
+            try:
+                combiners = control.network.get_combiners()
+                for combiner in combiners:
+                    host = combiner.address
+                    fqdn = combiner.fqdn
+                    try:
+                        status = combiner.status
+                    except:
+                        status = "offline"
+                    port = '443'
+                    if check_health(host, fqdn, port) == 1:
+                        combiner_status = "online"
+                    else:
+                        combiner_status = "offline"
+                    if combiner_status != status:
+                        combiner.status = combiner_status
+                        api.update_combiner(combiner.to_dict())
+
+            except Exception as e:
+                print(f"Error while monitoring combiners: {e}", flush=True)
+
+        time.sleep(5)
+
+
 if __name__ == "__main__":
     config = get_controller_config()
     port = config["port"]
     debug = config["debug"]
+    # Start thread that monitors combiner status
+    monitoring_thread = threading.Thread(target=monitor_combiners, daemon=True)
+    monitoring_thread.start()
+
     app.run(debug=debug, port=port, host="0.0.0.0")

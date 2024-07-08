@@ -10,7 +10,8 @@ from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
-from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
+from fedn.network.combiner.interfaces import (CombinerInterface,
+                                              CombinerUnavailableError)
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -83,13 +84,15 @@ class API:
         :rtype: :class:`flask.Response`
         """
         # Will return list of ObjectId
-        projection = {"name": True, "updated_at": True}
+        projection = {"name": True, "updated_at": True, "status": True}
         response = self.statestore.get_combiners(limit, skip, projection=projection)
         arr = []
         for element in response["result"]:
+            print(element, flush=True)
             obj = {
                 "name": element["name"],
                 "updated_at": element["updated_at"],
+                "status": element["status"]
             }
 
             arr.append(obj)
@@ -552,6 +555,14 @@ class API:
         }
 
         return jsonify(payload)
+
+    def update_combiner(self, combiner):
+        try:
+            self.statestore.set_combiner(combiner)
+        except Exception as e:
+            logger.error(e)
+            return jsonify({"success": False, "message": "Combiner not updated."})
+        return jsonify({"success": True, "message": "Combiner updated."})
 
     def add_client(self, client_id, preferred_combiner, remote_addr, name):
         """Add a client to the network.
