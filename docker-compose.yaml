@@ -78,7 +78,7 @@ services:
       - mongo
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/python fedn/network/api/server.py"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/python fedn controller start"
     ports:
       - 8092:8092
 
