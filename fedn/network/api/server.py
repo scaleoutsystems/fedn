@@ -2,7 +2,6 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
@@ -625,8 +624,3 @@ def list_combiners_data():
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
-if __name__ == "__main__":
-    config = get_controller_config()
-    port = config["port"]
-    debug = config["debug"]
-    app.run(debug=debug, port=port, host="0.0.0.0")
