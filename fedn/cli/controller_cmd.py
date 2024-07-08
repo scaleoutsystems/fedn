@@ -1,7 +1,7 @@
 import click
 from .main import main
-from fedn.network.api.server import app
 from fedn.common.config import get_controller_config
+from fedn.network.api.server import app
 
 @main.group("controller")
 @click.pass_context
