@@ -206,23 +206,6 @@ You can also access global model updates via the APIClient:
    >>> ...
    >>> client.download_model("<model-id>", path="model.npz")
 
-
-**Connecting clients using Docker**
-
-You can also use Docker to containerize the client. 
-For convenience, there is a Docker image hosted on ghrc.io with fedn preinstalled.
-To start a client using Docker: 
-
-.. code-block::
-
-   docker run \
-     -v $PWD/client.yaml:/app/client.yaml \
-     -e FEDN_PACKAGE_EXTRACT_DIR=package \
-     -e FEDN_NUM_DATA_SPLITS=2 \
-     -e FEDN_DATA_PATH=/app/package/data/clients/1/mnist.pt \
-     ghcr.io/scaleoutsystems/fedn/fedn:0.10.0 run client -in client.yaml --force-ssl --secure=True
-
-
 **Where to go from here?**
 --------------------------
 
