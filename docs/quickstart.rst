@@ -56,8 +56,14 @@ Next, we will prepare the client. For illustrative purposes, we use one of the p
 
 In order to train a federated model using FEDn, your Studio project needs to be initialized with a ``compute package`` and a ``seed model``. The compute package is a code bundle containing the 
 code used by the client to execute local training and local validation. The seed model is a first version of the global model. For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
- 
-Locate into ``examples/mnist-pytorch`` folder in the cloned fedn repository. The compute package is located in the folder ``client``.
+
+Clone the FEDn repository:
+
+.. code-block:: bash
+
+   git clone https://github.com/scaleoutsystems/fedn.git
+
+Locate into ``examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
 
 Create a compute package: 
 
