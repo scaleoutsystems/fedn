@@ -12,11 +12,9 @@
 FEDn
 --------
 
-FEDn empowers its users to create federated learning applications that seamlessly transition from local proofs-of-concept to secure distributed deployments. 
+FEDn empowers its users to create federated learning applications that seamlessly transition from proof-of-concepts to secure real-world distributed deployments. Leverage a fully managed service (SaaS) to quickly get started with zero deployment of service-side components. Seamlessly progress towards production by choosing from a range of deployment options, including private cloud and self-managed on your own infrastructure.
 
-Leverage a flexible pseudo-local sandbox to rapidly transition your existing ML project to a federated setting. Test and scale in real-world scenarios using FEDn Studio - a fully managed, secure deployment of all server-side components (SaaS). 
-
-We develop the FEDn framework following these core design principles:
+Core design principles:
 
 -  **Seamless transition from proof-of-concepts to real-world FL**. FEDn has been designed to make the journey from R&D to real-world deployments as smooth as possibe. Develop your federated learning use case in a pseudo-local environment, then deploy it to FEDn Studio (cloud or on-premise) for real-world scenarios. No code change is required to go from development and testing to production. 
 
@@ -30,16 +28,15 @@ We develop the FEDn framework following these core design principles:
 Features
 =========
 
-Core FL framework (this repository): 
+Federated learning: 
 
 - Tiered federated learning architecture enabling massive scalability and resilience. 
 - Support for any ML framework (examples for PyTorch, Tensforflow/Keras and Scikit-learn)
 - Extendable via a plug-in architecture (aggregators, load balancers, object storage backends, databases  etc.)
 - Built-in federated algorithms (FedAvg, FedAdam, FedYogi, FedAdaGrad, etc.)
-- CLI and Python API.
+- UI, CLI and Python API.
 - Implement clients in any language (Python, C++, Kotlin etc.)
 - No open ports needed client-side.
-- Flexible deployment of server-side components using Docker / docker compose.   
 
 
 FEDn Studio - From development to FL in production: 
