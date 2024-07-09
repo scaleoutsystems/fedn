@@ -48,7 +48,12 @@ class Network:
         combiners = []
         for c in data["result"]:
             name = c["name"].upper()
-            if os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}"):
+            # General certificate handling, same for all combiners.
+            if os.environ.get("FEDN_GRPC_CERT_PATH"):
+                with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
+                    cert = f.read()
+            # Specific certificate handling for each combiner.
+            elif os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}"):
                 cert_path = os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}")
                 with open(cert_path, "rb") as f:
                     cert = f.read()
