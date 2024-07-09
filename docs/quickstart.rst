@@ -64,7 +64,7 @@ The following command clones the entire repository but you will only use the exa
 
    git clone https://github.com/scaleoutsystems/fedn.git
 
-Locate into ``examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
+Locate into the ``fedn/examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
 
 Create a compute package: 
 
