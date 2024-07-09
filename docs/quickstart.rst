@@ -16,17 +16,13 @@ Getting started with FEDn
 
 Start by creating an account in Studio. Head over to `fedn.scaleoutsystems.com/signup <https://fedn.scaleoutsystems.com/signup/>`_  and sign up.
 
-Logged into Studio, do: 
+Logged into Studio, create a new project by clicking  on the "New Project" button in the top right corner of the screen.
+You will see a Studio project similar to the image below. The Studio project provides all the necessary server side components of FEDn. 
+We will use this project in a later stage to run the federated experiments. But first, we will set up the local client.
 
-1. Click on the "New Project" button in the top right corner of the screen.
-2. Continue by clicking the "Create button". The FEDn template contains all the services necessary to start a federation.
-3. Enter the project name (mandatory). The project description is optional.
-4. Click the "Create" button to create the project.
 
 .. image:: img/studio_project_overview.png
 
-When these steps are complete, you will see a Studio project similar to the above image. The Studio project provides all server side components of FEDn needed to manage 
-federated training. We will use this project in a later stage to run the federated experiments. But first, we will set up the local client.
 
 2. Install FEDn on your client
 -------------------------------
