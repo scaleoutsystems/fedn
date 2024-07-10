@@ -9,11 +9,10 @@
 .. |pic3| image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn
---------
+FEDn: An enterprise-ready federated learning framework 
+-------------------------------------------------------
 
-We believe that a federated learning framework should be both secure and easy to use. 
-Minimal code change should be needed to progress from the proof-of-concept stage towards production. This is reflected in our core design principles: 
+Our goal is to provide a federated learning framework that is both secure, scalable and easy to use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design principles: 
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.  
 
@@ -25,9 +24,9 @@ Minimal code change should be needed to progress from the proof-of-concept stage
 
 -  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. 
 
-We provide a fully managed deployment free of charge for for testing, academic, and personal use. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
-and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__. 
+We provide a fully managed deployment of all necessary server-side components free of charge for for testing, academic, and personal use. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__. 
 
+Features
 =========
 
 Federated learning: 
