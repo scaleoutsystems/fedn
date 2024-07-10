@@ -12,7 +12,7 @@
 FEDn
 --------
 
-Federated learning aims at increasing data security and privacy in ML. We believe that a federated learning framework should be both secure and easy to use. 
+We believe that a federated learning framework should be both secure and easy to use. 
 Minimal code change should be needed to progress from the proof-of-concept stage towards production. This is reflected in our core design principles: 
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.  
