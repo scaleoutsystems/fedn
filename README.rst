@@ -20,7 +20,7 @@ Core design principles:
 
 -  **Designed for scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
--  **Secure by design.** FL clients do not need to open any ingress ports, facilitating distributed deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients (JWT), providing flexible integration in production environments.   
+-  **Secure by design.** FL clients do not need to open any ingress ports. FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients usign Java Web Tokens (JWT), providing flexible integration in a range of production environments.   
 
 -  **Developer and data scientist friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. Machine learning metrics can be accessed via both a Python API and visualized in an intuitive UI that helps the data scientists analyze and communicate ML-model training progress.
 
