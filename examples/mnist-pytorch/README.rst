@@ -2,9 +2,9 @@ FEDn Project: MNIST (PyTorch)
 -----------------------------
 
 This is an example FEDn Project based on the classic hand-written text recognition dataset MNIST. 
-The example is intented as a minimalistic quickstart.
+The example is intented as a minimalistic quickstart to learn how to use FEDn.
 
-   **Note: We recommend that all new users start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
+   **Note: We recommend that all new users start by taking the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
 
 Prerequisites
 -------------
@@ -47,5 +47,4 @@ This will create a model file 'seed.npz' in the root of the project. This step w
 Running the project on FEDn
 ----------------------------
 
-To set up your FEDn Studio project and connect clients, follow this guide: https://fedn.readthedocs.io/en/latest/studio.html. On the 
-step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
+To learn how to set up your FEDn Studio project and connect clients, take the quickstart tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html. 

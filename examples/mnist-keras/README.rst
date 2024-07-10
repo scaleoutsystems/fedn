@@ -1,7 +1,7 @@
 FEDn Project: Keras/Tensorflow (MNIST) 
 -------------------------------------------
 
-This is a TF/Keras version of the Quickstart Tutorial (PyTorch) FEDn Project. For a step-by-step guide, refer to that tutorial.
+This is a TF/Keras version of the PyTorch Quickstart Tutorial. For a step-by-step guide, refer to that tutorial.
 
    **Note: We recommend all new users to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html**
 
@@ -45,6 +45,5 @@ This step will take a few minutes, depending on hardware and internet connection
 Running the project on FEDn
 ----------------------------
 
-To set up your FEDn Studio project and connect clients, follow this guide: https://fedn.readthedocs.io/en/latest/studio.html. On the 
-step "Upload Files", upload 'package.tgz' and 'seed.npz' created above. 
+To learn how to set up your FEDn Studio project and connect clients, take the quickstart tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html. 
 
