@@ -1,3 +1,4 @@
+.. _developer-label:
 
 Local development
 =================

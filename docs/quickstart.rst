@@ -49,13 +49,14 @@ It is recommended to use a virtual environment when installing FEDn.
 
 .. _package-creation:
 
-Next, we will prepare the client. For illustrative purposes, we use one of the pre-defined projects in the FEDn repository, ``minst-pytorch``. 
+Next, we will prepare the client. We will use one of the pre-defined projects in the FEDn repository, ``mnist-pytorch``. 
 
 3. Create the compute package and seed model
 --------------------------------------------
 
 In order to train a federated model using FEDn, your Studio project needs to be initialized with a ``compute package`` and a ``seed model``. The compute package is a code bundle containing the 
-code used by the client to execute local training and local validation. The seed model is a first version of the global model. For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
+code used by the client to execute local training and local validation. The seed model is a first version of the global model. 
+For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
 
 To work through this quick start you need a local copy of the ``mnist-pytorch`` example project contained in the main FEDn Git repository. 
 The following command clones the entire repository but you will only use the example:
@@ -82,8 +83,12 @@ Next, create the seed model:
 
 This will create a file called ``seed.npz`` in the root of the project. 
 
-Next will now upload these files to your Studio project:  
+.. note::
+   This example automatically creates the runtime environment for the compute package using Virtualenv. 
+   When you first exectue the above commands, FEDn will build a venv, and this takes 
+   a bit of time. For more information on the various options to manage the environement, see :ref:`projects-label`. 
 
+Next will now upload these files to your Studio project:  
 
 4. Initialize your FEDn Studio Project
 --------------------------------------
@@ -99,7 +104,7 @@ It is also possible to upload a package and seed model using the Python API Clie
 .. note:: 
    You need to create an API admin token and use the token to authenticate the APIClient.
    Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient below.
-   The controller host can be found on the main Dashboard in FEDn Studio.
+   The controller host can be found on the main Dashboard in FEDn Studio. More information on the use of the APIClient can be found here: :ref:`apiclient-label.
 
 To upload the package and seed model using the APIClient:
 
@@ -215,6 +220,15 @@ and how you develop your own FEDn projects:
 - :ref:`projects-label`
 
 You can also dive into the architecture overview to learn more about how FEDn is designed and works under the hood: 
+
 - :ref:`architecture-label`
+
+For developers looking to cutomize FEDn and develop own aggregators, check out the local development guide. 
+This page also has instructions for using Docker to run clients: 
+
+- :ref:`developer-label`
+
+
+
 
 
