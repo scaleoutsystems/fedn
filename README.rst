@@ -40,7 +40,7 @@ Federated learning:
 - No open ports needed client-side.
 
 
-FEDn Studio - From development to FL in production: 
+From development to FL in production: 
 
 -  Secure deployment of server-side / control-plane on Kubernetes.
 -  UI with dashboards for orchestrating FL experiments and for visualizing results
