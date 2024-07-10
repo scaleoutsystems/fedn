@@ -1,7 +1,9 @@
 import os
+
 import yaml
 
-from fedn.utils.dist import get_absolute_path
+from fedn.utils.dist import get_package_path
+
 SECRET_KEY = os.environ.get("FEDN_JWT_SECRET_KEY", False)
 FEDN_JWT_CUSTOM_CLAIM_KEY = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_KEY", False)
 FEDN_JWT_CUSTOM_CLAIM_VALUE = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE", False)
@@ -20,10 +22,15 @@ def get_environment_config():
     """Get the configuration from environment variables."""
     global STATESTORE_CONFIG
     global MODELSTORAGE_CONFIG
-    Statestore_absolute_path=get_absolute_path("STATESTORE_CONFIG")
-    modelstorage_absolute_path=get_absolute_path("MODELSTORAGE_CONFIG")
-    STATESTORE_CONFIG = os.environ.get("STATESTORE_CONFIG", Statestore_absolute_path)
-    MODELSTORAGE_CONFIG = os.environ.get("MODELSTORAGE_CONFIG", modelstorage_absolute_path)
+    if not os.environ.get("STATESTORE_CONFIG", False):
+        STATESTORE_CONFIG = get_package_path() + "/common/settings-controller.yaml.template"
+    else:
+        STATESTORE_CONFIG = os.environ.get("STATESTORE_CONFIG")
+
+    if not os.environ.get("MODELSTORAGE_CONFIG", False):
+        MODELSTORAGE_CONFIG = get_package_path() + "/common/settings-controller.yaml.template"
+    else:
+        MODELSTORAGE_CONFIG = os.environ.get("MODELSTORAGE_CONFIG")
 
 
 def get_statestore_config(file=None):

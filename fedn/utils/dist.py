@@ -1,6 +1,7 @@
 import importlib.metadata
-import os
-from pathlib import Path
+
+import fedn
+
 
 def get_version(pacakge):
     # Dynamically get the version of the package
@@ -9,9 +10,8 @@ def get_version(pacakge):
     except importlib.metadata.PackageNotFoundError:
         version = "unknown"
     return version
-def get_absolute_path(env_var):
-    default_path = ".././fedn/config/settings-reducer.yaml.template"
-    file_path = os.environ.get(env_var, default_path)
-    # Resolve the absolute path
-    absolute_file_path = Path(file_path).resolve()
-    return absolute_file_path
+
+
+def get_package_path():
+    # Get the path of the package
+    return fedn.__path__[0]
