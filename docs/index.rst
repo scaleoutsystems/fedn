@@ -4,19 +4,18 @@
    
    introduction
    quickstart
+   projects
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
    
-   studio
-   distributed
    apiclient
-   projects
    architecture
    aggregators
    helpers
    auth
+   developer
    
 .. toctree::
    :maxdepth: 1
