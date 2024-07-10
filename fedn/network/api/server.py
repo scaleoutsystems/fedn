@@ -4,10 +4,12 @@ from flask import Flask, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
-from fedn.network.api.shared import control, statestore
+from fedn.network.api.shared import statestore,control
 from fedn.network.api.v1 import _routes
+from fedn.common.config import get_controller_config
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
+# statestore_config,modelstorage_config,network_id,control=set_statestore_config()
 api = API(statestore, control)
 app = Flask(__name__)
 for bp in _routes:
@@ -624,3 +626,9 @@ def list_combiners_data():
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
+def start_server_api():
+    config = get_controller_config()
+    port = config["port"]
+    debug = config["debug"]
+    host="0.0.0.0"
+    app.run(debug=debug, port=port,host=host)
