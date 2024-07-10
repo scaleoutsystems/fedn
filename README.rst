@@ -23,7 +23,7 @@ Minimal code change should be needed to progress from the proof-of-concept stage
 
 -  **Data-scientist friendly**. A ML-framework agnostic design lets data scientists implement use-cases using their framework of choice. A UI and a Python API enables users to manage complex FL experiments and track metrics in real time.
 
--  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. 
+-  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. 
 
 To lower the server-side complexity for new users we provide a fully managed service (SaaS) free of charge for for testing, academic, and personal use:  https://fedn.scaleoutsystems.com 
 
