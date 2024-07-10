@@ -18,7 +18,7 @@ Core design principles:
 
 -  **Seamless transition from proof-of-concepts to real-world FL**. No code change is required to go from development and testing to production. 
 
--  **Designed for scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. This ensures robust deployments that scale to millions of devices, making FEDn suitable both for cross-silo and cross-device use-cases..
+-  **Designed for scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
 -  **Secure by design.** FL clients do not need to open any ingress ports, facilitating distributed deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients (JWT), providing flexible integration in production environments.   
 
