@@ -16,9 +16,9 @@ FEDn empowers its users to create federated learning applications that seamlessl
 
 Core design principles:
 
--  **Seamless transition from proof-of-concepts to real-world FL**. FEDn has been designed to make the journey from R&D to real-world deployments as smooth as possibe. Develop your federated learning use case in a pseudo-local environment, then deploy it to FEDn Studio (cloud or on-premise) for real-world scenarios. No code change is required to go from development and testing to production. 
+-  **Seamless transition from proof-of-concepts to real-world FL**. No code change is required to go from development and testing to production. 
 
--  **Designed for scalability and resilience.** FEDn enables model aggregation through multiple aggregation servers sharing the workload. A hierarchical architecture makes the framework well suited borh for cross-silo and cross-device use-cases. FEDn seamlessly recover from failures in all critical components, and manages intermittent client-connections, ensuring robust deployment in production environments.
+-  **Designed for scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. This ensures robust deployments that scale to millions of devices, making FEDn suitable both for cross-silo and cross-device use-cases..
 
 -  **Secure by design.** FL clients do not need to open any ingress ports, facilitating distributed deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients (JWT), providing flexible integration in production environments.   
 
