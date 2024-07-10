@@ -12,17 +12,21 @@
 FEDn
 --------
 
-FEDn empowers its users to create federated learning applications that seamlessly transition from proof-of-concepts to secure real-world distributed deployments. Leverage a fully managed service (SaaS) to quickly get started with zero deployment of service-side components. Seamlessly progress towards production by choosing from a range of deployment options, including private cloud and self-managed on your own infrastructure.
+FEDn empowers its users to create federated learning applications that seamlessly transition from proof-of-concepts to secure real-world distributed deployments. 
 
 Core design principles:
 
--  **Seamless transition from proof-of-concepts to real-world FL**. No code change is required to go from development and testing to production. 
+-  **Secure AND easy-to-use.** Federated learning aims to increase security and privacy in ML. FEDn is designed to Leverage a fully managed service (SaaS) to quickly get started with zero deployment of service-side components.     
 
--  **Designed for scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
+-  **Cloud native design**. Minimal code change should be required to go from development and testing to production. By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure.
 
--  **Secure by design.** FL clients do not need to open any ingress ports. FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication and RBAC for FL clients usign Java Web Tokens (JWT), providing flexible integration in a range of production environments.   
+-  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
--  **Developer and data scientist friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. Machine learning metrics can be accessed via both a Python API and visualized in an intuitive UI that helps the data scientists analyze and communicate ML-model training progress.
+-  **Secure by design.** FL clients do not need to open any ingress ports. Secure, industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.   
+
+- **ML-framework agnostic**. Use FEDn with your favorite ML framework. Examples available for  
+
+-  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. Machine learning metrics can be accessed via both a Python API and visualized in an intuitive UI that helps the data scientists analyze and communicate ML-model training progress.
 
 
 Features
@@ -42,14 +46,14 @@ Federated learning:
 FEDn Studio - From development to FL in production: 
 
 -  Secure deployment of server-side / control-plane on Kubernetes.
--  UI with dashboards for orchestrating experiments and visualizing results
+-  UI with dashboards for orchestrating FL experiments and for visualizing results
 -  Team features - collaborate with other users in shared project workspaces. 
 -  Features for the trusted-third party: Manage access to the FL network, FL clients and training progress.
 -  REST API for handling experiments/jobs. 
 -  View and export logging and tracing information. 
 -  Public cloud, dedicated cloud and on-premise deployment options.
 
-Available clients:
+Available client APIs:
 
 - Python client (this repository)
 - C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
