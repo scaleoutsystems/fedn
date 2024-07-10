@@ -16,17 +16,15 @@ FEDn empowers its users to create federated learning applications that seamlessl
 
 Core design principles:
 
--  **Secure AND easy-to-use.** Federated learning aims to increase security and privacy in ML. FEDn is designed to Leverage a fully managed service (SaaS) to quickly get started with zero deployment of service-side components.     
+-  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.  
 
--  **Cloud native design**. Minimal code change should be required to go from development and testing to production. By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure.
+-  **Cloud native.**. Minimal code change should be required to go from development and testing to production. By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure.
 
 -  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
--  **Secure by design.** FL clients do not need to open any ingress ports. Secure, industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.   
+-  **Data-scientist friendly**. A ML-framework agnostic design lets data scientists implement use-cases using their framework of choice. An intuitive UI and a Python API enables managment of complex FL experiments and tracking user-defined metrics in real time.
 
-- **ML-framework agnostic**. Use FEDn with your favorite ML framework. Examples available for  
-
--  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor experiments in real-time, simplifying troubleshooting and auditing. Machine learning metrics can be accessed via both a Python API and visualized in an intuitive UI that helps the data scientists analyze and communicate ML-model training progress.
+-  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor both the system and experiments in real-time, simplifying troubleshooting and auditing. 
 
 
 Features
