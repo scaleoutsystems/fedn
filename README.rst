@@ -12,20 +12,20 @@
 FEDn
 --------
 
-FEDn empowers its users to create federated learning applications that seamlessly transition from proof-of-concepts to secure real-world distributed deployments. 
-
-Core design principles:
+Federated learning aims at increasing data security and privacy in ML. We believe that a federated learning framework should be both secure and easy to use. 
+Minimal code change should be needed to progress from the proof-of-concept stage towards production. This is reflected in our core design principles: 
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (JWT) provides flexible integration in a range of production environments.  
 
--  **Cloud native.**. Minimal code change should be required to go from development and testing to production. By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure.
+-  **Cloud native.** By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure.
 
 -  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
--  **Data-scientist friendly**. A ML-framework agnostic design lets data scientists implement use-cases using their framework of choice. An intuitive UI and a Python API enables managment of complex FL experiments and tracking user-defined metrics in real time.
+-  **Data-scientist friendly**. A ML-framework agnostic design lets data scientists implement use-cases using their framework of choice. A UI and a Python API enables users to manage complex FL experiments and track metrics in real time.
 
 -  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor both the system and experiments in real-time, simplifying troubleshooting and auditing. 
 
+To lower the server-side complexity for new users we provide a fully managed service (SaaS) free of charge for for testing, academic, and personal use:  https://fedn.scaleoutsystems.com 
 
 Features
 =========
