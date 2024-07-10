@@ -93,44 +93,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.role = Role.COMBINER
         self.max_clients = config["max_clients"]
 
-        # Connector to announce combiner to discover service (reducer)
-        # announce_client = ConnectorCombiner(
-        #     host=config["discover_host"],
-        #     port=config["discover_port"],
-        #     myhost=config["host"],
-        #     fqdn=config["fqdn"],
-        #     myport=config["port"],
-        #     token=config["token"],
-        #     name=config["name"],
-        #     secure=config["secure"],
-        #     verify=config["verify"],
-        # )
-
-        # while True:
-        #     # Announce combiner to discover service
-        #     status, response = announce_client.announce()
-        #     if status == Status.TryAgain:
-        #         logger.info(response)
-        #         time.sleep(5)
-        #     elif status == Status.Assigned:
-        #         announce_config = response
-        #         logger.info("COMBINER {0}: Announced successfully".format(self.id))
-        #         break
-        #     elif status == Status.UnAuthorized:
-        #         logger.info(response)
-        #         logger.info("Status.UnAuthorized")
-        #         sys.exit("Exiting: Unauthorized")
-        #     elif status == Status.UnMatchedConfig:
-        #         logger.info(response)
-        #         logger.info("Status.UnMatchedConfig")
-        #         sys.exit("Exiting: Missing config")
-
         # Set up model repository
         self.repository = repository
 
         self.statestore = statestore
-
-        from fedn.network.combiner.interfaces import CombinerInterface
 
         # Add combiner to statestore
         interface_config = {
