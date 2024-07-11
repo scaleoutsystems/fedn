@@ -9,3 +9,4 @@ from .run_cmd import run_cmd  # noqa: F401
 from .session_cmd import session_cmd  # noqa: F401
 from .status_cmd import status_cmd  # noqa: F401
 from .validation_cmd import validation_cmd  # noqa: F401
+from .controller_cmd import controller_cmd  # noqa: F401

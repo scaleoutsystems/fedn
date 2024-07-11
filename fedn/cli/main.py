@@ -1,5 +1,4 @@
-import importlib.metadata
-
+from fedn.utils.dist import get_version
 import click
 
 CONTEXT_SETTINGS = dict(
@@ -7,11 +6,7 @@ CONTEXT_SETTINGS = dict(
     help_option_names=["-h", "--help"],
 )
 
-# Dynamically get the version of the package
-try:
-    version = importlib.metadata.version("fedn")
-except importlib.metadata.PackageNotFoundError:
-    version = "unknown"
+version=get_version("fedn")
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
