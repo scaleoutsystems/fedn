@@ -127,7 +127,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Set the status to offline for previous clients.
         previous_clients = self.statestore.clients.find({"combiner": config["name"]})
         for client in previous_clients:
-            self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
+            try:
+                self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
+            except KeyError:
+                self.statestore.set_client({"name": client["name"], "status": "offline"})
 
         self.modelservice = ModelService()
 
