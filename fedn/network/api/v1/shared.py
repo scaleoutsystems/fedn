@@ -3,10 +3,9 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.api.shared import statestore_config, network_id
+from fedn.network.api.shared import statestore_config,network_id
 
 api_version = "v1"
-
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
 mc.server_info()
 mdb: Database = mc[network_id]
