@@ -1,4 +1,3 @@
-import base64
 import io
 import json
 import os
@@ -11,7 +10,6 @@ import time
 import uuid
 from datetime import datetime
 from io import BytesIO
-from shutil import copytree
 
 import grpc
 import requests
@@ -28,7 +26,6 @@ from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
-from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
