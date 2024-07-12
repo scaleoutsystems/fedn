@@ -1,14 +1,14 @@
 .. _developer-label:
 
-Local development
-=================
+Local development and deployment
+================================
 
 .. note::
    These instructions are for users wanting to set up a local development deployment of FEDn (i.e. without FEDn Studio).
    This requires practical knowledge of Docker and docker-compose. 
 
 Running the FEDn development sandbox (docker-compose)
-=====================================================
+------------------------------------------------------
 
 During development on FEDn, and when working on own aggregators/helpers, it is 
 useful to have a local development setup of the core FEDn services (controller, combiner, database, object store). 
@@ -45,8 +45,7 @@ To connect a native FEDn client, you need to make sure that the combiner service
 One way to achieve this is to edit your '/etc/hosts' and add a line '127.0.0.1  	combiner'. 
 
 Access message logs and validation data from MongoDB  
-====================================================
-
+------------------------------------------------------
 You can access and download event logs and validation data via the API, and you can also as a developer obtain 
 the MongoDB backend data using pymongo or via the MongoExpress interface: 
 
@@ -55,7 +54,7 @@ the MongoDB backend data using pymongo or via the MongoExpress interface:
 Username and password are found in 'docker-compose.yaml'. 
 
 Access global models   
-====================
+------------------------------------------------------
 
 You can obtain global model updates from the 'fedn-models' bucket in Minio: 
 
@@ -64,13 +63,13 @@ You can obtain global model updates from the 'fedn-models' bucket in Minio:
 Username and password are found in 'docker-compose.yaml'. 
 
 Reset the FEDn deployment   
-=========================
+------------------------------------------------------
 
 To purge all data from a deployment incuding all session and round data, access the MongoExpress UI interface and 
 delete the entire ``fedn-network`` collection. Then restart all services. 
 
 Clean up
-========
+------------------------------------------------------
 You can clean up by running 
 
 .. code-block::
@@ -79,7 +78,7 @@ You can clean up by running
 
 
 Connecting clients using Docker:
-================================
+------------------------------------------------------
 
 For convenience, we distribute a Docker image hosted on ghrc.io with FEDn preinstalled. For example, to start a client for the MNIST PyTorch example using Docker
 and FEDN 0.10.0, run this from the example folder:   
@@ -95,7 +94,7 @@ and FEDN 0.10.0, run this from the example folder:
 
 
 Self-managed distributed deployment
-===================================
+------------------------------------------------------
 
 You can use different hosts for the various FEDn services. These instructions shows how to set up FEDn on a **local network** using a single workstation or laptop as 
 the host for the servier-side components, and other hosts or devices as clients. 
@@ -160,9 +159,3 @@ Alternatively updating the `/etc/hosts` file, appending the following lines for 
 
    <host local ip>      api-server
    <host local ip>      combiner
-
-
-Start a training session
-------------------------
-
-After connecting with your clients, you are ready to start training sessions from the host machine.
