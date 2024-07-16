@@ -22,7 +22,7 @@ is able to detect spam emails on the test dataset with high accuracy.
 .. image:: figs/hf_figure.png
    :width: 50%
 
-To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
+To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html 
 
 Prerequisites
 -------------
