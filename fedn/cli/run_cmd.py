@@ -4,10 +4,10 @@ import uuid
 
 import click
 import yaml
+
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
 from fedn.network.clients.client import Client
-from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 from .client_cmd import validate_client_config
@@ -40,15 +40,16 @@ def check_helper_config_file(config):
 @main.group("run")
 @click.pass_context
 def run_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
+
+
 @run_cmd.command("validate")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-i", "--input", required=True, help="Path to input model" )
-@click.option("-o", "--output", required=True,help="Path to write the output JSON containing validation metrics")
+@click.option("-i", "--input", required=True, help="Path to input model")
+@click.option("-o", "--output", required=True, help="Path to write the output JSON containing validation metrics")
 @click.pass_context
-def validate_cmd(ctx, path,input,output):
+def validate_cmd(ctx, path, input, output):
     """Execute 'validate' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -75,12 +76,14 @@ def validate_cmd(ctx, path,input,output):
     if dispatcher.python_env_path:
         logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
+
+
 @run_cmd.command("train")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-i", "--input", required=True, help="Path to input model parameters" )
-@click.option("-o", "--output", required=True,help="Path to write the updated model parameters ")
+@click.option("-i", "--input", required=True, help="Path to input model parameters")
+@click.option("-o", "--output", required=True, help="Path to write the updated model parameters ")
 @click.pass_context
-def train_cmd(ctx, path,input,output):
+def train_cmd(ctx, path, input, output):
     """Execute 'train' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -107,6 +110,8 @@ def train_cmd(ctx, path,input,output):
     if dispatcher.python_env_path:
         logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
+
+
 @run_cmd.command("startup")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.pass_context
@@ -137,6 +142,7 @@ def startup_cmd(ctx, path):
     if dispatcher.python_env_path:
         logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
+
 
 @run_cmd.command("build")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
@@ -319,6 +325,8 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
         apply_config(init, config)
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
+
+    from fedn.network.combiner.combiner import Combiner
 
     combiner = Combiner(config)
     combiner.run()
