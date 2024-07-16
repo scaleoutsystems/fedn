@@ -9,7 +9,7 @@ In short, FedSimSiam trains an encoder to learn useful feature embeddings for im
 After the self-supervised training stage, the resulting encoder can be downloaded and trained for a downstream task (e.g., image classification) via supervised learning on labeled data.
 To learn more about self-supervised learning and FedSimSiam, have a look at our blog-post: https://www.scaleoutsystems.com/post/federated-self-supervised-learning-and-autonomous-driving
 
-To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
+To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html
 
 **Note: To be able to run this example, you need to have GPU access.**
 
