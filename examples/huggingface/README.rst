@@ -1,7 +1,7 @@
 Hugging Face Transformer Example
 --------------------------------
 
-   **Note: If you are new to FEDn, we recommend that you start with the mnist-pytorch example: https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch
+   **Note: If you are new to FEDn, we recommend that you start with the mnist-pytorch example: https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch**
 
 This is an example project that demonstrates how one can make use of the Hugging Face Transformers library in FEDn.
 In this example, a pre-trained BERT-tiny model from Hugging Face is fine-tuned to perform spam detection 
