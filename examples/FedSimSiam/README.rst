@@ -3,14 +3,15 @@
 FEDn Project: FedSimSiam on CIFAR-10
 ------------------------------------
 
-This is an example FEDn Project that trains the federated self-supervised learning algorithm FedSimSiam :cite:`simsiam` on 
+This is an example FEDn Project that trains the federated self-supervised learning algorithm FedSimSiam on 
 the CIFAR-10 dataset. CIFAR-10 is a popular benchmark dataset that contains images of 10 different classes, such as cars, dogs, and ships.
 In short, FedSimSiam trains an encoder to learn useful feature embeddings for images, without the use of labels. 
 After the self-supervised training stage, the resulting encoder can be downloaded and trained for a downstream task (e.g., image classification) via supervised learning on labeled data.
 To learn more about self-supervised learning and FedSimSiam, have a look at our blog-post: https://www.scaleoutsystems.com/post/federated-self-supervised-learning-and-autonomous-driving
 
 To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html** 
-   **Note: To be able to run this example, you need to have GPU access.**
+
+**Note: To be able to run this example, you need to have GPU access.**
 
 Prerequisites
 -------------
@@ -68,5 +69,3 @@ indicating that the training of FedSimSiam is proceeding as intended.
 
 .. image:: figs/fedsimsiam_monitoring.png
    :width: 50%
-
-.. [simsiam] Chen, Xinlei and He, Kaiming. *Exploring Simple Siamese Representation Learning*. In: 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). 2021, pp. 15745–15753. doi: 10.1109/CVPR46437.2021.01549.
