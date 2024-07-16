@@ -88,7 +88,6 @@ class API:
         response = self.statestore.get_combiners(limit, skip, projection=projection)
         arr = []
         for element in response["result"]:
-            print(element, flush=True)
             obj = {
                 "name": element["name"],
                 "updated_at": element["updated_at"],

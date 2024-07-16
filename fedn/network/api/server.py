@@ -631,19 +631,10 @@ if custom_url_prefix:
 
 
 def check_health(host, fqdn, port):
-    # Server address and port
     server_address = f"{fqdn}:{port}"
-
-    # Create the gRPC channel
     channel = grpc.secure_channel(server_address, grpc.ssl_channel_credentials())
-
-    # Add the metadata
     metadata = [('grpc-server', host)]
-
-    # Create the health check stub
     stub = health_pb2_grpc.HealthStub(channel)
-
-    # Create the health check request
     request = health_pb2.HealthCheckRequest(service='')
 
     try:
