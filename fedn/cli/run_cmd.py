@@ -47,8 +47,9 @@ def run_cmd(ctx):
 
 @run_cmd.command("startup")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-p", "--venv", default=True,is_flag=True,required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
-def startup_cmd(ctx, path):
+def startup_cmd(ctx, path,venv):
     """Execute 'startup' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -70,16 +71,16 @@ def startup_cmd(ctx, path):
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("startup")
-
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+    if venv:
+        # delete the virtualenv
+        if dispatcher.python_env_path:
+            logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+            shutil.rmtree(dispatcher.python_env_path)
 
 @run_cmd.command("build")
-@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-p", "--venv", default=True,is_flag=True,required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
-def build_cmd(ctx, path):
+def build_cmd(ctx, path,venv):
     """Execute 'build' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -101,11 +102,11 @@ def build_cmd(ctx, path):
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("build")
-
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+    if venv:
+        # delete the virtualenv
+        if dispatcher.python_env_path:
+            logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+            shutil.rmtree(dispatcher.python_env_path)
 
 
 @run_cmd.command("client")
