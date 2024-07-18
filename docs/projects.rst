@@ -4,7 +4,7 @@ Develop your own project
 ================================================
 
 This guide explains how a FEDn project is structured, and details how to develop your own
-projects for your own use-cases. 
+projects. 
 
 A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
 a project is a directory of files (often a Git repository), containing your machine learning code, FEDn entry points, and a specification 
@@ -71,11 +71,12 @@ to specify the environment:
     1. Provide a ``python_env`` in the ``fedn.yaml`` file. In this case, FEDn will create an isolated virtual environment and install the project dependencies into it before starting up the client. FEDn currently supports Virtualenv environments, with packages on PyPI. 
     2. Manage the environment manually. Here you have several options, such as managing your own virtualenv, running in a Docker container, etc. Remove the ``python_env`` tag from ``fedn.yaml`` to handle the environment manually.  
 
-**Entry Points**
+Entry Points
+-------------
 
 There are up to four Entry Points to be specified.
 
-**Build Entrypoint (build, optional):**
+**build (optional):**
 
 This entrypoint is intended to be called **once** for building artifacts such as initial seed models. However, it not limited to artifacts, and can be used for any kind of setup that needs to be done before the client starts up.
 
@@ -85,16 +86,14 @@ To invoke the build entrypoint using the CLI:
     fedn build --
 
 
-
-**Startup Entrypoint (startup, optional):**
-
+**startup (optional):**
 
 This entrypoint is called **once**, immediately after the client starts up and the environment has been initalized. 
 It can be used to do runtime configurations of the local execution environment. For example, in the quickstart tutorial example, 
 the startup entrypoint invokes a script that downloads the MNIST dataset and creates a partition to be used by that client. 
 This is a convenience useful for automation of experiments and not all clients will specify such a script. 
 
-**Training Entrypoint (train, mandatory):** 
+**train (mandatory):** 
 
 This entrypoint is invoked every time the client recieves a new model update request. The training entry point must be a single-input single-output (SISO) program. It will be invoked by FEDn as such: 
 
@@ -105,7 +104,7 @@ This entrypoint is invoked every time the client recieves a new model update req
 where 'model_in' is the file containing the current global model to be updated, and 'model_out' is a path to write the new model update to.
 Download and upload of these files are handled automatically by the FEDn client, the user only specifies how to read and parse the data contained in them (see examples) . 
 
-**Validation Entrypoint (validate, optional):** 
+**validate (optional):** 
 
 The validation entry point works in a similar was as the trainig entrypoint. It can be used to specify how a client should validate the current global
 model on local test/validation data. It should read a model update from file, validate it (in any way suitable to the user), and write  a **json file** containing validation data:
