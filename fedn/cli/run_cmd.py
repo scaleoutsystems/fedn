@@ -142,6 +142,7 @@ def startup_cmd(ctx, path,venv):
             shutil.rmtree(dispatcher.python_env_path)
 
 @run_cmd.command("build")
+@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.option("-v", "--venv", default=True,type=bool,required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
 def build_cmd(ctx, path,venv):
