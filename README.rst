@@ -16,7 +16,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **ML-framework agnostic**. A black-box client-side design lets data scientists implement use-cases using their framework of choice. 
 
--  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide both a A UI and a Python API to help users manage FL experiments and track metrics in real time.
+-  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide both a UI and a Python API to help users manage FL experiments and track metrics in real time.
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
 
