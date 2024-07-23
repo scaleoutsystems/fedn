@@ -14,7 +14,7 @@ FEDn: An enterprise-ready federated learning framework
 
 Our goal is to provide a federated learning framework that is both secure, scalable and easy-to-use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
 
--  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide both a UI, a REST API and a Python interface to help users manage FL experiments and track metrics in real time.
+-  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide a UI, REST API and a Python interface to help users manage FL experiments and track metrics in real time.
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
 
@@ -24,7 +24,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
--  **Developer friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. 
+-  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
 
 We provide a fully managed deployment for testing, academic, and personal use. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
 
