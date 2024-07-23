@@ -18,7 +18,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
 
--  **ML-framework agnostic**. A black-box client-side architecture lets data scientists implement use-cases using their framework of choice. 
+-  **ML-framework agnostic**. A black-box client-side architecture lets data scientists using their framework of choice. 
 
 -  **Cloud native.** By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure. 
 
