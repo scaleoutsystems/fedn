@@ -64,11 +64,11 @@ Getting started
 
 Get started with FEDn in two steps:  
 
-1. Sign up for a `Free FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
+1. Register for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
 2. Take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
 
-FEDn Studio (SaaS) is free for academic use and personal development / small-scale testing and exploration. For users and teams requiring
-additional project resources, dedicated support or other hosting options, `explore our plans <https://www.scaleoutsystems.com/start#pricing>`__.  
+Use of our multi-tenant, managed deployment of FEDn Studio (SaaS) is free forever for academic research and personal development/testing purposes.
+For users and teams requiring additional resources, more storage and cpu, dedicated support, and other hosting options (private cloud, on-premise), `explore our plans <https://www.scaleoutsystems.com/start#pricing>`__.  
 
 Documentation
 =============
