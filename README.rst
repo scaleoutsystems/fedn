@@ -12,13 +12,13 @@
 FEDn: An enterprise-ready federated learning framework 
 -------------------------------------------------------
 
-Our goal is to provide a federated learning framework that is both secure, scalable and easy-to-use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design principles: 
+Our goal is to provide a federated learning framework that is both secure, scalable and easy-to-use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
 
 -  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide both a UI, a REST API and a Python interface to help users manage FL experiments and track metrics in real time.
 
--  **ML-framework agnostic**. A black-box client-side design lets data scientists implement use-cases using their framework of choice. 
-
 -  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
+
+-  **ML-framework agnostic**. A black-box client-side design lets data scientists implement use-cases using their framework of choice. 
 
 -  **Cloud native.** By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure. 
 
