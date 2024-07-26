@@ -87,6 +87,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
+      - HOOK_SERVICE_HOST=hook:12081
     build:
       context: .
       args:
@@ -112,6 +113,35 @@ services:
       retries: 5
     depends_on:
       - api-server
+      - hooks
+  # Hooks
+  hooks:
+    container_name: hook
+    environment:
+      - GET_HOSTS_FROM=dns
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn hooks start"
+    ports:
+      - 12081:12081
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/grpc_health_probe",
+          "-addr=localhost:12081"
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
 
   # Client
   client:
