@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
+from fedn.network.combiner.hook_client import CombinerHookClient
 from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
@@ -93,6 +94,12 @@ class RoundHandler:
 
     def set_aggregator(self, aggregator):
         self.aggregator = get_aggregator(aggregator, self.storage, self.server, self.modelservice, self)
+
+    def set_function_provider(self):
+        if not hasattr(self, "function_provider_code") or self.function_provider_code is None:
+            raise Exception("Custom function provider code need to be set.")
+        self.combiner_hook_client = CombinerHookClient()
+        self.combiner_hook_client.set_function_provider(self.function_provider_code)
 
     def push_round_config(self, round_config: RoundConfig) -> str:
         """Add a round_config (job description) to the inbox.

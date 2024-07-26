@@ -161,6 +161,8 @@ class Control(ControlBase):
 
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(config["aggregator"])
+            if config["function_provider"] is not None:
+                combiner.set_function_provider(config["function_provider"])
 
         self.set_session_status(config["session_id"], "Started")
         # Execute the rounds in this session

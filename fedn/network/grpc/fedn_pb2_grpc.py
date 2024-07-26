@@ -128,6 +128,11 @@ class ControlStub(object):
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
+        self.SetFunctionProvider = channel.unary_unary(
+                '/fedn.Control/SetFunctionProvider',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                )
 
 
 class ControlServicer(object):
@@ -157,6 +162,12 @@ class ControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SetFunctionProvider(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ControlServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -177,6 +188,11 @@ def add_ControlServicer_to_server(servicer, server):
             ),
             'SetAggregator': grpc.unary_unary_rpc_method_handler(
                     servicer.SetAggregator,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'SetFunctionProvider': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetFunctionProvider,
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
@@ -253,6 +269,23 @@ class Control(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/fedn.Control/SetAggregator',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SetFunctionProvider(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/SetFunctionProvider',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -708,5 +741,66 @@ class Combiner(object):
         return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelValidation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class FunctionServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.ExecuteFunction = channel.unary_unary(
+                '/fedn.FunctionService/ExecuteFunction',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.FromString,
+                )
+
+
+class FunctionServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def ExecuteFunction(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_FunctionServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'ExecuteFunction': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExecuteFunction,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'fedn.FunctionService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class FunctionService(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def ExecuteFunction(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.FunctionService/ExecuteFunction',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

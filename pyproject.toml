@@ -45,7 +45,8 @@ dependencies = [
   "grpcio-health-checking~=1.60.0",
   "pyyaml",
   "plotly",
-  "virtualenv"
+  "virtualenv",
+  "restrictedpython==7.1"
 ]
 
 [project.urls]

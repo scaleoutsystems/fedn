@@ -194,6 +194,7 @@ service Control {
   rpc Stop(ControlRequest) returns (ControlResponse);
   rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
   rpc SetAggregator(ControlRequest) returns (ControlResponse);
+  rpc SetFunctionProvider(ControlRequest) returns (ControlResponse);
 }
 
 service Reducer {
@@ -243,3 +244,21 @@ service Combiner {
 
 }
 
+message FunctionRequest {
+  string task = 1;
+  oneof payload {
+    string payload_string = 2;
+    bytes payload_bytes = 3;
+  }
+}
+
+message FunctionResponse {
+  oneof result {
+    string result_string = 2;
+    bytes result_bytes = 3;
+  }
+}
+
+service FunctionService {
+  rpc ExecuteFunction(FunctionRequest) returns (FunctionResponse);
+}

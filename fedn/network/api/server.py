@@ -5,9 +5,8 @@ from flask import Flask, jsonify, request
 from fedn.common.config import get_controller_config
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
+from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
-from fedn.network.api.shared import statestore, control
-
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
