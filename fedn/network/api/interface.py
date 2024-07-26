@@ -1,11 +1,11 @@
 import base64
 import copy
-import os
 import threading
 import uuid
 from io import BytesIO
 
 from flask import jsonify, send_from_directory
+from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
 from fedn.common.config import get_controller_config, get_network_config
@@ -14,7 +14,6 @@ from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavaila
 from fedn.network.combiner.modelservice import load_model_from_BytesIO
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
-from fedn.utils.plots import Plot
 
 __all__ = ("API",)
 
@@ -233,7 +232,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = os.path.join("/app/client/package/", storage_file_name)
+        file_path = safe_join("/app/client/package/", storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -378,7 +377,7 @@ class API:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = os.path.join("/app/client/package/", name)
+                file_path = safe_join("/app/client/package/", name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
@@ -400,7 +399,7 @@ class API:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = os.path.join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = safe_join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
@@ -555,7 +554,7 @@ class API:
 
         return jsonify(payload)
 
-    def add_client(self, client_id, preferred_combiner, remote_addr):
+    def add_client(self, client_id, preferred_combiner, remote_addr, name):
         """Add a client to the network.
 
         :param client_id: The client id to add.
@@ -601,7 +600,8 @@ class API:
                 )
 
         client_config = {
-            "name": client_id,
+            "client_id": client_id,
+            "name": name,
             "combiner_preferred": preferred_combiner,
             "combiner": combiner.name,
             "ip": remote_addr,
@@ -627,8 +627,6 @@ class API:
             "certificate": cert,
             "helper_type": self.control.statestore.get_helper(),
         }
-        logger.info(f"Sending payload: {payload}")
-
         return jsonify(payload)
 
     def get_initial_model(self):
@@ -664,7 +662,7 @@ class API:
             self.control.commit(file.filename, model)
         except Exception as e:
             logger.debug(e)
-            return jsonify({"success": False, "message": e})
+            return jsonify({"success": False, "message": "Failed to add initial model."})
 
         return jsonify({"success": True, "message": "Initial model added successfully."})
 
@@ -907,30 +905,6 @@ class API:
             if success:
                 payload["checksum"] = checksum_str
         return jsonify(payload)
-
-    def get_plot_data(self, feature=None):
-        """Get plot data.
-
-        :return: The plot data as json response.
-        :rtype: :py:class:`flask.Response`
-        """
-        plot = Plot(self.control.statestore)
-
-        try:
-            valid_metrics = plot.fetch_valid_metrics()
-            feature = feature or valid_metrics[0]
-            box_plot = plot.create_box_plot(feature)
-        except Exception as e:
-            valid_metrics = None
-            box_plot = None
-            logger.debug(e)
-
-        result = {
-            "valid_metrics": valid_metrics,
-            "box_plot": box_plot,
-        }
-
-        return jsonify(result)
 
     def list_combiners_data(self, combiners):
         """Get combiners data.

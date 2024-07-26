@@ -149,6 +149,7 @@ enum Role {
 message Client {
   Role role = 1;
   string name = 2;
+  string client_id = 3;
 }
 
 message ReassignRequest {

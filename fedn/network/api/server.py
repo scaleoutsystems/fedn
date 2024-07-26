@@ -9,6 +9,7 @@ from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
+# statestore_config,modelstorage_config,network_id,control=set_statestore_config()
 api = API(statestore, control)
 app = Flask(__name__)
 for bp in _routes:
@@ -568,8 +569,10 @@ def add_combiner():
     remote_addr = request.remote_addr
     try:
         response = api.add_combiner(**json_data, remote_addr=remote_addr)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -588,8 +591,10 @@ def add_client():
     remote_addr = request.remote_addr
     try:
         response = api.add_client(**json_data, remote_addr=remote_addr)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -611,8 +616,10 @@ def list_combiners_data():
 
     try:
         response = api.list_combiners_data(combiners)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
+    except TypeError:
+        return jsonify({"success": False, "message": "Invalid data provided"}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
 
@@ -620,25 +627,13 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
 
-@app.route("/get_plot_data", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_plot_data():
-    """Get plot data from the statestore.
-    rtype: json
-    """
-    try:
-        feature = request.args.get("feature", None)
-        response = api.get_plot_data(feature=feature)
-    except TypeError as e:
-        return jsonify({"success": False, "message": str(e)}), 400
-    return response
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_plot_data", view_func=get_plot_data, methods=["GET"])
-
-if __name__ == "__main__":
+def start_server_api():
     config = get_controller_config()
     port = config["port"]
     debug = config["debug"]
-    app.run(debug=debug, port=port, host="0.0.0.0")
+    host = "0.0.0.0"
+    app.run(debug=debug, port=port, host=host)
+
+
+if __name__ == "__main__":
+    start_server_api()

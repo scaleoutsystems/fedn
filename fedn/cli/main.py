@@ -1,3 +1,4 @@
+from fedn.utils.dist import get_version
 import click
 
 CONTEXT_SETTINGS = dict(
@@ -5,10 +6,12 @@ CONTEXT_SETTINGS = dict(
     help_option_names=["-h", "--help"],
 )
 
+version=get_version("fedn")
+
 
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(version)
 @click.pass_context
 def main(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     ctx.obj = dict()

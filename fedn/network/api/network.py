@@ -113,10 +113,10 @@ class Network:
         :type client: dict
         :return: None
         """
-        if self.get_client(client["name"]):
+        if self.get_client(client["client_id"]):
             return
 
-        logger.info("adding client {}".format(client["name"]))
+        logger.info("adding client {}".format(client["client_id"]))
         self.statestore.set_client(client)
 
     def get_client(self, name):

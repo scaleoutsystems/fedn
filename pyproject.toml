@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.9.6"
+version = "0.11.1"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"
@@ -46,7 +46,7 @@ dependencies = [
   "pyyaml",
   "plotly",
   "virtualenv",
-  "restrictedpython==7.1"
+  "tenacity!=8.4.0",
 ]
 
 [project.urls]

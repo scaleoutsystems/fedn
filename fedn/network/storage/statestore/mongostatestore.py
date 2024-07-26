@@ -81,6 +81,7 @@ class MongoStateStore:
 
     def init_index(self):
         self.package.create_index([("id", pymongo.DESCENDING)])
+        self.clients.create_index([("client_id", pymongo.DESCENDING)])
 
     def is_inited(self):
         """Check if the statestore is intialized.
@@ -167,6 +168,17 @@ class MongoStateStore:
         :rtype: ObjectID
         """
         return self.sessions.find_one({"session_id": session_id})
+
+    def get_session_status(self, session_id):
+        """Get the session status.
+
+        :param session_id: The session id.
+        :type session_id: str
+        :return: The session status.
+        :rtype: str
+        """
+        session = self.sessions.find_one({"session_id": session_id})
+        return session["status"]
 
     def set_latest_model(self, model_id, session_id=None):
         """Set the latest model id.
@@ -726,18 +738,24 @@ class MongoStateStore:
         :return:
         """
         client_data["updated_at"] = str(datetime.now())
-        self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+        try:
+            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
+        except KeyError:
+            # If client_id is not present, use name as identifier, for backwards compatibility
+            id = str(uuid.uuid4())
+            client_data["client_id"] = id
+            self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
 
-    def get_client(self, name):
-        """Get client by name.
+    def get_client(self, client_id):
+        """Get client by client_id.
 
-        :param name: name of client to get.
-        :type name: str
+        :param client_id: client_id of client to get.
+        :type client_id: str
         :return: The client. None if not found.
         :rtype: ObjectId
         """
         try:
-            ret = self.clients.find({"key": name})
+            ret = self.clients.find({"key": client_id})
             if list(ret) == []:
                 return None
             else:
@@ -870,6 +888,17 @@ class MongoStateStore:
         """
         self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
 
+    # Added to accomodate new session config structure
+    def set_session_config_v2(self, id: str, config: RoundConfig) -> None:
+        """Set the session configuration.
+
+        :param id: The session id
+        :type id: str
+        :param config: Session configuration
+        :type config: dict
+        """
+        self.sessions.update_one({"session_id": str(id)}, {"$set": {"session_config": config}}, True)
+
     def set_session_status(self, id, status):
         """Set session status.
 
@@ -925,7 +954,7 @@ class MongoStateStore:
         :return: None
         """
         datetime_now = datetime.now()
-        filter_query = {"name": {"$in": clients}}
+        filter_query = {"client_id": {"$in": clients}}
 
         update_query = {"$set": {"last_seen": datetime_now, "status": status}}
         self.clients.update_many(filter_query, update_query)

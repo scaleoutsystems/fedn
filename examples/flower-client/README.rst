@@ -47,10 +47,10 @@ a FEDn network. Here you have two main options: using FEDn Studio
 (recommended for new users), or a self-managed pseudo-distributed deployment
 on your own machine. 
 
-If you are using FEDn Studio (recommended):
+Using FEDn Studio:
 -------------------------------------------
 
-Follow instructions here to register for Studio and start a project: https://fedn.readthedocs.io/en/stable/studio.html.
+Follow instructions here to register for Studio and start a project: https://fedn.readthedocs.io/en/stable/quickstart.html.
 
 In your Studio project: 
 
@@ -73,47 +73,13 @@ Or, if you prefer to use Docker (this might take a long time):
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
    -e FEDN_PACKAGE_EXTRACT_DIR=package \
-   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml --secure=True --force-ssl
-
-
-If you are running FEDn in local development mode:
---------------------------------------------------
-
-Deploy a FEDn network on local host (see `https://fedn.readthedocs.io/en/stable/quickstart.html#local-development-deployment-using-docker-compose`). 
-
-Use the FEDn API Client to initalize FEDn with the compute package and seed model: 
-
-.. code-block::
-
-   python init_fedn.py
-
-Create a file 'client.yaml' with the following content: 
-
-.. code-block::
-   
-   network_id: fedn-network
-   discover_host: api-server
-   discover_port: 8092
-   name: myclient
-
-Then start the client (using Docker)
-
-.. code-block::
-
-   docker run \
-   -v $PWD/client.yaml:/app/client.yaml \
-   --network=fedn_default \
-   -e CLIENT_NUMBER=0 \
-   -e FEDN_PACKAGE_EXTRACT_DIR=package \
-   ghcr.io/scaleoutsystems/fedn/fedn:0.9.0 run client -in client.yaml
-
+   ghcr.io/scaleoutsystems/fedn/fedn:0.11.1 run client -in client.yaml --secure=True --force-ssl
 
 Scaling to multiple clients
 ------------------------------------------------------------------
 
-To scale the experiment with additional clients on the same host, execute the run command
-again from another terminal. If running from another host, add another 'client.yaml', install 
-fedn, and execute the run command. In both cases inject a client number as an environment 
+To scale the experiment with additional clients on the same host, generate another 'client.yaml' and execute the run command
+again from another terminal. Inject a client number as an environment 
 varible which is used for distributing data (see 'flwr_task.py').
 
 For Unix Operating Systems:

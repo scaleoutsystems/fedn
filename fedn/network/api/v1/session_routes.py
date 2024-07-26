@@ -3,11 +3,14 @@ import threading
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
+from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
+
 from .model_routes import model_store
-from fedn.network.api.shared import control
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -97,8 +100,8 @@ def get_sessions():
         response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -175,8 +178,8 @@ def list_sessions():
         response = {"count": sessions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["GET"])
@@ -216,8 +219,8 @@ def get_sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/count", methods=["POST"])
@@ -261,8 +264,8 @@ def sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/<string:id>", methods=["GET"])
@@ -304,10 +307,10 @@ def get_session(id: str):
         response = session
 
         return jsonify(response), 200
-    except EntityNotFound as e:
-        return jsonify({"message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/", methods=["POST"])
@@ -349,8 +352,20 @@ def post():
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+def _get_number_of_available_clients():
+    result = 0
+    for combiner in control.network.get_combiners():
+        try:
+            nr_active_clients = len(combiner.list_active_clients())
+            result = result + int(nr_active_clients)
+        except CombinerUnavailableError:
+            return 0
+
+    return result
 
 
 @bp.route("/start", methods=["POST"])
@@ -366,25 +381,152 @@ def start_session():
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
+        round_timeout: int = data.get("round_timeout", None)
 
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
-
-        if not rounds or rounds == "":
-            return jsonify({"message": "Rounds is required"}), 400
-
-        if not isinstance(rounds, int):
-            return jsonify({"message": "Rounds must be an integer"}), 400
 
         session = session_store.get(session_id, use_typing=False)
 
         session_config = session["session_config"]
         model_id = session_config["model_id"]
+        min_clients = session_config["clients_required"]
+
+        if control.state() == ReducerState.monitoring:
+            return jsonify({"message": "A session is already running."})
+
+        if not rounds or not isinstance(rounds, int):
+            rounds = session_config["rounds"]
+        nr_available_clients = _get_number_of_available_clients()
+
+        if nr_available_clients < min_clients:
+            return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
         _ = model_store.get(model_id, use_typing=False)
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds)).start()
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 
         return jsonify({"message": "Session started"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+@bp.route("/<string:id>", methods=["PATCH"])
+@jwt_auth_required(role="admin")
+def patch_session(id: str):
+    """Patch session
+    Updates a session based on the provided id. Only the fields that are present in the request will be updated.
+    ---
+    tags:
+        - Sessions
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or session property of the session
+        - name: session
+            in: body
+            required: true
+            type: object
+            description: The session data to update
+    responses:
+        200:
+            description: The updated session
+            schema:
+                $ref: '#/definitions/Session'
+        404:
+            description: The session was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        session = session_store.get(id, use_typing=False)
+
+        data = request.get_json()
+        _id = session["id"]
+
+        # Update the session with the new data
+        # Only update the fields that are present in the request
+        for key, value in data.items():
+            if key in ["_id", "session_id"]:
+                continue
+            session[key] = value
+
+        success, message = session_store.update(_id, session)
+
+        if success:
+            response = session
+            return jsonify(response), 200
+
+        return jsonify({"message": f"Failed to update session: {message}"}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def put_session(id: str):
+    """Put session
+    Updates a session based on the provided id. All fields will be updated with the new data.
+    ---
+    tags:
+        - Sessions
+    parameters:
+        - name: id
+            in: path
+            required: true
+            type: string
+            description: The id or session property of the session
+        - name: session
+            in: body
+            required: true
+            type: object
+            description: The session data to update
+    responses:
+        200:
+            description: The updated session
+            schema:
+                $ref: '#/definitions/Session'
+        404:
+            description: The session was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        session = session_store.get(id, use_typing=False)
+        data = request.get_json()
+        _id = session["id"]
+
+        success, message = session_store.update(_id, data)
+
+        if success:
+            response = session
+            return jsonify(response), 200
+
+        return jsonify({"message": f"Failed to update session: {message}"}), 500
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500

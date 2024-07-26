@@ -16,18 +16,16 @@ class LeastPacked(LoadBalancerBase):
         """Find the combiner with the least number of attached clients.
 
         """
-        min_clients = None
+        min_clients = -1
         selected_combiner = None
-
         for combiner in self.network.get_combiners():
             try:
                 if combiner.allowing_clients():
                     # Using default default Channel = 1, MODEL_UPDATE_REQUESTS
                     nr_active_clients = len(combiner.list_active_clients())
-                    if not min_clients or nr_active_clients < min_clients:
+                    if min_clients == -1 or nr_active_clients < min_clients:
                         min_clients = nr_active_clients
                         selected_combiner = combiner
             except CombinerUnavailableError:
                 pass
-
         return selected_combiner

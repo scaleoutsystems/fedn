@@ -38,7 +38,7 @@ class SessionStore(Store[Session]):
         if "round_timeout" not in session_config:
             return False, "session_config.round_timeout is required"
 
-        if not isinstance(session_config["round_timeout"], int):
+        if not isinstance(session_config["round_timeout"], (int, float)):
             return False, "session_config.round_timeout must be an integer"
 
         if "buffer_size" not in session_config:
@@ -82,10 +82,15 @@ class SessionStore(Store[Session]):
     def _validate(self, item: Session) -> Tuple[bool, str]:
         if "session_config" not in item or item["session_config"] is None:
             return False, "session_config is required"
-        elif not isinstance(item["session_config"], dict):
-            return False, "session_config must be a dict"
 
-        session_config = item["session_config"]
+        session_config = None
+
+        if isinstance(item["session_config"], dict):
+            session_config = item["session_config"]
+        elif isinstance(item["session_config"], list):
+            session_config = item["session_config"][0]
+        else:
+            return False, "session_config must be a dict"
 
         return  self._validate_session_config(session_config)
 
@@ -117,10 +122,14 @@ class SessionStore(Store[Session]):
 
         return Session.from_dict(document) if use_typing else from_document(document)
 
-    def update(self, id: str, item: Session) -> bool:
-        raise NotImplementedError("Update not implemented for SessionStore")
+    def update(self, id: str, item: Session) -> Tuple[bool, Any]:
+        valid, message = self._validate(item)
+        if not valid:
+            return False, message
 
-    def add(self, item: Session)-> Tuple[bool, Any]:
+        return super().update(id, item)
+
+    def add(self, item: Session) -> Tuple[bool, Any]:
         """Add an entity
         param item: The entity to add
             type: Session

@@ -316,7 +316,6 @@ class RoundHandler:
             clients = self.server.get_active_trainers()
         else:
             logger.error("(ERROR): {} is not a supported type of client".format(type))
-            raise
 
         # If the number of requested trainers exceeds the number of available, use all available.
         if n > len(clients):

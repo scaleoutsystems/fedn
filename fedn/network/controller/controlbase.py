@@ -183,6 +183,26 @@ class ControlBase(ABC):
         """
         self.statestore.set_session_status(session_id, status)
 
+    def get_session_status(self, session_id):
+        """Get the status of a session.
+
+        :param session_id: The session unique identifier
+        :type session_id: str
+        :return: The status
+        :rtype: str
+        """
+        return self.statestore.get_session_status(session_id)
+
+    def set_session_config(self, session_id: str, config: dict):
+        """Set the model id for a session.
+
+        :param session_id: The session unique identifier
+        :type session_id: str
+        :param config: The session config
+        :type config: dict
+        """
+        self.statestore.set_session_config_v2(session_id, config)
+
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
         self.statestore.create_round(round_data)
