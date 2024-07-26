@@ -1,5 +1,4 @@
 from concurrent import futures
-from io import BytesIO
 
 import grpc
 
