@@ -10,9 +10,9 @@ from fedn.network.clients.client import Client
 from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
-from .client_cmd import validate_client_config
-from .main import main
-from .shared import apply_config
+from fedn.cli.client_cmd import validate_client_config
+from fedn.cli.main import main
+from fedn.cli.shared import apply_config
 
 
 def get_statestore_config_from_file(init):
@@ -36,7 +36,14 @@ def check_helper_config_file(config):
         exit(-1)
     return helper
 
-
+def check_yaml_exists(path):
+    """Check if fedn.yaml exists in the given path."""
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        click.echo(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+    return yaml_file
 @main.group("run")
 @click.pass_context
 def run_cmd(ctx):
@@ -57,10 +64,7 @@ def validate_cmd(ctx, path,input,output,remove_venv):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that validate is defined in fedn.yaml under entry_points
@@ -92,10 +96,7 @@ def train_cmd(ctx, path,input,output,remove_venv):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that train is defined in fedn.yaml under entry_points
@@ -125,10 +126,7 @@ def startup_cmd(ctx, path,remove_venv):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that startup is defined in fedn.yaml under entry_points
@@ -159,10 +157,7 @@ def build_cmd(ctx, path,remove_venv):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that build is defined in fedn.yaml under entry_points
