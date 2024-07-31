@@ -1,17 +1,28 @@
 from concurrent import futures
+from typing import TypedDict
 
 import grpc
 from grpc_health.v1 import health, health_pb2_grpc
 
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.network.combiner.shared import modelservice
 from fedn.network.grpc.auth import JWTInterceptor
+
+
+class ServerConfig(TypedDict):
+    port: int
+    secure: bool
+    key: str
+    certificate: str
+    logfile: str
+    verbosity: str
 
 
 class Server:
     """Class for configuring and launching the gRPC server."""
 
-    def __init__(self, servicer, modelservicer, config):
+    def __init__(self, servicer, config: ServerConfig):
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
 
@@ -25,8 +36,8 @@ class Server:
             rpc.add_ConnectorServicer_to_server(servicer, self.server)
         if isinstance(servicer, rpc.ReducerServicer):
             rpc.add_ReducerServicer_to_server(servicer, self.server)
-        if isinstance(modelservicer, rpc.ModelServiceServicer):
-            rpc.add_ModelServiceServicer_to_server(modelservicer, self.server)
+        if isinstance(modelservice, rpc.ModelServiceServicer):
+            rpc.add_ModelServiceServicer_to_server(modelservice, self.server)
         if isinstance(servicer, rpc.CombinerServicer):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 

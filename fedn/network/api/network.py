@@ -1,4 +1,4 @@
-import base64
+import os
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
@@ -47,14 +47,19 @@ class Network:
         data = self.statestore.get_combiners()
         combiners = []
         for c in data["result"]:
-            if c["certificate"]:
-                cert = base64.b64decode(c["certificate"])
-                key = base64.b64decode(c["key"])
+            name = c["name"].upper()
+            # General certificate handling, same for all combiners.
+            if os.environ.get("FEDN_GRPC_CERT_PATH"):
+                with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
+                    cert = f.read()
+            # Specific certificate handling for each combiner.
+            elif os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}"):
+                cert_path = os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}")
+                with open(cert_path, "rb") as f:
+                    cert = f.read()
             else:
                 cert = None
-                key = None
-
-            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, key=key, ip=c["ip"]))
+            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, ip=c["ip"]))
 
         return combiners
 

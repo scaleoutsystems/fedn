@@ -9,24 +9,27 @@ from fedn.common.log_config import logger
 
 
 class Certificate:
-    """Utility to generate unsigned certificates.
-
-    """
+    """Utility to generate unsigned certificates."""
 
     CERT_NAME = "cert.pem"
     KEY_NAME = "key.pem"
     BITS = 2048
 
-    def __init__(self, cwd, name=None, key_name="key.pem", cert_name="cert.pem", create_dirs=True):
-        try:
-            os.makedirs(cwd)
-        except OSError:
-            logger.info("Directory exists, will store all cert and keys here.")
-        else:
-            logger.info("Successfully created the directory to store cert and keys in {}".format(cwd))
+    def __init__(self, name=None, key_path="", cert_path="", create_dirs=False):
+        if create_dirs:
+            try:
+                cwd = os.getcwd()
+                os.makedirs(cwd)
+            except OSError:
+                logger.info("Directory exists, will store all cert and keys here.")
+            else:
+                logger.info("Successfully created the directory to store cert and keys in {}".format(cwd))
 
-        self.key_path = os.path.join(cwd, key_name)
-        self.cert_path = os.path.join(cwd, cert_name)
+            self.key_path = os.path.join(cwd, "key.pem")
+            self.cert_path = os.path.join(cwd, "cert.pem")
+        else:
+            self.key_path = key_path
+            self.cert_path = cert_path
 
         if name:
             self.name = name
@@ -36,9 +39,7 @@ class Certificate:
     def gen_keypair(
         self,
     ):
-        """Generate keypair.
-
-        """
+        """Generate keypair."""
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 2048)
         cert = crypto.X509()
@@ -73,8 +74,7 @@ class Certificate:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate))
 
     def get_keypair_raw(self):
-        """:return:
-        """
+        """:return:"""
         with open(self.key_path, "rb") as keyfile:
             key_buf = keyfile.read()
         with open(self.cert_path, "rb") as certfile:
@@ -82,16 +82,14 @@ class Certificate:
         return copy.deepcopy(cert_buf), copy.deepcopy(key_buf)
 
     def get_key(self):
-        """:return:
-        """
+        """:return:"""
         with open(self.key_path, "rb") as keyfile:
             key_buf = keyfile.read()
         key = crypto.load_privatekey(crypto.FILETYPE_PEM, key_buf)
         return key
 
     def get_cert(self):
-        """:return:
-        """
+        """:return:"""
         with open(self.cert_path, "rb") as certfile:
             cert_buf = certfile.read()
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_buf)

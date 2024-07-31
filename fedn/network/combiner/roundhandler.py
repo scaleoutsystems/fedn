@@ -9,6 +9,7 @@ from typing import TypedDict
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
+from fedn.network.combiner.shared import modelservice, repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
@@ -84,10 +85,10 @@ class RoundHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, storage, server, modelservice):
+    def __init__(self, server):
         """Initialize the RoundHandler."""
         self.round_configs = queue.Queue()
-        self.storage = storage
+        self.storage = repository
         self.server = server
         self.modelservice = modelservice
 

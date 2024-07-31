@@ -87,6 +87,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
+      - STATESTORE_CONFIG=/app/config/settings-combiner.yaml
+      - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml
     build:
       context: .
       args:
