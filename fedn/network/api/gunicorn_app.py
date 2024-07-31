@@ -18,7 +18,7 @@ class GunicornApp(BaseApplication):
 def run_gunicorn(app, workers=4):
     workers=os.cpu_count()
     options = {
-        'bind': '127.0.0.1:8000',  # Specify the bind address and port here
-        'workers': workers,
+        "bind": "127.0.0.1:8000",  # Specify the bind address and port here
+        "workers": workers,
     }
     GunicornApp(app, options).run()
