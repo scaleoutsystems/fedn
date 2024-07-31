@@ -38,7 +38,7 @@ class ConnectorClient:
     :param force_ssl: True if https is used, False if http
     :type force_ssl: bool
     :param verify: True if certificate is verified, False if not
-    :type verify: bool
+    :type verify: str
     :param combiner: name of preferred combiner
     :type combiner: str
     :param id: id of client

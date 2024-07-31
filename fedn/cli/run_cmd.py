@@ -182,7 +182,7 @@ def build_cmd(ctx, path):
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False, default=False)
+@click.option("-c", "--combiner", required=False,type=str, default="combiner",help="name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
@@ -204,7 +204,7 @@ def client_cmd(
     secure,
     preshared_cert,
     verify,
-    preferred_combiner,
+    combiner,
     validator,
     trainer,
     init,
@@ -224,7 +224,7 @@ def client_cmd(
     :param secure:
     :param preshared_cert:
     :param verify_cert:
-    :param preferred_combiner:
+    :param combiner:
     :param init:
     :param logfile:
     :param hearbeat_interval
@@ -245,7 +245,7 @@ def client_cmd(
         "secure": secure,
         "preshared_cert": preshared_cert,
         "verify": verify,
-        "preferred_combiner": preferred_combiner,
+        "preferred_combiner": combiner,
         "validator": validator,
         "trainer": trainer,
         "logfile": logfile,
@@ -262,6 +262,7 @@ def client_cmd(
         apply_config(init, config)
         click.echo(f"\nClient configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
+        click.echo(f"config {config}")
 
     try:
         validate_client_config(config)
@@ -316,6 +317,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     )
 
     if init:
+        print(config)
         apply_config(init, config)
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
