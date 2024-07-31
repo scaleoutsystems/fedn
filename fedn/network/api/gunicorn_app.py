@@ -22,3 +22,5 @@ def run_gunicorn(app, workers=4):
         "workers": workers,
     }
     GunicornApp(app, options).run()
+if __name__ == "main":
+    run_gunicorn()
