@@ -262,8 +262,6 @@ def client_cmd(
         apply_config(init, config)
         click.echo(f"\nClient configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
-        click.echo(f"config {config}")
-
     try:
         validate_client_config(config)
     except InvalidClientConfig as e:
@@ -317,7 +315,6 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     )
 
     if init:
-        print(config)
         apply_config(init, config)
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
