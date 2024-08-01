@@ -47,7 +47,7 @@ client_config = {
     "secure": False,
     "preshared_cert": False,
     "verify": False,
-    "preferred_combiner": False,
+    "combiner": "combiner",
     "validator": True,
     "trainer": True,
     "init": None,
