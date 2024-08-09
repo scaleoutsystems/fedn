@@ -31,7 +31,7 @@ We recommend that projects have roughly the following folder and file structure:
 | └ Dockerfile / docker-compose.yaml
 |
 
-The ``client`` folder is commonly referred to as the *compute package* and it contains files with logic specific to one client. The file ``fedn.yaml`` is the FEDn Project File and contains information about the ``entry points``. The entry points are fedn commands which runs files in a compute package, and there are up to four entry points in the project folder example given above that need to be specified: 
+The ``client`` folder is commonly referred to as the *compute package* and it contains files with logic specific to one client. The file ``fedn.yaml`` is the FEDn Project File and contains information about the fedn commands which runs files in the compute package. These fedn commmands are referred to as ``entry points`` and there are up to four entry points in the project folder example given above that need to be specified: 
 **build** - runs model.py when called
 **startup** - rund data.py when called
 **train** - runs train.py when called 
