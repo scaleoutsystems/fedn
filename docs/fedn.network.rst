@@ -16,9 +16,8 @@ Subpackages
    fedn.network.clients
    fedn.network.combiner
    fedn.network.controller
-   fedn.network.dashboard
    fedn.network.loadbalancer
-   fedn.network.statestore
+   fedn.network.storage
 
 Submodules
 ----------
@@ -27,14 +26,6 @@ fedn.network.config module
 --------------------------
 
 .. automodule:: fedn.network.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fedn.network.reducer module
----------------------------
-
-.. automodule:: fedn.network.reducer
    :members:
    :undoc-members:
    :show-inheritance:

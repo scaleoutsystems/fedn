@@ -1,5 +1,5 @@
-fedn (python package)
-=====================
+fedn package
+============
 
 .. automodule:: fedn
    :members:

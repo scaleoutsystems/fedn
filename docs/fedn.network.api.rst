@@ -32,3 +32,11 @@ fedn.network.api.network module
    :members:
    :undoc-members:
    :show-inheritance:
+
+fedn.network.api.tests module
+-----------------------------
+
+.. automodule:: fedn.network.api.tests
+   :members:
+   :undoc-members:
+   :show-inheritance:

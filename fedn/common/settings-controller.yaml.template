@@ -1,0 +1,24 @@
+network_id: fedn-network
+controller:
+  host: localhost
+  port: 8092
+  debug: True
+
+statestore:
+  type: MongoDB
+  mongo_config:
+    username: fedn_admin
+    password: password
+    host: localhost
+    port: 6534
+
+storage:
+  storage_type: S3
+  storage_config:
+    storage_hostname: localhost
+    storage_port: 9000
+    storage_access_key: fedn_admin
+    storage_secret_key: password
+    storage_bucket: fedn-models
+    context_bucket: fedn-context
+    storage_secure_mode: False 

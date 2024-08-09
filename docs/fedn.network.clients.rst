@@ -40,3 +40,11 @@ fedn.network.clients.state module
    :members:
    :undoc-members:
    :show-inheritance:
+
+fedn.network.clients.test\_client module
+----------------------------------------
+
+.. automodule:: fedn.network.clients.test_client
+   :members:
+   :undoc-members:
+   :show-inheritance:

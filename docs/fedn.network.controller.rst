@@ -16,3 +16,11 @@ fedn.network.controller.control module
    :members:
    :undoc-members:
    :show-inheritance:
+
+fedn.network.controller.controlbase module
+------------------------------------------
+
+.. automodule:: fedn.network.controller.controlbase
+   :members:
+   :undoc-members:
+   :show-inheritance:

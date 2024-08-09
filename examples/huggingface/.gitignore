@@ -1,0 +1,6 @@
+data
+*.npz
+*.tgz
+*.tar.gz
+.huggingface
+client.yaml

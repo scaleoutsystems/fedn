@@ -1,27 +1,25 @@
-import time
+import os
+import shutil
 import uuid
 
 import click
 import yaml
-
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.common.log_config import logger
 from fedn.network.clients.client import Client
-from fedn.network.combiner.server import Combiner
-from fedn.network.dashboard.restservice import (decode_auth_token,
-                                                encode_auth_token)
-from fedn.network.reducer import Reducer
-from fedn.network.statestore.mongostatestore import MongoStateStore
+from fedn.network.combiner.combiner import Combiner
+from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
+from .client_cmd import validate_client_config
 from .main import main
+from .shared import apply_config
 
 
 def get_statestore_config_from_file(init):
-    """
-
-    :param init:
+    """:param init:
     :return:
     """
-    with open(init, 'r') as file:
+    with open(init, "r") as file:
         try:
             settings = dict(yaml.safe_load(file))
             return settings
@@ -30,88 +28,192 @@ def get_statestore_config_from_file(init):
 
 
 def check_helper_config_file(config):
-    control = config['control']
+    control = config["control"]
     try:
         helper = control["helper"]
     except KeyError:
-        print("--local-package was used, but no helper was found in --init settings file.", flush=True)
+        logger.error("--local-package was used, but no helper was found in --init settings file.")
         exit(-1)
     return helper
 
 
-def apply_config(config):
-    """Parse client config from file.
-
-    Override configs from the CLI with settings in config file.
-
-    :param config: Client config (dict).
-    """
-    with open(config['init'], 'r') as file:
-        try:
-            settings = dict(yaml.safe_load(file))
-        except Exception:
-            print('Failed to read config from settings file, exiting.', flush=True)
-            return
-
-    for key, val in settings.items():
-        config[key] = val
-
-
-def validate_client_config(config):
-    """Validate client configuration.
-
-    :param config: Client config (dict).
-    """
-
-    try:
-        if config['discover_host'] is None or \
-                config['discover_host'] == '':
-            raise InvalidClientConfig("Missing required configuration: discover_host")
-        if 'discover_port' not in config.keys():
-            config['discover_port'] = None
-    except Exception:
-        raise InvalidClientConfig("Could not load config from file. Check config")
-
-
-@main.group('run')
+@main.group("run")
 @click.pass_context
 def run_cmd(ctx):
+    """:param ctx:
     """
-
-    :param ctx:
-    """
-    # if daemon:
-    #    print('{} NYI should run as daemon...'.format(__file__))
     pass
-
-
-@run_cmd.command('client')
-@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services(reducer).')
-@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
-@click.option('--token', required=False, help='Set token provided by reducer if enabled')
-@click.option('-n', '--name', required=False, default="client" + str(uuid.uuid4())[:8])
-@click.option('-i', '--client_id', required=False)
-@click.option('--local-package', is_flag=True, help='Enable local compute package')
-@click.option('--force-ssl', is_flag=True, help='Force SSL/TLS for REST service')
-@click.option('-u', '--dry-run', required=False, default=False)
-@click.option('-s', '--secure', required=False, default=False)
-@click.option('-pc', '--preshared-cert', required=False, default=False)
-@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST service')
-@click.option('-c', '--preferred-combiner', required=False, default=False)
-@click.option('-va', '--validator', required=False, default=True)
-@click.option('-tr', '--trainer', required=False, default=True)
-@click.option('-in', '--init', required=False, default=None,
-              help='Set to a filename to (re)init client from file state.')
-@click.option('-l', '--logfile', required=False, default='{}-client.log'.format(time.strftime("%Y%m%d-%H%M%S")),
-              help='Set logfile for client log to file.')
-@click.option('--heartbeat-interval', required=False, default=2)
-@click.option('--reconnect-after-missed-heartbeat', required=False, default=30)
+@run_cmd.command("validate")
+@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-i", "--input", required=True, help="Path to input model" )
+@click.option("-o", "--output", required=True,help="Path to write the output JSON containing validation metrics")
 @click.pass_context
-def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_package, force_ssl, dry_run, secure, preshared_cert,
-               verify, preferred_combiner, validator, trainer, init, logfile, heartbeat_interval, reconnect_after_missed_heartbeat):
-    """
+def validate_cmd(ctx, path,input,output):
+    """Execute 'validate' entrypoint in fedn.yaml.
 
     :param ctx:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    config = _read_yaml_file(yaml_file)
+    # Check that validate is defined in fedn.yaml under entry_points
+    if "validate" not in config["entry_points"]:
+        logger.error("No validate command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("validate {} {}".format(input, output))
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
+@run_cmd.command("train")
+@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-i", "--input", required=True, help="Path to input model parameters" )
+@click.option("-o", "--output", required=True,help="Path to write the updated model parameters ")
+@click.pass_context
+def train_cmd(ctx, path,input,output):
+    """Execute 'train' entrypoint in fedn.yaml.
+
+    :param ctx:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    config = _read_yaml_file(yaml_file)
+    # Check that train is defined in fedn.yaml under entry_points
+    if "train" not in config["entry_points"]:
+        logger.error("No train command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("train {} {}".format(input, output))
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
+@run_cmd.command("startup")
+@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.pass_context
+def startup_cmd(ctx, path):
+    """Execute 'startup' entrypoint in fedn.yaml.
+
+    :param ctx:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    config = _read_yaml_file(yaml_file)
+    # Check that startup is defined in fedn.yaml under entry_points
+    if "startup" not in config["entry_points"]:
+        logger.error("No startup command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("startup")
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
+
+@run_cmd.command("build")
+@click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.pass_context
+def build_cmd(ctx, path):
+    """Execute 'build' entrypoint in fedn.yaml.
+
+    :param ctx:
+    :param path: Path to folder containing fedn.yaml
+    :type path: str
+    """
+    path = os.path.abspath(path)
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+
+    config = _read_yaml_file(yaml_file)
+    # Check that build is defined in fedn.yaml under entry_points
+    if "build" not in config["entry_points"]:
+        logger.error("No build command defined in fedn.yaml")
+        exit(-1)
+
+    dispatcher = Dispatcher(config, path)
+    _ = dispatcher._get_or_create_python_env()
+    dispatcher.run_cmd("build")
+
+    # delete the virtualenv
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
+
+
+@run_cmd.command("client")
+@click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
+@click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
+@click.option("--token", required=False, help="Set token provided by reducer if enabled")
+@click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
+@click.option("-i", "--client_id", required=False)
+@click.option("--local-package", is_flag=True, help="Enable local compute package")
+@click.option("--force-ssl", is_flag=True, help="Force SSL/TLS for REST service")
+@click.option("-u", "--dry-run", required=False, default=False)
+@click.option("-s", "--secure", required=False, default=False)
+@click.option("-pc", "--preshared-cert", required=False, default=False)
+@click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
+@click.option("-c", "--preferred-combiner", required=False, default=False)
+@click.option("-va", "--validator", required=False, default=True)
+@click.option("-tr", "--trainer", required=False, default=True)
+@click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
+@click.option("-l", "--logfile", required=False, default=None, help="Set logfile for client log to file.")
+@click.option("--heartbeat-interval", required=False, default=2)
+@click.option("--reconnect-after-missed-heartbeat", required=False, default=30)
+@click.option("--verbosity", required=False, default="INFO", type=click.Choice(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False))
+@click.pass_context
+def client_cmd(
+    ctx,
+    discoverhost,
+    discoverport,
+    token,
+    name,
+    client_id,
+    local_package,
+    force_ssl,
+    dry_run,
+    secure,
+    preshared_cert,
+    verify,
+    preferred_combiner,
+    validator,
+    trainer,
+    init,
+    logfile,
+    heartbeat_interval,
+    reconnect_after_missed_heartbeat,
+    verbosity,
+):
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:
@@ -127,131 +229,65 @@ def client_cmd(ctx, discoverhost, discoverport, token, name, client_id, local_pa
     :param logfile:
     :param hearbeat_interval
     :param reconnect_after_missed_heartbeat
+    :param verbosity
     :return:
     """
     remote = False if local_package else True
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'name': name,
-              'client_id': client_id, 'remote_compute_context': remote, 'force_ssl': force_ssl, 'dry_run': dry_run, 'secure': secure,
-              'preshared_cert': preshared_cert, 'verify': verify, 'preferred_combiner': preferred_combiner,
-              'validator': validator, 'trainer': trainer, 'init': init, 'logfile': logfile, 'heartbeat_interval': heartbeat_interval,
-              'reconnect_after_missed_heartbeat': reconnect_after_missed_heartbeat}
+    config = {
+        "discover_host": discoverhost,
+        "discover_port": discoverport,
+        "token": token,
+        "name": name,
+        "client_id": client_id,
+        "remote_compute_context": remote,
+        "force_ssl": force_ssl,
+        "dry_run": dry_run,
+        "secure": secure,
+        "preshared_cert": preshared_cert,
+        "verify": verify,
+        "preferred_combiner": preferred_combiner,
+        "validator": validator,
+        "trainer": trainer,
+        "logfile": logfile,
+        "heartbeat_interval": heartbeat_interval,
+        "reconnect_after_missed_heartbeat": reconnect_after_missed_heartbeat,
+        "verbosity": verbosity,
+    }
+
+    click.echo(
+        click.style("\n*** fedn run client is deprecated and will be removed. Please use fedn client start instead. ***\n", blink=True, bold=True, fg="red")
+    )
 
     if init:
-        apply_config(config)
+        apply_config(init, config)
+        click.echo(f"\nClient configuration loaded from file: {init}")
+        click.echo("Values set in file override defaults and command line arguments...\n")
 
-    validate_client_config(config)
+    try:
+        validate_client_config(config)
+    except InvalidClientConfig as e:
+        click.echo(f"Error: {e}")
+        return
 
     client = Client(config)
     client.run()
 
 
-@run_cmd.command('dashboard')
-@click.option('-h', '--host', required=False)
-@click.option('-p', '--port', required=False, default='8090', show_default=True)
-@click.option('-k', '--secret-key', required=False, help='Set secret key to enable jwt token authentication.')
-@click.option('-l', '--local-package', is_flag=True, help='Enable use of local compute package')
-@click.option('-n', '--name', required=False, default="reducer" + str(uuid.uuid4())[:8], help='Set service name')
-@click.option('-in', '--init', required=True, default=None,
-              help='Set to a filename to (re)init reducer state from file.')
+@run_cmd.command("combiner")
+@click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services (reducer).")
+@click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
+@click.option("-t", "--token", required=False, help="Set token provided by reducer if enabled")
+@click.option("-n", "--name", required=False, default="combiner" + str(uuid.uuid4())[:8], help="Set name for combiner.")
+@click.option("-h", "--host", required=False, default="combiner", help="Set hostname.")
+@click.option("-i", "--port", required=False, default=12080, help="Set port.")
+@click.option("-f", "--fqdn", required=False, default=None, help="Set fully qualified domain name")
+@click.option("-s", "--secure", is_flag=True, help="Enable SSL/TLS encrypted gRPC channels.")
+@click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST discovery service (reducer)")
+@click.option("-c", "--max_clients", required=False, default=30, help="The maximal number of client connections allowed.")
+@click.option("-in", "--init", required=False, default=None, help="Path to configuration file to (re)init combiner.")
 @click.pass_context
-def dashboard_cmd(ctx, host, port, secret_key, local_package, name, init):
-    """ Start the dashboard service.
-
-    :param ctx: Click context.
-    :param discoverhost: Hostname for discovery services (dashboard).
-    :param discoverport: Port for discovery services (dashboard).
-    :param secret_key: Set secret key to enable jwt token authentication.
-    :param local_package: Enable use of local compute package.
-    :param name: Set service name.
-    :param init: Set to a filename to (re)init config state from file.
-    """
-    remote = False if local_package else True
-    config = {'host': host, 'port': port, 'secret_key': secret_key,
-              'name': name, 'remote_compute_package': remote, 'init': init}
-
-    # Read settings from config file
-    try:
-        fedn_config = get_statestore_config_from_file(config['init'])
-    except Exception as e:
-        print('Failed to read config from settings file, exiting.', flush=True)
-        print(e, flush=True)
-        exit(-1)
-
-    if not remote:
-        _ = check_helper_config_file(fedn_config)
-
-    try:
-        network_id = fedn_config['network_id']
-    except KeyError:
-        print("No network_id in config, please specify the control network id.", flush=True)
-        exit(-1)
-
-    # Obtain state from database, in case already initialized (service restart)
-    statestore_config = fedn_config['statestore']
-    if statestore_config['type'] == 'MongoDB':
-        statestore = MongoStateStore(
-            network_id, statestore_config['mongo_config'], fedn_config['storage'])
-    else:
-        print("Unsupported statestore type, exiting. ", flush=True)
-        exit(-1)
-
-    # Enable JWT token authentication.
-    if config['secret_key']:
-        # If we already have a valid token in statestore config, use that one.
-        existing_config = statestore.get_reducer()
-        if existing_config:
-            try:
-                existing_config = statestore.get_reducer()
-                current_token = existing_config['token']
-                status = decode_auth_token(current_token, config['secret_key'])
-                if status != 'Success':
-                    token = encode_auth_token(config['secret_key'])
-                    config['token'] = token
-            except Exception:
-                raise
-
-        else:
-            token = encode_auth_token(config['secret_key'])
-            config['token'] = token
-    try:
-        statestore.set_reducer(config)
-    except Exception:
-        print("Failed to set reducer config in statestore, exiting.", flush=True)
-        exit(-1)
-
-    # Configure storage backend.
-    try:
-        statestore.set_storage_backend(fedn_config['storage'])
-    except KeyError:
-        print("storage configuration missing in statestore_config.", flush=True)
-        exit(-1)
-    except Exception:
-        print("Failed to set storage config in statestore, exiting.", flush=True)
-        exit(-1)
-
-    reducer = Reducer(statestore)
-    reducer.run()
-
-
-@run_cmd.command('combiner')
-@click.option('-d', '--discoverhost', required=False, help='Hostname for discovery services (reducer).')
-@click.option('-p', '--discoverport', required=False, help='Port for discovery services (reducer).')
-@click.option('-t', '--token', required=False, help='Set token provided by reducer if enabled')
-@click.option('-n', '--name', required=False, default="combiner" + str(uuid.uuid4())[:8], help='Set name for combiner.')
-@click.option('-h', '--host', required=False, default="combiner", help='Set hostname.')
-@click.option('-i', '--port', required=False, default=12080, help='Set port.')
-@click.option('-f', '--fqdn', required=False, default=None, help='Set fully qualified domain name')
-@click.option('-s', '--secure', is_flag=True, help='Enable SSL/TLS encrypted gRPC channels.')
-@click.option('-v', '--verify', is_flag=True, help='Verify SSL/TLS for REST discovery service (reducer)')
-@click.option('-c', '--max_clients', required=False, default=30, help='The maximal number of client connections allowed.')
-@click.option('-in', '--init', required=False, default=None,
-              help='Path to configuration file to (re)init combiner.')
-@click.option('-a', '--aggregator', required=False, default='fedavg', help='Filename of the aggregator module to use.')
-@click.pass_context
-def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init, aggregator):
-    """
-
-    :param ctx:
+def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, secure, verify, max_clients, init):
+    """:param ctx:
     :param discoverhost:
     :param discoverport:
     :param token:
@@ -262,12 +298,27 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     :param max_clients:
     :param init:
     """
-    config = {'discover_host': discoverhost, 'discover_port': discoverport, 'token': token, 'host': host,
-              'port': port, 'fqdn': fqdn, 'name': name, 'secure': secure, 'verify': verify, 'max_clients': max_clients,
-              'init': init, 'aggregator': aggregator}
+    config = {
+        "discover_host": discoverhost,
+        "discover_port": discoverport,
+        "token": token,
+        "host": host,
+        "port": port,
+        "fqdn": fqdn,
+        "name": name,
+        "secure": secure,
+        "verify": verify,
+        "max_clients": max_clients,
+    }
 
-    if config['init']:
-        apply_config(config)
+    click.echo(
+        click.style("\n*** fedn run combiner is deprecated and will be removed. Please use fedn combiner start instead. ***\n", blink=True, bold=True, fg="red")
+    )
+
+    if init:
+        apply_config(init, config)
+        click.echo(f"\nCombiner configuration loaded from file: {init}")
+        click.echo("Values set in file override defaults and command line arguments...\n")
 
     combiner = Combiner(config)
     combiner.run()

@@ -17,6 +17,22 @@ Subpackages
 Submodules
 ----------
 
+fedn.network.combiner.combiner module
+-------------------------------------
+
+.. automodule:: fedn.network.combiner.combiner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fedn.network.combiner.combiner\_tests module
+--------------------------------------------
+
+.. automodule:: fedn.network.combiner.combiner_tests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fedn.network.combiner.connect module
 ------------------------------------
 
@@ -41,18 +57,10 @@ fedn.network.combiner.modelservice module
    :undoc-members:
    :show-inheritance:
 
-fedn.network.combiner.round module
-----------------------------------
+fedn.network.combiner.roundhandler module
+-----------------------------------------
 
-.. automodule:: fedn.network.combiner.round
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fedn.network.combiner.server module
------------------------------------
-
-.. automodule:: fedn.network.combiner.server
+.. automodule:: fedn.network.combiner.roundhandler
    :members:
    :undoc-members:
    :show-inheritance:

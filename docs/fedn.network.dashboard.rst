@@ -9,14 +9,6 @@ fedn.network.dashboard package
 Submodules
 ----------
 
-fedn.network.dashboard.plots module
------------------------------------
-
-.. automodule:: fedn.network.dashboard.plots
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fedn.network.dashboard.restservice module
 -----------------------------------------
 

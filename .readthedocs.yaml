@@ -11,5 +11,5 @@ sphinx:
 python:
   install:
     - method: pip
-      path: ./fedn
+      path: .
     - requirements: docs/requirements.txt
