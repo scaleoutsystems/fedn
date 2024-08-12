@@ -44,16 +44,16 @@ class ConnectorClient:
     :param id: id of client
     """
 
-    def __init__(self, host, port, token, name, remote_package, force_ssl=False, verify=False, grpc_proxy=None,combiner=None, id=None):
+    def __init__(self, host, port, token, name, remote_package, force_ssl=False, verify=False, combiner=None, id=None):
         self.host = host
         self.port = port
         self.token = token
         self.name = name
         self.verify = verify
-        self.grpc_proxy=grpc_proxy
         self.preferred_combiner = combiner
         self.id = id
         self.package = "remote" if remote_package else "local"
+
         # for https we assume a an ingress handles permanent redirect (308)
         if force_ssl:
             self.prefix = "https://"
