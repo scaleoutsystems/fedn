@@ -64,7 +64,6 @@ class Client:
         set_log_stream(config.get("logfile", None))
 
         self.id = config["client_id"] or str(uuid.uuid4())
-
         self.connector = ConnectorClient(
             host=config["discover_host"],
             port=config["discover_port"],
@@ -73,10 +72,11 @@ class Client:
             remote_package=config["remote_compute_context"],
             force_ssl=config["force_ssl"],
             verify=config["verify"],
+            grpc_proxy=config["grpc_proxy"],
             combiner=config["preferred_combiner"],
             id=self.id,
         )
-
+        print(self.connector)
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config["name"])
         if not match:
@@ -181,14 +181,20 @@ class Client:
         :param combiner_config: connection information for the combiner.
         :type combiner_config: dict
         """
+        print("cobinerrrr config",combiner_config)
         if self._connected:
             logger.info("Client is already attached. ")
             return
-
-        # TODO use the combiner_config['certificate'] for setting up secure comms'
-        host = combiner_config["host"]
-        # Add host to gRPC metadata
-        self._add_grpc_metadata("grpc-server", host)
+        if combiner_config["grpc_proxy"] is not None:
+            # TODO use the combiner_config['certificate'] for setting up secure comms'
+            host = combiner_config["grpc_proxy"]
+            # Add host to gRPC metadata
+            self._add_grpc_metadata("grpc-server", combiner_config["combiner"])
+        else:
+            # TODO use the combiner_config['certificate'] for setting up secure comms'
+            host = combiner_config["combiner"]
+            # Add host to gRPC metadata
+            self._add_grpc_metadata("grpc-server", combiner_config["combiner"])
         logger.debug("Client using metadata: {}.".format(self.metadata))
         port = combiner_config["port"]
         secure = False

@@ -182,7 +182,8 @@ def build_cmd(ctx, path):
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--combiner", required=False,type=str, default="combiner",help="name of the preferred combiner")
+@click.option("-g", "--grpc-proxy", required=False, type=str,default=None,help="url to the combiner")
+@click.option("-c", "--combiner", required=False,type=str, default="combiner",help="url to the combiner or name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
@@ -204,6 +205,7 @@ def client_cmd(
     secure,
     preshared_cert,
     verify,
+    grpc_proxy,
     combiner,
     validator,
     trainer,
@@ -224,6 +226,7 @@ def client_cmd(
     :param secure:
     :param preshared_cert:
     :param verify_cert:
+    :param grpc_proxy:
     :param combiner:
     :param init:
     :param logfile:
@@ -245,6 +248,7 @@ def client_cmd(
         "secure": secure,
         "preshared_cert": preshared_cert,
         "verify": verify,
+        "grpc_proxy":grpc_proxy,
         "preferred_combiner": combiner,
         "validator": validator,
         "trainer": trainer,
