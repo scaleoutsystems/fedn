@@ -15,12 +15,10 @@ class GunicornApp(BaseApplication):
     def load(self):
         return self.application
 
-def run_gunicorn(app, workers=4):
-    workers=os.cpu_count()
+def run_gunicorn(app, host,port,workers=4):
+    bind_address=str(host)+":"+str(port)
     options = {
-        "bind": "127.0.0.1:8000",  # Specify the bind address and port here
+        "bind": bind_address,  # Specify the bind address and port here
         "workers": workers,
     }
     GunicornApp(app, options).run()
-if __name__ == "main":
-    run_gunicorn()

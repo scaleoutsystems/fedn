@@ -31,7 +31,7 @@ requires-python = '>=3.8,<3.13'
 dependencies = [
   "requests",
   "urllib3>=1.26.4",
-  "gunicorn>=20.0.4,<21.0.0",
+  "gunicorn>=20.0.4",
   "minio",
   "grpcio~=1.60.0",
   "grpcio-tools~=1.60.0",
