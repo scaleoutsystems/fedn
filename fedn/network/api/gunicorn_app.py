@@ -1,5 +1,4 @@
 from gunicorn.app.base import BaseApplication
-import os
 class GunicornApp(BaseApplication):
     def __init__(self, app, options=None):
         self.options = options or {}
