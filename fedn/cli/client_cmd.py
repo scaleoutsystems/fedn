@@ -79,7 +79,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--combiner", type=str,required=False, default="combiner",help="name of the preferred combiner")
+@click.option("-c", "--preferred-combiner", type=str,required=False, default="combiner",help="name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
@@ -101,7 +101,7 @@ def client_cmd(
     secure,
     preshared_cert,
     verify,
-    combiner,
+    preferred_combiner,
     validator,
     trainer,
     init,
@@ -121,7 +121,7 @@ def client_cmd(
     :param secure:
     :param preshared_cert:
     :param verify_cert:
-    :param combiner:
+    :param preferred_combiner:
     :param init:
     :param logfile:
     :param hearbeat_interval
@@ -142,7 +142,7 @@ def client_cmd(
         "secure": secure,
         "preshared_cert": preshared_cert,
         "verify": verify,
-        "preferred_combiner": combiner,
+        "preferred_combiner": preferred_combiner,
         "validator": validator,
         "trainer": trainer,
         "logfile": logfile,
