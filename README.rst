@@ -78,8 +78,7 @@ More details about the architecture, deployment, and how to develop your own app
 -  `Documentation <https://fedn.readthedocs.io>`__
 
 FEDn Project Examples
----------------------
----------------------
+=====================
 
 Our example projects demonstrate different use case scenarios of FEDn 
 and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
