@@ -637,6 +637,6 @@ def start_server_api():
             app.run(debug=debug, port=port, host=host)
         else:
             workers=os.cpu_count()
-            gunicorn_app.run_gunicorn(app,host,port,workers)
+            gunicorn_app.run_gunicorn(app, host, port, workers)
 if __name__ == "__main__":
     start_server_api()

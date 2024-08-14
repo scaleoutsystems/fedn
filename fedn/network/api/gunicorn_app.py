@@ -15,7 +15,7 @@ class GunicornApp(BaseApplication):
         return self.application
 
 def run_gunicorn(app, host,port,workers=4):
-    bind_address=str(host)+":"+str(port)
+    bind_address = f"{host}:{port}"
     options = {
         "bind": bind_address,  # Specify the bind address and port here
         "workers": workers,
