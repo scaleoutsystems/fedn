@@ -77,6 +77,19 @@ More details about the architecture, deployment, and how to develop your own app
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 
+FEDn Project Examples
+---------------------
+---------------------
+
+Our example projects demonstrate different use case scenarios of FEDn 
+and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
+
+- `FEDn + PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
+- `FEDn + Tensforflow/Keras <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__
+- `FEDn + MONAI <https://github.com/scaleoutsystems/fedn/tree/master/examples/monai-2D-mednist>`__
+- `FEDn + Hugging Face <https://github.com/scaleoutsystems/fedn/tree/master/examples/huggingface>`__
+- `FEDn + Flower <https://github.com/scaleoutsystems/fedn/tree/master/examples/flower-client>`__
+- `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
 
 FEDn Studio Deployment options
 ==============================
