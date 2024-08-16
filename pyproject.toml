@@ -105,7 +105,8 @@ exclude = [
     "fedn_pb2.py",
     "fedn_pb2_grpc.py",
     ".ci",
-    "test*"
+    "test*",
+    "**/*.ipynb"
 ]
 
 lint.ignore = [
