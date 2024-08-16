@@ -26,7 +26,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
 
-We provide a fully managed deployment for testing, academic, and personal use. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
+FEDn is free forever for academic and personal use / small projects. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
 
 Features
 =========
