@@ -63,7 +63,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["fedn*"]
-exclude = ["tests", "tests.*", "**/*.ipynb"]
+exclude = ["tests", "tests.*", "examples/notebooks/*.ipynb"]
 
 [tool.ruff]
 line-length = 160
