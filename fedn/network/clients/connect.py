@@ -8,9 +8,7 @@ import enum
 
 import requests
 
-from fedn.common.config import (FEDN_AUTH_REFRESH_TOKEN,
-                                FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME,
-                                FEDN_CUSTOM_URL_PREFIX)
+from fedn.common.config import FEDN_AUTH_REFRESH_TOKEN, FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 
 
