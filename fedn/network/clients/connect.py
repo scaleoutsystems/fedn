@@ -8,7 +8,9 @@ import enum
 
 import requests
 
-from fedn.common.config import FEDN_AUTH_REFRESH_TOKEN, FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
+from fedn.common.config import (FEDN_AUTH_REFRESH_TOKEN,
+                                FEDN_AUTH_REFRESH_TOKEN_URI, FEDN_AUTH_SCHEME,
+                                FEDN_CUSTOM_URL_PREFIX)
 from fedn.common.log_config import logger
 
 
@@ -38,7 +40,7 @@ class ConnectorClient:
     :param force_ssl: True if https is used, False if http
     :type force_ssl: bool
     :param verify: True if certificate is verified, False if not
-    :type verify: str
+    :type verify: bool
     :param combiner: name of preferred combiner
     :type combiner: str
     :param id: id of client
