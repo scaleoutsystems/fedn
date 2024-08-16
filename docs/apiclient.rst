@@ -24,6 +24,18 @@ To obtain an admin API token, navigate to the "Settings" tab in your Studio proj
    >>> from fedn import APIClient
    >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
 
+Alternatively, the access token can be sourced from an environment variable. 
+
+.. code-block:: bash
+   $ export FEDN_AUTH_TOKEN=<access-token>
+
+Then passing a token as an argument is not required. 
+
+.. code-block:: python
+
+   >>> from fedn import APIClient
+   >>> client = APIClient(host="<controller-host>", secure=True, verify=True)
+
 
 **Set active package and seed model**
 
@@ -78,4 +90,4 @@ And the following code snippet shows how to get a specific session:
    session = client.get_session(id="session_name")
 
 
-For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the example `Notebooks <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_. 
+For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the example `Notebooks <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_. 
