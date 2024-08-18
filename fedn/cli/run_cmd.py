@@ -44,7 +44,7 @@ def check_yaml_exists(path):
         exit(-1)
     return yaml_file
 def delete_virtual_environment(keep_venv, dispatcher):
-    if keep_venv:
+    if not keep_venv:
         # delete the virtualenv
         if dispatcher.python_env_path:
             logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
@@ -61,7 +61,7 @@ def run_cmd(ctx):
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.option("-i", "--input", required=True, help="Path to input model" )
 @click.option("-o", "--output", required=True, help="Path to write the output JSON containing validation metrics")
-@click.option("-v", "--keep-venv", is_flag=True, default=True, required=False, help="flag if set to False doesn't remove venv")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
 def validate_cmd(ctx, path, input, output, keep_venv):
     """Execute 'validate' entrypoint in fedn.yaml.
@@ -87,7 +87,7 @@ def validate_cmd(ctx, path, input, output, keep_venv):
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.option("-i", "--input", required=True, help="Path to input model parameters" )
 @click.option("-o", "--output", required=True, help="Path to write the updated model parameters ")
-@click.option("-v", "--keep-venv", is_flag=True, default=True, required=False, help="flag if set to False doesn't remove venv")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
 def train_cmd(ctx, path, input, output, keep_venv):
     """Execute 'train' entrypoint in fedn.yaml.
@@ -112,7 +112,7 @@ def train_cmd(ctx, path, input, output, keep_venv):
 
 @run_cmd.command("startup")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-v", "--keep-venv", is_flag=True, default=True, required=False, help="flag if set to False doesn't remove venv")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
 def startup_cmd(ctx, path, keep_venv):
     """Execute 'startup' entrypoint in fedn.yaml.
@@ -137,7 +137,7 @@ def startup_cmd(ctx, path, keep_venv):
 
 @run_cmd.command("build")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-v", "--keep-venv", is_flag=True, default=True, required=False, help="flag if set to False doesn't remove venv")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="flag if set to False doesn't remove venv")
 @click.pass_context
 def build_cmd(ctx, path, keep_venv):
     """Execute 'build' entrypoint in fedn.yaml.
