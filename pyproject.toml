@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.11.1"
+version = "0.12.0"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"
@@ -64,7 +64,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["fedn*"]
-exclude = ["tests", "tests.*"]
+exclude = ["tests", "tests.*", "examples/notebooks/*.ipynb"]
 
 [tool.ruff]
 line-length = 160
@@ -106,7 +106,8 @@ exclude = [
     "fedn_pb2.py",
     "fedn_pb2_grpc.py",
     ".ci",
-    "test*"
+    "test*",
+    "**/*.ipynb"
 ]
 
 lint.ignore = [
