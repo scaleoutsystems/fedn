@@ -1,0 +1,1 @@
+{"num_examples": 600, "batch_size": 32, "epochs": 1, "lr": 0.001}
