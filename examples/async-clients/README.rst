@@ -19,12 +19,14 @@ First, make sure that FEDn is installed (we recommend using a virtual environmen
 Clone FEDn
 
 .. code-block::
-git clone https://github.com/scaleoutsystems/fedn.git
+
+    git clone https://github.com/scaleoutsystems/fedn.git
 
 Install FEDn and dependencies
 
 .. code-block::
-pip install fedn
+
+    pip install fedn
 
 
 Prepare the example environment, the compute package and seed model
@@ -33,14 +35,17 @@ Prepare the example environment, the compute package and seed model
 Standing in the folder fedn/examples/async-clients
 
 .. code-block::
+
     pip install -r requirements.txt
 
 Create the compute package and seed model:
 
 .. code-block::
+
     fedn package create --path client
 
 .. code-block::
+
     fedn run build --path client
 
 
@@ -52,22 +57,26 @@ Running a simulation
 Deploy FEDn on localhost. Standing in the the FEDn root directory: 
 
 .. code-block::
+
     docker-compose up 
 
 
 Initialize FEDn with the compute package and seed model
 
 .. code-block::
+
     python init_fedn.py
 
 Start simulating clients
 
 .. code-block::
+
     python run_clients.py
 
 Start the experiment / training sessions: 
 
 .. code-block::
+
     python run_experiment.py
 
 Once global models start being produced, you can start analyzing results using API Client, refer to the notebook "Experiment.ipynb" for instructions. 
