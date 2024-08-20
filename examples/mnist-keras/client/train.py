@@ -1,7 +1,6 @@
 import os
 import sys
 
-import tensorflow as tf
 from data import load_data
 from model import load_parameters, save_parameters
 

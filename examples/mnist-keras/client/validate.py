@@ -2,11 +2,10 @@ import os
 import sys
 
 import numpy as np
-import tensorflow as tf
 from data import load_data
-from model import load_parameters, save_parameters
+from model import load_parameters
 
-from fedn.utils.helpers.helpers import save_metadata, save_metrics
+from fedn.utils.helpers.helpers import save_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
