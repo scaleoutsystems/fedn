@@ -30,6 +30,7 @@ def compile_model(img_rows=28, img_cols=28):
     model.compile(loss=tf.keras.losses.categorical_crossentropy, optimizer=tf.keras.optimizers.Adam(), metrics=["accuracy"])
     return model
 
+
 def save_parameters(model, out_path):
     """Save model parameters to file.
 
@@ -40,6 +41,7 @@ def save_parameters(model, out_path):
     """
     weights = model.get_weights()
     helper.save(weights, out_path)
+
 
 def load_parameters(model_path):
     """Load model parameters from file and populate model.
@@ -53,6 +55,7 @@ def load_parameters(model_path):
     weights = helper.load(model_path)
     model.set_weights(weights)
     return model
+
 
 def init_seed(out_path="../seed.npz"):
     """Initialize seed model and save it to file.

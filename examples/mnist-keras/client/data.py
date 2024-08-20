@@ -9,6 +9,7 @@ abs_path = os.path.abspath(dir_path)
 
 NUM_CLASSES = 10
 
+
 def get_data(out_dir="data"):
     # Make dir if necessary
     if not os.path.exists(out_dir):
@@ -20,7 +21,7 @@ def get_data(out_dir="data"):
 
 
 def load_data(data_path, is_train=True):
-    """ Load data from disk.
+    """Load data from disk.
 
     :param data_path: Path to data file.
     :type data_path: str
@@ -48,6 +49,7 @@ def load_data(data_path, is_train=True):
     y = tf.keras.utils.to_categorical(y, NUM_CLASSES)
 
     return X, y
+
 
 def splitset(dataset, parts):
     n = dataset.shape[0]
