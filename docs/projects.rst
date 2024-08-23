@@ -136,6 +136,13 @@ project):
     python train.py ../seed.npz ../model_update.npz --data_path ../data/mnist.npz
     python validate.py ../model_update.npz ../validation.json --data_path ../data/mnist.npz
 
+You can also test *train* and *validate* entrypoint using CLI command:
+
+.. code-block:: bash
+
+    fedn run train --path client --input <path to input model parameters> --output <path to write the updated model parameters>
+    fedn run validate --path client --input <path to input model parameters> --output <Path to write the output JSON containing validation metrics>
+
 Note that we here assume execution in the correct Python environment. 
 
 To deploy a project to FEDn (Studio or pseudo-local) we simply compress the compute package as a .tgz file. using fedn command line tool or manually:
