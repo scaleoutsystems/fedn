@@ -14,7 +14,6 @@
    architecture
    aggregators
    helpers
-   auth
    developer
    
 .. toctree::

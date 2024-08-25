@@ -1,20 +1,16 @@
 .. _developer-label:
 
-Local development and deployment
-================================
+Local development sandbox
+=========================
 
 .. note::
-   These instructions are for users wanting to set up a local development deployment of FEDn (i.e. without FEDn Studio).
-   This requires practical knowledge of Docker and docker-compose. 
+   These instructions are for users wanting to set up a bare-minimum local deployment of FEDn (without FEDn Studio).
+   We here assume practical knowledge of Docker and docker-compose. We recommend all new users of FEDn to start
+   by taking the Getting Started tutorial: :ref:`quickstart-label`
 
-Running the FEDn development sandbox (docker-compose)
-------------------------------------------------------
-
-During development on FEDn, and when working on own aggregators/helpers, it is 
-useful to have a local development setup of the core FEDn services (controller, combiner, database, object store). 
-For this, we provide Dockerfiles and docker-compose template. 
-
-To start a development sandbox for FEDn using docker-compose:
+During development on FEDn, and when working on own extentions including aggregators and helpers, it is 
+useful to have a local development setup of the core FEDn server-side services (controller, combiner, database, object store). 
+We provide Dockerfiles and docker-compose template for an all-in-one local sandbox: 
 
 .. code-block::
 
@@ -24,14 +20,14 @@ To start a development sandbox for FEDn using docker-compose:
     up
 
 This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. 
-You can verify the deployment using these urls: 
+You can verify the deployment on localhost using these urls: 
 
 - API Server: http://localhost:8092/get_controller_status
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
 
-This setup does not include the security features of Studio, and thus will not require authentication of clients. 
-To use the APIClient to test a compute package and seed model against a local FEDn deployment: 
+This setup does not include any of the security and authentication features available in a Studio Project, 
+so we will not require authentication of clients (insecure mode) when using the APIClient:  
 
 .. code-block::
 
@@ -40,8 +36,7 @@ To use the APIClient to test a compute package and seed model against a local FE
    client.set_active_package("package.tgz", helper="numpyhelper")
    client.set_active_model("seed.npz")
 
-
-To connect a native FEDn client, you need to make sure that the combiner service can be resolved using the name "combiner". 
+To connect a native FEDn client to the sandbox deployment, you need to make sure that the combiner service can be resolved by the client using the name "combiner". 
 One way to achieve this is to edit your '/etc/hosts' and add a line '127.0.0.1  	combiner'. 
 
 Access message logs and validation data from MongoDB  
@@ -76,7 +71,6 @@ You can clean up by running
 
    docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml down -v
 
-
 Connecting clients using Docker:
 ------------------------------------------------------
 
@@ -93,8 +87,8 @@ and FEDN 0.10.0, run this from the example folder:
      ghcr.io/scaleoutsystems/fedn/fedn:0.10.0 run client -in client.yaml --force-ssl --secure=True
 
 
-Self-managed distributed deployment
-------------------------------------------------------
+Distributed deployment on a local network
+=========================================
 
 You can use different hosts for the various FEDn services. These instructions shows how to set up FEDn on a **local network** using a single workstation or laptop as 
 the host for the servier-side components, and other hosts or devices as clients. 
@@ -115,7 +109,6 @@ the host for the servier-side components, and other hosts or devices as clients.
 
 Launch a distributed FEDn Network 
 ---------------------------------
-
 
 Start by noting your host's local IP address, used within your network. Discover it by running ifconfig on UNIX or 
 ipconfig on Windows, typically listed under inet for Unix and IPv4 for Windows.
@@ -159,3 +152,110 @@ Alternatively updating the `/etc/hosts` file, appending the following lines for 
 
    <host local ip>      api-server
    <host local ip>      combiner
+
+
+.. _auth-label:
+
+Authentication and Authorization (RBAC)
+========================================
+
+.. warning:: The FEDn RBAC system is an experimental feature and may change in the future.
+
+FEDn supports Role-Based Access Control (RBAC) for controlling access to the FEDn API and gRPC endpoints. The RBAC system is based on JSON Web Tokens (JWT) and is implemented using the `jwt` package. The JWT tokens are used to authenticate users and to control access to the FEDn API.
+There are two types of JWT tokens used in the FEDn RBAC system:
+- Access tokens: Used to authenticate users and to control access to the FEDn API.
+- Refresh tokens: Used to obtain new access tokens when the old ones expire.
+ 
+.. note:: Please note that the FEDn RBAC system is not enabled by default and does not issue JWT tokens. It is used to integrate with external authentication and authorization systems such as FEDn Studio. 
+
+FEDn RBAC system is by default configured with four types of roles:
+- `admin`: Has full access to the FEDn API. This role is used to manage the FEDn network using the API client or the FEDn CLI.
+- `combiner`: Has access to the /add_combiner endpoint in the API.
+- `client`: Has access to the /add_client endpoint in the API and various gRPC endpoint to participate in federated learning sessions.
+
+A full list of the "roles to endpoint" mappings for gRPC can be found in the `fedn/network/grpc/auth.py`. For the API, the mappings are defined using custom decorators defined in `fedn/network/api/auth.py`.
+
+.. note:: The roles are handled by a custom claim in the JWT token called `role`. The claim is used to control access to the FEDn API and gRPC endpoints.
+
+To enable the FEDn RBAC system, you need to set the following environment variables in the controller and combiner:
+
+Authentication Environment Variables
+-------------------------------------
+
+.. line-block::
+
+     **FEDN_JWT_SECRET_KEY**
+      - **Type:** str
+      - **Required:** yes
+      - **Default:** None
+      - **Description:** The secret key used for JWT token encryption.
+
+     **FEDN_JWT_ALGORITHM**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "HS256"
+      - **Description:** The algorithm used for JWT token encryption.
+
+     **FEDN_AUTH_SCHEME**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "Token"
+      - **Description:** The authentication scheme used in the FEDn API and gRPC interceptors.
+
+Additional Environment Variables
+--------------------------------
+
+For further flexibility, you can also set the following environment variables:
+
+.. line-block::
+
+     **FEDN_CUSTOM_URL_PREFIX**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** Add a custom URL prefix used in the FEDn API, such as /internal or /v1.
+
+     **FEDN_AUTH_WHITELIST_URL**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** A URL pattern to the API that should be excluded from the FEDn RBAC system. For example, /internal (to enable internal API calls).
+
+     **FEDN_JWT_CUSTOM_CLAIM_KEY**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The custom claim key used in the JWT token.
+
+     **FEDN_JWT_CUSTOM_CLAIM_VALUE**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The custom claim value used in the JWT token.
+
+Client Environment Variables
+-----------------------------
+
+For the client, you need to set the following environment variables:
+
+.. line-block::
+
+     **FEDN_AUTH_REFRESH_TOKEN_URI**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The URI used to obtain new access tokens when the old ones expire.
+
+     **FEDN_AUTH_REFRESH_TOKEN**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** None
+      - **Description:** The refresh token used to obtain new access tokens when the old ones expire.
+
+     **FEDN_AUTH_SCHEME**
+      - **Type:** str
+      - **Required:** no
+      - **Default:** "Token"
+      - **Description:** The authentication scheme used in the FEDn API and gRPC interceptors.
+
+You can use `--token` flags in the FEDn CLI to set the access token.
