@@ -182,7 +182,7 @@ def build_cmd(ctx, path):
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False,type=str, default="combiner",help="url to the combiner or name of the preferred combiner")
+@click.option("-c", "--preferred-combiner", required=False,type=str, default="",help="url to the combiner or name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
