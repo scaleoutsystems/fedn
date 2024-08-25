@@ -1,9 +1,15 @@
 .. _apiclient-label:
 
-APIClient
-=========
+Using the Python API
+====================
 
 FEDn comes with an *APIClient* - a Python3 library that can be used to interact with FEDn programmatically. 
+In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, 
+run and control training sessions, use different aggregators, and to retrieve models and metrics. 
+
+We assume a basic understanding of the FEDn framework, i.e. that the user have taken the Getting Started tutorial:  
+
+- :ref:`apiclient-label`
 
 **Installation**
 
@@ -13,11 +19,10 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
    
    $ pip install fedn
 
-**Initialize the APIClient**
+**Initialize the APIClient to a FEDn Studio project**
 
 The FEDn REST API is available at <controller-host>/api/v1/. To access this API you need the url to the controller-host, as well as an admin API token. The controller host can be found in the project dashboard (top right corner).
 To obtain an admin API token, navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. Copy the 'access' token and use it to access the API using the instructions below. 
-
 
 .. code-block:: python
 
@@ -36,32 +41,9 @@ Then passing a token as an argument is not required.
    >>> from fedn import APIClient
    >>> client = APIClient(host="<controller-host>", secure=True, verify=True)
 
+**Set the active package and seed model**
 
-**Set active package and seed model**
-
-The active package can be set using the following code snippet:
-
-.. code-block:: python
-   
-   client.set_active_package(path="path/to/package.tgz", helper="numpyhelper")
-
-To set the initial seed model, you can use the following code snippet:
-
-.. code-block:: python
-   
-   client.set_active_model(path="path/to/seed.npz")
-
-
-** (Alternative) Upload the package and seed model using the Python APIClient**
-
-It is also possible to upload a package and seed model using the Python API Client. 
-
-.. note:: 
-   You need to create an API admin token and use the token to authenticate the APIClient.
-   Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient below.
-   The controller host can be found on the main Dashboard in FEDn Studio. More information on the use of the APIClient can be found here: :ref:`apiclient-label.
-
-To upload the package and seed model using the APIClient:
+To set the active compute package in the FEDn Studio Project:
 
 .. code:: python
 
@@ -78,10 +60,7 @@ Once the active package and seed model are set, you can connect clients to the n
    
    session = client.start_session(id="session_name")
 
-
 **Run training sessions using the Python APIClient**
-
-You can also issue training sessions using the APIClient:
 
 .. code:: python
 

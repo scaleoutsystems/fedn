@@ -1,3 +1,5 @@
+.. _quickstart-label:
+
 Getting started with FEDn
 =========================
 
@@ -173,8 +175,9 @@ to learn how to develop your own FEDn projects:
 
 - :ref:`projects-label`
 
-In this tutorial we relied on the UI. The Python APIClient provides a flexible alternative, with additional functionality 
-such as use of different aggregators. Learn how to use the APIClient here: 
+In this tutorial we relied on the UI for running training sessions and retrieving models and results. 
+The Python APIClient provides a flexible alternative, with additional functionality exposed, 
+including the use of different aggregators. Learn how to use the APIClient here: 
 
 - :ref:`apiclient-label`
 
@@ -186,8 +189,3 @@ For developers looking to customize FEDn and develop own aggregators, check out 
 to learn how to set up an all-in-one development environment using Docker and docker-compose:
 
 - :ref:`developer-label`
-
-
-
-
-
