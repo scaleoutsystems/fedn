@@ -1,22 +1,17 @@
 .. _projects-label:
 
 ================================================
-Develop your own FEDn project
+Develop your own project
 ================================================
 
 This guide explains how a FEDn project is structured, and details how to develop and run your own
 projects. 
 
 **In this article**
-`Prerequisites`_
+
 `Overview`_
 `Build a FEDn project`_
 `Deploy a FEDn project`_
-
-Prerequisites
-==============
-
-
  
 Overview
 ==========
