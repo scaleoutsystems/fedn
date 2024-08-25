@@ -174,4 +174,17 @@ by looking at the code above. Here we assume that the dataset is present in a fi
 the execution of entrypoint.py. Then, independent of the preferred way to run the client (native, Docker, K8s etc) this structure needs to be maintained for this particular 
 compute package. Note however, that there are many ways to accomplish this on a local operational level.
 
+Where to go from here? 
+-----------------------
+
+With an understanding of how FEDn Projects are structured and created, you can explore our library of example projects. They demonstrate different use case scenarios of FEDn 
+and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
+
+- `FEDn + PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
+- `FEDn + Tensforflow/Keras <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__
+- `FEDn + MONAI <https://github.com/scaleoutsystems/fedn/tree/master/examples/monai-2D-mednist>`__
+- `FEDn + Hugging Face <https://github.com/scaleoutsystems/fedn/tree/master/examples/huggingface>`__
+- `FEDn + Flower <https://github.com/scaleoutsystems/fedn/tree/master/examples/flower-client>`__
+- `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
+
 
