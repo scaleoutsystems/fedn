@@ -23,7 +23,6 @@
    faq
    modules
 
-
 Indices and tables
 ==================
 

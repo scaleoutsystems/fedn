@@ -7,9 +7,7 @@ FEDn comes with an *APIClient* - a Python3 library that can be used to interact 
 In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, 
 run and control training sessions, use different aggregators, and to retrieve models and metrics. 
 
-We assume a basic understanding of the FEDn framework, i.e. that the user have taken the Getting Started tutorial:  
-
-- :ref:`apiclient-label`
+We assume a basic understanding of the FEDn framework, i.e. that the user have taken the Getting Started tutorial: :ref:`quickstart-label`
 
 **Installation**
 
