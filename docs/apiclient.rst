@@ -51,6 +51,25 @@ To set the initial seed model, you can use the following code snippet:
    
    client.set_active_model(path="path/to/seed.npz")
 
+
+** (Alternative) Upload the package and seed model using the Python APIClient**
+
+It is also possible to upload a package and seed model using the Python API Client. 
+
+.. note:: 
+   You need to create an API admin token and use the token to authenticate the APIClient.
+   Do this by going to the 'Settings' tab in FEDn Studio and click 'Generate token'. Copy the access token and use it in the APIClient below.
+   The controller host can be found on the main Dashboard in FEDn Studio. More information on the use of the APIClient can be found here: :ref:`apiclient-label.
+
+To upload the package and seed model using the APIClient:
+
+.. code:: python
+
+   >>> from fedn import APIClient
+   >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
+   >>> client.set_active_package("package.tgz", helper="numpyhelper")
+   >>> client.set_active_model("seed.npz")
+
 **Start a training session**
 
 Once the active package and seed model are set, you can connect clients to the network and start training models. The following code snippet starts a traing session:
@@ -58,6 +77,34 @@ Once the active package and seed model are set, you can connect clients to the n
 .. code-block:: python
    
    session = client.start_session(id="session_name")
+
+
+**Run training sessions using the Python APIClient**
+
+You can also issue training sessions using the APIClient:
+
+.. code:: python
+
+   >>> ...
+   >>> client.start_session(id="test-session", rounds=3)
+   # Wait for training to complete, when controller is idle:
+   >>> client.get_controller_status()
+   # Show model trail:
+   >>> models = client.get_model_trail()
+   # Show performance of latest global model:
+   >>> model_id = models[-1]['model']
+   >>> validations = client.get_validations(model_id=model_id)
+
+**Accessing global models**
+
+You can also access global model updates via the APIClient:
+
+.. code:: python
+
+   >>> ...
+   >>> client.download_model("<model-id>", path="model.npz")
+
+Please see :py:mod:`fedn.network.api` for more details on how to use the APIClient. 
 
 **List data**
 
