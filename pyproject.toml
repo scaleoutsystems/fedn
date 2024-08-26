@@ -42,7 +42,7 @@ dependencies = [
   "pyopenssl",
   "psutil",
   "click==8.1.7",
-  "grpcio-health-checking~=1.60.0",
+  "grpcio-health-checking>=1.60,<1.67",
   "pyyaml",
   "plotly",
   "virtualenv",
