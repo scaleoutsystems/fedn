@@ -5,8 +5,8 @@ entry_points:
   startup:
     command: python get_data.py
   train:
-    command: python entrypoint.py train $ENTRYPOINT_OPTS
+    command: python entrypoint.py train 
   validate:
-    command: python entrypoint.py validate $ENTRYPOINT_OPTS
+    command: python entrypoint.py validate 
   predict:
-    command: python entrypoint.py predict $ENTRYPOINT_OPTS
+    command: python entrypoint.py predict 

@@ -1,8 +1,8 @@
 import os
 from math import floor
+import random
 
 import numpy as np
-import tensorflow as tf
 
 
 def splitset(dataset, parts):
@@ -12,25 +12,76 @@ def splitset(dataset, parts):
     for i in range(parts):
         result.append(dataset[i * local_n : (i + 1) * local_n])
     return np.array(result)
+def write_list(array, fname):
+  textfile = open(fname, "w")
+  for element in array:
+    textfile.write(f"{ds_path}/{element}\n")
+  textfile.close()
 
 
-def split(dataset="data/mnist.npz", outdir="data", n_splits=2):
-    # Load and convert to dict
-    package = np.load(dataset)
-    data = {}
-    for key, val in package.items():
-        data[key] = splitset(val, n_splits)
+def split(dataset="yolo_computer/data/combine_data", outdir="data", n_splits=1):
+   
+    #Splitting the images into train and test
 
-    # Make dir if necessary
-    if not os.path.exists(f"{outdir}/clients"):
-        os.mkdir(f"{outdir}/clients")
 
-    # Make splits
-    for i in range(n_splits):
-        subdir = f"{outdir}/clients/{str(i+1)}"
-        if not os.path.exists(subdir):
-            os.mkdir(subdir)
-        np.savez(f"{subdir}/mnist.npz", x_train=data["x_train"][i], y_train=data["y_train"][i], x_test=data["x_test"][i], y_test=data["y_test"][i])
+
+    import glob, os
+
+
+
+    current_dir = dataset
+
+
+    # Percentage of images to be used for the test set
+
+    percentage_test = 10
+
+
+
+    # Create and/or truncate train.txt and test.txt
+
+    file_train = open('data/train.txt', 'a')
+
+    file_test = open('data/val.txt', 'a')
+
+    import glob
+
+    images_list1 = glob.glob("/home/sowmya/yolo_computer/data/combine_data/*.jpg")
+
+    images_list2 = glob.glob("/home/sowmya/yolo_computer/data/combine_data/*.png")
+
+    images_list3 = glob.glob("/home/sowmya/yolo_computer/data/combine_data/*.jpeg")
+    images_list = images_list1 + images_list2 + images_list3
+
+
+    print(images_list)
+
+    # types = ('*.jpg', '*.png', "*jpeg")
+
+    # Populate train.txt and test.txt
+
+    counter = 1
+
+    index_test = round(100 / percentage_test)
+
+    # for pathAndFilename in glob.iglob(os.path.join(current_dir, types)):
+
+    # title, ext = os.path.splitext(os.path.basename(pathAndFilename))
+
+
+    # file = open("data/train.txt", "w")
+
+    for id, name in enumerate(images_list):
+        # file_train.write("\n".join(images_list))
+        # file.close()
+        if counter == index_test:
+            counter = 1
+            #print('in')
+            file_test.write(name + "\n")
+        else:
+            # print('in')
+            file_train.write(name + "\n")
+            counter = counter + 1
 
 
 def get_data(out_dir="data"):
@@ -38,11 +89,9 @@ def get_data(out_dir="data"):
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
-    # Download data
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-    np.savez(f"{out_dir}/mnist.npz", x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)
 
 
 if __name__ == "__main__":
-    get_data()
-    split()
+    pass
+    #get_data()
+    #split()

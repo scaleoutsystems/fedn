@@ -1,14 +1,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
+#include "utils.h"
+#include "option_list.h"
 
 list *make_list()
 {
-	list *l = malloc(sizeof(list));
-	l->size = 0;
-	l->front = 0;
-	l->back = 0;
-	return l;
+    list* l = (list*)xmalloc(sizeof(list));
+    l->size = 0;
+    l->front = 0;
+    l->back = 0;
+    return l;
 }
 
 /*
@@ -33,55 +35,77 @@ void *list_pop(list *l){
     if(l->back) l->back->next = 0;
     free(b);
     --l->size;
-    
+
     return val;
 }
 
 void list_insert(list *l, void *val)
 {
-	node *new = malloc(sizeof(node));
-	new->val = val;
-	new->next = 0;
+    node* newnode = (node*)xmalloc(sizeof(node));
+    newnode->val = val;
+    newnode->next = 0;
 
-	if(!l->back){
-		l->front = new;
-		new->prev = 0;
-	}else{
-		l->back->next = new;
-		new->prev = l->back;
-	}
-	l->back = new;
-	++l->size;
+    if(!l->back){
+        l->front = newnode;
+        newnode->prev = 0;
+    }else{
+        l->back->next = newnode;
+        newnode->prev = l->back;
+    }
+    l->back = newnode;
+    ++l->size;
 }
 
 void free_node(node *n)
 {
-	node *next;
-	while(n) {
-		next = n->next;
-		free(n);
-		n = next;
-	}
+    node *next;
+    while(n) {
+        next = n->next;
+        free(n);
+        n = next;
+    }
+}
+
+void free_list_val(list *l)
+{
+    node *n = l->front;
+    node *next;
+    while (n) {
+        next = n->next;
+        free(n->val);
+        n = next;
+    }
 }
 
 void free_list(list *l)
 {
-	free_node(l->front);
-	free(l);
+    free_node(l->front);
+    free(l);
 }
 
 void free_list_contents(list *l)
 {
-	node *n = l->front;
-	while(n){
-		free(n->val);
-		n = n->next;
-	}
+    node *n = l->front;
+    while(n){
+        free(n->val);
+        n = n->next;
+    }
+}
+
+void free_list_contents_kvp(list *l)
+{
+    node *n = l->front;
+    while (n) {
+        kvp* p = (kvp*)n->val;
+        free(p->key);
+        free(n->val);
+        n = n->next;
+    }
 }
 
 void **list_to_array(list *l)
 {
-    void **a = calloc(l->size, sizeof(void*));
+    void** a = (void**)xcalloc(l->size, sizeof(void*));
     int count = 0;
     node *n = l->front;
     while(n){
