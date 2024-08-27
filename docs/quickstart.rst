@@ -128,7 +128,7 @@ Start a client (using a 10-split and the first partition) by running the followi
          export FEDN_PACKAGE_EXTRACT_DIR=package
          export FEDN_NUM_DATA_SPLITS=10
          export FEDN_DATA_PATH=./data/clients/1/mnist.pt
-         fedn client start -in client.yaml --secure=True --force-ssl
+         fedn run client -in client.yaml --secure=True --force-ssl
 
     .. code-tab:: bash
          :caption: Windows (Powershell)
@@ -136,7 +136,7 @@ Start a client (using a 10-split and the first partition) by running the followi
          $env:FEDN_PACKAGE_EXTRACT_DIR="package"
          $env:FEDN_NUM_DATA_SPLITS=10
          $env:FEDN_DATA_PATH="./data/clients/1/mnist.pt"
-         fedn client start -in client.yaml --secure=True --force-ssl
+         fedn run client -in client.yaml --secure=True --force-ssl
 
 Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
 A normal laptop should be able to handle several clients for this example. Remember to use different partitions for each client. 
