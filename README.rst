@@ -26,7 +26,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
 
-We provide a fully managed deployment for testing, academic, and personal use. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
+FEDn is free forever for academic and personal use / small projects. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
 
 Features
 =========
@@ -77,6 +77,18 @@ More details about the architecture, deployment, and how to develop your own app
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 
+FEDn Project Examples
+=====================
+
+Our example projects demonstrate different use case scenarios of FEDn 
+and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
+
+- `FEDn + PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
+- `FEDn + Tensforflow/Keras <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__
+- `FEDn + MONAI <https://github.com/scaleoutsystems/fedn/tree/master/examples/monai-2D-mednist>`__
+- `FEDn + Hugging Face <https://github.com/scaleoutsystems/fedn/tree/master/examples/huggingface>`__
+- `FEDn + Flower <https://github.com/scaleoutsystems/fedn/tree/master/examples/flower-client>`__
+- `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
 
 FEDn Studio Deployment options
 ==============================

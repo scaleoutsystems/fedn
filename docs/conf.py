@@ -12,7 +12,7 @@ copyright = "2021, Scaleout Systems AB"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.11.1"
+release = "0.12.1"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [

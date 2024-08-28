@@ -182,7 +182,7 @@ def build_cmd(ctx, path):
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False, default=False)
+@click.option("-c", "--preferred-combiner", required=False,type=str, default="",help="url to the combiner or name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
@@ -262,7 +262,6 @@ def client_cmd(
         apply_config(init, config)
         click.echo(f"\nClient configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
-
     try:
         validate_client_config(config)
     except InvalidClientConfig as e:
