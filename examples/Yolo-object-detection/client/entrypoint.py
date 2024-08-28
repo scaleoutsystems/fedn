@@ -65,7 +65,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     :param epochs: The number of epochs to train.
     :type epochs: int
     """
-    os.chdir('darknet')
+    os.chdir("darknet")
     darkfile = "example.weights"
 
     save_fedn2darknet(in_model_path, darkfile)
@@ -83,7 +83,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     # Darknet executable path
     darknet_path = "./darknet"  # Make sure this path is correct
-
+    print("cwd: ", os.getcwd())
     # Command to train YOLO using Darknet
     command = [darknet_path, "detector", "train", data_file, cfg_file, yolo_converted_weights]
 
