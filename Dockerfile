@@ -41,7 +41,7 @@ RUN mkdir -p /app \
   # Install FEDn and requirements
   && python -m venv /venv \
   && /venv/bin/pip install --upgrade pip \
-  && /venv/bin/pip install --no-cache-dir setuptools>=65 \
+  && /venv/bin/pip install --no-cache-dir 'setuptools>=65' \
   && /venv/bin/pip install --no-cache-dir -e . \
   && if [[ ! -z "$REQUIREMENTS" ]]; then \
   /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt; \
