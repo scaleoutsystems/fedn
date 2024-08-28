@@ -366,15 +366,24 @@ Testing the entrypoints
 =======================
 
 We recommend you to test your training and validation entry points locally before creating the compute package and uploading it to Studio. 
-You can test *train* and *validate* by (example for the mnist-keras project):
+To run the 'build' entrypoint and create the seed model (deafult filename 'seed.npz'): 
+
+.. code-block:: python
+
+    fedn run build --path client 
+
+Run the 'startup' entrypoint to download the dataset:
+
+.. code-block:: python
+
+    fedn run startup --path client 
+
+Then, standing inside the 'client folder', you can test *train* and *validate* by:
 
 .. code-block:: bash
  
-    python train.py ../seed.npz ../model_update.npz --data_path ../data/mnist.npz
-    python validate.py ../model_update.npz ../validation.json --data_path ../data/mnist.npz
-
-Note that we here assume execution in the correct Python environment. 
-
+    python train.py ../seed.npz ../model_update.npz --data_path data/clients/1/mnist.pt
+    python validate.py ../model_update.npz ../validation.json --data_path data/clients/1/mnist.pt
 
 Packaging for training on FEDn
 ===============================
