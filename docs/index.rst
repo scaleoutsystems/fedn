@@ -5,16 +5,15 @@
    introduction
    quickstart
    projects
+   apiclient
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
    
-   apiclient
    architecture
    aggregators
    helpers
-   auth
    developer
    
 .. toctree::
@@ -23,7 +22,6 @@
    
    faq
    modules
-
 
 Indices and tables
 ==================

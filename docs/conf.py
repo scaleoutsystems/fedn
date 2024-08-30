@@ -25,6 +25,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_code_tabs",
+    "sphinx_design",
 ]
 
 # The master toctree document.
@@ -97,7 +98,8 @@ man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
+    (master_doc, "fedn", "FEDn Documentation", author, "fedn",
+     "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.
