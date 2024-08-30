@@ -13,10 +13,11 @@ The server aggregates and combines the gradients from multiple participants to u
 This iterative process allows the global model to improve without the need to share the raw data.
 
 
-FEDn: An enterprise-ready federated learning framework 
--------------------------------------------------------
+The FEDn framework 
+--------------------
 
-Our goal is to provide a federated learning framework that is both secure, scalable and easy-to-use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
+The goal with FEDn is to provide a federated learning framework that is secure, scalable and easy-to-use. Our ambition is that FEDn supports the full journey from early
+testing/exploration, through pilot projects, to real-world depoyments and integration. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
 
 -  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide a UI, REST API and a Python interface to help users manage FL experiments and track metrics in real time.
 
@@ -66,4 +67,4 @@ Support
 Community support in available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
-Options are available for `Enterprise support <https://www.scaleoutsystems.com/start#pricing>`__.
+For professionals / Enteprise, we offer `Dedicated support <https://www.scaleoutsystems.com/start#pricing>`__.

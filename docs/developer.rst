@@ -1,7 +1,12 @@
 .. _developer-label:
 
-Local development sandbox
-=========================
+================
+Developer guide
+================
+
+
+Pseudo-distributed sandbox
+===========================
 
 .. note::
    These instructions are for users wanting to set up a bare-minimum local deployment of FEDn (without FEDn Studio).

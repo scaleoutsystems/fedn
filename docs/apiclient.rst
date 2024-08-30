@@ -39,7 +39,7 @@ Then passing a token as an argument is not required.
    >>> from fedn import APIClient
    >>> client = APIClient(host="<controller-host>", secure=True, verify=True)
 
-**Set the active package and seed model**
+**Set the active compute package and seed model**
 
 To set the active compute package in the FEDn Studio Project:
 
@@ -52,13 +52,8 @@ To set the active compute package in the FEDn Studio Project:
 
 **Start a training session**
 
-Once the active package and seed model are set, you can connect clients to the network and start training models. The following code snippet starts a traing session:
-
-.. code-block:: python
-   
-   session = client.start_session(id="session_name")
-
-**Run training sessions using the Python APIClient**
+Once the active package and seed model are set, you can connect clients to the network and start training models. To run a training session
+using the default aggregator (FedAvg):
 
 .. code:: python
 
@@ -72,16 +67,37 @@ Once the active package and seed model are set, you can connect clients to the n
    >>> model_id = models[-1]['model']
    >>> validations = client.get_validations(model_id=model_id)
 
-**Accessing global models**
+To run a session using the FedAdam aggregator using custom hyperparamters: 
 
-You can also access global model updates via the APIClient:
+.. code-block:: python
+
+   >>> session_id = "experiment_fedadam"
+
+   >>> session_config = {
+                     "helper": "numpyhelper",
+                     "id": session_id,
+                     "aggregator": "fedopt",
+                     "aggregator_kwargs": {
+                           "serveropt": "adam",
+                           "learning_rate": 1e-2,
+                           "beta1": 0.9,
+                           "beta2": 0.99,
+                           "tau": 1e-4
+                           },
+                     "model_id": seed_model['model'],
+                     "rounds": 10
+                  }
+
+   >>> result_fedadam = client.start_session(**session_config)
+
+**Download a global model**
+
+To download a global model and write it to file:
 
 .. code:: python
 
    >>> ...
    >>> client.download_model("<model-id>", path="model.npz")
-
-Please see :py:mod:`fedn.network.api` for more details on how to use the APIClient. 
 
 **List data**
 
@@ -101,17 +117,17 @@ Entities represented in the APIClient are:
 * statuses
 * validations
 
-The following code snippet shows how to list all sessions:
+To list all sessions: 
+.. code-block:: python
+   
+   >>> sessions = client.get_sessions()
+
+To get a specific session:
 
 .. code-block:: python
    
-   sessions = client.get_sessions()
+   >>> session = client.get_session(id="session_name")
 
-And the following code snippet shows how to get a specific session:
-
-.. code-block:: python
-   
-   session = client.get_session(id="session_name")
-
-
-For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the example `Notebooks <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_. 
+For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the collection of example Jupyter Notebooks:
+ 
+- `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_  . 
