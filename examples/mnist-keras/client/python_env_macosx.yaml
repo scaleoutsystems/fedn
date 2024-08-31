@@ -6,5 +6,4 @@ build_dependencies:
 dependencies:
   - tensorflow-macos
   - tensorflow-metal
-  - fire==0.3.1
   - fedn
