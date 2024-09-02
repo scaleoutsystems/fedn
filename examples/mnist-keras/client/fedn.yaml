@@ -1,12 +1,12 @@
 python_env: python_env.yaml
 entry_points:
   build:
-    command: python entrypoint.py init_seed
+    command: python model.py
   startup:
-    command: python get_data.py
+    command: python data.py
   train:
-    command: python entrypoint.py train $ENTRYPOINT_OPTS
+    command: python train.py
   validate:
-    command: python entrypoint.py validate $ENTRYPOINT_OPTS
+    command: python validate.py
   predict:
-    command: python entrypoint.py predict $ENTRYPOINT_OPTS
+    command: python predict.py

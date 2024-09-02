@@ -311,8 +311,7 @@ class RoundHandler:
             logger.error("(ERROR): {} is not a supported type of client".format(type))
 
         # If the number of requested trainers exceeds the number of available, use all available.
-        if n > len(clients):
-            n = len(clients)
+        n = min(n, len(clients))
 
         # If not, we pick a random subsample of all available clients.
         clients = random.sample(clients, n)
