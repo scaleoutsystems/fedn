@@ -10,7 +10,6 @@ from fedn.utils.helpers.helpers import save_metadata
 
 from opacus import PrivacyEngine
 from torch.utils.data import Dataset, DataLoader
-from tqdm.notebook import tqdm
 
 import numpy as np
 from opacus.utils.batch_memory_manager import BatchMemoryManager
@@ -107,7 +106,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
 
 
-    for epoch in tqdm(range(EPOCHS), desc="Epoch", unit="epoch"):
+    for epoch in range(EPOCHS):
         train_dp(model, train_loader, optimizer, epoch + 1, device, privacy_engine)
 
     d_epsilon = privacy_engine.get_epsilon(DELTA)
