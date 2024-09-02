@@ -165,7 +165,7 @@ In the terminal where your are running your client you should now see some activ
 
 **Watch real-time updates of training progress**
 
-Once a training session is started, you can monitor the progress by clicking the drop-down button for the active Sessions and the clicking on the "View session" button. The session page will show 
+Once a training session is started, you can monitor the progress by clicking the drop-down button for the active Sessions and then clicking on the "View session" button. The session page will show 
 metrics related to the training progress (accuracy, loss etc), as well as performance data such as total round times and individual client training times. A list of models in the session is updated as soon as new models are generated. 
 To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model weights and get validation metrics.
 
