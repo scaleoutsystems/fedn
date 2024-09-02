@@ -27,26 +27,32 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
 
     def ExecuteFunction(self, request, context):
         # Compile the function code
-        if request.task == "setup":
-            logger.info("Adding function provider.")
-            self.init_hook_object(request.payload_string)
-            return fedn.FunctionResponse(result_string="Instansiated hook functions.")
-        if request.task == "store_parameters":
-            logger.info("Executing aggregate function.")
-            parameters = load_model_from_BytesIO(request.payload_bytes, self.helper)
-            self.client_results.append((parameters, json.loads(request.payload_string)))
-            return fedn.FunctionResponse(result_string="Stored parameters")
-        if request.task == "aggregate":
-            logger.info("Executing aggregate function.")
-            parameters = load_model_from_BytesIO(request.payload_bytes, self.helper)
-            self.client_results.append((parameters, json.loads(request.payload_string)))
-            result = self.execute_function_code()
-            result_bytes = serialize_model_to_BytesIO(result, self.helper).getvalue()
-            return fedn.FunctionResponse(result_bytes=result_bytes)
-        if request.task == "get_model_metadata":
-            model_metadata = self.get_model_metadata()
-            json_model_metadata = json.dumps(model_metadata, indent=4)
-            return fedn.FunctionResponse(result_string=json_model_metadata)
+        try:
+            if request.task == "setup":
+                logger.info("Adding function provider.")
+                self.init_hook_object(request.payload_string)
+                return fedn.FunctionResponse(result_string="Instansiated hook functions.")
+            if request.task == "store_parameters":
+                logger.info("Executing aggregate function.")
+                parameters = load_model_from_BytesIO(request.payload_bytes, self.helper)
+                self.client_results.append((parameters, json.loads(request.payload_string)))
+                return fedn.FunctionResponse(result_string="Stored parameters")
+            if request.task == "aggregate":
+                logger.info("Executing aggregate function.")
+                parameters = load_model_from_BytesIO(request.payload_bytes, self.helper)
+                self.client_results.append((parameters, json.loads(request.payload_string)))
+                result = self.execute_function_code()
+                result_bytes = serialize_model_to_BytesIO(result, self.helper).getvalue()
+                return fedn.FunctionResponse(result_bytes=result_bytes)
+            if request.task == "get_model_metadata":
+                model_metadata = self.get_model_metadata()
+                json_model_metadata = json.dumps(model_metadata, indent=4)
+                return fedn.FunctionResponse(result_string=json_model_metadata)
+        except Exception as e:
+            logger.error(f"Error executing task {request.task}: {e}", exc_info=True)
+            context.set_details(f"Error: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return fedn.FunctionResponse(result_string=f"Error executing task: {e}")
 
     def init_hook_object(self, class_code):
         # Prepare the globals dictionary with restricted builtins
