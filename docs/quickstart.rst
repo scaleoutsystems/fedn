@@ -126,7 +126,7 @@ Each local client needs an access token in order to connect securely to the FEDn
 The default training and test data for this particular example (mnist-pytorch) is for convenience downloaded and split automatically by the client when it starts up. 
 The number of splits and which split to use by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
 
-Start a client (using a 10-split and the first partition) by running the following commands:
+Start a client (using a 10-split and the 1st partition) by running the following commands:
 
 .. tabs::
 
@@ -147,7 +147,7 @@ Start a client (using a 10-split and the first partition) by running the followi
          fedn run client -in client.yaml --secure=True --force-ssl
 
 Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
-A normal laptop should be able to handle several clients for this example. Remember to use different partitions for each client. 
+A normal laptop should be able to handle several clients for this example. Remember to use different partitions for each client, by changing the number in the ``FEDN_DATA_PATH`` variable. 
 
 5. Train the global model 
 -----------------------------
