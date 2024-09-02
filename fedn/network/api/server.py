@@ -629,14 +629,14 @@ if custom_url_prefix:
 
 
 def start_server_api():
-        config = get_controller_config()
-        port = config["port"]
-        host = "0.0.0.0"
-        debug = config["debug"]
-        if debug:
-            app.run(debug=debug, port=port, host=host)
-        else:
-            workers=os.cpu_count()
-            gunicorn_app.run_gunicorn(app, host, port, workers)
+    config = get_controller_config()
+    port = config["port"]
+    host = "0.0.0.0"
+    debug = config["debug"]
+    if debug:
+        app.run(debug=debug, port=port, host=host)
+    else:
+        workers=os.cpu_count()
+        gunicorn_app.run_gunicorn(app, host, port, workers)
 if __name__ == "__main__":
     start_server_api()
