@@ -116,8 +116,10 @@ Now we are ready to start FEDn clients on your local machine. There are two step
 **Generate an access token for the client (in Studio)**
 
 Each local client needs an access token in order to connect securely to the FEDn server. These tokens are issued from your Studio Project. 
-Go to the Clients' tab and click 'Connect client'. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch folder``. 
-Rename the file to 'client.yaml'. 
+
+1. Go to the 'Clients' tab and click 'Connect client'. 
+2. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch`` folder. 
+3. Rename the file to 'client.yaml'. 
 
 **Start the client (on your local machine)** 
 
