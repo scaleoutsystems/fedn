@@ -423,6 +423,7 @@ class RoundHandler:
                     if ready:
                         if round_config["task"] == "training":
                             tic = time.time()
+                            round_config["model_metadata"] = self.aggregator.get_model_metadata()
                             round_meta = self.execute_training_round(round_config)
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"

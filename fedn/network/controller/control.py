@@ -129,6 +129,8 @@ class Control(ControlBase):
 
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(aggregator)
+            if session_config["function_provider"] is not None:
+                combiner.set_function_provider(session_config["function_provider"])
 
         self.set_session_status(session_id, "Started")
 

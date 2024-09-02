@@ -29,7 +29,7 @@ from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
 from fedn.utils.dispatcher import Dispatcher
-from fedn.utils.helpers.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper, load_metadata, save_metadata
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -484,7 +484,7 @@ class Client:
         if not self._connected:
             return
 
-    def _process_training_request(self, model_id: str, session_id: str = None):
+    def _process_training_request(self, model_id: str, session_id: str = None, model_metadata: dict = None):
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
@@ -510,6 +510,8 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(mdl.getbuffer())
 
+            save_metadata(metadata=model_metadata, filename=inpath)
+
             outpath = self.helper.get_tmp_path()
             tic = time.time()
             # TODO: Check return status, fail gracefully
@@ -530,8 +532,7 @@ class Client:
             meta["upload_model"] = time.time() - tic
 
             # Read the metadata file
-            with open(outpath + "-metadata", "r") as fh:
-                training_metadata = json.loads(fh.read())
+            training_metadata = load_metadata(outpath)
             meta["training_metadata"] = training_metadata
 
             os.unlink(inpath)
@@ -650,7 +651,8 @@ class Client:
                 if task_type == "train":
                     tic = time.time()
                     self.state = ClientState.training
-                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id)
+                    model_metadata = json.loads(request.data)["model_metadata"]
+                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, model_metadata=model_metadata)
 
                     if meta is not None:
                         processing_time = time.time() - tic

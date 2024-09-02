@@ -247,10 +247,8 @@ service Combiner {
 
 message FunctionRequest {
   string task = 1;
-  oneof payload {
-    string payload_string = 2;
-    bytes payload_bytes = 3;
-  }
+  string payload_string = 2;
+  bytes payload_bytes = 3;
 }
 
 message FunctionResponse {

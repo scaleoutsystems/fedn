@@ -27,6 +27,13 @@ class Aggregator(AggregatorBase):
         self.name = "custom"
         self.code_set = False
 
+    def get_model_metadata(self):
+        """Sends metadata to the clients."""
+        if not self.code_set:
+            self.round_handler.set_function_provider()
+            self.code_set = True
+        return self.round_handler.combiner_hook_client.get_model_metadata()
+
     def combine_models(self, helper=None, delete_models=True, parameters=None):
         """Aggregate all model updates with custom aggregator.
 
@@ -76,9 +83,9 @@ class Aggregator(AggregatorBase):
 
                 self.model_updates.task_done()
                 if not self.model_updates.empty():
-                    self.round_handler.combiner_hook_client.call_function("store_parameters", model_next, helper)
+                    self.round_handler.combiner_hook_client.call_function("store_parameters", model_next, helper, metadata)
                 else:
-                    model = self.round_handler.combiner_hook_client.call_function("aggregate", model_next, helper)
+                    model = self.round_handler.combiner_hook_client.call_function("aggregate", model_next, helper, metadata)
             except Exception as e:
                 tb = traceback.format_exc()
                 logger.error(f"AGGREGATOR({self.name}): Error encoutered while processing model update: {e}")

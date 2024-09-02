@@ -1,6 +1,6 @@
 import click
 
-from fedn.network.hooks.hooks import serve
+from fedn.network.combiner.hooks.hooks import serve
 
 from .main import main
 

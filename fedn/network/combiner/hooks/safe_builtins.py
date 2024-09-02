@@ -57,13 +57,11 @@ safe_builtins = {
     "__build_class__": builtins.__build_class__,
     "__name__": builtins.__name__,
     "__import__": builtins.__import__,
-    # Adding common exceptions
     "BaseException": BaseException,
     "Exception": Exception,
     "ArithmeticError": ArithmeticError,
     "BufferError": BufferError,
     "LookupError": LookupError,
-    # Adding common modules
     "math": __import__("math"),
     "itertools": __import__("itertools"),
     "functools": __import__("functools"),

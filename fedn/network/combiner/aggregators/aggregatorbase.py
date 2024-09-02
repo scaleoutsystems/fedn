@@ -55,6 +55,10 @@ class AggregatorBase(ABC):
         """
         pass
 
+    def get_model_metadata(self):
+        """Sends metadata to the clients."""
+        return {}
+
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
 
