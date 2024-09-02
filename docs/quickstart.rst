@@ -61,13 +61,13 @@ code used by the client to execute local training and local validation. The seed
 For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
 
 To work through this quick start you need a local copy of the ``mnist-pytorch`` example project contained in the main FEDn Git repository. 
-The following command clones the entire repository but you will only use the example:
+Clone the repository using the following command, if you didn't already do it in the previous step:
 
 .. code-block:: bash
 
    git clone https://github.com/scaleoutsystems/fedn.git
 
-Locate into the ``fedn/examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
+Navigate to the ``fedn/examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
 
 Create a compute package: 
 
