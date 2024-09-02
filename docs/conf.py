@@ -12,7 +12,7 @@ copyright = "2021, Scaleout Systems AB"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.12.1"
+release = "0.13.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -98,8 +98,7 @@ man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation", author, "fedn",
-     "One line description of project.", "Miscellaneous"),
+    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.
