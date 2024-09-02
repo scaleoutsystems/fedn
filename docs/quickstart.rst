@@ -103,6 +103,8 @@ The next step is to initialize the server side with the client code and the init
 
 .. image:: img/upload_package.png
 
+Continue to step 4 before starting the session. The uploaded package and seed files are saved.
+
 4. Start clients
 -----------------
 
