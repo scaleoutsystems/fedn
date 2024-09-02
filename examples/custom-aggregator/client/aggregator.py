@@ -5,9 +5,8 @@ from fedn.network.combiner.aggregators.functionproviderbase import FunctionProvi
 
 
 class FunctionProvider(FunctionProviderBase):
-    """A FunctionProvider class responsible for aggregating model parameters
-    from multiple clients and performing hyperparameter tuning by adjusting
-    the learning rate every 20th round. The class logs the current state of
+    """A FunctionProvider class responsible for aggregating client model parameters and performing
+    hyperparameter tuning by adjusting the learning rate every 20th round. The class logs the current state of
     the model, learning rate, and round to facilitate monitoring and evaluation.
     """
 
