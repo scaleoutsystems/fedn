@@ -155,7 +155,12 @@ A normal laptop should be able to handle several clients for this example. Remem
 With clients connected, we are now ready to train the global model. This can be done using either the Studio dashboard or the Python API. In FEDn, training is organised 
 in Sessions. One training session consists of a configurable number of training rounds (local model updates and aggregation).  
 
-In Studio click on the "Sessions" link, then the "New session" button in the upper right corner. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example) and hit the "Start run" button.
+In Studio, 
+
+1. Click on the "Sessions" link, then the "New session" button in the upper right corner. 
+2. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example).
+3. Hit the "Start run" button.
+
 In the terminal where your are running your client you should now see some activity. When a round is completed, you can see the results on the "Models" page.
 
 **Watch real-time updates of training progress**
