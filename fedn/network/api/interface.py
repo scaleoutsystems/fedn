@@ -512,7 +512,7 @@ class API:
 
         return jsonify(payload)
 
-    def add_client(self, client_id, preferred_combiner, remote_addr, name, package="remote"):
+    def add_client(self, client_id, preferred_combiner, remote_addr, name, package):
         """Add a client to the network.
 
         :param client_id: The client id to add.
@@ -522,6 +522,10 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
+        local_package = FEDN_ALLOW_LOCAL_PACKAGE
+        if local_package:
+            local_package = True
+
         if package == "remote":
             package_object = self.statestore.get_compute_package()
             if package_object is None:
@@ -535,7 +539,9 @@ class API:
                     ),
                     203,
                 )
-        elif package == "local" and FEDN_ALLOW_LOCAL_PACKAGE is False:
+            helper_type = self.control.statestore.get_helper()
+        elif package == "local" and local_package is False:
+            print("Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.")
             return (
                 jsonify(
                     {
@@ -545,8 +551,8 @@ class API:
                 ),
                 400,
             )
-        elif package == "local" and FEDN_ALLOW_LOCAL_PACKAGE:
-            pass
+        elif package == "local" and local_package is True:
+            helper_type = ""
 
         # Assign client to combiner
         if preferred_combiner:
@@ -587,7 +593,7 @@ class API:
             "package": package,
             "ip": combiner.ip,
             "port": combiner.port,
-            "helper_type": self.control.statestore.get_helper(),
+            "helper_type": helper_type,
         }
         return jsonify(payload)
 
