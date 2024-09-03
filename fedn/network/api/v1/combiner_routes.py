@@ -339,3 +339,46 @@ def get_combiner(id: str):
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+@bp.route("/<string:id>", methods=["DELETE"])
+@jwt_auth_required(role="admin")
+def delete_combiner(id: str):
+    """Delete combiner
+    Deletes a combiner based on the provided id.
+    ---
+    tags:
+        - Combiners
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the combiner
+    responses:
+        200:
+            description: The combiner was deleted
+        404:
+            description: The combiner was not found
+            schema:
+                type: object
+                properties:
+                    error:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        result: bool = combiner_store.delete(id)
+        msg = "Combiner deleted" if result else "Combiner not deleted"
+
+        return jsonify({"message": msg}), 200
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception as e:
+        # return jsonify({"message": "An unexpected error occurred"}), 500
+        return jsonify({"message": e}), 500
