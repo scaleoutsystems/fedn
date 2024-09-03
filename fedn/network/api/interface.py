@@ -7,7 +7,7 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.config import FEDN_ALLOW_LOCAL_PACKAGE, get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -512,7 +512,7 @@ class API:
 
         return jsonify(payload)
 
-    def add_client(self, client_id, preferred_combiner, remote_addr, name):
+    def add_client(self, client_id, preferred_combiner, remote_addr, name, package="remote"):
         """Add a client to the network.
 
         :param client_id: The client id to add.
@@ -522,19 +522,31 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
-        # Check if package has been set
-        package_object = self.statestore.get_compute_package()
-        if package_object is None:
+        if package == "remote":
+            package_object = self.statestore.get_compute_package()
+            if package_object is None:
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "status": "retry",
+                            "message": "No compute package found. Set package in controller.",
+                        }
+                    ),
+                    203,
+                )
+        elif package == "local" and FEDN_ALLOW_LOCAL_PACKAGE is False:
             return (
                 jsonify(
                     {
                         "success": False,
-                        "status": "retry",
-                        "message": "No compute package found. Set package in controller.",
+                        "message": "Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.",
                     }
                 ),
-                203,
+                400,
             )
+        elif package == "local" and FEDN_ALLOW_LOCAL_PACKAGE:
+            pass
 
         # Assign client to combiner
         if preferred_combiner:
@@ -572,7 +584,7 @@ class API:
             "status": "assigned",
             "host": combiner.address,
             "fqdn": combiner.fqdn,
-            "package": "remote",  # TODO: Make this configurable
+            "package": package,
             "ip": combiner.ip,
             "port": combiner.port,
             "helper_type": self.control.statestore.get_helper(),

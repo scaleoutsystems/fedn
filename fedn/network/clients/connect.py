@@ -74,7 +74,7 @@ class ConnectorClient:
         """
         try:
             retval = None
-            payload = {"name": self.name, "client_id": self.id, "preferred_combiner": self.preferred_combiner}
+            payload = {"name": self.name, "client_id": self.id, "preferred_combiner": self.preferred_combiner, "package": self.package}
             retval = requests.post(
                 self.connect_string + FEDN_CUSTOM_URL_PREFIX + "/add_client",
                 json=payload,
