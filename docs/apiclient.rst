@@ -30,7 +30,7 @@ To obtain an admin API token, navigate to the "Settings" tab in your Studio proj
 Alternatively, the access token can be sourced from an environment variable. 
 
 .. code-block:: bash
-   
+
    $ export FEDN_AUTH_TOKEN=<access-token>
 
 Then passing a token as an argument is not required. 
@@ -46,8 +46,6 @@ To set the active compute package in the FEDn Studio Project:
 
 .. code:: python
 
-   >>> from fedn import APIClient
-   >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
    >>> client.set_active_package("package.tgz", helper="numpyhelper")
    >>> client.set_active_model("seed.npz")
 
