@@ -20,7 +20,10 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
 **Initialize the APIClient to a FEDn Studio project**
 
 The FEDn REST API is available at <controller-host>/api/v1/. To access this API you need the url to the controller-host, as well as an admin API token. The controller host can be found in the project dashboard (top right corner).
-To obtain an admin API token, navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. Copy the 'access' token and use it to access the API using the instructions below. 
+To obtain an admin API token, 
+
+#. Navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. 
+#. Copy the 'access' token and use it to access the API using the instructions below. 
 
 .. code-block:: python
 
