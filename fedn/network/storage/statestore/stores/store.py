@@ -51,7 +51,8 @@ class Store(Generic[T]):
             return False, str(e)
 
     def delete(self, id: str) -> bool:
-        pass
+        result = self.database[self.collection].delete_one({"_id": ObjectId(id)})
+        return result.deleted_count == 1
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[T]]:
         """List entities
