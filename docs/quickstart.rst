@@ -96,10 +96,10 @@ Next will now upload these files to your Studio project.
 ------------------------------
 The next step is to initialize the server side with the client code and the initial global model. In the Studio UI,
 
-1. Navigate to the project you created in step 1 and click on the "Sessions" tab. 
-2. Click on the "New Session" button. 
-3. Under the "Compute package" tab, select a name and upload the generated package file. 
-4. Under the "Seed model" tab, upload the generated seed file:
+#. Navigate to the project you created in step 1 and click on the "Sessions" tab. 
+#. Click on the "New Session" button. 
+#. Under the "Compute package" tab, select a name and upload the generated package file. 
+#. Under the "Seed model" tab, upload the generated seed file:
 
 .. image:: img/upload_package.png
 
@@ -110,16 +110,16 @@ Continue to step 4 before starting the session. The uploaded package and seed fi
 
 Now we are ready to start FEDn clients on your local machine. There are two steps involved: 
 
-1. Register a new client in your Studio project, issuing an access token. 
-2. Start up a client process on your local host (using the token to connect securely)  
+#. Register a new client in your Studio project, issuing an access token. 
+#. Start up a client process on your local host (using the token to connect securely)  
 
 **Generate an access token for the client (in Studio)**
 
 Each local client needs an access token in order to connect securely to the FEDn server. These tokens are issued from your Studio Project. 
 
-1. Go to the 'Clients' tab and click 'Connect client'. 
-2. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch`` folder. 
-3. Rename the file to 'client.yaml'. 
+#. Go to the 'Clients' tab and click 'Connect client'. 
+#. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch`` folder. 
+#. Rename the file to 'client.yaml'. 
 
 **Start the client (on your local machine)** 
 
@@ -157,9 +157,9 @@ in Sessions. One training session consists of a configurable number of training 
 
 In Studio, 
 
-1. Click on the "Sessions" link, then the "New session" button in the upper right corner. 
-2. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example).
-3. Hit the "Start run" button.
+#. Click on the "Sessions" link, then the "New session" button in the upper right corner. 
+#. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example).
+#. Hit the "Start run" button.
 
 In the terminal where your are running your client you should now see some activity. When a round is completed, you can see the results on the "Models" page.
 
