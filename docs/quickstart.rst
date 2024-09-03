@@ -186,19 +186,19 @@ be useful as you progress in your federated learning journey.
 With you first FEDn federated project set up, we suggest that you take a closer look at how a FEDn project is structured
 to learn how to develop your own FEDn projects:
 
-- :ref:`projects-label`
+:ref:`projects-label`
 
 In this tutorial we relied on the UI for running training sessions and retrieving models and results. 
 The Python APIClient provides a flexible alternative, with additional functionality exposed, 
 including the use of different aggregators. Learn how to use the APIClient here: 
 
-- :ref:`apiclient-label`
+:ref:`apiclient-label`
 
 Study the architecture overview to learn more about how FEDn is designed and works under the hood: 
 
-- :ref:`architecture-label`
+:ref:`architecture-label`
 
 For developers looking to customize FEDn and develop own aggregators, check out the local development guide
 to learn how to set up an all-in-one development environment using Docker and docker-compose:
 
-- :ref:`developer-label`
+:ref:`developer-label`
