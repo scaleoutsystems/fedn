@@ -248,7 +248,11 @@ class Client:
         :return:
         """
         if "helper_type" in combiner_config.keys():
-            self.helper = get_helper(combiner_config["helper_type"])
+            if not combiner_config["helper_type"]:
+                # Default to numpyhelper
+                self.helper = get_helper("numpyhelper")
+            else:
+                self.helper = get_helper(combiner_config["helper_type"])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
