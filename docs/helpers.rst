@@ -1,6 +1,6 @@
 .. _helper-label:
 
-Model Serialization/Deserialization
+Model marshalling
 ===================================
 
 In federated learning, model updates need to be serialized and deserialized in order to be 

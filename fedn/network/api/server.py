@@ -7,6 +7,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
+from fedn.network.api import gunicorn_app
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 # statestore_config,modelstorage_config,network_id,control=set_statestore_config()
@@ -632,10 +633,12 @@ if custom_url_prefix:
 def start_server_api():
     config = get_controller_config()
     port = config["port"]
-    debug = config["debug"]
     host = "0.0.0.0"
-    app.run(debug=debug, port=port, host=host)
-
-
+    debug = config["debug"]
+    if debug:
+        app.run(debug=debug, port=port, host=host)
+    else:
+        workers=os.cpu_count()
+        gunicorn_app.run_gunicorn(app, host, port, workers)
 if __name__ == "__main__":
     start_server_api()

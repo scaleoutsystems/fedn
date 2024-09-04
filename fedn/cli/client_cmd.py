@@ -6,8 +6,8 @@ import requests
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
 
-from .main import main
-from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
+from fedn.cli.main import main
+from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
 
 
 def validate_client_config(config):
@@ -79,7 +79,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False, default=False)
+@click.option("-c", "--preferred-combiner", type=str,required=False, default="",help="name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
