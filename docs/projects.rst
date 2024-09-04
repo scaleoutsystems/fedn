@@ -397,7 +397,6 @@ You can also test *train* and *validate* entrypoint using CLI command:
 
 Note that we here assume execution in the correct Python environment. 
 
-To deploy a project to FEDn (Studio or pseudo-local) we simply compress the compute package as a .tgz file. using fedn command line tool or manually:
 To run a project on FEDn we compress the entire client folder as a .tgz file. There is a utility command in the FEDn CLI to do this:
 
 .. code-block:: bash
