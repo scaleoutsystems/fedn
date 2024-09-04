@@ -2,9 +2,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 import pymongo
+from bson import ObjectId
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.store import Store
+
+from .shared import EntityNotFound
 
 
 class Client:
@@ -53,7 +56,14 @@ class ClientStore(Store[Client]):
         raise NotImplementedError("Add not implemented for ClientStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ClientStore")
+        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "client_id": id }
+
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+
+        return super().delete(document["_id"])
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Client]]:
         """List entities
