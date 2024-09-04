@@ -385,9 +385,6 @@ Then, standing inside the 'client folder', you can test *train* and *validate* b
     python train.py ../seed.npz ../model_update.npz --data_path data/clients/1/mnist.pt
     python validate.py ../model_update.npz ../validation.json --data_path data/clients/1/mnist.pt
 
-Packaging for training on FEDn
-===============================
-
 You can also test *train* and *validate* entrypoint using CLI command:
 
 .. code-block:: bash
@@ -395,7 +392,8 @@ You can also test *train* and *validate* entrypoint using CLI command:
     fedn run train --path client --input <path to input model parameters> --output <path to write the updated model parameters>
     fedn run validate --path client --input <path to input model parameters> --output <Path to write the output JSON containing validation metrics>
 
-Note that we here assume execution in the correct Python environment. 
+Packaging for training on FEDn
+===============================
 
 To run a project on FEDn we compress the entire client folder as a .tgz file. There is a utility command in the FEDn CLI to do this:
 
