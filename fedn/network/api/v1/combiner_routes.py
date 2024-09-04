@@ -379,6 +379,5 @@ def delete_combiner(id: str):
         return jsonify({"message": msg}), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception as e:
-        # return jsonify({"message": "An unexpected error occurred"}), 500
-        return jsonify({"message": e}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
