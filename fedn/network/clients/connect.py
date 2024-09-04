@@ -74,7 +74,7 @@ class ConnectorClient:
         """
         try:
             retval = None
-            payload = {"name": self.name, "client_id": self.id, "preferred_combiner": self.preferred_combiner}
+            payload = {"name": self.name, "client_id": self.id, "preferred_combiner": self.preferred_combiner, "package": self.package}
             retval = requests.post(
                 self.connect_string + FEDN_CUSTOM_URL_PREFIX + "/add_client",
                 json=payload,
@@ -110,16 +110,9 @@ class ConnectorClient:
                 if "message" in retval.json():
                     reason = retval.json()["message"]
                 else:
-                    reason = "Reducer was not ready. Try again later."
+                    reason = "Controller was not ready. Try again later."
 
                 return Status.TryAgain, reason
-
-            reducer_package = retval.json()["package"]
-            if reducer_package != self.package:
-                reason = "Unmatched config of compute package between client and reducer.\n" + "Reducer uses {} package and client uses {}.".format(
-                    reducer_package, self.package
-                )
-                return Status.UnMatchedConfig, reason
 
             return Status.Assigned, retval.json()
 
