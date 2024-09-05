@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # Project info
 project = "FEDn"
-copyright = "2021, Scaleout Systems AB"
+copyright = "2024, Scaleout Systems AB"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
