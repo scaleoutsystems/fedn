@@ -93,3 +93,36 @@ class ClientStore(Store[Client]):
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
+
+    def connected_client_count(self, combiners):
+        """Count the number of connected clients for each combiner.
+
+        :param combiners: list of combiners to get data for.
+        :type combiners: list
+        :param sort_key: The key to sort by.
+        :type sort_key: str
+        :param sort_order: The sort order.
+        :type sort_order: pymongo.ASCENDING or pymongo.DESCENDING
+        :return: list of combiner data.
+        :rtype: list(ObjectId)
+        """
+        try:
+            pipeline = (
+                [
+                    {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
+                    {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                ]
+                if len(combiners) > 0
+                else [
+                    {"$match": { "status": "online"}},
+                    {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                ]
+            )
+
+            result = list(self.database[self.collection].aggregate(pipeline))
+        except Exception:
+            result = {}
+
+        return result
