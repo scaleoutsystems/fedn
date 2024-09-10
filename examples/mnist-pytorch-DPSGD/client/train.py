@@ -112,7 +112,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     d_epsilon = privacy_engine.get_epsilon(DELTA)
     print("epsilon spent: ", d_epsilon)
-    tot_epsilon = np.sqrt(tot_epsilon**2 d_epsilon**2)
+    tot_epsilon = np.sqrt(tot_epsilon**2 + d_epsilon**2)
     print("saving tot_epsilon: ", tot_epsilon)
     np.save('epsilon.npy', tot_epsilon)
 
