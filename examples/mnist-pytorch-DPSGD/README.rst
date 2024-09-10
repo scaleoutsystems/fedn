@@ -12,6 +12,12 @@ Prerequisites
 -  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
+Edit Differential Privacy budget
+--------------------------
+- The **Differential Privacy budget** (`FINAL_EPSILON`, `DELTA`) is configured in the `compute` package at `client/train.py` (lines 35 and 39).
+- If `HARDLIMIT` (line 40) is set to `True`, the `FINAL_EPSILON` will not exceed its specified limit.
+- If `HARDLIMIT` is set to `False`, the expected `FINAL_EPSILON` will be around its specified value given the server runs `ROUNDS` variable (line 36).
+
 Creating the compute package and seed model
 -------------------------------------------
 
@@ -26,7 +32,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-pytorch
+   cd fedn/examples/mnist-pytorch-DPSGD
 
 Create the compute package:
 

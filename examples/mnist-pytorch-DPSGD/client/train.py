@@ -37,6 +37,7 @@ ROUNDS = 4
 EPOCHS = 5
 EPSILON = FINAL_EPSILON/ROUNDS
 DELTA = 1e-5
+HARDLIMIT = False
 
 MAX_PHYSICAL_BATCH_SIZE = 32
 
@@ -111,24 +112,28 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     d_epsilon = privacy_engine.get_epsilon(DELTA)
     print("epsilon spent: ", d_epsilon)
-    tot_epsilon += d_epsilon
+    tot_epsilon = np.sqrt(tot_epsilon**2 d_epsilon**2)
     print("saving tot_epsilon: ", tot_epsilon)
     np.save('epsilon.npy', tot_epsilon)
 
-    # Metadata needed for aggregation server side
-    metadata = {
-        # num_examples are mandatory
-        "num_examples": len(x_train),
-        "batch_size": batch_size,
-        "epochs": epochs,
-        "lr": lr,
-    }
+    if HARDLIMIT and tot_epsilon >= FINAL_EPSILON:
+        print("DP Budget Exceeded: The differential privacy budget has been exhausted, no model updates will be applied to preserve privacy guarantees.")
 
-    # Save JSON metadata file (mandatory)
-    save_metadata(metadata, out_model_path)
+    else:
+        # Metadata needed for aggregation server side
+        metadata = {
+            # num_examples are mandatory
+            "num_examples": len(x_train),
+            "batch_size": batch_size,
+            "epochs": epochs,
+            "lr": lr,
+        }
 
-    # Save model update (mandatory)
-    save_parameters(model, out_model_path)
+        # Save JSON metadata file (mandatory)
+        save_metadata(metadata, out_model_path)
+
+        # Save model update (mandatory)
+        save_parameters(model, out_model_path)
 
 def accuracy(preds, labels):
     return (preds == labels).mean()
