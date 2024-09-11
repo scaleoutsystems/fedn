@@ -2,10 +2,10 @@ name: huggingface
 build_dependencies:
   - pip
   - setuptools
-  - wheel==0.37.1
+  - wheel
 dependencies:
-  - torch==2.2.1
-  - torchvision==0.17.1
-  - fedn==0.9.0
-  - transformers==4.39.3
-  - datasets==2.19.0
+  - torch
+  - torchvision
+  - fedn
+  - transformers
+  - datasets
