@@ -3,8 +3,6 @@ import uuid
 import click
 import requests
 
-from fedn.network.combiner.combiner import Combiner
-
 from .main import main
 from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
 
@@ -12,8 +10,7 @@ from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, p
 @main.group("combiner")
 @click.pass_context
 def combiner_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
 
 
@@ -59,6 +56,8 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
         apply_config(init, config)
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
+
+    from fedn.network.combiner.combiner import Combiner
 
     combiner = Combiner(config)
     combiner.run()

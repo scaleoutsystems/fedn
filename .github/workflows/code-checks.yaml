@@ -26,6 +26,8 @@ jobs:
           --exclude-dir='flower-client'
           --exclude='tests.py'
           --exclude='controller_cmd.py'
+          --exclude='combiner_cmd.py'
+          --exclude='run_cmd.py'
           --exclude='README.rst'
           '^[ \t]+(import|from) ' -I . 
 

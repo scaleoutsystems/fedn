@@ -1,6 +1,6 @@
 import click
 
-from .main import main
+from fedn.cli.main import main
 
 
 @main.group("controller")

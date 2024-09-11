@@ -86,7 +86,17 @@ class CombinerStore(Store[Combiner]):
         raise NotImplementedError("Add not implemented for CombinerStore")
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for CombinerStore")
+        if(ObjectId.is_valid(id)):
+            kwargs = { "_id": ObjectId(id)}
+        else:
+            return False
+
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise EntityNotFound(f"Entity with (id) {id} not found")
+
+        return super().delete(document["_id"])
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Combiner]]:
         """List entities

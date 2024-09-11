@@ -1,4 +1,3 @@
-import base64
 import io
 import json
 import os
@@ -11,7 +10,6 @@ import time
 import uuid
 from datetime import datetime
 from io import BytesIO
-from shutil import copytree
 
 import grpc
 import requests
@@ -28,7 +26,6 @@ from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
-from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper
 
 CHUNK_SIZE = 1024 * 1024
@@ -198,13 +195,7 @@ class Client:
             port = 443
         logger.info(f"Initiating connection to combiner host at: {host}:{port}")
 
-        if combiner_config["certificate"]:
-            logger.info("Utilizing CA certificate for GRPC channel authentication.")
-            secure = True
-            cert = base64.b64decode(combiner_config["certificate"])  # .decode('utf-8')
-            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+        if os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             secure = True
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
@@ -236,8 +227,6 @@ class Client:
 
         logger.info("Successfully established {} connection to {}:{}".format("secure" if secure else "insecure", host, port))
 
-        logger.info("Using {} compute package.".format(combiner_config["package"]))
-
         self._connected = True
 
     def disconnect(self):
@@ -259,7 +248,11 @@ class Client:
         :return:
         """
         if "helper_type" in combiner_config.keys():
-            self.helper = get_helper(combiner_config["helper_type"])
+            if not combiner_config["helper_type"]:
+                # Default to numpyhelper
+                self.helper = get_helper("numpyhelper")
+            else:
+                self.helper = get_helper(combiner_config["helper_type"])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
@@ -292,9 +285,8 @@ class Client:
         :type config: dict
         :return:
         """
+        pr = PackageRuntime(self.run_path)
         if config["remote_compute_context"]:
-            pr = PackageRuntime(self.run_path)
-
             retval = None
             tries = 10
 
@@ -333,18 +325,8 @@ class Client:
                 logger.error(f"Caught exception: {type(e).__name__}")
 
         else:
-            # TODO: Deprecate
-            dispatch_config = {
-                "entry_points": {
-                    "predict": {"command": "python3 predict.py"},
-                    "train": {"command": "python3 train.py"},
-                    "validate": {"command": "python3 validate.py"},
-                }
-            }
             from_path = os.path.join(os.getcwd(), "client")
-
-            copytree(from_path, self.run_path)
-            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+            self.dispatcher = pr.dispatcher(from_path)
         # Get or create python environment
         activate_cmd = self.dispatcher._get_or_create_python_env()
         if activate_cmd:

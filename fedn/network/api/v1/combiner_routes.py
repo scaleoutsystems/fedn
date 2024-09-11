@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
+from fedn.network.api.v1.shared import api_version, client_store, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -337,5 +337,94 @@ def get_combiner(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+@bp.route("/<string:id>", methods=["DELETE"])
+@jwt_auth_required(role="admin")
+def delete_combiner(id: str):
+    """Delete combiner
+    Deletes a combiner based on the provided id.
+    ---
+    tags:
+        - Combiners
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the combiner
+    responses:
+        200:
+            description: The combiner was deleted
+        404:
+            description: The combiner was not found
+            schema:
+                type: object
+                properties:
+                    error:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        result: bool = combiner_store.delete(id)
+        msg = "Combiner deleted" if result else "Combiner not deleted"
+
+        return jsonify({"message": msg}), 200
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/clients/count", methods=["POST"])
+@jwt_auth_required(role="admin")
+def number_of_clients_connected():
+    """Number of clients connected
+    Retrieves the number of clients connected to the combiner.
+    ---
+    tags:
+        - Combiners
+    parameters:
+      - name: combiners
+        in: body
+        required: true
+        type: object
+        description: Object containing the ids of the combiners
+        schema:
+          type: object
+          properties:
+            combiners:
+                type: string
+    responses:
+        200:
+            description: A list of objects containing the number of clients connected to each combiner
+            schema:
+                type: Array
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.get_json()
+        combiners = data.get("combiners", "")
+        combiners = combiners.split(",") if combiners else []
+        response = client_store.connected_client_count(combiners)
+
+        result = {
+            "result": response
+        }
+
+        return jsonify(result), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
