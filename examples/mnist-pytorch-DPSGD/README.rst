@@ -1,5 +1,5 @@
 FEDn Project: Federated Differential Privacy MNIST (Opacus + PyTorch)
------------------------------
+----------------------------------------------------------------------
 
 This example FEDn Project demonstrates how Differential Privacy can be integrated to enhance the confidentiality of client data.
 We have expanded our baseline MNIST-PyTorch example by incorporating the Opacus framework, which is specifically designed for PyTorch models.
