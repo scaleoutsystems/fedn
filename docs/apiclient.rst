@@ -1,6 +1,6 @@
 .. _apiclient-label:
 
-Using the Python API
+Using the FEDn API Client
 ====================
 
 FEDn comes with an *APIClient* - a Python3 library that can be used to interact with FEDn programmatically. 
@@ -133,3 +133,8 @@ To get a specific session:
 For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the collection of example Jupyter Notebooks:
  
 - `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_  . 
+
+
+.. meta::
+   :description lang=en:
+      FEDn comes with an APIClient - a Python3 library that can be used to interact with FEDn programmatically. In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, run and control training sessions and to retrieve models and metrics.

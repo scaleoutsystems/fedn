@@ -1,7 +1,7 @@
 .. _projects-label:
 
 ================================================
-Develop your own project
+Develop a FEDn project
 ================================================
 
 This guide explains how a FEDn project is structured, and details how to develop your own
@@ -437,3 +437,6 @@ and its integration with popular machine learning frameworks like PyTorch and Te
 - `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
 
 
+.. meta::
+    :description lang=en:
+        A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, a project is a directory of files, containing your machine learning code, FEDn entry points, and a specification of the runtime environment for the client.

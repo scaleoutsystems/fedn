@@ -1,3 +1,2 @@
 sphinx-rtd-theme
 sphinx_code_tabs
-sphinx_design

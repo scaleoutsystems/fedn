@@ -52,3 +52,6 @@ Then, a configurable aggregation protocol on the *Controller* level is responsib
 many different possible outcomes can be achieved. Good starting configurations are provided out-of-the-box to help the user get started. See :ref:`agg-label` and API reference for more details.
 
 
+.. meta::
+   :description lang=en:
+      Architecture overview - Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network.

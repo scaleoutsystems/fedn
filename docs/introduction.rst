@@ -57,7 +57,7 @@ From development to FL in production:
 
 Available client APIs:
 
-- Python client (this repository)
+- Python client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn>`__)
 - C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
 - Android Kotlin client (`FEDn Kotlin client <https://github.com/scaleoutsystems/fedn-android-client>`__)
 
@@ -68,3 +68,7 @@ Community support in available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
 For professionals / Enteprise, we offer `Dedicated support <https://www.scaleoutsystems.com/start#pricing>`__.
+
+.. meta::
+    :description lang=en:
+        In contrast to traditional machine learning setups where data is collected and stored centrally, Federated Learning allows for collaborative model training while keeping data local with the data owner or device.
