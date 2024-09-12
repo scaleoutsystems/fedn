@@ -264,3 +264,7 @@ For the client, you need to set the following environment variables:
       - **Description:** The authentication scheme used in the FEDn API and gRPC interceptors.
 
 You can use `--token` flags in the FEDn CLI to set the access token.
+
+.. meta::
+   :description lang=en:
+      During development on FEDn, and when working on own extentions including aggregators and helpers, it is useful to have a local development setup of the core FEDn server-side services (controller, combiner etc). We provide Dockerfiles and docker-compose template for an all-in-one local sandbox

@@ -202,3 +202,7 @@ For developers looking to customize FEDn and develop own aggregators, check out 
 to learn how to set up an all-in-one development environment using Docker and docker-compose:
 
 :ref:`developer-label`
+
+.. meta::
+   :description lang=en:
+      This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers. The first step is to start the server side (aggregator, controller). We do this by setting up a new Project in FEDn Studio.
