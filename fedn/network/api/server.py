@@ -592,9 +592,11 @@ def add_client():
     remote_addr = request.remote_addr
     try:
         response = api.add_client(**json_data, remote_addr=remote_addr)
-    except TypeError:
+    except TypeError as e:
+        print(e)
         return jsonify({"success": False, "message": "Invalid data provided"}), 400
-    except Exception:
+    except Exception as e:
+        print(e)
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
     return response
 
