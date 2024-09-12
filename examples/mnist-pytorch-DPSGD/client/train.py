@@ -9,7 +9,7 @@ from data import load_data
 from fedn.utils.helpers.helpers import save_metadata
 
 from opacus import PrivacyEngine
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 import numpy as np
 from opacus.utils.batch_memory_manager import BatchMemoryManager
@@ -76,9 +76,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
 
     # Load epsilon
-    if os.path.isfile('epsilon.npy'):
+    if os.path.isfile("epsilon.npy"):
 
-        tot_epsilon = np.load('epsilon.npy')
+        tot_epsilon = np.load("epsilon.npy")
         print("load consumed epsilon: ", tot_epsilon)
 
     else:
@@ -88,9 +88,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     # Train
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    n_batches = int(math.ceil(len(x_train) / batch_size))
-    criterion = torch.nn.NLLLoss()
-
     privacy_engine = PrivacyEngine()
 
     model, optimizer, train_loader = privacy_engine.make_private_with_epsilon(
@@ -114,7 +111,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     print("epsilon spent: ", d_epsilon)
     tot_epsilon = np.sqrt(tot_epsilon**2 + d_epsilon**2)
     print("saving tot_epsilon: ", tot_epsilon)
-    np.save('epsilon.npy', tot_epsilon)
+    np.save("epsilon.npy", tot_epsilon)
 
     if HARDLIMIT and tot_epsilon >= FINAL_EPSILON:
         print("DP Budget Exceeded: The differential privacy budget has been exhausted, no model updates will be applied to preserve privacy guarantees.")
