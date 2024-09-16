@@ -740,8 +740,8 @@ class MongoStateStore:
         try:
             # self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
             self.clients.update_one(
-                {"client_id": client_data["client_id"]}, 
-                {"$set": {k: v for k, v in client_data.items() if v is not None}}, 
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
                 upsert=True
             )
         except KeyError:
@@ -750,8 +750,8 @@ class MongoStateStore:
             client_data["client_id"] = id
             # self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
             self.clients.update_one(
-                {"client_id": client_data["client_id"]}, 
-                {"$set": {k: v for k, v in client_data.items() if v is not None}}, 
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
                 upsert=True
             )
 

@@ -522,7 +522,6 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
-
         if package == "remote":
             package_object = self.statestore.get_compute_package()
             if package_object is None:
