@@ -5,6 +5,19 @@ import requests
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+def download_config():
+    url = "https://storage.googleapis.com/public-scaleout/Yolo-object-detection/1.zip"
+    response = requests.get(url)
+    os.makedirs(dir_path + "/data", exist_ok=True)
+    with open(dir_path + "/data/1.zip", "wb") as f:
+        f.write(response.content)
+    zip_file_path = dir_path + "/data/1.zip"
+    extract_to_path = dir_path + "/data/1/"
+
+    os.makedirs(extract_to_path, exist_ok=True)
+
+    with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+        zip_ref.extractall(extract_to_path)
 def download_blob():
     url = "https://storage.googleapis.com/public-scaleout/Yolo-object-detection/data.zip"
     response = requests.get(url)
@@ -12,7 +25,7 @@ def download_blob():
     with open(dir_path + "/data/1/data.zip", "wb") as f:
         f.write(response.content)
     zip_file_path = dir_path + "/data/1/data.zip"
-    extract_to_path = dir_path + "/data/1/"
+    extract_to_path = dir_path + "/data"
 
     os.makedirs(extract_to_path, exist_ok=True)
 
@@ -59,6 +72,7 @@ def update_all_keys_in_obj_data(file_path, updates_dict):
                 file.write(line)
 
 if __name__ == "__main__":
+    download_config()
     download_blob()
     train_test_creation()
     obj_data_file = dir_path + "/data/1/obj.data"  # Path to your obj.data file
