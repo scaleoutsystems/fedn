@@ -63,7 +63,7 @@ class ModelStore(Store[Model]):
 
         return True, ""
 
-    def _complement(self, item: Model) -> Model:
+    def _complement(self, item: Model):
         if "key" not in item or item["key"] is None:
             item["key"] = "models"
 
