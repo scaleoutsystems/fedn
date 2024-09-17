@@ -1,5 +1,0 @@
-classes = 1
-train = /Users/sowmyasriseenivasan/workspaces/fedn/examples/Yolo-object-detection/client/data/train.txt
-valid = /Users/sowmyasriseenivasan/workspaces/fedn/examples/Yolo-object-detection/client/data/val.txt
-names = /Users/sowmyasriseenivasan/workspaces/fedn/examples/Yolo-object-detection/client/data/obj.names
-backup = yolov4_tiny
