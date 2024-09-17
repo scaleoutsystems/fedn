@@ -1,5 +1,4 @@
 import os
-from math import floor
 import numpy as np
 import subprocess
 
@@ -16,7 +15,7 @@ def git_clone(repo_url="https://github.com/AlexeyAB/darknet.git", clone_dir="../
     else:
         target_path = parent_dir
     command = ["git", "clone", repo_url,target_path]
-    
+
     try:
         subprocess.run(command, check=True)
         print(f"Successfully cloned {repo_url}")
@@ -30,7 +29,6 @@ def init_seed(out_path="../seed.npz"):
     """
     darkfile="../yolov4-tiny.weights"
     fp = open(darkfile, "rb")
-    header=np.fromfile(fp,dtype=np.int32,count=5)
     buf = np.fromfile(fp, dtype=np.float32)
     helper.save([buf], out_path)
     fp.close()

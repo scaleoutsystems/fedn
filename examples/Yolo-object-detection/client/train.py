@@ -1,14 +1,8 @@
-
-
-import json
 import os
-import fire
+import sys
 import numpy as np
-import json
-import re
 import subprocess
-from fedn.utils.dist import get_package_path
-from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import get_helper, save_metadata
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)
@@ -19,22 +13,12 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 def save_darknet2fedn(darkfile, fednfile    ):
     fp = open(darkfile, "rb")
-    header=np.fromfile(fp,dtype=np.int32,count=5)
-    with open('sow.json', 'w') as f:
-        header={"header":header.tolist()}
-        json.dump(header, f)
     buf = np.fromfile(fp, dtype=np.float32)
     helper.save([buf], fednfile)
     fp.close()
 def save_fedn2darknet(fednfile, darkfile):
 
     buf = helper.load(fednfile)[0]
-    if os.path.exists("sow.json"):
-        with open('sow.json') as f:
-            header_data = json.load(f)
-            image_seen=header_data.get('header')[3]
-    else:
-        image_seen=0
     with open(darkfile, "wb") as f:
         header = np.array([0,2, 5, 0, 0],dtype=np.int32)
         header.tofile(f)
@@ -57,7 +41,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=64, epochs=1
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir("../../.darknet")
-    data_path = _get_data_path()
     darkfile = dir_path + "/data/1/example.weights"
     save_fedn2darknet(in_model_path, darkfile)
     data_file=dir_path + "/data/1/obj.data"
