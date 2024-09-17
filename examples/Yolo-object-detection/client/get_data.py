@@ -1,16 +1,11 @@
-import os,sys
-from math import floor
-import random
+import os
 import glob
-import numpy as np
 import zipfile
-import subprocess
 import requests
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 def download_blob():
-  
     url = "https://storage.googleapis.com/public-scaleout/Yolo-object-detection/data.zip"
     response = requests.get(url)
 
@@ -21,15 +16,14 @@ def download_blob():
 
     os.makedirs(extract_to_path, exist_ok=True)
 
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+    with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
         zip_ref.extractall(extract_to_path)
 
 def train_test_creation(dataset=dir_path + "/data/1/data/", outdir=dir_path + "/data/1/", test_percentage=10):
 
-    current_dir = dataset
     percentage_test = test_percentage
-    file_train = open(outdir+'train.txt', 'w')
-    file_test = open(outdir+'val.txt', 'w')
+    file_train = open(outdir+"train.txt", "w")
+    file_test = open(outdir+"val.txt", "w")
     images_list1 = glob.glob(dataset+"*.jpg")
     images_list2 = glob.glob(dataset+"*.png")
     images_list3 = glob.glob(dataset+"*.jpeg")
@@ -49,13 +43,13 @@ def train_test_creation(dataset=dir_path + "/data/1/data/", outdir=dir_path + "/
             counter = counter + 1
 
 def update_all_keys_in_obj_data(file_path, updates_dict):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         lines = file.readlines()
-    
-    with open(file_path, 'w') as file:
+
+    with open(file_path, "w") as file:
         for line in lines:
-            if '=' in line:
-                key, value = line.split('=', 1)
+            if "=" in line:
+                key, value = line.split("=", 1)
                 key = key.strip()
                 if key in updates_dict:
                     file.write(f"{key} = {updates_dict[key]}\n")
