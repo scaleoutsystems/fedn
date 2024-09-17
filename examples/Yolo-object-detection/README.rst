@@ -1,7 +1,7 @@
-FEDn Project: Keras/Tensorflow (MNIST) 
+FEDn Project: 'Yolo-object-detection' (License Plate Detection) 
 -------------------------------------------
 
-This is a TF/Keras version of the PyTorch Quickstart Tutorial. For a step-by-step guide, refer to that tutorial.
+This is a License Plate Detection version of the Darknet Quickstart Tutorial. For a step-by-step guide, refer to that tutorial.
 
    **Note: We recommend all new users to start by following the Quickstart Tutorial: https://fedn.readthedocs.io/en/latest/quickstart.html**
 
@@ -24,7 +24,7 @@ Clone this repository, then locate into this directory:
 .. code-block::
 
    git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/mnist-keras
+   cd fedn/examples/Yolo-object-detection
 
 Create the compute package:
 
@@ -40,7 +40,14 @@ Next, generate a seed model (the first model in a global model trail):
 
    fedn run build --path client
 
-This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
+This step will take a few minutes, it clones the darknet folder and creates the initial seed model
+Go into the darknet folder and edit the Makefile if you have GPU, and run make
+.. code-block::
+
+   fedn run startup --path client
+
+This step will download the training and test dataset, creates the train.txt and val.txt inside the data folder
+
 
 Running the project on FEDn
 ----------------------------

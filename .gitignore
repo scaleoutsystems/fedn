@@ -137,7 +137,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
+darknet
+yolofednenv
+my-env
 # Fonts and icons
 static/open-iconic/
 
