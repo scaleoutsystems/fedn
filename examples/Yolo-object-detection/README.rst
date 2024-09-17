@@ -1,4 +1,4 @@
-FEDn Project: 'Yolo-object-detection' (License Plate Detection) 
+FEDn Project: 'Yolo-object-detection'
 -------------------------------------------
 
 This is a License Plate Detection version of the Darknet Quickstart Tutorial. For a step-by-step guide, refer to that tutorial.
@@ -40,8 +40,10 @@ Next, generate a seed model (the first model in a global model trail):
 
    fedn run build --path client
 
-This step will take a few minutes, it clones the darknet folder and creates the initial seed model
+This step will take a few minutes, it also clones the darknet folder
+
 Go into the darknet folder and edit the Makefile if you have GPU, and run make
+
 .. code-block::
 
    fedn run startup --path client
