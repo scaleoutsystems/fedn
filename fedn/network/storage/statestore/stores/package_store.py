@@ -14,16 +14,7 @@ from .shared import EntityNotFound, from_document
 
 class Package:
     def __init__(
-            self,
-            id: str,
-            key: str,
-            committed_at: datetime,
-            description: str,
-            file_name: str,
-            helper: str,
-            name: str,
-            storage_file_name: str,
-            active: bool = False
+        self, id: str, key: str, committed_at: datetime, description: str, file_name: str, helper: str, name: str, storage_file_name: str, active: bool = False
     ):
         self.key = key
         self.committed_at = committed_at
@@ -50,7 +41,7 @@ class Package:
             helper=data["helper"] if "helper" in data else None,
             name=data["name"] if "name" in data else None,
             storage_file_name=data["storage_file_name"] if "storage_file_name" in data else None,
-            active=active
+            active=active,
         )
 
 
@@ -115,7 +106,7 @@ class PackageStore(Store[Package]):
             type: str
         return: Whether the operation was successful
         """
-        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "id": id }
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
         kwargs["key"] = "package_trail"
 
         document = self.database[self.collection].find_one(kwargs)
@@ -132,7 +123,7 @@ class PackageStore(Store[Package]):
             "file_name": document["file_name"],
             "helper": document["helper"],
             "name": document["name"],
-            "storage_file_name": document["storage_file_name"]
+            "storage_file_name": document["storage_file_name"],
         }
 
         self.database[self.collection].update_one({"key": "active"}, {"$set": obj_to_insert}, upsert=True)
@@ -145,12 +136,11 @@ class PackageStore(Store[Package]):
             type: bool
         return: The entity
         """
-        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "id": id }
-        kwargs["key"] = "active"
+        kwargs = {"key": "active"}
         response = self.database[self.collection].find_one(kwargs)
 
         if response is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            raise EntityNotFound("Entity not found")
 
         return Package.from_dict(response, response) if use_typing else from_document(response)
 
@@ -169,12 +159,10 @@ class PackageStore(Store[Package]):
 
         return False
 
-
-
     def update(self, id: str, item: Package) -> bool:
         raise NotImplementedError("Update not implemented for PackageStore")
 
-    def add(self, item: Package)-> Tuple[bool, Any]:
+    def add(self, item: Package) -> Tuple[bool, Any]:
         valid, message = self._validate(item)
         if not valid:
             return False, message
@@ -184,7 +172,7 @@ class PackageStore(Store[Package]):
         return super().add(item)
 
     def delete(self, id: str) -> bool:
-        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "id": id }
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
         kwargs["key"] = "package_trail"
         document = self.database[self.collection].find_one(kwargs)
 
@@ -204,6 +192,16 @@ class PackageStore(Store[Package]):
             return super().delete(document_active["_id"])
 
         return True
+
+    def delete_active(self):
+        kwargs = {"key": "active"}
+
+        document_active = self.database[self.collection].find_one(kwargs)
+
+        if document_active is None:
+            raise EntityNotFound("Entity not found")
+
+        return super().delete(document_active["_id"])
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Package]]:
         """List entities
@@ -232,10 +230,7 @@ class PackageStore(Store[Package]):
 
         result = [Package.from_dict(item, response_active) for item in response["result"]]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"

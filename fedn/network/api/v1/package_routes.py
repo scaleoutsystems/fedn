@@ -426,7 +426,7 @@ def get_active_package():
 
         return jsonify(response), 200
     except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        return jsonify({"message": "Entity not found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
@@ -460,6 +460,39 @@ def set_active_package():
         package_id = data["id"]
         package_store.set_active(package_id)
         return jsonify({"message": "Active package set"}), 200
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/active", methods=["DELETE"])
+@jwt_auth_required(role="admin")
+def delete_active_package():
+    """Set active package
+    Sets the active package
+    ---
+    tags:
+        - Packages
+    responses:
+        200:
+            description: The package was set as active
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        package_store.delete_active()
+        return jsonify({"message": "Active package deleted"}), 200
+    except EntityNotFound:
+        return jsonify({"message": "Entity not found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
