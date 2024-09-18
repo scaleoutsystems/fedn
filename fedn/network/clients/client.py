@@ -62,18 +62,6 @@ class Client:
 
         self.id = config["client_id"] or str(uuid.uuid4())
 
-        self.connector = ConnectorClient(
-            host=config["discover_host"],
-            port=config["discover_port"],
-            token=config["token"],
-            name=config["name"],
-            remote_package=config["remote_compute_context"],
-            force_ssl=config["force_ssl"],
-            verify=config["verify"],
-            combiner=config["preferred_combiner"],
-            id=self.id,
-        )
-
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config["name"])
         if not match:
@@ -94,8 +82,13 @@ class Client:
 
         self.inbox = queue.Queue()
 
-        # Attach to the FEDn network (get combiner)
-        combiner_config = self.assign()
+        # Attach to the FEDn network (get combiner or attach directly)
+        if config["combiner"]:
+            combiner_config = {"status": "assigned", "host": config["combiner"], "port": config["combiner_port"], "helper_type": ""}
+            if config["proxy_server"]:
+                combiner_config["fqdn"] = config["proxy_server"]
+        else:
+            combiner_config = self.assign()
         self.connect(combiner_config)
 
         self._initialize_dispatcher(self.config)
