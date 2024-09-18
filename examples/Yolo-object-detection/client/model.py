@@ -21,6 +21,7 @@ def git_clone(repo_url="https://github.com/AlexeyAB/darknet.git", clone_dir="../
         print(f"Successfully cloned {repo_url}")
     except subprocess.CalledProcessError as e:
         print(f"Error during cloning: {e}")
+
 def init_seed(out_path="../seed.npz"):
     """Initialize seed model and save it to file.
 

@@ -5,6 +5,7 @@ import requests
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 def download_config():
     url = "https://storage.googleapis.com/public-scaleout/Yolo-object-detection/1.zip"
     response = requests.get(url)
@@ -12,12 +13,13 @@ def download_config():
     with open(dir_path + "/data/1.zip", "wb") as f:
         f.write(response.content)
     zip_file_path = dir_path + "/data/1.zip"
-    extract_to_path = dir_path + "/data/1/"
+    extract_to_path = dir_path + "/data/"
 
     os.makedirs(extract_to_path, exist_ok=True)
 
     with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
         zip_ref.extractall(extract_to_path)
+
 def download_blob():
     url = "https://storage.googleapis.com/public-scaleout/Yolo-object-detection/data.zip"
     response = requests.get(url)
@@ -25,7 +27,7 @@ def download_blob():
     with open(dir_path + "/data/1/data.zip", "wb") as f:
         f.write(response.content)
     zip_file_path = dir_path + "/data/1/data.zip"
-    extract_to_path = dir_path + "/data"
+    extract_to_path = dir_path + "/data/1/"
 
     os.makedirs(extract_to_path, exist_ok=True)
 
