@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, jsonify, request
 from werkzeug.security import safe_join
 
+from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb, repository
 from fedn.network.storage.statestore.stores.package_store import PackageStore
@@ -429,6 +430,7 @@ def get_active_package():
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
+
 @bp.route("/active", methods=["PUT"])
 @jwt_auth_required(role="admin")
 def set_active_package():
@@ -461,75 +463,78 @@ def set_active_package():
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
+
 @bp.route("/", methods=["POST"])
 @jwt_auth_required(role="admin")
 def upload_package():
-  """Upload a package
-  Uploads a package to the system. The package is stored in the database and the file is stored in the file system.
-  ---
-  tags:
-    - Packages
-  requestBody:
-    required: true
-    content:
-      multipart/form-data:
+    """Upload a package
+    Uploads a package to the system. The package is stored in the database and the file is stored in the file system.
+    ---
+    tags:
+      - Packages
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the package
+              description:
+                type: string
+                description: The description of the package
+              file:
+                type: string
+                format: binary
+                description: The package file
+              helper:
+                type: string
+                description: The helper setting for the package
+              file_name:
+                type: string
+                description: The display name of the file
+    responses:
+      200:
+        description: The package was uploaded
         schema:
           type: object
           properties:
-            name:
+            message:
               type: string
-              description: The name of the package
-            description:
+      500:
+        description: An error occurred
+        schema:
+          type: object
+          properties:
+            message:
               type: string
-              description: The description of the package
-            file:
-              type: string
-              format: binary
-              description: The package file
-            helper:
-              type: string
-              description: The helper setting for the package
-            file_name:
-              type: string
-              description: The display name of the file
-  responses:
-    200:
-      description: The package was uploaded
-      schema:
-        type: object
-        properties:
-          message:
-            type: string
-    500:
-      description: An error occurred
-      schema:
-        type: object
-        properties:
-          message:
-            type: string
-  """
-  try:
-    data = request.form.to_dict()
-    file = request.files["file"]
-    file_name = file.filename
-
-    data["file_name"] = file_name
-
-    valid, response = package_store.add(data)
-
-    if not valid:
-      return jsonify({"message": response}), 400
-
-    storage_file_name = response["storage_file_name"]
+    """
     try:
-      file_path = safe_join(os.getcwd(), storage_file_name)
-      file.save(file_path)
-      repository.set_compute_package(storage_file_name, file_path)
-    except Exception:
-      package_store.delete(response["id"])
-      return jsonify({"message": "An unexpected error occurred"}), 500
+        data = request.form.to_dict()
+        file = request.files["file"]
+        file_name = file.filename
 
-    package_store.set_active(response["id"])
-    return jsonify({"message": "Package uploaded"}), 200
-  except Exception:
-    return jsonify({"message": "An unexpected error occurred"}), 500
+        data["file_name"] = file_name
+
+        valid, response = package_store.add(data)
+
+        if not valid:
+            return jsonify({"message": response}), 400
+
+        storage_file_name = response["storage_file_name"]
+        try:
+            file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
+            if not os.path.exists(FEDN_COMPUTE_PACKAGE_DIR):
+                os.makedirs(FEDN_COMPUTE_PACKAGE_DIR, exist_ok=True)
+            file.save(file_path)
+            repository.set_compute_package(storage_file_name, file_path)
+        except Exception:
+            package_store.delete(response["id"])
+            return jsonify({"message": "An unexpected error occurred"}), 500
+
+        package_store.set_active(response["id"])
+        return jsonify({"message": "Package uploaded"}), 200
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
