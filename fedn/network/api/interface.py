@@ -7,7 +7,7 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import FEDN_ALLOW_LOCAL_PACKAGE, get_controller_config, get_network_config
+from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -522,10 +522,6 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
-        local_package = FEDN_ALLOW_LOCAL_PACKAGE
-        if local_package:
-            local_package = True
-
         if package == "remote":
             package_object = self.statestore.get_compute_package()
             if package_object is None:
@@ -540,18 +536,8 @@ class API:
                     203,
                 )
             helper_type = self.control.statestore.get_helper()
-        elif package == "local" and local_package is False:
-            print("Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.")
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "message": "Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.",
-                    }
-                ),
-                400,
-            )
-        elif package == "local" and local_package is True:
+        else:
+            # Else package is "local":
             helper_type = ""
 
         # Assign client to combiner
@@ -582,6 +568,7 @@ class API:
             "combiner": combiner.name,
             "ip": remote_addr,
             "status": "available",
+            "package": package,
         }
         # Add client to network
         self.control.network.add_client(client_config)
