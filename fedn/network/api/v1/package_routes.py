@@ -467,14 +467,21 @@ def set_active_package():
 @bp.route("/active", methods=["DELETE"])
 @jwt_auth_required(role="admin")
 def delete_active_package():
-    """Set active package
-    Sets the active package
+    """Delete active package
+    Deletes the active package
     ---
     tags:
         - Packages
     responses:
         200:
-            description: The package was set as active
+            description: The active package was deleted
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        404:
+            description: There was no active package present
             schema:
                 type: object
                 properties:
