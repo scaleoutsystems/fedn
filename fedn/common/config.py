@@ -18,6 +18,8 @@ FEDN_CUSTOM_URL_PREFIX = os.environ.get("FEDN_CUSTOM_URL_PREFIX", "")
 
 FEDN_PACKAGE_EXTRACT_DIR = os.environ.get("FEDN_PACKAGE_EXTRACT_DIR", "package")
 
+FEDN_COMPUTE_PACKAGE_DIR = os.environ.get("FEDN_COMPUTE_PACKAGE_DIR", "/app/client/package/")
+
 
 def get_environment_config():
     """Get the configuration from environment variables."""

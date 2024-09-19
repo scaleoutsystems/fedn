@@ -3,7 +3,10 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.api.shared import network_id, statestore_config
+from fedn.network.api.shared import modelstorage_config, network_id, statestore_config
+from fedn.network.storage.s3.base import RepositoryBase
+from fedn.network.storage.s3.miniorepository import MINIORepository
+from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 
 api_version = "v1"
@@ -12,6 +15,22 @@ mc.server_info()
 mdb: Database = mc[network_id]
 
 client_store = ClientStore(mdb, "network.clients")
+
+minio_repository: RepositoryBase = None
+
+if modelstorage_config["storage_type"] == "S3":
+    minio_repository = MINIORepository(modelstorage_config["storage_config"])
+
+
+storage_collection = mdb["network.storage"]
+
+storage_config = storage_collection.find_one({"status": "enabled"}, projection={"_id": False})
+
+repository: RepositoryBase = None
+
+if storage_config["storage_type"] == "S3":
+    repository = Repository(storage_config["storage_config"])
+
 
 def is_positive_integer(s):
     return s is not None and s.isdigit() and int(s) > 0

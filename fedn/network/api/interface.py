@@ -7,7 +7,7 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR, get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -230,7 +230,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = safe_join(os.getcwd(), storage_file_name)
+        file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -370,22 +370,20 @@ class API:
         try:
             mutex = threading.Lock()
             mutex.acquire()
-            # TODO: make configurable, perhaps in config.py or package.py
-            return send_from_directory(os.getcwd(), name, as_attachment=True)
+
+            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = safe_join(os.getcwd(), name)
+                file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
-                return send_from_directory(os.getcwd(), name, as_attachment=True)
+                return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
             except Exception:
                 raise
         finally:
-            # Delete the file after it has been saved
-            os.remove(file_path)
             mutex.release()
 
     def _create_checksum(self, name=None):
