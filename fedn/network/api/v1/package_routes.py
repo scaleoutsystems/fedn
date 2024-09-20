@@ -458,8 +458,12 @@ def set_active_package():
     try:
         data = request.json
         package_id = data["id"]
-        package_store.set_active(package_id)
-        return jsonify({"message": "Active package set"}), 200
+        response = package_store.set_active(package_id)
+
+        if response:
+            return jsonify({"message": "Active package set"}), 200
+        else:
+            return jsonify({"message": "Active package not set"}), 500
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
