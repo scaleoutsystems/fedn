@@ -16,9 +16,12 @@ def validate_client_config(config):
     """
     try:
         if config["discover_host"] is None or config["discover_host"] == "":
-            raise InvalidClientConfig("Missing required configuration: discover_host")
+            if config["combiner"] is None or config["combiner"] == "":
+                raise InvalidClientConfig("Missing required configuration: discover_host or combiner")
         if "discover_port" not in config.keys():
             config["discover_port"] = None
+        if config["remote_compute_context"] and config["discover_host"] is None:
+            raise InvalidClientConfig("Remote compute context requires discover_host")
     except Exception:
         raise InvalidClientConfig("Could not load config from file. Check config")
 
