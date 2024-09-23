@@ -736,3 +736,44 @@ def get_active_model():
         return jsonify({"message": "No active model found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/active", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def set_active_model():
+    """Set active model
+    Sets the active model (id).
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: model
+        in: body
+        required: true
+        type: object
+        description: The model data to update
+    responses:
+        200:
+            description: The updated active model id
+            schema:
+                type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.get_json()
+        model_id = data["id"]
+
+        response = model_store.set_active(model_id)
+
+        if response:
+            return jsonify({"message": "Active model set"}), 200
+        else:
+            return jsonify({"message": "Failed to set active model"}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
