@@ -88,6 +88,17 @@ class Client:
             if config["proxy_server"]:
                 combiner_config["fqdn"] = config["proxy_server"]
         else:
+            self.connector = ConnectorClient(
+                host=config["discover_host"],
+                port=config["discover_port"],
+                token=config["token"],
+                name=config["name"],
+                remote_package=config["remote_compute_context"],
+                force_ssl=config["force_ssl"],
+                verify=config["verify"],
+                combiner=config["preferred_combiner"],
+                id=self.id,
+            )
             combiner_config = self.assign()
         self.connect(combiner_config)
 
