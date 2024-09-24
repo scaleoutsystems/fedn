@@ -1,6 +1,7 @@
 import os
 import sys
 
+import torch
 from model import load_parameters
 
 from data import load_data, load_labels
@@ -21,15 +22,13 @@ def validate(in_model_path, out_json_path, data_path=None):
     :type data_path: str
     """
     # Load data
-    train_data_yaml, train_data_length = load_data(None, is_train=True)
-    test_data_yaml, test_data_length = load_data(None, is_train=False)
+    test_data_yaml, test_data_length = load_data(None, step='test')
 
-   
     model = load_parameters(in_model_path)
 
     validation_results = model.val(data=test_data_yaml)
 
- 
+
     # JSON schema
     report = {
         "map50-95": float(validation_results.box.map),  # map50-95

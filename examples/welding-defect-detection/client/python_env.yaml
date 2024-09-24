@@ -8,3 +8,4 @@ dependencies:
   - torchvision==0.18.1
   - ultralytics
   - fedn
+  - opendatasets

@@ -11,7 +11,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=64, epochs=1, lr=0.01):
+def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=5, lr=0.01):
     """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -32,22 +32,20 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=64, epochs=1
     :type lr: float
     """
     # Load data
-    data, data_len = load_data(None, is_train=True)
+    data, length = load_data(data_path, step='train')
+
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
     
-    
     # Train
-    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size,
-               lr0=lr, momentum=0.937, weight_decay=0.0005, warmup_epochs=3.0, warmup_momentum=0.8, warmup_bias_lr=0.1,
-               box=0.05, cls=0.5, iou=0.2, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, translate=0.1, scale=0.5, mosaic=1.0, mixup=0.5)
+    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr)
 
 
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        "num_examples": data_len,
+        "num_examples": length,
         "batch_size": batch_size,
         "epochs": epochs,
         "lr": lr,
