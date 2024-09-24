@@ -5,14 +5,14 @@
 
 This is an example FEDn project that trains a YOLOv8n model on images of welds to classify them as "good", "bad", or "defected". The dataset is pre-labeled and can be accessed for free from Kaggle https://www.kaggle.com/datasets/sukmaadhiwijaya/welding-defect-object-detection. See a few examples below,
 
-.. image:: figs/fig1.jpg
-   :width: 30%
+![example data point 1](figs/fig1.jpg)
 
-.. image:: figs/fig2.jpg
-   :width: 30%
+![example data point 2](figs/fig2.jpg)
 
-.. image:: figs/fig3.jpg
-   :width: 30%
+![example data point 3](figs/fig3.jpg)
+
+
+This example is generalizable to many manufacturing and operations use cases, such as automatic optical inspection. The federated setup enables the organization to make use of available data in different factories and in different parts of the manufacturing process, without having to centralize the data.
 
 
 ## How to run the example
@@ -106,21 +106,14 @@ Approach: The number of epochs and rounds in each experiment are divided such th
 
 Centralized:
 
-.. image:: figs/CentralizedmAP50.png
-   :width: 30%
+![example output 0](figs/CentralizedmAP50.png)
 
 
 Federated:
 
-.. image:: figs/2clients_5epochs_50rounds.png
-   :width: 30%
+![example output 1](figs/2clients_5epochs_50rounds.png)
 
+![example output 2](figs/2clients_10epochs_25rounds.png)
 
-.. image:: figs/2clients_10epochs_25rounds.png
-   :width: 30%
-
-
-.. image:: figs/2clients_25epochs_10rounds.png
-   :width: 30%
-
+![example output 3](figs/2clients_25epochs_10rounds.png)
 

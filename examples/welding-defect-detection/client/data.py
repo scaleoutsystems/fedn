@@ -28,7 +28,6 @@ def load_data(data_path, step):
             data_path = f"{abs_path}/data/clients/1"
         else:
             data_path = f"{abs_path}{data_env}"
-            
     if step == "train":
         y = os.listdir(f"{data_path}/train/labels")
         length = len(y)
@@ -73,12 +72,12 @@ def build_client_folder(folder, data, idx, subdir):
         y = "y_val"
 
     for image in data[x][idx]:
-        old_image_path = os.path.join(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+        old_image_path = os.path.join(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                       The Welding Defect Dataset/{folder}/images", image)
         new_image_path = os.path.join(f"{subdir}/{folder}/images", image)
         shutil.move(old_image_path, new_image_path)
     for label in data[y][idx]:
-        old_image_path = os.path.join(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+        old_image_path = os.path.join(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                       The Welding Defect Dataset/{folder}/labels", label)
         new_image_path = os.path.join(f"{subdir}/{folder}/labels", label)
 
@@ -92,18 +91,18 @@ def split(out_dir="data"):
         opendatasets.download("https://www.kaggle.com/datasets/sukmaadhiwijaya/welding-defect-object-detection")
     
     # Load data and convert to dict
-    X_train = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    X_train = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                      The Welding Defect Dataset/train/images")]
-    X_test = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    X_test = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                     The Welding Defect Dataset/test/images")]
-    X_val = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    X_val = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                    The Welding Defect Dataset/valid/images")]
 
-    y_train = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    y_train = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                      The Welding Defect Dataset/train/labels")]
-    y_test = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    y_test = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                     The Welding Defect Dataset/test/labels")]
-    y_val = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+    y_val = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                    The Welding Defect Dataset/valid/labels")]
 
     data = {
@@ -122,13 +121,12 @@ def split(out_dir="data"):
         if not os.path.exists(subdir):
             for folder in folders:
                 build_client_folder(folder, data, i, subdir)
-            move_data_yaml(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/
+            move_data_yaml(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                            The Welding Defect Dataset", subdir)
     # Remove downloaded directory
     if os.path.exists(f"{abs_path}/welding-defect-object-detection"):
         shutil.rmtree(f"{abs_path}/welding-defect-object-detection")
     
-
 if __name__ == "__main__":
     # Prepare data if not already done
     if not os.path.exists(abs_path + "/data/clients/1"):

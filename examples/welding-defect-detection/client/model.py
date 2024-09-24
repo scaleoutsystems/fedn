@@ -44,7 +44,6 @@ def load_parameters(model_path):
     params_dict = zip(model.state_dict().keys(), parameters_np)
     state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
     model.load_state_dict(state_dict, strict=True)
-    
     torch.save(model,"tempfile.pt")
     model = YOLO("tempfile.pt")
     return model
