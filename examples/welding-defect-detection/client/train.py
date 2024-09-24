@@ -1,5 +1,4 @@
 import sys
-from ultralytics import YOLO
 from model import load_parameters, save_parameters
 from data import load_data
 from fedn.utils.helpers.helpers import save_metadata
@@ -32,12 +31,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=5
     :type lr: float
     """
     # Load data
-    data, length = load_data(data_path, step='train')
-
-
+    data, length = load_data(data_path, step="train")
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
-    
     # Train
     model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr)
 

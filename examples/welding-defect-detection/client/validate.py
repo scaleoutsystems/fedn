@@ -1,10 +1,9 @@
 import os
 import sys
 
-import torch
 from model import load_parameters
 
-from data import load_data, load_labels
+from data import load_data
 from fedn.utils.helpers.helpers import save_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -22,10 +21,8 @@ def validate(in_model_path, out_json_path, data_path=None):
     :type data_path: str
     """
     # Load data
-    test_data_yaml, test_data_length = load_data(None, step='test')
-
+    test_data_yaml, test_data_length = load_data(None, step="test")
     model = load_parameters(in_model_path)
-
     validation_results = model.val(data=test_data_yaml)
 
 
@@ -35,11 +32,8 @@ def validate(in_model_path, out_json_path, data_path=None):
         "map50": float(validation_results.box.map50),  # map50
         "map75": float(validation_results.box.map75),  # map75
     }
-    
     # Save JSON
-    save_metrics(report, out_json_path)    
-    
-
+    save_metrics(report, out_json_path)
     
     
 if __name__ == "__main__":

@@ -14,8 +14,7 @@ def compile_model():
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
-    model = YOLO('custom.yaml')
-
+    model = YOLO("custom.yaml")
     return model
 
 
@@ -28,7 +27,6 @@ def save_parameters(model, out_path):
     :type out_path: str
     """
     parameters_np = [val.cpu().numpy() for _, val in model.state_dict().items()]
-    
     helper.save(parameters_np, out_path)
 
 
@@ -42,15 +40,13 @@ def load_parameters(model_path):
     """
     model = compile_model()
     parameters_np = helper.load(model_path)
-    
+
     params_dict = zip(model.state_dict().keys(), parameters_np)
     state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
+    model.load_state_dict(state_dict, strict=True)
     
-    model.load_state_dict(state_dict, strict=True) 
-    
-    torch.save(model,'tempfile.pt')
-    model = YOLO('tempfile.pt')
-
+    torch.save(model,"tempfile.pt")
+    model = YOLO("tempfile.pt")
     return model
 
 
@@ -63,7 +59,6 @@ def init_seed(out_path="seed.npz"):
     """
     # Init and save
     model = compile_model()
-
     save_parameters(model, out_path)
 
 
