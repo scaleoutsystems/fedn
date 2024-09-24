@@ -34,33 +34,33 @@ To run the example, follow the steps below. For a more detailed explanation, fol
 
 Install fedn: 
 
-.. code-block::
-
-   pip install fedn
+``` 
+pip install fedn
+```
 
 Clone this repository, then locate into this directory:
 
-.. code-block::
-
-   git clone https://github.com/scaleoutsystems/fedn.git
-   cd fedn/examples/welding-defect-detection
+```
+git clone https://github.com/scaleoutsystems/fedn.git
+cd fedn/examples/welding-defect-detection
+```
 
 
 ### 3. Creating the compute package and seed model
 
 Create the compute package:
 
-.. code-block::
-
-   fedn package create --path client
+```
+fedn package create --path client
+```
 
 This creates a file 'package.tgz' in the project folder.
 
 Next, generate the seed model:
 
-.. code-block::
-
-   fedn run build --path client
+```
+fedn run build --path client
+```
 
 This will create a model file 'seed.npz' in the root of the project. This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
