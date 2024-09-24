@@ -89,7 +89,6 @@ def split(out_dir="data"):
     if not os.path.exists(f"{out_dir}/clients"):
         os.makedirs(f"{out_dir}/clients")
         opendatasets.download("https://www.kaggle.com/datasets/sukmaadhiwijaya/welding-defect-object-detection")
-    
     # Load data and convert to dict
     X_train = [f for f in os.listdir(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                      The Welding Defect Dataset/train/images")]
