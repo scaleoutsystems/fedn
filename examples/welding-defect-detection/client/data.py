@@ -126,7 +126,8 @@ def split(out_dir="data"):
     # Remove downloaded directory
     if os.path.exists(f"{abs_path}/welding-defect-object-detection"):
         shutil.rmtree(f"{abs_path}/welding-defect-object-detection")
-    
+
+
 if __name__ == "__main__":
     # Prepare data if not already done
     if not os.path.exists(abs_path + "/data/clients/1"):

@@ -34,6 +34,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     }
     # Save JSON
     save_metrics(report, out_json_path)
-    
+
+
 if __name__ == "__main__":
     validate(sys.argv[1], sys.argv[2])
