@@ -3,10 +3,8 @@ from math import floor
 import opendatasets
 import shutil
 
-#from sklearn import preprocessing
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
-
 
 
 def load_labels(label_dir):
@@ -80,7 +78,7 @@ def build_client_folder(folder, data, idx, subdir):
         old_image_path = os.path.join(f"{abs_path}/welding-defect-object-detection/The Welding Defect Dataset/\
                                       The Welding Defect Dataset/{folder}/labels", label)
         new_image_path = os.path.join(f"{subdir}/{folder}/labels", label)
-
+        shutil.move(old_image_path, new_image_path)
 
 def split(out_dir="data"):
     n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))

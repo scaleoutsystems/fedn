@@ -2,7 +2,6 @@ import os
 import sys
 
 from model import load_parameters
-
 from data import load_data
 from fedn.utils.helpers.helpers import save_metrics
 
