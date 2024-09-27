@@ -7,6 +7,8 @@ from fedn.cli.main import main
 from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
+from fedn.network.clients.client_v2 import Client as ClientV2
+from fedn.network.clients.client_v2 import ClientOptions
 
 
 def validate_client_config(config):
@@ -29,7 +31,7 @@ def validate_client_config(config):
 @main.group("client")
 @click.pass_context
 def client_cmd(ctx):
-    """:param ctx:"""
+    """- Commands for listing and running clients."""
     pass
 
 
@@ -92,7 +94,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @click.option("--reconnect-after-missed-heartbeat", required=False, default=30)
 @click.option("--verbosity", required=False, default="INFO", type=click.Choice(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False))
 @click.pass_context
-def client_cmd(
+def client_start_cmd(
     ctx,
     discoverhost,
     discoverport,
@@ -179,3 +181,37 @@ def client_cmd(
 
     client = Client(config)
     client.run()
+
+
+@client_cmd.command("startV2")
+@click.option("-u", "--api_url", required=False, help="Hostname for fedn api.")
+@click.option("-p", "--api_port", required=False, help="Port for discovery services (reducer).")
+@click.option("--token", required=False, help="Set token provided by reducer if enabled")
+@click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
+@click.option("-i", "--client_id", required=False)
+@click.option("--local-package", is_flag=True, help="Enable local compute package")
+@click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
+@click.option("--combiner", type=str, required=False, default="", help="Skip combiner assignment from discover service and attatch directly to combiner host.")
+@click.option("--combiner-port", type=str, required=False, default="12080", help="Combiner port, need to be used with --combiner")
+@click.option("-va", "--validator", required=False, default=True)
+@click.option("-tr", "--trainer", required=False, default=True)
+@click.pass_context
+def client_start_v2_cmd(
+    ctx,
+    api_url,
+    api_port,
+    token,
+    name,
+    client_id,
+    local_package,
+    preferred_combiner,
+    combiner,
+    combiner_port,
+    validator,
+    trainer,
+):
+    package = "local" if local_package else "remote"
+
+    client_options = ClientOptions(name, package, preferred_combiner, client_id)
+    client = ClientV2(api_url, api_port, client_options, token)
+    client.start()
