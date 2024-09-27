@@ -12,12 +12,9 @@ def get_data(out_dir="data"):
     # Generate random int between 1 and 10 for split id, set seed for reproducibility
     split_id = np.random.randint(1, 11)
 
-    # set split id as environment variable
-    os.environ["FEDN_DATA_SPLIT_ID"] = str(split_id)
-
-    if not os.path.exists(out_dir + f"/clients/{split_id}"):
+    if not os.path.exists(f"{out_dir}/clients/{split_id}"):
         # create directory for data
-        os.makedirs(out_dir + f"/clients/{split_id}")
+        os.makedirs(f"{out_dir}data/clients/{split_id}")
 
     # use requests to download the data from url
     url = f"https://storage.googleapis.com/public-scaleout/mnist-pytorch/data/clients/{split_id}/mnist.pt"
