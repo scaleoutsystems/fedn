@@ -1,5 +1,4 @@
 import os
-from math import floor
 
 import numpy as np
 import requests
