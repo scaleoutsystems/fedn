@@ -1,6 +1,13 @@
 import uuid
+from typing import Tuple
 
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX
+from fedn.common.log_config import logger
 from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult
+
+
+def get_url(api_url: str, api_port: int) -> str:
+    return f"{api_url}:{api_port}/{FEDN_CUSTOM_URL_PREFIX}" if api_port else f"{api_url}/{FEDN_CUSTOM_URL_PREFIX}"
 
 
 class ClientOptions:
@@ -35,18 +42,39 @@ class Client:
         self.token = token
         self.client_obj = client_obj
 
-        self.connect_string = f"{api_url}:{api_port}" if api_port else {api_url}
+        self.connect_string = get_url(self.api_url, self.api_port)
+        logger.info(self.connect_string)
 
         self.client_api: ClientAPI = ClientAPI()
 
-    def _connect_to_api(self) -> bool:
-        response, msg = self.client_api.connect_to_api(self.connect_string, self.token, self.client_obj.to_json())
-        if response == ConnectToApiResult.Assigned:
-            print(msg)
-            return True
+    def _connect_to_api(self) -> Tuple[bool, dict]:
+        result, response = self.client_api.connect_to_api(self.connect_string, self.token, self.client_obj.to_json())
+        if result == ConnectToApiResult.Assigned:
+            return True, response
 
-        print(f"Error: {msg}")
-        return False
+        logger.error(f"Error: {response}")
+        return False, None
+
+    def _download_compute_package(self):
+        pass
 
     def start(self):
-        self._connect_to_api()
+        result, response = self._connect_to_api()
+
+        if not result:
+            return
+
+        logger.info("Client assinged to controller")
+
+        if self.client_obj.package == "remote":
+            result: bool = self._download_compute_package()
+            if not result:
+                logger.error("Could not download compute package")
+                return
+            result: bool = self.client_api.set_compute_package_checksum(self.connect_string, self.token)
+            if not result:
+                logger.error("Could not set checksum")
+                return
+
+            # TODO: validate package (add checksum)
+            self.client_api.unpack_compute_package()
