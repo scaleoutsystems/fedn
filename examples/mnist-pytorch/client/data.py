@@ -14,7 +14,7 @@ def get_data(out_dir="data"):
 
     if not os.path.exists(f"{abs_path}/{out_dir}/clients/{split_id}"):
         # create directory for data
-        os.makedirs(f"{abs_path}/{out_dir}data/clients/{split_id}")
+        os.makedirs(f"{abs_path}/{out_dir}/clients/{split_id}")
 
     # use requests to download the data from url
     url = f"https://storage.googleapis.com/public-scaleout/mnist-pytorch/data/clients/{split_id}/mnist.pt"
