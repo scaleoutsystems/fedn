@@ -72,3 +72,10 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
 .. meta::
     :description lang=en:
         In contrast to traditional machine learning setups where data is collected and stored centrally, Federated Learning allows for collaborative model training while keeping data local with the data owner or device.
+    :keywords: Federated Learning, Machine Learning, What is federated machine learning, Federated Learning Framework, Federated Learning Platform
+    :robots: index, follow
+    :og:title: What is Federated Learning?
+    :og:description: Federated Learning is a novel approach to address challenges related to data privacy, security, and decentralized data distribution.
+    :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
+    :og:url: https://fedn.scaleoutsystems.com/docs/introduction.html
+    :og:type: article
