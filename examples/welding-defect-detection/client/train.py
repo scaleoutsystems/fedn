@@ -10,7 +10,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=5, lr=0.01):
+def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1, lr=0.01):
     """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -35,7 +35,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=5
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
     # Train
-    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr)
+    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr, warmup_epochs=0, optimizer='Adam')
 
 
     # Metadata needed for aggregation server side

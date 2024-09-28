@@ -71,7 +71,7 @@ To learn how to set up your FEDn Studio project and connect clients, take the qu
 
 ## Experiments with results
 
-Below are a few examples of experiments which have been run using this example. A centralized setup has been used as baseline to compare the federated setup to. Two clients have been used in the federated setup and a few different epoch-to-round ratios have been tested.
+Below are a few examples of experiments which have been run using this example. A centralized setup has been used as baseline to compare against. Two clients have been used in the federated setup and a few different epoch-to-round ratios have been tested.
 
 
 ### Experimental setup

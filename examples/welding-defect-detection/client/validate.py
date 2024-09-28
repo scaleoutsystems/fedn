@@ -20,7 +20,7 @@ def validate(in_model_path, out_json_path, data_path=None):
     :type data_path: str
     """
     # Load data
-    test_data_yaml, test_data_length = load_data(None, step="test")
+    test_data_yaml, test_data_length = load_data(data_path, step="test")
     model = load_parameters(in_model_path)
     validation_results = model.val(data=test_data_yaml)
 
