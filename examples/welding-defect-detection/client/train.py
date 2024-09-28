@@ -35,7 +35,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=16, epochs=1
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
     # Train
-    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr, warmup_epochs=0, optimizer='Adam')
+    model.train(data=data, epochs=epochs, imgsz=640, batch=batch_size, lr0=lr, warmup_epochs=0, optimizer="Adam")
 
 
     # Metadata needed for aggregation server side
