@@ -1,18 +1,29 @@
 import os
 
+import sentry_sdk
 from flask import Flask, jsonify, request
 
 from fedn.common.config import get_controller_config
+from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
-from fedn.network.api import gunicorn_app
+
+sentry_sdk.init(
+    dsn="http://30dacff8d9ff3f2613a82d50d85e41c7@sentry.dev.akkelis.com/3",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+)
+
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 # statestore_config,modelstorage_config,network_id,control=set_statestore_config()
 api = API(statestore, control)
 app = Flask(__name__)
+
+
 for bp in _routes:
     app.register_blueprint(bp)
     if custom_url_prefix:
