@@ -10,12 +10,14 @@ from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
 
-sentry_sdk.init(
-    dsn="http://30dacff8d9ff3f2613a82d50d85e41c7@sentry.dev.akkelis.com/3",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-)
+SENTRY_CONTROLLER_DSN = os.environ.get('SENTRY_CONTROLLER_DSN', False)
+if SENTRY_CONTROLLER_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_CONTROLLER_DSN,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        traces_sample_rate=1.0,
+    )
 
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)

@@ -1,4 +1,5 @@
 import json
+import os
 import queue
 import re
 import signal
@@ -9,15 +10,30 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import TypedDict
 
+import sentry_sdk
+from sentry_sdk.integrations.grpc import GRPCIntegration
+
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import repository, statestore
 from fedn.network.grpc.server import Server, ServerConfig
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
+
+SENTRY_COMBINER_DSN = os.environ.get('SENTRY_COMBINER_DSN', False)
+
+if SENTRY_COMBINER_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_COMBINER_DSN,
+        traces_sample_rate=1.0,
+        integrations=[
+            GRPCIntegration(),
+        ],
+    )
 
 
 class Role(Enum):
@@ -140,6 +156,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
 
+        
         # Start the gRPC server
         self.server.start()
 
