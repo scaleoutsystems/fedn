@@ -7,7 +7,7 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import FEDN_ALLOW_LOCAL_PACKAGE, get_controller_config, get_network_config
+from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR, get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString
@@ -230,7 +230,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = safe_join(os.getcwd(), storage_file_name)
+        file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -370,22 +370,20 @@ class API:
         try:
             mutex = threading.Lock()
             mutex.acquire()
-            # TODO: make configurable, perhaps in config.py or package.py
-            return send_from_directory(os.getcwd(), name, as_attachment=True)
+
+            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = safe_join(os.getcwd(), name)
+                file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
-                return send_from_directory(os.getcwd(), name, as_attachment=True)
+                return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
             except Exception:
                 raise
         finally:
-            # Delete the file after it has been saved
-            os.remove(file_path)
             mutex.release()
 
     def _create_checksum(self, name=None):
@@ -522,10 +520,6 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
-        local_package = FEDN_ALLOW_LOCAL_PACKAGE
-        if local_package:
-            local_package = True
-
         if package == "remote":
             package_object = self.statestore.get_compute_package()
             if package_object is None:
@@ -540,18 +534,8 @@ class API:
                     203,
                 )
             helper_type = self.control.statestore.get_helper()
-        elif package == "local" and local_package is False:
-            print("Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.")
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "message": "Local package not allowed. Set FEDN_ALLOW_LOCAL_PACKAGE=True in controller config.",
-                    }
-                ),
-                400,
-            )
-        elif package == "local" and local_package is True:
+        else:
+            # Else package is "local":
             helper_type = ""
 
         # Assign client to combiner
@@ -582,6 +566,7 @@ class API:
             "combiner": combiner.name,
             "ip": remote_addr,
             "status": "available",
+            "package": package,
         }
         # Add client to network
         self.control.network.add_client(client_config)

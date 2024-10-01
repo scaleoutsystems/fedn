@@ -738,12 +738,22 @@ class MongoStateStore:
         """
         client_data["updated_at"] = str(datetime.now())
         try:
-            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
+            # self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
+            self.clients.update_one(
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
+                upsert=True
+            )
         except KeyError:
             # If client_id is not present, use name as identifier, for backwards compatibility
             id = str(uuid.uuid4())
             client_data["client_id"] = id
-            self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+            # self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+            self.clients.update_one(
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
+                upsert=True
+            )
 
     def get_client(self, client_id):
         """Get client by client_id.

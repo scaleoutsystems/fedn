@@ -5,19 +5,13 @@ from flask import Blueprint, jsonify, request, send_file
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import modelstorage_config
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb
-from fedn.network.storage.s3.base import RepositoryBase
-from fedn.network.storage.s3.miniorepository import MINIORepository
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb, minio_repository
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
 model_store = ModelStore(mdb, "control.model")
-repository: RepositoryBase = None
-
-if modelstorage_config["storage_type"] == "S3":
-    repository = MINIORepository(modelstorage_config["storage_config"])
 
 
 @bp.route("/", methods=["GET"])
@@ -631,11 +625,11 @@ def download(id: str):
                         type: string
     """
     try:
-        if repository is not None:
+        if minio_repository is not None:
             model = model_store.get(id, use_typing=False)
             model_id = model["model"]
 
-            file = repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
 
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
@@ -685,11 +679,11 @@ def get_parameters(id: str):
                         type: string
     """
     try:
-        if repository is not None:
+        if minio_repository is not None:
             model = model_store.get(id, use_typing=False)
             model_id = model["model"]
 
-            file = repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
@@ -740,5 +734,46 @@ def get_active_model():
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": "No active model found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/active", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def set_active_model():
+    """Set active model
+    Sets the active model (id).
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: model
+        in: body
+        required: true
+        type: object
+        description: The model data to update
+    responses:
+        200:
+            description: The updated active model id
+            schema:
+                type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.get_json()
+        model_id = data["id"]
+
+        response = model_store.set_active(model_id)
+
+        if response:
+            return jsonify({"message": "Active model set"}), 200
+        else:
+            return jsonify({"message": "Failed to set active model"}), 500
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
