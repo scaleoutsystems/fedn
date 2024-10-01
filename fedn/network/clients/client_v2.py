@@ -94,13 +94,20 @@ class Client:
 
         # TODO: Check if thread is dead
         threading.Thread(
-            target=self.client_api.send_heartbeats,
-            kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id},
-            daemon=True
+            target=self.client_api.send_heartbeats, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
+        ).start()
+
+        self.client_api.subscribe("train", self.on_train)
+
+        threading.Thread(
+            target=self.client_api.listen_to_task_stream, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
         ).start()
 
         while True:
             time.sleep(10)
+
+    def on_train(self, request):
+        logger.info(f"Received train request: {request}")
 
     def init_remote_compute_packae(self):
         result: bool = self.client_api.download_compute_package(self.connect_string, self.token)
@@ -143,6 +150,3 @@ class Client:
             return False
 
         return True
-
-
-

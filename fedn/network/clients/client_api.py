@@ -6,6 +6,7 @@ from typing import Any, Tuple
 
 import requests
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler
@@ -76,7 +77,7 @@ class ClientAPI:
     def train(self, *args, **kwargs):
         """Function to be triggered from the server via gRPC."""
         # Perform training logic here
-        logger.info("Training started with args:", args, "and kwargs:", kwargs)
+        logger.info("Training started")
 
         # Notify all subscribers about the train event
         self.notify_subscribers("train", *args, **kwargs)
@@ -101,7 +102,6 @@ class ClientAPI:
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
             )
 
-            # TODO: If 203 it should try again...
             if response.status_code in [200]:
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
@@ -203,9 +203,12 @@ class ClientAPI:
             logger.error("Error: Could not initialize GRPC handler")
             return False
 
-
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
+    def listen_to_task_stream(self, client_name: str, client_id: str):
+        self.grpc_handler.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
 
-
+    def _task_stream_callback(self, request):
+        if request.type == fedn.StatusType.MODEL_UPDATE:
+            self.train(request)
