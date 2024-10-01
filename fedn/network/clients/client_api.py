@@ -2,6 +2,7 @@ import enum
 import os
 import threading
 import time
+from io import BytesIO
 from typing import Any, Tuple
 
 import requests
@@ -102,7 +103,7 @@ class ClientAPI:
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
             )
 
-            if response.status_code in [200]:
+            if response.status_code == 200:
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
@@ -158,7 +159,6 @@ class ClientAPI:
         result = self._package_runtime.get_dispatcher(path)
         if result:
             self.dispatcher = result
-            logger.info("Dispatcher set")
             return True
         else:
             logger.error("Error: Could not set dispatcher")
@@ -212,3 +212,9 @@ class ClientAPI:
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
             self.train(request)
+
+    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
+        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
+
+    def send_model_to_combiner(self, model: BytesIO, id: str):
+        return self.grpc_handler.send_model_to_combiner(model, id)

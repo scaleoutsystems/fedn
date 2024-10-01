@@ -1,5 +1,6 @@
 import sys
 import time
+from io import BytesIO
 from typing import Any, Callable
 
 import grpc
@@ -8,6 +9,7 @@ from google.protobuf.json_format import MessageToJson
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
+from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
 
 
 class GrpcHandler:
@@ -70,8 +72,6 @@ class GrpcHandler:
 
         try:
             for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
-                if request:
-                    logger.debug("Received model update request from combiner: {}.".format(request))
                 if request.sender.role == fedn.COMBINER:
                     self.send_status(
                         "Received model update request.",
@@ -80,6 +80,7 @@ class GrpcHandler:
                         request=request,
                         sesssion_id=request.session_id,
                     )
+
                     logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
 
                     callback(request)
@@ -156,3 +157,66 @@ class GrpcHandler:
                 details = e.details()
                 if details == "Token expired":
                     logger.warning("GRPC SendStatus: Token expired.")
+
+    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
+        """Fetch a model from the assigned combiner.
+        Downloads the model update object via a gRPC streaming channel.
+
+        :param id: The id of the model update object.
+        :type id: str
+        :return: The model update object.
+        :rtype: BytesIO
+        """
+        data = BytesIO()
+        time_start = time.time()
+        request = fedn.ModelRequest(id=id)
+        request.sender.name = client_name
+        request.sender.role = fedn.WORKER
+
+        try:
+            for part in self.modelStub.Download(request, metadata=self.metadata):
+                if part.status == fedn.ModelStatus.IN_PROGRESS:
+                    data.write(part.data)
+
+                if part.status == fedn.ModelStatus.OK:
+                    return data
+
+                if part.status == fedn.ModelStatus.FAILED:
+                    return None
+
+                if part.status == fedn.ModelStatus.UNKNOWN:
+                    if time.time() - time_start >= timeout:
+                        return None
+                    continue
+        except grpc.RpcError as e:
+            logger.critical(f"GRPC: An error occurred during model download: {e}")
+
+        return data
+
+    def send_model_to_combiner(self, model: BytesIO, id: str):
+        """Send a model update to the assigned combiner.
+        Uploads the model updated object via a gRPC streaming channel, Upload.
+
+        :param model: The model update object.
+        :type model: BytesIO
+        :param id: The id of the model update object.
+        :type id: str
+        :return: The model update object.
+        :rtype: BytesIO
+        """
+        if not isinstance(model, BytesIO):
+            bt = BytesIO()
+
+            for d in model.stream(32 * 1024):
+                bt.write(d)
+        else:
+            bt = model
+
+        bt.seek(0, 0)
+
+        try:
+            result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
+        except grpc.RpcError as e:
+            logger.critical(f"GRPC: An error occurred during model upload: {e}")
+
+        return result
