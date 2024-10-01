@@ -123,7 +123,7 @@ class PackageRuntime:
                 f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:bz2")
         else:
             logger.error("Failed to unpack compute package, no pkg_name set." "Has the reducer been configured with a compute package?")
-            return False
+            return False, ""
 
         try:
             if f:
@@ -156,7 +156,10 @@ class PackageRuntime:
         :return: Dispatcher object
         :rtype: :class:`fedn.utils.dispatcher.Dispatcher`
         """
-        self.dispatch_config = _read_yaml_file(os.path.join(run_path, "fedn.yaml"))
-        dispatcher = Dispatcher(self.dispatch_config, run_path)
+        try:
+            self.dispatch_config = _read_yaml_file(os.path.join(run_path, "fedn.yaml"))
+            dispatcher = Dispatcher(self.dispatch_config, run_path)
 
-        return dispatcher
+            return dispatcher
+        except Exception:
+            return None

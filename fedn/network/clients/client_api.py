@@ -1,22 +1,37 @@
 import enum
 import os
+import threading
 import time
 from typing import Any, Tuple
 
 import requests
 
-from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CUSTOM_URL_PREFIX, FEDN_PACKAGE_EXTRACT_DIR
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import logger
+from fedn.network.clients.grpc_handler import GrpcHandler
 from fedn.network.clients.package_runtime import PackageRuntime
+from fedn.utils.dispatcher import Dispatcher
+
+
+class GrpcConnectionOptions:
+    def __init__(self, status: str, host: str, fqdn: str, package: str, ip: str, port: int, helper_type: str):
+        self.status = status
+        self.host = host
+        self.fqdn = fqdn
+        self.package = package
+        self.ip = ip
+        self.port = port
+        self.helper_type = helper_type
 
 
 # Enum for respresenting the result of connecting to the FEDn API
 class ConnectToApiResult(enum.Enum):
     Assigned = 0
-    UnAuthorized = 1
-    UnMatchedConfig = 2
-    IncorrectUrl = 3
-    UnknownError = 4
+    ComputePackgeMissing = 1
+    UnAuthorized = 2
+    UnMatchedConfig = 3
+    IncorrectUrl = 4
+    UnknownError = 5
 
 
 def get_compute_package_dir_path():
@@ -39,6 +54,9 @@ class ClientAPI:
         self._subscribers = {"train": [], "validation": []}
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
+
+        self.dispatcher: Dispatcher = None
+        self.grpc_handler: GrpcHandler = None
 
     def subscribe(self, event_type: str, callback: callable):
         """Subscribe to a specific event."""
@@ -83,9 +101,13 @@ class ClientAPI:
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
             )
 
-            if response.status_code == 200:
+            # TODO: If 203 it should try again...
+            if response.status_code in [200]:
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
+            elif response.status_code == 203:
+                json_response = response.json()
+                return ConnectToApiResult.ComputePackgeMissing, json_response
             elif response.status_code == 401:
                 return ConnectToApiResult.UnAuthorized, "Unauthorized"
             elif response.status_code == 400:
@@ -120,29 +142,70 @@ class ClientAPI:
         """
         return self._package_runtime.set_checksum(url, token, name)
 
-    def unpack_compute_package(self):
+    def unpack_compute_package(self) -> Tuple[bool, str]:
         result, path = self._package_runtime.unpack_compute_package()
         if result:
             logger.info(f"Compute package unpacked to: {path}")
         else:
-            logger.info("Error: Could not unpack compute package")
+            logger.error("Error: Could not unpack compute package")
+
+        return result, path
+
+    def validate_compute_package(self, checksum: str) -> bool:
+        return self._package_runtime.validate(checksum)
+
+    def set_dispatcher(self, path) -> bool:
+        result = self._package_runtime.get_dispatcher(path)
+        if result:
+            self.dispatcher = result
+            logger.info("Dispatcher set")
+            return True
+        else:
+            logger.error("Error: Could not set dispatcher")
+            return False
+
+    def get_or_set_environment(self, path: str) -> str:
+        activate_cmd = self.dispatcher._get_or_create_python_env()
+        if activate_cmd:
+            logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
+
+    # def _subscribe_to_combiner(self, config):
+    #     """Listen to combiner message stream and start all processing threads.
+
+    #     :param config: A configuration dictionary containing connection information for
+    #     | the discovery service (controller) and settings governing e.g.
+    #     | client-combiner assignment behavior.
+    #     """
+    #     # Start sending heartbeats to the combiner.
+    #     threading.Thread(target=self._send_heartbeat, kwargs={"update_frequency": config["heartbeat_interval"]}, daemon=True).start()
+
+    #     # Start listening for combiner training and validation messages
+    #     threading.Thread(target=self._listen_to_task_stream, daemon=True).start()
+    #     self._connected = True
+
+    #     # Start processing the client message inbox
+    #     threading.Thread(target=self.process_request, daemon=True).start()
+
+    def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str):
+        try:
+            if config["fqdn"] and len(config["fqdn"]) > 0:
+                host = config["fqdn"]
+                port = 443
+            else:
+                host = config["host"]
+                port = config["port"]
+            combiner_name = config["host"]
+
+            self.grpc_handler = GrpcHandler(host=host, port=port, name=client_name, token=token, combiner_name=combiner_name)
+
+            return True
+        except Exception:
+            logger.error("Error: Could not initialize GRPC handler")
+            return False
 
 
-# # Example usage
-# def on_train(*args, **kwargs):
-#     logger.info("Training event received with args:", args, "and kwargs:", kwargs)
+    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
+        self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
 
-# def on_validation(*args, **kwargs):
-#     logger.info("Validation event received with args:", args, "and kwargs:", kwargs)
 
-
-# client_api = ClientAPI()
-# client_api.subscribe("train", on_train)
-# client_api.subscribe("validation", on_validation)
-
-# # Simulate a train event triggered from the server
-# client_api.train(epochs=10, batch_size=32)
-
-# # Simulate a validation event triggered from the server
-# client_api.validate(validation_split=0.2)
