@@ -72,7 +72,6 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
         clients = yaml.safe_load(file)
 
     image_list = clients["client " + str(split_index)]["train"]
-
     train_ds = MedNISTDataset(data_path=data_path+"/MedNIST/", transforms=train_transforms, image_files=image_list)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
@@ -101,7 +100,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            print(f"{step}/{len(train_loader) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
+            print(f"{step}/{len(train_loader)}, " f"train_loss: {loss.item():.4f}")
 
         epoch_loss /= step
         epoch_loss_values.append(epoch_loss)
