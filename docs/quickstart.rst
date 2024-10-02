@@ -75,7 +75,7 @@ Clone the FEDn repository and install the package:
    cd fedn
    pip install .
 
-It is recommended to use a virtual environment when installing FEDn.
+It is recommended to use a virtual environment when installing FEDn. (See step 1.5)
 
 .. _package-creation:
 
