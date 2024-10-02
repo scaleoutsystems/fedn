@@ -42,9 +42,10 @@ You can set up and activate a virtual environment using the following steps:
          source fedn_env/bin/activate
 
     .. code-tab:: bash
-         :caption: Windows (Powershell)
+         :caption: Windows (PowerShell)
 
          python -m venv fedn_env
+         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
          .\fedn_env\Scripts\Activate
 
 After activating the virtual environment, you can proceed with the next steps.
@@ -163,7 +164,7 @@ Start a client (using a 10-split and the 1st partition) by running the following
          fedn run client -in client.yaml --secure=True --force-ssl
 
     .. code-tab:: bash
-         :caption: Windows (Powershell)
+         :caption: Windows (PowerShell)
 
          $env:FEDN_PACKAGE_EXTRACT_DIR=".\package"
          $env:FEDN_NUM_DATA_SPLITS=10
