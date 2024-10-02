@@ -14,3 +14,6 @@ Subpackages
 
    fedn.network
    fedn.utils
+
+.. meta::
+   :robots: index, follow

@@ -24,3 +24,6 @@ fedn.network.statestore.statestorebase module
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. meta::
+   :robots: index, follow

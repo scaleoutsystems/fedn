@@ -117,3 +117,5 @@ This extension can then simply be called as such:
 .. meta::
    :description lang=en:
       Aggregators are responsible for combining client model updates into a combiner-level global model. During a training session, the combiners will instantiate an Aggregator and use it to process the incoming model updates from clients.
+   :robots: index, follow
+   :keywords: Federated Learning, Aggregators, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems

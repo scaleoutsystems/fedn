@@ -40,3 +40,6 @@ fedn.utils.plugins.pytorchhelper module
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. meta::
+   :robots: index, follow
