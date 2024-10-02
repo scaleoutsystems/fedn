@@ -78,4 +78,4 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
     :og:description: Federated Learning is a novel approach to address challenges related to data privacy, security, and decentralized data distribution.
     :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
     :og:url: https://fedn.scaleoutsystems.com/docs/introduction.html
-    :og:type: article
+    :og:type: website

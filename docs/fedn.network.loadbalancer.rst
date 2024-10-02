@@ -32,3 +32,6 @@ fedn.network.loadbalancer.loadbalancerbase module
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. meta::
+   :robots: index, follow

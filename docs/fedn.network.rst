@@ -37,3 +37,6 @@ fedn.network.state module
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. meta::
+   :robots: index, follow

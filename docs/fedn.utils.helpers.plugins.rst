@@ -16,3 +16,6 @@ fedn.utils.helpers.plugins.numpyhelper module
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. meta::
+   :robots: index, follow

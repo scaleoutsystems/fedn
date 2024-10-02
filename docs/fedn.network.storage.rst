@@ -15,3 +15,6 @@ Subpackages
    fedn.network.storage.models
    fedn.network.storage.s3
    fedn.network.storage.statestore
+
+.. meta::
+   :robots: index, follow
