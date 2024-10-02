@@ -27,12 +27,14 @@ VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 SENTRY_COMBINER_DSN = os.environ.get('SENTRY_COMBINER_DSN', False)
 
 if SENTRY_COMBINER_DSN:
+    SENTRY_ENVIRONMENT = os.environ.get('SENTRY_ENVIRONMENT', "")
     sentry_sdk.init(
         dsn=SENTRY_COMBINER_DSN,
         traces_sample_rate=1.0,
         integrations=[
             GRPCIntegration(),
         ],
+        environment=SENTRY_ENVIRONMENT,
     )
 
 

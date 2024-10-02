@@ -12,11 +12,11 @@ from fedn.network.api.v1 import _routes
 
 SENTRY_CONTROLLER_DSN = os.environ.get('SENTRY_CONTROLLER_DSN', False)
 if SENTRY_CONTROLLER_DSN:
+    SENTRY_ENVIRONMENT = os.environ.get('SENTRY_ENVIRONMENT', "")
     sentry_sdk.init(
         dsn=SENTRY_CONTROLLER_DSN,
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
         traces_sample_rate=1.0,
+        environment=SENTRY_ENVIRONMENT,
     )
 
 
