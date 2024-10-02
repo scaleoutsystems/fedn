@@ -259,3 +259,40 @@ class GrpcHandler:
 
         return True
 
+    def send_model_validation(self,
+        sender_name: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        model_id: str,
+        metrics: str,
+        correlation_id: str,
+        session_id: str
+    ) -> bool:
+        validation = fedn.ModelValidation()
+        validation.sender.name = sender_name
+        validation.sender.role = fedn.WORKER
+        validation.receiver.name = receiver_name
+        validation.receiver.role = receiver_role
+        validation.model_id = model_id
+        validation.data = metrics
+        validation.timestamp.GetCurrentTime()
+        validation.correlation_id = correlation_id
+        validation.session_id = session_id
+
+
+        try:
+            _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
+        except grpc.RpcError as e:
+            status_code = e.code()
+            if status_code == grpc.StatusCode.UNAVAILABLE:
+                logger.warning("GRPC SendModelValidation: server unavailable during send model validation.")
+            if status_code == grpc.StatusCode.UNAUTHENTICATED:
+                details = e.details()
+                if details == "Token expired":
+                    logger.warning("GRPC SendModelValidation: Token expired.")
+            return False
+        except Exception as e:
+            logger.error(f"GRPC SendModelValidation: An error occurred: {e}")
+            return False
+
+        return True

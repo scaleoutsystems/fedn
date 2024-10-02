@@ -4,16 +4,14 @@ import os
 import threading
 import time
 import uuid
-from datetime import datetime
 from typing import Tuple
-
-import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.network.clients.client_api import (ClientAPI, ConnectToApiResult,
                                              GrpcConnectionOptions)
+from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
 
@@ -112,6 +110,7 @@ class Client:
         ).start()
 
         self.client_api.subscribe("train", self.on_train)
+        self.client_api.subscribe("validation", self.on_validation)
 
         threading.Thread(
             target=self.client_api.listen_to_task_stream, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
@@ -133,7 +132,18 @@ class Client:
     def on_train(self, request):
         logger.info(f"Received train request: {request}")
 
-        self._process_training_request(request)
+        #TODO: check if this is fine... thread?!?!?
+        threading.Thread(
+            target=self._process_training_request, kwargs={"request": request}, daemon=True
+        ).start()
+
+    def on_validation(self, request):
+        logger.info(f"Received validation request: {request}")
+
+        #TODO: check if this is fine... thread?!?!?
+        threading.Thread(
+            target=self._process_training_request, kwargs={"request": request}, daemon=True
+        ).start()
 
 
     def _process_training_request(self, request) -> Tuple[str, dict]:
@@ -146,6 +156,7 @@ class Client:
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
+        #TODO: send_status
         # self.send_status("\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
 
         model_id: str = request.model_id
@@ -227,3 +238,89 @@ class Client:
                 request=request,
                 sesssion_id=session_id,
             )
+
+    def _process_validation_request(self, request):
+        """Process a validation request.
+
+        :param model_id: The model id of the model to be validated.
+        :type model_id: str
+        :param is_inference: True if the validation is an inference request, False if it is a validation request.
+        :type is_inference: bool
+        :param session_id: The id of the current session.
+        :type session_id: str
+        :return: The validation metrics, or None if validation failed.
+        :rtype: dict
+        """
+        model_id: str = request.model_id
+        is_inference: bool = request.is_inference
+
+        # Figure out cmd
+        if is_inference:
+            cmd = "infer"
+        else:
+            cmd = "validate"
+
+        #TODO: send_status
+        # self.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
+
+        try:
+            model = self.client_api.get_model_from_combiner(id=str(model_id), client_name=self.client_obj.client_id)
+            if model is None:
+                logger.error("Could not retrieve model from combiner. Aborting validation request.")
+                return
+            inpath = self.helper.get_tmp_path()
+
+            with open(inpath, "wb") as fh:
+                fh.write(model.getbuffer())
+
+            outpath = get_tmp_path()
+            self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
+
+            with open(outpath, "r") as fh:
+                metrics = json.loads(fh.read())
+
+            os.unlink(inpath)
+            os.unlink(outpath)
+
+        except Exception as e:
+            logger.warning("Validation failed with exception {}".format(e))
+
+        if metrics is not None:
+            # Send validation
+            validation = fedn.ModelValidation()
+            validation.sender.name = self.name
+            validation.sender.role = fedn.WORKER
+            validation.receiver.name = request.sender.name
+            validation.receiver.role = request.sender.role
+            validation.model_id = str(request.model_id)
+            validation.data = json.dumps(metrics)
+            validation.timestamp.GetCurrentTime()
+            validation.correlation_id = request.correlation_id
+            validation.session_id = request.session_id
+
+            # sender_name: str, sender_role: fedn.Role, model_id: str, model_update_id: str
+            result: bool = self.client_api.send_model_validation(
+                sender_name=self.client_obj.name,
+                receiver_name=request.sender.name,
+                receiver_role=request.sender.role,
+                model_id=str(request.model_id),
+                metrics=json.dumps(metrics),
+                correlation_id=request.correlation_id,
+                session_id=request.session_id,
+            )
+
+            if result:
+                self.client_api.send_status(
+                    "Model validation completed.",
+                    log_level=fedn.Status.AUDIT,
+                    type=fedn.StatusType.MODEL_VALIDATION,
+                    request=validation,
+                    sesssion_id=request.session_id,
+                )
+            else:
+                self.client_api.send_status(
+                    "Client {} failed to complete model validation.".format(self.name),
+                    log_level=fedn.Status.WARNING,
+                    request=request,
+                    sesssion_id=request.session_id,
+                )

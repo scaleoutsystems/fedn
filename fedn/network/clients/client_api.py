@@ -198,6 +198,7 @@ class ClientAPI:
             logger.error("Error: Could not initialize GRPC handler")
             return False
 
+    #TODO: Maximum recursion depth exceeded
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
@@ -207,6 +208,8 @@ class ClientAPI:
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
             self.train(request)
+        elif request.type == fedn.StatusType.MODEL_VALIDATION:
+            self.validate(request)
 
     def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
         return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
@@ -225,9 +228,19 @@ class ClientAPI:
         receiver_name: str,
         receiver_role: fedn.Role,
         meta: dict
-    ):
+    ) -> bool:
         return self.grpc_handler.send_model_update(sender_name, sender_role, model_id, model_update_id, receiver_name, receiver_role, meta)
 
+    def send_model_validation(self,
+        sender_name: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        model_id: str,
+        metrics: dict,
+        correlation_id: str,
+        session_id: str
+    ) -> bool:
+        return self.grpc_handler.send_model_validation(sender_name, receiver_name, receiver_role, model_id, metrics, correlation_id, session_id)
 
     # Init functions
     def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:
