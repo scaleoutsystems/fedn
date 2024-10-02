@@ -1,6 +1,5 @@
 import enum
 import os
-import threading
 import time
 from io import BytesIO
 from typing import Any, Tuple
@@ -164,27 +163,22 @@ class ClientAPI:
             logger.error("Error: Could not set dispatcher")
             return False
 
-    def get_or_set_environment(self, path: str) -> str:
-        activate_cmd = self.dispatcher._get_or_create_python_env()
+    def get_or_set_environment(self) -> bool:
+        try:
+            logger.info("Initiating Dispatcher with entrypoint set to: startup")
+            activate_cmd = self.dispatcher._get_or_create_python_env()
+            self.dispatcher.run_cmd("startup")
+        except KeyError:
+            logger.info("No startup command found in package. Continuing.")
+            return False
+        except Exception as e:
+            logger.error(f"Caught exception: {type(e).__name__}")
+            return False
+
         if activate_cmd:
             logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 
-    # def _subscribe_to_combiner(self, config):
-    #     """Listen to combiner message stream and start all processing threads.
-
-    #     :param config: A configuration dictionary containing connection information for
-    #     | the discovery service (controller) and settings governing e.g.
-    #     | client-combiner assignment behavior.
-    #     """
-    #     # Start sending heartbeats to the combiner.
-    #     threading.Thread(target=self._send_heartbeat, kwargs={"update_frequency": config["heartbeat_interval"]}, daemon=True).start()
-
-    #     # Start listening for combiner training and validation messages
-    #     threading.Thread(target=self._listen_to_task_stream, daemon=True).start()
-    #     self._connected = True
-
-    #     # Start processing the client message inbox
-    #     threading.Thread(target=self.process_request, daemon=True).start()
+        return True
 
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str):
         try:
@@ -218,3 +212,17 @@ class ClientAPI:
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
+    
+    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
+        return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id)
+
+    def send_model_update(self,
+        sender_name: str,
+        sender_role: fedn.Role,
+        model_id: str,
+        model_update_id: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        meta: dict
+    ):
+        return self.grpc_handler.send_model_update(sender_name, sender_role, model_id, model_update_id, receiver_name, receiver_role, meta)

@@ -1,5 +1,7 @@
+import json
 import sys
 import time
+from datetime import datetime
 from io import BytesIO
 from typing import Any, Callable
 
@@ -9,7 +11,7 @@ from google.protobuf.json_format import MessageToJson
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
+from fedn.network.combiner.modelservice import upload_request_generator
 
 
 class GrpcHandler:
@@ -220,3 +222,40 @@ class GrpcHandler:
             logger.critical(f"GRPC: An error occurred during model upload: {e}")
 
         return result
+
+    def send_model_update(self,
+        sender_name: str,
+        sender_role: fedn.Role,
+        model_id: str,
+        model_update_id: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        meta: dict
+    ):
+        update = fedn.ModelUpdate()
+        update.sender.name = sender_name
+        update.sender.role = sender_role
+        update.receiver.name = receiver_name
+        update.receiver.role = receiver_role
+        update.model_id = model_id
+        update.model_update_id = model_update_id
+        update.timestamp = str(datetime.now())
+        update.meta = json.dumps(meta)
+
+        try:
+            _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
+        except grpc.RpcError as e:
+            status_code = e.code()
+            if status_code == grpc.StatusCode.UNAVAILABLE:
+                logger.warning("GRPC SendModelUpdate: server unavailable during send model update.")
+            if status_code == grpc.StatusCode.UNAUTHENTICATED:
+                details = e.details()
+                if details == "Token expired":
+                    logger.warning("GRPC SendModelUpdate: Token expired.")
+            return False
+        except Exception as e:
+            logger.error(f"GRPC SendModelUpdate: An error occurred: {e}")
+            return False
+
+        return True
+

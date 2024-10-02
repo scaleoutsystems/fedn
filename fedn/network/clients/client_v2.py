@@ -4,11 +4,16 @@ import os
 import threading
 import time
 import uuid
+from datetime import datetime
 from typing import Tuple
 
+import grpc
+
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
+from fedn.network.clients.client_api import (ClientAPI, ConnectToApiResult,
+                                             GrpcConnectionOptions)
 from fedn.utils.helpers.helpers import get_helper
 
 
@@ -128,9 +133,7 @@ class Client:
     def on_train(self, request):
         logger.info(f"Received train request: {request}")
 
-        model_id: str = request.model_id
-        session_id: str = request.session_id
-        self._process_training_request(model_id, session_id)
+        self._process_training_request(request)
 
     def init_remote_compute_packae(self) -> bool:
         result: bool = self.client_api.download_compute_package(self.connect_string, self.token)
@@ -164,6 +167,12 @@ class Client:
 
         logger.info("Dispatcher set")
 
+        result = self.client_api.get_or_set_environment()
+
+        if not result:
+            logger.error("Could not set environment")
+            return False
+
         return True
 
     def init_local_compute_package(self):
@@ -178,7 +187,7 @@ class Client:
 
         return True
 
-    def _process_training_request(self, model_id: str, session_id: str = None) -> Tuple[str, dict]:
+    def _process_training_request(self, request) -> Tuple[str, dict]:
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
@@ -189,6 +198,9 @@ class Client:
         :rtype: tuple
         """
         # self.send_status("\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
+
+        model_id: str = request.model_id
+        session_id: str = request.session_id
 
         try:
             meta = {}
@@ -241,4 +253,50 @@ class Client:
             updated_model_id = None
             meta = {"status": "failed", "error": str(e)}
 
-        return updated_model_id, meta
+        if meta is not None:
+            processing_time = time.time() - tic
+            meta["processing_time"] = processing_time
+            meta["config"] = request.data
+
+        if model_id is not None:
+            # Send model update to combiner
+
+            self.client_api.send_model_update(
+                sender_name=self.client_obj.name,
+                sender_role=fedn.WORKER,
+                model_id=model_id,
+                model_update_id=str(updated_model_id),
+                receiver_name=request.sender.name,
+                receiver_role=request.sender.role,
+                meta=meta,
+            )
+
+            self.client_api.send_status(
+                "Model update completed.",
+                log_level=fedn.Status.AUDIT,
+                type=fedn.StatusType.MODEL_UPDATE,
+                request=request,
+                sesssion_id=session_id,
+            )
+
+        #     try:
+        #         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
+        #         # self.send_status(
+        #         #     "Model update completed.",
+        #         #     log_level=fedn.Status.AUDIT,
+        #         #     type=fedn.StatusType.MODEL_UPDATE,
+        #         #     request=update,
+        #         #     sesssion_id=request.session_id,
+        #         # )
+        #     except grpc.RpcError as e:
+        #         status_code = e.code()
+        #         logger.error("GRPC error, {}.".format(status_code.name))
+        #         logger.debug(e)
+        #     except ValueError as e:
+        #         logger.error("GRPC error, RPC channel closed. {}".format(e))
+        #         logger.debug(e)
+        # else:
+        #     self.send_status(
+        #         "Client {} failed to complete model update.", log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id
+        #     )
+
