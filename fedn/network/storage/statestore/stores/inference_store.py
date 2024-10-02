@@ -6,22 +6,22 @@ from pymongo.database import Database
 from fedn.network.storage.statestore.stores.store import Store
 
 
-class Validation:
+class Inference:
     def __init__(
-        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, session_id: str, meta: str, sender: dict = None, receiver: dict = None
+        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, inference_id: str, meta: str, sender: dict = None, receiver: dict = None
     ):
         self.id = id
         self.model_id = model_id
         self.data = data
         self.correlation_id = correlation_id
         self.timestamp = timestamp
-        self.session_id = session_id
+        self.inference_id = inference_id
         self.meta = meta
         self.sender = sender
         self.receiver = receiver
 
-    def from_dict(data: dict) -> "Validation":
-        return Validation(
+    def from_dict(data: dict) -> "Inference":
+        return Inference(
             id=str(data["_id"]),
             model_id=data["modelId"] if "modelId" in data else None,
             data=data["data"] if "data" in data else None,
@@ -34,32 +34,32 @@ class Validation:
         )
 
 
-class ValidationStore(Store[Validation]):
+class InferenceStore(Store[Inference]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Validation:
+    def get(self, id: str, use_typing: bool = False) -> Inference:
         """Get an entity by id
         param id: The id of the entity
             type: str
-            description: The id of the entity, can be either the id or the validation (property)
+            description: The id of the entity, can be either the id or the Inference (property)
         param use_typing: Whether to return the entity as a typed object or as a dict
             type: bool
         return: The entity
         """
         response = super().get(id, use_typing=use_typing)
-        return Validation.from_dict(response) if use_typing else response
+        return Inference.from_dict(response) if use_typing else response
 
-    def update(self, id: str, item: Validation) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationStore")
+    def update(self, id: str, item: Inference) -> bool:
+        raise NotImplementedError("Update not implemented for InferenceStore")
 
-    def add(self, item: Validation) -> Tuple[bool, Any]:
+    def add(self, item: Inference) -> Tuple[bool, Any]:
         return super().add(item)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ValidationStore")
+        raise NotImplementedError("Delete not implemented for InferenceStore")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Validation]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Inference]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -80,5 +80,5 @@ class ValidationStore(Store[Validation]):
         """
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Validation.from_dict(item) for item in response["result"]] if use_typing else response["result"]
+        result = [Inference.from_dict(item) for item in response["result"]] if use_typing else response["result"]
         return {"count": response["count"], "result": result}

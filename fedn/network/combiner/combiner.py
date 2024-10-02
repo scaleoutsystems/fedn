@@ -9,12 +9,14 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import TypedDict
 
+from google.protobuf.json_format import MessageToDict
+
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import repository, statestore
+from fedn.network.combiner.shared import client_store, combiner_store, inference_store, repository, statestore, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -107,18 +109,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "parent": "localhost",
             "ip": "",
         }
-        self.statestore.set_combiner(interface_config)
+        combiner_store.add(interface_config)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = self.statestore.clients.find({"combiner": config["name"]})
+        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, kwargs={"combiner": config["name"]})
+        previous_clients = previous_clients["result"]
         for client in previous_clients:
             try:
-                self.statestore.set_client({"name": client["name"], "status": "offline", "client_id": client["client_id"]})
+                client_store.update(client["_id"], {"name": client["name"], "status": "offline", "client_id": client["client_id"]})
             except KeyError:
-                self.statestore.set_client({"name": client["name"], "status": "offline"})
+                # Old clients might not have a client_id
+                client_store.update(client["_id"], {"name": client["name"], "status": "offline"})
 
         # Set up gRPC server configuration
         if config["secure"]:
@@ -191,7 +195,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model validation request for model {} to {} clients".format(model_id, len(clients)))
 
-    def request_model_inference(self, session_id: str, model_id: str, clients: list = []) -> None:
+    def request_model_inference(self, inference_id: str, model_id: str, clients: list = []) -> None:
         """Ask clients to perform inference on the model.
 
         :param model_id: the model id to perform inference on
@@ -202,7 +206,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.INFERENCE, session_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.INFERENCE, inference_id, model_id, clients)
 
         if len(clients) < 20:
             logger.info("Sent model inference request for model {} to clients {}".format(model_id, clients))
@@ -214,6 +218,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         :param request_type: the type of request
         :type request_type: :class:`fedn.network.grpc.fedn_pb2.StatusType`
+        :param session_id: the session id to send in the request. Obs that for inference, this is the inference id.
+        :type session_id: str
         :param model_id: the model id to send in the request
         :type model_id: str
         :param config: the model configuration to send to clients
@@ -354,7 +360,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             then = self.clients[client]["last_seen"]
             if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
-                # If client has changed status, update statestore
+                # If client has changed status, update client queue
                 if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
@@ -363,9 +369,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 clients["update_offline_clients"].append(client)
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
-            self.statestore.update_client_status(clients["update_active_clients"], "online")
+            for client in clients["update_active_clients"]:
+                client_store.update(self.clients[client]["_id"], {"status": "online"})
         if len(clients["update_offline_clients"]) > 0:
-            self.statestore.update_client_status(clients["update_offline_clients"], "offline")
+            for client in clients["update_offline_clients"]:
+                client_store.update(self.clients[client]["_id"], {"status": "offline"})
 
         return clients["active_clients"]
 
@@ -395,10 +403,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def _send_status(self, status):
         """Report a status to backend db.
 
-        :param status: the status to report
+        :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-        self.statestore.report_status(status)
+        data = MessageToDict(status, including_default_value_fields=True)
+        _ = status_store.add(data)
 
     def _flush_model_update_queue(self):
         """Clear the model update queue (aggregator).
@@ -627,6 +636,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.__whoami(status.sender, self)
 
+        # Subscribe client, this also adds the client to self.clients
         self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
@@ -634,7 +644,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set client status to online
         self.clients[client.client_id]["status"] = "online"
-        self.statestore.set_client({"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()})
+        try:
+            # If the client is already in the client store, update the status
+            success, result = client_store.update(
+                self.clients[client.client_id]["_id"], {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()}
+            )
+            if not success:
+                logger.error(result)
+        except KeyError:
+            # If the client is not in the client store, add the client
+            success, result = client_store.add({"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()})
+            # Get the _id of the client and add it to the clients dict
+            if success:
+                self.clients[client.client_id]["_id"] = result["id"]
+            else:
+                logger.error(result)
 
         # Keep track of the time context has been active
         start_time = time.time()
@@ -673,7 +697,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-        self.statestore.report_validation(validation)
+        data = MessageToDict(validation, including_default_value_fields=True)
+        success, result = validation_store.add(data)
+        if not success:
+            logger.error(result)
+        else:
+            logger.info("Model validation registered: {}".format(result))
 
     def SendModelValidation(self, request, context):
         """Send a model validation response.
@@ -687,10 +716,30 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
-        self.register_model_validation(request)
+        validation = MessageToDict(request, including_default_value_fields=True)
+        validation_store.add(validation)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
+        return response
+
+    def SendModelInference(self, request, context):
+        """Send a model inference response.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelInference`
+        :param context: the context
+        :type context: :class:`grpc._server._Context`
+        :return: the response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
+        """
+        logger.info("Recieved ModelInference from {}".format(request.sender.name))
+
+        result = MessageToDict(request, including_default_value_fields=True)
+        inference_store.add(result)
+
+        response = fedn.Response()
+        response.response = "RECEIVED ModelInference {} from client  {}".format(response, response.sender.name)
         return response
 
     ####################################################################################################################

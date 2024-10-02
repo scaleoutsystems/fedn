@@ -13,19 +13,19 @@ bp = Blueprint("inference", __name__, url_prefix=f"/api/{api_version}/infer")
 @jwt_auth_required(role="admin")
 def start_session():
     """Start a new inference session.
-    param: session_id: The session id to start.
-    type: session_id: str
+    param: inference_id: The session id to start.
+    type: inference_id: str
     param: rounds: The number of rounds to run.
     type: rounds: int
     """
     try:
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
-        session_id: str = data.get("session_id")
+        inference_id: str = data.get("inference_id")
 
-        if not session_id or session_id == "":
+        if not inference_id or inference_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session_config = {"session_id": session_id}
+        session_config = {"inference_id": inference_id}
 
         threading.Thread(target=control.inference_session, kwargs={"config": session_config}).start()
 

@@ -80,6 +80,17 @@ message ModelValidation {
   string session_id = 8;
 }
 
+message ModelInference {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string meta = 7;
+  string inference_id = 8;
+}
+
 enum ModelStatus {
   OK = 0;
   IN_PROGRESS = 1;
@@ -241,6 +252,7 @@ service Combiner {
 
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
+    rpc SendModelInference (ModelInference) returns (Response);
 
 }
 

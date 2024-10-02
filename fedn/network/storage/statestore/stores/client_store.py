@@ -30,7 +30,7 @@ class Client:
             ip=data["ip"] if "ip" in data else None,
             status=data["status"] if "status" in data else None,
             updated_at=data["updated_at"] if "updated_at" in data else None,
-            last_seen=data["last_seen"] if "last_seen" in data else None
+            last_seen=data["last_seen"] if "last_seen" in data else None,
         )
 
 
@@ -50,13 +50,13 @@ class ClientStore(Store[Client]):
         return Client.from_dict(response) if use_typing else response
 
     def update(self, id: str, item: Client) -> bool:
-        raise NotImplementedError("Update not implemented for ClientStore")
+        return super().update(id, item)
 
-    def add(self, item: Client)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for ClientStore")
+    def add(self, item: Client) -> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
-        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "client_id": id }
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"client_id": id}
 
         document = self.database[self.collection].find_one(kwargs)
 
@@ -86,10 +86,7 @@ class ClientStore(Store[Client]):
 
         result = [Client.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
@@ -111,13 +108,13 @@ class ClientStore(Store[Client]):
                 [
                     {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
                     {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}},
                 ]
                 if len(combiners) > 0
                 else [
-                    {"$match": { "status": "online"}},
+                    {"$match": {"status": "online"}},
                     {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}},
                 ]
             )
 

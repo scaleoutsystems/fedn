@@ -608,6 +608,11 @@ class CombinerStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
+        self.SendModelInference = channel.unary_unary(
+                '/fedn.Combiner/SendModelInference',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelInference.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                )
 
 
 class CombinerServicer(object):
@@ -632,6 +637,12 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendModelInference(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -648,6 +659,11 @@ def add_CombinerServicer_to_server(servicer, server):
             'SendModelValidation': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelValidation,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'SendModelInference': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendModelInference,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelInference.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
@@ -707,6 +723,23 @@ class Combiner(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelValidation',
             network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendModelInference(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelInference',
+            network_dot_grpc_dot_fedn__pb2.ModelInference.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -176,7 +176,7 @@ class Client:
         logger.debug("Client using metadata: {}.".format(self.metadata))
         port = combiner_config["port"]
         secure = False
-        if combiner_config["fqdn"] is not None:
+        if "fqdn" in combiner_config.keys() and combiner_config["fqdn"] is not None:
             host = combiner_config["fqdn"]
             # assuming https if fqdn is used
             port = 443
@@ -721,7 +721,33 @@ class Client:
                         self.state = ClientState.idle
                         continue
                     presigned_url = presigned_url["presigned_url"]
+                    # Obs that session_id in request is the inference_id
                     _ = self._process_inference_request(request.model_id, request.session_id, presigned_url)
+                    inference = fedn.ModelInference()
+                    inference.sender.name = self.name
+                    inference.sender.role = fedn.WORKER
+                    inference.receiver.name = request.sender.name
+                    inference.receiver.name = request.sender.name
+                    inference.receiver.role = request.sender.role
+                    inference.model_id = str(request.model_id)
+                    # TODO: Add inference data
+                    inference.data = ""
+                    inference.timestamp.GetCurrentTime()
+                    inference.correlation_id = request.correlation_id
+                    # Obs that session_id in request is the inference_id
+                    inference.inference_id = request.session_id
+
+                    try:
+                        _ = self.combinerStub.SendModelInference(inference, metadata=self.metadata)
+                        status_type = fedn.StatusType.INFERENCE
+                        self.send_status(
+                            "Model inference completed.", log_level=fedn.Status.AUDIT, type=status_type, request=inference, sesssion_id=request.session_id
+                        )
+                    except grpc.RpcError as e:
+                        status_code = e.code()
+                        logger.error("GRPC error, {}.".format(status_code.name))
+                        logger.debug(e)
+
                     self.state = ClientState.idle
             except queue.Empty:
                 pass

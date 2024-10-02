@@ -77,10 +77,7 @@ class Store(Generic[T]):
 
         result = [document for document in cursor] if use_typing else [from_document(document) for document in cursor]
 
-        return {
-            "count": count,
-            "result": result
-        }
+        return {"count": count, "result": result}
 
     def count(self, **kwargs) -> int:
         """Count entities
