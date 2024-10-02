@@ -141,7 +141,7 @@ Start a client (using a 10-split and the 1st partition) by running the following
     .. code-tab:: bash
          :caption: Windows (Powershell)
 
-         $env:FEDN_PACKAGE_EXTRACT_DIR="package"
+         $env:FEDN_PACKAGE_EXTRACT_DIR="./package"
          $env:FEDN_NUM_DATA_SPLITS=10
          $env:FEDN_DATA_PATH="./data/clients/1/mnist.pt"
          fedn run client -in client.yaml --secure=True --force-ssl
