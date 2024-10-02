@@ -24,6 +24,31 @@ You will see a Studio project similar to the image below. The Studio project pro
 
 .. image:: img/studio_project_overview.png
 
+1.5 Set up a Virtual environment (Recommended)
+----------------------------------------------
+
+Before installing FEDn using pip, we recommend creating a virtual environment. This helps isolate dependencies and avoids conflicts with other Python projects on your machine.
+
+You can set up and activate a virtual environment using the following steps:
+
+**Using venv** (Python's built-in module for virtual environments)
+
+.. tabs::
+
+    .. code-tab:: bash
+         :caption: Unix/MacOS
+
+         python3 -m venv fedn_env
+         source fedn_env/bin/activate
+
+    .. code-tab:: bash
+         :caption: Windows (Powershell)
+
+         python -m venv fedn_env
+         .\fedn_env\Scripts\Activate
+
+After activating the virtual environment, you can proceed with the next steps.
+
 2. Prepare the clients and define the global model
 ---------------------------------------------------
 
@@ -141,9 +166,9 @@ Start a client (using a 10-split and the 1st partition) by running the following
     .. code-tab:: bash
          :caption: Windows (Powershell)
 
-         $env:FEDN_PACKAGE_EXTRACT_DIR="./package"
+         $env:FEDN_PACKAGE_EXTRACT_DIR=".\package"
          $env:FEDN_NUM_DATA_SPLITS=10
-         $env:FEDN_DATA_PATH="./data/clients/1/mnist.pt"
+         $env:FEDN_DATA_PATH=".\data\clients\1\mnist.pt"
          fedn run client -in client.yaml --secure=True --force-ssl
 
 Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
