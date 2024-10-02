@@ -180,6 +180,7 @@ class ClientAPI:
 
         return True
 
+    # GRPC functions
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str):
         try:
             if config["fqdn"] and len(config["fqdn"]) > 0:
@@ -212,7 +213,7 @@ class ClientAPI:
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
-    
+
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id)
 
@@ -226,3 +227,63 @@ class ClientAPI:
         meta: dict
     ):
         return self.grpc_handler.send_model_update(sender_name, sender_role, model_id, model_update_id, receiver_name, receiver_role, meta)
+
+
+    # Init functions
+    def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:
+        result: bool = self.download_compute_package(url, token)
+        if not result:
+            logger.error("Could not download compute package")
+            return False
+        result: bool = self.set_compute_package_checksum(url, token)
+        if not result:
+            logger.error("Could not set checksum")
+            return False
+
+        if package_checksum:
+            result: bool = self.validate_compute_package(package_checksum)
+            if not result:
+                logger.error("Could not validate compute package")
+                return False
+
+        result, path = self.unpack_compute_package()
+
+        if not result:
+            logger.error("Could not unpack compute package")
+            return False
+
+        logger.info(f"Compute package unpacked to: {path}")
+
+        result = self.set_dispatcher(path)
+
+        if not result:
+            logger.error("Could not set dispatcher")
+            return False
+
+        logger.info("Dispatcher set")
+
+        result = self.get_or_set_environment()
+
+        if not result:
+            logger.error("Could not set environment")
+            return False
+
+        return True
+
+    def init_local_compute_package(self):
+        path = os.path.join(os.getcwd(), "client")
+        result = self.set_dispatcher(path)
+
+        if not result:
+            logger.error("Could not set dispatcher")
+            return False
+
+        result = self.get_or_set_environment()
+
+        if not result:
+            logger.error("Could not set environment")
+            return False
+
+        logger.info("Dispatcher set")
+
+        return True

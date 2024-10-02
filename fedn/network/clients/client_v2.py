@@ -84,12 +84,12 @@ class Client:
         logger.info("Client assinged to controller")
 
         if self.client_obj.package == "remote":
-            result = self.init_remote_compute_packae()
+            result = self.client_api.init_remote_compute_package(url=self.connect_string, token=self.token, package_checksum=self.package_checksum)
 
             if not result:
                 return
         else:
-            result = self.init_local_compute_package()
+            result = self.client_api.init_local_compute_package()
 
             if not result:
                 return
@@ -135,57 +135,6 @@ class Client:
 
         self._process_training_request(request)
 
-    def init_remote_compute_packae(self) -> bool:
-        result: bool = self.client_api.download_compute_package(self.connect_string, self.token)
-        if not result:
-            logger.error("Could not download compute package")
-            return False
-        result: bool = self.client_api.set_compute_package_checksum(self.connect_string, self.token)
-        if not result:
-            logger.error("Could not set checksum")
-            return False
-
-        if self.package_checksum:
-            result: bool = self.client_api.validate_compute_package(self.package_checksum)
-            if not result:
-                logger.error("Could not validate compute package")
-                return False
-
-        result, path = self.client_api.unpack_compute_package()
-
-        if not result:
-            logger.error("Could not unpack compute package")
-            return False
-
-        logger.info(f"Compute package unpacked to: {path}")
-
-        result = self.client_api.set_dispatcher(path)
-
-        if not result:
-            logger.error("Could not set dispatcher")
-            return False
-
-        logger.info("Dispatcher set")
-
-        result = self.client_api.get_or_set_environment()
-
-        if not result:
-            logger.error("Could not set environment")
-            return False
-
-        return True
-
-    def init_local_compute_package(self):
-        path = os.path.join(os.getcwd(), "client")
-        result = self.client_api.set_dispatcher(path)
-
-        if not result:
-            logger.error("Could not set dispatcher")
-            return False
-
-        logger.info("Dispatcher set")
-
-        return True
 
     def _process_training_request(self, request) -> Tuple[str, dict]:
         """Process a training (model update) request.
@@ -278,25 +227,3 @@ class Client:
                 request=request,
                 sesssion_id=session_id,
             )
-
-        #     try:
-        #         _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
-        #         # self.send_status(
-        #         #     "Model update completed.",
-        #         #     log_level=fedn.Status.AUDIT,
-        #         #     type=fedn.StatusType.MODEL_UPDATE,
-        #         #     request=update,
-        #         #     sesssion_id=request.session_id,
-        #         # )
-        #     except grpc.RpcError as e:
-        #         status_code = e.code()
-        #         logger.error("GRPC error, {}.".format(status_code.name))
-        #         logger.debug(e)
-        #     except ValueError as e:
-        #         logger.error("GRPC error, RPC channel closed. {}".format(e))
-        #         logger.debug(e)
-        # else:
-        #     self.send_status(
-        #         "Client {} failed to complete model update.", log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id
-        #     )
-
