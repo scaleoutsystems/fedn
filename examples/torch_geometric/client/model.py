@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as f
 from torch_geometric.nn import GATConv
-from torch_geometric.nn import BatchNorm
 import collections
 
 from fedn.utils.helpers.helpers import get_helper
@@ -21,7 +20,6 @@ def compile_model():
             super(GAT, self).__init__()
             self.dropout = dropout
             self.conv1 = GATConv(in_channels, out_channels, heads=num_heads, concat=False, dropout=dropout)
-            self.bn1 = BatchNorm(out_channels)
 
         def forward(self, data):
             x, edge_index = data.x, data.edge_index
@@ -31,7 +29,6 @@ def compile_model():
 
             # Apply the GAT convolution layer
             x = self.conv1(x, edge_index)
-            x = self.bn1(x)
             x = f.relu(x)
             return x
 
