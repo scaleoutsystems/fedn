@@ -11,7 +11,7 @@ helper = get_helper(HELPER_MODULE)
 
 def compile_model():
     """Compile the graph neural network model.
-    
+
     :return: The compiled model.
     :rtype: torch.nn.Module
     """
@@ -26,16 +26,16 @@ def compile_model():
 
         def forward(self, data):
             x, edge_index = data.x, data.edge_index
-            
+
             # Apply dropout
             x = F.dropout(x, p=self.dropout, training=self.training)
-            
+
             # Apply the GAT convolution layer
             x = self.conv1(x, edge_index)
             x = self.bn1(x)
             x = F.relu(x)
             return x
-        
+
     return GAT
 
 
