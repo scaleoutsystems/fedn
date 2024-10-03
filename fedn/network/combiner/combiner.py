@@ -123,10 +123,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
         previous_clients = client_store.list(limit=0, skip=0, sort_key=None, kwargs={"combiner": self.id})
-        logger.info(f"Found {previous_clients["count"]} previous clients")
+        count = previous_clients["count"]
+        result = previous_clients["result"]
+        logger.info(f"Found {count} previous clients")
         logger.info("Updating previous clients status to offline")
-        previous_clients = previous_clients["result"]
-        for client in previous_clients:
+        for client in result:
             try:
                 if "client_id" in client.keys():
                     client_store.update("client_id", client["client_id"], {"name": client["name"], "status": "offline"})
