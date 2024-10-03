@@ -72,7 +72,6 @@ def init_seed(out_path="seed.npz"):
     """
     # Init and save
     model = compile_model()
-    print(model)
     save_parameters(model, out_path)
 
 
