@@ -7,7 +7,7 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.store import Store
 
-from .shared import EntityNotFound
+from .shared import EntityNotFound, from_document
 
 
 class Client:
@@ -49,8 +49,28 @@ class ClientStore(Store[Client]):
         response = super().get(id, use_typing=use_typing)
         return Client.from_dict(response) if use_typing else response
 
-    def update(self, id: str, item: Client) -> bool:
-        return super().update(id, item)
+    def _get_client_by_client_id(self, client_id: str) -> Dict:
+        document = self.database[self.collection].find_one({"client_id": client_id})
+        if document is None:
+            raise EntityNotFound(f"Entity with client_id {client_id} not found")
+        return document
+
+    def _get_client_by_name(self, name: str) -> Dict:
+        document = self.database[self.collection].find_one({"name": name})
+        if document is None:
+            raise EntityNotFound(f"Entity with name {name} not found")
+        return document
+
+    def update(self, by_key: str, value: str, item: Client) -> bool:
+        try:
+            result = self.database[self.collection].update_one({by_key: value}, {"$set": item})
+            if result.modified_count == 1:
+                document = self.database[self.collection].find_one({by_key: value})
+                return True, from_document(document)
+            else:
+                return False, "Entity not found"
+        except Exception as e:
+            return False, str(e)
 
     def add(self, item: Client) -> Tuple[bool, Any]:
         return super().add(item)

@@ -84,6 +84,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         set_log_stream(config.get("logfile", None))
 
         # Client queues
+        # Each client in the dict is stored with its client_id as key, and the value is a dict with keys:
+        #     name: str
+        #     status: str
+        #     last_seen: str
+        #     fedn.Queue.TASK_QUEUE: queue.Queue
+        # Obs that fedn.Queue.TASK_QUEUE is just str(1)
         self.clients = {}
 
         # Validate combiner name
@@ -116,14 +122,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, kwargs={"combiner": config["name"]})
+        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, kwargs={"combiner": self.id})
+        logger.info(f"Found {previous_clients["count"]} previous clients")
+        logger.info("Updating previous clients status to offline")
         previous_clients = previous_clients["result"]
         for client in previous_clients:
             try:
-                client_store.update(client["_id"], {"name": client["name"], "status": "offline", "client_id": client["client_id"]})
-            except KeyError:
-                # Old clients might not have a client_id
-                client_store.update(client["_id"], {"name": client["name"], "status": "offline"})
+                if "client_id" in client.keys():
+                    client_store.update("client_id", client["client_id"], {"name": client["name"], "status": "offline"})
+                else:
+                    # Old clients might not have a client_id
+                    client_store.update("name", client["name"], {"name": client["name"], "status": "offline"})
+
+            except Exception as e:
+                logger.error("Failed to update previous client status: {}".format(str(e)))
 
         # Set up gRPC server configuration
         if config["secure"]:
@@ -371,10 +383,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
-                client_store.update(self.clients[client]["_id"], {"status": "online"})
+                client_store.update("client_id", client, {"status": "online"})
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
-                client_store.update(self.clients[client]["_id"], {"status": "offline"})
+                client_store.update("client_id", client, {"status": "offline"})
 
         return clients["active_clients"]
 
@@ -648,21 +660,27 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         try:
             # If the client is already in the client store, update the status
             success, result = client_store.update(
-                self.clients[client.client_id]["_id"],
+                "client_id",
+                client.client_id,
                 {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now(), "combiner": self.id},
             )
-            if not success:
+            if not success and result == "Entity not found":
+                # If the client is not in the client store, add the client
+                success, result = client_store.add(
+                    {
+                        "name": client.name,
+                        "status": "online",
+                        "client_id": client.client_id,
+                        "last_seen": datetime.now(),
+                        "combiner": self.id,
+                        "combiner_preferred": self.id,
+                        "updated_at": datetime.now(),
+                    }
+                )
+            elif not success:
                 logger.error(result)
-        except KeyError:
-            # If the client is not in the client store, add the client
-            success, result = client_store.add(
-                {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now(), "combiner": self.id}
-            )
-            # Get the _id of the client and add it to the clients dict
-            if success:
-                self.clients[client.client_id]["_id"] = result["id"]
-            else:
-                logger.error(result)
+        except Exception as e:
+            logger.error(f"Failed to update client status: {str(e)}")
 
         # Keep track of the time context has been active
         start_time = time.time()
