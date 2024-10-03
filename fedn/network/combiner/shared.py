@@ -1,3 +1,6 @@
+import pymongo
+from pymongo.database import Database
+
 from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.storage.s3.repository import Repository
@@ -15,10 +18,6 @@ network_id = get_network_config()
 statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
 
 if statestore_config["type"] == "MongoDB":
-    # floating import
-    import pymongo
-    from pymongo.database import Database
-
     mc = pymongo.MongoClient(**statestore_config["mongo_config"])
     mc.server_info()
     mdb: Database = mc[network_id]
