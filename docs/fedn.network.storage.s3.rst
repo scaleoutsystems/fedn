@@ -33,5 +33,3 @@ fedn.network.storage.s3.repository module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

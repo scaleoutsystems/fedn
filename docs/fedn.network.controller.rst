@@ -25,5 +25,3 @@ fedn.network.controller.controlbase module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

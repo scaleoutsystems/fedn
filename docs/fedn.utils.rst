@@ -41,5 +41,3 @@ fedn.utils.process module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

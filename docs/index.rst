@@ -34,4 +34,4 @@ Indices and tables
     :description lang=en:
         FEDn is a federated learning platform that is secure, scalable and easy-to-use. FEDn supports the full journey from early testing/exploration, through pilot projects, to real-world deployments and integration.
     :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-    :robots: index, follow
+    

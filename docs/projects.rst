@@ -441,4 +441,4 @@ and its integration with popular machine learning frameworks like PyTorch and Te
     :description lang=en:
         A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, a project is a directory of files, containing your machine learning code, FEDn entry points, and a specification of the runtime environment for the client.
     :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-    :robots: index, follow
+    

@@ -109,4 +109,4 @@ You can use `--token` flags in the FEDn CLI to set the access token.
    :description lang=en:
       Authentication and Authorization (RBAC) - FEDn supports Role-Based Access Control (RBAC) for controlling access to the FEDn API and gRPC endpoints. The RBAC system is based on JSON Web Tokens (JWT) and is implemented using the `jwt` package.
    :keywords: Federated Learning, Authentication and Authorization, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-   :robots: index, follow
+   
