@@ -1,5 +1,5 @@
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as f
 from torch_geometric.nn import GATConv
 from torch_geometric.nn import BatchNorm
 import collections
@@ -28,12 +28,12 @@ def compile_model():
             x, edge_index = data.x, data.edge_index
 
             # Apply dropout
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = f.dropout(x, p=self.dropout, training=self.training)
 
             # Apply the GAT convolution layer
             x = self.conv1(x, edge_index)
             x = self.bn1(x)
-            x = F.relu(x)
+            x = f.relu(x)
             return x
 
     return GAT
