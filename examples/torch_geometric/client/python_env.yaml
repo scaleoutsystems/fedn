@@ -1,0 +1,9 @@
+name: torch_geometric
+build_dependencies:
+  - pip
+  - setuptools
+  - wheel
+dependencies:
+  - fedn
+  - torch
+  - torch-geometric
