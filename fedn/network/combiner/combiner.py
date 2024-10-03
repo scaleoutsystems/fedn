@@ -108,6 +108,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "address": config["host"],
             "parent": "localhost",
             "ip": "",
+            "updated_at": str(datetime.now()),
         }
         combiner_store.add(interface_config)
 
