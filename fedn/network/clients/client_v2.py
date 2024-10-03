@@ -52,8 +52,7 @@ class Client:
         self.package_checksum = package_checksum
         self.helper_type = helper_type
 
-        self.connect_string = get_url(self.api_url, self.api_port)
-        logger.info(self.connect_string)
+        self.fedn_api_url = get_url(self.api_url, self.api_port)
 
         self.client_api: ClientAPI = ClientAPI()
 
@@ -66,7 +65,7 @@ class Client:
             if result == ConnectToApiResult.ComputePackgeMissing:
                 logger.info("Retrying in 3 seconds")
                 time.sleep(3)
-            result, response = self.client_api.connect_to_api(self.connect_string, self.token, self.client_obj.to_json())
+            result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
@@ -80,10 +79,8 @@ class Client:
         if not result:
             return
 
-        #logger.info("Client assinged to controller")
-
         if self.client_obj.package == "remote":
-            result = self.client_api.init_remote_compute_package(url=self.connect_string, token=self.token, package_checksum=self.package_checksum)
+            result = self.client_api.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
 
             if not result:
                 return

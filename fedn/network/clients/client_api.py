@@ -92,7 +92,8 @@ class ClientAPI:
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         # TODO: Use new API endpoint (v1)
-        url_endpoint = f"{url}/add_client"
+        url_endpoint = f"{url}add_client"
+        logger.info(f"Connecting to API endpoint: {url_endpoint}")
 
         try:
             response = requests.post(
@@ -103,6 +104,7 @@ class ClientAPI:
             )
 
             if response.status_code == 200:
+                logger.info("Client assinged to controller")
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
