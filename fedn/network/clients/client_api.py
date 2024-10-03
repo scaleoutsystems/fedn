@@ -195,10 +195,12 @@ class ClientAPI:
 
             self.grpc_handler = GrpcHandler(host=host, port=port, name=client_name, token=token, combiner_name=combiner_name)
 
+            logger.info("Successfully initialized GRPC connection")
             return True
         except Exception:
-            logger.error("Error: Could not initialize GRPC handler")
+            logger.error("Error: Could not initialize GRPC connection")
             return False
+
 
     #TODO: Maximum recursion depth exceeded
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):

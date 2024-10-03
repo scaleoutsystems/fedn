@@ -74,6 +74,7 @@ class Client:
         return False, None
 
     def start(self):
+        #TODO: if combiner url exists this should not run
         result, response = self._connect_to_api()
 
         if not result:
@@ -95,10 +96,7 @@ class Client:
         result: bool = self.client_api.init_grpchandler(config=response, client_name=self.client_obj.client_id, token=self.token)
 
         if not result:
-            logger.error("Could not initialize grpc handler")
             return
-
-        logger.info("Client connected to grpc handler")
 
         logger.info("-----------------------------")
 
@@ -114,8 +112,11 @@ class Client:
             target=self.client_api.listen_to_task_stream, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
         ).start()
 
-        while True:
-            time.sleep(10)
+        stop_event = threading.Event()
+        try:
+            stop_event.wait()
+        except KeyboardInterrupt:
+            logger.info("Client stopped by user.")
 
     def set_helper(self, response: GrpcConnectionOptions = None):
         helper_type = response.get("helper_type", None)
