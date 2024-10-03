@@ -17,10 +17,9 @@ def compile_model():
     """
 
     class GAT(torch.nn.Module):
-        def __init__(self, in_channels, out_channels, num_heads, dropout=0.3):
-            super().__init__()
+        def __init__(self, in_channels=10, out_channels=2, num_heads=4, dropout=0.2):
+            super(GAT, self).__init__()
             self.dropout = dropout
-            # Only GAT convolution layer directly from in_channels to out_channels
             self.conv1 = GATConv(in_channels, out_channels, heads=num_heads, concat=False, dropout=dropout)
             self.bn1 = BatchNorm(out_channels)
 
@@ -36,7 +35,7 @@ def compile_model():
             x = f.relu(x)
             return x
 
-    return GAT
+    return GAT()
 
 
 def save_parameters(model, out_path):
@@ -76,6 +75,7 @@ def init_seed(out_path="seed.npz"):
     """
     # Init and save
     model = compile_model()
+    print(model)
     save_parameters(model, out_path)
 
 
