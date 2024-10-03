@@ -648,13 +648,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         try:
             # If the client is already in the client store, update the status
             success, result = client_store.update(
-                self.clients[client.client_id]["_id"], {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()}
+                self.clients[client.client_id]["_id"],
+                {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now(), "combiner": self.id},
             )
             if not success:
                 logger.error(result)
         except KeyError:
             # If the client is not in the client store, add the client
-            success, result = client_store.add({"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now()})
+            success, result = client_store.add(
+                {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now(), "combiner": self.id}
+            )
             # Get the _id of the client and add it to the clients dict
             if success:
                 self.clients[client.client_id]["_id"] = result["id"]
