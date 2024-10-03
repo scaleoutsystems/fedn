@@ -9,8 +9,7 @@ from typing import Tuple
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import (ClientAPI, ConnectToApiResult,
-                                             GrpcConnectionOptions)
+from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
@@ -61,14 +60,16 @@ class Client:
         self.helper = None
 
     def _connect_to_api(self) -> Tuple[bool, dict]:
-        result, response = self.client_api.connect_to_api(self.connect_string, self.token, self.client_obj.to_json())
+        result = None
+
+        while not result or result == ConnectToApiResult.ComputePackgeMissing:
+            if result == ConnectToApiResult.ComputePackgeMissing:
+                logger.info("Retrying in 3 seconds")
+                time.sleep(3)
+            result, response = self.client_api.connect_to_api(self.connect_string, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
-        elif result == ConnectToApiResult.ComputePackgeMissing:
-            logger.info("Compute package not uploaded. Retrying in 3 seconds")
-            time.sleep(3)
-            return self._connect_to_api()
 
         logger.error(f"Error: {response}")
         return False, None
@@ -79,7 +80,7 @@ class Client:
         if not result:
             return
 
-        logger.info("Client assinged to controller")
+        #logger.info("Client assinged to controller")
 
         if self.client_obj.package == "remote":
             result = self.client_api.init_remote_compute_package(url=self.connect_string, token=self.token, package_checksum=self.package_checksum)
@@ -133,17 +134,19 @@ class Client:
         logger.info(f"Received train request: {request}")
 
         #TODO: check if this is fine... thread?!?!?
-        threading.Thread(
-            target=self._process_training_request, kwargs={"request": request}, daemon=True
-        ).start()
+        # threading.Thread(
+        #     target=self._process_training_request, kwargs={"request": request}, daemon=True
+        # ).start()
+        self._process_training_request(request)
 
     def on_validation(self, request):
         logger.info(f"Received validation request: {request}")
 
         #TODO: check if this is fine... thread?!?!?
-        threading.Thread(
-            target=self._process_training_request, kwargs={"request": request}, daemon=True
-        ).start()
+        # threading.Thread(
+        #     target=self._process_validation_request, kwargs={"request": request}, daemon=True
+        # ).start()
+        self._process_validation_request(request)
 
 
     def _process_training_request(self, request) -> Tuple[str, dict]:
@@ -202,6 +205,8 @@ class Client:
             # Read the metadata file
             with open(outpath + "-metadata", "r") as fh:
                 training_metadata = json.loads(fh.read())
+
+            logger.info("SETTING Training metadata: {}".format(training_metadata))
             meta["training_metadata"] = training_metadata
 
             os.unlink(inpath)
@@ -244,21 +249,13 @@ class Client:
 
         :param model_id: The model id of the model to be validated.
         :type model_id: str
-        :param is_inference: True if the validation is an inference request, False if it is a validation request.
-        :type is_inference: bool
         :param session_id: The id of the current session.
         :type session_id: str
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
         model_id: str = request.model_id
-        is_inference: bool = request.is_inference
-
-        # Figure out cmd
-        if is_inference:
-            cmd = "infer"
-        else:
-            cmd = "validate"
+        cmd = "validate"
 
         #TODO: send_status
         # self.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
@@ -274,7 +271,7 @@ class Client:
                 fh.write(model.getbuffer())
 
             outpath = get_tmp_path()
-            self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
+            self.client_api.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 metrics = json.loads(fh.read())
@@ -288,7 +285,7 @@ class Client:
         if metrics is not None:
             # Send validation
             validation = fedn.ModelValidation()
-            validation.sender.name = self.name
+            validation.sender.name = self.client_obj.name
             validation.sender.role = fedn.WORKER
             validation.receiver.name = request.sender.name
             validation.receiver.role = request.sender.role
