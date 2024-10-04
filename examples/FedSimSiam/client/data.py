@@ -39,7 +39,7 @@ def load_data(data_path, is_train=True):
         data_path = os.environ.get(
             "FEDN_DATA_PATH", abs_path+"/data/clients/1/cifar10.pt")
 
-    data = torch.load(data_path)
+    data = torch.load(data_path, weights_only=True)
 
     if is_train:
         X = data["x_train"]
