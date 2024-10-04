@@ -4,7 +4,8 @@ import click
 import requests
 
 from fedn.cli.main import main
-from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
+from fedn.cli.shared import (CONTROLLER_DEFAULTS, apply_config, get_api_url,
+                             get_token, print_response)
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
 from fedn.network.clients.client_v2 import Client as ClientV2
@@ -183,7 +184,26 @@ def client_start_cmd(
     client.run()
 
 
-@client_cmd.command("startV2")
+
+def _validate_client_params(url):
+    if url is None:
+        click.echo("Error: Missing required parameter: --api_url")
+        return False
+
+    return True
+
+def _complement_client_params(url):
+    if not url.startswith("http://") and not url.startswith("https://"):
+        if "localhost" in url:
+            url = "http://" + url
+        else:
+            url = "https://" + url
+
+        click.echo(f"Complementing api_url with protocol: {url}")
+
+        return url
+
+@client_cmd.command("start-v2")
 @click.option("-u", "--api_url", required=False, help="Hostname for fedn api.")
 @click.option("-p", "--api_port", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
@@ -198,19 +218,24 @@ def client_start_cmd(
 @click.pass_context
 def client_start_v2_cmd(
     ctx,
-    api_url,
-    api_port,
-    token,
-    name,
-    client_id,
-    local_package,
-    preferred_combiner,
-    combiner,
-    combiner_port,
-    validator,
-    trainer,
+    api_url: str,
+    api_port: int,
+    token: str,
+    name: str,
+    client_id: str,
+    local_package: bool,
+    preferred_combiner: str,
+    combiner: str,
+    combiner_port: int,
+    validator: bool,
+    trainer: bool,
 ):
     package = "local" if local_package else "remote"
+
+    if not _validate_client_params(api_url):
+        return
+
+    api_url = _complement_client_params(api_url)
 
     client_options = ClientOptions(name, package, preferred_combiner, client_id)
     client = ClientV2(api_url, api_port, client_options, token)
