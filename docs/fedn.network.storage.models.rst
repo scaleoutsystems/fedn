@@ -33,5 +33,3 @@ fedn.network.storage.models.tempmodelstorage module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

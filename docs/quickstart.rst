@@ -206,7 +206,6 @@ to learn how to set up an all-in-one development environment using Docker and do
 .. meta::
    :description lang=en: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers. The first step is to start the server side (aggregator, controller). We do this by setting up a new Project in FEDn Studio.
    :keywords: Getting started with Federated Learning, Federated Learning, Federated Learning Framework, Federated Learning Platform
-   :robots: index, follow
    :og:title: Getting started with FEDn
    :og:description: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers.
    :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png

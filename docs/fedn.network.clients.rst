@@ -49,5 +49,3 @@ fedn.network.clients.test\_client module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

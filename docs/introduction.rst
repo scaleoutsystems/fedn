@@ -1,17 +1,30 @@
 What is Federated Learning? 
 ===========================
 
-Federated Learning is a novel approach to address challenges related to data privacy, security, 
-and decentralized data distribution. In contrast to traditional machine learning setups where data is collected and stored centrally, 
-Federated Learning allows for collaborative model training while keeping data local with the data owner or device. This is particularly advantageous in 
-scenarios where data cannot be easily shared due to privacy regulations, network limitations, or ownership concerns.
+Federated learning (FL) is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data. Instead, FL moves the computation to where the data exists, enabling the creation of strong, globally-informed models while preserving data privacy and security.
 
-At its core, Federated Learning orchestrates model training across distributed devices or servers, referred to as clients or participants. 
-These participants could be diverse endpoints such as mobile devices, IoT gateways, or remote servers. Rather than transmitting raw data to a central location, 
-each participant computes gradients locally based on its data. These gradients are then communicated to a server, often called the aggregator. 
-The server aggregates and combines the gradients from multiple participants to update a global model. 
-This iterative process allows the global model to improve without the need to share the raw data.
+Traditional machine learning
+-----------------------------
 
+Traditionally, machine learning follows a centralized model. This approach involves collecting data from various sources into a single, centralized repository, typically in a cloud environment or a dedicated data center. Then, advanced algorithms are applied to this consolidated dataset, training predictive models that can be deployed to make decisions based on new incoming data.
+
+However, the centralized machine learning paradigm is facing growing challenges. The explosion of connected devices, sensors, and distributed data sources has led to an exponential increase in the volume and complexity of data being generated. At the same time, concerns around privacy, security, and regulatory compliance have made it increasingly difficult to freely move and consolidate data from different sources.
+
+The data needed to train effective machine learning models is often distributed across organizations, devices, or clients, making centralization challenging due to privacy risks and high transfer costs.
+
+.. image:: img/machine_learning_centralized_decentralized.svg
+
+How federated learning works
+-----------------------------
+
+In federated learning, AI models are trained across multiple devices or servers (called client nodes) without needing to move the data off those devices. Here’s a simplified breakdown of how it works:
+
+1. **Starting the global model -** The process begins with a global model on a central server. This could be any type of machine learning model, like a neural network or decision tree.
+2. **Sending the model to clients -** The server sends the global model’s parameters to a group of selected client nodes. Each client uses its own local dataset, which stays securely on the device.
+3. **Local training -** Each client trains the model using its local data, adjusting the model’s parameters based on what it learns from the data. This training process is repeated for several rounds, rather than continuing until full accuracy is achieved.
+4. **Combining the updates -** The updated models from each client are sent back to the central server, where they are combined. A common approach is called Federated Averaging, where the server takes a weighted average of the updates from each client.
+
+At last, the improved global model is sent back to the clients for further training. This cycle continues until the model reaches a satisfactory level of accuracy.
 
 The FEDn framework 
 --------------------
@@ -71,11 +84,10 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
 
 .. meta::
     :description lang=en:
-        In contrast to traditional machine learning setups where data is collected and stored centrally, Federated Learning allows for collaborative model training while keeping data local with the data owner or device.
+        Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
     :keywords: Federated Learning, Machine Learning, What is federated machine learning, Federated Learning Framework, Federated Learning Platform
-    :robots: index, follow
     :og:title: What is Federated Learning?
-    :og:description: Federated Learning is a novel approach to address challenges related to data privacy, security, and decentralized data distribution.
+    :og:description: Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
     :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
     :og:url: https://fedn.scaleoutsystems.com/docs/introduction.html
     :og:type: website
