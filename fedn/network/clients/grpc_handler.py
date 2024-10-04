@@ -32,11 +32,11 @@ class GrpcHandler:
 
         logger.info(f"Connecting (GRPC) to {url}")
 
-        channel = grpc.secure_channel(url, channel_credentials) if port == 443 else grpc.insecure_channel(url)
+        self.channel = grpc.secure_channel(url, channel_credentials) if port == 443 else grpc.insecure_channel(url)
 
-        self.connectorStub = rpc.ConnectorStub(channel)
-        self.combinerStub = rpc.CombinerStub(channel)
-        self.modelStub = rpc.ModelServiceStub(channel)
+        self.connectorStub = rpc.ConnectorStub(self.channel)
+        self.combinerStub = rpc.CombinerStub(self.channel)
+        self.modelStub = rpc.ModelServiceStub(self.channel)
 
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.WORKER, client_id=client_id))
@@ -47,18 +47,10 @@ class GrpcHandler:
                 logger.info("Sending heartbeat to combiner")
                 self.connectorStub.SendHeartbeat(heartbeat)
             except grpc.RpcError as e:
-                status_code = e.code()
-
-                if status_code == grpc.StatusCode.UNAVAILABLE:
-                    logger.error("GRPC hearbeat: combiner unavailable")
-
-                elif status_code == grpc.StatusCode.UNAUTHENTICATED:
-                    #TODO: Disconnect?
-                    details = e.details()
-                    if details == "Token expired":
-                        logger.error("GRPC hearbeat: Token expired. Disconnecting.")
-                        sys.exit("Unauthorized. Token expired. Please obtain a new token.")
-                        send_hearbeat = False
+                return self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+            except Exception as e:
+                logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
+                self._disconnect()
 
             time.sleep(update_frequency)
 
@@ -73,9 +65,8 @@ class GrpcHandler:
         r.sender.role = fedn.WORKER
         r.sender.client_id = client_id
 
-        status_code = None
-
         try:
+            logger.info("Listening to task stream.")
             for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
                 if request.sender.role == fedn.COMBINER:
                     self.send_status(
@@ -92,26 +83,10 @@ class GrpcHandler:
                     callback(request)
 
         except grpc.RpcError as e:
-            status_code = e.code()
-            if status_code == grpc.StatusCode.UNAVAILABLE:
-                logger.warning("GRPC TaskStream: server unavailable during model update request stream. Retrying.")
-                # Retry after a delay
-                time.sleep(5)
-                self.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=callback)
-            if status_code == grpc.StatusCode.UNAUTHENTICATED:
-                details = e.details()
-                if details == "Token expired":
-                    logger.warning("GRPC TaskStream: Token expired. Reconnecting.")
-                    # TODO: Disconnect?
-                    # self.disconnect()
-
-            if status_code == grpc.StatusCode.CANCELLED:
-                # Expected if the client is disconnected
-                logger.critical("GRPC TaskStream: Client disconnected from combiner. Trying to reconnect.")
-
-            else:
-                # Log the error and continue
-                logger.error(f"GRPC TaskStream: An error occurred during model update request stream: {e}")
+            return self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
+        except Exception as e:
+            logger.error(f"GRPC (TaskStream): An error occurred: {e}")
+            self._disconnect()
 
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         """Send status message.
@@ -140,15 +115,13 @@ class GrpcHandler:
             status.data = MessageToJson(request)
 
         try:
+            logger.info("Sending status message to combiner.")
             _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
         except grpc.RpcError as e:
-            status_code = e.code()
-            if status_code == grpc.StatusCode.UNAVAILABLE:
-                logger.warning("GRPC SendStatus: server unavailable during send status.")
-            if status_code == grpc.StatusCode.UNAUTHENTICATED:
-                details = e.details()
-                if details == "Token expired":
-                    logger.warning("GRPC SendStatus: Token expired.")
+            return self._handle_grpc_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
+        except Exception as e:
+            logger.error(f"GRPC (SendStatus): An error occurred: {e}")
+            self._disconnect()
 
     def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
         """Fetch a model from the assigned combiner.
@@ -166,6 +139,7 @@ class GrpcHandler:
         request.sender.role = fedn.WORKER
 
         try:
+            logger.info("Downloading model from combiner.")
             for part in self.modelStub.Download(request, metadata=self.metadata):
                 if part.status == fedn.ModelStatus.IN_PROGRESS:
                     data.write(part.data)
@@ -181,7 +155,10 @@ class GrpcHandler:
                         return None
                     continue
         except grpc.RpcError as e:
-            logger.critical(f"GRPC: An error occurred during model download: {e}")
+            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_name, timeout))
+        except Exception as e:
+            logger.error(f"GRPC (Download): An error occurred: {e}")
+            self._disconnect()
 
         return data
 
@@ -207,9 +184,13 @@ class GrpcHandler:
         bt.seek(0, 0)
 
         try:
+            logger.info("Uploading model to combiner.")
             result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
         except grpc.RpcError as e:
-            logger.critical(f"GRPC: An error occurred during model upload: {e}")
+            return self._handle_grpc_error(e, "Upload", lambda: self.send_model_to_combiner(model, id))
+        except Exception as e:
+            logger.error(f"GRPC (Upload): An error occurred: {e}")
+            self._disconnect()
 
         return result
 
@@ -233,19 +214,25 @@ class GrpcHandler:
         update.meta = json.dumps(meta)
 
         try:
+            logger.info("Sending model update to combiner.")
             _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
         except grpc.RpcError as e:
-            status_code = e.code()
-            if status_code == grpc.StatusCode.UNAVAILABLE:
-                logger.warning("GRPC SendModelUpdate: server unavailable during send model update.")
-            if status_code == grpc.StatusCode.UNAUTHENTICATED:
-                details = e.details()
-                if details == "Token expired":
-                    logger.warning("GRPC SendModelUpdate: Token expired.")
-            return False
+            return self._handle_grpc_error(
+                e,
+                "SendModelUpdate",
+                lambda: self.send_model_update(
+                    sender_name,
+                    sender_role,
+                    model_id,
+                    model_update_id,
+                    receiver_name,
+                    receiver_role,
+                    meta
+                )
+            )
         except Exception as e:
-            logger.error(f"GRPC SendModelUpdate: An error occurred: {e}")
-            return False
+            logger.error(f"GRPC (SendModelUpdate): An error occurred: {e}")
+            self._disconnect()
 
         return True
 
@@ -271,18 +258,48 @@ class GrpcHandler:
 
 
         try:
+            logger.info("Sending model validation to combiner.")
             _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
         except grpc.RpcError as e:
-            status_code = e.code()
-            if status_code == grpc.StatusCode.UNAVAILABLE:
-                logger.warning("GRPC SendModelValidation: server unavailable during send model validation.")
-            if status_code == grpc.StatusCode.UNAUTHENTICATED:
-                details = e.details()
-                if details == "Token expired":
-                    logger.warning("GRPC SendModelValidation: Token expired.")
-            return False
+            return self._handle_grpc_error(
+                e,
+                "SendModelValidation",
+                lambda: self.send_model_validation(
+                    sender_name,
+                    receiver_name,
+                    receiver_role,
+                    model_id,
+                    metrics,
+                    correlation_id,
+                    session_id
+                )
+            )
         except Exception as e:
-            logger.error(f"GRPC SendModelValidation: An error occurred: {e}")
-            return False
+            logger.error(f"GRPC (SendModelValidation): An error occurred: {e}")
+            self._disconnect()
 
         return True
+
+    def _handle_grpc_error(self, e, method_name: str, sender_function: Callable):
+        status_code = e.code()
+        if status_code == grpc.StatusCode.UNAVAILABLE:
+            logger.warning(f"GRPC ({method_name}): server unavailable. Retrying in 5 seconds.")
+            time.sleep(5)
+            return sender_function()
+        elif status_code == grpc.StatusCode.CANCELLED:
+            logger.warning(f"GRPC ({method_name}): connection cancelled. Retrying in 5 seconds.")
+            time.sleep(5)
+            return sender_function()
+        if status_code == grpc.StatusCode.UNAUTHENTICATED:
+            details = e.details()
+            if details == "Token expired":
+                logger.warning(f"GRPC ({method_name}): Token expired.")
+        #TODO: test this...
+        self._disconnect()
+        logger.error(f"GRPC ({method_name}): An error occurred: {e}")
+        sys.exit("An error occurred during GRPC communication. Exiting.")
+
+    def _disconnect(self):
+        """Disconnect from the combiner."""
+        self.channel.close()
+        logger.info("Client {} disconnected.".format(self.name))

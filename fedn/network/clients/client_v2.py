@@ -9,7 +9,8 @@ from typing import Tuple
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
+from fedn.network.clients.client_api import (ClientAPI, ConnectToApiResult,
+                                             GrpcConnectionOptions)
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
@@ -129,7 +130,7 @@ class Client:
         self.helper = get_helper(helper_type_to_use)
 
     def on_train(self, request):
-        logger.info(f"Received train request: {request}")
+        logger.info("Received train request")
 
         #TODO: check if this is fine... thread?!?!?
         # threading.Thread(
@@ -138,7 +139,7 @@ class Client:
         self._process_training_request(request)
 
     def on_validation(self, request):
-        logger.info(f"Received validation request: {request}")
+        logger.info("Received validation request")
 
         #TODO: check if this is fine... thread?!?!?
         # threading.Thread(

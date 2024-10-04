@@ -287,7 +287,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param client: the client to add
         :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
         """
-        logger.info("####Joining client: {}".format(client))
         if client.client_id not in self.clients.keys():
             # The status is set to offline by default, and will be updated once _list_active_clients is called.
             self.clients[client.client_id] = {"last_seen": datetime.now(), "status": "offline"}
@@ -330,7 +329,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: list
         """
         subscribed_clients = []
-        logger.info("####Subscribed clients: {}".format(self.clients))
         for name, client in self.clients.items():
             if queue_name in client.keys():
                 subscribed_clients.append(name)
