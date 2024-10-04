@@ -63,7 +63,7 @@ class Client:
 
         while not result or result == ConnectToApiResult.ComputePackgeMissing:
             if result == ConnectToApiResult.ComputePackgeMissing:
-                logger.info("Retrying in 3 seconds")
+                logger.info("Remote compute package missing. Retrying in 3 seconds")
                 time.sleep(3)
             result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
@@ -157,11 +157,14 @@ class Client:
         :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
-        #TODO: send_status
-        # self.send_status("\t Starting processing of training request for model_id {}".format(model_id), sesssion_id=session_id)
-
         model_id: str = request.model_id
         session_id: str = request.session_id
+
+        self.client_api.send_status(
+            f"\t Starting processing of training request for model_id {model_id}",
+            sesssion_id=session_id,
+            sender_name=self.client_obj.name
+        )
 
         try:
             meta = {}
@@ -240,6 +243,7 @@ class Client:
                 type=fedn.StatusType.MODEL_UPDATE,
                 request=request,
                 sesssion_id=session_id,
+                sender_name=self.client_obj.name
             )
 
     def _process_validation_request(self, request):
@@ -253,10 +257,10 @@ class Client:
         :rtype: dict
         """
         model_id: str = request.model_id
+        session_id: str = request.session_id
         cmd = "validate"
 
-        #TODO: send_status
-        # self.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
+        self.client_api.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id, sender_name=self.client_obj.name)
 
         try:
             model = self.client_api.get_model_from_combiner(id=str(model_id), client_name=self.client_obj.client_id)
@@ -311,6 +315,7 @@ class Client:
                     type=fedn.StatusType.MODEL_VALIDATION,
                     request=validation,
                     sesssion_id=request.session_id,
+                    sender_name=self.client_obj.name
                 )
             else:
                 self.client_api.send_status(
@@ -318,4 +323,5 @@ class Client:
                     log_level=fedn.Status.WARNING,
                     request=request,
                     sesssion_id=request.session_id,
+                    sender_name=self.client_obj.name
                 )

@@ -41,23 +41,26 @@ class GrpcHandler:
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.WORKER, client_id=client_id))
 
-        try:
-            logger.info("Sending heartbeat to combiner")
-            self.connectorStub.SendHeartbeat(heartbeat)
-        except grpc.RpcError as e:
-            status_code = e.code()
+        send_hearbeat = True
+        while send_hearbeat:
+            try:
+                logger.info("Sending heartbeat to combiner")
+                self.connectorStub.SendHeartbeat(heartbeat)
+            except grpc.RpcError as e:
+                status_code = e.code()
 
-            if status_code == grpc.StatusCode.UNAVAILABLE:
-                logger.error("GRPC hearbeat: combiner unavailable")
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.error("GRPC hearbeat: combiner unavailable")
 
-            elif status_code == grpc.StatusCode.UNAUTHENTICATED:
-                details = e.details()
-                if details == "Token expired":
-                    logger.error("GRPC hearbeat: Token expired. Disconnecting.")
-                    sys.exit("Unauthorized. Token expired. Please obtain a new token.")
+                elif status_code == grpc.StatusCode.UNAUTHENTICATED:
+                    #TODO: Disconnect?
+                    details = e.details()
+                    if details == "Token expired":
+                        logger.error("GRPC hearbeat: Token expired. Disconnecting.")
+                        sys.exit("Unauthorized. Token expired. Please obtain a new token.")
+                        send_hearbeat = False
 
-        time.sleep(update_frequency)
-        self.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
+            time.sleep(update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]):
         """Subscribe to the model update request stream.
@@ -81,24 +84,12 @@ class GrpcHandler:
                         type=fedn.StatusType.MODEL_UPDATE_REQUEST,
                         request=request,
                         sesssion_id=request.session_id,
+                        sender_name=client_name
                     )
 
                     logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
 
                     callback(request)
-
-                    # if request.type == fedn.StatusType.MODEL_UPDATE and self.config["trainer"]:
-                    #     self.inbox.put(("train", request))
-                    # elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config["validator"]:
-                    #     self.inbox.put(("validate", request))
-                    # elif request.type == fedn.StatusType.INFERENCE and self.config["validator"]:
-                    #     logger.info("Received inference request for model_id {}".format(request.model_id))
-                    #     presigned_url = json.loads(request.data)
-                    #     presigned_url = presigned_url["presigned_url"]
-                    #     logger.info("Inference presigned URL: {}".format(presigned_url))
-                    #     self.inbox.put(("infer", request))
-                    # else:
-                    #     logger.error("Unknown request type: {}".format(request.type))
 
         except grpc.RpcError as e:
             status_code = e.code()
@@ -122,7 +113,7 @@ class GrpcHandler:
                 # Log the error and continue
                 logger.error(f"GRPC TaskStream: An error occurred during model update request stream: {e}")
 
-    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
+    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         """Send status message.
 
         :param msg: The message to send.
@@ -136,8 +127,7 @@ class GrpcHandler:
         """
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
-        # TODO: name...
-        status.sender.name = "self.name"
+        status.sender.name = sender_name
         status.sender.role = fedn.WORKER
         status.log_level = log_level
         status.status = str(msg)

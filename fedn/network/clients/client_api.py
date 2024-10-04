@@ -85,7 +85,7 @@ class ClientAPI:
     def validate(self, *args, **kwargs):
         """Function to be triggered from the server via gRPC."""
         # Perform validation logic here
-        logger.info("Validation started with args:", args, "and kwargs:", kwargs)
+        logger.info("Validation started")
 
         # Notify all subscribers about the validation event
         self.notify_subscribers("validation", *args, **kwargs)
@@ -202,7 +202,6 @@ class ClientAPI:
             return False
 
 
-    #TODO: Maximum recursion depth exceeded
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
@@ -221,8 +220,8 @@ class ClientAPI:
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
 
-    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
-        return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id)
+    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
+        return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
     def send_model_update(self,
         sender_name: str,
