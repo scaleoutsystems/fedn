@@ -104,22 +104,28 @@ class ClientAPI:
             )
 
             if response.status_code == 200:
-                logger.info("Client assinged to controller")
+                logger.info("Connect to FEDn Api - Client assinged to controller")
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
                 json_response = response.json()
+                logger.info("Connect to FEDn Api - Remote compute package missing.")
                 return ConnectToApiResult.ComputePackgeMissing, json_response
             elif response.status_code == 401:
+                logger.warning("Connect to FEDn Api - Unauthorized")
                 return ConnectToApiResult.UnAuthorized, "Unauthorized"
             elif response.status_code == 400:
                 json_response = response.json()
-                return ConnectToApiResult.UnMatchedConfig, json_response["message"]
+                msg = json_response["message"]
+                logger.warning(f"Connect to FEDn Api - {msg}")
+                return ConnectToApiResult.UnMatchedConfig, msg
             elif response.status_code == 404:
+                logger.warning("Connect to FEDn Api - Incorrect URL")
                 return ConnectToApiResult.IncorrectUrl, "Incorrect URL"
         except Exception:
             pass
 
+        logger.warning("Connect to FEDn Api - Unknown error occurred")
         return ConnectToApiResult.UnknownError, "Unknown error occurred"
 
     def download_compute_package(self, url: str, token: str, name: str = None) -> bool:

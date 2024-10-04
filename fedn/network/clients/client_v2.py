@@ -64,14 +64,13 @@ class Client:
 
         while not result or result == ConnectToApiResult.ComputePackgeMissing:
             if result == ConnectToApiResult.ComputePackgeMissing:
-                logger.info("Remote compute package missing. Retrying in 3 seconds")
+                logger.info("Retrying in 3 seconds")
                 time.sleep(3)
             result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
 
-        logger.error(f"Error: {response}")
         return False, None
 
     def start(self):
