@@ -23,10 +23,10 @@ if statestore_config["type"] == "MongoDB":
     mdb: Database = mc[network_id]
 
 client_store = ClientStore(mdb, "network.clients")
-validation_store = ValidationStore(mdb, "network.validations")
+validation_store = ValidationStore(mdb, "control.validations")
 combiner_store = CombinerStore(mdb, "network.combiners")
-status_store = StatusStore(mdb, "network.status")
-inference_store = InferenceStore(mdb, "network.inferences")
+status_store = StatusStore(mdb, "control.status")
+inference_store = InferenceStore(mdb, "control.inferences")
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
 

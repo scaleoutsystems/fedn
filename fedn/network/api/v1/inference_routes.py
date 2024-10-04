@@ -4,9 +4,12 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version
+from fedn.network.api.v1.shared import api_version, mdb
+from fedn.network.storage.statestore.stores.inference_store import InferenceStore
 
 bp = Blueprint("inference", __name__, url_prefix=f"/api/{api_version}/infer")
+
+inference_store = InferenceStore(mdb, "control.inferences")
 
 
 @bp.route("/start", methods=["POST"])
