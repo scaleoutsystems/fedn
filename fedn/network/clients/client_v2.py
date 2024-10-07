@@ -44,9 +44,20 @@ class ClientOptions:
 
 
 class Client:
-    def __init__(self, api_url: str, api_port: int, client_obj: ClientOptions, token: str = None, package_checksum: str = None, helper_type: str = None):
+    def __init__(self,
+            api_url: str,
+            api_port: int,
+            client_obj: ClientOptions,
+            combiner_host: str = None,
+            combiner_port: int = None,
+            token: str = None,
+            package_checksum: str = None,
+            helper_type: str = None
+        ):
         self.api_url = api_url
         self.api_port = api_port
+        self.combiner_host = combiner_host
+        self.combiner_port = combiner_port
         self.token = token
         self.client_obj = client_obj
         self.package_checksum = package_checksum
@@ -73,11 +84,15 @@ class Client:
         return False, None
 
     def start(self):
-        #TODO: if combiner url exists this should not run
-        result, response = self._connect_to_api()
-
-        if not result:
-            return
+        if self.combiner_host and self.combiner_port:
+            combiner_config = {
+                "host": self.combiner_host,
+                "port": self.combiner_port,
+            }
+        else:
+            result, combiner_config = self._connect_to_api()
+            if not result:
+                return
 
         if self.client_obj.package == "remote":
             result = self.client_api.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
@@ -90,16 +105,15 @@ class Client:
             if not result:
                 return
 
-        self.set_helper(response)
+        self.set_helper(combiner_config)
 
-        result: bool = self.client_api.init_grpchandler(config=response, client_name=self.client_obj.client_id, token=self.token)
+        result: bool = self.client_api.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
 
         if not result:
             return
 
         logger.info("-----------------------------")
 
-        # TODO: Check if thread is dead
         threading.Thread(
             target=self.client_api.send_heartbeats, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
         ).start()

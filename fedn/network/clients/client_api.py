@@ -191,7 +191,7 @@ class ClientAPI:
     # GRPC functions
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str):
         try:
-            if config["fqdn"] and len(config["fqdn"]) > 0:
+            if "fqdn" in config and config["fqdn"] and len(config["fqdn"]) > 0:
                 host = config["fqdn"]
                 port = 443
             else:

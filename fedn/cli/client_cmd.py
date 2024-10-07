@@ -4,8 +4,7 @@ import click
 import requests
 
 from fedn.cli.main import main
-from fedn.cli.shared import (CONTROLLER_DEFAULTS, apply_config, get_api_url,
-                             get_token, print_response)
+from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client import Client
 from fedn.network.clients.client_v2 import Client as ClientV2
@@ -210,9 +209,7 @@ def _complement_client_params(config: dict):
 @click.option("-i", "--client_id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
-# @click.option("--combiner", type=str, required=False, default="", help="Skip combiner assignment from discover service and attatch directly to combiner host.")
 @click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attatch directly to combiner host.")
-# @click.option("--combiner-port", type=str, required=False, default="12080", help="Combiner port, need to be used with --combiner")
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
@@ -336,6 +333,8 @@ def client_start_v2_cmd(
         api_url=config["api_url"],
         api_port=config["api_port"],
         client_obj=client_options,
+        combiner_host=config["combiner"],
+        combiner_port=config["combiner_port"],
         token=config["token"],
         package_checksum=config["package_checksum"],
         helper_type=config["helper_type"],
