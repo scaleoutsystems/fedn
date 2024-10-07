@@ -26,7 +26,7 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
         callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
 
 def _get_ssl_certificate(domain, port=443):
-    context = SSL.Context(SSL.SSLv23_METHOD)
+    context = SSL.Context(SSL.TLSv1_2_METHOD)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((domain, port))
     ssl_sock = SSL.Connection(context, sock)
