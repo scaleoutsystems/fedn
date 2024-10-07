@@ -232,6 +232,10 @@ def client_start_v2_cmd(
     helper_type: str,
     init: str
 ):
+    click.echo(
+        click.style("\n*** fedn client start-v2 is experimental ***\n", blink=True, bold=True, fg="red")
+    )
+
     package = "local" if local_package else "remote"
 
     config = {
