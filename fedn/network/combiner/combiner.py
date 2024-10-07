@@ -594,7 +594,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.debug("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
-        logger.info("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
         self.__join_client(client)
