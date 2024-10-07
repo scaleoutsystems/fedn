@@ -232,13 +232,23 @@ class ClientAPI:
     def send_model_update(self,
         sender_name: str,
         sender_role: fedn.Role,
+        client_id: str,
         model_id: str,
         model_update_id: str,
         receiver_name: str,
         receiver_role: fedn.Role,
         meta: dict
     ) -> bool:
-        return self.grpc_handler.send_model_update(sender_name, sender_role, model_id, model_update_id, receiver_name, receiver_role, meta)
+        return self.grpc_handler.send_model_update(
+            sender_name=sender_name,
+            sender_role=sender_role,
+            client_id=client_id,
+            model_id=model_id,
+            model_update_id=model_update_id,
+            receiver_name=receiver_name,
+            receiver_role=receiver_role,
+            meta=meta
+        )
 
     def send_model_validation(self,
         sender_name: str,

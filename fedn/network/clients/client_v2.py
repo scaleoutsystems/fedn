@@ -9,8 +9,7 @@ from typing import Tuple
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import (ClientAPI, ConnectToApiResult,
-                                             GrpcConnectionOptions)
+from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
@@ -230,6 +229,7 @@ class Client:
             self.client_api.send_model_update(
                 sender_name=self.client_obj.name,
                 sender_role=fedn.WORKER,
+                client_id=self.client_obj.client_id,
                 model_id=model_id,
                 model_update_id=str(updated_model_id),
                 receiver_name=request.sender.name,

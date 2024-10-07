@@ -1,4 +1,5 @@
 import json
+import socket
 import sys
 import time
 from datetime import datetime
@@ -6,37 +7,68 @@ from io import BytesIO
 from typing import Any, Callable
 
 import grpc
+from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
+from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.config import FEDN_AUTH_SCHEME
 from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 
+class GrpcAuth(grpc.AuthMetadataPlugin):
+    def __init__(self, key):
+        self._key = key
+
+    def __call__(self, context, callback):
+        callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
+
+def _get_ssl_certificate(domain, port=443):
+    context = SSL.Context(SSL.SSLv23_METHOD)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((domain, port))
+    ssl_sock = SSL.Connection(context, sock)
+    ssl_sock.set_tlsext_host_name(domain.encode())
+    ssl_sock.set_connect_state()
+    ssl_sock.do_handshake()
+    cert = ssl_sock.get_peer_certificate()
+    ssl_sock.close()
+    sock.close()
+    cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
+    return cert
+
 class GrpcHandler:
     def __init__(self, host: str, port: int, name: str, token: str, combiner_name: str):
-        self.metadata = [("client", name), ("grpc-server", combiner_name), ("authorization", token)]
+        self.metadata = [
+            ("client", name),
+            ("grpc-server", combiner_name),
+        ]
 
-        def metadata_callback(context, callback):
-            callback(self.metadata, None)
-
-        call_credentials = grpc.metadata_call_credentials(metadata_callback)
-        channel_credentials = (
-            grpc.composite_channel_credentials(grpc.ssl_channel_credentials(), call_credentials)
-            if port == 443
-            else grpc.composite_channel_credentials(grpc.local_channel_credentials(), call_credentials)
-        )
-
-        url = f"{host}:{port}"
-
-        logger.info(f"Connecting (GRPC) to {url}")
-
-        self.channel = grpc.secure_channel(url, channel_credentials) if port == 443 else grpc.insecure_channel(url)
+        if port == 443:
+            self._init_secure_channel(host, port, token)
+        else:
+            self._init_insecure_channel(host, port)
 
         self.connectorStub = rpc.ConnectorStub(self.channel)
         self.combinerStub = rpc.CombinerStub(self.channel)
         self.modelStub = rpc.ModelServiceStub(self.channel)
+
+    def _init_secure_channel(self, host: str, port: int, token: str):
+        url = f"{host}:{port}"
+        logger.info(f"Connecting (GRPC) to {url}")
+
+        logger.info(f"Fetching SSL certificate for {host}")
+        cert = _get_ssl_certificate(host, port)
+        credentials = grpc.ssl_channel_credentials(cert.encode("utf-8"))
+        auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
+        self.channel = grpc.secure_channel("{}:{}".format(host, str(port)), grpc.composite_channel_credentials(credentials, auth_creds))
+
+    def _init_insecure_channel(self, host: str, port: int):
+        url = f"{host}:{port}"
+        logger.info(f"Connecting (GRPC) to {url}")
+        self.channel = grpc.insecure_channel(url)
 
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.WORKER, client_id=client_id))
@@ -45,7 +77,7 @@ class GrpcHandler:
         while send_hearbeat:
             try:
                 logger.info("Sending heartbeat to combiner")
-                self.connectorStub.SendHeartbeat(heartbeat)
+                self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
             except grpc.RpcError as e:
                 return self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
             except Exception as e:
@@ -197,6 +229,7 @@ class GrpcHandler:
     def send_model_update(self,
         sender_name: str,
         sender_role: fedn.Role,
+        client_id: str,
         model_id: str,
         model_update_id: str,
         receiver_name: str,
@@ -206,6 +239,7 @@ class GrpcHandler:
         update = fedn.ModelUpdate()
         update.sender.name = sender_name
         update.sender.role = sender_role
+        update.sender.client_id = client_id
         update.receiver.name = receiver_name
         update.receiver.role = receiver_role
         update.model_id = model_id
@@ -302,4 +336,4 @@ class GrpcHandler:
     def _disconnect(self):
         """Disconnect from the combiner."""
         self.channel.close()
-        logger.info("Client {} disconnected.".format(self.name))
+        logger.info("GRPC channel closed.")
