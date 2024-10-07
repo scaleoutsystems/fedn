@@ -129,20 +129,10 @@ class Client:
 
     def on_train(self, request):
         logger.info("Received train request")
-
-        #TODO: check if this is fine... thread?!?!?
-        # threading.Thread(
-        #     target=self._process_training_request, kwargs={"request": request}, daemon=True
-        # ).start()
         self._process_training_request(request)
 
     def on_validation(self, request):
         logger.info("Received validation request")
-
-        #TODO: check if this is fine... thread?!?!?
-        # threading.Thread(
-        #     target=self._process_validation_request, kwargs={"request": request}, daemon=True
-        # ).start()
         self._process_validation_request(request)
 
 
@@ -185,7 +175,6 @@ class Client:
             outpath = self.helper.get_tmp_path()
 
             tic = time.time()
-            # TODO: Check return status, fail gracefully
 
             self.client_api.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
 

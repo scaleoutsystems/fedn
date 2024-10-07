@@ -1,6 +1,6 @@
 import json
+import os
 import socket
-import sys
 import time
 from datetime import datetime
 from io import BytesIO
@@ -59,6 +59,13 @@ class GrpcHandler:
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
 
+        if os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+            logger.info("Using root certificate from environment variable for GRPC channel.")
+            with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
+                credentials = grpc.ssl_channel_credentials(f.read())
+            self.channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+            return
+
         logger.info(f"Fetching SSL certificate for {host}")
         cert = _get_ssl_certificate(host, port)
         credentials = grpc.ssl_channel_credentials(cert.encode("utf-8"))
@@ -83,6 +90,7 @@ class GrpcHandler:
             except Exception as e:
                 logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
                 self._disconnect()
+                send_hearbeat = False
 
             time.sleep(update_frequency)
 
@@ -328,10 +336,8 @@ class GrpcHandler:
             details = e.details()
             if details == "Token expired":
                 logger.warning(f"GRPC ({method_name}): Token expired.")
-        #TODO: test this...
         self._disconnect()
         logger.error(f"GRPC ({method_name}): An error occurred: {e}")
-        sys.exit("An error occurred during GRPC communication. Exiting.")
 
     def _disconnect(self):
         """Disconnect from the combiner."""
