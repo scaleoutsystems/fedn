@@ -209,7 +209,13 @@ def _complement_client_params(config: dict):
 @click.option("-i", "--client_id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
-@click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attatch directly to combiner host.")
+@click.option(
+    "--combiner",
+    type=str,
+    required=False,
+    default=None,
+    help="Skip combiner assignment from discover service and attach directly to combiner host."
+)
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
