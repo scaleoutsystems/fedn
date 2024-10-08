@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
-from fedn.network.combiner.modelservice import load_model_from_BytesIO
+from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -656,9 +656,9 @@ class API:
             file_bytes.write(file.read())
             file_bytes.seek(0)
 
-            # Load the model using the load_model_from_BytesIO function
+            # Load the model using the load_model_from_bytes function
             model_bytes = file_bytes.read()
-            model = load_model_from_BytesIO(model_bytes, helper)
+            model = load_model_from_bytes(model_bytes, helper)
             self.control.commit(file.filename, model)
         except Exception as e:
             logger.debug(e)
@@ -945,7 +945,7 @@ class API:
         helper="",
         min_clients=1,
         requested_clients=8,
-        function_provider=None,
+        server_functions=None,
     ):
         """Start a session.
 
@@ -1048,7 +1048,7 @@ class API:
             "task": (""),
             "validate": validate,
             "helper_type": helper,
-            "function_provider": function_provider,
+            "server_functions": server_functions,
         }
 
         # Start session

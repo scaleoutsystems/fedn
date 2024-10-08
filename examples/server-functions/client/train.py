@@ -11,8 +11,8 @@ from fedn.utils.helpers.helpers import save_metadata
 
 
 # swap this to the load_metadata from helpers.helpers on release..
-def load_metadata(filename):
-    """Load metadata from file.
+def load_client_config(filename):
+    """Load client_config from file.
 
     :param filename: The name of the file to load from.
     :type filename: str
@@ -68,14 +68,8 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
 
-    model_metadata = load_metadata(in_model_path)
-    lr = model_metadata["learning_rate"]
-
-    # validate each new aggregated model for hyperparameter tuning
-    if model_metadata["parameter_tuning"]:
-        test_loss, test_acc = validate(model, data_path)
-    else:
-        test_loss, test_acc = torch.tensor(0.0), torch.tensor(0.0)
+    client_config = load_client_config(in_model_path)
+    lr = client_config["learning_rate"]
 
     # Train
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -103,8 +97,6 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
         "batch_size": batch_size,
         "epochs": epochs,
         "lr": lr,
-        "test_loss": test_loss.item(),
-        "test_acc": test_acc.item(),
     }
 
     # Save JSON metadata file (mandatory)

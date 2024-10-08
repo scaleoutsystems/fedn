@@ -484,7 +484,7 @@ class Client:
         if not self._connected:
             return
 
-    def _process_training_request(self, model_id: str, session_id: str = None, model_metadata: dict = None):
+    def _process_training_request(self, model_id: str, session_id: str = None, client_config: dict = None):
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
@@ -510,7 +510,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(mdl.getbuffer())
 
-            save_metadata(metadata=model_metadata, filename=inpath)
+            save_metadata(metadata=client_config, filename=inpath)
 
             outpath = self.helper.get_tmp_path()
             tic = time.time()
@@ -651,8 +651,8 @@ class Client:
                 if task_type == "train":
                     tic = time.time()
                     self.state = ClientState.training
-                    model_metadata = json.loads(request.data)["model_metadata"]
-                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, model_metadata=model_metadata)
+                    client_config = json.loads(request.data)["client_config"]
+                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, client_config=client_config)
 
                     if meta is not None:
                         processing_time = time.time() - tic
@@ -663,6 +663,7 @@ class Client:
                         # Send model update to combiner
                         update = fedn.ModelUpdate()
                         update.sender.name = self.name
+                        update.sender.client_id = self.id
                         update.sender.role = fedn.WORKER
                         update.receiver.name = request.sender.name
                         update.receiver.role = request.sender.role

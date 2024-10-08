@@ -1,6 +1,9 @@
+import inspect
 import os
 
 import requests
+
+from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctionsBase
 
 __all__ = ["APIClient"]
 
@@ -574,7 +577,7 @@ class APIClient:
         helper: str = "",
         min_clients: int = 1,
         requested_clients: int = 8,
-        function_provider_path: str = None,
+        server_functions: ServerFunctionsBase = None,
     ):
         """Start a new session.
 
@@ -618,7 +621,7 @@ class APIClient:
                 "helper": helper,
                 "min_clients": min_clients,
                 "requested_clients": requested_clients,
-                "function_provider": function_provider_path if function_provider_path is None else self._read_function_provider(function_provider_path),
+                "server_functions": None if server_functions is None else inspect.getsource(server_functions),
             },
             verify=self.verify,
             headers=self.headers,
@@ -789,11 +792,3 @@ class APIClient:
         _json = response.json()
 
         return _json
-
-    def _read_function_provider(self, path):
-        # Open the file in read mode
-        with open(path, "r") as file:
-            file_contents = file.read()
-
-        # Print the file contents
-        return file_contents

@@ -7,7 +7,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_rand
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
-from fedn.network.combiner.modelservice import load_model_from_BytesIO
+from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
@@ -129,8 +129,8 @@ class Control(ControlBase):
 
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(aggregator)
-            if session_config["function_provider"] is not None:
-                combiner.set_function_provider(session_config["function_provider"])
+            if session_config["server_functions"] is not None:
+                combiner.set_server_functions(session_config["server_functions"])
 
         self.set_session_status(session_id, "Started")
 
@@ -186,8 +186,8 @@ class Control(ControlBase):
 
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(config["aggregator"])
-            if config["function_provider"] is not None:
-                combiner.set_function_provider(config["function_provider"])
+            if config["server_functions"] is not None:
+                combiner.set_server_functions(config["server_functions"])
 
         self.set_session_status(config["session_id"], "Started")
         # Execute the rounds in this session
@@ -426,14 +426,14 @@ class Control(ControlBase):
                 try:
                     tic = time.time()
                     helper = self.get_helper()
-                    model_next = load_model_from_BytesIO(data, helper)
+                    model_next = load_model_from_bytes(data, helper)
                     meta["time_load_model"] += time.time() - tic
                     tic = time.time()
                     model = helper.increment_average(model, model_next, 1.0, i)
                     meta["time_aggregate_model"] += time.time() - tic
                 except Exception:
                     tic = time.time()
-                    model = load_model_from_BytesIO(data, helper)
+                    model = load_model_from_bytes(data, helper)
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
 

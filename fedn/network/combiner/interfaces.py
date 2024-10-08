@@ -203,7 +203,7 @@ class CombinerInterface:
             else:
                 raise
 
-    def set_function_provider(self, function_provider):
+    def set_server_functions(self, server_functions):
         """Set the function provider module.
 
         :param function provider: Stringified function provider code.
@@ -214,11 +214,11 @@ class CombinerInterface:
 
         request = fedn.ControlRequest()
         p = request.parameter.add()
-        p.key = "function_provider"
-        p.value = function_provider
+        p.key = "server_functions"
+        p.value = server_functions
 
         try:
-            control.SetFunctionProvider(request)
+            control.SetServerFunctions(request)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
                 raise CombinerUnavailableError

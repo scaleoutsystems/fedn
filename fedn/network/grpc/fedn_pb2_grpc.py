@@ -128,8 +128,8 @@ class ControlStub(object):
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
-        self.SetFunctionProvider = channel.unary_unary(
-                '/fedn.Control/SetFunctionProvider',
+        self.SetServerFunctions = channel.unary_unary(
+                '/fedn.Control/SetServerFunctions',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 )
@@ -162,7 +162,7 @@ class ControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SetFunctionProvider(self, request, context):
+    def SetServerFunctions(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -191,8 +191,8 @@ def add_ControlServicer_to_server(servicer, server):
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
-            'SetFunctionProvider': grpc.unary_unary_rpc_method_handler(
-                    servicer.SetFunctionProvider,
+            'SetServerFunctions': grpc.unary_unary_rpc_method_handler(
+                    servicer.SetServerFunctions,
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
@@ -275,7 +275,7 @@ class Control(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def SetFunctionProvider(request,
+    def SetServerFunctions(request,
             target,
             options=(),
             channel_credentials=None,
@@ -285,7 +285,7 @@ class Control(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/fedn.Control/SetFunctionProvider',
+        return grpc.experimental.unary_unary(request, target, '/fedn.Control/SetServerFunctions',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options, channel_credentials,
@@ -754,17 +754,61 @@ class FunctionServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.ExecuteFunction = channel.unary_unary(
-                '/fedn.FunctionService/ExecuteFunction',
-                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.SerializeToString,
-                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.FromString,
+        self.HandleProvidedFunctions = channel.unary_unary(
+                '/fedn.FunctionService/HandleProvidedFunctions',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.FromString,
+                )
+        self.HandleClientConfig = channel.stream_unary(
+                '/fedn.FunctionService/HandleClientConfig',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
+                )
+        self.HandleClientSelection = channel.unary_unary(
+                '/fedn.FunctionService/HandleClientSelection',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.FromString,
+                )
+        self.HandleMetadata = channel.unary_unary(
+                '/fedn.FunctionService/HandleMetadata',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.FromString,
+                )
+        self.HandleAggregation = channel.stream_stream(
+                '/fedn.FunctionService/HandleAggregation',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
                 )
 
 
 class FunctionServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def ExecuteFunction(self, request, context):
+    def HandleProvidedFunctions(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HandleClientConfig(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HandleClientSelection(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HandleMetadata(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HandleAggregation(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -773,10 +817,30 @@ class FunctionServiceServicer(object):
 
 def add_FunctionServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'ExecuteFunction': grpc.unary_unary_rpc_method_handler(
-                    servicer.ExecuteFunction,
-                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.FromString,
-                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.SerializeToString,
+            'HandleProvidedFunctions': grpc.unary_unary_rpc_method_handler(
+                    servicer.HandleProvidedFunctions,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.SerializeToString,
+            ),
+            'HandleClientConfig': grpc.stream_unary_rpc_method_handler(
+                    servicer.HandleClientConfig,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.SerializeToString,
+            ),
+            'HandleClientSelection': grpc.unary_unary_rpc_method_handler(
+                    servicer.HandleClientSelection,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.SerializeToString,
+            ),
+            'HandleMetadata': grpc.unary_unary_rpc_method_handler(
+                    servicer.HandleMetadata,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.SerializeToString,
+            ),
+            'HandleAggregation': grpc.stream_stream_rpc_method_handler(
+                    servicer.HandleAggregation,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -789,7 +853,7 @@ class FunctionService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def ExecuteFunction(request,
+    def HandleProvidedFunctions(request,
             target,
             options=(),
             channel_credentials=None,
@@ -799,8 +863,76 @@ class FunctionService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/fedn.FunctionService/ExecuteFunction',
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionRequest.SerializeToString,
-            fedn_dot_network_dot_grpc_dot_fedn__pb2.FunctionResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/fedn.FunctionService/HandleProvidedFunctions',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HandleClientConfig(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_unary(request_iterator, target, '/fedn.FunctionService/HandleClientConfig',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HandleClientSelection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.FunctionService/HandleClientSelection',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HandleMetadata(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.FunctionService/HandleMetadata',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HandleAggregation(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(request_iterator, target, '/fedn.FunctionService/HandleAggregation',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

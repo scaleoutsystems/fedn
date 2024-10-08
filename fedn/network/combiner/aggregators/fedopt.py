@@ -1,4 +1,5 @@
 import math
+from copy import deepcopy
 
 from fedn.common.exceptions import InvalidParameterError
 from fedn.common.log_config import logger
@@ -6,7 +7,7 @@ from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
 
 class Aggregator(AggregatorBase):
-    """ Federated Optimization (FedOpt) aggregator.
+    """Federated Optimization (FedOpt) aggregator.
 
     Implmentation following: https://arxiv.org/pdf/2003.00295.pdf
 
@@ -16,23 +17,13 @@ class Aggregator(AggregatorBase):
     are "adam", "yogi", "adagrad".
 
 
-
-    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
-    :type id: str
-    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
-    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
-    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
-    :type server: class: `fedn.network.combiner.Combiner`
-    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
-    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
-    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
+    :param control: A handle to the :class: `fedn.network.combiner.updatehandler.UpdateHandler`
+    :type control: class: `fedn.network.combiner.updatehandler.UpdateHandler`
 
     """
 
-    def __init__(self, storage, server, modelservice, round_handler):
-
-        super().__init__(storage, server, modelservice, round_handler)
+    def __init__(self, update_handler):
+        super().__init__(update_handler)
 
         self.name = "fedopt"
         # To store momentum
@@ -103,42 +94,34 @@ class Aggregator(AggregatorBase):
         nr_aggregated_models = 0
         total_examples = 0
 
-        logger.info(
-            "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
+        logger.info("AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
-        while not self.model_updates.empty():
+        model_updates = self.update_handler.get_model_updates()
+
+        for model_update in model_updates:
             try:
-                # Get next model from queue
-                model_update = self.next_model_update()
-
                 # Load model paratmeters and metadata
-                model_next, metadata = self.load_model_update(model_update, helper)
+                model_next, metadata = self.update_handler.load_model_update(model_update, helper)
 
-                logger.info(
-                    "AGGREGATOR({}): Processing model update {}".format(self.name, model_update.model_update_id))
+                logger.info("AGGREGATOR({}): Processing model update {}".format(self.name, model_update.model_update_id))
 
                 # Increment total number of examples
                 total_examples += metadata["num_examples"]
 
                 if nr_aggregated_models == 0:
-                    model_old = self.round_handler.load_model_update(helper, model_update.model_id)
+                    model_old = deepcopy(model_next)
                     pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
                     pseudo_gradient_next = helper.subtract(model_next, model_old)
-                    pseudo_gradient = helper.increment_average(
-                        pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
+                    pseudo_gradient = helper.increment_average(pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
 
                 nr_aggregated_models += 1
                 # Delete model from storage
                 if delete_models:
-                    self.modelservice.temp_model_storage.delete(model_update.model_update_id)
-                    logger.info(
-                        "AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_update.model_update_id))
-                self.model_updates.task_done()
+                    self.update_handler.delete_model(model_update.model_update_id)
+                    logger.info("AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_update.model_update_id))
             except Exception as e:
-                logger.error(
-                    "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
-                self.model_updates.task_done()
+                logger.error("AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
 
         if parameters["serveropt"] == "adam":
             model = self.serveropt_adam(helper, pseudo_gradient, model_old, parameters)
@@ -156,7 +139,7 @@ class Aggregator(AggregatorBase):
         return model, data
 
     def serveropt_adam(self, helper, pseudo_gradient, model_old, parameters):
-        """ Server side optimization, FedAdam.
+        """Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
         :type helper: Helper
@@ -178,12 +161,12 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 
         p = helper.power(pseudo_gradient, 2)
-        self.v = helper.add(self.v, p, beta2, (1.0-beta2))
+        self.v = helper.add(self.v, p, beta2, (1.0 - beta2))
 
         sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, tau))
         t = helper.divide(self.m, sv)
@@ -192,7 +175,7 @@ class Aggregator(AggregatorBase):
         return model
 
     def serveropt_yogi(self, helper, pseudo_gradient, model_old, parameters):
-        """ Server side optimization, FedYogi.
+        """Server side optimization, FedYogi.
 
         :param helper: instance of helper class.
         :type helper: Helper
@@ -214,14 +197,14 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 
         p = helper.power(pseudo_gradient, 2)
         s = helper.sign(helper.add(self.v, p, 1.0, -1.0))
         s = helper.multiply(s, p)
-        self.v = helper.add(self.v, s, 1.0, -(1.0-beta2))
+        self.v = helper.add(self.v, s, 1.0, -(1.0 - beta2))
 
         sv = helper.add(helper.sqrt(self.v), helper.ones(self.v, tau))
         t = helper.divide(self.m, sv)
@@ -230,7 +213,7 @@ class Aggregator(AggregatorBase):
         return model
 
     def serveropt_adagrad(self, helper, pseudo_gradient, model_old, parameters):
-        """ Server side optimization, FedAdam.
+        """Server side optimization, FedAdam.
 
         :param helper: instance of helper class.
         :type helper: Helper
@@ -251,9 +234,9 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(pseudo_gradient, [(1.0-beta1)]*len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
-            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0-beta1))
+            self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 
         p = helper.power(pseudo_gradient, 2)
         self.v = helper.add(self.v, p, 1.0, 1.0)

@@ -195,7 +195,7 @@ service Control {
   rpc Stop(ControlRequest) returns (ControlResponse);
   rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
   rpc SetAggregator(ControlRequest) returns (ControlResponse);
-  rpc SetFunctionProvider(ControlRequest) returns (ControlResponse);
+  rpc SetServerFunctions(ControlRequest) returns (ControlResponse);
 }
 
 service Reducer {
@@ -245,19 +245,53 @@ service Combiner {
 
 }
 
-message FunctionRequest {
-  string task = 1;
-  string payload_string = 2;
-  bytes payload_bytes = 3;
+message ProvidedFunctionsRequest {
+  string function_code = 1;
 }
 
-message FunctionResponse {
-  oneof result {
-    string result_string = 2;
-    bytes result_bytes = 3;
-  }
+message ProvidedFunctionsResponse {
+  map<string, bool> available_functions = 1;
+}
+
+message ClientConfigRequest {
+  bytes data = 1;
+}
+
+message ClientConfigResponse {
+  string client_config = 1;
+}
+
+message ClientSelectionRequest {
+  string client_ids = 1;
+}
+
+message ClientSelectionResponse {
+  string client_ids = 1;
+}
+
+message ClientMetaRequest {
+  string metadata = 1;
+  string client_id = 2;
+}
+
+message ClientMetaResponse {
+  string status = 1;
+}
+
+message AggregationRequest {
+  bytes data = 1;
+  string client_id = 2;
+  bool aggregate = 3;
+}
+
+message AggregationResponse {
+  bytes data = 1;
 }
 
 service FunctionService {
-  rpc ExecuteFunction(FunctionRequest) returns (FunctionResponse);
+  rpc HandleProvidedFunctions(ProvidedFunctionsRequest) returns (ProvidedFunctionsResponse);
+  rpc HandleClientConfig (stream ClientConfigRequest) returns (ClientConfigResponse);
+  rpc HandleClientSelection (ClientSelectionRequest) returns (ClientSelectionResponse);
+  rpc HandleMetadata (ClientMetaRequest) returns (ClientMetaResponse);
+  rpc HandleAggregation (stream AggregationRequest) returns (stream AggregationResponse);
 }
