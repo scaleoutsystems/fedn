@@ -109,7 +109,7 @@ class Aggregator(AggregatorBase):
                 total_examples += metadata["num_examples"]
 
                 if nr_aggregated_models == 0:
-                    model_old = deepcopy(model_next)
+                    model_old = self.update_handler.load_model(helper, model_update.model_id)
                     pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
                     pseudo_gradient_next = helper.subtract(model_next, model_old)

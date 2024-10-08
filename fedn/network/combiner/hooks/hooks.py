@@ -18,34 +18,77 @@ VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
 
 class FunctionServiceServicer(rpc.FunctionServiceServicer):
+    """Function service running in an environment combined with each combiner.
+
+    Receiving requests from the combiner.
+    """
+
     def __init__(self) -> None:
+        """Initialize long-running Function server."""
         super().__init__()
 
         self.helper = Helper()
         self.server_functions: ServerFunctionsBase = None
+        self.server_functions_code: str = None
         self.client_updates = {}
 
-    def HandleClientConfig(self, request_iterator, context):
+    def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
+        """Distribute client configs to clients from user defined code.
+
+        :param request_iterator: the client config request
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ClientConfigRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the client config response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
+        """
         logger.info("Received client config request.")
         model = self.unpack_model(request_iterator)
         client_config = self.server_functions.client_config(global_model=model)
         logger.info(f"Client config response: {client_config}")
         return fedn.ClientConfigResponse(client_config=json.dumps(client_config))
 
-    def HandleClientSelection(self, request, context):
+    def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
+        """Handle client selection from user defined code.
+
+        :param request: the client selection request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.fedn.ClientSelectionRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the client selection response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientSelectionResponse`
+        """
         logger.info("Received client selection request.")
         client_ids = json.loads(request.client_ids)
         client_ids = self.server_functions.client_selection(client_ids)
         logger.info(f"Clients selected: {client_ids}")
         return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
 
-    def HandleMetadata(self, request, context):
+    def HandleMetadata(self, request: fedn.ClientMetaRequest, context):
+        """Store client metadata from a request.
+
+        :param request: the client meta request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.fedn.ClientMetaRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the client meta response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientMetaResponse`
+        """
         client_id = request.client_id
         metadata = json.loads(request.metadata)
         self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
         return fedn.ClientMetaResponse(status="Metadata stored")
 
-    def HandleAggregation(self, request_iterator, context):
+    def HandleAggregation(self, request_iterator: fedn.AggregationRequest, context):
+        """Receive and store models and aggregate based on user-defined code when specified in the request.
+
+        :param request_iterator: the aggregation request
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.fedn.AggregationRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the aggregation response (aggregated model or None)
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.AggregationResponse`
+        """
         # check what type of request
         for request in request_iterator:
             if request.aggregate:
@@ -66,11 +109,20 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
         return fedn.AggregationResponse(data=None)
 
-    def HandleProvidedFunctions(self, request, context):
-        """Handles the 'provided_functions' request. Sends back which functions are available."""
+    def HandleProvidedFunctions(self, request: fedn.ProvidedFunctionsResponse, context):
+        """Handles the 'provided_functions' request. Sends back which functions are available.
+
+        :param request: the provided function request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.fedn.ProvidedFunctionsRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: dict with str -> bool for which functions are available
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
+        """
         logger.info("Receieved provided functions request.")
         server_functions_code = request.function_code
-        if self.server_functions is None:
+        if self.server_functions is None or server_functions_code != self.server_functions_code:
+            self.server_functions_code = server_functions_code
             # this will create a new user defined instance of the ServerFunctions class.
             try:
                 namespace = {}
@@ -137,6 +189,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
 
 
 def serve():
+    """Start the hooks service."""
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     rpc.add_FunctionServiceServicer_to_server(FunctionServiceServicer(), server)
     server.add_insecure_port("[::]:12081")

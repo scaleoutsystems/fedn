@@ -7,9 +7,6 @@ import numpy as np
 class ServerFunctionsBase(ABC):
     """Base class that defines the structure for the Server Functions. Override these functions
     to add to the server workflow.
-
-    Available packages are:
-    numpy as np, and most common python built in packages.
     """
 
     def __init__(self) -> None:

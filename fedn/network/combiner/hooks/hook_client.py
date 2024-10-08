@@ -13,21 +13,35 @@ CHUNK_SIZE = 1024 * 1024
 
 
 class CombinerHookInterface:
+    """Combiner to server function hooks client."""
+
     def __init__(self):
-        logger.info("Starting hook client")
+        """Initialize CombinerHookInterface client."""
         self.hook_service_host = os.getenv("HOOK_SERVICE_HOST", "hook:12081")
         self.channel = grpc.insecure_channel(self.hook_service_host)
         self.stub = rpc.FunctionServiceStub(self.channel)
 
     def provided_functions(self, server_functions: str):
-        """Communicates to hook container and asks which functions are available."""
+        """Communicates to hook container and asks which functions are available.
+
+        :param server_functions: String version of an implementation of the ServerFunctionsBase interface.
+        :type server_functions: :str:
+        :return: dictionary specifing which functions are implemented.
+        :rtype: dict
+        """
         request = fedn.ProvidedFunctionsRequest(function_code=server_functions)
 
         response = self.stub.HandleProvidedFunctions(request)
         return response.available_functions
 
     def client_config(self, global_model) -> dict:
-        """Communicates to hook container to get a client config."""
+        """Communicates to hook container to get a client config.
+
+        :param global_model: The global model that will be distributed to clients.
+        :type global_model: :bytes:
+        :return: config that will be distributed to clients.
+        :rtype: dict
+        """
         request_function = fedn.ClientConfigRequest
         args = {}
         model = model_as_bytesIO(global_model)
@@ -40,9 +54,12 @@ class CombinerHookInterface:
         return json.loads(response.client_ids)
 
     def aggregate(self, previous_global, update_handler: UpdateHandler, helper, delete_models: bool):
-        """Aggregation call to the hook functions.
+        """Aggregation call to the hook functions. Sends models in chunks, then asks for aggregation.
 
-        Sends models in chunks, then asks for aggregation.
+        :param global_model: The global model that will be distributed to clients.
+        :type global_model: :bytes:
+        :return: config that will be distributed to clients.
+        :rtype: dict
         """
         data = {}
         data["time_model_load"] = 0.0
