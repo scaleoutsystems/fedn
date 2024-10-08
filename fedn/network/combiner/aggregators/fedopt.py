@@ -1,5 +1,4 @@
 import math
-from copy import deepcopy
 
 from fedn.common.exceptions import InvalidParameterError
 from fedn.common.log_config import logger
