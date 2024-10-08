@@ -623,7 +623,7 @@ class Client:
                 if task_type == "train":
                     tic = time.time()
                     self.state = ClientState.training
-                    client_config = json.loads(request.data)["client_config"]
+                    client_config = json.loads(request.data).get("client_config", {})
                     model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, client_config=client_config)
 
                     if meta is not None:

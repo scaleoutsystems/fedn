@@ -84,7 +84,6 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         # check if aggregation is available
         try:
             ret = self.server_functions.aggregate(0, 0)
-            logger.info(f"ret : {ret}")
             if ret is None:
                 implemented_functions["aggregate"] = False
             else:
