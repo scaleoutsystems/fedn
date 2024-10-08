@@ -177,6 +177,7 @@ config/extra-hosts-reducer.yaml
 config/settings-client.yaml
 config/settings-reducer.yaml
 config/settings-combiner.yaml
+config/settings-hooks.yaml
 
 ./tmp/*
 

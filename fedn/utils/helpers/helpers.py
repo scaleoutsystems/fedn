@@ -29,6 +29,19 @@ def save_metadata(metadata, filename):
         json.dump(metadata, outfile)
 
 
+def load_metadata(filename):
+    """Load metadata from file.
+
+    :param filename: The name of the file to load from.
+    :type filename: str
+    :return: The loaded metadata.
+    :rtype: dict
+    """
+    with open(filename + "-metadata", "r") as infile:
+        metadata = json.load(infile)
+    return metadata
+
+
 def save_metrics(metrics, filename):
     """Save metrics to file.
 

@@ -29,7 +29,32 @@ def upload_request_generator(mdl, id):
             break
 
 
+def bytesIO_request_generator(mdl, request_function, args):
+    """Generator function for model upload requests.
+
+    :param mdl: The model update object.
+    :type mdl: BytesIO
+    :param request_function: Function for sending requests.
+    :type request_function: Function
+    :param args: request arguments, excluding data argument.
+    :type args: dict
+    :return: Yields grpc request for streaming.
+    :rtype: grpc request generator.
+    """
+    while True:
+        b = mdl.read(CHUNK_SIZE)
+        if b:
+            result = request_function(data=b, **args)
+        else:
+            result = request_function(data=None, **args)
+        yield result
+        if not b:
+            break
+
+
 def model_as_bytesIO(model):
+    if isinstance(model, list):
+        serialize_model_to_BytesIO(model)
     if not isinstance(model, BytesIO):
         bt = BytesIO()
 
@@ -51,10 +76,10 @@ def get_tmp_path():
     return path
 
 
-def load_model_from_BytesIO(model_bytesio, helper):
-    """Load a model from a BytesIO object.
-    :param model_bytesio: A BytesIO object containing the model.
-    :type model_bytesio: :class:`io.BytesIO`
+def load_model_from_bytes(model_bytes, helper):
+    """Load a model from a bytes object.
+    :param model_bytesio: A bytes object containing the model.
+    :type model_bytes: :class:`bytes`
     :param helper: The helper object for the model.
     :type helper: :class:`fedn.utils.helperbase.HelperBase`
     :return: The model object.
@@ -62,7 +87,7 @@ def load_model_from_BytesIO(model_bytesio, helper):
     """
     path = get_tmp_path()
     with open(path, "wb") as fh:
-        fh.write(model_bytesio)
+        fh.write(model_bytes)
         fh.flush()
     model = helper.load(path)
     os.unlink(path)

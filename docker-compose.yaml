@@ -19,13 +19,7 @@ services:
       - MINIO_ROOT_PASSWORD=password
     command: server /data --console-address minio:9001
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://minio:9000/minio/health/live"
-        ]
+      test: [ "CMD", "curl", "-f", "http://minio:9000/minio/health/live" ]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -89,6 +83,7 @@ services:
       - GET_HOSTS_FROM=dns
       - STATESTORE_CONFIG=/app/config/settings-combiner.yaml
       - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml
+      - HOOK_SERVICE_HOST=hook:12081
     build:
       context: .
       args:
@@ -103,17 +98,36 @@ services:
     ports:
       - 12080:12080
     healthcheck:
-      test:
-        [
-          "CMD",
-          "/bin/grpc_health_probe",
-          "-addr=localhost:12080"
-        ]
+      test: [ "CMD", "/bin/grpc_health_probe", "-addr=localhost:12080" ]
       interval: 20s
       timeout: 10s
       retries: 5
     depends_on:
       - api-server
+      - hooks
+  # Hooks
+  hooks:
+    container_name: hook
+    environment:
+      - GET_HOSTS_FROM=dns
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn hooks start"
+    ports:
+      - 12081:12081
+    healthcheck:
+      test: [ "CMD", "/bin/grpc_health_probe", "-addr=localhost:12081" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
 
   # Client
   client:
