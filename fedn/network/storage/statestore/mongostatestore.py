@@ -6,7 +6,6 @@ import pymongo
 from google.protobuf.json_format import MessageToDict
 
 from fedn.common.log_config import logger
-from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerStateToString, StringToReducerState
 
 
@@ -739,12 +738,22 @@ class MongoStateStore:
         """
         client_data["updated_at"] = str(datetime.now())
         try:
-            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
+            # self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
+            self.clients.update_one(
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
+                upsert=True
+            )
         except KeyError:
             # If client_id is not present, use name as identifier, for backwards compatibility
             id = str(uuid.uuid4())
             client_data["client_id"] = id
-            self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+            # self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
+            self.clients.update_one(
+                {"client_id": client_data["client_id"]},
+                {"$set": {k: v for k, v in client_data.items() if v is not None}},
+                upsert=True
+            )
 
     def get_client(self, client_id):
         """Get client by client_id.
@@ -878,7 +887,7 @@ class MongoStateStore:
         # TODO: Add check if round_id already exists
         self.rounds.insert_one(round_data)
 
-    def set_session_config(self, id: str, config: RoundConfig) -> None:
+    def set_session_config(self, id: str, config) -> None:
         """Set the session configuration.
 
         :param id: The session id
@@ -889,7 +898,7 @@ class MongoStateStore:
         self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
 
     # Added to accomodate new session config structure
-    def set_session_config_v2(self, id: str, config: RoundConfig) -> None:
+    def set_session_config_v2(self, id: str, config) -> None:
         """Set the session configuration.
 
         :param id: The session id
@@ -916,7 +925,7 @@ class MongoStateStore:
         """
         self.rounds.update_one({"round_id": str(data["round_id"])}, {"$push": {"combiners": data}}, True)
 
-    def set_round_config(self, round_id, round_config: RoundConfig):
+    def set_round_config(self, round_id, round_config):
         """Set round configuration.
 
         :param round_id: The round unique identifier

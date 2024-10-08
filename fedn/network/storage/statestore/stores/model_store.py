@@ -26,7 +26,7 @@ class Model:
             model=data["model"] if "model" in data else None,
             parent_model=data["parent_model"] if "parent_model" in data else None,
             session_id=data["session_id"] if "session_id" in data else None,
-            committed_at=data["committed_at"] if "committed_at" in data else None
+            committed_at=data["committed_at"] if "committed_at" in data else None,
         )
 
 
@@ -63,7 +63,7 @@ class ModelStore(Store[Model]):
 
         return True, ""
 
-    def _complement(self, item: Model) -> Model:
+    def _complement(self, item: Model):
         if "key" not in item or item["key"] is None:
             item["key"] = "models"
 
@@ -76,7 +76,7 @@ class ModelStore(Store[Model]):
 
         return super().update(id, item)
 
-    def add(self, item: Model)-> Tuple[bool, Any]:
+    def add(self, item: Model) -> Tuple[bool, Any]:
         raise NotImplementedError("Add not implemented for ModelStore")
 
     def delete(self, id: str) -> bool:
@@ -104,10 +104,7 @@ class ModelStore(Store[Model]):
         response = super().list(limit, skip, sort_key or "committed_at", sort_order, use_typing=use_typing, **kwargs)
 
         result = [Model.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def list_descendants(self, id: str, limit: int, use_typing: bool = False) -> List[Model]:
         """List descendants
@@ -220,3 +217,26 @@ class ModelStore(Store[Model]):
             raise EntityNotFound("Active model not found")
 
         return active_model["model"]
+
+    def set_active(self, id: str) -> bool:
+        """Set the active model
+        param id: The id of the entity
+            type: str
+            description: The id of the entity, can be either the id or the model (property)
+        return: True if successful
+        """
+        kwargs = {"key": "models"}
+        if ObjectId.is_valid(id):
+            id_obj = ObjectId(id)
+            kwargs["_id"] = id_obj
+        else:
+            kwargs["model"] = id
+
+        model = self.database[self.collection].find_one(kwargs)
+
+        if model is None:
+            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+
+        self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}})
+
+        return True

@@ -1,8 +1,11 @@
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 import pymongo
+from bson import ObjectId
 from pymongo.database import Database
+from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.store import Store
 
@@ -11,16 +14,7 @@ from .shared import EntityNotFound, from_document
 
 class Package:
     def __init__(
-            self,
-            id: str,
-            key: str,
-            committed_at: datetime,
-            description: str,
-            file_name: str,
-            helper: str,
-            name: str,
-            storage_file_name: str,
-            active: bool = False
+        self, id: str, key: str, committed_at: datetime, description: str, file_name: str, helper: str, name: str, storage_file_name: str, active: bool = False
     ):
         self.key = key
         self.committed_at = committed_at
@@ -47,7 +41,7 @@ class Package:
             helper=data["helper"] if "helper" in data else None,
             name=data["name"] if "name" in data else None,
             storage_file_name=data["storage_file_name"] if "storage_file_name" in data else None,
-            active=active
+            active=active,
         )
 
 
@@ -78,27 +72,136 @@ class PackageStore(Store[Package]):
 
         return Package.from_dict(document, response_active)
 
+    def _validate(self, item: Package) -> Tuple[bool, str]:
+        if "file_name" not in item or not item["file_name"]:
+            return False, "File name is required"
+
+        if not self._allowed_file_extension(item["file_name"]):
+            return False, "File extension not allowed"
+
+        if "helper" not in item or not item["helper"]:
+            return False, "Helper is required"
+
+        return True, ""
+
+    def _complement(self, item: Package):
+        if "id" not in item or item.id is None:
+            item["id"] = str(uuid.uuid4())
+
+        if "key" not in item or item.key is None:
+            item["key"] = "package_trail"
+
+        if "committed_at" not in item or item.committed_at is None:
+            item["committed_at"] = datetime.now()
+
+        extension = item["file_name"].rsplit(".", 1)[1].lower()
+
+        if "storage_file_name" not in item or item.storage_file_name is None:
+            storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
+            item["storage_file_name"] = storage_file_name
+
+    def set_active(self, id: str) -> bool:
+        """Set the active entity
+        param id: The id of the entity
+            type: str
+        return: Whether the operation was successful
+        """
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
+        kwargs["key"] = "package_trail"
+
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise EntityNotFound(f"Entity with id {id} not found")
+
+        committed_at = datetime.now()
+        obj_to_insert = {
+            "key": "active",
+            "id": document["id"],
+            "committed_at": committed_at,
+            "description": document["description"],
+            "file_name": document["file_name"],
+            "helper": document["helper"],
+            "name": document["name"],
+            "storage_file_name": document["storage_file_name"],
+        }
+
+        self.database[self.collection].update_one({"key": "active"}, {"$set": obj_to_insert}, upsert=True)
+
+        return True
+
     def get_active(self, use_typing: bool = False) -> Package:
         """Get the active entity
         param use_typing: Whether to return the entity as a typed object or as a dict
             type: bool
         return: The entity
         """
-        response = self.database[self.collection].find_one({"key": "active"})
+        kwargs = {"key": "active"}
+        response = self.database[self.collection].find_one(kwargs)
 
         if response is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            raise EntityNotFound("Entity not found")
 
         return Package.from_dict(response, response) if use_typing else from_document(response)
+
+    def _allowed_file_extension(self, filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}) -> bool:
+        """Check if file extension is allowed.
+
+        :param filename: The filename to check.
+        :type filename: str
+        :return: True and extension str if file extension is allowed, else False and None.
+        :rtype: Tuple (bool, str)
+        """
+        if "." in filename:
+            extension = filename.rsplit(".", 1)[1].lower()
+            if extension in ALLOWED_EXTENSIONS:
+                return True
+
+        return False
 
     def update(self, id: str, item: Package) -> bool:
         raise NotImplementedError("Update not implemented for PackageStore")
 
-    def add(self, item: Package)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for PackageStore")
+    def add(self, item: Package) -> Tuple[bool, Any]:
+        valid, message = self._validate(item)
+        if not valid:
+            return False, message
+
+        self._complement(item)
+
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for PackageStore")
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
+        kwargs["key"] = "package_trail"
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise EntityNotFound(f"Entity with (id) {id} not found")
+
+        result = super().delete(document["_id"])
+
+        if not result:
+            return False
+
+        kwargs["key"] = "active"
+
+        document_active = self.database[self.collection].find_one(kwargs)
+
+        if document_active is not None:
+            return super().delete(document_active["_id"])
+
+        return True
+
+    def delete_active(self):
+        kwargs = {"key": "active"}
+
+        document_active = self.database[self.collection].find_one(kwargs)
+
+        if document_active is None:
+            raise EntityNotFound("Entity not found")
+
+        return super().delete(document_active["_id"])
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Package]]:
         """List entities
@@ -127,10 +230,7 @@ class PackageStore(Store[Package]):
 
         result = [Package.from_dict(item, response_active) for item in response["result"]]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"

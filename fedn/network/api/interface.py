@@ -1,5 +1,4 @@
-import base64
-import copy
+import os
 import threading
 import uuid
 from io import BytesIO
@@ -8,9 +7,9 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR, get_controller_config, get_network_config
 from fedn.common.log_config import logger
-from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
+from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
@@ -232,7 +231,7 @@ class API:
         file_name = file.filename
         storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
 
-        file_path = safe_join("/app/client/package/", storage_file_name)
+        file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
         file.save(file_path)
 
         self.control.set_compute_package(storage_file_name, file_path)
@@ -248,7 +247,8 @@ class API:
                 ),
                 400,
             )
-
+        # Delete the file after it has been saved
+        os.remove(file_path)
         return jsonify({"success": True, "message": "Compute package set."})
 
     def _get_compute_package_name(self):
@@ -371,17 +371,17 @@ class API:
         try:
             mutex = threading.Lock()
             mutex.acquire()
-            # TODO: make configurable, perhaps in config.py or package.py
-            return send_from_directory("/app/client/package/", name, as_attachment=True)
+
+            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
         except Exception:
             try:
                 data = self.control.get_compute_package(name)
                 # TODO: make configurable, perhaps in config.py or package.py
-                file_path = safe_join("/app/client/package/", name)
+                file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
                 with open(file_path, "wb") as fh:
                     fh.write(data)
                 # TODO: make configurable, perhaps in config.py or package.py
-                return send_from_directory("/app/client/package/", name, as_attachment=True)
+                return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
             except Exception:
                 raise
         finally:
@@ -399,7 +399,7 @@ class API:
             name, message = self._get_compute_package_name()
             if name is None:
                 return False, message, ""
-        file_path = safe_join("/app/client/package/", name)  # TODO: make configurable, perhaps in config.py or package.py
+        file_path = safe_join(os.getcwd(), name)  # TODO: make configurable, perhaps in config.py or package.py
         try:
             sum = str(sha(file_path))
         except FileNotFoundError:
@@ -503,58 +503,15 @@ class API:
         :return: Config of the combiner as a json response.
         :rtype: :class:`flask.Response`
         """
-        # TODO: Any more required check for config? Formerly based on status: "retry"
-        if not self.control.idle():
-            return jsonify(
-                {
-                    "success": False,
-                    "status": "retry",
-                    "message": "Conroller is not in idle state, try again later. ",
-                }
-            )
-        # Check if combiner already exists
-        combiner = self.control.network.get_combiner(combiner_id)
-        if not combiner:
-            if secure_grpc == "True":
-                certificate, key = self.certificate_manager.get_or_create(address).get_keypair_raw()
-                _ = base64.b64encode(certificate)
-                _ = base64.b64encode(key)
-
-            else:
-                certificate = None
-                key = None
-
-            combiner_interface = CombinerInterface(
-                parent=self._to_dict(),
-                name=combiner_id,
-                address=address,
-                fqdn=fqdn,
-                port=port,
-                certificate=copy.deepcopy(certificate),
-                key=copy.deepcopy(key),
-                ip=remote_addr,
-            )
-
-            self.control.network.add_combiner(combiner_interface)
-
-        # Check combiner now exists
-        combiner = self.control.network.get_combiner(combiner_id)
-        if not combiner:
-            return jsonify({"success": False, "message": "Combiner not added."})
-
         payload = {
-            "success": True,
-            "message": "Combiner added successfully.",
-            "status": "added",
-            "storage": self.statestore.get_storage_backend(),
-            "statestore": self.statestore.get_config(),
-            "certificate": combiner.get_certificate(),
-            "key": combiner.get_key(),
+            "success": False,
+            "message": "Adding combiner via REST API is obsolete. Include statestore and object store config in combiner config.",
+            "status": "abort",
         }
 
         return jsonify(payload)
 
-    def add_client(self, client_id, preferred_combiner, remote_addr, name):
+    def add_client(self, client_id, preferred_combiner, remote_addr, name, package):
         """Add a client to the network.
 
         :param client_id: The client id to add.
@@ -564,19 +521,23 @@ class API:
         :return: A json response with combiner assignment config.
         :rtype: :class:`flask.Response`
         """
-        # Check if package has been set
-        package_object = self.statestore.get_compute_package()
-        if package_object is None:
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "status": "retry",
-                        "message": "No compute package found. Set package in controller.",
-                    }
-                ),
-                203,
-            )
+        if package == "remote":
+            package_object = self.statestore.get_compute_package()
+            if package_object is None:
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "status": "retry",
+                            "message": "No compute package found. Set package in controller.",
+                        }
+                    ),
+                    203,
+                )
+            helper_type = self.control.statestore.get_helper()
+        else:
+            # Else package is "local":
+            helper_type = ""
 
         # Assign client to combiner
         if preferred_combiner:
@@ -606,26 +567,19 @@ class API:
             "combiner": combiner.name,
             "ip": remote_addr,
             "status": "available",
+            "package": package,
         }
         # Add client to network
         self.control.network.add_client(client_config)
-
-        # Setup response containing information about the combiner for assinging the client
-        if combiner.certificate:
-            cert_b64 = base64.b64encode(combiner.certificate)
-            cert = str(cert_b64).split("'")[1]
-        else:
-            cert = None
 
         payload = {
             "status": "assigned",
             "host": combiner.address,
             "fqdn": combiner.fqdn,
-            "package": "remote",  # TODO: Make this configurable
+            "package": package,
             "ip": combiner.ip,
             "port": combiner.port,
-            "certificate": cert,
-            "helper_type": self.control.statestore.get_helper(),
+            "helper_type": helper_type,
         }
         return jsonify(payload)
 

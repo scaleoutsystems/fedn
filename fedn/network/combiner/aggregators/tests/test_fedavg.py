@@ -17,7 +17,7 @@ class TestFedAvg(unittest.TestCase):
 
     def test_fedavg_combine_models(self, *args, **kwargs):
         """Test the FedAvg aggregator combine_models method with mock classes and methods"""
-        aggregator = FedAvg("id", None)
+        aggregator = FedAvg("id", None, None, None, None)
         aggregator.update_handler.get_model_updates = MagicMock(return_value=[(None, None, None)])
         aggregator.server = MagicMock()
 

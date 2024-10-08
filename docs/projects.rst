@@ -1,7 +1,7 @@
 .. _projects-label:
 
 ================================================
-Develop your own project
+Develop a FEDn project
 ================================================
 
 This guide explains how a FEDn project is structured, and details how to develop your own
@@ -385,6 +385,15 @@ Then, standing inside the 'client folder', you can test *train* and *validate* b
     python train.py ../seed.npz ../model_update.npz --data_path data/clients/1/mnist.pt
     python validate.py ../model_update.npz ../validation.json --data_path data/clients/1/mnist.pt
 
+You can also test *train* and *validate* entrypoint using CLI command:
+
+.. note:: Before running the fedn run train or fedn run validate commands, make sure to download the training and test data. The downloads are usually handled by the "fedn run startup" command in the examples provided by FEDn.
+
+.. code-block:: bash
+
+    fedn run train --path client --input <path to input model parameters> --output <path to write the updated model parameters>
+    fedn run validate --path client --input <path to input model parameters> --output <path to write the output JSON containing validation metrics>
+
 Packaging for training on FEDn
 ===============================
 
@@ -428,3 +437,8 @@ and its integration with popular machine learning frameworks like PyTorch and Te
 - `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
 
 
+.. meta::
+    :description lang=en:
+        A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, a project is a directory of files, containing your machine learning code, FEDn entry points, and a specification of the runtime environment for the client.
+    :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+    

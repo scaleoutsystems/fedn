@@ -1,23 +1,18 @@
-import base64
 import io
 import json
 import os
 import queue
 import re
-import socket
 import sys
 import threading
 import time
 import uuid
 from datetime import datetime
 from io import BytesIO
-from shutil import copytree
 
 import grpc
 import requests
-from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
-from OpenSSL import SSL
 from tenacity import retry, stop_after_attempt
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -28,7 +23,6 @@ from fedn.network.clients.connect import ConnectorClient, Status
 from fedn.network.clients.package import PackageRuntime
 from fedn.network.clients.state import ClientState, ClientStateToString
 from fedn.network.combiner.modelservice import get_tmp_path, upload_request_generator
-from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper, load_metadata, save_metadata
 
 CHUNK_SIZE = 1024 * 1024
@@ -65,18 +59,6 @@ class Client:
 
         self.id = config["client_id"] or str(uuid.uuid4())
 
-        self.connector = ConnectorClient(
-            host=config["discover_host"],
-            port=config["discover_port"],
-            token=config["token"],
-            name=config["name"],
-            remote_package=config["remote_compute_context"],
-            force_ssl=config["force_ssl"],
-            verify=config["verify"],
-            combiner=config["preferred_combiner"],
-            id=self.id,
-        )
-
         # Validate client name
         match = re.search(VALID_NAME_REGEX, config["name"])
         if not match:
@@ -97,8 +79,24 @@ class Client:
 
         self.inbox = queue.Queue()
 
-        # Attach to the FEDn network (get combiner)
-        combiner_config = self.assign()
+        # Attach to the FEDn network (get combiner or attach directly)
+        if config["combiner"]:
+            combiner_config = {"status": "assigned", "host": config["combiner"], "port": config["combiner_port"], "helper_type": ""}
+            if config["proxy_server"]:
+                combiner_config["fqdn"] = config["proxy_server"]
+        else:
+            self.connector = ConnectorClient(
+                host=config["discover_host"],
+                port=config["discover_port"],
+                token=config["token"],
+                name=config["name"],
+                remote_package=config["remote_compute_context"],
+                force_ssl=config["force_ssl"],
+                verify=config["verify"],
+                combiner=config["preferred_combiner"],
+                id=self.id,
+            )
+            combiner_config = self.assign()
         self.connect(combiner_config)
 
         self._initialize_dispatcher(self.config)
@@ -161,20 +159,6 @@ class Client:
         # Set metadata using tuple concatenation
         self.metadata += ((key, value),)
 
-    def _get_ssl_certificate(self, domain, port=443):
-        context = SSL.Context(SSL.SSLv23_METHOD)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((domain, port))
-        ssl_sock = SSL.Connection(context, sock)
-        ssl_sock.set_tlsext_host_name(domain.encode())
-        ssl_sock.set_connect_state()
-        ssl_sock.do_handshake()
-        cert = ssl_sock.get_peer_certificate()
-        ssl_sock.close()
-        sock.close()
-        cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
-        return cert
-
     def connect(self, combiner_config):
         """Connect to combiner.
 
@@ -198,13 +182,7 @@ class Client:
             port = 443
         logger.info(f"Initiating connection to combiner host at: {host}:{port}")
 
-        if combiner_config["certificate"]:
-            logger.info("Utilizing CA certificate for GRPC channel authentication.")
-            secure = True
-            cert = base64.b64decode(combiner_config["certificate"])  # .decode('utf-8')
-            credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-            channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
-        elif os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
+        if os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             secure = True
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
@@ -212,10 +190,8 @@ class Client:
             channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
         elif self.config["secure"]:
             secure = True
-            logger.info("Using CA certificate for GRPC channel.")
-            cert = self._get_ssl_certificate(host, port=port)
-
-            credentials = grpc.ssl_channel_credentials(cert.encode("utf-8"))
+            logger.info("Using default location for root certificates.")
+            credentials = grpc.ssl_channel_credentials()
             if self.config["token"]:
                 token = self.config["token"]
                 auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
@@ -235,8 +211,6 @@ class Client:
         self.modelStub = rpc.ModelServiceStub(channel)
 
         logger.info("Successfully established {} connection to {}:{}".format("secure" if secure else "insecure", host, port))
-
-        logger.info("Using {} compute package.".format(combiner_config["package"]))
 
         self._connected = True
 
@@ -259,7 +233,11 @@ class Client:
         :return:
         """
         if "helper_type" in combiner_config.keys():
-            self.helper = get_helper(combiner_config["helper_type"])
+            if not combiner_config["helper_type"]:
+                # Default to numpyhelper
+                self.helper = get_helper("numpyhelper")
+            else:
+                self.helper = get_helper(combiner_config["helper_type"])
 
     def _subscribe_to_combiner(self, config):
         """Listen to combiner message stream and start all processing threads.
@@ -292,9 +270,8 @@ class Client:
         :type config: dict
         :return:
         """
+        pr = PackageRuntime(self.run_path)
         if config["remote_compute_context"]:
-            pr = PackageRuntime(self.run_path)
-
             retval = None
             tries = 10
 
@@ -333,18 +310,8 @@ class Client:
                 logger.error(f"Caught exception: {type(e).__name__}")
 
         else:
-            # TODO: Deprecate
-            dispatch_config = {
-                "entry_points": {
-                    "predict": {"command": "python3 predict.py"},
-                    "train": {"command": "python3 train.py"},
-                    "validate": {"command": "python3 validate.py"},
-                }
-            }
             from_path = os.path.join(os.getcwd(), "client")
-
-            copytree(from_path, self.run_path)
-            self.dispatcher = Dispatcher(dispatch_config, self.run_path)
+            self.dispatcher = pr.dispatcher(from_path)
         # Get or create python environment
         activate_cmd = self.dispatcher._get_or_create_python_env()
         if activate_cmd:
@@ -425,9 +392,13 @@ class Client:
         r.sender.client_id = self.id
         # Add client to metadata
         self._add_grpc_metadata("client", self.name)
+        status_code = None
 
         while self._connected:
             try:
+                if status_code == grpc.StatusCode.UNAVAILABLE:
+                    logger.info("GRPC TaskStream: server available again.")
+                    status_code = None
                 for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
                     if request:
                         logger.debug("Received model update request from combiner: {}.".format(request))
@@ -462,6 +433,7 @@ class Client:
                     logger.warning("GRPC TaskStream: server unavailable during model update request stream. Retrying.")
                     # Retry after a delay
                     time.sleep(5)
+                    continue
                 if status_code == grpc.StatusCode.UNAUTHENTICATED:
                     details = e.details()
                     if details == "Token expired":
@@ -771,6 +743,8 @@ class Client:
             heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER, client_id=self.id))
             try:
                 self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
+                if self._missed_heartbeat > 0:
+                    logger.info("GRPC heartbeat: combiner available again after {} missed heartbeats.".format(self._missed_heartbeat))
                 self._missed_heartbeat = 0
             except grpc.RpcError as e:
                 status_code = e.code()

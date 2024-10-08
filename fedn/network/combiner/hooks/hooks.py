@@ -107,9 +107,9 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             if ret is None:
                 implemented_functions["client_selection"] = False
             else:
-                implemented_functions["client_selection"] = False
+                implemented_functions["client_selection"] = True
         except Exception:
-            implemented_functions["client_selection"] = False
+            implemented_functions["client_selection"] = True
         logger.info(f"Provided function: {implemented_functions}")
         return fedn.ProvidedFunctionsResponse(available_functions=implemented_functions)
 

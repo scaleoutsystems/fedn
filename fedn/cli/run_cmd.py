@@ -4,15 +4,14 @@ import uuid
 
 import click
 import yaml
+
+from fedn.cli.client_cmd import validate_client_config
+from fedn.cli.main import main
+from fedn.cli.shared import apply_config
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
 from fedn.network.clients.client import Client
-from fedn.network.combiner.combiner import Combiner
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
-
-from .client_cmd import validate_client_config
-from .main import main
-from .shared import apply_config
 
 
 def get_statestore_config_from_file(init):
@@ -37,18 +36,38 @@ def check_helper_config_file(config):
     return helper
 
 
+def check_yaml_exists(path):
+    """Check if fedn.yaml exists in the given path."""
+    yaml_file = os.path.join(path, "fedn.yaml")
+    if not os.path.exists(yaml_file):
+        logger.error(f"Could not find fedn.yaml in {path}")
+        click.echo(f"Could not find fedn.yaml in {path}")
+        exit(-1)
+    return yaml_file
+
+
+def delete_virtual_environment(dispatcher):
+    if dispatcher.python_env_path:
+        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        shutil.rmtree(dispatcher.python_env_path)
+    else:
+        logger.warning("No virtualenv found to remove.")
+
+
 @main.group("run")
 @click.pass_context
 def run_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
+
+
 @run_cmd.command("validate")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-i", "--input", required=True, help="Path to input model" )
-@click.option("-o", "--output", required=True,help="Path to write the output JSON containing validation metrics")
+@click.option("-i", "--input", required=True, help="Path to input model")
+@click.option("-o", "--output", required=True, help="Path to write the output JSON containing validation metrics")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="Use flag to keep the python virtual environment (python_env in fedn.yaml)")
 @click.pass_context
-def validate_cmd(ctx, path,input,output):
+def validate_cmd(ctx, path, input, output, keep_venv):
     """Execute 'validate' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -56,10 +75,7 @@ def validate_cmd(ctx, path,input,output):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that validate is defined in fedn.yaml under entry_points
@@ -70,17 +86,17 @@ def validate_cmd(ctx, path,input,output):
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("validate {} {}".format(input, output))
+    if not keep_venv:
+        delete_virtual_environment(dispatcher)
 
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+
 @run_cmd.command("train")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
-@click.option("-i", "--input", required=True, help="Path to input model parameters" )
-@click.option("-o", "--output", required=True,help="Path to write the updated model parameters ")
+@click.option("-i", "--input", required=True, help="Path to input model parameters")
+@click.option("-o", "--output", required=True, help="Path to write the updated model parameters ")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="Use flag to keep the python virtual environment (python_env in fedn.yaml)")
 @click.pass_context
-def train_cmd(ctx, path,input,output):
+def train_cmd(ctx, path, input, output, keep_venv):
     """Execute 'train' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -88,10 +104,7 @@ def train_cmd(ctx, path,input,output):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that train is defined in fedn.yaml under entry_points
@@ -102,15 +115,15 @@ def train_cmd(ctx, path,input,output):
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("train {} {}".format(input, output))
+    if not keep_venv:
+        delete_virtual_environment(dispatcher)
 
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+
 @run_cmd.command("startup")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="Use flag to keep the python virtual environment (python_env in fedn.yaml)")
 @click.pass_context
-def startup_cmd(ctx, path):
+def startup_cmd(ctx, path, keep_venv):
     """Execute 'startup' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -118,30 +131,25 @@ def startup_cmd(ctx, path):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that startup is defined in fedn.yaml under entry_points
     if "startup" not in config["entry_points"]:
         logger.error("No startup command defined in fedn.yaml")
         exit(-1)
-
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("startup")
+    if not keep_venv:
+        delete_virtual_environment(dispatcher)
 
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
 
 @run_cmd.command("build")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
+@click.option("-v", "--keep-venv", is_flag=True, required=False, help="Use flag to keep the python virtual environment (python_env in fedn.yaml)")
 @click.pass_context
-def build_cmd(ctx, path):
+def build_cmd(ctx, path, keep_venv):
     """Execute 'build' entrypoint in fedn.yaml.
 
     :param ctx:
@@ -149,10 +157,7 @@ def build_cmd(ctx, path):
     :type path: str
     """
     path = os.path.abspath(path)
-    yaml_file = os.path.join(path, "fedn.yaml")
-    if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
-        exit(-1)
+    yaml_file = check_yaml_exists(path)
 
     config = _read_yaml_file(yaml_file)
     # Check that build is defined in fedn.yaml under entry_points
@@ -163,11 +168,8 @@ def build_cmd(ctx, path):
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
     dispatcher.run_cmd("build")
-
-    # delete the virtualenv
-    if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
-        shutil.rmtree(dispatcher.python_env_path)
+    if not keep_venv:
+        delete_virtual_environment(dispatcher)
 
 
 @run_cmd.command("client")
@@ -182,7 +184,7 @@ def build_cmd(ctx, path):
 @click.option("-s", "--secure", required=False, default=False)
 @click.option("-pc", "--preshared-cert", required=False, default=False)
 @click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False,type=str, default="",help="url to the combiner or name of the preferred combiner")
+@click.option("-c", "--preferred-combiner", required=False, type=str, default="", help="url to the combiner or name of the preferred combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
@@ -318,6 +320,8 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
         apply_config(init, config)
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
+
+    from fedn.network.combiner.combiner import Combiner
 
     combiner = Combiner(config)
     combiner.run()

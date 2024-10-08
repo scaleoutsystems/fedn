@@ -1,13 +1,11 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
-from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.api.v1.shared import api_version, client_store, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
-client_store = ClientStore(mdb, "network.clients")
 
 
 @bp.route("/", methods=["GET"])
@@ -364,6 +362,50 @@ def get_client(id: str):
         response = client
 
         return jsonify(response), 200
+    except EntityNotFound:
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+# delete client
+@bp.route("/<string:id>", methods=["DELETE"])
+@jwt_auth_required(role="admin")
+def delete_client(id: str):
+    """Delete client
+    Deletes a client based on the provided id.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the client
+    responses:
+        200:
+            description: The client was deleted
+        404:
+            description: The client was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        result: bool = client_store.delete(id)
+
+        msg = "Client deleted" if result else "Client not deleted"
+
+        return jsonify({"message": msg}), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception:

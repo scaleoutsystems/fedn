@@ -40,3 +40,4 @@ fedn.network.combiner.aggregators.fedopt module
    :members:
    :undoc-members:
    :show-inheritance:
+

@@ -125,13 +125,6 @@ class CombinerInterface:
             "key": None,
             "config": self.config,
         }
-
-        if self.certificate:
-            cert_b64 = base64.b64encode(self.certificate)
-            key_b64 = base64.b64encode(self.key)
-            data["certificate"] = str(cert_b64).split("'")[1]
-            data["key"] = str(key_b64).split("'")[1]
-
         return data
 
     def to_json(self):

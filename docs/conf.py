@@ -8,11 +8,10 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # Project info
 project = "FEDn"
-copyright = "2021, Scaleout Systems AB"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.12.1"
+release = "0.16.1"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -25,7 +24,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_code_tabs",
-    "sphinx_design",
 ]
 
 # The master toctree document.
@@ -44,6 +42,7 @@ html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     "logo_only": True,
+    "display_version": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -98,8 +97,7 @@ man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation", author, "fedn",
-     "One line description of project.", "Miscellaneous"),
+    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.
@@ -108,6 +106,6 @@ epub_title = project
 epub_exclude_files = ["search.html"]
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"https://docs.python.org/": None}
+intersphinx_mapping = {"python": ("https://docs.python.org/", None)}
 
 pygments_style = "sphinx"

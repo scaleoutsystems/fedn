@@ -1,13 +1,13 @@
 .. _apiclient-label:
 
-Using the Python API
+Using the FEDn API Client
 ====================
 
 FEDn comes with an *APIClient* - a Python3 library that can be used to interact with FEDn programmatically. 
 In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, 
 run and control training sessions, use different aggregators, and to retrieve models and metrics. 
 
-We assume a basic understanding of the FEDn framework, i.e. that the user have taken the Getting Started tutorial: :ref:`quickstart-label`
+We assume a basic understanding of the FEDn framework, i.e. that the user has taken the :ref:`quickstart-label` tutorial.
 
 **Installation**
 
@@ -20,7 +20,10 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
 **Initialize the APIClient to a FEDn Studio project**
 
 The FEDn REST API is available at <controller-host>/api/v1/. To access this API you need the url to the controller-host, as well as an admin API token. The controller host can be found in the project dashboard (top right corner).
-To obtain an admin API token, navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. Copy the 'access' token and use it to access the API using the instructions below. 
+To obtain an admin API token, 
+
+#. Navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. 
+#. Copy the 'access' token and use it to access the API using the instructions below. 
 
 .. code-block:: python
 
@@ -30,6 +33,7 @@ To obtain an admin API token, navigate to the "Settings" tab in your Studio proj
 Alternatively, the access token can be sourced from an environment variable. 
 
 .. code-block:: bash
+
    $ export FEDN_AUTH_TOKEN=<access-token>
 
 Then passing a token as an argument is not required. 
@@ -45,8 +49,6 @@ To set the active compute package in the FEDn Studio Project:
 
 .. code:: python
 
-   >>> from fedn import APIClient
-   >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
    >>> client.set_active_package("package.tgz", helper="numpyhelper")
    >>> client.set_active_model("seed.npz")
 
@@ -131,3 +133,10 @@ To get a specific session:
 For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the collection of example Jupyter Notebooks:
  
 - `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_  . 
+
+
+.. meta::
+   :description lang=en:
+      FEDn comes with an APIClient - a Python3 library that can be used to interact with FEDn programmatically. In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, run and control training sessions and to retrieve models and metrics.
+   :keywords: Federated Learning, APIClient, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+   

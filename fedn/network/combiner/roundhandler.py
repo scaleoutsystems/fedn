@@ -10,9 +10,9 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
-from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
+from fedn.network.combiner.modelservice import serialize_model_to_BytesIO
+from fedn.network.combiner.shared import modelservice, repository
 from fedn.network.combiner.updatehandler import UpdateHandler
-from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
@@ -86,10 +86,10 @@ class RoundHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, storage: Repository, server, modelservice: ModelService):
+    def __init__(self, server):
         """Initialize the RoundHandler."""
         self.round_configs = queue.Queue()
-        self.storage = storage
+        self.storage = repository
         self.server = server
         self.modelservice = modelservice
         self.server_functions = inspect.getsource(ServerFunctions)

@@ -8,7 +8,7 @@ from fedn.network.storage.s3.miniorepository import MINIORepository
 class Repository:
     """Interface for storing model objects and compute packages in S3 compatible storage."""
 
-    def __init__(self, config):
+    def __init__(self, config, init_buckets=True):
         self.model_bucket = config["storage_bucket"]
         self.context_bucket = config["context_bucket"]
         try:
@@ -19,9 +19,10 @@ class Repository:
         # TODO: Make a plug-in solution
         self.client = MINIORepository(config)
 
-        self.client.create_bucket(self.context_bucket)
-        self.client.create_bucket(self.model_bucket)
-        self.client.create_bucket(self.inference_bucket)
+        if init_buckets:
+            self.client.create_bucket(self.context_bucket)
+            self.client.create_bucket(self.model_bucket)
+            self.client.create_bucket(self.inference_bucket)
 
     def get_model(self, model_id):
         """Retrieve a model with id model_id.
