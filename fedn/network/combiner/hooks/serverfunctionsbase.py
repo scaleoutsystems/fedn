@@ -38,7 +38,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def client_config(self, global_model: list[np.ndarray]) -> dict:
+    def client_config(self, global_model: List[np.ndarray]) -> Dict:
         """Returns metadata related to the model, which gets distributed to the clients.
         The dictionary may only contain primitive types.
 
@@ -54,7 +54,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def client_selection(self, client_ids: list[str]) -> list:
+    def client_selection(self, client_ids: List[str]) -> List:
         """Returns a list of client_id's of which clients to be used for the next training request.
 
         Args:

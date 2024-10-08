@@ -14,13 +14,13 @@ class ServerFunctions(ServerFunctionsBase):
     # Skip any function to use the default FEDn implementation for the function.
 
     # Called first in the beggining of a round to select clients.
-    def client_selection(self, client_ids: list[str]) -> list:
+    def client_selection(self, client_ids: List[str]) -> List:
         # Pick 10 random clients
         client_ids = random.sample(client_ids, min(len(client_ids), 10))  # noqa: F405
         return client_ids
 
     # Called secondly before sending the global model.
-    def client_config(self, global_model: list[np.ndarray]) -> dict:
+    def client_config(self, global_model: List[np.ndarray]) -> dict:
         # Decrease learning rate every 10 rounds
         if self.round % 10 == 0:
             self.lr = self.lr * 0.1
