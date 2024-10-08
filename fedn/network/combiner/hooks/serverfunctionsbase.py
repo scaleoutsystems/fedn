@@ -18,7 +18,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def aggregate(self, previous_global: list[np.ndarray], client_updates: Dict[str, Tuple[List[np.ndarray], dict]]) -> list[np.ndarray]:
+    def aggregate(self, previous_global: List[np.ndarray], client_updates: Dict[str, Tuple[List[np.ndarray], Dict]]) -> List[np.ndarray]:
         """Aggregates a list of parameters from clients.
 
         Args:

@@ -1,5 +1,4 @@
 import importlib
-import queue
 from abc import ABC, abstractmethod
 
 from fedn.network.combiner.updatehandler import UpdateHandler

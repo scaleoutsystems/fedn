@@ -1,4 +1,3 @@
-import inspect
 import json
 from concurrent import futures
 from io import BytesIO
