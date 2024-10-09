@@ -209,7 +209,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model validation request for model {} to {} clients".format(model_id, len(clients)))
 
-    def request_model_inference(self, inference_id: str, model_id: str, clients: list = []) -> None:
+    def request_model_inference(self, prediction_id: str, model_id: str, clients: list = []) -> None:
         """Ask clients to perform inference on the model.
 
         :param model_id: the model id to perform inference on
@@ -220,7 +220,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.INFERENCE, inference_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.INFERENCE, prediction_id, model_id, clients)
 
         if len(clients) < 20:
             logger.info("Sent model inference request for model {} to clients {}".format(model_id, clients))
@@ -746,23 +746,23 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
         return response
 
-    def SendModelInference(self, request, context):
+    def SendModelPrediction(self, request, context):
         """Send a model inference response.
 
         :param request: the request
-        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelInference`
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelPrediction`
         :param context: the context
         :type context: :class:`grpc._server._Context`
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.info("Recieved ModelInference from {}".format(request.sender.name))
+        logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
         result = MessageToDict(request, including_default_value_fields=True)
         inference_store.add(result)
 
         response = fedn.Response()
-        response.response = "RECEIVED ModelInference {} from client  {}".format(response, response.sender.name)
+        response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
         return response
 
     ####################################################################################################################

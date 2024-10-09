@@ -42,8 +42,8 @@ class RoundConfig(TypedDict):
     :type model_metadata: dict
     :param session_id: The session identifier. Set by (Controller?).
     :type session_id: str
-    :param inference_id: The inference identifier. Only used for inference tasks.
-    :type inference_id: str
+    :param prediction_id: The inference identifier. Only used for inference tasks.
+    :type prediction_id: str
     :param helper_type: The helper type.
     :type helper_type: str
     :param aggregator: The aggregator type.
@@ -252,7 +252,7 @@ class RoundHandler:
         """
         self.server.request_model_validation(session_id, model_id, clients=clients)
 
-    def _inference_round(self, inference_id: str, model_id: str, clients: list):
+    def _inference_round(self, prediction_id: str, model_id: str, clients: list):
         """Send model inference requests to clients.
 
         :param config: The round config object (passed to the client).
@@ -262,7 +262,7 @@ class RoundHandler:
         :param model_id: The ID of the model to use for inference
         :type model_id: str
         """
-        self.server.request_model_inference(inference_id, model_id, clients=clients)
+        self.server.request_model_inference(prediction_id, model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download a model from persistent storage and set in modelservice.
@@ -350,7 +350,7 @@ class RoundHandler:
         validators = self._assign_round_clients(self.server.max_clients, type="validators")
         self._validation_round(session_id, model_id, validators)
 
-    def execute_inference_round(self, inference_id: str, model_id: str) -> None:
+    def execute_inference_round(self, prediction_id: str, model_id: str) -> None:
         """Coordinate inference rounds as specified in config.
 
         :param round_config: The round config object.
@@ -360,7 +360,7 @@ class RoundHandler:
         self.stage_model(model_id)
         # TODO: Implement inference client type
         clients = self._assign_round_clients(self.server.max_clients, type="validators")
-        self._inference_round(inference_id, model_id, clients)
+        self._inference_round(prediction_id, model_id, clients)
 
     def execute_training_round(self, config):
         """Coordinates clients to execute training tasks.
@@ -429,9 +429,9 @@ class RoundHandler:
                             model_id = round_config["model_id"]
                             self.execute_validation_round(session_id, model_id)
                         elif round_config["task"] == "inference":
-                            inference_id = round_config["inference_id"]
+                            prediction_id = round_config["prediction_id"]
                             model_id = round_config["model_id"]
-                            self.execute_inference_round(inference_id, model_id)
+                            self.execute_inference_round(prediction_id, model_id)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:

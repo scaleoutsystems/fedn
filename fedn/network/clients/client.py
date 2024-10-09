@@ -712,7 +712,7 @@ class Client:
                     try:
                         presigned_url = json.loads(request.data)
                     except json.JSONDecodeError as e:
-                        logger.error(f"Failed to decode inference request data: {e}")
+                        logger.error(f"Failed to decode prediction request data: {e}")
                         self.state = ClientState.idle
                         continue
 
@@ -721,27 +721,27 @@ class Client:
                         self.state = ClientState.idle
                         continue
                     presigned_url = presigned_url["presigned_url"]
-                    # Obs that session_id in request is the inference_id
+                    # Obs that session_id in request is the prediction_id
                     _ = self._process_inference_request(request.model_id, request.session_id, presigned_url)
-                    inference = fedn.ModelInference()
-                    inference.sender.name = self.name
-                    inference.sender.role = fedn.WORKER
-                    inference.receiver.name = request.sender.name
-                    inference.receiver.name = request.sender.name
-                    inference.receiver.role = request.sender.role
-                    inference.model_id = str(request.model_id)
-                    # TODO: Add inference data
-                    inference.data = ""
-                    inference.timestamp.GetCurrentTime()
-                    inference.correlation_id = request.correlation_id
-                    # Obs that session_id in request is the inference_id
-                    inference.inference_id = request.session_id
+                    prediction = fedn.ModelPrediction()
+                    prediction.sender.name = self.name
+                    prediction.sender.role = fedn.WORKER
+                    prediction.receiver.name = request.sender.name
+                    prediction.receiver.name = request.sender.name
+                    prediction.receiver.role = request.sender.role
+                    prediction.model_id = str(request.model_id)
+                    # TODO: Add prediction data
+                    prediction.data = ""
+                    prediction.timestamp.GetCurrentTime()
+                    prediction.correlation_id = request.correlation_id
+                    # Obs that session_id in request is the prediction_id
+                    prediction.prediction_id = request.session_id
 
                     try:
-                        _ = self.combinerStub.SendModelInference(inference, metadata=self.metadata)
+                        _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
                         status_type = fedn.StatusType.INFERENCE
                         self.send_status(
-                            "Model inference completed.", log_level=fedn.Status.AUDIT, type=status_type, request=inference, sesssion_id=request.session_id
+                            "Model prediction completed.", log_level=fedn.Status.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
                         )
                     except grpc.RpcError as e:
                         status_code = e.code()

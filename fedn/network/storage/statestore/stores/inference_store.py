@@ -8,14 +8,14 @@ from fedn.network.storage.statestore.stores.store import Store
 
 class Inference:
     def __init__(
-        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, inference_id: str, meta: str, sender: dict = None, receiver: dict = None
+        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, prediction_id: str, meta: str, sender: dict = None, receiver: dict = None
     ):
         self.id = id
         self.model_id = model_id
         self.data = data
         self.correlation_id = correlation_id
         self.timestamp = timestamp
-        self.inference_id = inference_id
+        self.prediction_id = prediction_id
         self.meta = meta
         self.sender = sender
         self.receiver = receiver

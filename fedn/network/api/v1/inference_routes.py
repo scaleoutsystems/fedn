@@ -16,19 +16,19 @@ inference_store = InferenceStore(mdb, "control.inferences")
 @jwt_auth_required(role="admin")
 def start_session():
     """Start a new inference session.
-    param: inference_id: The session id to start.
-    type: inference_id: str
+    param: prediction_id: The session id to start.
+    type: prediction_id: str
     param: rounds: The number of rounds to run.
     type: rounds: int
     """
     try:
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
-        inference_id: str = data.get("inference_id")
+        prediction_id: str = data.get("prediction_id")
 
-        if not inference_id or inference_id == "":
+        if not prediction_id or prediction_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session_config = {"inference_id": inference_id}
+        session_config = {"prediction_id": prediction_id}
 
         threading.Thread(target=control.inference_session, kwargs={"config": session_config}).start()
 
