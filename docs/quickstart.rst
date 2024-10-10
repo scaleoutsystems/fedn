@@ -183,9 +183,9 @@ Start a client (using a 10-split and the 1st partition) by running the following
     .. code-tab:: bash
          :caption: Windows (CMD.exe)
 
-         set FEDN_PACKAGE_EXTRACT_DIR=.\package
+         set FEDN_PACKAGE_EXTRACT_DIR=.\package\\
          set FEDN_NUM_DATA_SPLITS=10
-         set FEDN_DATA_PATH=.\data\clients\1\mnist.pt
+         set FEDN_DATA_PATH=.\data\\clients\\1\\mnist.pt
          fedn client start -in client.yaml --secure=True --force-ssl
 
 
