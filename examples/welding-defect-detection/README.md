@@ -1,5 +1,9 @@
 
-   **Note: If you are new to FEDn, we recommend that you start with the MNIST-Pytorch example instead: https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch**
+   **Note:**
+   
+   **One of the dependencies in this example has an APGL license. This dependy is used in this particular example and not in FEDn in general.**
+
+   **If you are new to FEDn, we recommend that you start with the MNIST-Pytorch example instead: https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch**
 
 # Welding Defect Object Detection Example
 
