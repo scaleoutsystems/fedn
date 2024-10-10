@@ -8,8 +8,7 @@ from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
 @main.group("status")
 @click.pass_context
 def status_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
 
 
