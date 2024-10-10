@@ -5,17 +5,17 @@ from flask import Blueprint, jsonify, request
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, mdb
-from fedn.network.storage.statestore.stores.inference_store import InferenceStore
+from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 
-bp = Blueprint("inference", __name__, url_prefix=f"/api/{api_version}/infer")
+bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
 
-inference_store = InferenceStore(mdb, "control.inferences")
+prediction_store = PredictionStore(mdb, "control.predictions")
 
 
 @bp.route("/start", methods=["POST"])
 @jwt_auth_required(role="admin")
 def start_session():
-    """Start a new inference session.
+    """Start a new prediction session.
     param: prediction_id: The session id to start.
     type: prediction_id: str
     param: rounds: The number of rounds to run.
@@ -30,8 +30,8 @@ def start_session():
 
         session_config = {"prediction_id": prediction_id}
 
-        threading.Thread(target=control.inference_session, kwargs={"config": session_config}).start()
+        threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
-        return jsonify({"message": "Inference session started"}), 200
+        return jsonify({"message": "Prediction session started"}), 200
     except Exception:
-        return jsonify({"message": "Failed to start inference session"}), 500
+        return jsonify({"message": "Failed to start prediction session"}), 500

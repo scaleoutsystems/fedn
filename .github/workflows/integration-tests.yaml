@@ -38,8 +38,8 @@ jobs:
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
 
-      # - name: run ${{ matrix.to_test }} inference
-      #   run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
+      # - name: run ${{ matrix.to_test }} prediction
+      #   run: .ci/tests/examples/run_prediction.sh ${{ matrix.to_test }}
       #   if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
       - name: print logs

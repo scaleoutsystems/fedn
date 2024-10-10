@@ -6,7 +6,7 @@ from pymongo.database import Database
 from fedn.network.storage.statestore.stores.store import Store
 
 
-class Inference:
+class Prediction:
     def __init__(
         self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, prediction_id: str, meta: str, sender: dict = None, receiver: dict = None
     ):
@@ -20,8 +20,8 @@ class Inference:
         self.sender = sender
         self.receiver = receiver
 
-    def from_dict(data: dict) -> "Inference":
-        return Inference(
+    def from_dict(data: dict) -> "Prediction":
+        return Prediction(
             id=str(data["_id"]),
             model_id=data["modelId"] if "modelId" in data else None,
             data=data["data"] if "data" in data else None,
@@ -34,32 +34,32 @@ class Inference:
         )
 
 
-class InferenceStore(Store[Inference]):
+class PredictionStore(Store[Prediction]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Inference:
+    def get(self, id: str, use_typing: bool = False) -> Prediction:
         """Get an entity by id
         param id: The id of the entity
             type: str
-            description: The id of the entity, can be either the id or the Inference (property)
+            description: The id of the entity, can be either the id or the Prediction (property)
         param use_typing: Whether to return the entity as a typed object or as a dict
             type: bool
         return: The entity
         """
         response = super().get(id, use_typing=use_typing)
-        return Inference.from_dict(response) if use_typing else response
+        return Prediction.from_dict(response) if use_typing else response
 
-    def update(self, id: str, item: Inference) -> bool:
-        raise NotImplementedError("Update not implemented for InferenceStore")
+    def update(self, id: str, item: Prediction) -> bool:
+        raise NotImplementedError("Update not implemented for PredictionStore")
 
-    def add(self, item: Inference) -> Tuple[bool, Any]:
+    def add(self, item: Prediction) -> Tuple[bool, Any]:
         return super().add(item)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for InferenceStore")
+        raise NotImplementedError("Delete not implemented for PredictionStore")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Inference]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Prediction]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -80,5 +80,5 @@ class InferenceStore(Store[Inference]):
         """
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
 
-        result = [Inference.from_dict(item) for item in response["result"]] if use_typing else response["result"]
+        result = [Prediction.from_dict(item) for item in response["result"]] if use_typing else response["result"]
         return {"count": response["count"], "result": result}

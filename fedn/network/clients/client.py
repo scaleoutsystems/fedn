@@ -418,11 +418,11 @@ class Client:
                         elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config["validator"]:
                             self.inbox.put(("validate", request))
                         elif request.type == fedn.StatusType.INFERENCE and self.config["validator"]:
-                            logger.info("Received inference request for model_id {}".format(request.model_id))
+                            logger.info("Received prediction request for model_id {}".format(request.model_id))
                             presigned_url = json.loads(request.data)
                             presigned_url = presigned_url["presigned_url"]
-                            logger.info("Inference presigned URL: {}".format(presigned_url))
-                            self.inbox.put(("infer", request))
+                            logger.info("Prediction presigned URL: {}".format(presigned_url))
+                            self.inbox.put(("predict", request))
                         else:
                             logger.error("Unknown request type: {}".format(request.type))
 
@@ -519,25 +519,17 @@ class Client:
 
         return updated_model_id, meta
 
-    def _process_validation_request(self, model_id: str, is_inference: bool, session_id: str = None):
+    def _process_validation_request(self, model_id: str, session_id: str = None):
         """Process a validation request.
 
         :param model_id: The model id of the model to be validated.
         :type model_id: str
-        :param is_inference: True if the validation is an inference request, False if it is a validation request.
-        :type is_inference: bool
         :param session_id: The id of the current session.
         :type session_id: str
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
-        # Figure out cmd
-        if is_inference:
-            cmd = "infer"
-        else:
-            cmd = "validate"
-
-        self.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id)
+        self.send_status(f"Processing validation request for model_id {model_id}", sesssion_id=session_id)
         self.state = ClientState.validating
         try:
             model = self.get_model_from_combiner(str(model_id))
@@ -550,7 +542,7 @@ class Client:
                 fh.write(model.getbuffer())
 
             outpath = get_tmp_path()
-            self.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
+            self.dispatcher.run_cmd(f"validate {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 validation = json.loads(fh.read())
@@ -566,22 +558,22 @@ class Client:
         self.state = ClientState.idle
         return validation
 
-    def _process_inference_request(self, model_id: str, session_id: str, presigned_url: str):
-        """Process an inference request.
+    def _process_prediction_request(self, model_id: str, session_id: str, presigned_url: str):
+        """Process an prediction request.
 
-        :param model_id: The model id of the model to be used for inference.
+        :param model_id: The model id of the model to be used for prediction.
         :type model_id: str
         :param session_id: The id of the current session.
         :type session_id: str
-        :param presigned_url: The presigned URL for the data to be used for inference.
+        :param presigned_url: The presigned URL for the data to be used for prediction.
         :type presigned_url: str
         :return: None
         """
-        self.send_status(f"Processing inference request for model_id {model_id}", sesssion_id=session_id)
+        self.send_status(f"Processing prediction request for model_id {model_id}", sesssion_id=session_id)
         try:
             model = self.get_model_from_combiner(str(model_id))
             if model is None:
-                logger.error("Could not retrieve model from combiner. Aborting inference request.")
+                logger.error("Could not retrieve model from combiner. Aborting prediction request.")
                 return
             inpath = self.helper.get_tmp_path()
 
@@ -591,7 +583,7 @@ class Client:
             outpath = get_tmp_path()
             self.dispatcher.run_cmd(f"predict {inpath} {outpath}")
 
-            # Upload the inference result to the presigned URL
+            # Upload the prediction result to the presigned URL
             with open(outpath, "rb") as fh:
                 response = requests.put(presigned_url, data=fh.read())
 
@@ -599,12 +591,12 @@ class Client:
             os.unlink(outpath)
 
             if response.status_code != 200:
-                logger.warning("Inference upload failed with status code {}".format(response.status_code))
+                logger.warning("Prediction upload failed with status code {}".format(response.status_code))
                 self.state = ClientState.idle
                 return
 
         except Exception as e:
-            logger.warning("Inference failed with exception {}".format(e))
+            logger.warning("Prediction failed with exception {}".format(e))
             self.state = ClientState.idle
             return
 
@@ -668,7 +660,7 @@ class Client:
 
                 elif task_type == "validate":
                     self.state = ClientState.validating
-                    metrics = self._process_validation_request(request.model_id, False, request.session_id)
+                    metrics = self._process_validation_request(request.model_id, request.session_id)
 
                     if metrics is not None:
                         # Send validation
@@ -707,8 +699,8 @@ class Client:
 
                     self.state = ClientState.idle
                     self.inbox.task_done()
-                elif task_type == "infer":
-                    self.state = ClientState.inferencing
+                elif task_type == "predict":
+                    self.state = ClientState.predicting
                     try:
                         presigned_url = json.loads(request.data)
                     except json.JSONDecodeError as e:
@@ -717,12 +709,12 @@ class Client:
                         continue
 
                     if "presigned_url" not in presigned_url:
-                        logger.error("Inference request missing presigned_url.")
+                        logger.error("Prediction request missing presigned_url.")
                         self.state = ClientState.idle
                         continue
                     presigned_url = presigned_url["presigned_url"]
                     # Obs that session_id in request is the prediction_id
-                    _ = self._process_inference_request(request.model_id, request.session_id, presigned_url)
+                    _ = self._process_prediction_request(request.model_id, request.session_id, presigned_url)
                     prediction = fedn.ModelPrediction()
                     prediction.sender.name = self.name
                     prediction.sender.role = fedn.WORKER

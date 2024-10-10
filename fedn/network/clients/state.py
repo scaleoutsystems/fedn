@@ -7,7 +7,7 @@ class ClientState(Enum):
     idle = 1
     training = 2
     validating = 3
-    inferencing = 4
+    predicting = 4
 
 
 def ClientStateToString(state):

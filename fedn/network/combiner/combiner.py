@@ -16,7 +16,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import client_store, combiner_store, inference_store, repository, statestore, status_store, validation_store
+from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, statestore, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -209,10 +209,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model validation request for model {} to {} clients".format(model_id, len(clients)))
 
-    def request_model_inference(self, prediction_id: str, model_id: str, clients: list = []) -> None:
-        """Ask clients to perform inference on the model.
+    def request_model_prediction(self, prediction_id: str, model_id: str, clients: list = []) -> None:
+        """Ask clients to perform prediction on the model.
 
-        :param model_id: the model id to perform inference on
+        :param model_id: the model id to perform prediction on
         :type model_id: str
         :param config: the model configuration to send to clients
         :type config: dict
@@ -223,16 +223,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         clients = self._send_request_type(fedn.StatusType.INFERENCE, prediction_id, model_id, clients)
 
         if len(clients) < 20:
-            logger.info("Sent model inference request for model {} to clients {}".format(model_id, clients))
+            logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
         else:
-            logger.info("Sent model inference request for model {} to {} clients".format(model_id, len(clients)))
+            logger.info("Sent model prediction request for model {} to {} clients".format(model_id, len(clients)))
 
     def _send_request_type(self, request_type, session_id, model_id, config=None, clients=[]):
         """Send a request of a specific type to clients.
 
         :param request_type: the type of request
         :type request_type: :class:`fedn.network.grpc.fedn_pb2.StatusType`
-        :param session_id: the session id to send in the request. Obs that for inference, this is the inference id.
+        :param session_id: the session id to send in the request. Obs that for prediction, this is the prediction id.
         :type session_id: str
         :param model_id: the model id to send in the request
         :type model_id: str
@@ -249,7 +249,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
             elif request_type == fedn.StatusType.INFERENCE:
-                # TODO: add inference clients type
+                # TODO: add prediction clients type
                 clients = self.get_active_validators()
         for client in clients:
             request = fedn.TaskRequest()
@@ -265,8 +265,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.role = fedn.WORKER
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.INFERENCE:
-                presigned_url = self.repository.presigned_put_url(self.repository.inference_bucket, f"{client}/{session_id}")
-                # TODO: in inference, request.data should also contain user-defined data/parameters
+                presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
+                # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
             elif request_type == fedn.StatusType.MODEL_UPDATE:
                 request.data = json.dumps(config)
@@ -747,7 +747,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         return response
 
     def SendModelPrediction(self, request, context):
-        """Send a model inference response.
+        """Send a model prediction response.
 
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.ModelPrediction`
@@ -759,7 +759,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
         result = MessageToDict(request, including_default_value_fields=True)
-        inference_store.add(result)
+        prediction_store.add(result)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
