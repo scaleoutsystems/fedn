@@ -3,11 +3,13 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.api.shared import modelstorage_config, network_id, statestore_config
+from fedn.network.api.shared import (modelstorage_config, network_id,
+                                     statestore_config)
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.package_store import PackageStore
 
 api_version = "v1"
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
@@ -15,6 +17,7 @@ mc.server_info()
 mdb: Database = mc[network_id]
 
 client_store = ClientStore(mdb, "network.clients")
+package_store = PackageStore(mdb, "control.package")
 
 minio_repository: RepositoryBase = None
 
