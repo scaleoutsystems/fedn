@@ -24,6 +24,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_code_tabs",
+    "sphinx_copybutton",
 ]
 
 # The master toctree document.
