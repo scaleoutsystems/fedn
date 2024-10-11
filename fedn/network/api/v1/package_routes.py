@@ -5,13 +5,13 @@ from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb, repository
-from fedn.network.storage.statestore.stores.package_store import PackageStore
+from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
+                                        get_typed_list_headers, get_use_typing,
+                                        package_store, repository)
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
-package_store = PackageStore(mdb, "control.package")
 
 
 @bp.route("/", methods=["GET"])

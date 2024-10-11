@@ -144,6 +144,20 @@ class PackageStore(Store[Package]):
 
         return Package.from_dict(response, response) if use_typing else from_document(response)
 
+    def set_active_helper(self, helper: str) -> bool:
+        """Set the active helper
+        param helper: The helper to set as active
+            type: str
+        return: Whether the operation was successful
+        """
+        if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
+            raise ValueError()
+
+        try:
+            self.database[self.collection].update_one({"key": "active"}, {"$set": {"helper": helper}}, upsert=True)
+        except Exception:
+            return False
+
     def _allowed_file_extension(self, filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}) -> bool:
         """Check if file extension is allowed.
 
