@@ -26,7 +26,7 @@ def start_session():
         prediction_id: str = data.get("prediction_id")
 
         if not prediction_id or prediction_id == "":
-            return jsonify({"message": "Session ID is required"}), 400
+            return jsonify({"message": "prediction_id is required"}), 400
 
         session_config = {"prediction_id": prediction_id}
 
