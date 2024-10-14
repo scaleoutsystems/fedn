@@ -15,7 +15,6 @@
    aggregators
    helpers
    developer
-   auth
 
 .. toctree::
    :maxdepth: 1
