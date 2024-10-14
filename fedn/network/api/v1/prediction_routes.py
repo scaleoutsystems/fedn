@@ -7,6 +7,7 @@ from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, mdb
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
 
@@ -35,10 +36,11 @@ def start_session():
             if count == 0:
                 return jsonify({"message": "No models available"}), 400
         else:
-            model_id = data.get("model_id")
-            model = model_store.get(model_id)
-            if model is None:
-                return jsonify({"message": "Model not found"}), 404
+            try:
+                model_id = data.get("model_id")
+                _ = model_store.get(model_id)
+            except EntityNotFound:
+                return jsonify({"message": f"Model {model_id} not found"}), 404
 
         session_config = {"prediction_id": prediction_id}
 
