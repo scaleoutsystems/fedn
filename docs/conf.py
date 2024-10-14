@@ -41,6 +41,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.
 html_theme = "sphinx_rtd_theme"
 
+html_baseurl = "https://docs.scaleoutsystems.com/en/stable/"
 html_theme_options = {
     "logo_only": True,
 }
