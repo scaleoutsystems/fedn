@@ -5,11 +5,13 @@ from flask import Blueprint, jsonify, request
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
 from fedn.network.api.v1.shared import api_version, mdb
+from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 
 bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
 
 prediction_store = PredictionStore(mdb, "control.predictions")
+model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/start", methods=["POST"])
@@ -27,6 +29,16 @@ def start_session():
 
         if not prediction_id or prediction_id == "":
             return jsonify({"message": "prediction_id is required"}), 400
+
+        if data.get("model_id") is None:
+            count = model_store.count()
+            if count == 0:
+                return jsonify({"message": "No models available"}), 400
+        else:
+            model_id = data.get("model_id")
+            model = model_store.get(model_id)
+            if model is None:
+                return jsonify({"message": "Model not found"}), 404
 
         session_config = {"prediction_id": prediction_id}
 
