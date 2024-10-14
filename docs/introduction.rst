@@ -84,7 +84,7 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
 
 .. meta::
     :description lang=en:
-        Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
+        Federated learning (FL) is a decentralized approach to machine learning. Instead of moving the data, FL moves the computation to where the data is.
     :keywords: Federated Learning, Machine Learning, What is federated machine learning, Federated Learning Framework, Federated Learning Platform
     :og:title: What is Federated Learning?
     :og:description: Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
