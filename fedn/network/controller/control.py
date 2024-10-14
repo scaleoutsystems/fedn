@@ -465,7 +465,7 @@ class Control(ControlBase):
         self.__state = ReducerState.idle
 
     def prediction_round(self, config):
-        """Execute an prediction round.
+        """Execute a prediction round.
 
         : param config: configuration for the prediction round
         """

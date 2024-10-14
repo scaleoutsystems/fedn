@@ -24,5 +24,7 @@ def ClientStateToString(state):
         return "TRAINING"
     if state == ClientState.validating:
         return "VALIDATING"
+    if state == ClientState.predicting:
+        return "PREDICTING"
 
     return "UNKNOWN"

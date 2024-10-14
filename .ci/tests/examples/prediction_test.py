@@ -15,7 +15,7 @@ def _eprint(*args, **kwargs):
 def _wait_n_rounds(collection):
     n = 0
     for _ in range(RETRIES):
-        query = {'type': 'INFERENCE'}
+        query = {'type': 'MODEL_PREDICTION'}
         n = collection.count_documents(query)
         if n == N_CLIENTS:
             return n

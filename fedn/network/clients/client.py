@@ -417,7 +417,7 @@ class Client:
                             self.inbox.put(("train", request))
                         elif request.type == fedn.StatusType.MODEL_VALIDATION and self.config["validator"]:
                             self.inbox.put(("validate", request))
-                        elif request.type == fedn.StatusType.INFERENCE and self.config["validator"]:
+                        elif request.type == fedn.StatusType.MODEL_PREDICTION and self.config["validator"]:
                             logger.info("Received prediction request for model_id {}".format(request.model_id))
                             presigned_url = json.loads(request.data)
                             presigned_url = presigned_url["presigned_url"]
@@ -559,7 +559,7 @@ class Client:
         return validation
 
     def _process_prediction_request(self, model_id: str, session_id: str, presigned_url: str):
-        """Process an prediction request.
+        """Process a prediction request.
 
         :param model_id: The model id of the model to be used for prediction.
         :type model_id: str
@@ -731,7 +731,7 @@ class Client:
 
                     try:
                         _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
-                        status_type = fedn.StatusType.INFERENCE
+                        status_type = fedn.StatusType.MODEL_PREDICTION
                         self.send_status(
                             "Model prediction completed.", log_level=fedn.Status.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
                         )

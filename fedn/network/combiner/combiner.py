@@ -225,7 +225,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.INFERENCE, prediction_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, clients)
 
         if len(clients) < 20:
             logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
@@ -253,7 +253,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 clients = self.get_active_trainers()
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
-            elif request_type == fedn.StatusType.INFERENCE:
+            elif request_type == fedn.StatusType.MODEL_PREDICTION:
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
         for client in clients:
@@ -269,7 +269,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.client_id = client
             request.receiver.role = fedn.WORKER
             # Set the request data, not used in validation
-            if request_type == fedn.StatusType.INFERENCE:
+            if request_type == fedn.StatusType.MODEL_PREDICTION:
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
