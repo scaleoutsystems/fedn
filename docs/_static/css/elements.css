@@ -1,59 +1,56 @@
-/* inputs  */
-
-.wy-side-nav-search input[type=text] {
-    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
-    border-color: var(--scaleout-grey-6);
+/* <----------- navbar -----------> */
+.wy-side-nav-search {
+    background: #ffffff;
 }
 
-/* lists */
-
-.rst-content .section ul,
-.rst-content .toctree-wrapper ul,
-.rst-content section ul,
-.wy-plain-list-disc,
-article ul {
-    list-style: none;
-    line-height: 16px;
-    margin-bottom: 16px;
+.wy-nav-side {
+    background: #ffffff;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
-.rst-content .section ul li,
-.rst-content .toctree-wrapper ul li,
-.wy-plain-list-disc li,
-article ul li {
-    list-style: none;
-    margin-left: 16px;
+.wy-menu-vertical a {
+    color: #000000;
 }
 
-
-.rst-content .section ul li li,
-.rst-content .toctree-wrapper ul li li,
-.rst-content section ul li li,
-.wy-plain-list-disc li li,
-article ul li li {
-    list-style: none;
+.wy-menu-vertical header,
+.wy-menu-vertical p.caption {
+    color: #000000;
+    opacity: 0.5;
 }
 
-/* buttons */
-
-.btn {
-    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
-    border-color: var(--scaleout-grey-6);
-    border-radius: 8px;
+.wy-menu-vertical a:hover {
+    background: var(--scaleout-grey-5);
+    cursor: pointer;
 }
 
-.btn-neutral {
-    background: white !important;
+.wy-menu-vertical li.current ul {
+    background: var(--scaleout-grey-1);
 }
+
+.wy-menu-vertical li.current a:hover {
+    background: var(--scaleout-grey-5);
+}
+
+/* <----------- EO navbar -----------> */
+
+/* <----------- Code block -----------> */
 
 .highlight {
     background: var(--scaleout-grey-1) !important;
 }
 
-img {
-    box-shadow: 0 0 6px 0px var(--scaleout-grey-6);
+/* <----------- EO Code block -----------> */
+
+/* <----------- Info block -----------> */
+
+.admonition {
+    background: var(--scaleout-grey-1) !important;
 }
 
-img.logo {
-    box-shadow: none;
+.admonition-title {
+    background: var(--scaleout-grey-6) !important;
+    color: var(--scaleout-black) !important;
+    opacity: .6 !important;
 }
+
+/* <----------- EO Info block -----------> */
