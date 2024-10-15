@@ -72,8 +72,8 @@ class Client:
     def _connect_to_api(self) -> Tuple[bool, dict]:
         result = None
 
-        while not result or result == ConnectToApiResult.ComputePackgeMissing:
-            if result == ConnectToApiResult.ComputePackgeMissing:
+        while not result or result == ConnectToApiResult.ComputePackageMissing:
+            if result == ConnectToApiResult.ComputePackageMissing:
                 logger.info("Retrying in 3 seconds")
                 time.sleep(3)
             result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())

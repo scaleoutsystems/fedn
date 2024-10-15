@@ -28,7 +28,7 @@ class GrpcConnectionOptions:
 # Enum for respresenting the result of connecting to the FEDn API
 class ConnectToApiResult(enum.Enum):
     Assigned = 0
-    ComputePackgeMissing = 1
+    ComputePackageMissing = 1
     UnAuthorized = 2
     UnMatchedConfig = 3
     IncorrectUrl = 4
@@ -110,7 +110,7 @@ class ClientAPI:
             elif response.status_code == 203:
                 json_response = response.json()
                 logger.info("Connect to FEDn Api - Remote compute package missing.")
-                return ConnectToApiResult.ComputePackgeMissing, json_response
+                return ConnectToApiResult.ComputePackageMissing, json_response
             elif response.status_code == 401:
                 logger.warning("Connect to FEDn Api - Unauthorized")
                 return ConnectToApiResult.UnAuthorized, "Unauthorized"
