@@ -8,4 +8,4 @@ README Will be updated after studio update.
 To run with server functions:
 
 from server_functions import ServerFunctions
-client.start_session(aggregator="custom", server_functions=ServerFunctions)
+client.start_session(server_functions=ServerFunctions)
