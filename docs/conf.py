@@ -64,7 +64,6 @@ html_favicon = "favicon.png"
 html_css_files = [
     "css/elements.css",
     "css/text.css",
-    "css/utilities.css",
 ]
 
 # LaTeX elements
