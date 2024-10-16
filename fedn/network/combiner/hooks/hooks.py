@@ -1,6 +1,5 @@
 import json
 from concurrent import futures
-from io import BytesIO
 
 import grpc
 
@@ -10,7 +9,7 @@ from fedn.common.log_config import logger
 
 # imports for user code
 from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random  # noqa: F401
-from fedn.network.combiner.modelservice import bytesIO_request_generator, load_model_from_bytes, model_as_bytesIO
+from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
 CHUNK_SIZE = 1024 * 1024
@@ -43,7 +42,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
         logger.info("Received client config request.")
-        model = self.unpack_model(request_iterator)
+        model, _ = unpack_model(request_iterator, self.helper)
         client_config = self.server_functions.client_config(global_model=model)
         logger.info(f"Client config response: {client_config}")
         return fedn.ClientConfigResponse(client_config=json.dumps(client_config))
@@ -74,12 +73,24 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client meta response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientMetaResponse`
         """
+        logger.info("Received metadata")
         client_id = request.client_id
         metadata = json.loads(request.metadata)
         self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
         return fedn.ClientMetaResponse(status="Metadata stored")
 
-    def HandleAggregation(self, request_iterator: fedn.AggregationRequest, context):
+    def HandleStoreModel(self, request_iterator, context):
+        model, final_request = unpack_model(request_iterator, self.helper)
+        client_id = final_request.id
+        if client_id == "global_model":
+            logger.info("Received previous global model")
+            self.previous_global = model
+        else:
+            logger.info("Received client model")
+            self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
+        return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
+
+    def HandleAggregation(self, request, context):
         """Receive and store models and aggregate based on user-defined code when specified in the request.
 
         :param request_iterator: the aggregation request
@@ -89,25 +100,15 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the aggregation response (aggregated model or None)
         :rtype: :class:`fedn.network.grpc.fedn_pb2.AggregationResponse`
         """
-        # check what type of request
-        for request in request_iterator:
-            if request.aggregate:
-                logger.info("Received aggregation request.")
-                aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
-                aggregated_model = model_as_bytesIO(aggregated_model)
-                request_function = fedn.AggregationResponse
-                logger.info("Returning aggregate model.")
-                return bytesIO_request_generator(mdl=aggregated_model, request_function=request_function, args={})
-            client_id = request.client_id
-            break
-        logger.info(f"Received request to store model originating from: {client_id}")
-        model = self.unpack_model(request_iterator)
-
-        if client_id == "global_model":
-            self.previous_global = model
-        else:
-            self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
-        return fedn.AggregationResponse(data=None)
+        logger.info(f"Receieved aggregation request: {request.aggregate}")
+        aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
+        model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
+        request_function = fedn.AggregationResponse
+        self.client_updates = {}
+        logger.info("Returning aggregate model.")
+        response_generator = bytesIO_request_generator(mdl=model_bytesIO, request_function=request_function, args={})
+        for response in response_generator:
+            yield response
 
     def HandleProvidedFunctions(self, request: fedn.ProvidedFunctionsResponse, context):
         """Handles the 'provided_functions' request. Sends back which functions are available.
@@ -162,30 +163,6 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             implemented_functions["client_selection"] = True
         logger.info(f"Provided function: {implemented_functions}")
         return fedn.ProvidedFunctionsResponse(available_functions=implemented_functions)
-
-    def unpack_model(self, request_iterator):
-        """Unpack the incoming model sent in chunks from the request iterator.
-
-        :param request_iterator: A streaming iterator from the gRPC service.
-        :return: The reconstructed model parameters.
-        """
-        model_buffer = BytesIO()
-        try:
-            for request in request_iterator:
-                if request.data:
-                    model_buffer.write(request.data)
-        except MemoryError as e:
-            print(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
-            raise
-        except Exception as e:
-            print(f"Exception occured during model loading: {e}")
-            raise
-
-        model_buffer.seek(0)
-
-        model_bytes = model_buffer.getvalue()
-
-        return load_model_from_bytes(model_bytes, self.helper)
 
 
 def serve():

@@ -72,7 +72,7 @@ class UpdateHandler:
             _ = data["num_examples"]
         except KeyError:
             tb = traceback.format_exc()
-            logger.error("AGGREGATOR({}): Invalid model update, missing metadata.".format(self.name))
+            logger.error("UPDATE HANDLER: Invalid model update, missing metadata.")
             logger.error(tb)
             return False
         return True
@@ -117,7 +117,7 @@ class UpdateHandler:
         :rtype: tuple
         """
         model_id = model_update.model_update_id
-        model = self._load_model_update_str(model_id).getbuffer()
+        model = self.load_model_update_bytesIO(model_id).getbuffer()
         # Get relevant metadata
         metadata = json.loads(model_update.meta)
         if "config" in metadata.keys():
@@ -139,18 +139,18 @@ class UpdateHandler:
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """
-        model_str = self._load_model_update_str(model_id)
-        if model_str:
+        model_bytesIO = self.load_model_update_bytesIO(model_id)
+        if model_bytesIO:
             try:
-                model = load_model_from_bytes(model_str.getbuffer(), helper)
+                model = load_model_from_bytes(model_bytesIO.getbuffer(), helper)
             except IOError:
-                logger.warning("AGGREGATOR({}): Failed to load model!".format(self.name))
+                logger.warning("UPDATE HANDLER: Failed to load model!")
         else:
             raise ModelUpdateError("Failed to load model.")
 
         return model
 
-    def _load_model_update_str(self, model_id, retry=3):
+    def load_model_update_bytesIO(self, model_id, retry=3):
         """Load model update object and return it as BytesIO.
 
         :param model_id: The ID of the model

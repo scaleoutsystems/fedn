@@ -774,7 +774,12 @@ class FunctionServiceStub(object):
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.FromString,
                 )
-        self.HandleAggregation = channel.stream_stream(
+        self.HandleStoreModel = channel.stream_unary(
+                '/fedn.FunctionService/HandleStoreModel',
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
+                )
+        self.HandleAggregation = channel.unary_stream(
                 '/fedn.FunctionService/HandleAggregation',
                 request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
                 response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
@@ -808,7 +813,13 @@ class FunctionServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def HandleAggregation(self, request_iterator, context):
+    def HandleStoreModel(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HandleAggregation(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -837,7 +848,12 @@ def add_FunctionServiceServicer_to_server(servicer, server):
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.SerializeToString,
             ),
-            'HandleAggregation': grpc.stream_stream_rpc_method_handler(
+            'HandleStoreModel': grpc.stream_unary_rpc_method_handler(
+                    servicer.HandleStoreModel,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelRequest.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelResponse.SerializeToString,
+            ),
+            'HandleAggregation': grpc.unary_stream_rpc_method_handler(
                     servicer.HandleAggregation,
                     request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.FromString,
                     response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.SerializeToString,
@@ -921,7 +937,7 @@ class FunctionService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def HandleAggregation(request_iterator,
+    def HandleStoreModel(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -931,7 +947,24 @@ class FunctionService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(request_iterator, target, '/fedn.FunctionService/HandleAggregation',
+        return grpc.experimental.stream_unary(request_iterator, target, '/fedn.FunctionService/HandleStoreModel',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HandleAggregation(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/fedn.FunctionService/HandleAggregation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
             options, channel_credentials,

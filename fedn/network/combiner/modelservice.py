@@ -2,6 +2,8 @@ import os
 import tempfile
 from io import BytesIO
 
+import numpy as np
+
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
@@ -52,9 +54,13 @@ def bytesIO_request_generator(mdl, request_function, args):
             break
 
 
-def model_as_bytesIO(model):
+def model_as_bytesIO(model, helper=None):
     if isinstance(model, list):
-        serialize_model_to_BytesIO(model)
+        bt = BytesIO()
+        model_dict = {str(i): w for i, w in enumerate(model)}
+        np.savez_compressed(bt, **model_dict)
+        bt.seek(0)
+        return bt
     if not isinstance(model, BytesIO):
         bt = BytesIO()
 
@@ -67,6 +73,31 @@ def model_as_bytesIO(model):
 
     bt.seek(0, 0)
     return bt
+
+
+def unpack_model(request_iterator, helper):
+    """Unpack an incoming model sent in chunks from a request iterator.
+
+    :param request_iterator: A streaming iterator from an gRPC service.
+    :return: The reconstructed model parameters.
+    """
+    model_buffer = BytesIO()
+    try:
+        for request in request_iterator:
+            if request.data:
+                model_buffer.write(request.data)
+    except MemoryError as e:
+        logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Exception occured during model loading: {e}")
+        raise
+
+    model_buffer.seek(0)
+
+    model_bytes = model_buffer.getvalue()
+
+    return load_model_from_bytes(model_bytes, helper), request
 
 
 def get_tmp_path():

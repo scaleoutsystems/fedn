@@ -5,7 +5,8 @@ import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.network.combiner.modelservice import bytesIO_request_generator, load_model_from_bytes, model_as_bytesIO
+from fedn.common.log_config import logger
+from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
 from fedn.network.combiner.updatehandler import UpdateHandler
 
 CHUNK_SIZE = 1024 * 1024
@@ -64,28 +65,30 @@ class CombinerHookInterface:
         data["time_model_load"] = 0.0
         data["time_model_aggregation"] = 0.0
         # send previous global
-        request_function = fedn.AggregationRequest
-        args = {"id": "global_model", "aggregate": False}
-        model = model_as_bytesIO(previous_global)
-        self.stub.HandleAggregation(bytesIO_request_generator(mdl=model, request_function=request_function, args=args))
+        request_function = fedn.StoreModelRequest
+        args = {"id": "global_model"}
+        response = self.stub.HandleStoreModel(bytesIO_request_generator(mdl=previous_global, request_function=request_function, args=args))
+        logger.info(f"Store model response: {response.status}")
         # send client models and metadata
         updates = update_handler.get_model_updates()
         for update in updates:
-            model, metadata = update_handler.load_model_update(update, helper)
+            metadata = json.loads(update.meta)["training_metadata"]
+            model = update_handler.load_model_update_bytesIO(update.model_update_id)
             # send metadata
             client_id = update.sender.client_id
-            request = fedn.ClientMetaRequest(metadata=metadata, client_id=client_id)
-            self.stub.HandleMetadata(request)
+            request = fedn.ClientMetaRequest(metadata=json.dumps(metadata), client_id=client_id)
+            response = self.stub.HandleMetadata(request)
             # send client model
-            model = model_as_bytesIO(model)
-            args = {"id": client_id, "aggregate": False}
-            request_function = fedn.AggregationRequest
-            self.stub.HandleAggregation(bytesIO_request_generator(mdl=model, request_function=request_function, args=args))
+            args = {"id": client_id}
+            request_function = fedn.StoreModelRequest
+            response = self.stub.HandleStoreModel(bytesIO_request_generator(mdl=model, request_function=request_function, args=args))
+            logger.info(f"Store model response: {response.status}")
             if delete_models:
                 # delete model from disk
                 update_handler.delete_model(model_update=update)
         # ask for aggregation
-        request = fedn.AggregationRequest(data=None, client_id="", aggregate=True)
-        response = self.stub.HandleAggregation(request)
+        request = fedn.AggregationRequest(aggregate="aggregate")
+        response_generator = self.stub.HandleAggregation(request)
         data["nr_aggregated_models"] = len(updates)
-        return load_model_from_bytes(response.data, helper), data
+        model, _ = unpack_model(response_generator, helper)
+        return model, data

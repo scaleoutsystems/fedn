@@ -9,7 +9,7 @@ class ServerFunctions(ServerFunctionsBase):
     def __init__(self) -> None:
         # You can keep a state between different functions to have them work together.
         self.round = 0
-        self.lr = 0.01
+        self.lr = 0.1
 
     # Skip any function to use the default FEDn implementation for the function.
 
@@ -33,15 +33,15 @@ class ServerFunctions(ServerFunctionsBase):
         # Weighted fedavg implementation.
         weighted_sum = [np.zeros_like(param) for param in previous_global]
         total_weight = 0
+        logger.info("updateees ye")
         for client_id, (client_parameters, metadata) in client_updates.items():
+            logger.info(f"metadata: {metadata}")
             num_examples = metadata.get("num_examples", 0)
-            if num_examples > 0:
-                total_weight += num_examples
-                for i in range(len(weighted_sum)):
-                    weighted_sum[i] += client_parameters[i] * num_examples
-        if total_weight > 0:
-            averaged_updates = [weighted / total_weight for weighted in weighted_sum]
-            return averaged_updates
-        # Need to use logger instead of prints.
-        logger.info("Aggregation failed, using previous global model.")
-        return previous_global
+            logger.info(f"num_examples: {num_examples}")
+            total_weight += num_examples
+            for i in range(len(weighted_sum)):
+                weighted_sum[i] += client_parameters[i] * num_examples
+
+        logger.info("Models aggregated")
+        averaged_updates = [weighted / total_weight for weighted in weighted_sum]
+        return averaged_updates

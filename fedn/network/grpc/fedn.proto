@@ -278,10 +278,17 @@ message ClientMetaResponse {
   string status = 1;
 }
 
-message AggregationRequest {
+message StoreModelRequest {
   bytes data = 1;
-  string client_id = 2;
-  bool aggregate = 3;
+  string id = 2;
+}
+
+message StoreModelResponse {
+  string status = 1;
+}
+
+message AggregationRequest {
+  string aggregate = 1;
 }
 
 message AggregationResponse {
@@ -293,5 +300,6 @@ service FunctionService {
   rpc HandleClientConfig (stream ClientConfigRequest) returns (ClientConfigResponse);
   rpc HandleClientSelection (ClientSelectionRequest) returns (ClientSelectionResponse);
   rpc HandleMetadata (ClientMetaRequest) returns (ClientMetaResponse);
-  rpc HandleAggregation (stream AggregationRequest) returns (stream AggregationResponse);
+  rpc HandleStoreModel (stream StoreModelRequest) returns (StoreModelResponse);
+  rpc HandleAggregation (AggregationRequest) returns (stream AggregationResponse);
 }
