@@ -24,6 +24,41 @@ You will see a Studio project similar to the image below. The Studio project pro
 
 .. image:: img/studio_project_overview.png
 
+1.5 Set up a Virtual environment (Recommended)
+----------------------------------------------
+
+Before installing FEDn using pip, we recommend creating a virtual environment. This helps isolate dependencies and avoids conflicts with other Python projects on your machine.
+
+You can set up and activate a virtual environment using the following steps:
+
+**Using venv** (Python's built-in module for virtual environments)
+
+.. tabs::
+
+    .. code-tab:: bash
+         :caption: Unix/MacOS
+
+         python3 -m venv fedn_env
+         source fedn_env/bin/activate
+
+    .. code-tab:: bash
+         :caption: Windows (PowerShell)
+
+         python -m venv fedn_env
+         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+         fedn_env\Scripts\Activate.ps1
+
+    .. code-tab:: bash
+         :caption: Windows (CMD.exe)
+
+         python -m venv fedn_env
+         fedn_env\Scripts\activate.bat
+
+
+For additional information visit the `Python venv documentation <https://docs.python.org/3/library/venv.html>`_. 
+
+After activating the virtual environment, you can proceed with the next steps.
+
 2. Prepare the clients and define the global model
 ---------------------------------------------------
 
@@ -50,7 +85,6 @@ Clone the FEDn repository and install the package:
    cd fedn
    pip install .
 
-It is recommended to use a virtual environment when installing FEDn.
 
 .. _package-creation:
 
@@ -136,15 +170,24 @@ Start a client (using a 10-split and the 1st partition) by running the following
          export FEDN_PACKAGE_EXTRACT_DIR=package
          export FEDN_NUM_DATA_SPLITS=10
          export FEDN_DATA_PATH=./data/clients/1/mnist.pt
-         fedn run client -in client.yaml --secure=True --force-ssl
+         fedn client start -in client.yaml --secure=True --force-ssl
 
     .. code-tab:: bash
-         :caption: Windows (Powershell)
+         :caption: Windows (PowerShell)
 
-         $env:FEDN_PACKAGE_EXTRACT_DIR="package"
+         $env:FEDN_PACKAGE_EXTRACT_DIR=".\package"
          $env:FEDN_NUM_DATA_SPLITS=10
-         $env:FEDN_DATA_PATH="./data/clients/1/mnist.pt"
-         fedn run client -in client.yaml --secure=True --force-ssl
+         $env:FEDN_DATA_PATH=".\data\clients\1\mnist.pt"
+         fedn client start -in client.yaml --secure=True --force-ssl
+
+    .. code-tab:: bash
+         :caption: Windows (CMD.exe)
+
+         set FEDN_PACKAGE_EXTRACT_DIR=.\package\\
+         set FEDN_NUM_DATA_SPLITS=10
+         set FEDN_DATA_PATH=.\data\\clients\\1\\mnist.pt
+         fedn client start -in client.yaml --secure=True --force-ssl
+
 
 Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
 A normal laptop should be able to handle several clients for this example. Remember to use different partitions for each client, by changing the number in the ``FEDN_DATA_PATH`` variable. 
@@ -204,9 +247,8 @@ to learn how to set up an all-in-one development environment using Docker and do
 :ref:`developer-label`
 
 .. meta::
-   :description lang=en: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers. The first step is to start the server side (aggregator, controller). We do this by setting up a new Project in FEDn Studio.
+   :description lang=en: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers.
    :keywords: Getting started with Federated Learning, Federated Learning, Federated Learning Framework, Federated Learning Platform
-   :robots: index, follow
    :og:title: Getting started with FEDn
    :og:description: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers.
    :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png

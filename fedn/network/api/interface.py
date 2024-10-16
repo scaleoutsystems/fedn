@@ -600,18 +600,30 @@ class API:
         :return: A json response with success or failure message.
         :rtype: :class:`flask.Response`
         """
+        logger.info("Adding model")
         try:
             object = BytesIO()
             object.seek(0, 0)
             file.seek(0)
             object.write(file.read())
             helper = self.control.get_helper()
+            logger.info(f"Loading model from file using helper {helper.name}")
             object.seek(0)
             model = helper.load(object)
             self.control.commit(file.filename, model)
         except Exception as e:
+            logger.error("Error occured during model loading")
             logger.debug(e)
-            return jsonify({"success": False, "message": "Failed to add initial model."})
+            status_code = 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to add model.",
+                    }
+                ),
+                status_code,
+            )
 
         return jsonify({"success": True, "message": "Initial model added successfully."})
 

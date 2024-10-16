@@ -41,5 +41,3 @@ fedn.network.combiner.aggregators.fedopt module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

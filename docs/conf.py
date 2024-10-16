@@ -11,7 +11,7 @@ project = "FEDn"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.16.1"
+release = "0.17.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -24,6 +24,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_code_tabs",
+    "sphinx_copybutton",
 ]
 
 # The master toctree document.
@@ -40,6 +41,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.
 html_theme = "sphinx_rtd_theme"
 
+html_baseurl = "https://docs.scaleoutsystems.com/en/stable/"
 html_theme_options = {
     "logo_only": True,
 }

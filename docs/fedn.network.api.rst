@@ -41,5 +41,3 @@ fedn.network.api.tests module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow

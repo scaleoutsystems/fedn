@@ -54,6 +54,6 @@ many different possible outcomes can be achieved. Good starting configurations a
 
 .. meta::
    :description lang=en:
-      Architecture overview - Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network.
+      Architecture overview - An overview of the FEDn federated learning platform architecture.
    :keywords: Federated Learning, Architecture, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-   :robots: index, follow
+   

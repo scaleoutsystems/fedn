@@ -30,6 +30,6 @@ for further details.
 
 .. meta::
    :description lang=en:
-      Model marshalling - In federated learning, model updates need to be serialized and deserialized in order to be transferred between clients and server/combiner. There is also a need to write and load models to/from disk, for example to transiently store updates during training rounds.
+      In federated learning, model updates need to be serialized and deserialized in order to be transferred between clients and server/combiner.
    :keywords: Federated Learning, Model marshalling, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-   :robots: index, follow
+   

@@ -137,6 +137,6 @@ For more information on how to use the APIClient, see the :py:mod:`fedn.network.
 
 .. meta::
    :description lang=en:
-      FEDn comes with an APIClient - a Python3 library that can be used to interact with FEDn programmatically. In this tutorial we show how to use the APIClient to initialize the server-side with the compute package and seed models, run and control training sessions and to retrieve models and metrics.
+      FEDn comes with an APIClient - a Python3 library that can be used to interact with FEDn programmatically.
    :keywords: Federated Learning, APIClient, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-   :robots: index, follow
+   

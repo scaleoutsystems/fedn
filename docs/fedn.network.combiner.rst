@@ -65,5 +65,3 @@ fedn.network.combiner.roundhandler module
    :undoc-members:
    :show-inheritance:
 
-.. meta::
-   :robots: index, follow
