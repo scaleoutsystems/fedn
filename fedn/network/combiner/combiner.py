@@ -650,6 +650,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata["client"]))
 
         status = fedn.Status(status="Client {} connecting to TaskStream.".format(client.name))
+        logger.info("Client {} connecting to TaskStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.timestamp.GetCurrentTime()
 
@@ -702,6 +703,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 pass
             except Exception as e:
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
+        logger.warning("Client {} disconnected from TaskStream".format(client.name))
+        status = fedn.Status(status="Client {} disconnected from TaskStream.".format(client.name))
+        status.log_level = fedn.Status.INFO
+        status.timestamp.GetCurrentTime()
+        self._send_status(status)
 
     def SendModelUpdate(self, request, context):
         """Send a model update response.
