@@ -21,7 +21,7 @@ class RoundConfig(TypedDict):
     :type _job_id: str
     :param committed_at: The time the round was committed. Set by Controller.
     :type committed_at: str
-    :param task: The task to perform in the round. Set by Controller. Supported tasks are "training", "validation", and "inference".
+    :param task: The task to perform in the round. Set by Controller. Supported tasks are "training", "validation", and "prediction".
     :type task: str
     :param round_id: The round identifier as str(int)
     :type round_id: str
@@ -42,6 +42,8 @@ class RoundConfig(TypedDict):
     :type model_metadata: dict
     :param session_id: The session identifier. Set by (Controller?).
     :type session_id: str
+    :param prediction_id: The prediction identifier. Only used for prediction tasks.
+    :type prediction_id: str
     :param helper_type: The helper type.
     :type helper_type: str
     :param aggregator: The aggregator type.
@@ -250,17 +252,17 @@ class RoundHandler:
         """
         self.server.request_model_validation(session_id, model_id, clients=clients)
 
-    def _inference_round(self, session_id: str, model_id: str, clients: list):
-        """Send model inference requests to clients.
+    def _prediction_round(self, prediction_id: str, model_id: str, clients: list):
+        """Send model prediction requests to clients.
 
         :param config: The round config object (passed to the client).
         :type config: dict
-        :param clients: clients to send inference requests to
+        :param clients: clients to send prediction requests to
         :type clients: list
-        :param model_id: The ID of the model to use for inference
+        :param model_id: The ID of the model to use for prediction
         :type model_id: str
         """
-        self.server.request_model_inference(session_id, model_id, clients=clients)
+        self.server.request_model_prediction(prediction_id, model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download a model from persistent storage and set in modelservice.
@@ -348,17 +350,17 @@ class RoundHandler:
         validators = self._assign_round_clients(self.server.max_clients, type="validators")
         self._validation_round(session_id, model_id, validators)
 
-    def execute_inference_round(self, session_id: str, model_id: str) -> None:
-        """Coordinate inference rounds as specified in config.
+    def execute_prediction_round(self, prediction_id: str, model_id: str) -> None:
+        """Coordinate prediction rounds as specified in config.
 
         :param round_config: The round config object.
         :type round_config: dict
         """
-        logger.info("COMBINER orchestrating inference using model {}".format(model_id))
+        logger.info("COMBINER orchestrating prediction using model {}".format(model_id))
         self.stage_model(model_id)
-        # TODO: Implement inference client type
+        # TODO: Implement prediction client type
         clients = self._assign_round_clients(self.server.max_clients, type="validators")
-        self._inference_round(session_id, model_id, clients)
+        self._prediction_round(prediction_id, model_id, clients)
 
     def execute_training_round(self, config):
         """Coordinates clients to execute training tasks.
@@ -407,8 +409,6 @@ class RoundHandler:
             while True:
                 try:
                     round_config = self.round_configs.get(block=False)
-                    session_id = round_config["session_id"]
-                    model_id = round_config["model_id"]
 
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
@@ -416,6 +416,8 @@ class RoundHandler:
 
                     if ready:
                         if round_config["task"] == "training":
+                            session_id = round_config["session_id"]
+                            model_id = round_config["model_id"]
                             tic = time.time()
                             round_meta = self.execute_training_round(round_config)
                             round_meta["time_exec_training"] = time.time() - tic
@@ -423,9 +425,13 @@ class RoundHandler:
                             round_meta["name"] = self.server.id
                             self.server.statestore.set_round_combiner_data(round_meta)
                         elif round_config["task"] == "validation":
+                            session_id = round_config["session_id"]
+                            model_id = round_config["model_id"]
                             self.execute_validation_round(session_id, model_id)
-                        elif round_config["task"] == "inference":
-                            self.execute_inference_round(session_id, model_id)
+                        elif round_config["task"] == "prediction":
+                            prediction_id = round_config["prediction_id"]
+                            model_id = round_config["model_id"]
+                            self.execute_prediction_round(prediction_id, model_id)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:

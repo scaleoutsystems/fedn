@@ -7,7 +7,7 @@ from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.store import Store
 
-from .shared import EntityNotFound
+from .shared import EntityNotFound, from_document
 
 
 class Client:
@@ -30,7 +30,7 @@ class Client:
             ip=data["ip"] if "ip" in data else None,
             status=data["status"] if "status" in data else None,
             updated_at=data["updated_at"] if "updated_at" in data else None,
-            last_seen=data["last_seen"] if "last_seen" in data else None
+            last_seen=data["last_seen"] if "last_seen" in data else None,
         )
 
 
@@ -49,14 +49,34 @@ class ClientStore(Store[Client]):
         response = super().get(id, use_typing=use_typing)
         return Client.from_dict(response) if use_typing else response
 
-    def update(self, id: str, item: Client) -> bool:
-        raise NotImplementedError("Update not implemented for ClientStore")
+    def _get_client_by_client_id(self, client_id: str) -> Dict:
+        document = self.database[self.collection].find_one({"client_id": client_id})
+        if document is None:
+            raise EntityNotFound(f"Entity with client_id {client_id} not found")
+        return document
 
-    def add(self, item: Client)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for ClientStore")
+    def _get_client_by_name(self, name: str) -> Dict:
+        document = self.database[self.collection].find_one({"name": name})
+        if document is None:
+            raise EntityNotFound(f"Entity with name {name} not found")
+        return document
+
+    def update(self, by_key: str, value: str, item: Client) -> bool:
+        try:
+            result = self.database[self.collection].update_one({by_key: value}, {"$set": item})
+            if result.modified_count == 1:
+                document = self.database[self.collection].find_one({by_key: value})
+                return True, from_document(document)
+            else:
+                return False, "Entity not found"
+        except Exception as e:
+            return False, str(e)
+
+    def add(self, item: Client) -> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
-        kwargs = { "_id": ObjectId(id) } if ObjectId.is_valid(id) else { "client_id": id }
+        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"client_id": id}
 
         document = self.database[self.collection].find_one(kwargs)
 
@@ -86,10 +106,7 @@ class ClientStore(Store[Client]):
 
         result = [Client.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
@@ -111,13 +128,13 @@ class ClientStore(Store[Client]):
                 [
                     {"$match": {"combiner": {"$in": combiners}, "status": "online"}},
                     {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}},
                 ]
                 if len(combiners) > 0
                 else [
-                    {"$match": { "status": "online"}},
+                    {"$match": {"status": "online"}},
                     {"$group": {"_id": "$combiner", "count": {"$sum": 1}}},
-                    {"$project": {"id": "$_id", "count": 1, "_id": 0}}
+                    {"$project": {"id": "$_id", "count": 1, "_id": 0}},
                 ]
             )
 
