@@ -15,7 +15,7 @@ def _eprint(*args, **kwargs):
 def _wait_n_rounds(collection):
     n = 0
     for _ in range(RETRIES):
-        query = {'type': 'INFERENCE'}
+        query = {'type': 'MODEL_PREDICTION'}
         n = collection.count_documents(query)
         if n == N_CLIENTS:
             return n
@@ -32,4 +32,4 @@ if __name__ == '__main__':
     # Wait for successful rounds
     succeded = _wait_n_rounds(client['fedn-test-network']['control']['status'])
     assert(succeded == N_CLIENTS)  # check that all rounds succeeded
-    _eprint(f'Succeded inference clients: {succeded}. Test passed.')
+    _eprint(f'Succeded prediction clients: {succeded}. Test passed.')

@@ -11,19 +11,19 @@ from .shared import EntityNotFound, from_document
 
 class Combiner:
     def __init__(
-            self,
-            id: str,
-            name: str,
-            address: str,
-            certificate: str,
-            config: dict,
-            fqdn: str,
-            ip: str,
-            key: str,
-            parent: dict,
-            port: int,
-            status: str,
-            updated_at: str
+        self,
+        id: str,
+        name: str,
+        address: str,
+        certificate: str,
+        config: dict,
+        fqdn: str,
+        ip: str,
+        key: str,
+        parent: dict,
+        port: int,
+        status: str,
+        updated_at: str,
     ):
         self.id = id
         self.name = name
@@ -51,7 +51,7 @@ class Combiner:
             parent=data["parent"] if "parent" in data else None,
             port=data["port"] if "port" in data else None,
             status=data["status"] if "status" in data else None,
-            updated_at=data["updated_at"] if "updated_at" in data else None
+            updated_at=data["updated_at"] if "updated_at" in data else None,
         )
 
 
@@ -82,12 +82,12 @@ class CombinerStore(Store[Combiner]):
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerStore")
 
-    def add(self, item: Combiner)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for CombinerStore")
+    def add(self, item: Combiner) -> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
-        if(ObjectId.is_valid(id)):
-            kwargs = { "_id": ObjectId(id)}
+        if ObjectId.is_valid(id):
+            kwargs = {"_id": ObjectId(id)}
         else:
             return False
 
@@ -119,10 +119,7 @@ class CombinerStore(Store[Combiner]):
 
         result = [Combiner.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
