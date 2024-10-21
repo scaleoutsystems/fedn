@@ -27,7 +27,7 @@ class Prediction:
             data=data["data"] if "data" in data else None,
             correlation_id=data["correlationId"] if "correlationId" in data else None,
             timestamp=data["timestamp"] if "timestamp" in data else None,
-            session_id=data["sessionId"] if "sessionId" in data else None,
+            prediction_id=data["predictionId"] if "predictionId" in data else None,
             meta=data["meta"] if "meta" in data else None,
             sender=data["sender"] if "sender" in data else None,
             receiver=data["receiver"] if "receiver" in data else None,
