@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, mdb
+from fedn.network.api.v1.shared import api_version, mdb, get_typed_list_headers, get_post_data_to_kwargs
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
@@ -49,3 +49,40 @@ def start_session():
         return jsonify({"message": "Prediction session started"}), 200
     except Exception:
         return jsonify({"message": "Failed to start prediction session"}), 500
+
+
+@bp.route("/", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_predictions():
+    try:
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        kwargs = request.args.to_dict()
+
+        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+
+        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
+
+        response = {"count": predictions["count"], "result": result}
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
+    
+
+@bp.route("/list", methods=["POST"])
+@jwt_auth_required(role="admin")
+def list_predictions():
+    try:
+        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        kwargs = get_post_data_to_kwargs(request)
+
+        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
+
+        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
+
+        response = {"count": predictions["count"], "result": result}
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
+        
