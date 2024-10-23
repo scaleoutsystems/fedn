@@ -182,7 +182,7 @@ def get_predictions():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
-    
+
 
 @bp.route("/list", methods=["POST"])
 @jwt_auth_required(role="admin")
@@ -280,4 +280,3 @@ def list_predictions():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
-        
