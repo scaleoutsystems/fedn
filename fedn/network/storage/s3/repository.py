@@ -12,9 +12,9 @@ class Repository:
         self.model_bucket = config["storage_bucket"]
         self.context_bucket = config["context_bucket"]
         try:
-            self.inference_bucket = config["inference_bucket"]
+            self.prediction_bucket = config["prediction_bucket"]
         except KeyError:
-            self.inference_bucket = "fedn-inference"
+            self.prediction_bucket = "fedn-prediction"
 
         # TODO: Make a plug-in solution
         self.client = MINIORepository(config)
@@ -22,7 +22,7 @@ class Repository:
         if init_buckets:
             self.client.create_bucket(self.context_bucket)
             self.client.create_bucket(self.model_bucket)
-            self.client.create_bucket(self.inference_bucket)
+            self.client.create_bucket(self.prediction_bucket)
 
     def get_model(self, model_id):
         """Retrieve a model with id model_id.
