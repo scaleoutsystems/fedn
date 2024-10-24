@@ -180,8 +180,8 @@ def get_predictions():
         response = {"count": predictions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/list", methods=["POST"])
@@ -278,5 +278,5 @@ def list_predictions():
         response = {"count": predictions["count"], "result": result}
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": f"An unexpected error occurred: {str(e)}"}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
