@@ -1,8 +1,12 @@
 import enum
 import os
 import time
+import threading
 from io import BytesIO
 from typing import Any, Tuple
+import uuid
+from abc import ABC, abstractmethod
+import json
 
 import requests
 
@@ -50,7 +54,7 @@ def get_compute_package_dir_path():
     return result
 
 
-class ClientAPI:
+class ClientAPI(ABC):
     def __init__(self):
         self._subscribers = {"train": [], "validation": []}
         path = get_compute_package_dir_path()
@@ -217,8 +221,62 @@ class ClientAPI:
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
             self.train(request)
+            # self.update_local_model(request)
         elif request.type == fedn.StatusType.MODEL_VALIDATION:
             self.validate(request)
+            # self.validate_global_model(request)
+
+    def update_local_model(self, request):
+        model_id = request.model_id
+        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+        out_model, training_metadata, config = self.custom_train(in_model)
+        model_update_id = str(uuid.uuid4())
+        self.send_model_to_combiner(out_model, model_update_id)
+        self.send_model_update(model_id, model_update_id, training_metadata, config, request)
+
+    def validate_global_model(self, request):
+        model_id = request.model_id
+        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+        metrics = self.custom_validate(in_model)
+        self.send_model_validation(metrics, request)
+
+    @abstractmethod
+    def custom_train(self, in_model: BytesIO) -> Tuple[BytesIO, dict, dict]:
+        """Implement the machine learning training logic.
+
+        :param in_model: The input model to be trained.
+        :type in_model: BytesIO
+        :return: A tuple containing the trained model, training_metadata, and config.
+        :rtype: Tuple[BytesIO, dict, dict]
+        """
+        print("Train method not implemented. Uploading global model to combiner...")
+        return None, None, None
+
+    @abstractmethod
+    def custom_validate(self, model: BytesIO) -> dict:
+        """Implement the machine learning validation logic.
+
+        :param model: The input model to be validated.
+        :type model: BytesIO
+        :return: A dictionary representing the validation metrics.
+        :rtype: dict
+        """
+        print("Validate method not implemented. Returning empty dictionary.")
+        return {}
+    
+    def set_name(self, name: str):
+        self.name = name
+
+    def set_client_id(self, client_id: str):
+        self.client_id = client_id
+
+    def run(self):
+        threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id}, daemon=True).start()
+        try:
+            print("Listening to task stream...")
+            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+        except KeyboardInterrupt:
+            print("Client stopped by user.")
 
     def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
         return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
@@ -230,36 +288,38 @@ class ClientAPI:
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
     def send_model_update(self,
-        sender_name: str,
-        sender_role: fedn.Role,
-        client_id: str,
         model_id: str,
         model_update_id: str,
-        receiver_name: str,
-        receiver_role: fedn.Role,
-        meta: dict
+        training_metadata: dict,
+        config: dict,
+        request: fedn.TaskRequest
     ) -> bool:
+
         return self.grpc_handler.send_model_update(
-            sender_name=sender_name,
-            sender_role=sender_role,
-            client_id=client_id,
+            sender_name=self.name,
             model_id=model_id,
             model_update_id=model_update_id,
-            receiver_name=receiver_name,
-            receiver_role=receiver_role,
-            meta=meta
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            meta={
+                "training_metadata": training_metadata,
+                "config": config,
+            }
         )
 
     def send_model_validation(self,
-        sender_name: str,
-        receiver_name: str,
-        receiver_role: fedn.Role,
-        model_id: str,
         metrics: dict,
-        correlation_id: str,
-        session_id: str
+        request: fedn.TaskRequest
     ) -> bool:
-        return self.grpc_handler.send_model_validation(sender_name, receiver_name, receiver_role, model_id, metrics, correlation_id, session_id)
+        return self.grpc_handler.send_model_validation(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            model_id=request.model_id,
+            metrics=json.dumps(metrics),
+            correlation_id=request.correlation_id,
+            session_id=request.session_id
+        )
 
     # Init functions
     def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:

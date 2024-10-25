@@ -236,8 +236,6 @@ class GrpcHandler:
 
     def send_model_update(self,
         sender_name: str,
-        sender_role: fedn.Role,
-        client_id: str,
         model_id: str,
         model_update_id: str,
         receiver_name: str,
@@ -246,8 +244,8 @@ class GrpcHandler:
     ):
         update = fedn.ModelUpdate()
         update.sender.name = sender_name
-        update.sender.role = sender_role
-        update.sender.client_id = client_id
+        update.sender.role = fedn.WORKER
+        update.sender.client_id = self.metadata[0][1]
         update.receiver.name = receiver_name
         update.receiver.role = receiver_role
         update.model_id = model_id
@@ -264,7 +262,6 @@ class GrpcHandler:
                 "SendModelUpdate",
                 lambda: self.send_model_update(
                     sender_name,
-                    sender_role,
                     model_id,
                     model_update_id,
                     receiver_name,
