@@ -33,11 +33,8 @@ class ServerFunctions(ServerFunctionsBase):
         # Weighted fedavg implementation.
         weighted_sum = [np.zeros_like(param) for param in previous_global]
         total_weight = 0
-        logger.info("updateees ye")
         for client_id, (client_parameters, metadata) in client_updates.items():
-            logger.info(f"metadata: {metadata}")
-            num_examples = metadata.get("num_examples", 0)
-            logger.info(f"num_examples: {num_examples}")
+            num_examples = metadata.get("num_examples", 1)
             total_weight += num_examples
             for i in range(len(weighted_sum)):
                 weighted_sum[i] += client_parameters[i] * num_examples
