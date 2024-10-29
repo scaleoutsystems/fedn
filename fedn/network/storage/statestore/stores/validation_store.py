@@ -8,16 +8,7 @@ from fedn.network.storage.statestore.stores.store import Store
 
 class Validation:
     def __init__(
-            self,
-            id: str,
-            model_id: str,
-            data: str,
-            correlation_id: str,
-            timestamp: str,
-            session_id: str,
-            meta: str,
-            sender: dict = None,
-            receiver: dict = None
+        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, session_id: str, meta: str, sender: dict = None, receiver: dict = None
     ):
         self.id = id
         self.model_id = model_id
@@ -39,7 +30,7 @@ class Validation:
             session_id=data["sessionId"] if "sessionId" in data else None,
             meta=data["meta"] if "meta" in data else None,
             sender=data["sender"] if "sender" in data else None,
-            receiver=data["receiver"] if "receiver" in data else None
+            receiver=data["receiver"] if "receiver" in data else None,
         )
 
 
@@ -62,8 +53,8 @@ class ValidationStore(Store[Validation]):
     def update(self, id: str, item: Validation) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
-    def add(self, item: Validation)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for ValidationStore")
+    def add(self, item: Validation) -> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for ValidationStore")
@@ -90,7 +81,4 @@ class ValidationStore(Store[Validation]):
         response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
 
         result = [Validation.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}

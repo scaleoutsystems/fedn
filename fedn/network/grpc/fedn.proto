@@ -15,7 +15,7 @@ enum StatusType {
   MODEL_UPDATE = 2;
   MODEL_VALIDATION_REQUEST = 3;
   MODEL_VALIDATION = 4;
-  INFERENCE = 5;
+  MODEL_PREDICTION = 5;
 }
 
 message Status {
@@ -78,6 +78,17 @@ message ModelValidation {
   google.protobuf.Timestamp timestamp = 6;
   string meta = 7;
   string session_id = 8;
+}
+
+message ModelPrediction {
+  Client sender = 1;
+  Client receiver = 2;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string meta = 7;
+  string prediction_id = 8;
 }
 
 enum ModelStatus {
@@ -242,6 +253,7 @@ service Combiner {
 
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
+    rpc SendModelPrediction (ModelPrediction) returns (Response);
 
 }
 

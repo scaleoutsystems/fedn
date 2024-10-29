@@ -8,12 +8,12 @@ if [ "$#" -lt 1 ]; then
 fi
 example="$1"
 
->&2 echo "Run inference"
+>&2 echo "Run prediction"
 pushd "examples/$example"
-curl -k -X POST https://localhost:8090/infer
+curl -k -X POST https://localhost:8090/predict
 
->&2 echo "Checking inference success"
-".$example/bin/python" ../../.ci/tests/examples/inference_test.py
+>&2 echo "Checking prediction success"
+".$example/bin/python" ../../.ci/tests/examples/prediction_test.py
 
 >&2 echo "Test completed successfully"
 popd

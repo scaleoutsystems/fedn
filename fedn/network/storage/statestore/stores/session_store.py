@@ -23,7 +23,7 @@ class Session:
             id=str(data["_id"]),
             session_id=data["session_id"] if "session_id" in data else None,
             status=data["status"] if "status" in data else None,
-            session_config=data["session_config"] if "session_config" in data else None
+            session_config=data["session_config"] if "session_config" in data else None,
         )
 
 
@@ -71,7 +71,7 @@ class SessionStore(Store[Session]):
         if not isinstance(session_config["validate"], bool):
             return False, "session_config.validate must be a boolean"
 
-        if "helper_type" not in session_config:
+        if "helper_type" not in session_config or session_config["helper_type"] == "":
             return False, "session_config.helper_type is required"
 
         if not isinstance(session_config["helper_type"], str):
@@ -92,7 +92,7 @@ class SessionStore(Store[Session]):
         else:
             return False, "session_config must be a dict"
 
-        return  self._validate_session_config(session_config)
+        return self._validate_session_config(session_config)
 
     def _complement(self, item: Session):
         item["status"] = "Created"
@@ -100,7 +100,6 @@ class SessionStore(Store[Session]):
 
         if "session_id" not in item or item["session_id"] == "" or not isinstance(item["session_id"], str):
             item["session_id"] = str(uuid.uuid4())
-
 
     def get(self, id: str, use_typing: bool = False) -> Session:
         """Get an entity by id
@@ -173,7 +172,4 @@ class SessionStore(Store[Session]):
 
         result = [Session.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {
-            "count": response["count"],
-            "result": result
-        }
+        return {"count": response["count"], "result": result}

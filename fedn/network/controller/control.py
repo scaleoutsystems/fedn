@@ -82,7 +82,7 @@ class SessionTerminatedException(Exception):
 
 
 class Control(ControlBase):
-    """Controller, implementing the overall global training, validation and inference logic.
+    """Controller, implementing the overall global training, validation and prediction logic.
 
     :param statestore: A StateStorage instance.
     :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
@@ -215,11 +215,11 @@ class Control(ControlBase):
             self.set_session_status(config["session_id"], "Finished")
         self._state = ReducerState.idle
 
-    def inference_session(self, config: RoundConfig) -> None:
-        """Execute a new inference session.
+    def prediction_session(self, config: RoundConfig) -> None:
+        """Execute a new prediction session.
 
         :param config: The round config.
-        :type config: InferenceConfig
+        :type config: PredictionConfig
         :return: None
         """
         if self._state == ReducerState.instructing:
@@ -227,14 +227,14 @@ class Control(ControlBase):
             return
 
         if len(self.network.get_combiners()) < 1:
-            logger.warning("Inference round cannot start, no combiners connected!")
+            logger.warning("Prediction round cannot start, no combiners connected!")
             return
 
         if "model_id" not in config.keys():
             config["model_id"] = self.statestore.get_latest_model()
 
         config["committed_at"] = datetime.datetime.now()
-        config["task"] = "inference"
+        config["task"] = "prediction"
         config["rounds"] = str(1)
         config["clients_required"] = 1
 
@@ -244,10 +244,10 @@ class Control(ControlBase):
         round_start = self.evaluate_round_start_policy(participating_combiners)
 
         if round_start:
-            logger.info("Inference round start policy met, {} participating combiners.".format(len(participating_combiners)))
+            logger.info("Prediction round start policy met, {} participating combiners.".format(len(participating_combiners)))
             for combiner, _ in participating_combiners:
                 combiner.submit(config)
-                logger.info("Inference round submitted to combiner {}".format(combiner))
+                logger.info("Prediction round submitted to combiner {}".format(combiner))
 
     def round(self, session_config: RoundConfig, round_id: str):
         """Execute one global round.
@@ -441,10 +441,10 @@ class Control(ControlBase):
 
         return model, meta
 
-    def infer_instruct(self, config):
-        """Main entrypoint for executing the inference compute plan.
+    def predict_instruct(self, config):
+        """Main entrypoint for executing the prediction compute plan.
 
-        : param config: configuration for the inference round
+        : param config: configuration for the prediction round
         """
         # Check/set instucting state
         if self.__state == ReducerState.instructing:
@@ -459,19 +459,19 @@ class Control(ControlBase):
         # Set reducer in monitoring state
         self.__state = ReducerState.monitoring
 
-        # Start inference round
+        # Start prediction round
         try:
-            self.inference_round(config)
+            self.prediction_round(config)
         except TypeError:
             logger.error("Round failed.")
 
         # Set reducer in idle state
         self.__state = ReducerState.idle
 
-    def inference_round(self, config):
-        """Execute an inference round.
+    def prediction_round(self, config):
+        """Execute a prediction round.
 
-        : param config: configuration for the inference round
+        : param config: configuration for the prediction round
         """
         # Init meta
         round_data = {}
@@ -484,7 +484,7 @@ class Control(ControlBase):
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
         combiner_config["model_id"] = self.statestore.get_latest_model()
-        combiner_config["task"] = "inference"
+        combiner_config["task"] = "prediction"
         combiner_config["helper_type"] = self.statestore.get_framework()
 
         # Select combiners
@@ -498,12 +498,12 @@ class Control(ControlBase):
             logger.warning("Round start policy not met, skipping round!")
             return None
 
-        # Synch combiners with latest model and trigger inference
+        # Synch combiners with latest model and trigger prediction
         for combiner, combiner_config in validating_combiners:
             try:
                 combiner.submit(combiner_config)
             except CombinerUnavailableError:
-                # It is OK if inference fails for a combiner
+                # It is OK if prediction fails for a combiner
                 self._handle_unavailable_combiner(combiner)
                 pass
 
