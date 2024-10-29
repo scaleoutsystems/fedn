@@ -75,7 +75,7 @@ Step-by-Step Instructions
         print(f"API Token: {token or "-"}")
         print(f"API Port: {api_port or "-"}")
 
-        client_api = ClientAPI()
+        client_api = ClientAPI(train_callback=on_train, validate_callback=on_validate)
 
         url = get_api_url(api_url, api_port)
 
@@ -102,9 +102,6 @@ Step-by-Step Instructions
 
         if not result:
             return
-
-        client_api.set_train_callback(on_train)
-        client_api.set_validate_callback(on_validate)
 
         client_api.run()
 
