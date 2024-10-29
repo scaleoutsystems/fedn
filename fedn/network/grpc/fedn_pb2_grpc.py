@@ -643,8 +643,8 @@ class CombinerStub(object):
                 )
         self.SendModelPrediction = channel.unary_unary(
                 '/fedn.Combiner/SendModelPrediction',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                request_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+                response_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 )
 
 
@@ -696,8 +696,8 @@ def add_CombinerServicer_to_server(servicer, server):
             ),
             'SendModelPrediction': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelPrediction,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+                    request_deserializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
+                    response_serializer=fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -756,6 +756,23 @@ class Combiner(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelValidation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendModelPrediction(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelPrediction',
+            fedn_dot_network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -983,22 +1000,5 @@ class FunctionService(object):
         return grpc.experimental.unary_stream(request, target, '/fedn.FunctionService/HandleAggregation',
             fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
             fedn_dot_network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SendModelPrediction(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/fedn.Combiner/SendModelPrediction',
-            network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

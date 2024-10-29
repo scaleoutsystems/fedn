@@ -70,6 +70,7 @@ class RoundConfig(TypedDict):
     session_id: str
     helper_type: str
     aggregator: str
+    client_config: dict
 
 
 class RoundHandler:
