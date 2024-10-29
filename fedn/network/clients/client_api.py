@@ -5,7 +5,6 @@ import threading
 from io import BytesIO
 from typing import Any, Tuple
 import uuid
-from abc import ABC, abstractmethod
 import json
 
 import requests
@@ -210,7 +209,7 @@ class ClientAPI:
         if in_model is None:
             logger.error("Could not retrieve model from combiner. Aborting training request.")
             return
-        
+
         fetch_model_time = time.time() - tic
 
         if not self.train_callback:
@@ -293,7 +292,7 @@ class ClientAPI:
                 metrics=metrics,
                 request=request
             )
-        
+
             if result:
                 self.send_status(
                     "Model validation completed.",

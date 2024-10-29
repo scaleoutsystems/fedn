@@ -3,10 +3,9 @@ import json
 import os
 import time
 import uuid
-from typing import Tuple
 from io import BytesIO
+from typing import Tuple
 
-import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
@@ -44,16 +43,17 @@ class ClientOptions:
 
 
 class Client:
-    def __init__(self,
-            api_url: str,
-            api_port: int,
-            client_obj: ClientOptions,
-            combiner_host: str = None,
-            combiner_port: int = None,
-            token: str = None,
-            package_checksum: str = None,
-            helper_type: str = None
-        ):
+    def __init__(
+        self,
+        api_url: str,
+        api_port: int,
+        client_obj: ClientOptions,
+        combiner_host: str = None,
+        combiner_port: int = None,
+        token: str = None,
+        package_checksum: str = None,
+        helper_type: str = None,
+    ):
         self.api_url = api_url
         self.api_port = api_port
         self.combiner_host = combiner_host
@@ -140,7 +140,6 @@ class Client:
         metrics = self._process_validation_request(in_model)
         return metrics
 
-
     def _process_training_request(self, in_model: BytesIO) -> Tuple[BytesIO, dict]:
         """Process a training (model update) request.
 
@@ -149,7 +148,6 @@ class Client:
         :return: The updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
-
         try:
             meta = {}
 
@@ -197,7 +195,6 @@ class Client:
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
-
         try:
             inpath = self.helper.get_tmp_path()
 
