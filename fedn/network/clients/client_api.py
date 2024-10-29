@@ -55,9 +55,9 @@ def get_compute_package_dir_path():
 
 
 class ClientAPI:
-    def __init__(self):
-        self.train_callback: callable = None
-        self.validate_callback: callable = None
+    def __init__(self, train_callback: callable = None, validate_callback: callable = None):
+        self.train_callback: callable = train_callback
+        self.validate_callback: callable = validate_callback
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
 
