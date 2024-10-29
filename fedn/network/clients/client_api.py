@@ -54,8 +54,10 @@ def get_compute_package_dir_path():
     return result
 
 
-class ClientAPI(ABC):
+class ClientAPI:
     def __init__(self):
+        self.train_callback: callable = None
+        self.validate_callback: callable = None
         self._subscribers = {"train": [], "validation": []}
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
@@ -93,6 +95,12 @@ class ClientAPI(ABC):
 
         # Notify all subscribers about the validation event
         self.notify_subscribers("validation", *args, **kwargs)
+
+    def set_train_callback(self, callback: callable):
+        self.train_callback = callback
+
+    def set_validate_callback(self, callback: callable):
+        self.validate_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         # TODO: Use new API endpoint (v1)
@@ -220,16 +228,18 @@ class ClientAPI(ABC):
 
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
-            self.train(request)
-            # self.update_local_model(request)
+            self.update_local_model(request)
         elif request.type == fedn.StatusType.MODEL_VALIDATION:
-            self.validate(request)
-            # self.validate_global_model(request)
+            self.validate_global_model(request)
 
     def update_local_model(self, request):
         model_id = request.model_id
         in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
-        out_model, training_metadata, config = self.custom_train(in_model)
+        if not self.train_callback:
+            logger.error("No train callback set")
+            return
+        logger.info(f"Running train callback with model ID: {model_id}")
+        out_model, training_metadata, config = self.train_callback(in_model)
         model_update_id = str(uuid.uuid4())
         self.send_model_to_combiner(out_model, model_update_id)
         self.send_model_update(model_id, model_update_id, training_metadata, config, request)
@@ -237,46 +247,28 @@ class ClientAPI(ABC):
     def validate_global_model(self, request):
         model_id = request.model_id
         in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
-        metrics = self.custom_validate(in_model)
+        if not self.validate_callback:
+            logger.error("No validate callback set")
+            return
+        logger.info(f"Running validate callback with model ID: {model_id}")
+        metrics = self.validate_callback(in_model)
         self.send_model_validation(metrics, request)
-
-    @abstractmethod
-    def custom_train(self, in_model: BytesIO) -> Tuple[BytesIO, dict, dict]:
-        """Implement the machine learning training logic.
-
-        :param in_model: The input model to be trained.
-        :type in_model: BytesIO
-        :return: A tuple containing the trained model, training_metadata, and config.
-        :rtype: Tuple[BytesIO, dict, dict]
-        """
-        print("Train method not implemented. Uploading global model to combiner...")
-        return None, None, None
-
-    @abstractmethod
-    def custom_validate(self, model: BytesIO) -> dict:
-        """Implement the machine learning validation logic.
-
-        :param model: The input model to be validated.
-        :type model: BytesIO
-        :return: A dictionary representing the validation metrics.
-        :rtype: dict
-        """
-        print("Validate method not implemented. Returning empty dictionary.")
-        return {}
     
     def set_name(self, name: str):
+        logger.info(f"Setting client name to: {name}")
         self.name = name
 
     def set_client_id(self, client_id: str):
+        logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
     def run(self):
         threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id}, daemon=True).start()
         try:
-            print("Listening to task stream...")
+            logger.info("Listening to task stream...")
             self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
-            print("Client stopped by user.")
+            logger.info("Client stopped by user.")
 
     def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
         return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
@@ -303,7 +295,7 @@ class ClientAPI(ABC):
             receiver_role=request.sender.role,
             meta={
                 "training_metadata": training_metadata,
-                "config": config,
+                "config": json.dumps(config),
             }
         )
 
