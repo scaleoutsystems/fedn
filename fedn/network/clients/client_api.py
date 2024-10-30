@@ -1,8 +1,11 @@
 import enum
 import os
 import time
+import threading
 from io import BytesIO
 from typing import Any, Tuple
+import uuid
+import json
 
 import requests
 
@@ -51,44 +54,20 @@ def get_compute_package_dir_path():
 
 
 class ClientAPI:
-    def __init__(self):
-        self._subscribers = {"train": [], "validation": []}
+    def __init__(self, train_callback: callable = None, validate_callback: callable = None):
+        self.train_callback: callable = train_callback
+        self.validate_callback: callable = validate_callback
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
 
         self.dispatcher: Dispatcher = None
         self.grpc_handler: GrpcHandler = None
 
-    def subscribe(self, event_type: str, callback: callable):
-        """Subscribe to a specific event."""
-        if event_type in self._subscribers:
-            self._subscribers[event_type].append(callback)
-        else:
-            raise ValueError(f"Unsupported event type: {event_type}")
+    def set_train_callback(self, callback: callable):
+        self.train_callback = callback
 
-    def notify_subscribers(self, event_type: str, *args, **kwargs):
-        """Notify all subscribers about a specific event."""
-        if event_type in self._subscribers:
-            for callback in self._subscribers[event_type]:
-                callback(*args, **kwargs)
-        else:
-            raise ValueError(f"Unsupported event type: {event_type}")
-
-    def train(self, *args, **kwargs):
-        """Function to be triggered from the server via gRPC."""
-        # Perform training logic here
-        logger.info("Training started")
-
-        # Notify all subscribers about the train event
-        self.notify_subscribers("train", *args, **kwargs)
-
-    def validate(self, *args, **kwargs):
-        """Function to be triggered from the server via gRPC."""
-        # Perform validation logic here
-        logger.info("Validation started")
-
-        # Notify all subscribers about the validation event
-        self.notify_subscribers("validation", *args, **kwargs)
+    def set_validate_callback(self, callback: callable):
+        self.validate_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         # TODO: Use new API endpoint (v1)
@@ -216,9 +195,136 @@ class ClientAPI:
 
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
-            self.train(request)
+            self.update_local_model(request)
         elif request.type == fedn.StatusType.MODEL_VALIDATION:
-            self.validate(request)
+            self.validate_global_model(request)
+
+    def update_local_model(self, request):
+        model_id = request.model_id
+        model_update_id = str(uuid.uuid4())
+
+        tic = time.time()
+        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+
+        if in_model is None:
+            logger.error("Could not retrieve model from combiner. Aborting training request.")
+            return
+
+        fetch_model_time = time.time() - tic
+
+        if not self.train_callback:
+            logger.error("No train callback set")
+            return
+
+        self.send_status(
+            f"\t Starting processing of training request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name
+        )
+
+        logger.info(f"Running train callback with model ID: {model_id}")
+        tic = time.time()
+        out_model, meta = self.train_callback(in_model)
+        meta["processing_time"] = time.time() - tic
+
+        tic = time.time()
+        self.send_model_to_combiner(
+            model=out_model,
+            id=model_update_id
+        )
+        meta["upload_model"] = time.time() - tic
+
+        meta["fetch_model"] = fetch_model_time
+        meta["config"] = request.data
+
+        self.send_model_update(
+            model_id=model_id,
+            model_update_id=model_update_id,
+            meta=meta,
+            request=request
+        )
+
+        self.send_status(
+            "Model update completed.",
+            log_level=fedn.Status.AUDIT,
+            type=fedn.StatusType.MODEL_UPDATE,
+            request=request,
+            sesssion_id=request.session_id,
+            sender_name=self.name
+        )
+
+    def validate_global_model(self, request):
+        model_id = request.model_id
+
+        self.send_status(
+            f"Processing validate request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name
+        )
+
+        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+
+        if in_model is None:
+            logger.error("Could not retrieve model from combiner. Aborting validation request.")
+            return
+
+        if not self.validate_callback:
+            logger.error("No validate callback set")
+            return
+
+        logger.info(f"Running validate callback with model ID: {model_id}")
+        metrics = self.validate_callback(in_model)
+
+        if metrics is not None:
+            # Send validation
+            validation = fedn.ModelValidation()
+            validation.sender.name = self.name
+            validation.sender.role = fedn.WORKER
+            validation.receiver.name = request.sender.name
+            validation.receiver.role = request.sender.role
+            validation.model_id = str(request.model_id)
+            validation.data = json.dumps(metrics)
+            validation.timestamp.GetCurrentTime()
+            validation.correlation_id = request.correlation_id
+            validation.session_id = request.session_id
+
+            result: bool = self.send_model_validation(
+                metrics=metrics,
+                request=request
+            )
+
+            if result:
+                self.send_status(
+                    "Model validation completed.",
+                    log_level=fedn.Status.AUDIT,
+                    type=fedn.StatusType.MODEL_VALIDATION,
+                    request=validation,
+                    sesssion_id=request.session_id,
+                    sender_name=self.name
+                )
+            else:
+                self.send_status(
+                    "Client {} failed to complete model validation.".format(self.name),
+                    log_level=fedn.Status.WARNING,
+                    request=request,
+                    sesssion_id=request.session_id,
+                    sender_name=self.name
+                )
+
+    def set_name(self, name: str):
+        logger.info(f"Setting client name to: {name}")
+        self.name = name
+
+    def set_client_id(self, client_id: str):
+        logger.info(f"Setting client ID to: {client_id}")
+        self.client_id = client_id
+
+    def run(self):
+        threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id}, daemon=True).start()
+        try:
+            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+        except KeyboardInterrupt:
+            logger.info("Client stopped by user.")
 
     def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
         return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
@@ -230,36 +336,34 @@ class ClientAPI:
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
     def send_model_update(self,
-        sender_name: str,
-        sender_role: fedn.Role,
-        client_id: str,
         model_id: str,
         model_update_id: str,
-        receiver_name: str,
-        receiver_role: fedn.Role,
-        meta: dict
+        meta: dict,
+        request: fedn.TaskRequest
     ) -> bool:
+
         return self.grpc_handler.send_model_update(
-            sender_name=sender_name,
-            sender_role=sender_role,
-            client_id=client_id,
+            sender_name=self.name,
             model_id=model_id,
             model_update_id=model_update_id,
-            receiver_name=receiver_name,
-            receiver_role=receiver_role,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
             meta=meta
         )
 
     def send_model_validation(self,
-        sender_name: str,
-        receiver_name: str,
-        receiver_role: fedn.Role,
-        model_id: str,
         metrics: dict,
-        correlation_id: str,
-        session_id: str
+        request: fedn.TaskRequest
     ) -> bool:
-        return self.grpc_handler.send_model_validation(sender_name, receiver_name, receiver_role, model_id, metrics, correlation_id, session_id)
+        return self.grpc_handler.send_model_validation(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            model_id=request.model_id,
+            metrics=json.dumps(metrics),
+            correlation_id=request.correlation_id,
+            session_id=request.session_id
+        )
 
     # Init functions
     def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:
