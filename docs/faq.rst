@@ -89,6 +89,6 @@ with the Scaleout team.
 
 .. meta::
    :description lang=en:
-      How do you approach the question of output privacy? We take security in (federated) machine learning seriously. Federated learning is a foundational technology that improves input privacy in machine learning by allowing datasets to stay local and private, and not copied to a server.
+      How do you approach the question of output privacy? We take security in (federated) machine learning seriously.
    :keywords: Federated Learning, FAQ, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
    

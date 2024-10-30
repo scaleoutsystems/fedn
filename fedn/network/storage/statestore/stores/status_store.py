@@ -8,17 +8,7 @@ from fedn.network.storage.statestore.stores.store import Store
 
 class Status:
     def __init__(
-            self,
-            id: str,
-            status: str,
-            timestamp: str,
-            log_level: str,
-            data: str,
-            correlation_id: str,
-            type: str,
-            extra: str,
-            session_id: str,
-            sender: dict = None
+        self, id: str, status: str, timestamp: str, log_level: str, data: str, correlation_id: str, type: str, extra: str, session_id: str, sender: dict = None
     ):
         self.id = id
         self.status = status
@@ -42,7 +32,7 @@ class Status:
             type=data["type"] if "type" in data else None,
             extra=data["extra"] if "extra" in data else None,
             session_id=data["sessionId"] if "sessionId" in data else None,
-            sender=data["sender"] if "sender" in data else None
+            sender=data["sender"] if "sender" in data else None,
         )
 
 
@@ -65,8 +55,8 @@ class StatusStore(Store[Status]):
     def update(self, id: str, item: Status) -> bool:
         raise NotImplementedError("Update not implemented for StatusStore")
 
-    def add(self, item: Status)-> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for StatusStore")
+    def add(self, item: Status) -> Tuple[bool, Any]:
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for StatusStore")

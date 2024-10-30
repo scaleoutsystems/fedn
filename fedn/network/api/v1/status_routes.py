@@ -124,8 +124,12 @@ def get_statuses():
         limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
+        # print all the typed headers
+        print(f"limit: {limit}, skip: {skip}, sort_key: {sort_key}, sort_order: {sort_order}, use_typing: {use_typing}")
+        print(f"kwargs: {kwargs}")
         statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
 
+        print(f"statuses: {statuses}")
         result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
 
         response = {"count": statuses["count"], "result": result}
