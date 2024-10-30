@@ -270,7 +270,7 @@ message ClientConfigRequest {
 }
 
 message ClientConfigResponse {
-  string client_config = 1;
+  string client_settings = 1;
 }
 
 message ClientSelectionRequest {

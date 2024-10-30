@@ -10,7 +10,6 @@ from werkzeug.utils import secure_filename
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR, get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
-from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.state import ReducerState, ReducerStateToString
 from fedn.utils.checksum import sha
 
@@ -603,6 +602,10 @@ class API:
         """
         logger.info("Adding model")
         try:
+            object = BytesIO()
+            object.seek(0, 0)
+            file.seek(0)
+            object.write(file.read())
             helper = self.control.get_helper()
             logger.info(f"Loading model from file using helper {helper.name}")
             object.seek(0)

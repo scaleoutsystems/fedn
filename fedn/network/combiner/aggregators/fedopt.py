@@ -95,10 +95,10 @@ class Aggregator(AggregatorBase):
 
         logger.info("AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
-        model_updates = self.update_handler.get_model_updates()
-
-        for model_update in model_updates:
+        while not self.update_handler.model_updates.empty():
             try:
+                logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
+                model_update = self.update_handler.next_model_update()
                 # Load model paratmeters and metadata
                 model_next, metadata = self.update_handler.load_model_update(model_update, helper)
 

@@ -51,8 +51,8 @@ class RoundConfig(TypedDict):
     :type helper_type: str
     :param aggregator: The aggregator type.
     :type aggregator: str
-    :param client_config: Configs that are distributed to clients.
-    :type client_config: dict
+    :param client_settings: Settings that are distributed to clients.
+    :type client_settings: dict
     """
 
     _job_id: str
@@ -70,7 +70,7 @@ class RoundConfig(TypedDict):
     session_id: str
     helper_type: str
     aggregator: str
-    client_config: dict
+    client_settings: dict
 
 
 class RoundHandler:
@@ -97,6 +97,7 @@ class RoundHandler:
         self.modelservice = modelservice
         self.server_functions = inspect.getsource(ServerFunctions)
         self.update_handler = UpdateHandler(modelservice=modelservice)
+        self.hook_interface = CombinerHookInterface()
 
     def set_aggregator(self, aggregator):
         self.aggregator = get_aggregator(aggregator, self.update_handler)
@@ -140,10 +141,10 @@ class RoundHandler:
         session_id = config["session_id"]
         model_id = config["model_id"]
 
-        if provided_functions["client_config"]:
+        if provided_functions["client_settings"]:
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-            client_config = CombinerHookInterface().client_config(global_model_bytes)
-            config["client_config"] = client_config
+            client_settings = self.hook_interface.client_settings(global_model_bytes)
+            config["client_settings"] = client_settings
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
@@ -173,14 +174,12 @@ class RoundHandler:
                 parameters = None
             if provided_functions["aggregate"]:
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                model, data = CombinerHookInterface().aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
                 model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
             raise
-
-        self.update_handler.flush()
 
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
@@ -325,10 +324,10 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
-        provided_functions = CombinerHookInterface().provided_functions(self.server_functions)
+        provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions["client_selection"]:
-            clients = CombinerHookInterface().client_selection(clients=self.server.get_active_trainers())
+            clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
         else:
             clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients, provided_functions)

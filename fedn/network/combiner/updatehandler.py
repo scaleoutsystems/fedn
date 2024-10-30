@@ -1,4 +1,5 @@
 import json
+import queue
 import sys
 import time
 import traceback
@@ -21,7 +22,7 @@ class UpdateHandler:
     """
 
     def __init__(self, modelservice: ModelService) -> None:
-        self.model_updates = []
+        self.model_updates = queue.Queue()
         self.modelservice = modelservice
 
         self.model_id_to_model_data = {}
@@ -30,8 +31,16 @@ class UpdateHandler:
         self.modelservice.temp_model_storage.delete(model_update.model_update_id)
         logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
 
-    def get_model_updates(self):
-        return self.model_updates
+    def next_model_update(self):
+        """Get the next model update from the queue.
+
+        :param helper: A helper object.
+        :type helper: object
+        :return: The model update.
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        model_update = self.model_updates.get(block=False)
+        return model_update
 
     def on_model_update(self, model_update):
         """Callback when a new client model update is recieved.
@@ -50,7 +59,7 @@ class UpdateHandler:
             valid_update = self._validate_model_update(model_update)
             if valid_update:
                 # Push the model update to the processing queue
-                self.model_updates.append(model_update)
+                self.model_updates.put(model_update)
             else:
                 logger.warning("UPDATE HANDLER: Invalid model update, skipping.")
         except Exception as e:
@@ -194,11 +203,8 @@ class UpdateHandler:
 
         tt = 0.0
         while tt < time_window:
-            if len(self.model_updates) >= buffer_size:
+            if self.model_updates.qsize() >= buffer_size:
                 break
 
             time.sleep(polling_interval)
             tt += polling_interval
-
-    def flush(self):
-        self.model_updates = []

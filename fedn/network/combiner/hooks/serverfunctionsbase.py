@@ -35,7 +35,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def client_config(self, global_model: List[np.ndarray]) -> Dict:
+    def client_settings(self, global_model: List[np.ndarray]) -> Dict:
         """Returns metadata related to the model, which gets distributed to the clients.
         The dictionary may only contain primitive types.
 

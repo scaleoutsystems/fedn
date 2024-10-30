@@ -20,11 +20,11 @@ class ServerFunctions(ServerFunctionsBase):
         return client_ids
 
     # Called secondly before sending the global model.
-    def client_config(self, global_model: List[np.ndarray]) -> dict:
+    def client_settings(self, global_model: List[np.ndarray]) -> dict:
         # Decrease learning rate every 10 rounds
         if self.round % 10 == 0:
             self.lr = self.lr * 0.1
-        # see client/train.py for how to load the client config.
+        # see client/train.py for how to load the client settings.
         self.round += 1
         return {"learning_rate": self.lr}
 

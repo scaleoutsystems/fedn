@@ -456,7 +456,7 @@ class Client:
         if not self._connected:
             return
 
-    def _process_training_request(self, model_id: str, session_id: str = None, client_config: dict = None):
+    def _process_training_request(self, model_id: str, session_id: str = None, client_settings: dict = None):
         """Process a training (model update) request.
 
         :param model_id: The model id of the model to be updated.
@@ -482,7 +482,7 @@ class Client:
             with open(inpath, "wb") as fh:
                 fh.write(mdl.getbuffer())
 
-            save_metadata(metadata=client_config, filename=inpath)
+            save_metadata(metadata=client_settings, filename=inpath)
 
             outpath = self.helper.get_tmp_path()
             tic = time.time()
@@ -615,8 +615,8 @@ class Client:
                 if task_type == "train":
                     tic = time.time()
                     self.state = ClientState.training
-                    client_config = json.loads(request.data).get("client_config", {})
-                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, client_config=client_config)
+                    client_settings = json.loads(request.data).get("client_settings", {})
+                    model_id, meta = self._process_training_request(request.model_id, session_id=request.session_id, client_settings=client_settings)
 
                     if meta is not None:
                         processing_time = time.time() - tic

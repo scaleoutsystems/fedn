@@ -11,8 +11,8 @@ from fedn.utils.helpers.helpers import save_metadata
 
 
 # swap this to the load_metadata from helpers.helpers on release..
-def load_client_config(filename):
-    """Load client_config from file.
+def load_client_settings(filename):
+    """Load client settings from file.
 
     :param filename: The name of the file to load from.
     :type filename: str
@@ -68,8 +68,8 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
 
-    client_config = load_client_config(in_model_path)
-    lr = client_config["learning_rate"]
+    client_settings = load_client_settings(in_model_path)
+    lr = client_settings["learning_rate"]
 
     # Train
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)

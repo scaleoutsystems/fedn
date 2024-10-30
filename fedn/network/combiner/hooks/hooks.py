@@ -30,6 +30,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.server_functions: ServerFunctionsBase = None
         self.server_functions_code: str = None
         self.client_updates = {}
+        self.implemented_functions = None
 
     def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
         """Distribute client configs to clients from user defined code.
@@ -43,9 +44,9 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         """
         logger.info("Received client config request.")
         model, _ = unpack_model(request_iterator, self.helper)
-        client_config = self.server_functions.client_config(global_model=model)
-        logger.info(f"Client config response: {client_config}")
-        return fedn.ClientConfigResponse(client_config=json.dumps(client_config))
+        client_settings = self.server_functions.client_settings(global_model=model)
+        logger.info(f"Client config response: {client_settings}")
+        return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
 
     def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
         """Handle client selection from user defined code.
@@ -121,53 +122,71 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
         logger.info("Receieved provided functions request.")
+        if self.implemented_functions is not None:
+            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         server_functions_code = request.function_code
-        if self.server_functions is None or server_functions_code != self.server_functions_code:
-            self.server_functions_code = server_functions_code
-            # this will create a new user defined instance of the ServerFunctions class.
-            try:
-                namespace = {}
-                exec(server_functions_code, globals(), namespace)  # noqa: S102
-                exec("server_functions = ServerFunctions()", globals(), namespace)  # noqa: S102
-                self.server_functions = namespace.get("server_functions")
-            except Exception as e:
-                logger.error(f"Exec failed with error: {str(e)}")
-        implemented_functions = {}
+        self.server_functions_code = server_functions_code
+        self.implemented_functions = {}
+        self._instansiate_server_functions_code()
         # if crashed or not returning None we assume function is implemented
         # check if aggregation is available
         try:
             ret = self.server_functions.aggregate(0, 0)
             if ret is None:
-                implemented_functions["aggregate"] = False
+                self.implemented_functions["aggregate"] = False
             else:
-                implemented_functions["aggregate"] = True
+                self.implemented_functions["aggregate"] = True
         except Exception:
-            implemented_functions["aggregate"] = True
-        # check if client_config is available
+            self.implemented_functions["aggregate"] = True
+        # check if client_settings is available
         try:
-            ret = self.server_functions.client_config(0)
+            ret = self.server_functions.client_settings(0)
             if ret is None:
-                implemented_functions["client_config"] = False
+                self.implemented_functions["client_settings"] = False
             else:
-                implemented_functions["client_config"] = True
+                self.implemented_functions["client_settings"] = True
         except Exception:
-            implemented_functions["client_config"] = True
+            self.implemented_functions["client_settings"] = True
         # check if client_selection is available
         try:
             ret = self.server_functions.client_selection(0)
             if ret is None:
-                implemented_functions["client_selection"] = False
+                self.implemented_functions["client_selection"] = False
             else:
-                implemented_functions["client_selection"] = True
+                self.implemented_functions["client_selection"] = True
         except Exception:
-            implemented_functions["client_selection"] = True
-        logger.info(f"Provided function: {implemented_functions}")
-        return fedn.ProvidedFunctionsResponse(available_functions=implemented_functions)
+            self.implemented_functions["client_selection"] = True
+        logger.info(f"Provided function: {self.implemented_functions}")
+        return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
+
+    def _instansiate_server_functions_code(self):
+        # this will create a new user defined instance of the ServerFunctions class.
+        try:
+            namespace = {}
+            exec(self.server_functions_code, globals(), namespace)  # noqa: S102
+            exec("server_functions = ServerFunctions()", globals(), namespace)  # noqa: S102
+            self.server_functions = namespace.get("server_functions")
+        except Exception as e:
+            logger.error(f"Exec failed with error: {str(e)}")
 
 
 def serve():
     """Start the hooks service."""
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # Keepalive settings: these detect if the client is alive
+    KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
+    KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
+    MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
+    MAX_MESSAGE_LENGTH = 1 * 1024 * 1024 * 1024  # 1 GB in bytes
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=100),  # Increase based on expected load
+        options=[
+            ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
+            ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
+            ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
+            ("grpc.max_send_message_length", MAX_MESSAGE_LENGTH),
+            ("grpc.max_receive_message_length", -1),
+        ],
+    )
     rpc.add_FunctionServiceServicer_to_server(FunctionServiceServicer(), server)
     server.add_insecure_port("[::]:12081")
     server.start()
