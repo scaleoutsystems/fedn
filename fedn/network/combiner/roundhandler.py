@@ -1,15 +1,18 @@
 import ast
+import inspect
 import queue
 import random
-import sys
 import time
 import uuid
 from typing import TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
-from fedn.network.combiner.modelservice import load_model_from_BytesIO, serialize_model_to_BytesIO
+from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
+from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
+from fedn.network.combiner.modelservice import serialize_model_to_BytesIO
 from fedn.network.combiner.shared import modelservice, repository
+from fedn.network.combiner.updatehandler import UpdateHandler
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
@@ -48,6 +51,8 @@ class RoundConfig(TypedDict):
     :type helper_type: str
     :param aggregator: The aggregator type.
     :type aggregator: str
+    :param client_settings: Settings that are distributed to clients.
+    :type client_settings: dict
     """
 
     _job_id: str
@@ -65,10 +70,7 @@ class RoundConfig(TypedDict):
     session_id: str
     helper_type: str
     aggregator: str
-
-
-class ModelUpdateError(Exception):
-    pass
+    client_settings: dict
 
 
 class RoundHandler:
@@ -93,9 +95,15 @@ class RoundHandler:
         self.storage = repository
         self.server = server
         self.modelservice = modelservice
+        self.server_functions = inspect.getsource(ServerFunctions)
+        self.update_handler = UpdateHandler(modelservice=modelservice)
+        self.hook_interface = CombinerHookInterface()
 
     def set_aggregator(self, aggregator):
-        self.aggregator = get_aggregator(aggregator, self.storage, self.server, self.modelservice, self)
+        self.aggregator = get_aggregator(aggregator, self.update_handler)
+
+    def set_server_functions(self, server_functions: str):
+        self.server_functions = server_functions
 
     def push_round_config(self, round_config: RoundConfig) -> str:
         """Add a round_config (job description) to the inbox.
@@ -113,76 +121,7 @@ class RoundHandler:
             raise
         return round_config["_job_id"]
 
-    def load_model_update(self, helper, model_id):
-        """Load model update with id model_id into its memory representation.
-
-        :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`
-        :type helper: class: `fedn.utils.helpers.helpers.HelperBase`
-        :param model_id: The ID of the model update, UUID in str format
-        :type model_id: str
-        """
-        model_str = self.load_model_update_str(model_id)
-        if model_str:
-            try:
-                model = load_model_from_BytesIO(model_str.getbuffer(), helper)
-            except IOError:
-                logger.warning("AGGREGATOR({}): Failed to load model!".format(self.name))
-        else:
-            raise ModelUpdateError("Failed to load model.")
-
-        return model
-
-    def load_model_update_str(self, model_id, retry=3):
-        """Load model update object and return it as BytesIO.
-
-        :param model_id: The ID of the model
-        :type model_id: str
-        :param retry: number of times retrying load model update, defaults to 3
-        :type retry: int, optional
-        :return: Updated model
-        :rtype: class: `io.BytesIO`
-        """
-        # Try reading model update from local disk/combiner memory
-        model_str = self.modelservice.temp_model_storage.get(model_id)
-        # And if we cannot access that, try downloading from the server
-        if model_str is None:
-            model_str = self.modelservice.get_model(model_id)
-            # TODO: use retrying library
-            tries = 0
-            while tries < retry:
-                tries += 1
-                if not model_str or sys.getsizeof(model_str) == 80:
-                    logger.warning("Model download failed. retrying")
-                    time.sleep(1)
-                    model_str = self.modelservice.get_model(model_id)
-
-        return model_str
-
-    def waitforit(self, config, buffer_size=100, polling_interval=0.1):
-        """Defines the policy for how long the server should wait before starting to aggregate models.
-
-        The policy is as follows:
-            1. Wait a maximum of time_window time until the round times out.
-            2. Terminate if a preset number of model updates (buffer_size) are in the queue.
-
-        :param config: The round config object
-        :type config: dict
-        :param buffer_size: The number of model updates to wait for before starting aggregation, defaults to 100
-        :type buffer_size: int, optional
-        :param polling_interval: The polling interval, defaults to 0.1
-        :type polling_interval: float, optional
-        """
-        time_window = float(config["round_timeout"])
-
-        tt = 0.0
-        while tt < time_window:
-            if self.aggregator.model_updates.qsize() >= buffer_size:
-                break
-
-            time.sleep(polling_interval)
-            tt += polling_interval
-
-    def _training_round(self, config, clients):
+    def _training_round(self, config, clients, provided_functions):
         """Send model update requests to clients and aggregate results.
 
         :param config: The round config object (passed to the client).
@@ -202,6 +141,10 @@ class RoundHandler:
         session_id = config["session_id"]
         model_id = config["model_id"]
 
+        if provided_functions["client_settings"]:
+            global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+            client_settings = self.hook_interface.client_settings(global_model_bytes)
+            config["client_settings"] = client_settings
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
@@ -212,12 +155,10 @@ class RoundHandler:
             buffer_size = int(config["buffer_size"])
 
         # Wait / block until the round termination policy has been met.
-        self.waitforit(config, buffer_size=buffer_size)
-
+        self.update_handler.waitforit(config, buffer_size=buffer_size)
         tic = time.time()
         model = None
         data = None
-
         try:
             helper = get_helper(config["helper_type"])
             logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
@@ -231,10 +172,14 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
-
-            model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
+            if provided_functions["aggregate"]:
+                previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+                model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+            else:
+                model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
+            raise
 
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
@@ -379,8 +324,13 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
-        clients = self._assign_round_clients(self.server.max_clients)
-        model, meta = self._training_round(config, clients)
+        provided_functions = self.hook_interface.provided_functions(self.server_functions)
+
+        if provided_functions["client_selection"]:
+            clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+        else:
+            clients = self._assign_round_clients(self.server.max_clients)
+        model, meta = self._training_round(config, clients, provided_functions)
         data["data"] = meta
 
         if model is None:

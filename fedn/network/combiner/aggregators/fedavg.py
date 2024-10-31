@@ -8,22 +8,13 @@ class Aggregator(AggregatorBase):
     """Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
         of parameter updates.
 
-    :param id: A reference to id of :class: `fedn.network.combiner.Combiner`
-    :type id: str
-    :param storage: Model repository for :class: `fedn.network.combiner.Combiner`
-    :type storage: class: `fedn.common.storage.s3.s3repo.S3ModelRepository`
-    :param server: A handle to the Combiner class :class: `fedn.network.combiner.Combiner`
-    :type server: class: `fedn.network.combiner.Combiner`
-    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
-    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
-    :param control: A handle to the :class: `fedn.network.combiner.roundhandler.RoundHandler`
-    :type control: class: `fedn.network.combiner.roundhandler.RoundHandler`
-
+    :param control: A handle to the :class: `fedn.network.combiner.updatehandler.UpdateHandler`
+    :type control: class: `fedn.network.combiner.updatehandler.UpdateHandler`
     """
 
-    def __init__(self, storage, server, modelservice, round_handler):
+    def __init__(self, update_handler):
         """Constructor method"""
-        super().__init__(storage, server, modelservice, round_handler)
+        super().__init__(update_handler)
 
         self.name = "fedavg"
 
@@ -52,15 +43,14 @@ class Aggregator(AggregatorBase):
 
         logger.info("AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
-        while not self.model_updates.empty():
+        while not self.update_handler.model_updates.empty():
             try:
-                # Get next model from queue
                 logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
-                model_update = self.next_model_update()
+                model_update = self.update_handler.next_model_update()
 
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
-                model_next, metadata = self.load_model_update(model_update, helper)
+                model_next, metadata = self.update_handler.load_model_update(model_update, helper)
 
                 logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
@@ -75,14 +65,11 @@ class Aggregator(AggregatorBase):
                 nr_aggregated_models += 1
                 # Delete model from storage
                 if delete_models:
-                    self.modelservice.temp_model_storage.delete(model_update.model_update_id)
-                    logger.info("AGGREGATOR({}): Deleted model update {} from storage.".format(self.name, model_update.model_update_id))
-                self.model_updates.task_done()
+                    self.update_handler.delete_model(model_update)
             except Exception as e:
                 tb = traceback.format_exc()
                 logger.error(f"AGGREGATOR({self.name}): Error encoutered while processing model update: {e}")
                 logger.error(tb)
-                self.model_updates.task_done()
 
         data["nr_aggregated_models"] = nr_aggregated_models
 

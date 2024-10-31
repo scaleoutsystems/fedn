@@ -489,7 +489,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.debug("grpc.Combiner.SetAggregator: Called")
         for parameter in control.parameter:
             aggregator = parameter.value
-
         status = self.round_handler.set_aggregator(aggregator)
 
         response = fedn.ControlResponse()
@@ -497,7 +496,27 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             response.message = "Success"
         else:
             response.message = "Failed"
+        return response
 
+    def SetServerFunctions(self, control: fedn.ControlRequest, context):
+        """Set a function provider.
+
+        :param control: the control request
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the control response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
+        """
+        logger.debug("grpc.Combiner.SetServerFunctions: Called")
+        for parameter in control.parameter:
+            server_functions = parameter.value
+
+        self.round_handler.set_server_functions(server_functions)
+
+        response = fedn.ControlResponse()
+        response.message = "Success"
+        logger.info(f"set function provider response {response}")
         return response
 
     def FlushAggregationQueue(self, control: fedn.ControlRequest, context):
@@ -719,7 +738,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        self.round_handler.aggregator.on_model_update(request)
+        self.round_handler.update_handler.on_model_update(request)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelUpdate {} from client  {}".format(response, response.sender.name)
