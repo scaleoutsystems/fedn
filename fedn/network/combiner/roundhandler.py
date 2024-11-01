@@ -121,7 +121,7 @@ class RoundHandler:
             raise
         return round_config["_job_id"]
 
-    def _training_round(self, config, clients, provided_functions):
+    def _training_round(self, config: dict, clients: list, provided_functions: dict):
         """Send model update requests to clients and aggregate results.
 
         :param config: The round config object (passed to the client).
@@ -141,7 +141,7 @@ class RoundHandler:
         session_id = config["session_id"]
         model_id = config["model_id"]
 
-        if provided_functions["client_settings"]:
+        if provided_functions.get("client_settings", False):
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
             client_settings = self.hook_interface.client_settings(global_model_bytes)
             config["client_settings"] = client_settings
@@ -172,7 +172,7 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
-            if provided_functions["aggregate"]:
+            if provided_functions.get("aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                 model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
@@ -326,7 +326,7 @@ class RoundHandler:
 
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
-        if provided_functions["client_selection"]:
+        if provided_functions.get("client_selection", False):
             clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
         else:
             clients = self._assign_round_clients(self.server.max_clients)
