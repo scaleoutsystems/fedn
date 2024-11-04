@@ -1,11 +1,11 @@
 import enum
+import json
 import os
-import time
 import threading
+import time
+import uuid
 from io import BytesIO
 from typing import Any, Tuple
-import uuid
-import json
 
 import requests
 
@@ -54,9 +54,11 @@ def get_compute_package_dir_path():
 
 
 class ClientAPI:
-    def __init__(self, train_callback: callable = None, validate_callback: callable = None):
+    def __init__(self, train_callback: callable = None, validate_callback: callable = None, predict_callback: callable = None):
         self.train_callback: callable = train_callback
         self.validate_callback: callable = validate_callback
+        self.predict_callback: callable = predict_callback
+
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
 
@@ -68,6 +70,9 @@ class ClientAPI:
 
     def set_validate_callback(self, callback: callable):
         self.validate_callback = callback
+
+    def set_predict_callback(self, callback: callable):
+        self.predict_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         # TODO: Use new API endpoint (v1)
@@ -186,7 +191,6 @@ class ClientAPI:
             logger.error("Error: Could not initialize GRPC connection")
             return False
 
-
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
@@ -198,6 +202,8 @@ class ClientAPI:
             self.update_local_model(request)
         elif request.type == fedn.StatusType.MODEL_VALIDATION:
             self.validate_global_model(request)
+        elif request.type == fedn.StatusType.MODEL_PREDICTION:
+            self.predict_global_model(request)
 
     def update_local_model(self, request):
         model_id = request.model_id
@@ -216,11 +222,7 @@ class ClientAPI:
             logger.error("No train callback set")
             return
 
-        self.send_status(
-            f"\t Starting processing of training request for model_id {model_id}",
-            sesssion_id=request.session_id,
-            sender_name=self.name
-        )
+        self.send_status(f"\t Starting processing of training request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
 
         logger.info(f"Running train callback with model ID: {model_id}")
         tic = time.time()
@@ -228,21 +230,13 @@ class ClientAPI:
         meta["processing_time"] = time.time() - tic
 
         tic = time.time()
-        self.send_model_to_combiner(
-            model=out_model,
-            id=model_update_id
-        )
+        self.send_model_to_combiner(model=out_model, id=model_update_id)
         meta["upload_model"] = time.time() - tic
 
         meta["fetch_model"] = fetch_model_time
         meta["config"] = request.data
 
-        self.send_model_update(
-            model_id=model_id,
-            model_update_id=model_update_id,
-            meta=meta,
-            request=request
-        )
+        self.send_model_update(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
 
         self.send_status(
             "Model update completed.",
@@ -250,17 +244,13 @@ class ClientAPI:
             type=fedn.StatusType.MODEL_UPDATE,
             request=request,
             sesssion_id=request.session_id,
-            sender_name=self.name
+            sender_name=self.name,
         )
 
     def validate_global_model(self, request):
         model_id = request.model_id
 
-        self.send_status(
-            f"Processing validate request for model_id {model_id}",
-            sesssion_id=request.session_id,
-            sender_name=self.name
-        )
+        self.send_status(f"Processing validate request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
 
         in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
 
@@ -288,10 +278,7 @@ class ClientAPI:
             validation.correlation_id = request.correlation_id
             validation.session_id = request.session_id
 
-            result: bool = self.send_model_validation(
-                metrics=metrics,
-                request=request
-            )
+            result: bool = self.send_model_validation(metrics=metrics, request=request)
 
             if result:
                 self.send_status(
@@ -300,7 +287,7 @@ class ClientAPI:
                     type=fedn.StatusType.MODEL_VALIDATION,
                     request=validation,
                     sesssion_id=request.session_id,
-                    sender_name=self.name
+                    sender_name=self.name,
                 )
             else:
                 self.send_status(
@@ -308,8 +295,25 @@ class ClientAPI:
                     log_level=fedn.Status.WARNING,
                     request=request,
                     sesssion_id=request.session_id,
-                    sender_name=self.name
+                    sender_name=self.name,
                 )
+
+    def predict_global_model(self, request):
+        model_id = request.model_id
+        model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+
+        if model is None:
+            logger.error("Could not retrieve model from combiner. Aborting prediction request.")
+            return
+
+        if not self.predict_callback:
+            logger.error("No predict callback set")
+            return
+
+        logger.info(f"Running predict callback with model ID: {model_id}")
+        prediction = self.predict_callback(model)
+
+        self.send_model_prediction(prediction=prediction, request=request)
 
     def set_name(self, name: str):
         logger.info(f"Setting client name to: {name}")
@@ -335,26 +339,17 @@ class ClientAPI:
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
-    def send_model_update(self,
-        model_id: str,
-        model_update_id: str,
-        meta: dict,
-        request: fedn.TaskRequest
-    ) -> bool:
-
+    def send_model_update(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> bool:
         return self.grpc_handler.send_model_update(
             sender_name=self.name,
             model_id=model_id,
             model_update_id=model_update_id,
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
-            meta=meta
+            meta=meta,
         )
 
-    def send_model_validation(self,
-        metrics: dict,
-        request: fedn.TaskRequest
-    ) -> bool:
+    def send_model_validation(self, metrics: dict, request: fedn.TaskRequest) -> bool:
         return self.grpc_handler.send_model_validation(
             sender_name=self.name,
             receiver_name=request.sender.name,
@@ -362,7 +357,18 @@ class ClientAPI:
             model_id=request.model_id,
             metrics=json.dumps(metrics),
             correlation_id=request.correlation_id,
-            session_id=request.session_id
+            session_id=request.session_id,
+        )
+
+    def send_model_prediction(self, prediction: dict, request: fedn.TaskRequest) -> bool:
+        return self.grpc_handler.send_model_prediction(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            model_id=request.model_id,
+            prediction_output=json.dumps(prediction),
+            correlation_id=request.correlation_id,
+            session_id=request.session_id,
         )
 
     # Init functions
