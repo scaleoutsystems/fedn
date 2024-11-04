@@ -182,13 +182,19 @@ def client_start_cmd(
     client = Client(config)
     client.run()
 
+
 def _validate_client_params(config: dict):
     api_url = config["api_url"]
-    if api_url is None or api_url == "":
-        click.echo("Error: Missing required parameter: --api_url")
+    combiner = config["combiner"]
+    combiner_port = config["combiner_port"]
+    if (api_url is None or api_url == "") and (combiner is None or combiner == ""):
+        click.echo("Error: Missing required parameter: --api_url or --combiner")
         return False
-
+    if (combiner is not None and combiner != "") and (combiner_port is None or combiner_port == ""):
+        click.echo("Error: Missing required parameter: --combiner-port")
+        return False
     return True
+
 
 def _complement_client_params(config: dict):
     api_url = config["api_url"]
@@ -201,21 +207,16 @@ def _complement_client_params(config: dict):
 
         click.echo(f"Protocol missing, complementing api_url with protocol: {result}")
 
+
 @client_cmd.command("start-v2")
-@click.option("-u", "--api_url", required=False, help="Hostname for fedn api.")
-@click.option("-p", "--api_port", required=False, help="Port for discovery services (reducer).")
+@click.option("-u", "--api-url", required=False, help="Hostname for fedn api.")
+@click.option("-p", "--api-port", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
 @click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
-@click.option("-i", "--client_id", required=False)
+@click.option("-i", "--client-id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
-@click.option(
-    "--combiner",
-    type=str,
-    required=False,
-    default=None,
-    help="Skip combiner assignment from discover service and attach directly to combiner host."
-)
+@click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attach directly to combiner host.")
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
 @click.option("-va", "--validator", required=False, default=True)
 @click.option("-tr", "--trainer", required=False, default=True)
@@ -236,11 +237,9 @@ def client_start_v2_cmd(
     validator: bool,
     trainer: bool,
     helper_type: str,
-    init: str
+    init: str,
 ):
-    click.echo(
-        click.style("\n*** fedn client start-v2 is experimental ***\n", blink=True, bold=True, fg="red")
-    )
+    click.echo(click.style("\n*** fedn client start-v2 is experimental ***\n", blink=True, bold=True, fg="red"))
 
     package = "local" if local_package else "remote"
 
@@ -331,7 +330,8 @@ def client_start_v2_cmd(
     if not _validate_client_params(config):
         return
 
-    api_url = _complement_client_params(config)
+    if config["api_url"] is not None and config["api_url"] != "":
+        _complement_client_params(config)
 
     client_options = ClientOptions(
         name=config["name"],
