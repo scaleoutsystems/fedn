@@ -312,6 +312,35 @@ class GrpcHandler:
 
         return True
 
+    def send_model_prediction(
+        self, sender_name: str, receiver_name: str, receiver_role: fedn.Role, model_id: str, prediction_output: str, correlation_id: str, session_id: str
+    ) -> bool:
+        prediction = fedn.ModelPrediction()
+        prediction.sender.name = sender_name
+        prediction.sender.role = fedn.WORKER
+        prediction.receiver.name = receiver_name
+        prediction.receiver.role = receiver_role
+        prediction.model_id = model_id
+        prediction.data = prediction_output
+        prediction.timestamp.GetCurrentTime()
+        prediction.correlation_id = correlation_id
+        prediction.prediction_id = session_id
+
+        try:
+            logger.info("Sending model prediction to combiner.")
+            _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(
+                e,
+                "SendModelPrediction",
+                lambda: self.send_model_prediction(sender_name, receiver_name, receiver_role, model_id, prediction_output, correlation_id, session_id),
+            )
+        except Exception as e:
+            logger.error(f"GRPC (SendModelPrediction): An error occurred: {e}")
+            self._disconnect()
+
+        return True
+
     def _handle_grpc_error(self, e, method_name: str, sender_function: Callable):
         status_code = e.code()
         if status_code == grpc.StatusCode.UNAVAILABLE:
