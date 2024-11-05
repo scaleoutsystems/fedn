@@ -25,8 +25,6 @@ Step-by-Step Instructions
 .. code-block:: python
 
     import argparse
-    import json
-    import uuid
 
     from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult
 
@@ -45,14 +43,7 @@ Step-by-Step Instructions
             "lr": 1,
         }
 
-        config = {
-            "round_id": 1,
-        }
-
-        metadata = {
-            "training_metadata": training_metadata,
-            "config": json.dumps(config),
-        }
+        metadata = {"training_metadata": training_metadata}
 
         # Do your training here, out_model is your result...
         out_model = in_model
@@ -60,7 +51,6 @@ Step-by-Step Instructions
         return out_model, metadata
 
     def on_validate(in_model):
-
         # Calculate metrics here...
         metrics = {
             "test_accuracy": 0.9,
@@ -70,12 +60,17 @@ Step-by-Step Instructions
         }
         return metrics
 
-    def main(api_url: str, api_port: int, token: str = None):
-        print(f"API URL: {api_url}")
-        print(f"API Token: {token or "-"}")
-        print(f"API Port: {api_port or "-"}")
+    def on_predict(in_model):
+        # Do your prediction here...
+        prediction = {
+            "prediction": 1,
+            "confidence": 0.9,
+        }
+        return prediction
 
-        client_api = ClientAPI(train_callback=on_train, validate_callback=on_validate)
+
+    def main(api_url: str, api_port: int, token: str = None):
+        client_api = ClientAPI(train_callback=on_train, validate_callback=on_validate, predict_callback=on_predict)
 
         url = get_api_url(api_url, api_port)
 
