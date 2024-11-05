@@ -138,7 +138,8 @@ The next step is to initialize the server side with the client code and the init
 
 .. note:: 
    On the "packages" link, you can also select the option "Use local package mode". This is an advanced option that 
-   allows each client to connect with their own custom compute package.
+   allows each client to connect with their own custom compute package. The option can also be beneficial when 
+   developing your own project, as it eliminates the need to upload a new package with every change or version update.
 
 .. image:: img/upload_package.png
 
