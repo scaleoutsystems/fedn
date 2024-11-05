@@ -1,4 +1,6 @@
-python_env: python_env.yaml # Remove this line to handle the environment manually
+# Remove the below line to handle the environment manually
+python_env: python_env.yaml 
+
 entry_points:
   build:
     command: python model.py
