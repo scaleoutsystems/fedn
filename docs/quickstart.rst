@@ -150,6 +150,9 @@ The next step is to initialize the server side with the client code and the init
 
 .. image:: img/upload_seed.png
 
+.. note::
+   You can upload multiple compute packages and seed models, and select the one needed for different sessions.
+
 Continue to step 4 before starting the session. The uploaded package and seed files are saved.
 
 4. Start clients
