@@ -4,7 +4,6 @@ import os
 import threading
 import time
 import uuid
-from datetime import datetime
 from io import BytesIO
 from typing import Any, Tuple
 
@@ -237,18 +236,9 @@ class ClientAPI:
         meta["fetch_model"] = fetch_model_time
         meta["config"] = request.data
 
-        update = fedn.ModelUpdate()
-        update.sender.name = self.name
-        update.sender.role = fedn.WORKER
-        update.sender.client_id = self.client_id
-        update.receiver.name = request.sender.name
-        update.receiver.role = request.sender.role
-        update.model_id = model_id
-        update.model_update_id = model_update_id
-        update.timestamp = str(datetime.now())
-        update.meta = json.dumps(meta)
+        update = self.create_update_message(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
 
-        self.send_model_update(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
+        self.send_model_update(update)
 
         self.send_status(
             "Model update completed.",
@@ -279,18 +269,9 @@ class ClientAPI:
 
         if metrics is not None:
             # Send validation
-            validation = fedn.ModelValidation()
-            validation.sender.name = self.name
-            validation.sender.role = fedn.WORKER
-            validation.receiver.name = request.sender.name
-            validation.receiver.role = request.sender.role
-            validation.model_id = str(request.model_id)
-            validation.data = json.dumps(metrics)
-            validation.timestamp.GetCurrentTime()
-            validation.correlation_id = request.correlation_id
-            validation.session_id = request.session_id
+            validation = self.create_validation_message(metrics=metrics, request=request)
 
-            result: bool = self.send_model_validation(metrics=metrics, request=request)
+            result: bool = self.send_model_validation(validation)
 
             if result:
                 self.send_status(
@@ -325,7 +306,41 @@ class ClientAPI:
         logger.info(f"Running predict callback with model ID: {model_id}")
         prediction = self.predict_callback(model)
 
-        self.send_model_prediction(prediction=prediction, request=request)
+        prediction_message = self.create_prediction_message(prediction=prediction, request=request)
+
+        self.send_model_prediction(prediction_message)
+
+    def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest):
+        return self.grpc_handler.create_update_message(
+            sender_name=self.name,
+            model_id=model_id,
+            model_update_id=model_update_id,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            meta=meta,
+        )
+
+    def create_validation_message(self, metrics: dict, request: fedn.TaskRequest):
+        return self.grpc_handler.create_validation_message(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            model_id=request.model_id,
+            metrics=json.dumps(metrics),
+            correlation_id=request.correlation_id,
+            session_id=request.session_id,
+        )
+
+    def create_prediction_message(self, prediction: dict, request: fedn.TaskRequest):
+        return self.grpc_handler.create_prediction_message(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            model_id=request.model_id,
+            prediction_output=json.dumps(prediction),
+            correlation_id=request.correlation_id,
+            session_id=request.session_id,
+        )
 
     def set_name(self, name: str):
         logger.info(f"Setting client name to: {name}")
@@ -351,37 +366,14 @@ class ClientAPI:
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
-    def send_model_update(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> bool:
-        return self.grpc_handler.send_model_update(
-            sender_name=self.name,
-            model_id=model_id,
-            model_update_id=model_update_id,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            meta=meta,
-        )
+    def send_model_update(self, update: fedn.ModelUpdate) -> bool:
+        return self.grpc_handler.send_model_update(update)
 
-    def send_model_validation(self, metrics: dict, request: fedn.TaskRequest) -> bool:
-        return self.grpc_handler.send_model_validation(
-            sender_name=self.name,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            model_id=request.model_id,
-            metrics=json.dumps(metrics),
-            correlation_id=request.correlation_id,
-            session_id=request.session_id,
-        )
+    def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
+        return self.grpc_handler.send_model_validation(validation)
 
-    def send_model_prediction(self, prediction: dict, request: fedn.TaskRequest) -> bool:
-        return self.grpc_handler.send_model_prediction(
-            sender_name=self.name,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            model_id=request.model_id,
-            prediction_output=json.dumps(prediction),
-            correlation_id=request.correlation_id,
-            session_id=request.session_id,
-        )
+    def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
+        return self.grpc_handler.send_model_prediction(prediction)
 
     # Init functions
     def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:
