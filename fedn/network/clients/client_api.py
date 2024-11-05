@@ -4,6 +4,7 @@ import os
 import threading
 import time
 import uuid
+from datetime import datetime
 from io import BytesIO
 from typing import Any, Tuple
 
@@ -236,13 +237,24 @@ class ClientAPI:
         meta["fetch_model"] = fetch_model_time
         meta["config"] = request.data
 
+        update = fedn.ModelUpdate()
+        update.sender.name = self.name
+        update.sender.role = fedn.WORKER
+        update.sender.client_id = self.client_id
+        update.receiver.name = request.sender.name
+        update.receiver.role = request.sender.role
+        update.model_id = model_id
+        update.model_update_id = model_update_id
+        update.timestamp = str(datetime.now())
+        update.meta = json.dumps(meta)
+
         self.send_model_update(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
 
         self.send_status(
             "Model update completed.",
             log_level=fedn.Status.AUDIT,
             type=fedn.StatusType.MODEL_UPDATE,
-            request=request,
+            request=update,
             sesssion_id=request.session_id,
             sender_name=self.name,
         )
