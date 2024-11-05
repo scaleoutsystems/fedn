@@ -130,12 +130,25 @@ Next will now upload these files to your Studio project.
 ------------------------------
 The next step is to initialize the server side with the client code and the initial global model. In the Studio UI,
 
-#. Navigate to the project you created in step 1 and click on the "Sessions" tab. 
-#. Click on the "New Session" button. 
-#. Under the "Compute package" tab, select a name and upload the generated package file. 
-#. Under the "Seed model" tab, upload the generated seed file:
+**Upload the compute package**
+
+#. Navigate to the project you created in step 1 and click on the "Packages" link. 
+#. Click on the "Add Package" button. 
+#. On the next form, enter a name and upload the generated package file.
+
+.. note:: 
+   On the "packages" link, you can also select the option "Use local package mode". This is an advanced option that 
+   allows each client to connect with their own custom compute package.
 
 .. image:: img/upload_package.png
+
+**Upload the seed model**
+
+#. Navigate to the project you created in step 1 and click on the “Sessions” tab.
+#. Click on the “New Session” button.
+#. Under the “Seed model” tab, upload the generated seed file:
+
+.. image:: img/upload_seed.png
 
 Continue to step 4 before starting the session. The uploaded package and seed files are saved.
 
