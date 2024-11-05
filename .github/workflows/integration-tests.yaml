@@ -42,6 +42,22 @@ jobs:
       #   run: .ci/tests/examples/run_prediction.sh ${{ matrix.to_test }}
       #   if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
-      - name: print logs
+      - name: print logs api-server
         if: failure()
-        run: .ci/tests/examples/print_logs.sh
+        run: .ci/tests/examples/print_logs.sh api-server ${{ matrix.to_test }}
+      
+      - name: print logs combiner
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh combiner ${{ matrix.to_test }}
+      
+      - name: print logs client
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh client ${{ matrix.to_test }}
+      
+      - name: print logs mongo
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh mongo ${{ matrix.to_test }}
+      
+      - name: print logs minio
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh minio ${{ matrix.to_test }}
