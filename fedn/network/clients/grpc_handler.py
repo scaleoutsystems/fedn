@@ -116,7 +116,7 @@ class GrpcHandler:
             logger.info("Sending heartbeat to combiner")
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
         except grpc.RpcError as e:
-            raise
+            raise e
         except Exception as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
             self._disconnect()
