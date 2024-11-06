@@ -206,7 +206,7 @@ class GrpcHandler:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
             self._disconnect()
 
-    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
+    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
 
@@ -218,7 +218,7 @@ class GrpcHandler:
         data = BytesIO()
         time_start = time.time()
         request = fedn.ModelRequest(id=id)
-        request.sender.client_id = client_name
+        request.sender.client_id = client_id
         request.sender.role = fedn.WORKER
 
         try:

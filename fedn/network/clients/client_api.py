@@ -207,7 +207,6 @@ class ClientAPI:
             logger.error("Error: Could not initialize GRPC connection")
             return False
 
-
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
@@ -220,8 +219,8 @@ class ClientAPI:
         elif request.type == fedn.StatusType.MODEL_VALIDATION:
             self.validate(request)
 
-    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
-        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
+    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_id, timeout=timeout)
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
@@ -229,7 +228,8 @@ class ClientAPI:
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
-    def send_model_update(self,
+    def send_model_update(
+        self,
         sender_name: str,
         sender_role: fedn.Role,
         client_id: str,
@@ -237,7 +237,7 @@ class ClientAPI:
         model_update_id: str,
         receiver_name: str,
         receiver_role: fedn.Role,
-        meta: dict
+        meta: dict,
     ) -> bool:
         return self.grpc_handler.send_model_update(
             sender_name=sender_name,
@@ -247,17 +247,11 @@ class ClientAPI:
             model_update_id=model_update_id,
             receiver_name=receiver_name,
             receiver_role=receiver_role,
-            meta=meta
+            meta=meta,
         )
 
-    def send_model_validation(self,
-        sender_name: str,
-        receiver_name: str,
-        receiver_role: fedn.Role,
-        model_id: str,
-        metrics: dict,
-        correlation_id: str,
-        session_id: str
+    def send_model_validation(
+        self, sender_name: str, receiver_name: str, receiver_role: fedn.Role, model_id: str, metrics: dict, correlation_id: str, session_id: str
     ) -> bool:
         return self.grpc_handler.send_model_validation(sender_name, receiver_name, receiver_role, model_id, metrics, correlation_id, session_id)
 
