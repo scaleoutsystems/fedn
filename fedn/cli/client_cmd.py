@@ -218,8 +218,8 @@ def _complement_client_params(config: dict):
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
 @click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attach directly to combiner host.")
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
-@click.option("-va", "--validator", required=False, default=True)
-@click.option("-tr", "--trainer", required=False, default=True)
+@click.option("-va", "--validator", required=False, default=None)
+@click.option("-tr", "--trainer", required=False, default=None)
 @click.option("-h", "--helper_type", required=False, default=None)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
 @click.pass_context
@@ -318,11 +318,15 @@ def client_start_v2_cmd(
         config["validator"] = validator
         if config["validator"] is not None:
             click.echo(f"Input param validator: {validator} overrides value from file")
+    elif config["validator"] is None:
+        config["validator"] = True
 
     if trainer is not None:
         config["trainer"] = trainer
         if config["trainer"] is not None:
             click.echo(f"Input param trainer: {trainer} overrides value from file")
+    elif config["trainer"] is None:
+        config["trainer"] = True
 
     if helper_type and helper_type != "":
         config["helper_type"] = helper_type
