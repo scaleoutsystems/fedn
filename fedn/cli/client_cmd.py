@@ -212,7 +212,7 @@ def _complement_client_params(config: dict):
 @click.option("-u", "--api-url", required=False, help="Hostname for fedn api.")
 @click.option("-p", "--api-port", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
-@click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
+@click.option("-n", "--name", required=False)
 @click.option("-i", "--client-id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
@@ -291,6 +291,8 @@ def client_start_v2_cmd(
         config["name"] = name
         if config["name"]:
             click.echo(f"Input param name: {name} overrides value from file")
+    elif config["name"] is None:
+        config["name"] = "client" + str(uuid.uuid4())[:8]
 
     if client_id and client_id != "":
         config["client_id"] = client_id
