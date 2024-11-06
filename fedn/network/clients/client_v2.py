@@ -8,7 +8,7 @@ from typing import Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
+from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
@@ -65,7 +65,7 @@ class Client:
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
 
-        self.client_api: ClientAPI = ClientAPI()
+        self.fedn_client: FednClient = FednClient()
 
         self.helper = None
 
@@ -76,7 +76,7 @@ class Client:
             if result == ConnectToApiResult.ComputePackageMissing:
                 logger.info("Retrying in 3 seconds")
                 time.sleep(3)
-            result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
+            result, response = self.fedn_client.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
@@ -95,32 +95,32 @@ class Client:
                 return
 
         if self.client_obj.package == "remote":
-            result = self.client_api.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self.fedn_client.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
 
             if not result:
                 return
         else:
-            result = self.client_api.init_local_compute_package()
+            result = self.fedn_client.init_local_compute_package()
 
             if not result:
                 return
 
         self.set_helper(combiner_config)
 
-        result: bool = self.client_api.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
+        result: bool = self.fedn_client.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
 
         if not result:
             return
 
         logger.info("-----------------------------")
 
-        self.client_api.set_train_callback(self.on_train)
-        self.client_api.set_validate_callback(self.on_validation)
+        self.fedn_client.set_train_callback(self.on_train)
+        self.fedn_client.set_validate_callback(self.on_validation)
 
-        self.client_api.set_name(self.client_obj.name)
-        self.client_api.set_client_id(self.client_obj.client_id)
+        self.fedn_client.set_name(self.client_obj.name)
+        self.fedn_client.set_client_id(self.client_obj.client_id)
 
-        self.client_api.run()
+        self.fedn_client.run()
 
     def set_helper(self, response: GrpcConnectionOptions = None):
         helper_type = response.get("helper_type", None)
@@ -160,7 +160,7 @@ class Client:
 
             tic = time.time()
 
-            self.client_api.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+            self.fedn_client.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
 
             meta["exec_training"] = time.time() - tic
 
@@ -202,7 +202,7 @@ class Client:
                 fh.write(in_model.getbuffer())
 
             outpath = get_tmp_path()
-            self.client_api.dispatcher.run_cmd(f"validate {inpath} {outpath}")
+            self.fedn_client.dispatcher.run_cmd(f"validate {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 metrics = json.loads(fh.read())

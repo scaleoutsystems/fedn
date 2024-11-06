@@ -26,7 +26,7 @@ Step-by-Step Instructions
 
     import argparse
 
-    from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult
+    from fedn.network.clients.fedn_client import FednClient, ConnectToApiResult
 
 
     def get_api_url(api_url: str, api_port: int):
@@ -70,15 +70,15 @@ Step-by-Step Instructions
 
 
     def main(api_url: str, api_port: int, token: str = None):
-        client_api = ClientAPI(train_callback=on_train, validate_callback=on_validate, predict_callback=on_predict)
+        fedn_client = FednClient(train_callback=on_train, validate_callback=on_validate, predict_callback=on_predict)
 
         url = get_api_url(api_url, api_port)
 
         name = input("Enter Client Name: ")
-        client_api.set_name(name)
+        fedn_client.set_name(name)
 
         client_id = str(uuid.uuid4())
-        client_api.set_client_id(client_id)
+        fedn_client.set_client_id(client_id)
 
         controller_config = {
             "name": name,
@@ -87,18 +87,18 @@ Step-by-Step Instructions
             "preferred_combiner": "",
         }
 
-        result, combiner_config = client_api.connect_to_api(url, token, controller_config)
+        result, combiner_config = fedn_client.connect_to_api(url, token, controller_config)
 
         if result != ConnectToApiResult.Assigned:
             print("Failed to connect to API, exiting.")
             return
 
-        result: bool = client_api.init_grpchandler(config=combiner_config, client_name=client_id, token=token)
+        result: bool = fedn_client.init_grpchandler(config=combiner_config, client_name=client_id, token=token)
 
         if not result:
             return
 
-        client_api.run()
+        fedn_client.run()
 
     if __name__ == "__main__":
         parser = argparse.ArgumentParser(description="Client Example")

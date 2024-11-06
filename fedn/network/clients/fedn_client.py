@@ -53,7 +53,7 @@ def get_compute_package_dir_path():
     return result
 
 
-class ClientAPI:
+class FednClient:
     def __init__(self, train_callback: callable = None, validate_callback: callable = None, predict_callback: callable = None):
         self.train_callback: callable = train_callback
         self.validate_callback: callable = validate_callback
