@@ -17,6 +17,7 @@ ENDPOINT_ROLES_MAPPING = {
     "/fedn.Control/Stop": ["controller"],
     "/fedn.Control/FlushAggregationQueue": ["controller"],
     "/fedn.Control/SetAggregator": ["controller"],
+    "/fedn.Control/SetServerFunctions": ["controller"],
 }
 
 ENDPOINT_WHITELIST = [
@@ -26,6 +27,7 @@ ENDPOINT_WHITELIST = [
     "/fedn.Control/Stop",
     "/fedn.Control/FlushAggregationQueue",
     "/fedn.Control/SetAggregator",
+    "/fedn.Control/SetServerFunctions",
 ]
 
 USER_AGENT_WHITELIST = ["grpc_health_probe"]
