@@ -238,7 +238,7 @@ class GrpcHandler:
                         return None
                     continue
         except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_name, timeout))
+            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
         except Exception as e:
             logger.error(f"GRPC (Download): An error occurred: {e}")
             self._disconnect()
