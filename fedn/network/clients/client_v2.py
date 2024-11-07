@@ -44,16 +44,17 @@ class ClientOptions:
 
 
 class Client:
-    def __init__(self,
-            api_url: str,
-            api_port: int,
-            client_obj: ClientOptions,
-            combiner_host: str = None,
-            combiner_port: int = None,
-            token: str = None,
-            package_checksum: str = None,
-            helper_type: str = None
-        ):
+    def __init__(
+        self,
+        api_url: str,
+        api_port: int,
+        client_obj: ClientOptions,
+        combiner_host: str = None,
+        combiner_port: int = None,
+        token: str = None,
+        package_checksum: str = None,
+        helper_type: str = None,
+    ):
         self.api_url = api_url
         self.api_port = api_port
         self.combiner_host = combiner_host
@@ -149,7 +150,6 @@ class Client:
         logger.info("Received validation request")
         self._process_validation_request(request)
 
-
     def _process_training_request(self, request) -> Tuple[str, dict]:
         """Process a training (model update) request.
 
@@ -164,16 +164,14 @@ class Client:
         session_id: str = request.session_id
 
         self.client_api.send_status(
-            f"\t Starting processing of training request for model_id {model_id}",
-            sesssion_id=session_id,
-            sender_name=self.client_obj.name
+            f"\t Starting processing of training request for model_id {model_id}", sesssion_id=session_id, sender_name=self.client_obj.name
         )
 
         try:
             meta = {}
             tic = time.time()
 
-            model = self.client_api.get_model_from_combiner(id=str(model_id), client_name=self.client_obj.client_id)
+            model = self.client_api.get_model_from_combiner(id=str(model_id), client_id=self.client_obj.client_id)
 
             if model is None:
                 logger.error("Could not retrieve model from combiner. Aborting training request.")
@@ -246,7 +244,7 @@ class Client:
                 type=fedn.StatusType.MODEL_UPDATE,
                 request=request,
                 sesssion_id=session_id,
-                sender_name=self.client_obj.name
+                sender_name=self.client_obj.name,
             )
 
     def _process_validation_request(self, request):
@@ -266,7 +264,7 @@ class Client:
         self.client_api.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id, sender_name=self.client_obj.name)
 
         try:
-            model = self.client_api.get_model_from_combiner(id=str(model_id), client_name=self.client_obj.client_id)
+            model = self.client_api.get_model_from_combiner(id=str(model_id), client_id=self.client_obj.client_id)
             if model is None:
                 logger.error("Could not retrieve model from combiner. Aborting validation request.")
                 return
@@ -318,7 +316,7 @@ class Client:
                     type=fedn.StatusType.MODEL_VALIDATION,
                     request=validation,
                     sesssion_id=request.session_id,
-                    sender_name=self.client_obj.name
+                    sender_name=self.client_obj.name,
                 )
             else:
                 self.client_api.send_status(
@@ -326,5 +324,5 @@ class Client:
                     log_level=fedn.Status.WARNING,
                     request=request,
                     sesssion_id=request.session_id,
-                    sender_name=self.client_obj.name
+                    sender_name=self.client_obj.name,
                 )

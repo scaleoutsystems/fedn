@@ -17,6 +17,24 @@ from fedn.common.config import FEDN_AUTH_SCHEME
 from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
+# Keepalive settings: these help keep the connection open for long-lived clients
+KEEPALIVE_TIME_MS = 1 * 1000  # send keepalive ping every 60 seconds
+KEEPALIVE_TIMEOUT_MS = 30 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
+MAX_CONNECTION_IDLE_MS = 30000
+MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
+CLIENT_IDLE_TIMEOUT_MS = 30000
+
+GRPC_OPTIONS = [
+    ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
+    ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
+    ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
+    ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
+    ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
+    ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
+    ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
+]
+
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
@@ -61,11 +79,6 @@ class GrpcHandler:
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
 
-        # Keepalive settings: these help keep the connection open for long-lived clients
-        KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-        KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-        KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
-
         if os.getenv("FEDN_GRPC_ROOT_CERT_PATH"):
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
@@ -80,34 +93,48 @@ class GrpcHandler:
         self.channel = grpc.secure_channel(
             "{}:{}".format(host, str(port)),
             grpc.composite_channel_credentials(credentials, auth_creds),
-            options=[
-                ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
-                ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
-                ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-                ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
-            ],
+            options=GRPC_OPTIONS,
         )
 
     def _init_insecure_channel(self, host: str, port: int):
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
-        self.channel = grpc.insecure_channel(url)
+        self.channel = grpc.insecure_channel(
+            url,
+            options=GRPC_OPTIONS,
+        )
 
-    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
+    def heartbeat(self, client_name: str, client_id: str):
+        """Send a heartbeat to the combiner.
+
+        :return: Response from the combiner.
+        :rtype: fedn.Response
+        """
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.WORKER, client_id=client_id))
 
+        try:
+            logger.info("Sending heartbeat to combiner")
+            response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
+        except grpc.RpcError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
+            self._disconnect()
+            raise e
+        return response
+
+    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
         send_hearbeat = True
         while send_hearbeat:
             try:
-                logger.info("Sending heartbeat to combiner")
-                self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
+                response = self.heartbeat(client_name, client_id)
             except grpc.RpcError as e:
                 return self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
-            except Exception as e:
-                logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
-                self._disconnect()
+            if isinstance(response, fedn.Response):
+                logger.info("Heartbeat successful.")
+            else:
+                logger.error("Heartbeat failed.")
                 send_hearbeat = False
-
             time.sleep(update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]):
@@ -179,7 +206,7 @@ class GrpcHandler:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
             self._disconnect()
 
-    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
+    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
         """Fetch a model from the assigned combiner.
         Downloads the model update object via a gRPC streaming channel.
 
@@ -191,7 +218,7 @@ class GrpcHandler:
         data = BytesIO()
         time_start = time.time()
         request = fedn.ModelRequest(id=id)
-        request.sender.name = client_name
+        request.sender.client_id = client_id
         request.sender.role = fedn.WORKER
 
         try:
@@ -211,7 +238,7 @@ class GrpcHandler:
                         return None
                     continue
         except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_name, timeout))
+            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
         except Exception as e:
             logger.error(f"GRPC (Download): An error occurred: {e}")
             self._disconnect()
