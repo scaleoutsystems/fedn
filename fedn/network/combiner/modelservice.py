@@ -2,6 +2,8 @@ import os
 import tempfile
 from io import BytesIO
 
+import numpy as np
+
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
@@ -29,7 +31,36 @@ def upload_request_generator(mdl, id):
             break
 
 
-def model_as_bytesIO(model):
+def bytesIO_request_generator(mdl, request_function, args):
+    """Generator function for model upload requests.
+
+    :param mdl: The model update object.
+    :type mdl: BytesIO
+    :param request_function: Function for sending requests.
+    :type request_function: Function
+    :param args: request arguments, excluding data argument.
+    :type args: dict
+    :return: Yields grpc request for streaming.
+    :rtype: grpc request generator.
+    """
+    while True:
+        b = mdl.read(CHUNK_SIZE)
+        if b:
+            result = request_function(data=b, **args)
+        else:
+            result = request_function(data=None, **args)
+        yield result
+        if not b:
+            break
+
+
+def model_as_bytesIO(model, helper=None):
+    if isinstance(model, list):
+        bt = BytesIO()
+        model_dict = {str(i): w for i, w in enumerate(model)}
+        np.savez_compressed(bt, **model_dict)
+        bt.seek(0)
+        return bt
     if not isinstance(model, BytesIO):
         bt = BytesIO()
 
@@ -44,6 +75,31 @@ def model_as_bytesIO(model):
     return bt
 
 
+def unpack_model(request_iterator, helper):
+    """Unpack an incoming model sent in chunks from a request iterator.
+
+    :param request_iterator: A streaming iterator from an gRPC service.
+    :return: The reconstructed model parameters.
+    """
+    model_buffer = BytesIO()
+    try:
+        for request in request_iterator:
+            if request.data:
+                model_buffer.write(request.data)
+    except MemoryError as e:
+        logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Exception occured during model loading: {e}")
+        raise
+
+    model_buffer.seek(0)
+
+    model_bytes = model_buffer.getvalue()
+
+    return load_model_from_bytes(model_bytes, helper), request
+
+
 def get_tmp_path():
     """Return a temporary output path compatible with save_model, load_model."""
     fd, path = tempfile.mkstemp()
@@ -51,10 +107,10 @@ def get_tmp_path():
     return path
 
 
-def load_model_from_BytesIO(model_bytesio, helper):
-    """Load a model from a BytesIO object.
-    :param model_bytesio: A BytesIO object containing the model.
-    :type model_bytesio: :class:`io.BytesIO`
+def load_model_from_bytes(model_bytes, helper):
+    """Load a model from a bytes object.
+    :param model_bytesio: A bytes object containing the model.
+    :type model_bytes: :class:`bytes`
     :param helper: The helper object for the model.
     :type helper: :class:`fedn.utils.helperbase.HelperBase`
     :return: The model object.
@@ -62,7 +118,7 @@ def load_model_from_BytesIO(model_bytesio, helper):
     """
     path = get_tmp_path()
     with open(path, "wb") as fh:
-        fh.write(model_bytesio)
+        fh.write(model_bytes)
         fh.flush()
     model = helper.load(path)
     os.unlink(path)
@@ -173,7 +229,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.name} requested model {request.id}")
+        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
         try:
             status = self.temp_model_storage.get_model_metadata(request.id)
             if status != fedn.ModelStatus.OK:

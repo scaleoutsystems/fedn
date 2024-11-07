@@ -425,7 +425,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-        data = MessageToDict(status, including_default_value_fields=True)
+        data = MessageToDict(status)
         _ = status_store.add(data)
 
     def _flush_model_update_queue(self):
@@ -489,7 +489,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.debug("grpc.Combiner.SetAggregator: Called")
         for parameter in control.parameter:
             aggregator = parameter.value
-
         status = self.round_handler.set_aggregator(aggregator)
 
         response = fedn.ControlResponse()
@@ -497,7 +496,27 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             response.message = "Success"
         else:
             response.message = "Failed"
+        return response
 
+    def SetServerFunctions(self, control: fedn.ControlRequest, context):
+        """Set a function provider.
+
+        :param control: the control request
+        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
+        :param context: the context (unused)
+        :type context: :class:`grpc._server._Context`
+        :return: the control response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
+        """
+        logger.debug("grpc.Combiner.SetServerFunctions: Called")
+        for parameter in control.parameter:
+            server_functions = parameter.value
+
+        self.round_handler.set_server_functions(server_functions)
+
+        response = fedn.ControlResponse()
+        response.message = "Success"
+        logger.info(f"set function provider response {response}")
         return response
 
     def FlushAggregationQueue(self, control: fedn.ControlRequest, context):
@@ -719,7 +738,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        self.round_handler.aggregator.on_model_update(request)
+        self.round_handler.update_handler.on_model_update(request)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelUpdate {} from client  {}".format(response, response.sender.name)
@@ -731,7 +750,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-        data = MessageToDict(validation, including_default_value_fields=True)
+        data = MessageToDict(validation)
         success, result = validation_store.add(data)
         if not success:
             logger.error(result)
@@ -750,7 +769,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
-        validation = MessageToDict(request, including_default_value_fields=True)
+        validation = MessageToDict(request)
         validation_store.add(validation)
 
         response = fedn.Response()
@@ -769,7 +788,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
-        result = MessageToDict(request, including_default_value_fields=True)
+        result = MessageToDict(request)
         prediction_store.add(result)
 
         response = fedn.Response()

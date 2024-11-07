@@ -357,8 +357,8 @@ class FednClient:
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 
-    def get_model_from_combiner(self, id: str, client_name: str, timeout: int = 20) -> BytesIO:
-        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_name, timeout=timeout)
+    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_id, timeout=timeout)
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)

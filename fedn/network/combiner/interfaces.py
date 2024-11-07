@@ -196,6 +196,28 @@ class CombinerInterface:
             else:
                 raise
 
+    def set_server_functions(self, server_functions):
+        """Set the function provider module.
+
+        :param function provider: Stringified function provider code.
+        :type config: str
+        """
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+
+        request = fedn.ControlRequest()
+        p = request.parameter.add()
+        p.key = "server_functions"
+        p.value = server_functions
+
+        try:
+            control.SetServerFunctions(request)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.UNAVAILABLE:
+                raise CombinerUnavailableError
+            else:
+                raise
+
     def submit(self, config: RoundConfig):
         """Submit a compute plan to the combiner.
 

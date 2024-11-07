@@ -906,6 +906,7 @@ class API:
         helper="",
         min_clients=1,
         requested_clients=8,
+        server_functions=None,
     ):
         """Start a session.
 
@@ -1008,6 +1009,7 @@ class API:
             "task": (""),
             "validate": validate,
             "helper_type": helper,
+            "server_functions": server_functions,
         }
 
         # Start session

@@ -739,21 +739,13 @@ class MongoStateStore:
         client_data["updated_at"] = str(datetime.now())
         try:
             # self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
-            self.clients.update_one(
-                {"client_id": client_data["client_id"]},
-                {"$set": {k: v for k, v in client_data.items() if v is not None}},
-                upsert=True
-            )
+            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": {k: v for k, v in client_data.items() if v is not None}}, upsert=True)
         except KeyError:
             # If client_id is not present, use name as identifier, for backwards compatibility
             id = str(uuid.uuid4())
             client_data["client_id"] = id
             # self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
-            self.clients.update_one(
-                {"client_id": client_data["client_id"]},
-                {"$set": {k: v for k, v in client_data.items() if v is not None}},
-                upsert=True
-            )
+            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": {k: v for k, v in client_data.items() if v is not None}}, upsert=True)
 
     def get_client(self, client_id):
         """Get client by client_id.
@@ -845,7 +837,7 @@ class MongoStateStore:
         :param msg: The status message.
         :type msg: str
         """
-        data = MessageToDict(msg, including_default_value_fields=True)
+        data = MessageToDict(msg)
 
         if self.status is not None:
             self.status.insert_one(data)
@@ -856,7 +848,7 @@ class MongoStateStore:
         :param validation: The model validation.
         :type validation: dict
         """
-        data = MessageToDict(validation, including_default_value_fields=True)
+        data = MessageToDict(validation)
 
         if self.validations is not None:
             self.validations.insert_one(data)
