@@ -210,7 +210,7 @@ class FednClient:
         model_update_id = str(uuid.uuid4())
 
         tic = time.time()
-        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+        in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
             logger.error("Could not retrieve model from combiner. Aborting training request.")
@@ -254,7 +254,7 @@ class FednClient:
 
         self.send_status(f"Processing validate request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
 
-        in_model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+        in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
             logger.error("Could not retrieve model from combiner. Aborting validation request.")
@@ -293,7 +293,7 @@ class FednClient:
 
     def predict_global_model(self, request):
         model_id = request.model_id
-        model = self.get_model_from_combiner(id=model_id, client_name=self.name)
+        model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if model is None:
             logger.error("Could not retrieve model from combiner. Aborting prediction request.")
@@ -358,7 +358,7 @@ class FednClient:
             logger.info("Client stopped by user.")
 
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
-        return self.grpc_handler.get_model_from_combiner(id=id, client_name=client_id, timeout=timeout)
+        return self.grpc_handler.get_model_from_combiner(id=id, client_id=client_id, timeout=timeout)
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
