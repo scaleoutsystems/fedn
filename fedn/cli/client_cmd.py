@@ -39,10 +39,11 @@ def client_cmd(ctx):
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-id", "--id", required=False, help="Client ID")
 @click.option("--n_max", required=False, help="Number of items to list")
 @client_cmd.command("list")
 @click.pass_context
-def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
+def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None, n_max: int = None):
     """Return:
     ------
     - count: number of clients
@@ -60,12 +61,19 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     if _token:
         headers["Authorization"] = _token
 
+    if id:
+        url = f"{url}{id}"
+        headers["id"] = id
+
+
     click.echo(f"\nListing clients: {url}\n")
     click.echo(f"Headers: {headers}")
-
     try:
         response = requests.get(url, headers=headers)
-        print_response(response, "clients")
+        if id:
+            print_response(response, "client", True)
+        else:
+            print_response(response, "clients", False)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
 
