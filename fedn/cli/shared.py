@@ -64,7 +64,7 @@ def get_client_package_dir(path: str) -> str:
 
 
 # Print response from api (list of entities)
-def print_response(response, entity_name: str):
+def print_response(response, entity_name: str, so, session_id):
     """Prints the api response to the cli.
     :param response:
         type: array
@@ -72,18 +72,27 @@ def print_response(response, entity_name: str):
     :param entity_name:
         type: string
         description: name of entity
+    :param so:
+        type: boolean
+        desriptions: single output format (y/n)
     return: None
     """
     if response.status_code == 200:
         json_data = response.json()
-        count, result = json_data.values()
-        click.echo(f"Found {count} {entity_name}")
-        click.echo("\n---------------------------------\n")
-        for obj in result:
-            click.echo("{")
-            for k, v in obj.items():
+        if so:
+            click.echo(f"Found {entity_name}")
+            click.echo("\n---------------------------------\n")
+            for k, v in json_data.items():
                 click.echo(f"\t{k}: {v}")
-            click.echo("}")
+        else:
+            count, result = json_data.values()
+            click.echo(f"Found {count} {entity_name}")
+            click.echo("\n---------------------------------\n")
+            for obj in result:
+                click.echo("{")
+                for k, v in obj.items():
+                    click.echo(f"\t{k}: {v}")
+                click.echo("}")
     elif response.status_code == 500:
         json_data = response.json()
         click.echo(f'Error: {json_data["message"]}')
