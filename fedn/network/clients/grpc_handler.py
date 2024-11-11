@@ -106,7 +106,6 @@ class GrpcHandler:
         )
 
     def _init_insecure_channel(self, host: str, port: int):
-        self.secure = False
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
         self.channel = grpc.insecure_channel(
