@@ -1,15 +1,14 @@
 import io
 import json
 import os
-import threading
 import time
 import uuid
+from io import BytesIO
 from typing import Tuple
 
-import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.client_api import ClientAPI, ConnectToApiResult, GrpcConnectionOptions
+from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 
@@ -66,18 +65,18 @@ class Client:
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
 
-        self.client_api: ClientAPI = ClientAPI()
+        self.fedn_client: FednClient = FednClient()
 
         self.helper = None
 
     def _connect_to_api(self) -> Tuple[bool, dict]:
         result = None
 
-        while not result or result == ConnectToApiResult.ComputePackgeMissing:
-            if result == ConnectToApiResult.ComputePackgeMissing:
+        while not result or result == ConnectToApiResult.ComputePackageMissing:
+            if result == ConnectToApiResult.ComputePackageMissing:
                 logger.info("Retrying in 3 seconds")
                 time.sleep(3)
-            result, response = self.client_api.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
+            result, response = self.fedn_client.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
@@ -96,41 +95,32 @@ class Client:
                 return
 
         if self.client_obj.package == "remote":
-            result = self.client_api.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self.fedn_client.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
 
             if not result:
                 return
         else:
-            result = self.client_api.init_local_compute_package()
+            result = self.fedn_client.init_local_compute_package()
 
             if not result:
                 return
 
         self.set_helper(combiner_config)
 
-        result: bool = self.client_api.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
+        result: bool = self.fedn_client.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
 
         if not result:
             return
 
         logger.info("-----------------------------")
 
-        threading.Thread(
-            target=self.client_api.send_heartbeats, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
-        ).start()
+        self.fedn_client.set_train_callback(self.on_train)
+        self.fedn_client.set_validate_callback(self.on_validation)
 
-        self.client_api.subscribe("train", self.on_train)
-        self.client_api.subscribe("validation", self.on_validation)
+        self.fedn_client.set_name(self.client_obj.name)
+        self.fedn_client.set_client_id(self.client_obj.client_id)
 
-        threading.Thread(
-            target=self.client_api.listen_to_task_stream, kwargs={"client_name": self.client_obj.name, "client_id": self.client_obj.client_id}, daemon=True
-        ).start()
-
-        stop_event = threading.Event()
-        try:
-            stop_event.wait()
-        except KeyboardInterrupt:
-            logger.info("Client stopped by user.")
+        self.fedn_client.run()
 
     def set_helper(self, response: GrpcConnectionOptions = None):
         helper_type = response.get("helper_type", None)
@@ -142,66 +132,42 @@ class Client:
         # Priority: helper_type from constructor > helper_type from response > default helper_type
         self.helper = get_helper(helper_type_to_use)
 
-    def on_train(self, request):
-        logger.info("Received train request")
-        self._process_training_request(request)
+    def on_train(self, in_model):
+        out_model, meta = self._process_training_request(in_model)
+        return out_model, meta
 
-    def on_validation(self, request):
-        logger.info("Received validation request")
-        self._process_validation_request(request)
+    def on_validation(self, in_model):
+        metrics = self._process_validation_request(in_model)
+        return metrics
 
-    def _process_training_request(self, request) -> Tuple[str, dict]:
+    def _process_training_request(self, in_model: BytesIO) -> Tuple[BytesIO, dict]:
         """Process a training (model update) request.
 
-        :param model_id: The model id of the model to be updated.
-        :type model_id: str
-        :param session_id: The id of the current session
-        :type session_id: str
-        :return: The model id of the updated model, or None if the update failed. And a dict with metadata.
+        :param in_model: The model to be updated.
+        :type in_model: BytesIO
+        :return: The updated model, or None if the update failed. And a dict with metadata.
         :rtype: tuple
         """
-        model_id: str = request.model_id
-        session_id: str = request.session_id
-
-        self.client_api.send_status(
-            f"\t Starting processing of training request for model_id {model_id}", sesssion_id=session_id, sender_name=self.client_obj.name
-        )
-
         try:
             meta = {}
-            tic = time.time()
-
-            model = self.client_api.get_model_from_combiner(id=str(model_id), client_id=self.client_obj.client_id)
-
-            if model is None:
-                logger.error("Could not retrieve model from combiner. Aborting training request.")
-                return None, None
-
-            meta["fetch_model"] = time.time() - tic
 
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
-                fh.write(model.getbuffer())
+                fh.write(in_model.getbuffer())
 
             outpath = self.helper.get_tmp_path()
 
             tic = time.time()
 
-            self.client_api.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+            self.fedn_client.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
 
             meta["exec_training"] = time.time() - tic
 
-            tic = time.time()
             out_model = None
 
             with open(outpath, "rb") as fr:
                 out_model = io.BytesIO(fr.read())
-
-            # Stream model update to combiner server
-            updated_model_id = uuid.uuid4()
-            self.client_api.send_model_to_combiner(out_model, str(updated_model_id))
-            meta["upload_model"] = time.time() - tic
 
             # Read the metadata file
             with open(outpath + "-metadata", "r") as fh:
@@ -216,65 +182,27 @@ class Client:
 
         except Exception as e:
             logger.error("Could not process training request due to error: {}".format(e))
-            updated_model_id = None
+            out_model = None
             meta = {"status": "failed", "error": str(e)}
 
-        if meta is not None:
-            processing_time = time.time() - tic
-            meta["processing_time"] = processing_time
-            meta["config"] = request.data
+        return out_model, meta
 
-        if model_id is not None:
-            # Send model update to combiner
-
-            self.client_api.send_model_update(
-                sender_name=self.client_obj.name,
-                sender_role=fedn.WORKER,
-                client_id=self.client_obj.client_id,
-                model_id=model_id,
-                model_update_id=str(updated_model_id),
-                receiver_name=request.sender.name,
-                receiver_role=request.sender.role,
-                meta=meta,
-            )
-
-            self.client_api.send_status(
-                "Model update completed.",
-                log_level=fedn.Status.AUDIT,
-                type=fedn.StatusType.MODEL_UPDATE,
-                request=request,
-                sesssion_id=session_id,
-                sender_name=self.client_obj.name,
-            )
-
-    def _process_validation_request(self, request):
+    def _process_validation_request(self, in_model: BytesIO) -> dict:
         """Process a validation request.
 
-        :param model_id: The model id of the model to be validated.
-        :type model_id: str
-        :param session_id: The id of the current session.
-        :type session_id: str
+        :param in_model: The model to be validated.
+        :type in_model: BytesIO
         :return: The validation metrics, or None if validation failed.
         :rtype: dict
         """
-        model_id: str = request.model_id
-        session_id: str = request.session_id
-        cmd = "validate"
-
-        self.client_api.send_status(f"Processing {cmd} request for model_id {model_id}", sesssion_id=session_id, sender_name=self.client_obj.name)
-
         try:
-            model = self.client_api.get_model_from_combiner(id=str(model_id), client_id=self.client_obj.client_id)
-            if model is None:
-                logger.error("Could not retrieve model from combiner. Aborting validation request.")
-                return
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
-                fh.write(model.getbuffer())
+                fh.write(in_model.getbuffer())
 
             outpath = get_tmp_path()
-            self.client_api.dispatcher.run_cmd(f"{cmd} {inpath} {outpath}")
+            self.fedn_client.dispatcher.run_cmd(f"validate {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 metrics = json.loads(fh.read())
@@ -284,45 +212,6 @@ class Client:
 
         except Exception as e:
             logger.warning("Validation failed with exception {}".format(e))
+            metrics = None
 
-        if metrics is not None:
-            # Send validation
-            validation = fedn.ModelValidation()
-            validation.sender.name = self.client_obj.name
-            validation.sender.role = fedn.WORKER
-            validation.receiver.name = request.sender.name
-            validation.receiver.role = request.sender.role
-            validation.model_id = str(request.model_id)
-            validation.data = json.dumps(metrics)
-            validation.timestamp.GetCurrentTime()
-            validation.correlation_id = request.correlation_id
-            validation.session_id = request.session_id
-
-            # sender_name: str, sender_role: fedn.Role, model_id: str, model_update_id: str
-            result: bool = self.client_api.send_model_validation(
-                sender_name=self.client_obj.name,
-                receiver_name=request.sender.name,
-                receiver_role=request.sender.role,
-                model_id=str(request.model_id),
-                metrics=json.dumps(metrics),
-                correlation_id=request.correlation_id,
-                session_id=request.session_id,
-            )
-
-            if result:
-                self.client_api.send_status(
-                    "Model validation completed.",
-                    log_level=fedn.Status.AUDIT,
-                    type=fedn.StatusType.MODEL_VALIDATION,
-                    request=validation,
-                    sesssion_id=request.session_id,
-                    sender_name=self.client_obj.name,
-                )
-            else:
-                self.client_api.send_status(
-                    "Client {} failed to complete model validation.".format(self.name),
-                    log_level=fedn.Status.WARNING,
-                    request=request,
-                    sesssion_id=request.session_id,
-                    sender_name=self.client_obj.name,
-                )
+        return metrics

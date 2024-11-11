@@ -70,7 +70,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
         click.echo(f"Error: Could not connect to {url}")
 
 
-@client_cmd.command("start")
+@client_cmd.command("start-v1")
 @click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
 @click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
@@ -208,7 +208,7 @@ def _complement_client_params(config: dict):
         click.echo(f"Protocol missing, complementing api_url with protocol: {result}")
 
 
-@client_cmd.command("start-v2")
+@client_cmd.command("start")
 @click.option("-u", "--api-url", required=False, help="Hostname for fedn api.")
 @click.option("-p", "--api-port", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
@@ -239,8 +239,6 @@ def client_start_v2_cmd(
     helper_type: str,
     init: str,
 ):
-    click.echo(click.style("\n*** fedn client start-v2 is experimental ***\n", blink=True, bold=True, fg="red"))
-
     package = "local" if local_package else "remote"
 
     config = {

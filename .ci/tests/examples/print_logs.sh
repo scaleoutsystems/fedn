@@ -1,7 +1,7 @@
 #!/bin/bash
-service = $1
-example = $2
-helper = $3
+service="$1"
+example="$2"
+helper="$3"
 
 if [ "$service" == "minio" ]; then
     echo "Minio logs"

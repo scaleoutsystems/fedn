@@ -277,11 +277,9 @@ class GrpcHandler:
 
         return result
 
-    def send_model_update(
+    def create_update_message(
         self,
         sender_name: str,
-        sender_role: fedn.Role,
-        client_id: str,
         model_id: str,
         model_update_id: str,
         receiver_name: str,
@@ -290,8 +288,8 @@ class GrpcHandler:
     ):
         update = fedn.ModelUpdate()
         update.sender.name = sender_name
-        update.sender.role = sender_role
-        update.sender.client_id = client_id
+        update.sender.role = fedn.WORKER
+        update.sender.client_id = self.metadata[0][1]
         update.receiver.name = receiver_name
         update.receiver.role = receiver_role
         update.model_id = model_id
@@ -299,22 +297,18 @@ class GrpcHandler:
         update.timestamp = str(datetime.now())
         update.meta = json.dumps(meta)
 
-        try:
-            logger.info("Sending model update to combiner.")
-            _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(
-                e, "SendModelUpdate", lambda: self.send_model_update(sender_name, sender_role, model_id, model_update_id, receiver_name, receiver_role, meta)
-            )
-        except Exception as e:
-            logger.error(f"GRPC (SendModelUpdate): An error occurred: {e}")
-            self._disconnect()
+        return update
 
-        return True
-
-    def send_model_validation(
-        self, sender_name: str, receiver_name: str, receiver_role: fedn.Role, model_id: str, metrics: str, correlation_id: str, session_id: str
-    ) -> bool:
+    def create_validation_message(
+        self,
+        sender_name: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        model_id: str,
+        metrics: str,
+        correlation_id: str,
+        session_id: str,
+    ):
         validation = fedn.ModelValidation()
         validation.sender.name = sender_name
         validation.sender.role = fedn.WORKER
@@ -326,6 +320,44 @@ class GrpcHandler:
         validation.correlation_id = correlation_id
         validation.session_id = session_id
 
+        return validation
+
+    def create_prediction_message(
+        self,
+        sender_name: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        model_id: str,
+        prediction_output: str,
+        correlation_id: str,
+        session_id: str,
+    ):
+        prediction = fedn.ModelPrediction()
+        prediction.sender.name = sender_name
+        prediction.sender.role = fedn.WORKER
+        prediction.receiver.name = receiver_name
+        prediction.receiver.role = receiver_role
+        prediction.model_id = model_id
+        prediction.data = prediction_output
+        prediction.timestamp.GetCurrentTime()
+        prediction.correlation_id = correlation_id
+        prediction.prediction_id = session_id
+
+        return prediction
+
+    def send_model_update(self, update: fedn.ModelUpdate):
+        try:
+            logger.info("Sending model update to combiner.")
+            _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(e, "SendModelUpdate", lambda: self.send_model_update(update))
+        except Exception as e:
+            logger.error(f"GRPC (SendModelUpdate): An error occurred: {e}")
+            self._disconnect()
+
+        return True
+
+    def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
         try:
             logger.info("Sending model validation to combiner.")
             _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
@@ -333,10 +365,26 @@ class GrpcHandler:
             return self._handle_grpc_error(
                 e,
                 "SendModelValidation",
-                lambda: self.send_model_validation(sender_name, receiver_name, receiver_role, model_id, metrics, correlation_id, session_id),
+                lambda: self.send_model_validation(validation),
             )
         except Exception as e:
             logger.error(f"GRPC (SendModelValidation): An error occurred: {e}")
+            self._disconnect()
+
+        return True
+
+    def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
+        try:
+            logger.info("Sending model prediction to combiner.")
+            _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(
+                e,
+                "SendModelPrediction",
+                lambda: self.send_model_prediction(prediction),
+            )
+        except Exception as e:
+            logger.error(f"GRPC (SendModelPrediction): An error occurred: {e}")
             self._disconnect()
 
         return True
