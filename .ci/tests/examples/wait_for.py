@@ -40,7 +40,7 @@ def _test_rounds(n_rounds):
 def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8092'):
     try:
 
-        endpoint = "list_clients" if node_type == "client" else "list_combiners"
+        endpoint = "api/v1/clients/" if node_type == "client" else "api/v1/combiners/"
 
         response = requests.get(
             f'http://{reducer_host}:{reducer_port}/{endpoint}', verify=False)
