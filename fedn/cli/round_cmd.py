@@ -66,11 +66,10 @@ def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, id:
                 click.echo(f'Error: {json_data["message"]}')
             else:
                 click.echo(f"Error: {response.status_code}")
+        elif id:
+            print_response(response, "round", True, session_id)
         else:
-            if id:
-                print_response(response, "round", True, session_id)
-            else:
-                print_response(response, "rounds", False, session_id)
+            print_response(response, "rounds", False, session_id)
 
 
     except requests.exceptions.ConnectionError:
