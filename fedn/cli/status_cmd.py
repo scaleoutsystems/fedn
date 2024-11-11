@@ -66,10 +66,9 @@ def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, i
                 click.echo(f'Error: {json_data["message"]}')
             else:
                 click.echo(f"Error: {response.status_code}")
+        elif id:
+            print_response(response, "status", True)
         else:
-            if id:
-                print_response(response, "status", True)
-            else:
-                print_response(response, "statuses", False)
+            print_response(response, "statuses", False)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")

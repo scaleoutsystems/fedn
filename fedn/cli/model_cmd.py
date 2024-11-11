@@ -67,10 +67,9 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, id:
                 click.echo(f'Error: {json_data["message"]}')
             else:
                 click.echo(f"Error: {response.status_code}")
+        elif id:
+            print_response(response, "model", True, session_id)
         else:
-            if id:
-                print_response(response, "model", True, session_id)
-            else:
-                print_response(response, "models", False, session_id)
+            print_response(response, "models", False, session_id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")

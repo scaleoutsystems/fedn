@@ -67,10 +67,9 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
                 click.echo(f'Error: {json_data["message"]}')
             else:
                 click.echo(f"Error: {response.status_code}")
+        elif id:
+            print_response(response, "validation", True)
         else:
-            if id:
-                print_response(response, "validation", True)
-            else:
-                print_response(response, "validations", False)
+            print_response(response, "validations", False)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
