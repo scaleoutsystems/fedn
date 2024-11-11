@@ -65,15 +65,24 @@ class GrpcHandler:
             ("client", name),
             ("grpc-server", combiner_name),
         ]
+        self.host = host
+        self.port = port
+        self.token = token
 
+        self._init_channel(host, port, token)
+
+        self._init_stubs()
+
+    def _init_stubs(self):
+        self.connectorStub = rpc.ConnectorStub(self.channel)
+        self.combinerStub = rpc.CombinerStub(self.channel)
+        self.modelStub = rpc.ModelServiceStub(self.channel)
+
+    def _init_channel(self, host: str, port: int, token: str):
         if port == 443:
             self._init_secure_channel(host, port, token)
         else:
             self._init_insecure_channel(host, port)
-
-        self.connectorStub = rpc.ConnectorStub(self.channel)
-        self.combinerStub = rpc.CombinerStub(self.channel)
-        self.modelStub = rpc.ModelServiceStub(self.channel)
 
     def _init_secure_channel(self, host: str, port: int, token: str):
         url = f"{host}:{port}"
@@ -97,6 +106,7 @@ class GrpcHandler:
         )
 
     def _init_insecure_channel(self, host: str, port: int):
+        self.secure = False
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
         self.channel = grpc.insecure_channel(
@@ -116,6 +126,7 @@ class GrpcHandler:
             logger.info("Sending heartbeat to combiner")
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
         except grpc.RpcError as e:
+            logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
             raise e
         except Exception as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
@@ -130,6 +141,8 @@ class GrpcHandler:
                 response = self.heartbeat(client_name, client_id)
             except grpc.RpcError as e:
                 return self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+            except Exception as e:
+                return self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
             if isinstance(response, fedn.Response):
                 logger.info("Heartbeat successful.")
             else:
@@ -166,10 +179,12 @@ class GrpcHandler:
                     callback(request)
 
         except grpc.RpcError as e:
+            self.logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             return self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
         except Exception as e:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             self._disconnect()
+            self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
 
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         """Send status message.
@@ -405,6 +420,15 @@ class GrpcHandler:
                 logger.warning(f"GRPC ({method_name}): Token expired.")
         self._disconnect()
         logger.error(f"GRPC ({method_name}): An error occurred: {e}")
+
+    def _handle_unknown_error(self, e, method_name: str, sender_function: Callable):
+        # Try to reconnect
+        logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
+        logger.warning(f"GRPC ({method_name}): Reconnecting to channel.")
+        # recreate the channel
+        self._init_channel(self.host, self.port, self.token)
+        self._init_stubs()
+        return sender_function()
 
     def _disconnect(self):
         """Disconnect from the combiner."""
