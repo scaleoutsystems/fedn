@@ -129,7 +129,6 @@ class GrpcHandler:
             raise e
         except Exception as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
-            self._disconnect()
             raise e
         return response
 
@@ -182,7 +181,6 @@ class GrpcHandler:
             return self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
         except Exception as e:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
-            self._disconnect()
             self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
 
     def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
@@ -218,7 +216,7 @@ class GrpcHandler:
             return self._handle_grpc_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
         except Exception as e:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
-            self._disconnect()
+            self._handle_unknown_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
 
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
         """Fetch a model from the assigned combiner.
@@ -255,8 +253,7 @@ class GrpcHandler:
             return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
         except Exception as e:
             logger.error(f"GRPC (Download): An error occurred: {e}")
-            self._disconnect()
-
+            self._handle_unknown_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
         return data
 
     def send_model_to_combiner(self, model: BytesIO, id: str):
@@ -287,8 +284,7 @@ class GrpcHandler:
             return self._handle_grpc_error(e, "Upload", lambda: self.send_model_to_combiner(model, id))
         except Exception as e:
             logger.error(f"GRPC (Upload): An error occurred: {e}")
-            self._disconnect()
-
+            self._handle_unknown_error(e, "Upload", lambda: self.send_model_to_combiner(model, id))
         return result
 
     def create_update_message(
@@ -367,8 +363,7 @@ class GrpcHandler:
             return self._handle_grpc_error(e, "SendModelUpdate", lambda: self.send_model_update(update))
         except Exception as e:
             logger.error(f"GRPC (SendModelUpdate): An error occurred: {e}")
-            self._disconnect()
-
+            self._handle_unknown_error(e, "SendModelUpdate", lambda: self.send_model_update(update))
         return True
 
     def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
@@ -383,8 +378,7 @@ class GrpcHandler:
             )
         except Exception as e:
             logger.error(f"GRPC (SendModelValidation): An error occurred: {e}")
-            self._disconnect()
-
+            self._handle_unknown_error(e, "SendModelValidation", lambda: self.send_model_validation(validation))
         return True
 
     def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
@@ -399,8 +393,7 @@ class GrpcHandler:
             )
         except Exception as e:
             logger.error(f"GRPC (SendModelPrediction): An error occurred: {e}")
-            self._disconnect()
-
+            self._handle_unknown_error(e, "SendModelPrediction", lambda: self.send_model_prediction(prediction))
         return True
 
     def _handle_grpc_error(self, e, method_name: str, sender_function: Callable):
@@ -413,21 +406,38 @@ class GrpcHandler:
             logger.warning(f"GRPC ({method_name}): connection cancelled. Retrying in 5 seconds.")
             time.sleep(5)
             return sender_function()
-        if status_code == grpc.StatusCode.UNAUTHENTICATED:
+        elif status_code == grpc.StatusCode.UNAUTHENTICATED:
             details = e.details()
             if details == "Token expired":
                 logger.warning(f"GRPC ({method_name}): Token expired.")
+                raise e
+        elif status_code == grpc.StatusCode.UNKNOWN:
+            logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
+            details = e.details()
+            if details == "Stream removed":
+                logger.warning(f"GRPC ({method_name}): Stream removed. Reconnecting")
+                self._disconnect()
+                self._init_channel(self.host, self.port, self.token)
+                self._init_stubs()
+                return sender_function()
+            raise e
         self._disconnect()
         logger.error(f"GRPC ({method_name}): An error occurred: {e}")
+        raise e
 
     def _handle_unknown_error(self, e, method_name: str, sender_function: Callable):
         # Try to reconnect
         logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
-        logger.warning(f"GRPC ({method_name}): Reconnecting to channel.")
-        # recreate the channel
-        self._init_channel(self.host, self.port, self.token)
-        self._init_stubs()
-        return sender_function()
+        if isinstance(e, ValueError):
+            # ValueError is raised when the channel is closed
+            self._disconnect()
+            logger.warning(f"GRPC ({method_name}): Reconnecting to channel.")
+            # recreate the channel
+            self._init_channel(self.host, self.port, self.token)
+            self._init_stubs()
+            return sender_function()
+        else:
+            raise e
 
     def _disconnect(self):
         """Disconnect from the combiner."""
