@@ -106,6 +106,7 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
         click.echo(f"Error: Could not connect to {url}")
 
 @client_cmd.command("start")
+@client_cmd.command("start-v1")
 @click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
 @click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
 @click.option("--token", required=False, help="Set token provided by reducer if enabled")
