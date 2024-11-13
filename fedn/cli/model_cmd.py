@@ -17,12 +17,11 @@ def model_cmd(ctx):
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Model ID")
 @click.option("-session_id", "--session_id", required=False, help="models in session with given session id")
 @click.option("--n_max", required=False, help="Number of items to list")
 @model_cmd.command("list")
 @click.pass_context
-def list_models(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None, session_id: str = None, n_max: int = None):
+def list_models(ctx, protocol: str, host: str, port: str, token: str = None, session_id: str = None, n_max: int = None):
     """Return:
     ------
     - count: number of models
@@ -30,6 +29,8 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, id:
 
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint="models")
+
+    
     headers = {}
 
     if n_max:
@@ -40,36 +41,51 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, id:
     if _token:
         headers["Authorization"] = _token
 
-    if id:
-        url = f"{url}{id}"
-        headers["id"] = id
-
+    if session_id:
+        url = f"{url}?session_id={session_id}"
+        headers["session_id"] = session_id
 
     click.echo(f"\nListing models: {url}\n")
     click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
-        if session_id:
-            if response.status_code == 200:
-                json_data = response.json()
-                count, result = json_data.values()
-                click.echo(f"Found {count} models")
-                click.echo("\n---------------------------------\n")
-                for obj in result:
-                    if obj.get("session_id")==session_id:
-                        click.echo("{")
-                        for k, v in obj.items():
-                            click.echo(f"\t{k}: {v}")
-                        click.echo("}")
+        print_response(response, "models", None)
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Could not connect to {url}")
 
-            elif response.status_code == 500:
-                json_data = response.json()
-                click.echo(f'Error: {json_data["message"]}')
-            else:
-                click.echo(f"Error: {response.status_code}")
-        elif id:
-            print_response(response, "model", True, session_id)
-        else:
-            print_response(response, "models", False, session_id)
+
+@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
+@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
+@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-id", "--id", required=False, help="Model ID")
+@model_cmd.command("get")
+@click.pass_context
+def get_model(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
+    """Return:
+    ------
+    - result: model with given id
+
+    """
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="models")
+
+    
+    headers = {}
+
+
+    _token = get_token(token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    if id:
+        url = f"{url}{id}"
+        headers["id"] = id
+
+    click.echo(f"\nRetrieving model: {url}\n")
+    click.echo(f"Headers: {headers}")
+    try:
+        response = requests.get(url, headers=headers)
+        print_response(response, "model", id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
