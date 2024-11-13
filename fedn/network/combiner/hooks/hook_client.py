@@ -17,22 +17,19 @@ class CombinerHookInterface:
 
     def __init__(self):
         """Initialize CombinerHookInterface client."""
-        try:
-            self.hook_service_host = os.getenv("HOOK_SERVICE_HOST", "hook:12081")
-            self.channel = grpc.insecure_channel(
-                self.hook_service_host,
-                options=[
-                    ("grpc.keepalive_time_ms", 30000),  # 30 seconds ping interval
-                    ("grpc.keepalive_timeout_ms", 5000),  # 5 seconds timeout for a response
-                    ("grpc.keepalive_permit_without_calls", 1),  # allow keepalives even with no active calls
-                    ("grpc.enable_retries", 1),  # automatic retries
-                    ("grpc.initial_reconnect_backoff_ms", 1000),  # initial delay before retrying
-                    ("grpc.max_reconnect_backoff_ms", 5000),  # maximum delay before retrying
-                ],
-            )
-            self.stub = rpc.FunctionServiceStub(self.channel)
-        except Exception as e:
-            logger.warning(f"Failed to initialize connection to hooks container with error {e}")
+        self.hook_service_host = os.getenv("HOOK_SERVICE_HOST", "hook:12081")
+        self.channel = grpc.insecure_channel(
+            self.hook_service_host,
+            options=[
+                ("grpc.keepalive_time_ms", 30000),  # 30 seconds ping interval
+                ("grpc.keepalive_timeout_ms", 5000),  # 5 seconds timeout for a response
+                ("grpc.keepalive_permit_without_calls", 1),  # allow keepalives even with no active calls
+                ("grpc.enable_retries", 1),  # automatic retries
+                ("grpc.initial_reconnect_backoff_ms", 1000),  # initial delay before retrying
+                ("grpc.max_reconnect_backoff_ms", 5000),  # maximum delay before retrying
+            ],
+        )
+        self.stub = rpc.FunctionServiceStub(self.channel)
 
     def provided_functions(self, server_functions: str):
         """Communicates to hook container and asks which functions are available.
@@ -47,8 +44,11 @@ class CombinerHookInterface:
 
             response = self.stub.HandleProvidedFunctions(request)
             return response.available_functions
+        except grpc.aio._call._InactiveRpcError as _:
+            logger.info("Could not communicate to server-functions container, using default implementations")
+            return {}
         except Exception as e:
-            logger.warning(f"Was not able to communicate to hooks container due to: {e}")
+            logger.error(f"Was not able to communicate to hooks container due to: {e}")
             return {}
 
     def client_settings(self, global_model) -> dict:
