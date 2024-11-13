@@ -64,7 +64,7 @@ def get_client_package_dir(path: str) -> str:
 
 
 # Print response from api (list of entities)
-def print_response(response, entity_name: str, so, session_id):
+def print_response(response, entity_name: str, so):
     """Prints the api response to the cli.
     :param response:
         type: array
@@ -89,6 +89,7 @@ def print_response(response, entity_name: str, so, session_id):
             click.echo(f"Found {count} {entity_name}")
             click.echo("\n---------------------------------\n")
             for obj in result:
+                print(obj.get("session_id"))
                 click.echo("{")
                 for k, v in obj.items():
                     click.echo(f"\t{k}: {v}")

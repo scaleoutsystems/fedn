@@ -67,11 +67,10 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Combiner ID")
 @click.option("--n_max", required=False, help="Number of items to list")
 @combiner_cmd.command("list")
 @click.pass_context
-def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None, n_max: int = None):
+def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
     """Return:
     ------
     - count: number of combiners
@@ -89,18 +88,47 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
     if _token:
         headers["Authorization"] = _token
 
-    if id:
-        url = f"{url}{id}"
-        headers["id"] = id
-
 
     click.echo(f"\nListing combiners: {url}\n")
     click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
-        if id:
-            print_response(response, "combiner", True)
-        else:
-            print_response(response, "combiners", False)
+        print_response(response, "combiners", None)
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Could not connect to {url}")
+
+
+@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
+@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
+@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-id", "--id", required=False, help="Combiner ID")
+@combiner_cmd.command("get")
+@click.pass_context
+def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
+    """Return:
+    ------
+    - result: combiner with given id
+
+    """
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
+    headers = {}
+
+
+    _token = get_token(token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    if id:
+        url = f"{url}{id}"
+        headers["id"] = id
+
+
+    click.echo(f"\nRetrieving combiner: {url}\n")
+    click.echo(f"Headers: {headers}")
+    try:
+        response = requests.get(url, headers=headers)
+        print_response(response, "combiner", id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
