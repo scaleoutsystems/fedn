@@ -71,7 +71,6 @@ def get_session(ctx, protocol: str, host: str, port: str, token: str = None, id:
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nRetrieving session: {url}\n")

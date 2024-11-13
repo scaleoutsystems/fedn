@@ -60,9 +60,9 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     if _token:
         headers["Authorization"] = _token
 
-
     click.echo(f"\nListing clients: {url}\n")
     click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "clients", None)
@@ -74,7 +74,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Client ID")
+@click.option("-id", "--id", required=True, help="Client ID")
 @client_cmd.command("get")
 @click.pass_context
 def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -94,7 +94,6 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nRetrieving client: {url}\n")
@@ -105,7 +104,6 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
 
-@client_cmd.command("start")
 @client_cmd.command("start-v1")
 @click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
 @click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")

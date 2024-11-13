@@ -40,7 +40,6 @@ def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, s
 
     if session_id:
         url = f"{url}?sessionId={session_id}"
-        headers["session_id"] = session_id
 
 
     click.echo(f"\nListing statuses: {url}\n")
@@ -56,7 +55,7 @@ def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, s
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Status ID")
+@click.option("-id", "--id", required=True, help="Status ID")
 @status_cmd.command("get")
 @click.pass_context
 def get_status(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -76,8 +75,6 @@ def get_status(ctx, protocol: str, host: str, port: str, token: str = None, id: 
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
-
 
     click.echo(f"\nRetrieving status: {url}\n")
     click.echo(f"Headers: {headers}")

@@ -80,7 +80,7 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Package ID")
+@click.option("-id", "--id", required=True, help="Package ID")
 @package_cmd.command("get")
 @click.pass_context
 def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -100,7 +100,6 @@ def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id:
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nretrieving package: {url}\n")
