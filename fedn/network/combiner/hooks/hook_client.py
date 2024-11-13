@@ -46,7 +46,7 @@ class CombinerHookInterface:
             return response.available_functions
         except grpc.RpcError as rpc_error:
             if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-                logger.warning("Server-functions container is unavailable; using default implementations.")
+                logger.warning(f"Server-functions container is unavailable; using default implementations: {rpc_error}")
             else:
                 logger.error(f"gRPC error: {rpc_error.code().name} - {rpc_error.details()}")
             return {}
