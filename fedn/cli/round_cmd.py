@@ -42,7 +42,6 @@ def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, ses
 
     if session_id:
         url = f"{url}?round_config.session_id={session_id}"
-        headers["session_id"] = session_id
 
     click.echo(f"\nListing rounds: {url}\n")
     click.echo(f"Headers: {headers}")
@@ -57,7 +56,7 @@ def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, ses
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
-@click.option("-id", "--id", required=False, help="Round ID")
+@click.option("-id", "--id", required=True, help="Round ID")
 @click.option("-t", "--token", required=False, help="Authentication token")
 @round_cmd.command("get")
 @click.pass_context
@@ -79,7 +78,6 @@ def get_round(ctx, protocol: str, host: str, port: str, token: str = None, id: s
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nRetrieving round: {url}\n")

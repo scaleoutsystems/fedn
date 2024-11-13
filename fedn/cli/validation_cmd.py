@@ -41,7 +41,6 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
 
     if session_id:
         url = f"{url}?sessionId={session_id}"
-        headers["session_id"] = session_id
 
     click.echo(f"\nListing validations: {url}\n")
     click.echo(f"Headers: {headers}")
@@ -56,7 +55,7 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="validation ID")
+@click.option("-id", "--id", required=True, help="validation ID")
 @validation_cmd.command("get")
 @click.pass_context
 def get_validation(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -75,7 +74,6 @@ def get_validation(ctx, protocol: str, host: str, port: str, token: str = None, 
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nRetrieving validation: {url}\n")

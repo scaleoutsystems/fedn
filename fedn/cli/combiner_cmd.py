@@ -102,7 +102,7 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Combiner ID")
+@click.option("-id", "--id", required=True, help="Combiner ID")
 @combiner_cmd.command("get")
 @click.pass_context
 def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -122,7 +122,6 @@ def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
 
     click.echo(f"\nRetrieving combiner: {url}\n")

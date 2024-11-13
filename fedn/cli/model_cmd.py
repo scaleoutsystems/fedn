@@ -43,7 +43,6 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, ses
 
     if session_id:
         url = f"{url}?session_id={session_id}"
-        headers["session_id"] = session_id
 
     click.echo(f"\nListing models: {url}\n")
     click.echo(f"Headers: {headers}")
@@ -58,7 +57,7 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, ses
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
-@click.option("-id", "--id", required=False, help="Model ID")
+@click.option("-id", "--id", required=True, help="Model ID")
 @model_cmd.command("get")
 @click.pass_context
 def get_model(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
@@ -80,7 +79,6 @@ def get_model(ctx, protocol: str, host: str, port: str, token: str = None, id: s
 
     if id:
         url = f"{url}{id}"
-        headers["id"] = id
 
     click.echo(f"\nRetrieving model: {url}\n")
     click.echo(f"Headers: {headers}")
