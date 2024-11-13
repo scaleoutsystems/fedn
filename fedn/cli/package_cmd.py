@@ -102,7 +102,7 @@ def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id:
         url = f"{url}{id}"
 
 
-    click.echo(f"\nretrieving package: {url}\n")
+    click.echo(f"\nRetrieving package: {url}\n")
     click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
