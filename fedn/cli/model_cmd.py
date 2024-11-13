@@ -30,7 +30,7 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, ses
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint="models")
 
-    
+
     headers = {}
 
     if n_max:
@@ -69,7 +69,7 @@ def get_model(ctx, protocol: str, host: str, port: str, token: str = None, id: s
     """
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint="models")
 
-    
+
     headers = {}
 
 
