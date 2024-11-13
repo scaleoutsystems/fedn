@@ -44,11 +44,14 @@ class CombinerHookInterface:
 
             response = self.stub.HandleProvidedFunctions(request)
             return response.available_functions
-        except grpc.aio._call._InactiveRpcError as _:
-            logger.info("Could not communicate to server-functions container, using default implementations")
+        except grpc.RpcError as rpc_error:
+            if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
+                logger.info("Server-functions container is unavailable; using default implementations.")
+            else:
+                logger.error(f"gRPC error: {rpc_error.code().name} - {rpc_error.details()}")
             return {}
         except Exception as e:
-            logger.error(f"Was not able to communicate to hooks container due to: {e}")
+            logger.error(f"Unexpected error communicating with hooks container: {e}")
             return {}
 
     def client_settings(self, global_model) -> dict:
