@@ -44,8 +44,7 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, ses
     if session_id:
         url = f"{url}?session_id={session_id}"
 
-    click.echo(f"\nListing models: {url}\n")
-    click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "models", None)
@@ -80,8 +79,7 @@ def get_model(ctx, protocol: str, host: str, port: str, token: str = None, id: s
     if id:
         url = f"{url}{id}"
 
-    click.echo(f"\nRetrieving model: {url}\n")
-    click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "model", id)

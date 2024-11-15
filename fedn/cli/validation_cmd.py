@@ -42,8 +42,7 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
     if session_id:
         url = f"{url}?sessionId={session_id}"
 
-    click.echo(f"\nListing validations: {url}\n")
-    click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "validations", None)
@@ -76,8 +75,6 @@ def get_validation(ctx, protocol: str, host: str, port: str, token: str = None, 
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving validation: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "validation", id)

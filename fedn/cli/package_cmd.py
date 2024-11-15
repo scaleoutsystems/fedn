@@ -67,8 +67,6 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
         headers["Authorization"] = _token
 
 
-    click.echo(f"\nListing packages: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "packages", None)
@@ -102,8 +100,6 @@ def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id:
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving package: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "package", id)

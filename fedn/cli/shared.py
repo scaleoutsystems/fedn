@@ -74,7 +74,7 @@ def print_response(response, entity_name: str, so):
         description: name of entity
     :param so:
         type: boolean
-        desriptions: single output format (y/n)
+        desriptions: single output format
     return: None
     """
     if response.status_code == 200:

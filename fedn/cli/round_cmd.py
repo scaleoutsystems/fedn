@@ -43,8 +43,7 @@ def list_rounds(ctx, protocol: str, host: str, port: str, token: str = None, ses
     if session_id:
         url = f"{url}?round_config.session_id={session_id}"
 
-    click.echo(f"\nListing rounds: {url}\n")
-    click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "rounds", None)
@@ -80,8 +79,6 @@ def get_round(ctx, protocol: str, host: str, port: str, token: str = None, id: s
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving round: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "round", id)
