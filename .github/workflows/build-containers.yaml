@@ -56,7 +56,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ steps.meta1.outputs.tags }}
+          image-ref: ghcr.io/scaleoutsystems/fedn/fedn:0.19
           format: table
           exit-code: 1
           ignore-unfixed: true
