@@ -42,8 +42,6 @@ def list_statuses(ctx, protocol: str, host: str, port: str, token: str = None, s
         url = f"{url}?sessionId={session_id}"
 
 
-    click.echo(f"\nListing statuses: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "statuses", None)
@@ -76,8 +74,7 @@ def get_status(ctx, protocol: str, host: str, port: str, token: str = None, id: 
     if id:
         url = f"{url}{id}"
 
-    click.echo(f"\nRetrieving status: {url}\n")
-    click.echo(f"Headers: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "status", id)

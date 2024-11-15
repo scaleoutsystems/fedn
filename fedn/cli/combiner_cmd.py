@@ -89,8 +89,6 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
         headers["Authorization"] = _token
 
 
-    click.echo(f"\nListing combiners: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "combiners", None)
@@ -124,8 +122,6 @@ def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving combiner: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "combiner", id)

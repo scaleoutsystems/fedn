@@ -60,8 +60,6 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     if _token:
         headers["Authorization"] = _token
 
-    click.echo(f"\nListing clients: {url}\n")
-    click.echo(f"Headers: {headers}")
 
     try:
         response = requests.get(url, headers=headers)
@@ -95,8 +93,6 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving client: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "client", id)

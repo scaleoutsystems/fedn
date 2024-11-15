@@ -39,8 +39,6 @@ def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n
         headers["Authorization"] = _token
 
 
-    click.echo(f"\nListing sessions: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "sessions", None)
@@ -73,8 +71,6 @@ def get_session(ctx, protocol: str, host: str, port: str, token: str = None, id:
         url = f"{url}{id}"
 
 
-    click.echo(f"\nRetrieving session: {url}\n")
-    click.echo(f"Headers: {headers}")
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "session", id)
