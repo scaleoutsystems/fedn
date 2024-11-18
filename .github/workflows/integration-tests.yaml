@@ -25,7 +25,7 @@ jobs:
           - "mnist-pytorch numpyhelper"
         python_version: ["3.9", "3.10", "3.11", "3.12"]
         os:
-          - ubuntu-22.04
+          - ubuntu-24.04
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
