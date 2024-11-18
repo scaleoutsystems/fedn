@@ -17,7 +17,7 @@ If you discover a security vulnerability, please follow these steps:
    To protect users, please avoid discussing the vulnerability in public forums, issues, or pull requests.
 
 2. **Report privately.**  
-   Email to **[fredrik@scaleoutsystems.com](mailto:fredrik@scaleoutsystems.com)** with the following information:
+   Email to **[security@scaleoutsystems.com](mailto:security@scaleoutsystems.com)** with the following information:
    - A clear description of the vulnerability.
    - Steps to reproduce the issue (if applicable).
    - Any potential impact you foresee.
