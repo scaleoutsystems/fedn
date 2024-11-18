@@ -8,7 +8,7 @@ This is a TF/Keras version of the PyTorch Quickstart Tutorial. For a step-by-ste
 Prerequisites
 -------------------------------------------
 
--  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
+-  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 
 Creating the compute package and seed model
 -------------------------------------------

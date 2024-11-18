@@ -9,7 +9,7 @@ We have expanded our baseline MNIST-PyTorch example by incorporating the Opacus 
 Prerequisites
 -------------
 
--  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
+-  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
 Edit Differential Privacy budget
