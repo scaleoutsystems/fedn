@@ -58,12 +58,12 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
-      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
-      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml
+      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml.template
+      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml.template
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
@@ -81,20 +81,20 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
-      - STATESTORE_CONFIG=/app/config/settings-combiner.yaml
-      - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml
+      - STATESTORE_CONFIG=/app/config/settings-combiner.yaml.template
+      - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml.template
       - HOOK_SERVICE_HOST=hook:12081
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
-        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.35
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn combiner start --init config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn combiner start --init config/settings-combiner.yaml.template"
     ports:
       - 12080:12080
     healthcheck:
@@ -113,8 +113,8 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
-        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.35
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn

@@ -1,54 +1,49 @@
-# Base image
-ARG BASE_IMG=python:3.10-slim
-FROM $BASE_IMG
+# Stage 1: Builder
+ARG BASE_IMG=python:3.12-slim
+FROM $BASE_IMG as builder
 
 ARG GRPC_HEALTH_PROBE_VERSION=""
-
-# Requirements (use MNIST Keras as default)
 ARG REQUIREMENTS=""
 
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends python3-dev gcc wget \
+  && rm -rf /var/lib/apt/lists/*
+
 # Add FEDn and default configs
-COPY . /app
-COPY config/settings-client.yaml.template /app/config/settings-client.yaml
-COPY config/settings-combiner.yaml.template /app/config/settings-combiner.yaml
-COPY config/settings-hooks.yaml.template /app/config/settings-hooks.yaml
-COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
-COPY $REQUIREMENTS /app/config/requirements.txt
+COPY . /build
+COPY $REQUIREMENTS /build/requirements.txt
 
-# Install developer tools (needed for psutil)
-RUN apt-get update && apt-get install -y python3-dev gcc
-
-# Install grpc health probe checker
-RUN if [ ! -z "$GRPC_HEALTH_PROBE_VERSION" ]; then \
-  apt-get install -y wget && \
-  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
-  chmod +x /bin/grpc_health_probe && \
-  apt-get remove -y wget && apt autoremove -y; \
-  else \
-  echo "No grpc_health_probe version specified, skipping installation"; \
-  fi
-
-# Setup working directory
-WORKDIR /app
-
-# Create FEDn app directory
-SHELL ["/bin/bash", "-c"]
-RUN mkdir -p /app \
-  && mkdir -p /app/client \
-  && mkdir -p /app/certs \
-  && mkdir -p /app/client/package \
-  && mkdir -p /app/certs \
-  #
-  # Install FEDn and requirements
-  && python -m venv /venv \
+# Install dependencies
+RUN python -m venv /venv \
   && /venv/bin/pip install --upgrade pip \
   && /venv/bin/pip install --no-cache-dir 'setuptools>=65' \
-  && /venv/bin/pip install --no-cache-dir -e . \
+  && /venv/bin/pip install --no-cache-dir . \
   && if [[ ! -z "$REQUIREMENTS" ]]; then \
-  /venv/bin/pip install --no-cache-dir -r /app/config/requirements.txt; \
+  /venv/bin/pip install --no-cache-dir -r /build/requirements.txt; \
   fi \
-  #
-  # Clean up
-  && rm -r /app/config/requirements.txt
+  && rm -rf /build/requirements.txt
+
+
+# Install grpc health probe
+RUN if [ ! -z "$GRPC_HEALTH_PROBE_VERSION" ]; then \
+  wget -qO /bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  chmod +x /bin/grpc_health_probe; \
+  fi
+
+# Stage 2: Runtime
+FROM $BASE_IMG
+
+WORKDIR /app
+
+# Copy application and venv from the builder stage
+COPY --from=builder /venv /venv
+COPY --from=builder /build /app
+
+# Use a non-root user
+RUN useradd -m appuser && chown -R appuser /venv /app
+USER appuser
 
 ENTRYPOINT [ "/venv/bin/fedn" ]
+
