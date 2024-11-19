@@ -60,6 +60,7 @@ services:
       - FLASK_DEBUG=1
       - STATESTORE_CONFIG=/app/config/settings-reducer.yaml.template
       - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml.template
+      - FEDN_COMPUTE_PACKAGE_DIR=/app
     build:
       context: .
       args:
