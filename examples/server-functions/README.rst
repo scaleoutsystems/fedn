@@ -32,3 +32,5 @@ Start a session with your ServerFunctions code (assuming you have uploaded a mod
 
     from server_functions import ServerFunctions
     client.start_session(server_functions=ServerFunctions)
+
+Logs from the server functions code are visible from the studio dashboard logs page.
