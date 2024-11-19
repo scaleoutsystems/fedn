@@ -61,6 +61,7 @@ services:
       - STATESTORE_CONFIG=/app/config/settings-reducer.yaml.template
       - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml.template
       - FEDN_COMPUTE_PACKAGE_DIR=/app
+      - TMPDIR=/app/tmp
     build:
       context: .
       args:
@@ -85,6 +86,7 @@ services:
       - STATESTORE_CONFIG=/app/config/settings-combiner.yaml.template
       - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml.template
       - HOOK_SERVICE_HOST=hook:12081
+      - TMPDIR=/app/tmp
     build:
       context: .
       args:
@@ -113,6 +115,7 @@ services:
     container_name: hook
     environment:
       - GET_HOSTS_FROM=dns
+      - TMPDIR=/app/tmp
     build:
       context: .
       args:
