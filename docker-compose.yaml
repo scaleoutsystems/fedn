@@ -70,9 +70,9 @@ services:
     depends_on:
       - minio
       - mongo
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn controller start"
+      - controller
+      - start
     ports:
       - 8092:8092
 
@@ -92,13 +92,15 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn combiner start --init config/settings-combiner.yaml.template"
+      - combiner
+      - start
+      - --init
+      - config/settings-combiner.yaml.template
     ports:
       - 12080:12080
     healthcheck:
-      test: [ "CMD", "/bin/grpc_health_probe", "-addr=localhost:12080" ]
+      test: [ "CMD", "/app/grpc_health_probe", "-addr=localhost:12080" ]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -141,9 +143,11 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn client start --api-url http://api-server:8092"
+      - client
+      - start
+      - --api-url
+      - http://api-server:8092
     deploy:
       replicas: 0
     depends_on:
