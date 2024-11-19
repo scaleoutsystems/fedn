@@ -49,7 +49,6 @@ RUN set -ex \
   # Creare application specific tmp directory, set ENV TMPDIR to /app/tmp
   && mkdir -p /app/tmp \
   && chown -R appuser:appgroup /venv /app \
-  && chmod -R u+rwX /app/tmp \
   # Upgrade the package index and install security upgrades
   && apt-get update \
   && apt-get upgrade -y \
