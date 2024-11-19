@@ -42,7 +42,17 @@ COPY --from=builder /venv /venv
 COPY --from=builder /build /app
 
 # Use a non-root user
-RUN useradd -m appuser && chown -R appuser /venv /app
+RUN set -ex \
+  # Create a non-root user
+  && addgroup --system --gid 1001 appgroup \
+  && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
+  && chown -R appuser /venv /app \
+  # Upgrade the package index and install security upgrades
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
 USER appuser
 
 ENTRYPOINT [ "/venv/bin/fedn" ]
