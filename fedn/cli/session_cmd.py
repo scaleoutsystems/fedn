@@ -38,11 +38,41 @@ def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n
     if _token:
         headers["Authorization"] = _token
 
-    click.echo(f"\nListing sessions: {url}\n")
-    click.echo(f"Headers: {headers}")
 
     try:
         response = requests.get(url, headers=headers)
-        print_response(response, "sessions")
+        print_response(response, "sessions", None)
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Could not connect to {url}")
+
+
+@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
+@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
+@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-id", "--id", required=True, help="Session ID")
+@session_cmd.command("get")
+@click.pass_context
+def get_session(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
+    """Return:
+    ------
+    - result: session with given session id
+
+    """
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="sessions")
+    headers = {}
+
+    _token = get_token(token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    if id:
+        url = f"{url}{id}"
+
+
+    try:
+        response = requests.get(url, headers=headers)
+        print_response(response, "session", id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
