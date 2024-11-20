@@ -101,9 +101,6 @@ def _exec_cmd(
 
     env = env if extra_env is None else {**os.environ, **extra_env}
 
-    # In Python < 3.8, `subprocess.Popen` doesn't accept a command containing path-like
-    # objects (e.g. `["ls", pathlib.Path("abc")]`) on Windows. To avoid this issue,
-    # stringify all elements in `cmd`. Note `str(pathlib.Path("abc"))` returns 'abc'.
     if isinstance(cmd, list):
         cmd = list(map(str, cmd))
 

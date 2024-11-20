@@ -16,7 +16,7 @@ Prerequisites
 
 Using FEDn Studio:
 
--  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
+-  `Python 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
 -  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
 
 
