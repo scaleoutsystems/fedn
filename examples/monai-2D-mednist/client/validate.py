@@ -55,7 +55,7 @@ def validate(in_model_path, out_json_path, data_path=None, client_settings_path=
 
     image_list = clients["client " + str(split_index)]["validation"]
 
-    val_ds = MedNISTDataset(data_path=data_path+"/MedNIST/", transforms=val_transforms, image_files=image_list)
+    val_ds = MedNISTDataset(data_path=data_path + "/MedNIST/", transforms=val_transforms, image_files=image_list)
 
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
