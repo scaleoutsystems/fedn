@@ -86,8 +86,9 @@ def validate(in_model_path, out_json_path, data_path=None, client_settings_path=
 
     # JSON schema
     report.update({"test_accuracy": accuracy_score(y_true, y_pred), "test_f1_score": f1_score(y_true, y_pred, average="macro")})
-    for r in report:
-        print(r, ": ", report[r])
+
+    for key, value in report.items():
+        print(f"{key}: {value}")
 
     # Save JSON
     save_metrics(report, out_json_path)
