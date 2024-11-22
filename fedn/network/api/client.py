@@ -607,25 +607,38 @@ class APIClient:
         :rtype: dict
         """
         response = requests.post(
-            self._get_url("start_session"),
+            self._get_url_api_v1("sessions"),
             json={
                 "session_id": id,
-                "aggregator": aggregator,
-                "aggregator_kwargs": aggregator_kwargs,
-                "model_id": model_id,
-                "round_timeout": round_timeout,
-                "rounds": rounds,
-                "round_buffer_size": round_buffer_size,
-                "delete_models": delete_models,
-                "validate": validate,
-                "helper": helper,
-                "min_clients": min_clients,
-                "requested_clients": requested_clients,
-                "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+                "session_config": {
+                    "aggregator": aggregator,
+                    "aggregator_kwargs": aggregator_kwargs,
+                    "round_timeout": round_timeout,
+                    "buffer_size": round_buffer_size,
+                    "model_id": model_id,
+                    "delete_models_storage": delete_models,
+                    "clients_required": min_clients,
+                    "requested_clients": requested_clients,
+                    "validate": validate,
+                    "helper_type": helper,
+                    "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+                },
             },
             verify=self.verify,
             headers=self.headers,
         )
+
+        if response.status_code == 201:
+            response = requests.post(
+                self._get_url_api_v1("sessions/start"),
+                json={
+                    "session_id": id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                verify=self.verify,
+                headers=self.headers,
+            )
 
         _json = response.json()
 
