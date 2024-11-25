@@ -1,0 +1,17 @@
+name: lung-cancer-image-keras
+build_dependencies:
+  - pip
+  - setuptools
+  - wheel
+dependencies:
+  - keras==3.6.0
+  - tensorboard==2.18.0
+  - tensorboard-data-server==0.7.2  
+  - tensorflow==2.18.0
+  - tensorflow-io-gcs-filesystem==0.37.1  
+  - fire==0.3.1
+  - pillow==11.0.0  
+  - scikit-learn==1.5.2
+  - pandas==2.2.3
+  - numpy==2.0.2  
+  - fedn
