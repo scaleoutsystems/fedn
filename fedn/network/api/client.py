@@ -329,8 +329,18 @@ class APIClient:
         :return: A dict with success or failure message.
         :rtype: dict
         """
+        if path.endswith(".npz"):
+            helper = "numpyhelper"
+        elif path.endswith(".bin"):
+            helper = "binaryhelper"
+
+        if helper:
+            response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
+
         with open(path, "rb") as file:
-            response = requests.post(self._get_url("set_initial_model"), files={"file": file}, verify=self.verify, headers=self.headers)
+            response = requests.post(
+                self._get_url("set_initial_model"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers
+            )
         return response.json()
 
     # --- Packages --- #
