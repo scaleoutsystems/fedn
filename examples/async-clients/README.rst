@@ -38,15 +38,17 @@ Standing in the folder fedn/examples/async-clients
 
     pip install -r requirements.txt
 
-Create the compute package and seed model:
+Create the compute package:
 
 .. code-block::
 
     fedn package create --path client
 
+Create the seed model:
+
 .. code-block::
 
-    fedn run build --path client
+    python init_seed.py seed.npz
 
 
 You will now have a file 'seed.npz' in the directory.
