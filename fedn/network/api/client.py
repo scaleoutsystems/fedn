@@ -616,6 +616,13 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        if model_id is None:
+            response = requests.get(self._get_url_api_v1("models/active"), verify=self.verify, headers=self.headers)
+            if response.status_code == 200:
+                model_id = response.json()
+            else:
+                return response.json()
+
         response = requests.post(
             self._get_url_api_v1("sessions"),
             json={
@@ -637,6 +644,9 @@ class APIClient:
             verify=self.verify,
             headers=self.headers,
         )
+
+        if id is None:
+            id = response.json()["session_id"]
 
         if response.status_code == 201:
             response = requests.post(
