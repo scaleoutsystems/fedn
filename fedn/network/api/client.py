@@ -645,6 +645,9 @@ class APIClient:
             headers=self.headers,
         )
 
+        if id is None:
+            id = response.json()["session_id"]
+
         if response.status_code == 201:
             response = requests.post(
                 self._get_url_api_v1("sessions/start"),
