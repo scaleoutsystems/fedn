@@ -1,10 +1,11 @@
 import os
-import yaml
+from getpass import getpass
+
 import click
 import requests
+import yaml
 
 from .main import main
-from getpass import getpass
 
 # Replace this with the platform's actual login endpoint
 home_dir = os.path.expanduser("~")
@@ -22,9 +23,7 @@ def login_cmd(ctx):
 @login_cmd.command("login")
 @click.pass_context
 def login_cmd(ctx):
-    """Logging into FEDn Studio
-    
-    """
+    """Logging into FEDn Studio"""
     # Step 1: Display welcome message
     click.secho("Welcome to Scaleout FEDn!", fg="green")
 
@@ -41,11 +40,7 @@ def login_cmd(ctx):
 
     # Call the authentication API
     try:
-        response = requests.post(
-            URL,
-            json={"username": username, "password": password},
-            headers={"Content-Type": "application/json"}
-        )
+        response = requests.post(URL, json={"username": username, "password": password}, headers={"Content-Type": "application/json"})
         response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
     except requests.exceptions.RequestException as e:
         click.secho("Error connecting to the platform. Please try again.", fg="red")
@@ -62,7 +57,7 @@ def login_cmd(ctx):
                 os.makedirs(context_path)
             try:
                 with open(f"{context_path}/context.yaml", "w") as yaml_file:
-                    yaml.dump(data, yaml_file, default_flow_style=False) # Add access and refresh tokens to context yaml file
+                    yaml.dump(data, yaml_file, default_flow_style=False)  # Add access and refresh tokens to context yaml file
             except Exception as e:
                 print(f"Error: Failed to write to YAML file. Details: {e}")
         else:
