@@ -1,4 +1,4 @@
-import json
+simport json
 import os
 import socket
 import time
@@ -177,7 +177,7 @@ class GrpcHandler:
                     callback(request)
 
         except grpc.RpcError as e:
-            self.logger.error(f"GRPC (TaskStream): An error occurred: {e}")
+            logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             return self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
         except Exception as e:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
