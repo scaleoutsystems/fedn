@@ -38,7 +38,7 @@ Standing in the folder fedn/examples/async-clients
 
     pip install -r requirements.txt
 
-Create the seed model:
+Create the seed model
 
 .. code-block::
 
@@ -50,14 +50,14 @@ You will now have a file 'seed.npz' in the directory.
 Running a simulation
 --------------------
 
-Deploy FEDn on localhost. Standing in the the FEDn root directory: 
+Deploy FEDn on localhost. Standing in the the FEDn root directory
 
 .. code-block::
 
     docker-compose up 
 
 
-Initialize FEDn with the and seed model
+Initialize FEDn with the seed model
 
 .. code-block::
 
