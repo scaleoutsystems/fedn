@@ -22,6 +22,9 @@ REMOTE_CONFIG = {
 # Common settings that don't change between environments
 COMMON_SETTINGS = {
     "N_CLIENTS": 10,
+    "N_EPOCHS": 10,
+    "N_ROUNDS": 50,
+    "N_SESSIONS": 1,
     "N_CYCLES": 1,
     "CLIENTS_MAX_DELAY": 10,
     "CLIENTS_ONLINE_FOR_SECONDS": 120,
