@@ -102,7 +102,7 @@ def on_validate(in_model):
     return metrics
 
 
-def run_client(online_for=120, name="client"):
+def run_client(online_for=120, name="client", client_id=None):
     """Simulates a client that starts and stops
     at random intervals.
 
@@ -113,6 +113,9 @@ def run_client(online_for=120, name="client"):
     This is repeated for N_CYCLES.
 
     """
+    if client_id is None:
+        client_id = str(uuid.uuid4())
+
     for i in range(settings["N_CYCLES"]):
         # Sample a delay until the client starts
         t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
@@ -120,7 +123,7 @@ def run_client(online_for=120, name="client"):
 
         fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
         fl_client.set_name(name)
-        fl_client.set_client_id(str(uuid.uuid4()))
+        fl_client.set_client_id(client_id)
 
         controller_config = {
             "name": fl_client.name,
@@ -149,6 +152,7 @@ if __name__ == "__main__":
             args=(
                 settings["CLIENTS_ONLINE_FOR_SECONDS"],
                 "client{}".format(i + 1),
+                str(uuid.uuid4()),
             ),
         )
         processes.append(p)
