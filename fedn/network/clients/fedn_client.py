@@ -225,8 +225,9 @@ class FednClient:
         self.send_status(f"\t Starting processing of training request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
 
         logger.info(f"Running train callback with model ID: {model_id}")
+        client_settings = json.loads(request.data).get("client_settings", {})
         tic = time.time()
-        out_model, meta = self.train_callback(in_model)
+        out_model, meta = self.train_callback(in_model, client_settings)
         meta["processing_time"] = time.time() - tic
 
         tic = time.time()

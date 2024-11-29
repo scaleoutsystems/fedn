@@ -20,6 +20,7 @@ jobs:
     permissions:
       packages: write
       contents: read
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +49,28 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          push: "${{ github.event_name != 'pull_request' }}"
+          push: true #"${{ github.event_name != 'pull_request' }}"
           tags: ${{ steps.meta1.outputs.tags }}
           labels: ${{ steps.meta1.outputs.labels }}
           file: Dockerfile
+      
+      # if push to master of release, run trivy scan on the image
+      - name: Trivy scan
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
+          TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db,aquasec/trivy-java-db,ghcr.io/aquasecurity/trivy-java-db
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/fedn:master
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: HIGH,CRITICAL
+          vuln-type: 'os,library'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        with:
+          sarif_file: 'trivy-results.sarif'

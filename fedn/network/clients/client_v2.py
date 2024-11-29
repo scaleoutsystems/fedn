@@ -10,7 +10,7 @@ from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
 from fedn.network.combiner.modelservice import get_tmp_path
-from fedn.utils.helpers.helpers import get_helper
+from fedn.utils.helpers.helpers import get_helper, save_metadata
 
 
 def get_url(api_url: str, api_port: int) -> str:
@@ -132,15 +132,15 @@ class Client:
         # Priority: helper_type from constructor > helper_type from response > default helper_type
         self.helper = get_helper(helper_type_to_use)
 
-    def on_train(self, in_model):
-        out_model, meta = self._process_training_request(in_model)
+    def on_train(self, in_model, client_settings):
+        out_model, meta = self._process_training_request(in_model, client_settings)
         return out_model, meta
 
     def on_validation(self, in_model):
         metrics = self._process_validation_request(in_model)
         return metrics
 
-    def _process_training_request(self, in_model: BytesIO) -> Tuple[BytesIO, dict]:
+    def _process_training_request(self, in_model: BytesIO, client_settings: dict) -> Tuple[BytesIO, dict]:
         """Process a training (model update) request.
 
         :param in_model: The model to be updated.
@@ -155,6 +155,8 @@ class Client:
 
             with open(inpath, "wb") as fh:
                 fh.write(in_model.getbuffer())
+
+            save_metadata(metadata=client_settings, filename=inpath)
 
             outpath = self.helper.get_tmp_path()
 
