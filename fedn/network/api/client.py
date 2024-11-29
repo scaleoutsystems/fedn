@@ -624,7 +624,7 @@ class APIClient:
                 return response.json()
 
         response = requests.post(
-            self._get_url_api_v1("sessions"),
+            self._get_url_api_v1("sessions/"),
             json={
                 "session_id": id,
                 "session_config": {
