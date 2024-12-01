@@ -1,6 +1,6 @@
 .. _apiclient-label:
 
-Using the FEDn API Client
+Using the API Client
 ====================
 
 FEDn comes with an *APIClient* - a Python3 library that can be used to interact with FEDn programmatically. 
@@ -17,13 +17,21 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
    
    $ pip install fedn
 
-**Initialize the APIClient to a FEDn Studio project**
+**Connect the APIClient to a FEDn Studio project**
 
-The FEDn REST API is available at <controller-host>/api/v1/. To access this API you need the url to the controller-host, as well as an admin API token. The controller host can be found in the project dashboard (top right corner).
+The FEDn REST API is available at <controller-host>/api/v1/. To access this API you need the url to the controller-host, as well as an admin API token. You 
+obtain these from your Studio project. The controller host can be found in the top-right corner of the dashboard:
+
+.. image:: img/find_controller_url.png
+
 To obtain an admin API token, 
 
 #. Navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. 
 #. Copy the 'access' token and use it to access the API using the instructions below. 
+
+.. image:: img/generate_admin_token.png
+
+Then, to initalize the connection to the Studio REST API: 
 
 .. code-block:: python
 
@@ -132,7 +140,7 @@ To get a specific session:
 
 For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`, and the collection of example Jupyter Notebooks:
  
-- `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/notebooks>`_  . 
+- `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/api-tutorials>`_  . 
 
 
 .. meta::
