@@ -106,11 +106,9 @@ class FednClient:
             elif response.status_code == 404:
                 logger.warning("Connect to FEDn Api - Incorrect URL")
                 return ConnectToApiResult.IncorrectUrl, "Incorrect URL"
-        except Exception:
-            pass
-
-        logger.warning("Connect to FEDn Api - Unknown error occurred")
-        return ConnectToApiResult.UnknownError, "Unknown error occurred"
+        except Exception as e:
+            logger.warning(f"Connect to FEDn Api - Error occurred: {str(e)}")
+            return ConnectToApiResult.UnknownError, str(e)
 
     def download_compute_package(self, url: str, token: str, name: str = None) -> bool:
         """Download compute package from controller
