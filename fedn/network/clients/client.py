@@ -683,7 +683,11 @@ class Client:
 
                             status_type = fedn.StatusType.MODEL_VALIDATION
                             self.send_status(
-                                "Model validation completed.", log_level=fedn.LogLevel.AUDIT, type=status_type, request=validation, sesssion_id=request.session_id
+                                "Model validation completed.",
+                                log_level=fedn.LogLevel.AUDIT,
+                                type=status_type,
+                                request=validation,
+                                sesssion_id=request.session_id,
                             )
                         except grpc.RpcError as e:
                             status_code = e.code()
