@@ -165,7 +165,7 @@ class GrpcHandler:
                 if request.sender.role == fedn.COMBINER:
                     self.send_status(
                         "Received request from combiner.",
-                        log_level=fedn.Status.AUDIT,
+                        log_level=fedn.LogLevel.AUDIT,
                         type=request.type,
                         request=request,
                         sesssion_id=request.session_id,
@@ -189,7 +189,7 @@ class GrpcHandler:
         :param msg: The message to send.
         :type msg: str
         :param log_level: The log level of the message.
-        :type log_level: fedn.Status.INFO, fedn.Status.WARNING, fedn.Status.ERROR
+        :type log_level: fedn.LogLevel.INFO, fedn.LogLevel.WARNING, fedn.LogLevel.ERROR
         :param type: The type of the message.
         :type type: str
         :param request: The request message.
