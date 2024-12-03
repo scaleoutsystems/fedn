@@ -425,7 +425,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
+        logger.info("Received status: {}".format(status))
         data = MessageToDict(status)
+        logger.info("Received status: {}".format(data))
         _ = status_store.add(data)
 
     def _flush_model_update_queue(self):
@@ -668,9 +670,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             metadata = dict(metadata)
             logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata["client"]))
 
-        status = fedn.Status(status="Client {} connecting to TaskStream.".format(client.name))
+        status = fedn.Status(
+            status="Client {} connecting to TaskStream.".format(client.name), 
+            log_level=fedn.LogLevel.INFO, 
+            type=fedn.StatusType.NETWORK
+        )
         logger.info("Client {} connecting to TaskStream.".format(client.name))
-        status.log_level = fedn.Status.INFO
         status.timestamp.GetCurrentTime()
 
         self.__whoami(status.sender, self)
@@ -724,7 +729,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
         logger.warning("Client {} disconnected from TaskStream".format(client.name))
         status = fedn.Status(status="Client {} disconnected from TaskStream.".format(client.name))
-        status.log_level = fedn.Status.INFO
+        status.log_level = fedn.LogLevel.INFO
+        status.type = fedn.StatusType.NETWORK
         status.timestamp.GetCurrentTime()
         self.__whoami(status.sender, self)
         self._send_status(status)

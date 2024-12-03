@@ -164,9 +164,9 @@ class GrpcHandler:
             for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
                 if request.sender.role == fedn.COMBINER:
                     self.send_status(
-                        "Received model update request.",
+                        "Received request from combiner.",
                         log_level=fedn.Status.AUDIT,
-                        type=fedn.StatusType.MODEL_UPDATE_REQUEST,
+                        type=request.type,
                         request=request,
                         sesssion_id=request.session_id,
                         sender_name=client_name,
@@ -183,7 +183,7 @@ class GrpcHandler:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
 
-    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
+    def send_status(self, msg: str, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         """Send status message.
 
         :param msg: The message to send.
@@ -198,7 +198,7 @@ class GrpcHandler:
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
         status.sender.name = sender_name
-        status.sender.role = fedn.WORKER
+        status.sender.role = fedn.Role.WORKER
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = sesssion_id
