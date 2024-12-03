@@ -220,7 +220,13 @@ class FednClient:
             logger.error("No train callback set")
             return
 
-        self.send_status(f"\t Starting processing of training request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name, log_level=fedn.LogLevel.INFO, type=fedn.StatusType.MODEL_UPDATE)
+        self.send_status(
+            f"\t Starting processing of training request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name,
+            log_level=fedn.LogLevel.INFO,
+            type=fedn.StatusType.MODEL_UPDATE,
+        )
 
         logger.info(f"Running train callback with model ID: {model_id}")
         client_settings = json.loads(request.data).get("client_settings", {})
@@ -251,7 +257,13 @@ class FednClient:
     def validate_global_model(self, request):
         model_id = request.model_id
 
-        self.send_status(f"Processing validate request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name, log_level=fedn.LogLevel.INFO, type=fedn.StatusType.MODEL_VALIDATION)
+        self.send_status(
+            f"Processing validate request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name,
+            log_level=fedn.LogLevel.INFO,
+            type=fedn.StatusType.MODEL_VALIDATION,
+        )
 
         in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 

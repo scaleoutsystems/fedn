@@ -670,11 +670,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             metadata = dict(metadata)
             logger.info("grpc.Combiner.TaskStream: Client connected: {}\n".format(metadata["client"]))
 
-        status = fedn.Status(
-            status="Client {} connecting to TaskStream.".format(client.name), 
-            log_level=fedn.LogLevel.INFO, 
-            type=fedn.StatusType.NETWORK
-        )
+        status = fedn.Status(status="Client {} connecting to TaskStream.".format(client.name), log_level=fedn.LogLevel.INFO, type=fedn.StatusType.NETWORK)
         logger.info("Client {} connecting to TaskStream.".format(client.name))
         status.timestamp.GetCurrentTime()
 
