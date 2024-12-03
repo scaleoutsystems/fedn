@@ -726,6 +726,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status = fedn.Status(status="Client {} disconnected from TaskStream.".format(client.name))
         status.log_level = fedn.Status.INFO
         status.timestamp.GetCurrentTime()
+        self.__whoami(status.sender, self)
         self._send_status(status)
 
     def SendModelUpdate(self, request, context):
