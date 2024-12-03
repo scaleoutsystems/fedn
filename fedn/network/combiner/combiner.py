@@ -425,9 +425,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-        logger.info("Received status: {}".format(status))
         data = MessageToDict(status)
-        logger.info("Received status: {}".format(data))
         _ = status_store.add(data)
 
     def _flush_model_update_queue(self):
