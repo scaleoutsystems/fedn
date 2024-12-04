@@ -406,7 +406,7 @@ class Client:
                         # Process training request
                         self.send_status(
                             "Received model update request.",
-                            log_level=fedn.Status.AUDIT,
+                            log_level=fedn.LogLevel.AUDIT,
                             type=fedn.StatusType.MODEL_UPDATE_REQUEST,
                             request=request,
                             sesssion_id=request.session_id,
@@ -641,7 +641,7 @@ class Client:
                             _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                             self.send_status(
                                 "Model update completed.",
-                                log_level=fedn.Status.AUDIT,
+                                log_level=fedn.LogLevel.AUDIT,
                                 type=fedn.StatusType.MODEL_UPDATE,
                                 request=update,
                                 sesssion_id=request.session_id,
@@ -655,7 +655,7 @@ class Client:
                             logger.debug(e)
                     else:
                         self.send_status(
-                            "Client {} failed to complete model update.", log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id
+                            "Client {} failed to complete model update.", log_level=fedn.LogLevel.WARNING, request=request, sesssion_id=request.session_id
                         )
 
                     self.state = ClientState.idle
@@ -683,7 +683,11 @@ class Client:
 
                             status_type = fedn.StatusType.MODEL_VALIDATION
                             self.send_status(
-                                "Model validation completed.", log_level=fedn.Status.AUDIT, type=status_type, request=validation, sesssion_id=request.session_id
+                                "Model validation completed.",
+                                log_level=fedn.LogLevel.AUDIT,
+                                type=status_type,
+                                request=validation,
+                                sesssion_id=request.session_id,
                             )
                         except grpc.RpcError as e:
                             status_code = e.code()
@@ -695,7 +699,7 @@ class Client:
                     else:
                         self.send_status(
                             "Client {} failed to complete model validation.".format(self.name),
-                            log_level=fedn.Status.WARNING,
+                            log_level=fedn.LogLevel.WARNING,
                             request=request,
                             sesssion_id=request.session_id,
                         )
@@ -736,7 +740,7 @@ class Client:
                         _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
                         status_type = fedn.StatusType.MODEL_PREDICTION
                         self.send_status(
-                            "Model prediction completed.", log_level=fedn.Status.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
+                            "Model prediction completed.", log_level=fedn.LogLevel.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
                         )
                     except grpc.RpcError as e:
                         status_code = e.code()
@@ -789,13 +793,13 @@ class Client:
                 logger.info("SendStatus: Client disconnected.")
                 return
 
-    def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
+    def send_status(self, msg, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None):
         """Send status message.
 
         :param msg: The message to send.
         :type msg: str
         :param log_level: The log level of the message.
-        :type log_level: fedn.Status.INFO, fedn.Status.WARNING, fedn.Status.ERROR
+        :type log_level: fedn.LogLevel.INFO, fedn.LogLevel.WARNING, fedn.LogLevel.ERROR
         :param type: The type of the message.
         :type type: str
         :param request: The request message.

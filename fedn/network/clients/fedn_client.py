@@ -220,7 +220,13 @@ class FednClient:
             logger.error("No train callback set")
             return
 
-        self.send_status(f"\t Starting processing of training request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+        self.send_status(
+            f"\t Starting processing of training request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name,
+            log_level=fedn.LogLevel.INFO,
+            type=fedn.StatusType.MODEL_UPDATE,
+        )
 
         logger.info(f"Running train callback with model ID: {model_id}")
         client_settings = json.loads(request.data).get("client_settings", {})
@@ -241,7 +247,7 @@ class FednClient:
 
         self.send_status(
             "Model update completed.",
-            log_level=fedn.Status.AUDIT,
+            log_level=fedn.LogLevel.AUDIT,
             type=fedn.StatusType.MODEL_UPDATE,
             request=update,
             sesssion_id=request.session_id,
@@ -251,7 +257,13 @@ class FednClient:
     def validate_global_model(self, request):
         model_id = request.model_id
 
-        self.send_status(f"Processing validate request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+        self.send_status(
+            f"Processing validate request for model_id {model_id}",
+            sesssion_id=request.session_id,
+            sender_name=self.name,
+            log_level=fedn.LogLevel.INFO,
+            type=fedn.StatusType.MODEL_VALIDATION,
+        )
 
         in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
@@ -275,7 +287,7 @@ class FednClient:
             if result:
                 self.send_status(
                     "Model validation completed.",
-                    log_level=fedn.Status.AUDIT,
+                    log_level=fedn.LogLevel.AUDIT,
                     type=fedn.StatusType.MODEL_VALIDATION,
                     request=validation,
                     sesssion_id=request.session_id,
@@ -284,7 +296,7 @@ class FednClient:
             else:
                 self.send_status(
                     "Client {} failed to complete model validation.".format(self.name),
-                    log_level=fedn.Status.WARNING,
+                    log_level=fedn.LogLevel.WARNING,
                     request=request,
                     sesssion_id=request.session_id,
                     sender_name=self.name,
@@ -362,7 +374,7 @@ class FednClient:
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
 
-    def send_status(self, msg: str, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
+    def send_status(self, msg: str, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
         return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
