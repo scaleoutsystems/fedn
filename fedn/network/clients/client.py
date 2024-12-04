@@ -330,7 +330,7 @@ class Client:
         time_start = time.time()
         request = fedn.ModelRequest(id=id)
         request.sender.name = self.name
-        request.sender.role = fedn.WORKER
+        request.sender.role = fedn.CLIENT
 
         try:
             for part in self.modelStub.Download(request, metadata=self.metadata):
@@ -388,7 +388,7 @@ class Client:
         """
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
-        r.sender.role = fedn.WORKER
+        r.sender.role = fedn.CLIENT
         r.sender.client_id = self.id
         # Add client to metadata
         self._add_grpc_metadata("client", self.name)
@@ -628,7 +628,7 @@ class Client:
                         update = fedn.ModelUpdate()
                         update.sender.name = self.name
                         update.sender.client_id = self.id
-                        update.sender.role = fedn.WORKER
+                        update.sender.role = fedn.CLIENT
                         update.receiver.name = request.sender.name
                         update.receiver.role = request.sender.role
                         update.model_id = request.model_id
@@ -669,7 +669,7 @@ class Client:
                         # Send validation
                         validation = fedn.ModelValidation()
                         validation.sender.name = self.name
-                        validation.sender.role = fedn.WORKER
+                        validation.sender.role = fedn.CLIENT
                         validation.receiver.name = request.sender.name
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(request.model_id)
@@ -724,7 +724,7 @@ class Client:
                     _ = self._process_prediction_request(request.model_id, request.session_id, presigned_url)
                     prediction = fedn.ModelPrediction()
                     prediction.sender.name = self.name
-                    prediction.sender.role = fedn.WORKER
+                    prediction.sender.role = fedn.CLIENT
                     prediction.receiver.name = request.sender.name
                     prediction.receiver.name = request.sender.name
                     prediction.receiver.role = request.sender.role
@@ -762,7 +762,7 @@ class Client:
         :rtype: None
         """
         while True:
-            heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER, client_id=self.id))
+            heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.CLIENT, client_id=self.id))
             try:
                 self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
                 if self._missed_heartbeat > 0:
@@ -812,7 +812,7 @@ class Client:
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
         status.sender.name = self.name
-        status.sender.role = fedn.WORKER
+        status.sender.role = fedn.CLIENT
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = sesssion_id

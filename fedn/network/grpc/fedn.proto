@@ -152,10 +152,10 @@ message ClientList {
 }
 
 enum Role {
-  WORKER = 0;
-  COMBINER = 1;
-  REDUCER = 2;
-  OTHER = 3;
+  OTHER = 0;
+  CLIENT = 1;
+  COMBINER = 2;
+  REDUCER = 3;
 }
 
 message Client {
