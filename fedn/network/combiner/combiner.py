@@ -43,7 +43,7 @@ def role_to_proto_role(role):
     if role == Role.COMBINER:
         return fedn.COMBINER
     if role == Role.WORKER:
-        return fedn.WORKER
+        return fedn.CLIENT
     if role == Role.REDUCER:
         return fedn.REDUCER
     if role == Role.OTHER:
@@ -267,7 +267,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.sender.name = self.id
             request.sender.role = fedn.COMBINER
             request.receiver.client_id = client
-            request.receiver.role = fedn.WORKER
+            request.receiver.role = fedn.CLIENT
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
@@ -596,7 +596,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
 
         for client in active_clients:
-            clients.client.append(fedn.Client(name=client, role=fedn.WORKER))
+            clients.client.append(fedn.Client(name=client, role=fedn.CLIENT))
         return clients
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):

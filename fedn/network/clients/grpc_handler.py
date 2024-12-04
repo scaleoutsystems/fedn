@@ -119,7 +119,7 @@ class GrpcHandler:
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.WORKER, client_id=client_id))
+        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
         try:
             logger.info("Sending heartbeat to combiner")
@@ -156,7 +156,7 @@ class GrpcHandler:
         """
         r = fedn.ClientAvailableMessage()
         r.sender.name = client_name
-        r.sender.role = fedn.WORKER
+        r.sender.role = fedn.CLIENT
         r.sender.client_id = client_id
 
         try:
@@ -198,7 +198,7 @@ class GrpcHandler:
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
         status.sender.name = sender_name
-        status.sender.role = fedn.Role.WORKER
+        status.sender.role = fedn.CLIENT
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = sesssion_id
@@ -231,7 +231,7 @@ class GrpcHandler:
         time_start = time.time()
         request = fedn.ModelRequest(id=id)
         request.sender.client_id = client_id
-        request.sender.role = fedn.WORKER
+        request.sender.role = fedn.CLIENT
 
         try:
             logger.info("Downloading model from combiner.")
@@ -298,7 +298,7 @@ class GrpcHandler:
     ):
         update = fedn.ModelUpdate()
         update.sender.name = sender_name
-        update.sender.role = fedn.WORKER
+        update.sender.role = fedn.CLIENT
         update.sender.client_id = self.metadata[0][1]
         update.receiver.name = receiver_name
         update.receiver.role = receiver_role
@@ -321,7 +321,7 @@ class GrpcHandler:
     ):
         validation = fedn.ModelValidation()
         validation.sender.name = sender_name
-        validation.sender.role = fedn.WORKER
+        validation.sender.role = fedn.CLIENT
         validation.receiver.name = receiver_name
         validation.receiver.role = receiver_role
         validation.model_id = model_id
@@ -344,7 +344,7 @@ class GrpcHandler:
     ):
         prediction = fedn.ModelPrediction()
         prediction.sender.name = sender_name
-        prediction.sender.role = fedn.WORKER
+        prediction.sender.role = fedn.CLIENT
         prediction.receiver.name = receiver_name
         prediction.receiver.role = receiver_role
         prediction.model_id = model_id
