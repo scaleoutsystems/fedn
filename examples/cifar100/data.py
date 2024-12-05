@@ -292,7 +292,7 @@ class CIFAR100Federated:
         return Subset(self.trainset, indices)
 
 
-def get_data_loader(num_splits: int, balanced: bool, iid: bool, batch_size: int = 100, is_train: bool = True):
+def get_data_loader(num_splits: int = 5, balanced: bool = True, iid: bool = True, batch_size: int = 100, is_train: bool = True):
     """Get a data loader for the CIFAR-100 dataset
     :param num_splits: Number of splits to create
     :param balanced: Whether splits are balanced
@@ -301,13 +301,14 @@ def get_data_loader(num_splits: int, balanced: bool, iid: bool, batch_size: int 
     :param is_train: Whether to get the training or test data loader
     :return: Data loader
     """
-    split_id = os.environ.get("FEDN_DATA_SPLIT_ID", 0)
-
     cifar_data = CIFAR100Federated()
 
     if is_train:
+        split_id = os.environ.get("FEDN_DATA_SPLIT_ID", 0)
         dataset = cifar_data.get_split(split_id=split_id, num_splits=num_splits, balanced=balanced, iid=iid)
+        print(f"Getting data loader for split {split_id} of trainset (size: {len(dataset)})")
     else:
         dataset = cifar_data.testset
+        print(f"Getting data loader for testset (size: {len(dataset)})")
 
     return DataLoader(dataset, batch_size=batch_size, shuffle=is_train)
