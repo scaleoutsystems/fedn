@@ -1,10 +1,8 @@
 import os
 import pickle
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
-import torch
-import torchvision.transforms as transforms
 from scipy.stats import dirichlet
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import datasets, transforms
@@ -287,7 +285,7 @@ class CIFAR100Federated:
             self.create_splits(num_splits, balanced, iid)
 
         with open(split_path, "rb") as f:
-            indices = pickle.load(f)
+            indices = pickle.load(f)  # noqa: S301
 
         return Subset(self.trainset, indices)
 

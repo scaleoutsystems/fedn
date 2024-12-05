@@ -4,10 +4,9 @@ import os
 import uuid
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
 from data import get_data_loader
 from init_seed import load_parameters, save_parameters
+from torch import nn, optim
 
 from config import settings
 from fedn import FednClient
