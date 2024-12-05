@@ -6,4 +6,8 @@ settings = {
     "VERIFY": False,
     "ADMIN_TOKEN": None,
     "CLIENT_TOKEN": None,
+    "BATCH_SIZE": 128,
+    "EPOCHS": 1,
+    "BALANCED": True,
+    "IID": True,
 }
