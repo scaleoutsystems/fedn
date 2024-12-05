@@ -1,3 +1,5 @@
+import collections
+
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -35,6 +37,23 @@ def save_parameters(model, out_path):
 def init_seed(out_path="seed.npz"):
     model = compile_model()
     save_parameters(model, out_path)
+
+
+def load_parameters(model_path):
+    """Load model parameters from file and populate model.
+
+    param model_path: The path to load from.
+    :type model_path: str
+    :return: The loaded model.
+    :rtype: torch.nn.Module
+    """
+    model = compile_model()
+    parameters_np = helper.load(model_path)
+
+    params_dict = zip(model.state_dict().keys(), parameters_np)
+    state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
+    model.load_state_dict(state_dict, strict=True)
+    return model
 
 
 if __name__ == "__main__":
