@@ -263,7 +263,7 @@ class CombinerInterface:
 
         request = fedn.ModelRequest(id=id)
         request.sender.name = self.name
-        request.sender.role = fedn.WORKER
+        request.sender.role = fedn.CLIENT
 
         parts = modelservice.Download(request)
         for part in parts:

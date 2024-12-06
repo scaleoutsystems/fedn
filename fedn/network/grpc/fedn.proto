@@ -16,20 +16,21 @@ enum StatusType {
   MODEL_VALIDATION_REQUEST = 3;
   MODEL_VALIDATION = 4;
   MODEL_PREDICTION = 5;
+  NETWORK = 6;
 }
+
+enum LogLevel {
+      NONE = 0;
+      INFO  = 1;
+      DEBUG = 2;
+      WARNING = 3;
+      ERROR = 4;
+      AUDIT = 5;
+    }
 
 message Status {
     Client sender = 1;
     string status = 2;
-
-    enum LogLevel {
-      INFO  = 0;
-      DEBUG = 1;
-      WARNING = 2;
-      ERROR = 3;
-      AUDIT = 4;
-    }
-
     LogLevel log_level = 3;
     string data = 4;
     string correlation_id = 5;
@@ -151,10 +152,10 @@ message ClientList {
 }
 
 enum Role {
-  WORKER = 0;
-  COMBINER = 1;
-  REDUCER = 2;
-  OTHER = 3;
+  OTHER = 0;
+  CLIENT = 1;
+  COMBINER = 2;
+  REDUCER = 3;
 }
 
 message Client {

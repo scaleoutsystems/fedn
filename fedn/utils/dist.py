@@ -3,7 +3,7 @@ import importlib.metadata
 import fedn
 
 
-def get_version(pacakge):
+def get_version(package):
     # Dynamically get the version of the package
     try:
         version = importlib.metadata.version("fedn")
