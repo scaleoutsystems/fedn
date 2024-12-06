@@ -12,17 +12,20 @@ Prerequisites
 -  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
-Edit client specific Differential Privacy parameters 
+
+Edit Client-Specific Differential Privacy Parameters 
 --------------------------
-The **Differential Privacy budget** epsilon, delta is together with other settings, client configurtable in the client_settings.yaml.
-- epochs - number of local epochs per round
-epsilon - total number of epsilon budget to spend, given global_rounds from the server side.
-delta - total number of delta budget to spend.
-max_grad_norm - clipping threshold
-global_rounds - numbers of rounds the server will run.
-hardlimit
-- If `hardlimit`  is set to `True`, the `epsilon` will not exceed its specified limit on the expanse that not all rounds model updates will be updates.
-- If `hardlimit` is set to `False`, the expected `epsilon` will be around its specified value given the server runs `global_rounds` nr of updates.
+The **Differential Privacy budget** (``epsilon``, ``delta``), along with other settings, is configurable in the ``client_settings.yaml`` file:
+
+- **epochs**: Number of local epochs per round.
+- **epsilon**: Total epsilon budget to spend, determined by the ``global_rounds`` set on the server side.
+- **delta**: Total delta budget to spend.
+- **max_grad_norm**: Clipping threshold for gradients.
+- **global_rounds**: Number of rounds the server will run.
+- **hardlimit**:
+
+   - If ``hardlimit`` is set to ``True``, the ``epsilon`` budget will not exceed its specified limit, even if it means skipping updates for some rounds.
+   - If ``hardlimit`` is set to ``False``, the expected ``epsilon`` will be approximately equal to its specified value, assuming the server completes the specified ``global_rounds`` of updates.
 
 Creating the compute package and seed model
 -------------------------------------------
