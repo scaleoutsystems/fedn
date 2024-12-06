@@ -2,7 +2,7 @@ FEDn Project: Federated Differential Privacy MNIST (Opacus + PyTorch)
 ----------------------------------------------------------------------
 
 This example FEDn Project demonstrates how Differential Privacy can be integrated to enhance the confidentiality of client data.
-We have expanded our baseline MNIST-PyTorch example by incorporating the Opacus framework, which is specifically designed for PyTorch models.
+We have expanded our baseline MNIST-PyTorch example by incorporating the Opacus framework, which is specifically designed for PyTorch models. If you are interested more about Differential Privacy read our [blogpost](https://www.scaleoutsystems.com/post/guaranteeing-data-privacy-for-clients-in-federated-machine-learning) about it 
 
 
 
@@ -12,11 +12,17 @@ Prerequisites
 -  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
-Edit Differential Privacy budget
+Edit client specific Differential Privacy parameters 
 --------------------------
-- The **Differential Privacy budget** (`FINAL_EPSILON`, `DELTA`) is configured in the `compute` package at `client/train.py` (lines 35 and 39).
-- If `HARDLIMIT` (line 40) is set to `True`, the `FINAL_EPSILON` will not exceed its specified limit.
-- If `HARDLIMIT` is set to `False`, the expected `FINAL_EPSILON` will be around its specified value given the server runs `GLOBAL_ROUNDS` variable (line 36).
+The **Differential Privacy budget** epsilon, delta is together with other settings, client configurtable in the client_settings.yaml.
+- epochs - number of local epochs per round
+epsilon - total number of epsilon budget to spend, given global_rounds from the server side.
+delta - total number of delta budget to spend.
+max_grad_norm - clipping threshold
+global_rounds - numbers of rounds the server will run.
+hardlimit
+- If `hardlimit`  is set to `True`, the `epsilon` will not exceed its specified limit on the expanse that not all rounds model updates will be updates.
+- If `hardlimit` is set to `False`, the expected `epsilon` will be around its specified value given the server runs `global_rounds` nr of updates.
 
 Creating the compute package and seed model
 -------------------------------------------
