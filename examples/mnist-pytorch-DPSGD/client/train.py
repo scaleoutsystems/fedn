@@ -30,8 +30,6 @@ class CustomDataset(torch.utils.data.Dataset):
         y_data = self.y_data[idx]
         return x_data, y_data
 
-
-# Constants
 MAX_PHYSICAL_BATCH_SIZE = 32
 EPOCHS = 1
 EPSILON = 1000.
