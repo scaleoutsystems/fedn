@@ -138,7 +138,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, lr=0.01)
         print("Epsilon too high, not saving model")
 
     # Save privacy accountant
-    torch.save(privacy_engine.accountant,'privacy_accountant.state')
+    torch.save(privacy_engine.accountant,"privacy_accountant.state")
 
 def train_dp(model, train_loader, optimizer, epoch, device, privacy_engine):
     model.train()
