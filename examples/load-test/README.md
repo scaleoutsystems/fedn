@@ -1,15 +1,13 @@
 # LOAD TEST 
-This example can be used as a load test for FEDn.  
+This example is intended to be used as a load test for FEDn.  
 
 No actual machine learning is being done - the clients generate a 
 random array of a configurable size. In this way a developer can
-test the performance / scalability of a given FEDn network in a flexible
-way simply by shuffling around and aggregating numeric arrays. 
+test the performance of FEDn deployment in a flexible
+way by sending and aggregating numeric arrays of varying size. 
 
 ## Prerequisites
-- [Python 3.8, 3.9 or 3.10](https://www.python.org/downloads)
-- [Docker](https://docs.docker.com/get-docker)
-- [Docker Compose](https://docs.docker.com/compose/install)
+- [Python 3.9 or 3.10](https://www.python.org/downloads)
 
 ## Running the example (pseudo-distributed, single host)
 

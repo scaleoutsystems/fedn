@@ -1,7 +1,7 @@
 # /bin/python
+import sys
 import time
 
-import fire
 import numpy as np
 
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
@@ -90,9 +90,5 @@ def validate(in_model_path, out_json_path):
     save_metrics(report, out_json_path)
 
 
-if __name__ == '__main__':
-    fire.Fire({
-        'init_seed': init_seed,
-        'train': train,
-        'validate': validate
-    })
+if __name__ == "__main__":
+    train(sys.argv[1], sys.argv[2])
