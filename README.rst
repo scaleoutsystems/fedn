@@ -1,83 +1,120 @@
+|pic1| |pic2| |pic3|
 
-.. image:: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg
+.. |pic1| image:: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml/badge.svg
    :target: https://github.com/scaleoutsystems/fedn/actions/workflows/integration-tests.yaml
 
-.. image:: https://badgen.net/badge/icon/discord?icon=discord&label
+.. |pic2| image:: https://badgen.net/badge/icon/discord?icon=discord&label
    :target: https://discord.gg/KMg4VwszAd
 
-.. image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
+.. |pic3| image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
    :target: https://fedn.readthedocs.io
 
-FEDn
---------
+FEDn: An enterprise-ready federated learning framework 
+-------------------------------------------------------
 
-FEDn empowers developers, researchers, and data scientists to create federated learning applications that seamlessly transition from local proofs-of-concept to real-world distributed deployments. Develop your federated learning use case in a pseudo-local environment, and deploy it to FEDn Studio for real-world Federated Learning without any need for code changes.
+Our goal is to provide a federated learning framework that is both secure, scalable and easy-to-use. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
 
-Core Features
-=============
+-  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide a UI, REST API and a Python interface to help users manage FL experiments and track metrics in real time.
 
--  **Scalable and resilient.** FEDn facilitates the coordination of clients and model aggregation through multiple aggregation servers sharing the workload. This design makes the framework highly scalable, accommodating large numbers of clients. The system is engineered to seamlessly recover from failures, ensuring robust deployment in production environments. Furthermore, FEDn adeptly manages asynchronous federated learning scenarios, accommodating clients that may connect or drop out during training.
+-  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
 
--  **Security**. FL clients do not need to open any ingress ports, facilitating real-world deployments across a wide variety of settings. Additionally, FEDn utilizes secure, industry-standard communication protocols and supports token-based authentication for FL clients, enhancing security and ease of integration in diverse environments.   
+-  **ML-framework agnostic**. A black-box client-side architecture lets data scientists interface with their framework of choice. 
 
--  **Track events and training progress in real-time**. Extensive event logging and distributed tracing enable developers to monitor experiments in real-time, simplifying troubleshooting and auditing processes. Machine learning validation metrics from clients can be accessed via the API, allowing for flexible analysis of federated experiments. 
+-  **Cloud native.** By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure. 
 
--  **ML-framework agnostic**. FEDn is compatible with all major ML frameworks. Examples for Keras, PyTorch and scikit-learn are
-   available out-of-the-box.
+-  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
 
-From development to real-world FL: 
+-  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
 
--  Develop a FEDn project in a local development environment, and then deploy it to FEDn Studio
--  The FEDn server-side as a managed, production-grade service on Kubernetes. 
--  Token-based authentication for FL clients  
--  Role-based access control (RBAC)
--  REST API 
--  Dashboard for orchestrating runs, visualizing and downloading results
--  Admin dashboard for managing and scaling the FEDn network 
--  Collaborate with other data-scientists in a shared workspace. 
--  Cloud or on-premise deployment 
+FEDn is free forever for academic and personal use / small projects. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
+
+Features
+=========
+
+Federated learning: 
+
+- Tiered federated learning architecture enabling massive scalability and resilience. 
+- Support for any ML framework (examples for PyTorch, Tensforflow/Keras and Scikit-learn)
+- Extendable via a plug-in architecture (aggregators, load balancers, object storage backends, databases  etc.)
+- Built-in federated algorithms (FedAvg, FedAdam, FedYogi, FedAdaGrad, etc.)
+- UI, CLI and Python API.
+- Implement clients in any language (Python, C++, Kotlin etc.)
+- No open ports needed client-side.
 
 
-Getting started with FEDn
-===============
+From development to FL in production: 
 
-The best way to get started is to take the quickstart tutorial: 
+-  Secure deployment of server-side / control-plane on Kubernetes.
+-  UI with dashboards for orchestrating FL experiments and for visualizing results
+-  Team features - collaborate with other users in shared project workspaces. 
+-  Features for the trusted-third party: Manage access to the FL network, FL clients and training progress.
+-  REST API for handling experiments/jobs. 
+-  View and export logging and tracing information. 
+-  Public cloud, dedicated cloud and on-premise deployment options.
 
-- `Quickstart <https://fedn.readthedocs.io/en/latest/quickstart.html>`__
+Available client APIs:
+
+- Python client (this repository)
+- C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
+- Android Kotlin client (`FEDn Kotlin client <https://github.com/scaleoutsystems/fedn-android-client>`__)
+
+
+Getting started
+============================
+
+Get started with FEDn in two steps:  
+
+1. Register for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
+2. Take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
+
+Use of our multi-tenant, managed deployment of FEDn Studio (SaaS) is free forever for academic research and personal development/testing purposes.
+For users and teams requiring additional resources, more storage and cpu, dedicated support, and other hosting options (private cloud, on-premise), `explore our plans <https://www.scaleoutsystems.com/start#pricing>`__.  
 
 Documentation
 =============
 
-More details about the architecture, deployment, and how to develop your own application and framework extensions (such as custom aggregators) are found in the documentation:
+More details about the architecture, deployment, and how to develop your own application and framework extensions are found in the documentation:
 
 -  `Documentation <https://fedn.readthedocs.io>`__
 
+FEDn Project Examples
+=====================
 
-Deploying a project to FEDn Studio
-===============
+Our example projects demonstrate different use case scenarios of FEDn 
+and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
 
-Studio offers a production-grade deployment of the FEDn server-side infrastructure on Kubernetes. With Studio, you can also manage token-based authentication for clients and collaborate with other users in joint project workspaces. In addition to a REST API, Studio features intuitive dashboards that allows you to orchestrate FL experiments and visualize and manage global models, event logs and metrics. These features enhance your ability to monitor and analyze federated learning projects. Studio is available as-a service hosted by Scaleout and one project is provided for free for testing and research. 
+- `FEDn + PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
+- `FEDn + Tensforflow/Keras <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__
+- `FEDn + MONAI <https://github.com/scaleoutsystems/fedn/tree/master/examples/monai-2D-mednist>`__
+- `FEDn + Hugging Face <https://github.com/scaleoutsystems/fedn/tree/master/examples/huggingface>`__
+- `FEDn + Flower <https://github.com/scaleoutsystems/fedn/tree/master/examples/flower-client>`__
+- `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
 
-- `Register for a project in Studio <https://studio.scaleoutsystems.com/signup/>`__
-- `Deploy you project to FEDn Studio <https://guide.scaleoutsystems.com/#/docs>`__  
+FEDn Studio Deployment options
+==============================
 
-Options and charts are also available for self-managed deployment of FEDn Studio, reach out to the Scaleout team for more information. 
+Several hosting options are available to suit different project settings.
 
+-  `Public cloud (multi-tenant) <https://fedn.scaleoutsystems.com>`__: Managed multi-tenant deployment in public cloud. 
+-   Dedicated cloud (single-tenant): Managed, dedicated deployment in a cloud region of your choice (AWS, GCP, Azure, managed Kubernetes) 
+-   Self-managed: Set up a self-managed deployment in your VPC or on-premise Kubernets cluster using Helm Chart and container images provided by Scaleout. 
+
+Contact the Scaleout team for information.
 
 Support
 =================
 
-Community support in available in our `Discord
+Community support is available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
-Options are also available for `Enterprise support <https://www.scaleoutsystems.com/start#pricing>`__.
+Options are available for `Dedicated/custom support <https://www.scaleoutsystems.com/start#pricing>`__.
 
 Making contributions
 ====================
 
 All pull requests will be considered and are much appreciated. For
 more details please refer to our `contribution
-guidelines <https://github.com/scaleoutsystems/fedn/blob/develop/CONTRIBUTING.md>`__.
+guidelines <https://github.com/scaleoutsystems/fedn/blob/master/CONTRIBUTING.md>`__.
 
 Citation
 ========
@@ -100,4 +137,4 @@ License
 FEDn is licensed under Apache-2.0 (see `LICENSE <LICENSE>`__ file for
 full information).
 
-Use of FEDn Studio (SaaS) is subject to the `Terms of Use <https://www.scaleoutsystems.com/terms>`__.
+Use of FEDn Studio is subject to the `Terms of Use <https://www.scaleoutsystems.com/terms>`__.

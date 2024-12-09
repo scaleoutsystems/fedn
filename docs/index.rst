@@ -1,19 +1,27 @@
 .. toctree::
-   :maxdepth: 2
-   :caption: Table of Contents
+   :maxdepth: 1
+   :caption: Introduction
    
    introduction
    quickstart
-   distributed
+   projects
    apiclient
-   tutorial
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Documentation
+   
    architecture
    aggregators
    helpers
-   auth
+   developer
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Miscellaneous
+   
    faq
    modules
-
 
 Indices and tables
 ==================
@@ -21,3 +29,9 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. meta::
+    :description lang=en:
+        FEDn is a federated learning platform that is secure, scalable and easy-to-use.
+    :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+    

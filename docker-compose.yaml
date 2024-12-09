@@ -1,5 +1,5 @@
 # Compose schema version
-version: '3.3'
+version: '3.4'
 
 # Setup network
 networks:
@@ -19,13 +19,7 @@ services:
       - MINIO_ROOT_PASSWORD=password
     command: server /data --console-address minio:9001
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://minio:9000/minio/health/live"
-        ]
+      test: [ "CMD", "curl", "-f", "http://minio:9000/minio/health/live" ]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -64,21 +58,23 @@ services:
       - USER=test
       - PROJECT=project
       - FLASK_DEBUG=1
-      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml
-      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml
+      - STATESTORE_CONFIG=/app/config/settings-reducer.yaml.template
+      - MODELSTORAGE_CONFIG=/app/config/settings-reducer.yaml.template
+      - FEDN_COMPUTE_PACKAGE_DIR=/app
+      - TMPDIR=/app/tmp
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     depends_on:
       - minio
       - mongo
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/python fedn/fedn/network/api/server.py"
+      - controller
+      - start
     ports:
       - 8092:8092
 
@@ -87,36 +83,63 @@ services:
     environment:
       - PYTHONUNBUFFERED=0
       - GET_HOSTS_FROM=dns
+      - STATESTORE_CONFIG=/app/config/settings-combiner.yaml.template
+      - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml.template
+      - HOOK_SERVICE_HOST=hook:12081
+      - TMPDIR=/app/tmp
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
-        GRPC_HEALTH_PROBE_VERSION: v0.4.24
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.35
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    command:
+      - combiner
+      - start
+      - --init
+      - config/settings-combiner.yaml.template
+    ports:
+      - 12080:12080
+    healthcheck:
+      test: [ "CMD", "/app/grpc_health_probe", "-addr=localhost:12080" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - api-server
+      - hooks
+  # Hooks
+  hooks:
+    container_name: hook
+    environment:
+      - GET_HOSTS_FROM=dns
+      - TMPDIR=/app/tmp
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
+        GRPC_HEALTH_PROBE_VERSION: v0.4.35
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
     entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run combiner --init config/settings-combiner.yaml"
+      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn hooks start"
     ports:
-      - 12080:12080
+      - 12081:12081
     healthcheck:
-      test:
-        [
-          "CMD",
-          "/bin/grpc_health_probe",
-          "-addr=localhost:12080"
-        ]
-      interval: 2s
+      test: [ "CMD", "/bin/grpc_health_probe", "-addr=localhost:12081" ]
+      interval: 20s
       timeout: 10s
       retries: 5
-    depends_on:
-      - api-server
 
   # Client
   client:
     environment:
       - GET_HOSTS_FROM=dns
+      - FEDN_PACKAGE_EXTRACT_DIR=package
     build:
       context: .
       args:
@@ -124,9 +147,11 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e /app/fedn && /venv/bin/fedn run client --init config/settings-client.yaml"
+      - client
+      - start
+      - --api-url
+      - http://api-server:8092
     deploy:
       replicas: 0
     depends_on:

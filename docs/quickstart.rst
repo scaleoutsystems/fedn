@@ -1,208 +1,273 @@
-Quickstart Tutorial PyTorch (MNIST)
-===================================
+.. _quickstart-label:
+
+Getting started with FEDn
+=========================
 
 .. note::
-   This tutorial is a quickstart guide to FEDn where the federated learning project has been defined
-   using an already implemented ``compute package``. This turorial is a good starting point for developers, however,
-   head over to :ref:`tutorial-label` when you are ready to define your own federated learning projects.
-
-This classic example of hand-written text recognition is well suited as a lightweight test when developing on FEDn in pseudo-distributed mode. 
-A normal high-end laptop or a workstation should be able to sustain a few clients. 
-The example automates the partitioning of data and deployment of a variable number of clients on a single host. 
-We here assume working experience with containers, Docker and docker-compose. 
+   This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers. 
+   To learn how to develop your own project from scratch, see :ref:`projects-label`. 
    
-Prerequisites
--------------
+**Prerequisites**
 
--  `Python 3.8, 3.9 or 3.10 <https://www.python.org/downloads>`__
--  `Docker <https://docs.docker.com/get-docker>`__
--  `Docker Compose <https://docs.docker.com/compose/install>`__
+-  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
+-  `A FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__ 
 
-Launch a pseudo-distributed FEDn Network 
--------------
 
-
-Clone this repository, locate into it and start a pseudo-distributed FEDn network using docker-compose:
-
-.. code-block::
-
-   docker-compose up 
-
-This starts up the needed backend services MongoDB and Minio, the API Server and one Combiner. 
-You can verify the deployment using these urls: 
-
-- API Server: http://localhost:8092/get_controller_status
-- Minio: http://localhost:9000
-- Mongo Express: http://localhost:8081
-
-.. warning:: 
-   The FEDn network is configured to use a local Minio and MongoDB instances for storage. This is not suitable for production, but is fine for testing.
-
-Install the FEDn SDK
--------------
-
-.. note::
-    To programmatically interact with the FEDn network use the APIClient.
-    Install the FEDn via pip:
-
-    .. code-block:: bash
-       
-       $ pip install fedn
-       # or from source
-       $ cd fedn/fedn
-       $ pip install . 
-
-
-Prepare the compute package and seed the FEDn network
--------------
-
-Next, we will prepare the client. A key concept in FEDn is the compute package - 
-a code bundle that contains entrypoints for training and (optionally) validating a model update on the client. 
-
-Locate into ``examples/mnist-pytorch`` and familiarize yourself with the project structure. The entrypoints
-are defined in 'client/entrypoint'. The dependencies needed in the client environment are specified in 
-``requirements.txt``. For convenience, we have provided utility scripts to set up a virtual environment.   
-
-Start by initializing a virtual enviroment with all of the required dependencies for this project.
-
-.. code-block:: python
-
-   bin/init_venv.sh
-
-Now create the compute package and an initial model:
-
-.. code-block::
-
-   bin/build.sh
-
-
-Upload the compute package and seed model to FEDn:
-
-.. code:: python
-
-   >>> from fedn import APIClient
-   >>> client = APIClient(host="localhost", port=8092)
-   >>> client.set_active_package("package.tgz", helper="numpyhelper")
-   >>> client.set_active_model("seed.npz")
-
-Configure and attach clients
--------------
-
-The next step is to configure and attach clients. For this we need to download data and make data partitions: 
-
-Download the data:
-
-.. code-block::
-
-   bin/get_data
-
-
-Split the data in 2 parts for the clients:
-
-.. code-block::
-
-   bin/split_data
-
-Data partitions will be generated in the folder 'data/clients'.  
-
-
-FEDn relies on a configuration file for the client to connect to the server. Create a file called 'client.yaml' with the follwing content:
-
-.. code-block::
-
-   network_id: fedn-network
-   discover_host: api-server
-   discover_port: 8092
-
-(optional) Use the APIClient to fetch the client configuration and save it to a file:
-
-.. code:: python
-
-   >>> import yaml
-   >>> config = client.get_client_config(checksum=True)
-   >>> with open("client.yaml", "w") as f:
-   >>>    f.write(yaml.dump(config))
-
-Make sure to move the file ``client.yaml`` to the root of the examples/mnist-pytorch folder.
-To connect a client that uses the data partition ``data/clients/1/mnist.pt`` and the config file ``client.yaml`` to the network, run the following docker command:
-
-.. code-block::
-
-   docker run \
-  -v $PWD/client.yaml:/app/client.yaml \
-  -v $PWD/data/clients/1:/var/data \
-  -e ENTRYPOINT_OPTS=--data_path=/var/data/mnist.pt \
-  --network=fedn_default \
-  ghcr.io/scaleoutsystems/fedn/fedn:0.8.0-mnist-pytorch run client -in client.yaml --name client1 
-
-
-Start a training session
--------------
-
-Observe the API Server logs and combiner logs, you should see the client connecting.
-You are now ready to start training the model. In the python enviroment you installed FEDn:
-
-.. code:: python
-
-   >>> ...
-   >>> client.start_session(session_id="test-session", rounds=3)
-   # Wait for training to complete, when controller is idle:
-   >>> client.get_controller_status()
-   # Show model trail:
-   >>> client.get_model_trail()
-   # Show model performance:
-   >>> client.get_validations()
-
-Please see :py:mod:`fedn.network.api` for more details on the APIClient. 
-
-There is also a Jupyter `Notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/mnist-pytorch/API_Example.ipynb>`_ version of this tutorial including examples of how to fetch and visualize model validations.
-
-Automate experimentation with several clients  
-----------------------------------------------------------
-You can use the provided docker-compose templates to automate deployment of FEDn and clients. 
-
-Split the dataset in 4 partitions:
-
-.. code-block::
-
-   bin/split_data --num_splits=4 
-
-
-To start 4 clients, standing in ``examples/mnist-pytorch``, run the following docker compose command: 
-
-.. code-block::
-
-   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml up --scale client=4 
-
-
-Access logs and validation data from MongoDB  
---------------------------------------------
-You can access and download event logs and validation data via the API, and you can also as a developer obtain 
-the MongoDB backend data using pymongo or via the MongoExpress interface: 
-
-- http://localhost:8081/db/fedn-network/ 
-
-The credentials are as set in docker-compose.yaml in the root of the repository. 
-
-Access model updates  
+1. Start the server 
 --------------------
 
-You can obtain model updates from the 'fedn-models' bucket in Minio: 
+The first step is to start the server side (aggregator, controller). We do this by setting up a new Project in FEDn Studio.  
+Start by creating an account in Studio: `fedn.scaleoutsystems.com/signup <https://fedn.scaleoutsystems.com/signup/>`_.
 
-- http://localhost:9000
+Logged into Studio, create a new project by clicking  on the "New Project" button in the top right corner of the screen.
+You will see a Studio project similar to the image below. The Studio project provides a secure and managed deployment of all the necessary server side components. 
+
+.. image:: img/studio_project_overview.png
+
+1.5 Set up a Virtual environment (Recommended)
+----------------------------------------------
+
+Before installing FEDn using pip, we recommend creating a virtual environment. This helps isolate dependencies and avoids conflicts with other Python projects on your machine.
+
+You can set up and activate a virtual environment using the following steps:
+
+**Using venv** (Python's built-in module for virtual environments)
+
+.. tabs::
+
+    .. code-tab:: bash
+         :caption: Unix/MacOS
+
+         python3 -m venv fedn_env
+         source fedn_env/bin/activate
+
+    .. code-tab:: bash
+         :caption: Windows (PowerShell)
+
+         python -m venv fedn_env
+         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+         fedn_env\Scripts\Activate.ps1
+
+    .. code-tab:: bash
+         :caption: Windows (CMD.exe)
+
+         python -m venv fedn_env
+         fedn_env\Scripts\activate.bat
 
 
-Clean up
---------
-You can clean up by running 
+For additional information visit the `Python venv documentation <https://docs.python.org/3/library/venv.html>`_. 
+
+After activating the virtual environment, you can proceed with the next steps.
+
+2. Prepare the clients and define the global model
+---------------------------------------------------
+
+Next, we will prepare and package the ML code to be executed by each client and create a first version of the global model (seed model). 
+We will work with one of the pre-defined projects in the FEDn repository, ``mnist-pytorch``. 
+
+First install the FEDn API on your local machine (client): 
+
+**Using pip**
+
+On you local machine/client, install the FEDn package using pip:
+
+.. code-block:: bash
+
+   pip install fedn
+
+**From source**
+
+Clone the FEDn repository and install the package:
+
+.. code-block:: bash
+
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn
+   pip install .
+
+
+.. _package-creation:
+
+**Create the compute package and seed model**
+
+In order to train a federated model using FEDn, your Studio project needs to be initialized with a ``compute package`` and a ``seed model``. The compute package is a code bundle containing the 
+code used by the client to execute local training and local validation. The seed model is a first version of the global model. 
+For a detailed explaination of the compute package and seed model, see this guide: :ref:`projects-label`
+
+To work through this quick start you need a local copy of the ``mnist-pytorch`` example project contained in the main FEDn Git repository. 
+Clone the repository using the following command, if you didn't already do it in the previous step:
+
+.. code-block:: bash
+
+   git clone https://github.com/scaleoutsystems/fedn.git
+
+Navigate to the ``fedn/examples/mnist-pytorch`` folder. The compute package is located in the folder ``client``.
+
+Create a compute package: 
 
 .. code-block::
 
-   docker-compose down
+   fedn package create --path client
 
-Where to go from here? 
---------
-With you first FEDn federation deployed, we suggest that you take a close look at how a FEDn project is structured
-and how you develop your own compute package:
+This will create a file called ``package.tgz`` in the root of the project.
 
-- Compute package: :ref:`tutorial-label`
+Next, create the seed model: 
+
+.. code-block::
+
+   fedn run build --path client
+
+This will create a file called ``seed.npz`` in the root of the project. 
+
+.. note::
+   This example automatically creates the runtime environment for the compute package using Virtualenv. 
+   When you first exectue the above commands, FEDn will build a venv, and this takes 
+   a bit of time. For more information on the various options to manage the environement, see :ref:`projects-label`. 
+
+Next will now upload these files to your Studio project.  
+
+3. Initialize the server-side
+------------------------------
+The next step is to initialize the server side with the client code and the initial global model. In the Studio UI,
+
+**Upload the compute package**
+
+#. Navigate to the project you created in step 1 and click on the "Packages" link. 
+#. Click on the "Add Package" button. 
+#. On the next form, enter a name and upload the generated package file.
+
+.. note:: 
+   On the "packages" link, you can also select the option "Use local package mode". This is an advanced option that 
+   allows each client to connect with their own custom compute package. The option can also be beneficial when 
+   developing your own project, as it eliminates the need to upload a new package with every change or version update.
+
+.. image:: img/upload_package.png
+
+**Upload the seed model**
+
+#. Navigate to the project you created in step 1 and click on the “Sessions” tab.
+#. Click on the “New Session” button.
+#. Under the “Seed model” tab, upload the generated seed file:
+
+.. image:: img/upload_seed.png
+
+.. note::
+   You can upload multiple compute packages and seed models, and select the one needed for different sessions.
+
+Continue to step 4 before starting the session. The uploaded package and seed files are saved.
+
+4. Start clients
+-----------------
+
+Now we are ready to start FEDn clients on your local machine. There are two steps involved: 
+
+#. Register a new client in your Studio project, issuing an access token. 
+#. Start up a client process on your local host (using the token to connect securely)  
+
+**Generate an access token for the client (in Studio)**
+
+Each local client needs an access token in order to connect securely to the FEDn server. These tokens are issued from your Studio Project. 
+
+#. Go to the 'Clients' tab and click 'Connect client'. 
+#. Download a client configuration file and save it to the root of the ``examples/mnist-pytorch`` folder. 
+#. Rename the file to 'client.yaml'. 
+
+**Start the client (on your local machine)** 
+
+The default training and test data for this particular example (mnist-pytorch) is for convenience downloaded and split automatically by the client when it starts up. 
+The number of splits and which split to use by a client can be controlled via the environment variables ``FEDN_NUM_DATA_SPLITS`` and ``FEDN_DATA_PATH``.
+
+Start a client (using a 10-split and the 1st partition) by running the following commands:
+
+.. tabs::
+
+    .. code-tab:: bash
+         :caption: Unix/MacOS
+
+         export FEDN_PACKAGE_EXTRACT_DIR=package
+         export FEDN_NUM_DATA_SPLITS=10
+         export FEDN_DATA_PATH=./data/clients/1/mnist.pt
+         fedn client start -in client.yaml
+
+    .. code-tab:: bash
+         :caption: Windows (PowerShell)
+
+         $env:FEDN_PACKAGE_EXTRACT_DIR=".\package"
+         $env:FEDN_NUM_DATA_SPLITS=10
+         $env:FEDN_DATA_PATH=".\data\clients\1\mnist.pt"
+         fedn client start -in client.yaml
+
+    .. code-tab:: bash
+         :caption: Windows (CMD.exe)
+
+         set FEDN_PACKAGE_EXTRACT_DIR=.\package\\
+         set FEDN_NUM_DATA_SPLITS=10
+         set FEDN_DATA_PATH=.\data\\clients\\1\\mnist.pt
+         fedn client start -in client.yaml
+
+
+Repeat these two steps (generate an access token and start a local client) for the number of clients you want to use.
+A normal laptop should be able to handle several clients for this example. Remember to use different partitions for each client, by changing the number in the ``FEDN_DATA_PATH`` variable. 
+
+5. Train the global model 
+-----------------------------
+
+With clients connected, we are now ready to train the global model. This can be done using either the Studio dashboard or the Python API. In FEDn, training is organised 
+in Sessions. One training session consists of a configurable number of training rounds (local model updates and aggregation).  
+
+In Studio, 
+
+#. Click on the "Sessions" link, then the "New session" button in the upper right corner. 
+#. Click the "Start session" tab and enter your desirable settings (the default settings are good for this example).
+#. Hit the "Start run" button.
+
+In the terminal where your are running your client you should now see some activity. When a round is completed, you can see the results on the "Models" page.
+
+**Watch real-time updates of training progress**
+
+Once a training session is started, you can monitor the progress by clicking the drop-down button for the active Sessions and then clicking on the "View session" button. The session page will show 
+metrics related to the training progress (accuracy, loss etc), as well as performance data such as total round times and individual client training times. A list of models in the session is updated as soon as new models are generated. 
+To get more information about a particular model, navigate to the model page by clicking the model name. From the model page you can download the model weights and get validation metrics.
+
+.. image:: img/studio_model_overview.png
+
+.. _studio-api:
+
+Congratulations, you have now completed your first federated training session with FEDn! Below you find additional information that can
+be useful as you progress in your federated learning journey.
+
+**Downloading global model updates**  
+
+.. note::
+   In FEDn Studio, you can access global model updates by going to the 'Models' or 'Sessions' tab. Here you can download model updates, metrics (as csv) and view the model trail.
+
+**Where to go from here?**
+
+With you first FEDn federated project set up, we suggest that you take a closer look at how a FEDn project is structured
+to learn how to develop your own FEDn projects:
+
+:ref:`projects-label`
+
+In this tutorial we relied on the UI for running training sessions and retrieving models and results. 
+The Python APIClient provides a flexible alternative, with additional functionality exposed, 
+including the use of different aggregators. Learn how to use the APIClient here: 
+
+:ref:`apiclient-label`
+
+Study the architecture overview to learn more about how FEDn is designed and works under the hood: 
+
+:ref:`architecture-label`
+
+For developers looking to customize FEDn and develop own aggregators, check out the local development guide
+to learn how to set up an all-in-one development environment using Docker and docker-compose:
+
+:ref:`developer-label`
+
+.. meta::
+   :description lang=en: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers.
+   :keywords: Getting started with Federated Learning, Federated Learning, Federated Learning Framework, Federated Learning Platform
+   :og:title: Getting started with FEDn
+   :og:description: This tutorial is a quickstart guide to FEDn based on a pre-made FEDn Project. It is designed to serve as a starting point for new developers.
+   :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
+   :og:url: https://fedn.scaleoutsystems.com/docs/quickstart.html
+   :og:type: website

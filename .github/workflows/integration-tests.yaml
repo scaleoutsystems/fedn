@@ -1,14 +1,20 @@
 name: "integration tests"
 
-on: 
+on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
-        - master
-        - develop
-        - 'release/**'
+      - master
+      - develop
+      - "release/**"
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches:
-      - '**'
+      - "**"
 
 jobs:
   integration-tests:
@@ -17,31 +23,41 @@ jobs:
         to_test:
           - "mnist-keras numpyhelper"
           - "mnist-pytorch numpyhelper"
-        python_version: ["3.8", "3.9","3.10"]
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
         os:
-          - ubuntu-20.04
-          - ubuntu-22.04
+          - ubuntu-24.04
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python_version }}
 
-      - name: configure ${{ matrix.to_test }}
-        run: |
-          echo 'BASE_IMG=python:${{ matrix.python_version }}-slim' > .env 
-          .ci/tests/examples/configure.sh ${{ matrix.to_test }}
-      
       - name: run ${{ matrix.to_test }}
         run: .ci/tests/examples/run.sh ${{ matrix.to_test }}
 
-      # - name: run ${{ matrix.to_test }} inference
-      #   run: .ci/tests/examples/run_inference.sh ${{ matrix.to_test }}
+      # - name: run ${{ matrix.to_test }} prediction
+      #   run: .ci/tests/examples/run_prediction.sh ${{ matrix.to_test }}
       #   if: ${{ matrix.os != 'macos-11' && matrix.to_test == 'mnist-keras keras' }} # example available for Keras
 
-      - name: print logs
+      - name: print logs api-server
         if: failure()
-        run: .ci/tests/examples/print_logs.sh
+        run: .ci/tests/examples/print_logs.sh api-server ${{ matrix.to_test }}
+      
+      - name: print logs combiner
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh combiner ${{ matrix.to_test }}
+      
+      - name: print logs client
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh client ${{ matrix.to_test }}
+      
+      - name: print logs mongo
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh mongo ${{ matrix.to_test }}
+      
+      - name: print logs minio
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh minio ${{ matrix.to_test }}

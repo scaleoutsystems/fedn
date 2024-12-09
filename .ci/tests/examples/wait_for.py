@@ -6,8 +6,8 @@ import fire
 import pymongo
 import requests
 
-RETRIES = 18
-SLEEP = 10
+RETRIES = 30
+SLEEP = 20
 
 
 def _eprint(*args, **kwargs):
@@ -40,7 +40,7 @@ def _test_rounds(n_rounds):
 def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8092'):
     try:
 
-        endpoint = "list_clients" if node_type == "client" else "list_combiners"
+        endpoint = "api/v1/clients/" if node_type == "client" else "api/v1/combiners/"
 
         response = requests.get(
             f'http://{reducer_host}:{reducer_port}/{endpoint}', verify=False)
@@ -68,7 +68,7 @@ def rounds(n_rounds=3):
     assert (_retry(_test_rounds, n_rounds=n_rounds))
 
 
-def clients(n_clients=2):
+def clients(n_clients=1):
     assert (_retry(_test_nodes, n_nodes=n_clients, node_type='client'))
 
 

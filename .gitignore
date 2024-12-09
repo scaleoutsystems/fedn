@@ -21,8 +21,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+package/
 develop-eggs/
-#dist/
 downloads/
 eggs/
 .eggs/
@@ -38,6 +38,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+dist
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -111,6 +112,8 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.mnist-pytorch
+.mnist-keras
 env/
 venv/
 ENV/
@@ -174,6 +177,7 @@ config/extra-hosts-reducer.yaml
 config/settings-client.yaml
 config/settings-reducer.yaml
 config/settings-combiner.yaml
+config/settings-hooks.yaml
 
 ./tmp/*
 

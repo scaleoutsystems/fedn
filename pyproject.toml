@@ -1,0 +1,193 @@
+lint = ["ruff>=0.0.220"] # MIT License (MIT)
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedn"
+version = "0.20.0"
+description = "Scaleout Federated Learning"
+authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
+readme = "README.rst"
+license = {file="LICENSE"}
+keywords = [
+    "Scaleout",
+    "FEDn",
+    "Federated learning",
+    "FL",
+    "Machine learning",
+]
+classifiers = [
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+requires-python = '>=3.9,<3.13'
+dependencies = [
+  "requests",
+  "urllib3>=1.26.4",
+  "gunicorn>=20.0.4",
+  "minio",
+  "grpcio>=1.60,<1.69",
+  "grpcio-tools>=1.60,<1.69",
+  "numpy>=1.21.6",
+  "protobuf>=5.0.0,<5.30.0",
+  "pymongo",
+  "Flask==3.1.0",
+  "pyjwt",
+  "pyopenssl",
+  "psutil",
+  "click==8.1.7",
+  "grpcio-health-checking>=1.60,<1.69",
+  "pyyaml",
+  "plotly",
+  "virtualenv",
+  "tenacity!=8.4.0",
+]
+
+[project.urls]
+homepage = "https://www.scaleoutsystems.com"
+documentation = 'https://fedn.readthedocs.io/en/stable/'
+repository = 'https://github.com/scaleoutsystems/fedn'
+
+[project.scripts]
+fedn = "fedn.cli.main:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fedn*"]
+exclude = ["tests", "tests.*", "examples/notebooks/*.ipynb"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py39"
+
+lint.select = [
+  "ANN", # flake8-annotations
+  "ARG", # flake8-unused-arguments
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "C90", # mccabe
+  "D",   # pydocstyle
+  "DTZ", # flake8-datetimez
+  "E",   # pycodestyle
+  "ERA", # eradicate
+  "F",   # Pyflakes
+  "I",   # isort
+  "N",   # pep8-naming
+  "PD",  # pandas-vet
+  "PGH", # pygrep-hooks
+  "PLC", # Pylint
+  "PLE", # Pylint
+  "PLR", # Pylint
+  "PLW", # Pylint
+  "PT",  # flake8-pytest-style
+  "Q",   # flake8-quotes
+  "RET", # flake8-return
+  "S",   # flake8-bandit
+  "SIM", # flake8-simplify
+  "T20", # flake8-print
+  "TID", # flake8-tidy-imports
+  "W",   # pycodestyle
+]
+
+exclude = [
+    ".venv",
+    ".mnist-keras",
+    ".mnist-pytorch",
+    "fedn_pb2.py",
+    "fedn_pb2_grpc.py",
+    ".ci",
+    "test*",
+    "**/*.ipynb"
+]
+
+lint.ignore = [
+  "ANN002", # Missing type annotation for *args
+  "ANN003", # Missing type annotation for **kwargs
+  "ANN101", # Missing type annotation for self in method
+  "ANN102", # Missing type annotation for cls in method
+  "D107", # Missing docstring in __init__
+  "D100", # Missing docstring in public module
+  "D200", # One-line docstring should fit on one line with quotes
+  "D210", # [*] No whitespaces allowed surrounding docstring text (100+)
+  "D104", # Missing docstring in public package (17)
+  "ANN201", # Missing return type annotation for public function (100+)
+  "ANN001", # Missing type annotation for function argument (100+)
+  "ANN205", # Missing return type annotation for staticmethod (5)
+  "RET504", # Unnecessary assignment to `settings` before `return` statement (72)
+  "ANN204", # Missing return type annotation for special method `__init__` (61)
+  "D205", # 1 blank line required between summary line and description (100+)
+  "T201", # `print` found (31)
+  "SIM401", # Use `result.get("id", "")` instead of an `if` block (72)
+  "D400", # First line should end with a period (80)
+  "D415", # First line should end with a period, question mark, or exclamation point (80)
+  "D101", # Missing docstring in public class (30)
+  "S113", # Probable use of requests call without timeout (41)
+  "PLR2004", # Magic value used in comparison, consider replacing `200` with a constant variable
+  "PLR0913", # Too many arguments in function definition (31)
+  "ANN202", # Missing return type annotation for private function (41)
+  "D102", # Missing docstring in public method (64)
+  "SIM108", # Use ternary operator instead of `if`-`else`-block (20)
+  "RET505", # Unnecessary `else` after `return` statement (20)
+  "D103", # Missing docstring in public function (17)
+  "D401", # First line of docstring should be in imperative mood (24)
+  "N818", # Exception name should be named with an Error suffix (8)
+  "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling (11)
+  "DTZ005", # The use of `datetime.datetime.now()` without `tz` argument is not allowed (18)
+  "ANN206", # Missing return type annotation for classmethod (1)
+  "S110", # `try`-`except`-`pass` detected, consider logging the exception (3)
+  "N803", # Argument name should be lowercase
+  "N805", # First argument of a method should be named `self`
+  "SIM118", # Use `key in dict` instead of `key in dict.keys()`
+  "SIM115", # Use context handler for opening files
+  "B027", # `StateStoreBase.__init__` is an empty method in an abstract base class, but has no abstract decorator
+  "ARG002", # Unused method argument: `use_typing`
+  "B006", # Do not use mutable data structures for argument defaults
+  "PLR1714", # Consider merging multiple comparisons: `retcheck in ("", " ")`. Use a `set` if the elements are hashable.
+  "ERA001", # Found commented-out code
+  "N802", # Function name should be lowercase
+  "SIM116", # Use a dictionary instead of consecutive `if` statements
+  "RET503", # Missing explicit `return` at the end of function able to return non-`None` value
+  "PLR0911", # Too many return statements (11 > 6)
+  "C901", # function is too complex (11 > 10)
+  "ARG001", # Unused function argument: 
+  "SIM105", # Use `contextlib.suppress(KeyError)` instead of `try`-`except`-`pass`
+  "PLR0915", # Too many statements
+  "B024", # `Config` is an abstract base class, but it has no abstract methods
+  "RET506", # Unnecessary `else` after `raise` statement
+  "N804", # First argument of a class method should be named `cls`
+  "S202", # Uses of `tarfile.extractall()`
+  "PLR0912", # Too many branches
+  "SIM211", # Use `not ...` instead of `False if ... else True`
+  "D404", # First word of the docstring should not be "This"
+  "PLW0603", # Using the global statement to update ... is discouraged
+  "D105", # Missing docstring in magic method
+  "PLR1722", # Use `sys.exit()` instead of `exit`
+  "C408", # Unnecessary `dict` call (rewrite as a literal)
+  "DTZ007", # The use of `datetime.datetime.strptime()` without %z must be followed by `.replace(tzinfo=)` or `.astimezone()`
+  "PLW2901", # `for` loop variable `val` overwritten by assignment target
+  "D419", # Docstring is empty
+  "C416", # Unnecessary `list` comprehension (rewrite using `list()`)
+  "SIM102", # Use a single `if` statement instead of nested `if` statements
+  "PLW1508", # Invalid type for environment variable default; expected `str` or `None`
+  "B007", # Loop control variable `v` not used within loop body
+  "N806", # Variable `X_test` in function should be lowercase
+  "SIM103", # Return the condition directly
+  "I001", # [*] Import block is un-sorted or un-formatted
+
+  # unsafe?
+  "S104", # Possible binding to all interfaces
+  
+  "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+  "S501", # Probable use of `requests` call with `verify=False` disabling SSL certificate checks
+  "S108", # Probable insecure usage of temporary file or directory: "/tmp/models"
+  "S603", # `subprocess` call: check for execution of untrusted input
+]
