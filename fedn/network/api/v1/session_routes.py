@@ -393,7 +393,7 @@ def start_session():
         min_clients = session_config["clients_required"]
 
         if control.state() == ReducerState.monitoring:
-            return jsonify({"message": "A session is already running."})
+            return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config["rounds"]
@@ -409,6 +409,7 @@ def start_session():
         return jsonify({"message": "Session started"}), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
 
 @bp.route("/<string:id>", methods=["PATCH"])
 @jwt_auth_required(role="admin")
