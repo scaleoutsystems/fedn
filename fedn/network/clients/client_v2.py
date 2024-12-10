@@ -8,7 +8,8 @@ from typing import Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
+from fedn.network.clients.fedn_client import (ConnectToApiResult, FednClient,
+                                              GrpcConnectionOptions)
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper, save_metadata
 
@@ -76,7 +77,8 @@ class Client:
             if result == ConnectToApiResult.ComputePackageMissing:
                 logger.info("Retrying in 3 seconds")
                 time.sleep(3)
-            result, response = self.fedn_client.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
+            result, response = self.fedn_client.connect_to_api(
+                self.fedn_api_url, self.token, self.client_obj.to_json())
 
         if result == ConnectToApiResult.Assigned:
             return True, response
@@ -93,9 +95,9 @@ class Client:
             result, combiner_config = self._connect_to_api()
             if not result:
                 return
-
         if self.client_obj.package == "remote":
-            result = self.fedn_client.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self.fedn_client.init_remote_compute_package(
+                url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
 
             if not result:
                 return
@@ -107,7 +109,8 @@ class Client:
 
         self.set_helper(combiner_config)
 
-        result: bool = self.fedn_client.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
+        result: bool = self.fedn_client.init_grpchandler(
+            config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
 
         if not result:
             return
@@ -133,7 +136,8 @@ class Client:
         self.helper = get_helper(helper_type_to_use)
 
     def on_train(self, in_model, client_settings):
-        out_model, meta = self._process_training_request(in_model, client_settings)
+        out_model, meta = self._process_training_request(
+            in_model, client_settings)
         return out_model, meta
 
     def on_validation(self, in_model):
@@ -162,7 +166,8 @@ class Client:
 
             tic = time.time()
 
-            self.fedn_client.dispatcher.run_cmd("train {} {}".format(inpath, outpath))
+            self.fedn_client.dispatcher.run_cmd(
+                "train {} {}".format(inpath, outpath))
 
             meta["exec_training"] = time.time() - tic
 
@@ -175,7 +180,8 @@ class Client:
             with open(outpath + "-metadata", "r") as fh:
                 training_metadata = json.loads(fh.read())
 
-            logger.info("SETTING Training metadata: {}".format(training_metadata))
+            logger.info("SETTING Training metadata: {}".format(
+                training_metadata))
             meta["training_metadata"] = training_metadata
 
             os.unlink(inpath)
@@ -183,7 +189,8 @@ class Client:
             os.unlink(outpath + "-metadata")
 
         except Exception as e:
-            logger.error("Could not process training request due to error: {}".format(e))
+            logger.error(
+                "Could not process training request due to error: {}".format(e))
             out_model = None
             meta = {"status": "failed", "error": str(e)}
 

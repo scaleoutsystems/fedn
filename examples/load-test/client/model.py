@@ -7,7 +7,7 @@ import numpy as np
 from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = 'numpyhelper'
-ARRAY_SIZE = 1000000
+ARRAY_SIZE = 20000000
 
 
 def save_model(weights, out_path):
