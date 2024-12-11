@@ -26,7 +26,7 @@ def get_api_url(api_url: str, api_port: int, secure: bool = False):
     return url
 
 
-def on_train(in_model, client_settings):
+def on_train(in_model):
     # Save model to temp file
     inpath = helper.get_tmp_path()
     with open(inpath, "wb") as fh:
