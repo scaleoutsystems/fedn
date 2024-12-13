@@ -26,6 +26,7 @@ KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 MAX_CONNECTION_IDLE_MS = 30000
 MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
 CLIENT_IDLE_TIMEOUT_MS = 30000
+MAX_MESSAGE_LENGTH = 10 * 1024 * 1024
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
@@ -35,6 +36,8 @@ GRPC_OPTIONS = [
     ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
     ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
     ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
+    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
 ]
 
 
