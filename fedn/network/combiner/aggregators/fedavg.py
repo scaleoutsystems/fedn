@@ -72,7 +72,7 @@ class Aggregator(AggregatorBase):
                 else:
                     model = helper.increment_average(
                         model, model_next, metadata["num_examples"], total_examples)
-                data['time_model_aggregration'] += time.time()-tic
+                data['time_model_aggregation'] += time.time()-tic
 
                 nr_aggregated_models += 1
                 # Delete model from storage
