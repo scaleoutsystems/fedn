@@ -5,7 +5,8 @@ import grpc
 from grpc_health.v1 import health, health_pb2_grpc
 
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.combiner.shared import modelservice
 from fedn.network.grpc.auth import JWTInterceptor
 
@@ -28,8 +29,10 @@ class Server:
 
         # Keepalive settings: these detect if the client is alive
         KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-        KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
+        # wait 20 seconds for keepalive ping ack before considering connection dead
+        KEEPALIVE_TIMEOUT_MS = 20 * 1000
+        # max idle time before server terminates the connection (5 minutes)
+        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
@@ -54,7 +57,8 @@ class Server:
         if isinstance(servicer, rpc.CombinerServicer):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
-        health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
+        health_pb2_grpc.add_HealthServicer_to_server(
+            self.health_servicer, self.server)
 
         if config["secure"]:
             logger.info("Creating secure gRPCS server using certificate")
@@ -66,7 +70,8 @@ class Server:
                     ),
                 )
             )
-            self.server.add_secure_port("[::]:" + str(config["port"]), server_credentials)
+            self.server.add_secure_port(
+                "[::]:" + str(config["port"]), server_credentials)
         else:
             logger.info("Creating gRPC server")
             self.server.add_insecure_port("[::]:" + str(config["port"]))

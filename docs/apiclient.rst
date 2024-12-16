@@ -60,7 +60,7 @@ using the default aggregator (FedAvg):
 .. code:: python
 
    >>> ...
-   >>> client.start_session(id="test-session", rounds=3)
+   >>> client.start_session(id="test-session", helper="numpyhelper", rounds=3)
    # Wait for training to complete, when controller is idle:
    >>> client.get_controller_status()
    # Show model trail:
