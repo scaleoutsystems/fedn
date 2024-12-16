@@ -1,5 +1,6 @@
 import math
 import time
+import traceback
 
 from fedn.common.exceptions import InvalidParameterError
 from fedn.common.log_config import logger
@@ -140,17 +141,24 @@ class Aggregator(AggregatorBase):
                 logger.error(
                     "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
 
-        if parameters["serveropt"] == "adam":
-            model = self.serveropt_adam(
-                helper, pseudo_gradient, model_old, parameters)
-        elif parameters["serveropt"] == "yogi":
-            model = self.serveropt_yogi(
-                helper, pseudo_gradient, model_old, parameters)
-        elif parameters["serveropt"] == "adagrad":
-            model = self.serveropt_adagrad(
-                helper, pseudo_gradient, model_old, parameters)
-        else:
-            logger.error("Unsupported server optimizer passed to FedOpt.")
+        try:
+            if parameters["serveropt"] == "adam":
+                model = self.serveropt_adam(
+                    helper, pseudo_gradient, model_old, parameters)
+            elif parameters["serveropt"] == "yogi":
+                model = self.serveropt_yogi(
+                    helper, pseudo_gradient, model_old, parameters)
+            elif parameters["serveropt"] == "adagrad":
+                model = self.serveropt_adagrad(
+                    helper, pseudo_gradient, model_old, parameters)
+            else:
+                logger.error("Unsupported server optimizer passed to FedOpt.")
+                return None, data
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.error(
+                "AGGREGATOR({}): Error encoutered while while aggregating: {}".format(self.name, e))
+            logger.error(tb)
             return None, data
 
         data["nr_aggregated_models"] = nr_aggregated_models
