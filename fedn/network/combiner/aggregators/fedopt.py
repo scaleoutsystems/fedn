@@ -133,8 +133,7 @@ class Aggregator(AggregatorBase):
                 nr_aggregated_models += 1
                 # Delete model from storage
                 if delete_models:
-                    self.update_handler.delete_model(
-                        model_update.model_update_id)
+                    self.update_handler.delete_model(model_update)
                     logger.info("AGGREGATOR({}): Deleted model update {} from storage.".format(
                         self.name, model_update.model_update_id))
             except Exception as e:
