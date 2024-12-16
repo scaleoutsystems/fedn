@@ -1,13 +1,12 @@
 # /bin/python
 import sys
-import time
 
 import numpy as np
-from model import load_model, save_model
+from model import load_model
 
-from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import save_metrics
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 ARRAY_SIZE = 1000000
 
 

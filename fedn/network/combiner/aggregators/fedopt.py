@@ -111,7 +111,7 @@ class Aggregator(AggregatorBase):
                 tic = time.time()
                 model_next, metadata = self.update_handler.load_model_update(
                     model_update, helper)
-                data['time_model_load'] += time.time()-tic
+                data["time_model_load"] += time.time()-tic
 
                 logger.info("AGGREGATOR({}): Processing model update {}".format(
                     self.name, model_update.model_update_id))
@@ -129,7 +129,7 @@ class Aggregator(AggregatorBase):
                         model_next, model_old)
                     pseudo_gradient = helper.increment_average(
                         pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
-                data['time_model_aggregation'] += time.time()-tic
+                data["time_model_aggregation"] += time.time()-tic
 
                 nr_aggregated_models += 1
                 # Delete model from storage

@@ -5,9 +5,9 @@ import time
 import numpy as np
 from model import load_model, save_model
 
-from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import save_metadata
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 ARRAY_SIZE = 10000
 
 
@@ -15,7 +15,6 @@ def train(in_model_path, out_model_path):
     """ Train model.
 
     """
-
     # Load model
     weights = load_model(in_model_path)
 
@@ -24,7 +23,7 @@ def train(in_model_path, out_model_path):
 
     # Metadata needed for aggregation server side
     metadata = {
-        'num_examples': ARRAY_SIZE,
+        "num_examples": ARRAY_SIZE,
     }
 
     # Save JSON metadata file

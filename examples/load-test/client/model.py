@@ -1,12 +1,10 @@
 # /bin/python
-import sys
-import time
 
 import numpy as np
 
-from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+from fedn.utils.helpers.helpers import get_helper
 
-HELPER_MODULE = 'numpyhelper'
+HELPER_MODULE = "numpyhelper"
 ARRAY_SIZE = 20000000
 
 
@@ -35,7 +33,7 @@ def load_model(model_path):
     return weights
 
 
-def init_seed(out_path='seed.npz'):
+def init_seed(out_path="seed.npz"):
     """ Initialize seed model.
 
     :param out_path: The path to save the seed model to.
