@@ -128,7 +128,7 @@ class Aggregator(AggregatorBase):
                         model_next, model_old)
                     pseudo_gradient = helper.increment_average(
                         pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
-                data['time_model_aggregration'] += time.time()-tic
+                data['time_model_aggregation'] += time.time()-tic
 
                 nr_aggregated_models += 1
                 # Delete model from storage
