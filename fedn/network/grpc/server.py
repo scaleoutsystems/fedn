@@ -33,7 +33,6 @@ class Server:
         KEEPALIVE_TIMEOUT_MS = 20 * 1000
         # max idle time before server terminates the connection (5 minutes)
         MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000
-        MAX_MESSAGE_LENGTH = 100 * 1024 * 1024
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
@@ -42,8 +41,6 @@ class Server:
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
                 ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
                 ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
-                ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
-                ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
             ],
         )
         self.certificate = None
