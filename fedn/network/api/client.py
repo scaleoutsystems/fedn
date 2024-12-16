@@ -430,7 +430,7 @@ class APIClient:
         else:
             return {"success": False, "message": "Failed to download package."}
 
-    def set_active_package(self, path: str, helper: str, name: str = None, description: str = None):
+    def set_active_package(self, path: str, helper: str, name: str = "", description: str = ""):
         """Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
@@ -442,7 +442,7 @@ class APIClient:
         """
         with open(path, "rb") as file:
             response = requests.post(
-                self._get_url("set_package"),
+                self._get_url_api_v1("packages"),
                 files={"file": file},
                 data={"helper": helper, "name": name, "description": description},
                 verify=self.verify,
