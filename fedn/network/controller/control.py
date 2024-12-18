@@ -249,6 +249,54 @@ class Control(ControlBase):
                 combiner.submit(config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
+    def splitlearning_session(self, config: RoundConfig) -> None:
+        """Execute a split learning session.
+
+        :param config: The session config.
+        :type config: dict
+        """
+        logger.info("Starting split learning session.")
+
+        if self._state == ReducerState.instructing:
+            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
+            return
+
+        self._state = ReducerState.instructing
+        config["committed_at"] = datetime.datetime.now()
+
+        self.create_session(config)
+
+        self._state = ReducerState.monitoring
+
+        last_round = int(self.get_latest_round_id())
+
+        for combiner in self.network.get_combiners():
+            combiner.set_aggregator(config["aggregator"])
+
+        self.set_session_status(config["session_id"], "Started")
+        # Execute the rounds in this session
+        for round in range(1, int(config["rounds"] + 1)):
+            if last_round:
+                current_round = last_round + round
+            else:
+                current_round = round
+
+            try:
+                if self.get_session_status(config["session_id"]) == "Terminated":
+                    logger.info("Session terminated.")
+                    break
+                _, round_data = self.splitlearning_round(config, str(current_round))
+            except TypeError as e:
+                logger.error("Failed to execute split learning round: {0}".format(e))
+
+            logger.info("Split learning round completed with status {}".format(round_data["status"]))
+
+            config["model_id"] = self.statestore.get_latest_model()
+
+        if self.get_session_status(config["session_id"]) == "Started":
+            self.set_session_status(config["session_id"], "Finished")
+        self._state = ReducerState.idle 
+
     def round(self, session_config: RoundConfig, round_id: str):
         """Execute one global round.
 
@@ -393,6 +441,128 @@ class Control(ControlBase):
         self.set_round_data(round_id, round_data)
         self.set_round_status(round_id, "Finished")
         return model_id, self.statestore.get_round(round_id)
+
+    def splitlearning_round(self, session_config: RoundConfig, round_id: str):
+        """Execute one global split learning round
+
+        :param session_config: The session config
+        :param round_id: The round id
+        """
+        session_id = session_config["session_id"]
+        self.create_round({"round_id": round_id, "status": "Pending"})
+
+        if len(self.network.get_combiners()) < 1:
+            logger.warning("Round cannot start, no combiners connected!")
+            self.set_round_status(round_id, "Failed")
+            return None, self.statestore.get_round(round_id)
+
+        # 1) FORWARD PASS - specified through "task": "forward"
+        forward_config = copy.deepcopy(session_config)
+        forward_config.update({
+            "rounds": 1,
+            "round_id": round_id,
+            "task": "forward",
+            "session_id": session_id
+        })
+
+        participating_combiners = self.get_participating_combiners(forward_config)
+
+        if not self.evaluate_round_start_policy(participating_combiners):
+            logger.warning("Round start policy not met, skipping round!")
+            self.set_round_status(round_id, "Failed")
+            return None, self.statestore.get_round(round_id)
+
+        logger.info("CONTROLLER: Requesting forward pass")
+        # Request forward pass using existing method
+        _ = self.request_model_updates(participating_combiners)
+
+        # Wait until participating combiners have produced an updated global model,
+        # or round times out.
+        def do_if_round_times_out(result):
+            logger.warning("Round timed out!")
+            return True
+
+        @retry(
+            wait=wait_random(min=1.0, max=2.0),
+            stop=stop_after_delay(session_config["round_timeout"]),
+            retry_error_callback=do_if_round_times_out,
+            retry=retry_if_exception_type(CombinersNotDoneException),
+        )
+        def combiners_done():
+            round = self.statestore.get_round(round_id)
+            session_status = self.get_session_status(session_id)
+            if session_status == "Terminated":
+                self.set_round_status(round_id, "Terminated")
+                return False
+            if "combiners" not in round:
+                logger.info("Waiting for combiners to calculate gradients (forward pass)...")
+                raise CombinersNotDoneException("Combiners have not yet reported.")
+
+            if len(round["combiners"]) < len(participating_combiners):
+                logger.info("Waiting for combiners to calculate gradients (forward pass)...")
+                raise CombinersNotDoneException("All combiners have not yet reported.")
+
+            return True
+
+        combiners_are_done = combiners_done()
+        if not combiners_are_done:
+            return None, self.statestore.get_round(round_id)
+
+        # Due to the distributed nature of the computation, there might be a
+        # delay before combiners have reported the round data to the db,
+        # so we need some robustness here.
+        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
+        def check_combiners_done_reporting():
+            round = self.statestore.get_round(round_id)
+            combiners = round["combiners"]
+            return combiners
+
+        _ = check_combiners_done_reporting()
+
+        logger.info("CONTROLLER: Forward pass completed.")
+
+        # NOTE: Only works for one combiner
+        # get model id and send it to backward pass
+        round = self.statestore.get_round(round_id)
+
+        for combiner in round["combiners"]:
+            try:
+                model_id = combiner["model_id"] # = id of gradient
+            except KeyError:
+                logger.error("Forward pass failed - no model_id in combiner response")
+                self.set_round_status(round_id, "Failed")
+                return None, self.statestore.get_round(round_id)
+
+        if model_id is None:
+            logger.error("Forward pass failed - no model_id in combiner response")
+            self.set_round_status(round_id, "Failed")
+            return None, self.statestore.get_round(round_id)
+
+        logger.info("CONTROLLER: starting backward pass with model/gradient id: {}".format(model_id))
+
+        # 2) BACKWARD PASS
+        backward_config = copy.deepcopy(session_config)
+        backward_config.update({
+            "rounds": 1,
+            "round_id": round_id,
+            "task": "backward",
+            "session_id": session_id,
+            "model_id": model_id 
+        })
+
+        participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
+        _ = self.request_model_updates(participating_combiners)
+
+        time.sleep(3) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
+        # the above mechanism cannot be used, as the backward pass is not producing any model updates (unlike the forward pass)
+
+        logger.info("CONTROLLER: Backward pass completed.")
+
+        # Record round completion
+        # round_data = {"status": "success"}
+        # self.set_round_data(round_id, round_data)
+        self.set_round_status(round_id, "Finished")
+        return None, self.statestore.get_round(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.

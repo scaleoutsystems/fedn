@@ -16,6 +16,10 @@ enum StatusType {
   MODEL_VALIDATION_REQUEST = 3;
   MODEL_VALIDATION = 4;
   MODEL_PREDICTION = 5;
+  FORWARD_REQUEST = 6;
+  FORWARD = 7;
+  BACKWARD_REQUEST = 8;
+  BACKWARD = 9;
 }
 
 message Status {
@@ -89,6 +93,16 @@ message ModelPrediction {
   google.protobuf.Timestamp timestamp = 6;
   string meta = 7;
   string prediction_id = 8;
+}
+
+message BackwardCompletion {
+  Client sender = 1;
+  Client receiver = 2;
+  string gradient_id = 3;
+  string correlation_id = 4;
+  string session_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string meta = 7;
 }
 
 enum ModelStatus {
@@ -254,7 +268,8 @@ service Combiner {
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
     rpc SendModelPrediction (ModelPrediction) returns (Response);
-
+    rpc SendBackwardCompletion (BackwardCompletion) returns (Response);
+  
 }
 
 message ProvidedFunctionsRequest {

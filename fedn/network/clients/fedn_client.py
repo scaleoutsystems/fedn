@@ -54,10 +54,13 @@ def get_compute_package_dir_path():
 
 
 class FednClient:
-    def __init__(self, train_callback: callable = None, validate_callback: callable = None, predict_callback: callable = None):
+    def __init__(self, train_callback: callable = None, validate_callback: callable = None, predict_callback: callable = None, forward_callback: callable = None
+                 ,backward_callback: callable = None):
         self.train_callback: callable = train_callback
         self.validate_callback: callable = validate_callback
         self.predict_callback: callable = predict_callback
+        self.forward_callback: callable = forward_callback
+        self.backward_callback: callable = backward_callback
 
         path = get_compute_package_dir_path()
         self._package_runtime = PackageRuntime(path)
@@ -73,6 +76,12 @@ class FednClient:
 
     def set_predict_callback(self, callback: callable):
         self.predict_callback = callback
+
+    def set_forward_callback(self, callback: callable):
+        self.forward_callback = callback
+
+    def set_backward_callback(self, callback: callable):
+        self.backward_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         # TODO: Use new API endpoint (v1)
@@ -204,6 +213,10 @@ class FednClient:
             self.validate_global_model(request)
         elif request.type == fedn.StatusType.MODEL_PREDICTION:
             self.predict_global_model(request)
+        elif request.type == fedn.StatusType.FORWARD:
+            self.forward_embeddings(request)
+        elif request.type == fedn.StatusType.BACKWARD:
+            self.backward_gradients(request)
 
     def update_local_model(self, request):
         model_id = request.model_id
@@ -309,6 +322,97 @@ class FednClient:
         prediction_message = self.create_prediction_message(prediction=prediction, request=request)
 
         self.send_model_prediction(prediction_message)
+
+    def forward_embeddings(self, request):
+
+        model_id = request.model_id
+        embedding_update_id = str(uuid.uuid4())
+
+        if not self.forward_callback:
+            logger.error("No forward callback set")
+            return
+
+        self.send_status(f"\t Starting processing of forward request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+
+        logger.info(f"Running forward callback with model ID: {model_id}")
+        tic = time.time()
+        out_embeddings, meta = self.forward_callback(self.client_id)
+        meta["processing_time"] = time.time() - tic
+
+        tic = time.time()
+        self.send_model_to_combiner(model=out_embeddings, id=embedding_update_id)
+        meta["upload_model"] = time.time() - tic
+
+        meta["config"] = request.data
+
+        update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
+
+        self.send_model_update(update)
+
+        self.send_status(
+            "Forward pass completed.",
+            log_level=fedn.Status.AUDIT,
+            type=fedn.StatusType.MODEL_UPDATE,
+            request=update,
+            sesssion_id=request.session_id,
+            sender_name=self.name,
+        )
+
+    def backward_gradients(self, request):
+        model_id = request.model_id
+
+        try:
+            tic = time.time()
+            in_gradients = self.get_model_from_combiner(id=model_id, client_id=self.client_id) # gets gradients
+
+            if in_gradients is None:
+                logger.error("Could not retrieve gradients from combiner. Aborting backward request.")
+                return
+
+            fetch_model_time = time.time() - tic
+
+            if not self.backward_callback:
+                logger.error("No backward callback set")
+                return
+
+            self.send_status(f"\t Starting processing of backward request for gradient_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+
+            logger.info(f"Running backward callback with gradient ID: {model_id}")
+            tic = time.time()
+            meta = self.backward_callback(in_gradients, self.client_id)
+            meta["processing_time"] = time.time() - tic
+
+            meta["fetch_model"] = fetch_model_time
+            meta["config"] = request.data
+            meta["status"] = "success"
+
+            logger.info("Creating and sending backward completion to combiner.")
+            completion = self.create_backward_completion_message(
+                gradient_id=model_id,
+                meta=meta,
+                request=request
+            )
+            self.grpc_handler.send_backward_completion(completion)
+
+            self.send_status(
+                "Backward pass completed.",
+                log_level=fedn.Status.AUDIT,
+                type=fedn.StatusType.BACKWARD,
+                # request=update,
+                sesssion_id=request.session_id,
+                sender_name=self.name,
+            )
+        except Exception as e:
+            logger.error(f"Error in backward pass: {str(e)}")
+
+    def create_backward_completion_message(self, gradient_id: str, meta: dict, request: fedn.TaskRequest):
+        return self.grpc_handler.create_backward_completion_message(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            gradient_id=gradient_id,
+           meta=meta,
+        )
 
     def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest):
         return self.grpc_handler.create_update_message(

@@ -116,6 +116,8 @@ class Client:
 
         self.fedn_client.set_train_callback(self.on_train)
         self.fedn_client.set_validate_callback(self.on_validation)
+        self.fedn_client.set_forward_callback(self.on_forward)
+        self.fedn_client.set_backward_callback(self.on_backward)
 
         self.fedn_client.set_name(self.client_obj.name)
         self.fedn_client.set_client_id(self.client_obj.client_id)
@@ -140,6 +142,14 @@ class Client:
         metrics = self._process_validation_request(in_model)
         return metrics
 
+    def on_forward(self, client_id):
+        out_embeddings, meta = self._process_forward_request(client_id)
+        return out_embeddings, meta
+
+    def on_backward(self, in_gradients, client_id):
+        meta = self._process_backward_request(in_gradients, client_id)
+        return meta
+
     def _process_training_request(self, in_model: BytesIO) -> Tuple[BytesIO, dict]:
         """Process a training (model update) request.
 
@@ -150,7 +160,6 @@ class Client:
         """
         try:
             meta = {}
-
             inpath = self.helper.get_tmp_path()
 
             with open(inpath, "wb") as fh:
@@ -215,3 +224,70 @@ class Client:
             metrics = None
 
         return metrics
+
+    def _process_forward_request(self, client_id) -> Tuple[BytesIO, dict]:
+        """Process a forward request.
+
+        :return: The embeddings, or None if forward failed.
+        :rtype: tuple
+        """
+        try:
+            out_embedding_path = get_tmp_path()
+
+            tic = time.time()
+
+            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path}")
+
+            meta = {}
+            embeddings = None
+
+            with open(out_embedding_path, "rb") as fr:
+                embeddings = io.BytesIO(fr.read())
+
+            meta["exec_training"] = time.time() - tic
+
+            # Read the metadata file
+            with open(out_embedding_path + "-metadata", "r") as fh:
+                training_metadata = json.loads(fh.read())
+
+            logger.info("SETTING Forward metadata: {}".format(training_metadata))
+            meta["training_metadata"] = training_metadata
+
+            os.unlink(out_embedding_path)
+            os.unlink(out_embedding_path + "-metadata")
+
+        except Exception as e:
+            logger.warning("Forward failed with exception {}".format(e))
+            embeddings = None
+            meta = {"status": "failed", "error": str(e)}
+
+        return embeddings, meta
+
+    def _process_backward_request(self, in_gradients: BytesIO, client_id: str) -> dict:
+        """Process a backward request.
+
+        :param in_gradients: The gradients to be processed.
+        :type in_gradients: BytesIO
+        :return: Metadata, or None if backward failed.
+        :rtype: dict
+        """
+        try:
+            meta = {}
+            inpath = get_tmp_path()
+
+            # load gradients
+            with open(inpath, "wb") as fh:
+                fh.write(in_gradients.getbuffer())
+
+            tic = time.time()
+
+            self.fedn_client.dispatcher.run_cmd(f"backward {inpath} {client_id}")
+            meta["exec_training"] = time.time() - tic
+
+            os.unlink(inpath)
+
+        except Exception as e:
+            logger.warning("Backward failed with exception {}".format(e))
+            meta = {"status": "failed", "error": str(e)}
+
+        return meta

@@ -1023,3 +1023,131 @@ class API:
                 "config": session_config,
             }
         )
+
+    def start_splitlearning_session(
+        self,
+        session_id,
+        aggregator="splitlearningagg",
+        rounds=5,
+        round_timeout=180,
+        round_buffer_size=-1,
+        delete_models=True,
+        validate=True,
+        helper="splitlearninghelper",
+        min_clients=1,
+        requested_clients=8,
+        server_functions=None,
+    ):
+        """Start a split learning session.
+
+        :param session_id: The session id to start.
+        :type session_id: str
+        :param aggregator: The aggregator plugin to use.
+        :type aggregator: str
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :param round_buffer_size: The round buffer size to use.
+        :type round_buffer_size: int
+        :param delete_models: Whether to delete models after each round at combiner (save storage).
+        :type delete_models: bool
+        :param validate: Whether to validate the model after each round.
+        :type validate: bool
+        :param min_clients: The minimum number of clients required.
+        :type min_clients: int
+        :param requested_clients: The requested number of clients.
+        :type requested_clients: int
+        :return: A json response with success or failure message and session config.
+        :rtype: :class:`flask.Response`
+        """
+        # Check if session already exists
+        session = self.statestore.get_session(session_id)
+        if session:
+            return jsonify({"success": False, "message": "Session already exists."})
+
+        # Check if session is running
+        if self.control.state() == ReducerState.monitoring:
+            return jsonify({"success": False, "message": "A session is already running."})
+
+        # Check if compute package is set
+        package = self.statestore.get_compute_package()
+        if not package:
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "No compute package set. Set compute package before starting session.",
+                }
+            )
+        if not helper:
+            # get helper from compute package
+            helper = package["helper"]
+
+        # NOTE: No need for initial model in split learning
+
+        # if not self.statestore.get_initial_model():
+        #     return jsonify(
+        #         {
+        #             "success": False,
+        #             "message": "No initial model set. Set initial model before starting session.",
+        #         }
+        #     )
+
+        # Check available clients per combiner
+        clients_available = 0
+        for combiner in self.control.network.get_combiners():
+            try:
+                nr_active_clients = len(combiner.list_active_clients())
+                clients_available = clients_available + int(nr_active_clients)
+            except CombinerUnavailableError as e:
+                # TODO: Handle unavailable combiner, stop session or continue?
+                logger.error("COMBINER UNAVAILABLE: {}".format(e))
+                continue
+
+        if clients_available < min_clients:
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Not enough clients available to start session.",
+                }
+            )
+
+        # Check if validate is string and convert to bool
+        if isinstance(validate, str):
+            if validate.lower() == "true":
+                validate = True
+            else:
+                validate = False
+
+        # Get lastest model as initial model for session
+        # if not model_id:
+        #     model_id = self.statestore.get_latest_model()
+
+        # Setup session config
+        session_config = {
+            "session_id": session_id if session_id else str(uuid.uuid4()),
+            "aggregator": aggregator,
+            "round_timeout": round_timeout,
+            "buffer_size": round_buffer_size,
+            "rounds": rounds,
+            "delete_models_storage": delete_models,
+            "clients_required": min_clients,
+            "clients_requested": requested_clients,
+            "task": (""),
+            "validate": validate,
+            "helper_type": helper,
+            "server_functions": server_functions,
+        }
+
+        # Start session
+        threading.Thread(target=self.control.splitlearning_session, args=(session_config,)).start()
+
+        # Return success response
+        return jsonify(
+            {
+                "success": True,
+                "message": "Split Learning Session started successfully.",
+                "config": session_config,
+            }
+        )
+

@@ -631,6 +631,45 @@ class APIClient:
 
         return _json
 
+    def start_splitlearning_session(
+        self,
+        id: str = None,
+        aggregator: str = "splitlearningagg",  # Default to split learning aggregator
+        round_timeout: int = 180,
+        rounds: int = 5,
+        round_buffer_size: int = -1,
+        delete_models: bool = True,
+        validate: bool = True,
+        helper: str = "splitlearninghelper",  # Default to split learning helper
+        min_clients: int = 1,
+        requested_clients: int = 8,
+        server_functions: ServerFunctionsBase = None,
+    ):
+        """Start a new split learning session.
+        Similar to start_session but with split learning specific defaults
+        and validation.
+        """
+        response = requests.post(
+            self._get_url("start_splitlearning_session"),
+            json={
+                "session_id": id,
+                "aggregator": aggregator,
+                "round_timeout": round_timeout,
+                "rounds": rounds,
+                "round_buffer_size": round_buffer_size,
+                "delete_models": delete_models,
+                "validate": validate,
+                "helper": helper,
+                "min_clients": min_clients,
+                "requested_clients": requested_clients,
+                "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+            },
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        return response.json()
+
     # --- Statuses --- #
 
     def get_status(self, id: str):
