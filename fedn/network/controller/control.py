@@ -296,7 +296,7 @@ class Control(ControlBase):
 
         if self.get_session_status(config["session_id"]) == "Started":
             self.set_session_status(config["session_id"], "Finished")
-        self._state = ReducerState.idle 
+        self._state = ReducerState.idle
 
     def round(self, session_config: RoundConfig, round_id: str):
         """Execute one global round.

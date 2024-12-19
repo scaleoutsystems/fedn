@@ -54,7 +54,7 @@ class Aggregator(AggregatorBase):
     def combine_models(self, helper=None, delete_models=True):
         """Concatenates client embeddings in the queue by aggregating them.
 
-        After all embeddings are received, the embeddings need to be sorted 
+        After all embeddings are received, the embeddings need to be sorted
         (consistently) by client ID.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None

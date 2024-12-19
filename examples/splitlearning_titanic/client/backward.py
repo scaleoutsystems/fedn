@@ -17,10 +17,10 @@ helper = get_helper(HELPER_MODULE)
 
 
 def backward_pass(gradient_path, client_id):
-    """Load gradients from in_gradients_path, load the embeddings, and perform a backward pass to update 
+    """Load gradients from in_gradients_path, load the embeddings, and perform a backward pass to update
     the parameters of the client model. Save the updated model to out_model_path.
     """
-    # load client model with parameters 
+    # load client model with parameters
     client_model = load_client_model(client_id)
     logger.info(f"Client model loaded from {client_id}")
 
