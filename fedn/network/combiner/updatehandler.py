@@ -110,7 +110,8 @@ class UpdateHandler:
             # Used in C++ client
             config = json.loads(model_update.config)
         training_metadata = metadata["training_metadata"]
-        training_metadata["round_id"] = config["round_id"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
@@ -136,7 +137,8 @@ class UpdateHandler:
             # Used in C++ client
             config = json.loads(model_update.config)
         training_metadata = metadata["training_metadata"]
-        training_metadata["round_id"] = config["round_id"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
@@ -180,7 +182,7 @@ class UpdateHandler:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
                     logger.warning("Model download failed. retrying")
-                    time.sleep(1)
+                    time.sleep(3) # sleep longer
                     model_str = self.modelservice.get_model(model_id)
 
         return model_str
