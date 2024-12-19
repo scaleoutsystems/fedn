@@ -547,13 +547,13 @@ class Control(ControlBase):
             "round_id": round_id,
             "task": "backward",
             "session_id": session_id,
-            "model_id": model_id 
+            "model_id": model_id
         })
 
         participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
         _ = self.request_model_updates(participating_combiners)
 
-        time.sleep(3) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
+        time.sleep(1) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
         # the above mechanism cannot be used, as the backward pass is not producing any model updates (unlike the forward pass)
 
         logger.info("CONTROLLER: Backward pass completed.")

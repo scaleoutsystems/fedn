@@ -56,7 +56,7 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
 
     # save embeddings locally
     if not os.path.exists(f"{abs_path}/embeddings"):
-        os.makedirs(f"{abs_path}/embeddings", exist_ok=True)
+        os.makedirs(f"{abs_path}/embeddings")
     np.savez(f"{abs_path}/embeddings/embeddings_{client_id}.npz", embedding)
 
 

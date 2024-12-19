@@ -16,7 +16,7 @@ class ServerModel(nn.Module):
 
     def __init__(self):
         super(ServerModel, self).__init__()
-        self.fc1 = nn.Linear(12, 6) # TODO: make this dynamic
+        self.fc1 = nn.Linear(12, 6)
         self.fc2 = nn.Linear(6, 1)
 
     def forward(self, x):

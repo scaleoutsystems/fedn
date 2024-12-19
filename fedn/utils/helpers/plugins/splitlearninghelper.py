@@ -1,6 +1,6 @@
 import os
 import tempfile
-from io import BytesIO
+import time
 
 import numpy as np
 import torch
@@ -34,15 +34,13 @@ class Helper(HelperBase):
 
         # Ensure all values are numpy arrays
         processed_dict = {str(k): np.array(v) for k, v in data_dict.items()}
-        
+
         # Use with statement to ensure proper file closure
         with open(path, "wb") as f:
             np.savez_compressed(f, **processed_dict)
-        
+
         # Small delay to ensure file is fully written
-        import time
         time.sleep(0.1)
-        
         return path
 
     def load(self, path):
@@ -61,27 +59,18 @@ class Helper(HelperBase):
         except Exception as e:
             logger.error(f"Error in splitlearninghelper: loading data from {path}: {str(e)}")
             raise
-    
-    def load_targets(self, data_path=None):
-        """Load target labels for split learning.
-        
-        Args:
-            data_path (str, optional): Path to the labels file. Defaults to None.
-        
-        Returns:
-            torch.Tensor: The target labels
-        """
-        if data_path is None:
-            # Try to get path from environment variable first
-            # data_path = os.environ.get("FEDN_LABELS_PATH")
-            data_path = "/Users/jonas/Documents/fedn/examples/splitlearning_titanic/client/data/clients/labels.pt"
-            logger.info("label path is {}".format(data_path))
-            # if data_path is None:
-            #     raise ValueError("FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt'")
-        
+
+    def load_targets(self):
+        """Load target labels for split learning."""
+        try:
+            data_path = os.environ.get("FEDN_LABELS_PATH")
+        except Exception as e:
+            logger.error("FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt'")
+            raise
+
         try:
             data = torch.load(data_path, weights_only=True)
-            targets = data["y_train"] #.float()
+            targets = data["y_train"]
             return targets.reshape(-1, 1)  # Reshape to match model output shape
         except Exception as e:
             logger.error(f"Error loading labels from {data_path}: {str(e)}")

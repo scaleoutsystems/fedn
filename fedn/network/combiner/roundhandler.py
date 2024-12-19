@@ -282,7 +282,7 @@ class RoundHandler:
 
         self.server.request_backward_pass(session_id=config["session_id"], gradient_id=config["model_id"], config=config, clients=clients)
 
-        time.sleep(3) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
+        time.sleep(1) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
         # the above mechanism cannot be used, as the backward pass is not returning any model updates (update_handler.waitforit checks for aggregation on the queue)
         return meta
 
