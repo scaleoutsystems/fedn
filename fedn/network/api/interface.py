@@ -277,7 +277,7 @@ class API:
         :rtype: :class:`flask.Response`
         """
         result = self.statestore.get_compute_package()
-        if result is None:
+        if result is None or "file_name" not in result:
             return (
                 jsonify({"success": False, "message": "No compute package found."}),
                 404,

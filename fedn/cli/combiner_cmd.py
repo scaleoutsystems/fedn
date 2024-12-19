@@ -88,11 +88,39 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
     if _token:
         headers["Authorization"] = _token
 
-    click.echo(f"\nListing combiners: {url}\n")
-    click.echo(f"Headers: {headers}")
+    try:
+        response = requests.get(url, headers=headers)
+        print_response(response, "combiners", None)
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Could not connect to {url}")
+
+
+@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
+@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
+@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-id", "--id", required=True, help="Combiner ID")
+@combiner_cmd.command("get")
+@click.pass_context
+def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
+    """Return:
+    ------
+    - result: combiner with given id
+
+    """
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
+    headers = {}
+
+    _token = get_token(token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    if id:
+        url = f"{url}{id}"
 
     try:
         response = requests.get(url, headers=headers)
-        print_response(response, "combiners")
+        print_response(response, "combiner", id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")

@@ -9,7 +9,7 @@ The example is intented as a minimalistic quickstart to learn how to use FEDn.
 Prerequisites
 -------------
 
--  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
+-  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
 Creating the compute package and seed model
