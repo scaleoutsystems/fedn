@@ -3,7 +3,8 @@ import datetime
 import time
 import uuid
 
-from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
+from tenacity import (retry, retry_if_exception_type, stop_after_delay,
+                      wait_random)
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError

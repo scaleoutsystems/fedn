@@ -54,7 +54,7 @@ class Aggregator(AggregatorBase):
     def combine_models(self, helper=None, delete_models=True):
         """Concatenates client embeddings in the queue by aggregating them.
 
-        NOTE: After all embeddings are received, the embeddings need to be sorted 
+        After all embeddings are received, the embeddings need to be sorted 
         (consistently) by client ID.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`, ML framework specific helper, defaults to None
@@ -78,7 +78,7 @@ class Aggregator(AggregatorBase):
             try:
                 logger.info("AGGREGATOR({}): Getting next embedding from queue.".format(self.name))
                 new_embedding = self.update_handler.next_model_update() # NOTE: should return in format {client_id: embedding}
-                                
+
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading embedding metadata.".format(self.name))
                 embedding_next, metadata = self.update_handler.load_model_update(new_embedding, helper)
@@ -103,7 +103,7 @@ class Aggregator(AggregatorBase):
                 logger.error(tb)
 
         logger.info("splitlearning aggregator: starting calculation of gradients")
-        
+
         # NOTE: When aggregating the embeddings in SplitLearning, they always need to be sorted consistently
         client_order = sorted(embeddings.keys())
 
@@ -114,19 +114,19 @@ class Aggregator(AggregatorBase):
         concatenated_embeddings = torch.cat(ordered_embeddings, dim=1) # to 1d tensor
 
         self.optimizer.zero_grad()
-        
+
         output = self.model(concatenated_embeddings)
 
         # TODO: need to match indices of data samples to target indices in order to calculate gradients.
         # NOTE: For one epoch, depending on the batch size, multiple communications are necessary.
         # use dummy target for now
         # batch_size = concatenated_embeddings.shape[0] # TODO: check
-        
+
         targets = helper.load_targets()
-        
+
         loss = self.criterion(output, targets)
         loss.backward()
-        
+
         self.optimizer.step()
 
         logger.info("AGGREGATOR({}): Loss: {}".format(self.name, loss))
@@ -135,6 +135,6 @@ class Aggregator(AggregatorBase):
         gradients = {}
         for client_id, embedding in zip(client_order, ordered_embeddings):
             gradients[str(client_id)] = embedding.grad.numpy()
-        
+
         logger.info("AGGREGATOR({}): Gradients are calculated.".format(self.name))
         return gradients, data

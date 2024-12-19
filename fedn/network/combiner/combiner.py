@@ -14,9 +14,13 @@ from google.protobuf.json_format import MessageToDict
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
-from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.common.log_config import (logger, set_log_level_from_string,
+                                    set_log_stream)
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, statestore, status_store, validation_store
+from fedn.network.combiner.shared import (client_store, combiner_store,
+                                          prediction_store, repository,
+                                          statestore, status_store,
+                                          validation_store)
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -289,11 +293,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             elif request_type == fedn.StatusType.MODEL_PREDICTION:
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
-            elif request_type == fedn.StatusType.FORWARD:
+            elif request_type == fedn.StatusType.FORWARD or request_type == fedn.StatusType.BACKWARD:
                 clients = self.get_active_trainers()
-            elif request_type == fedn.StatusType.BACKWARD:
-                clients = self.get_active_trainers()
-                
+
         for client in clients:
             request = fedn.TaskRequest()
             request.timestamp = str(datetime.now())
@@ -309,15 +311,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
             elif request_type == fedn.StatusType.MODEL_UPDATE:  # noqa: SIM114
-                request.model_id = model_id 
+                request.model_id = model_id
                 request.correlation_id = str(uuid.uuid4())
                 request.data = json.dumps(config)
             elif request_type == fedn.StatusType.FORWARD:  # noqa: SIM114
-                # request.model_id = model_id 
+                # request.model_id = model_id
                 # request.correlation_id = str(uuid.uuid4()) # NOTE: necessary or not? TODO: rename model_id
                 request.data = json.dumps(config)
             elif request_type == fedn.StatusType.BACKWARD:
-                request.model_id = model_id 
+                request.model_id = model_id
                 request.correlation_id = str(uuid.uuid4())
                 request.data = json.dumps(config)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)

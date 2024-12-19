@@ -8,7 +8,8 @@ from typing import Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
+from fedn.network.clients.fedn_client import (ConnectToApiResult, FednClient,
+                                              GrpcConnectionOptions)
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper
 

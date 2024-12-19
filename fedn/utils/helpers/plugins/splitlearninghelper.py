@@ -53,7 +53,6 @@ class Helper(HelperBase):
             data = np.load(path)
             logger.info("SPLIT LEARNING HELPER: loaded data from {}".format(path))
             logger.info("data type: {}".format(type(data)))
-
             result_dict = {k: data[k] for k in data.files}
             return result_dict
         except Exception as e:
@@ -65,7 +64,7 @@ class Helper(HelperBase):
         try:
             data_path = os.environ.get("FEDN_LABELS_PATH")
         except Exception as e:
-            logger.error("FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt'")
+            logger.error(f"FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt', {e}")
             raise
 
         try:

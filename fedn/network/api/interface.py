@@ -7,7 +7,8 @@ from flask import jsonify, send_from_directory
 from werkzeug.security import safe_join
 from werkzeug.utils import secure_filename
 
-from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR, get_controller_config, get_network_config
+from fedn.common.config import (FEDN_COMPUTE_PACKAGE_DIR,
+                                get_controller_config, get_network_config)
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState, ReducerStateToString

@@ -7,7 +7,7 @@ from model import load_client_model, save_client_model
 from torch import optim
 
 from fedn.common.log_config import logger
-from fedn.utils.helpers.helpers import get_helper, save_metadata
+from fedn.utils.helpers.helpers import get_helper
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
