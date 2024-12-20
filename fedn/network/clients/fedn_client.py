@@ -235,7 +235,7 @@ class FednClient:
 
         self.send_status(
             f"\t Starting processing of training request for model_id {model_id}",
-            sesssion_id=request.session_id,
+            session_id=request.session_id,
             sender_name=self.name,
             log_level=fedn.LogLevel.INFO,
             type=fedn.StatusType.MODEL_UPDATE,
@@ -263,7 +263,7 @@ class FednClient:
             log_level=fedn.LogLevel.AUDIT,
             type=fedn.StatusType.MODEL_UPDATE,
             request=update,
-            sesssion_id=request.session_id,
+            session_id=request.session_id,
             sender_name=self.name,
         )
 
@@ -272,7 +272,7 @@ class FednClient:
 
         self.send_status(
             f"Processing validate request for model_id {model_id}",
-            sesssion_id=request.session_id,
+            session_id=request.session_id,
             sender_name=self.name,
             log_level=fedn.LogLevel.INFO,
             type=fedn.StatusType.MODEL_VALIDATION,
@@ -303,7 +303,7 @@ class FednClient:
                     log_level=fedn.LogLevel.AUDIT,
                     type=fedn.StatusType.MODEL_VALIDATION,
                     request=validation,
-                    sesssion_id=request.session_id,
+                    session_id=request.session_id,
                     sender_name=self.name,
                 )
             else:
@@ -311,7 +311,7 @@ class FednClient:
                     "Client {} failed to complete model validation.".format(self.name),
                     log_level=fedn.LogLevel.WARNING,
                     request=request,
-                    sesssion_id=request.session_id,
+                    session_id=request.session_id,
                     sender_name=self.name,
                 )
 
@@ -343,7 +343,7 @@ class FednClient:
             logger.error("No forward callback set")
             return
 
-        self.send_status(f"\t Starting processing of forward request for model_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+        self.send_status(f"\t Starting processing of forward request for model_id {model_id}", session_id=request.session_id, sender_name=self.name)
 
         logger.info(f"Running forward callback with model ID: {model_id}")
         tic = time.time()
@@ -365,7 +365,7 @@ class FednClient:
             log_level=fedn.LogLevel.AUDIT,
             type=fedn.StatusType.MODEL_UPDATE,
             request=update,
-            sesssion_id=request.session_id,
+            session_id=request.session_id,
             sender_name=self.name,
         )
 
@@ -386,7 +386,7 @@ class FednClient:
                 logger.error("No backward callback set")
                 return
 
-            self.send_status(f"\t Starting processing of backward request for gradient_id {model_id}", sesssion_id=request.session_id, sender_name=self.name)
+            self.send_status(f"\t Starting processing of backward request for gradient_id {model_id}", session_id=request.session_id, sender_name=self.name)
 
             logger.info(f"Running backward callback with gradient ID: {model_id}")
             tic = time.time()
@@ -406,11 +406,11 @@ class FednClient:
             self.grpc_handler.send_backward_completion(completion)
 
             self.send_status(
-                "Backward pass completed.",
+                "Backward pass completed. Status: finished_backward",
                 log_level=fedn.LogLevel.AUDIT,
                 type=fedn.StatusType.BACKWARD,
                 # request=update,
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
             )
         except Exception as e:
@@ -422,7 +422,8 @@ class FednClient:
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
             gradient_id=gradient_id,
-           meta=meta,
+            session_id=request.session_id,
+            meta=meta,
         )
 
     def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest):
@@ -478,8 +479,8 @@ class FednClient:
     def send_model_to_combiner(self, model: BytesIO, id: str):
         return self.grpc_handler.send_model_to_combiner(model, id)
 
-    def send_status(self, msg: str, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
-        return self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
+    def send_status(self, msg: str, log_level=fedn.LogLevel.INFO, type=None, request=None, session_id: str = None, sender_name: str = None):
+        return self.grpc_handler.send_status(msg, log_level, type, request, session_id, sender_name)
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         return self.grpc_handler.send_model_update(update)

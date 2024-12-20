@@ -573,6 +573,19 @@ class MongoStateStore:
         """
         return self.model.find_one({"key": "models", "model": model_id})
 
+    def check_backward_completion(self, session_id: str, expected_count: int):
+        try:
+            events = self.get_events(
+                status="finished_backward",
+                type="BACKWARD",
+                sessionId=session_id
+            )
+            completed = events["count"]
+            return completed >= expected_count
+        except Exception as e:
+            logger.error(f"Error checking backward completion: {e}")
+            return False
+
     def get_events(self, **kwargs):
         """Get events from the database.
 

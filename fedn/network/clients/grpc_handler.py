@@ -361,19 +361,19 @@ class GrpcHandler:
         receiver_name: str,
         receiver_role: fedn.Role,
         gradient_id: str,
-        # correlation_id: str,
-        # session_id: str,
+        session_id: str,
         meta: dict,
     ):
         completion = fedn.BackwardCompletion()
         completion.sender.name = sender_name
-        completion.sender.role = fedn.WORKER
+        completion.sender.role = fedn.CLIENT
         completion.sender.client_id = self.metadata[0][1]
         completion.receiver.name = receiver_name
         completion.receiver.role = receiver_role
         completion.gradient_id = gradient_id
         completion.timestamp.GetCurrentTime()
         completion.meta = json.dumps(meta)
+        completion.session_id = session_id
         return completion
 
     def send_backward_completion(self, update: fedn.BackwardCompletion):

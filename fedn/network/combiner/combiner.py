@@ -14,13 +14,9 @@ from google.protobuf.json_format import MessageToDict
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import (client_store, combiner_store,
-                                          prediction_store, repository,
-                                          statestore, status_store,
-                                          validation_store)
+from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, statestore, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -854,6 +850,27 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.info("Received BackwardCompletion from {}".format(request.sender.name))
+
+        ########### TODO checking if this works
+
+        # Create and send status message for backward completion
+        status = fedn.Status()
+        status.timestamp.GetCurrentTime()
+        status.sender.name = request.sender.name
+        status.sender.role = request.sender.role
+        status.sender.client_id = request.sender.client_id
+        status.status = "finished_backward"
+        status.type = fedn.StatusType.BACKWARD
+        status.session_id = request.session_id
+
+
+        logger.info(f"Creating status message with session_id: {request.session_id}")
+        self._send_status(status)
+        logger.info("Status message sent to MongoDB")
+
+
+        ###########
+
 
         response = fedn.Response()
         response.response = "RECEIVED BackwardCompletion from client {}".format(request.sender.name)
