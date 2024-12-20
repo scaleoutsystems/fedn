@@ -3,13 +3,18 @@ from typing import Tuple
 import pymongo
 from pymongo.database import Database
 
-from fedn.network.api.shared import (modelstorage_config, network_id,
-                                     statestore_config)
+from fedn.network.api.shared import modelstorage_config, network_id, statestore_config
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
+from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.status_store import StatusStore
+from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 
 api_version = "v1"
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
@@ -18,6 +23,12 @@ mdb: Database = mc[network_id]
 
 client_store = ClientStore(mdb, "network.clients")
 package_store = PackageStore(mdb, "control.package")
+session_store = SessionStore(mdb, "control.sessions")
+model_store = ModelStore(mdb, "control.model")
+combiner_store = CombinerStore(mdb, "network.combiners")
+round_store = RoundStore(mdb, "control.rounds")
+status_store = StatusStore(mdb, "control.status")
+validation_store = ValidationStore(mdb, "control.validations")
 
 minio_repository: RepositoryBase = None
 

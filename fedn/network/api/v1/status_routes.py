@@ -1,13 +1,10 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, status_store
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.status_store import StatusStore
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
-
-status_store = StatusStore(mdb, "control.status")
 
 
 @bp.route("/", methods=["GET"])
