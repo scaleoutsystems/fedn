@@ -362,7 +362,7 @@ class FednClient:
 
         self.send_status(
             "Forward pass completed.",
-            log_level=fedn.Status.AUDIT,
+            log_level=fedn.LogLevel.AUDIT,
             type=fedn.StatusType.MODEL_UPDATE,
             request=update,
             sesssion_id=request.session_id,
@@ -407,7 +407,7 @@ class FednClient:
 
             self.send_status(
                 "Backward pass completed.",
-                log_level=fedn.Status.AUDIT,
+                log_level=fedn.LogLevel.AUDIT,
                 type=fedn.StatusType.BACKWARD,
                 # request=update,
                 sesssion_id=request.session_id,
