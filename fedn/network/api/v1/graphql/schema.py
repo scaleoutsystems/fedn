@@ -1,12 +1,24 @@
 import graphene
 import pymongo
 
-from fedn.network.api.v1.shared import model_store, session_store, validation_store
+from fedn.network.api.v1.shared import model_store, session_store, status_store, validation_store
 
 
 class ActorType(graphene.ObjectType):
     name = graphene.String()
     role = graphene.String()
+
+
+class StatusType(graphene.ObjectType):
+    data = graphene.String()
+    extra = graphene.String()
+    id = graphene.String()
+    logLevel = graphene.String()  # noqa: N815
+    sender = graphene.Field(ActorType)
+    sessionId = graphene.String()  # noqa: N815
+    status = graphene.String()
+    timestamp = graphene.String()
+    type = graphene.String()
 
 
 class ValidationType(graphene.ObjectType):
@@ -65,6 +77,7 @@ class SessionType(graphene.ObjectType):
     session_config = graphene.Field(SessionConfigType)
     model = graphene.List(ModelType)
     validation = graphene.List(ValidationType)
+    status = graphene.List(StatusType)
 
     def resolve_session_config(self, info):
         return self["session_config"]
@@ -79,6 +92,13 @@ class SessionType(graphene.ObjectType):
     def resolve_validation(self, info):
         kwargs = {"sessionId": self["session_id"]}
         response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+        result = response["result"]
+
+        return result
+
+    def resolve_status(self, info):
+        kwargs = {"sessionId": self["session_id"]}
+        response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
         result = response["result"]
 
         return result
@@ -99,6 +119,12 @@ class Query(graphene.ObjectType):
 
     validation = graphene.List(
         ValidationType,
+        id=graphene.String(),
+        session_id=graphene.String(),
+    )
+
+    status = graphene.List(
+        StatusType,
         id=graphene.String(),
         session_id=graphene.String(),
     )
@@ -147,6 +173,22 @@ class Query(graphene.ObjectType):
             result = response["result"]
         else:
             response = validation_store.list(0, 0, None)
+            result = response["result"]
+
+        return result
+
+    def resolve_status(root, info, id: str = None, session_id: str = None):
+        result = None
+        if id:
+            response = status_store.get(id)
+            result = []
+            result.append(response)
+        elif session_id:
+            kwargs = {"sessionId": session_id}
+            response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+            result = response["result"]
+        else:
+            response = status_store.list(0, 0, None)
             result = response["result"]
 
         return result
