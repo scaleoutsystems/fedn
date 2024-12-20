@@ -46,9 +46,9 @@ class ModelType(graphene.ObjectType):
     committed_at = graphene.DateTime()
     session_id = graphene.String()
     parent_model = graphene.String()
-    validation = graphene.List(ValidationType)
+    validations = graphene.List(ValidationType)
 
-    def resolve_validation(self, info):
+    def resolve_validations(self, info):
         kwargs = {"modelId": self["model"]}
         response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
         result = response["result"]
@@ -75,28 +75,28 @@ class SessionType(graphene.ObjectType):
     name = graphene.String()
     committed_at = graphene.DateTime()
     session_config = graphene.Field(SessionConfigType)
-    model = graphene.List(ModelType)
-    validation = graphene.List(ValidationType)
-    status = graphene.List(StatusType)
+    models = graphene.List(ModelType)
+    validations = graphene.List(ValidationType)
+    statuses = graphene.List(StatusType)
 
     def resolve_session_config(self, info):
         return self["session_config"]
 
-    def resolve_model(self, info):
+    def resolve_models(self, info):
         kwargs = {"session_id": self["session_id"]}
         response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
         result = response["result"]
 
         return result
 
-    def resolve_validation(self, info):
+    def resolve_validations(self, info):
         kwargs = {"sessionId": self["session_id"]}
         response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
         result = response["result"]
 
         return result
 
-    def resolve_status(self, info):
+    def resolve_statuses(self, info):
         kwargs = {"sessionId": self["session_id"]}
         response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
         result = response["result"]
@@ -105,93 +105,104 @@ class SessionType(graphene.ObjectType):
 
 
 class Query(graphene.ObjectType):
-    session = graphene.List(
+    session = graphene.Field(
         SessionType,
-        id=graphene.String(),
+        id=graphene.String(required=True),
+    )
+    sessions = graphene.List(
+        SessionType,
         name=graphene.String(),
     )
 
-    model = graphene.List(
+    model = graphene.Field(
         ModelType,
-        id=graphene.String(),
+        id=graphene.String(required=True),
+    )
+
+    models = graphene.List(
+        ModelType,
         session_id=graphene.String(),
     )
 
-    validation = graphene.List(
+    validation = graphene.Field(
         ValidationType,
-        id=graphene.String(),
+        id=graphene.String(required=True),
+    )
+
+    validations = graphene.List(
+        ValidationType,
         session_id=graphene.String(),
     )
 
-    status = graphene.List(
+    status = graphene.Field(
         StatusType,
-        id=graphene.String(),
+        id=graphene.String(required=True),
+    )
+
+    statuses = graphene.List(
+        StatusType,
         session_id=graphene.String(),
     )
 
-    def resolve_session(root, info, id: str = None, name: str = None):
-        result = None
-        if id:
-            response = session_store.get(id)
-            result = []
-            result.append(response)
-        elif name:
+    def resolve_session(root, info, id: str = None):
+        result = session_store.get(id)
+
+        return result
+
+    def resolve_sessions(root, info, name: str = None):
+        response = None
+        if name:
             kwargs = {"name": name}
             response = session_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
-            result = response["result"]
         else:
             response = session_store.list(0, 0, None)
-            result = response["result"]
+
+        return response["result"]
+
+    def resolve_model(root, info, id: str = None):
+        result = model_store.get(id)
 
         return result
 
-    def resolve_model(root, info, id: str = None, session_id: str = None):
-        result = None
-        if id:
-            response = model_store.get(id)
-            result = []
-            result.append(response)
-        elif session_id:
+    def resolve_models(root, info, session_id: str = None):
+        response = None
+        if session_id:
             kwargs = {"session_id": session_id}
             response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
-            result = response["result"]
         else:
             response = model_store.list(0, 0, None)
-            result = response["result"]
+
+        return response["result"]
+
+    def resolve_validation(root, info, id: str = None):
+        result = validation_store.get(id)
 
         return result
 
-    def resolve_validation(root, info, id: str = None, session_id: str = None):
-        result = None
-        if id:
-            response = validation_store.get(id)
-            result = []
-            result.append(response)
-        elif session_id:
+    def resolve_validations(root, info, session_id: str = None):
+        response = None
+        if session_id:
             kwargs = {"session_id": session_id}
             response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
-            result = response["result"]
         else:
             response = validation_store.list(0, 0, None)
-            result = response["result"]
+
+        return response["result"]
+
+    def resolve_status(root, info, id: str = None):
+        result = status_store.get(id)
 
         return result
 
-    def resolve_status(root, info, id: str = None, session_id: str = None):
-        result = None
-        if id:
-            response = status_store.get(id)
-            result = []
-            result.append(response)
-        elif session_id:
+    def resolve_statuses(root, info, session_id: str = None):
+        response = None
+        if session_id:
             kwargs = {"sessionId": session_id}
             response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
-            result = response["result"]
         else:
             response = status_store.list(0, 0, None)
-            result = response["result"]
 
-        return result
+        return response["result"]
 
 
 schema = graphene.Schema(query=Query)
