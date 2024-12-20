@@ -3,11 +3,12 @@ import os
 from flask import Flask, jsonify, request
 
 from fedn.common.config import get_controller_config
+from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
-from fedn.network.api import gunicorn_app
+from fedn.network.api.v1.graphql.schema import schema
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 # statestore_config,modelstorage_config,network_id,control=set_statestore_config()
@@ -26,6 +27,32 @@ def health_check():
 
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/health", view_func=health_check, methods=["GET"])
+
+
+@app.route("/api/v1/graphql", methods=["POST"])
+def graphql_endpoint():
+    data = request.get_json()
+
+    if not data or "query" not in data:
+        return jsonify({"error": "Missing query in request"}), 400
+
+    # Execute the GraphQL query
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        context_value={"request": request},  # Pass Flask request object as context if needed
+    )
+
+    # Format the result as a JSON response
+    response = {"data": result.data}
+    if result.errors:
+        response["errors"] = [str(error) for error in result.errors]
+
+    return jsonify(response)
+
+
+if custom_url_prefix:
+    app.add_url_rule(f"{custom_url_prefix}/api/v1/graphql", view_func=graphql_endpoint, methods=["POST"])
 
 
 @app.route("/get_model_trail", methods=["GET"])
@@ -638,7 +665,9 @@ def start_server_api():
     if debug:
         app.run(debug=debug, port=port, host=host)
     else:
-        workers=os.cpu_count()
+        workers = os.cpu_count()
         gunicorn_app.run_gunicorn(app, host, port, workers)
+
+
 if __name__ == "__main__":
     start_server_api()
