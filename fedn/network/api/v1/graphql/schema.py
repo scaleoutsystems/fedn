@@ -30,14 +30,20 @@ class SessionType(graphene.ObjectType):
 class Query(graphene.ObjectType):
     session = graphene.List(
         SessionType,
-        id=graphene.Int(),
-        name=graphene.String(),
+        id=graphene.String(),
     )
 
-    def resolve_session(root, info, id=None, name=None, pet_name=None):
-        response = session_store.list(0, 0, None)
+    def resolve_session(root, info, id=None):
+        result = None
+        if id:
+            response = session_store.get(id)
+            result = []
+            result.append(response)
+        else:
+            response = session_store.list(0, 0, None)
+            result = response["result"]
 
-        return response["result"]
+        return result
 
 
 schema = graphene.Schema(query=Query)
