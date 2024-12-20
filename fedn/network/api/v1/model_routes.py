@@ -5,13 +5,10 @@ from flask import Blueprint, jsonify, request, send_file
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import modelstorage_config
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb, minio_repository
-from fedn.network.storage.statestore.stores.model_store import ModelStore
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, minio_repository, model_store
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
-
-model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/", methods=["GET"])
