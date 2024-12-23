@@ -7,7 +7,6 @@ from fedn.network.storage.statestore.stores.shared import EntityNotFound
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
 
-
 @bp.route("/", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_clients():
@@ -109,14 +108,10 @@ def get_clients():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = clients["result"]
-
-        response = {"count": clients["count"], "result": result}
+        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -195,13 +190,9 @@ def list_clients():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = clients["result"]
-
-        response = {"count": clients["count"], "result": result}
+        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -357,9 +348,7 @@ def get_client(id: str):
                         type: string
     """
     try:
-        client = client_store.get(id, use_typing=False)
-
-        response = client
+        response = client_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:
@@ -367,7 +356,7 @@ def get_client(id: str):
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
-# delete client
+
 @bp.route("/<string:id>", methods=["DELETE"])
 @jwt_auth_required(role="admin")
 def delete_client(id: str):

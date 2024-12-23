@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, mdb, get_typed_list_headers, get_post_data_to_kwargs
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
@@ -170,14 +170,10 @@ def get_predictions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
-
-        response = {"count": predictions["count"], "result": result}
+        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -268,14 +264,10 @@ def list_predictions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
-
-        response = {"count": predictions["count"], "result": result}
+        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:

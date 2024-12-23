@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 
@@ -128,14 +128,10 @@ def get_validations():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
-
-        response = {"count": validations["count"], "result": result}
+        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -226,14 +222,10 @@ def list_validations():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        validations = validation_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [validation.__dict__ for validation in validations["result"]] if use_typing else validations["result"]
-
-        response = {"count": validations["count"], "result": result}
+        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -406,10 +398,7 @@ def get_validation(id: str):
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        validation = validation_store.get(id, use_typing=use_typing)
-
-        response = validation.__dict__ if use_typing else validation
+        response = validation_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:

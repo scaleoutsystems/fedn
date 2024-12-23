@@ -90,14 +90,10 @@ def get_sessions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = sessions["result"]
-
-        response = {"count": sessions["count"], "result": result}
+        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -168,14 +164,10 @@ def list_sessions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = sessions["result"]
-
-        response = {"count": sessions["count"], "result": result}
+        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -303,8 +295,7 @@ def get_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
-        response = session
+        response = session_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:
@@ -386,7 +377,7 @@ def start_session():
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session = session_store.get(session_id, use_typing=False)
+        session = session_store.get(session_id)
 
         session_config = session["session_config"]
         model_id = session_config["model_id"]
@@ -402,7 +393,7 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        _ = model_store.get(model_id, use_typing=False)
+        _ = model_store.get(model_id)
 
         threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 
@@ -451,7 +442,7 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
+        session = session_store.get(id)
 
         data = request.get_json()
         _id = session["id"]
@@ -516,7 +507,7 @@ def put_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
+        session = session_store.get(id)
         data = request.get_json()
         _id = session["id"]
 

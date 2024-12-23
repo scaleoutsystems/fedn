@@ -4,7 +4,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 
 from .shared import EntityNotFound, from_document
 
@@ -55,17 +55,15 @@ class Combiner:
         )
 
 
-class CombinerStore(Store[Combiner]):
+class CombinerStore(MongoDBStore[Combiner]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Combiner:
+    def get(self, id: str) -> Combiner:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the name (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
         if ObjectId.is_valid(id):
@@ -77,7 +75,7 @@ class CombinerStore(Store[Combiner]):
         if document is None:
             raise EntityNotFound(f"Entity with (id | name) {id} not found")
 
-        return Combiner.from_dict(document) if use_typing else from_document(document)
+        return from_document(document)
 
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerStore")
@@ -98,7 +96,7 @@ class CombinerStore(Store[Combiner]):
 
         return super().delete(document["_id"])
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Combiner]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Combiner]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -108,18 +106,14 @@ class CombinerStore(Store[Combiner]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
         return: A dictionary with the count and the result
         """
-        response = super().list(limit, skip, sort_key or "updated_at", sort_order, use_typing=use_typing, **kwargs)
+        response = super().list(limit, skip, sort_key or "updated_at", sort_order, **kwargs)
 
-        result = [Combiner.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-
-        return {"count": response["count"], "result": result}
+        return response
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)

@@ -7,9 +7,28 @@ from bson import ObjectId
 from pymongo.database import Database
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 
-from .shared import EntityNotFound, from_document
+from .shared import EntityNotFound
+
+
+def from_document(data: dict, active_package: dict):
+    active = False
+    if active_package:
+        if "id" in active_package and "id" in data:
+            active = active_package["id"] == data["id"]
+
+    return {
+        "id": data["id"] if "id" in data else None,
+        "key": data["key"] if "key" in data else None,
+        "committed_at": data["committed_at"] if "committed_at" in data else None,
+        "description": data["description"] if "description" in data else None,
+        "file_name": data["file_name"] if "file_name" in data else None,
+        "helper": data["helper"] if "helper" in data else None,
+        "name": data["name"] if "name" in data else None,
+        "storage_file_name": data["storage_file_name"] if "storage_file_name" in data else None,
+        "active": active,
+    }
 
 
 class Package:
@@ -26,38 +45,16 @@ class Package:
         self.storage_file_name = storage_file_name
         self.active = active
 
-    def from_dict(data: dict, active_package: dict) -> "Package":
-        active = False
-        if active_package:
-            if "id" in active_package and "id" in data:
-                active = active_package["id"] == data["id"]
 
-        return Package(
-            id=data["id"] if "id" in data else None,
-            key=data["key"] if "key" in data else None,
-            committed_at=data["committed_at"] if "committed_at" in data else None,
-            description=data["description"] if "description" in data else None,
-            file_name=data["file_name"] if "file_name" in data else None,
-            helper=data["helper"] if "helper" in data else None,
-            name=data["name"] if "name" in data else None,
-            storage_file_name=data["storage_file_name"] if "storage_file_name" in data else None,
-            active=active,
-        )
-
-
-class PackageStore(Store[Package]):
+class PackageStore(MongoDBStore[Package]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Package:
+    def get(self, id: str) -> Package:
         """Get an entity by id
         param id: The id of the entity
             type: str
-            description: The id of the entity, can be either the id or the model (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
-            description: Whether to return the entities as typed objects or as dicts.
-            If True, and active property will be set based on the active package.
+            description: The id of the entity, can be either the id or the docuemnt _id
         return: The entity
         """
         document = self.database[self.collection].find_one({"id": id})
@@ -65,12 +62,9 @@ class PackageStore(Store[Package]):
         if document is None:
             raise EntityNotFound(f"Entity with id {id} not found")
 
-        if not use_typing:
-            return from_document(document)
-
         response_active = self.database[self.collection].find_one({"key": "active"})
 
-        return Package.from_dict(document, response_active)
+        return from_document(document, response_active)
 
     def _validate(self, item: Package) -> Tuple[bool, str]:
         if "file_name" not in item or not item["file_name"]:
@@ -130,19 +124,16 @@ class PackageStore(Store[Package]):
 
         return True
 
-    def get_active(self, use_typing: bool = False) -> Package:
+    def get_active(self) -> Package:
         """Get the active entity
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
         kwargs = {"key": "active"}
         response = self.database[self.collection].find_one(kwargs)
-
         if response is None:
             raise EntityNotFound("Entity not found")
 
-        return Package.from_dict(response, response) if use_typing else from_document(response)
+        return from_document(response, {"id": response["id"]})
 
     def set_active_helper(self, helper: str) -> bool:
         """Set the active helper
@@ -217,7 +208,7 @@ class PackageStore(Store[Package]):
 
         return super().delete(document_active["_id"])
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Package]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Package]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -227,10 +218,6 @@ class PackageStore(Store[Package]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
-            description: Whether to return the entities as typed objects or as dicts.
-            If True, and active property will be set based on the active package.
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
@@ -238,13 +225,15 @@ class PackageStore(Store[Package]):
         """
         kwargs["key"] = "package_trail"
 
-        response = super().list(limit, skip, sort_key or "committed_at", sort_order, use_typing=True, **kwargs)
+        response = self.database[self.collection].find(kwargs).sort(sort_key or "committed_at", sort_order).skip(skip or 0).limit(limit or 0)
+
+        count = self.database[self.collection].count_documents(kwargs)
 
         response_active = self.database[self.collection].find_one({"key": "active"})
 
-        result = [Package.from_dict(item, response_active) for item in response["result"]]
+        result = [from_document(item, response_active) for item in response]
 
-        return {"count": response["count"], "result": result}
+        return {"count": count, "result": result}
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"
