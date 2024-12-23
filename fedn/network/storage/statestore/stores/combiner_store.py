@@ -38,22 +38,6 @@ class Combiner:
         self.status = status
         self.updated_at = updated_at
 
-    def from_dict(data: dict) -> "Combiner":
-        return Combiner(
-            id=str(data["_id"]),
-            name=data["name"] if "name" in data else None,
-            address=data["address"] if "address" in data else None,
-            certificate=data["certificate"] if "certificate" in data else None,
-            config=data["config"] if "config" in data else None,
-            fqdn=data["fqdn"] if "fqdn" in data else None,
-            ip=data["ip"] if "ip" in data else None,
-            key=data["key"] if "key" in data else None,
-            parent=data["parent"] if "parent" in data else None,
-            port=data["port"] if "port" in data else None,
-            status=data["status"] if "status" in data else None,
-            updated_at=data["updated_at"] if "updated_at" in data else None,
-        )
-
 
 class CombinerStore(MongoDBStore[Combiner]):
     def __init__(self, database: Database, collection: str):
