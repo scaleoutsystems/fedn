@@ -98,14 +98,10 @@ def get_models():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = models["result"]
-
-        response = {"count": models["count"], "result": result}
+        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -183,14 +179,10 @@ def list_models():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = models["result"]
-
-        response = {"count": models["count"], "result": result}
+        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -332,7 +324,7 @@ def get_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
 
         response = model
 
@@ -383,7 +375,7 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
 
         data = request.get_json()
         _id = model["id"]
@@ -448,7 +440,7 @@ def put_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
         data = request.get_json()
         _id = model["id"]
 
@@ -508,7 +500,7 @@ def get_descendants(id: str):
     try:
         limit = get_limit(request.headers)
 
-        descendants = model_store.list_descendants(id, limit or 10, use_typing=False)
+        descendants = model_store.list_descendants(id, limit or 10)
 
         response = descendants
 
@@ -577,7 +569,7 @@ def get_ancestors(id: str):
 
         include_self: bool = include_self_param and include_self_param.lower() == "true"
 
-        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse, use_typing=False)
+        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
 
         response = ancestors
 
@@ -623,7 +615,7 @@ def download(id: str):
     """
     try:
         if minio_repository is not None:
-            model = model_store.get(id, use_typing=False)
+            model = model_store.get(id)
             model_id = model["model"]
 
             file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
@@ -677,7 +669,7 @@ def get_parameters(id: str):
     """
     try:
         if minio_repository is not None:
-            model = model_store.get(id, use_typing=False)
+            model = model_store.get(id)
             model_id = model["model"]
 
             file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])

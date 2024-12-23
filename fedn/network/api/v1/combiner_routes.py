@@ -99,15 +99,11 @@ def get_combiners():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = combiners["result"]
-
-        response = {"count": combiners["count"], "result": result}
+        response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -182,15 +178,11 @@ def list_combiners():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = get_post_data_to_kwargs(request)
 
-        combiners = combiner_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = combiners["result"]
-
-        response = {"count": combiners["count"], "result": result}
+        response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -328,8 +320,7 @@ def get_combiner(id: str):
                         type: string
     """
     try:
-        combiner = combiner_store.get(id, use_typing=False)
-        response = combiner
+        response = combiner_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:

@@ -87,15 +87,11 @@ def get_rounds():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
 
-        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = rounds["result"]
-
-        response = {"count": rounds["count"], "result": result}
+        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -166,15 +162,11 @@ def list_rounds():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = get_post_data_to_kwargs(request)
 
-        rounds = round_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = rounds["result"]
-
-        response = {"count": rounds["count"], "result": result}
+        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -302,7 +294,7 @@ def get_round(id: str):
                         type: string
     """
     try:
-        round = round_store.get(id, use_typing=False)
+        round = round_store.get(id)
         response = round
 
         return jsonify(response), 200
