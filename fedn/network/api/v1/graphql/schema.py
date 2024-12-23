@@ -50,7 +50,7 @@ class ModelType(graphene.ObjectType):
 
     def resolve_validations(self, info):
         kwargs = {"modelId": self["model"]}
-        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = response["result"]
 
         return result
@@ -84,21 +84,21 @@ class SessionType(graphene.ObjectType):
 
     def resolve_models(self, info):
         kwargs = {"session_id": self["session_id"]}
-        response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+        response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = response["result"]
 
         return result
 
     def resolve_validations(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = response["result"]
 
         return result
 
     def resolve_statuses(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+        response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = response["result"]
 
         return result
@@ -153,7 +153,7 @@ class Query(graphene.ObjectType):
         response = None
         if name:
             kwargs = {"name": name}
-            response = session_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+            response = session_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
             response = session_store.list(0, 0, None)
 
@@ -168,7 +168,7 @@ class Query(graphene.ObjectType):
         response = None
         if session_id:
             kwargs = {"session_id": session_id}
-            response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+            response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
             response = model_store.list(0, 0, None)
 
@@ -183,7 +183,7 @@ class Query(graphene.ObjectType):
         response = None
         if session_id:
             kwargs = {"session_id": session_id}
-            response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+            response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
             response = validation_store.list(0, 0, None)
 
@@ -198,7 +198,7 @@ class Query(graphene.ObjectType):
         response = None
         if session_id:
             kwargs = {"sessionId": session_id}
-            response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, use_typing=False, **kwargs)
+            response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
             response = status_store.list(0, 0, None)
 
