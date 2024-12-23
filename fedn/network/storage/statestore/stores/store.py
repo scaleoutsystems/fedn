@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
 import pymongo
@@ -9,26 +10,51 @@ from .shared import EntityNotFound, from_document
 T = TypeVar("T")
 
 
-class Store(Generic[T]):
+class Store(ABC, Generic[T]):
+    @abstractmethod
+    def get(self, id: str) -> T:
+        pass
+
+    @abstractmethod
+    def update(self, id: str, item: T) -> Tuple[bool, Any]:
+        pass
+
+    @abstractmethod
+    def add(self, item: T) -> Tuple[bool, Any]:
+        pass
+
+    @abstractmethod
+    def delete(self, id: str) -> bool:
+        pass
+
+    @abstractmethod
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+        pass
+
+    @abstractmethod
+    def count(self, **kwargs) -> int:
+        pass
+
+
+class MongoDBStore(Store[T], Generic[T]):
     def __init__(self, database: Database, collection: str):
         self.database = database
         self.collection = collection
 
-    def get(self, id: str, use_typing: bool = False) -> T:
+    def get(self, id: str) -> T:
         """Get an entity by id
         param id: The id of the entity
             type: str
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
+        if not ObjectId.is_valid(id):
+            raise EntityNotFound(f"Invalid id {id}")
         id_obj = ObjectId(id)
         document = self.database[self.collection].find_one({"_id": id_obj})
-
         if document is None:
             raise EntityNotFound(f"Entity with id {id} not found")
 
-        return from_document(document) if not use_typing else document
+        return from_document(document)
 
     def update(self, id: str, item: T) -> Tuple[bool, Any]:
         try:
@@ -54,7 +80,7 @@ class Store(Generic[T]):
         result = self.database[self.collection].delete_one({"_id": ObjectId(id)})
         return result.deleted_count == 1
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[T]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -64,8 +90,6 @@ class Store(Generic[T]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
@@ -75,7 +99,7 @@ class Store(Generic[T]):
 
         count = self.database[self.collection].count_documents(kwargs)
 
-        result = [document for document in cursor] if use_typing else [from_document(document) for document in cursor]
+        result = [from_document(document) for document in cursor]
 
         return {"count": count, "result": result}
 
