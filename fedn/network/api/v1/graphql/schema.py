@@ -1,7 +1,7 @@
 import graphene
 import pymongo
 
-from fedn.network.api.v1.shared import model_store, session_store, status_store, validation_store
+from fedn.network.api.shared import model_store, session_store, status_store, validation_store
 
 
 class ActorType(graphene.ObjectType):

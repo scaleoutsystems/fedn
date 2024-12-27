@@ -7,7 +7,7 @@ from bson import ObjectId
 from pymongo.database import Database
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 from .shared import EntityNotFound
 
@@ -46,7 +46,11 @@ class Package:
         self.active = active
 
 
-class PackageStore(MongoDBStore[Package]):
+class PackageStore(Store[Package]):
+    pass
+
+
+class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
@@ -238,3 +242,88 @@ class PackageStore(MongoDBStore[Package]):
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"
         return super().count(**kwargs)
+
+
+class SQLPackageStore(PackageStore, SQLStore[Package]):
+    def __init__(self, db_name: str, table_name: str):
+        super().__init__(db_name=db_name, table_name=table_name)
+        # self.table_name = table_name
+
+    def _validate(self, item: Package) -> Tuple[bool, str]:
+        if "file_name" not in item or not item["file_name"]:
+            return False, "File name is required"
+
+        if not self._allowed_file_extension(item["file_name"]):
+            return False, "File extension not allowed"
+
+        if "helper" not in item or not item["helper"]:
+            return False, "Helper is required"
+
+        return True, ""
+
+    def _complement(self, item: Package):
+        if "committed_at" not in item or item.committed_at is None:
+            item["committed_at"] = datetime.now()
+
+        extension = item["file_name"].rsplit(".", 1)[1].lower()
+
+        if "storage_file_name" not in item or item.storage_file_name is None:
+            storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
+            item["storage_file_name"] = storage_file_name
+
+    def create_table(self):
+        table_name = super().table_name
+        if not table_name.isidentifier():
+            raise ValueError(f"Invalid table name: {table_name}")
+
+        query = """
+        CREATE TABLE IF NOT EXISTS ? (
+            id VARCHAR(255) PRIMARY KEY,
+            active BOOLEAN,
+            committed_at TIMESTAMP,
+            description VARCHAR(255),
+            file_name VARCHAR(255),
+            helper VARCHAR(255),
+            name VARCHAR(255),
+            storage_file_name VARCHAR(255)
+        )
+        """
+        self.cursor.execute(query, (table_name,))
+
+    def update(self, id, item):
+        pass
+        # super().cursor.execute(
+        #     "UPDATE ? SET model = ?, parent_model = ?, session_id = ?, committed_at = ? WHERE id = ?",
+        #     (super().table_name, item.model, item.parent_model, item.session_id, item.committed_at, id),
+        # )
+
+    def add(self, item: Package) -> Tuple[bool, Any]:
+        try:
+            valid, message = self._validate(item)
+            if not valid:
+                return False, message
+
+            self._complement(item)
+
+            super().cursor.execute(
+                "INSERT INTO ? (active, committed_at, description, file_name, helper, name, storage_file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    super().table_name,
+                    item["active"],
+                    item["committed_at"],
+                    item["description"],
+                    item["file_name"],
+                    item["helper"],
+                    item["name"],
+                    item["storage_file_name"],
+                ),
+            )
+            return True, item
+        except Exception as e:
+            return False, str(e)
+
+    def get_active(self) -> str:
+        raise NotImplementedError("Get active not implemented for SQLModelStore")
+
+    def set_active(self, id: str) -> bool:
+        raise NotImplementedError("Set active not implemented for SQLModelStore")

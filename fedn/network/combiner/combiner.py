@@ -807,3 +807,4 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         except (KeyboardInterrupt, SystemExit):
             pass
         self.server.stop()
+        self.server.stop()

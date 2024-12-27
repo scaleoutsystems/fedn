@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
@@ -5,7 +6,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -20,7 +21,25 @@ class Model:
         self.committed_at = committed_at
 
 
-class ModelStore(MongoDBStore[Model]):
+class ModelStore(Store[Model]):
+    @abstractmethod
+    def list_descendants(self, id: str, limit: int) -> List[Model]:
+        pass
+
+    @abstractmethod
+    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False) -> List[Model]:
+        pass
+
+    @abstractmethod
+    def get_active(self) -> str:
+        pass
+
+    @abstractmethod
+    def set_active(self, id: str) -> bool:
+        pass
+
+
+class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
@@ -219,3 +238,48 @@ class ModelStore(MongoDBStore[Model]):
         self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}})
 
         return True
+
+
+class SQLModelStore(ModelStore, SQLStore[Model]):
+    def __init__(self, database: Database, table: str):
+        super().__init__(database, table)
+
+    def create_table(self):
+        table_name = super().table_name
+        if not table_name.isidentifier():
+            raise ValueError(f"Invalid table name: {table_name}")
+
+        query = f"""
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id VARCHAR(255) PRIMARY KEY,
+            model VARCHAR(255),
+            parent_model VARCHAR(255),
+            session_id VARCHAR(255),
+            committed_at TIMESTAMP
+        )
+        """
+        self.cursor.execute(query)
+
+    def update(self, id, item):
+        super().cursor.execute(
+            "UPDATE ? SET model = ?, parent_model = ?, session_id = ?, committed_at = ? WHERE id = ?",
+            (super().table_name, item.model, item.parent_model, item.session_id, item.committed_at, id),
+        )
+
+    def add(self, item):
+        super().cursor.execute(
+            "INSERT INTO ? (model, parent_model, session_id, committed_at) VALUES (?, ?, ?, ?)",
+            (super().table_name, item.model, item.parent_model, item.session_id, item.committed_at),
+        )
+
+    def list_descendants(self, id: str, limit: int) -> List[Model]:
+        raise NotImplementedError("List descendants not implemented for SQLModelStore")
+
+    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False) -> List[Model]:
+        raise NotImplementedError("List ancestors not implemented for SQLModelStore")
+
+    def get_active(self) -> str:
+        raise NotImplementedError("Get active not implemented for SQLModelStore")
+
+    def set_active(self, id: str) -> bool:
+        raise NotImplementedError("Set active not implemented for SQLModelStore")

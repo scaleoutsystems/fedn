@@ -3,6 +3,8 @@ import uuid
 from abc import ABC, abstractmethod
 from time import sleep
 
+import pymongo
+
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
 from fedn.network.api.network import Network
@@ -10,6 +12,10 @@ from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
+from fedn.network.storage.statestore.stores.model_store import ModelStore
+from fedn.network.storage.statestore.stores.package_store import PackageStore
+from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.session_store import SessionStore
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -36,10 +42,14 @@ class ControlBase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, statestore):
+    def __init__(self, statestore, session_store: SessionStore, model_store: ModelStore, round_store: RoundStore, package_store: PackageStore):
         """Constructor."""
         self._state = ReducerState.setup
 
+        self.session_store = session_store
+        self.model_store = model_store
+        self.round_store = round_store
+        self.package_store = package_store
         self.statestore = statestore
         if self.statestore.is_inited():
             self.network = Network(self, statestore)
@@ -71,10 +81,6 @@ class ControlBase(ABC):
             self._state = ReducerState.idle
 
     @abstractmethod
-    def session(self, config):
-        pass
-
-    @abstractmethod
     def round(self, config, round_number):
         pass
 
@@ -88,7 +94,14 @@ class ControlBase(ABC):
         :return: Helper instance.
         :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
         """
-        helper_type = self.statestore.get_helper()
+        helper_type: str = None
+
+        try:
+            active_package = self.package_store.get_active()
+            helper_type = active_package["helper"]
+        except Exception:
+            logger.error("Failed to get active helper")
+
         helper = fedn.utils.helpers.helpers.get_helper(helper_type)
         if not helper:
             raise MisconfiguredHelper("Unsupported helper type {}, please configure compute_package.helper !".format(helper_type))
@@ -113,29 +126,17 @@ class ControlBase(ABC):
         else:
             return False
 
-    def get_model_info(self):
-        """:return:"""
-        return self.statestore.get_model_trail()
-
-    # TODO: remove use statestore.get_events() instead
-    def get_events(self):
-        """:return:"""
-        return self.statestore.get_events()
-
-    def get_latest_round_id(self):
-        last_round = self.statestore.get_latest_round()
-        if not last_round:
-            return 0
+    def get_latest_round_id(self) -> int:
+        response = self.round_store.list(limit=1, skip=0, sort_key="_id", sort_order=pymongo.DESCENDING)
+        if response and "result" in response and len(response["result"]) > 0:
+            round_id: str = response["result"][0]["round_id"]
+            return int(round_id)
         else:
-            return last_round["round_id"]
-
-    def get_latest_round(self):
-        round = self.statestore.get_latest_round()
-        return round
+            return 0
 
     def get_compute_package_name(self):
         """:return:"""
-        definition = self.statestore.get_compute_package()
+        definition = self.package_store.get_active()
         if definition:
             try:
                 package_name = definition["storage_file_name"]
@@ -161,18 +162,6 @@ class ControlBase(ABC):
         else:
             return None
 
-    def create_session(self, config: RoundConfig, status: str = "Initialized") -> None:
-        """Initialize a new session in backend db."""
-        if "session_id" not in config.keys():
-            session_id = uuid.uuid4()
-            config["session_id"] = str(session_id)
-        else:
-            session_id = config["session_id"]
-
-        self.statestore.create_session(id=session_id)
-        self.statestore.set_session_config(session_id, config)
-        self.statestore.set_session_status(session_id, status)
-
     def set_session_status(self, session_id, status):
         """Set the round round stats.
 
@@ -183,7 +172,7 @@ class ControlBase(ABC):
         """
         self.statestore.set_session_status(session_id, status)
 
-    def get_session_status(self, session_id):
+    def get_session_status(self, session_id: str):
         """Get the status of a session.
 
         :param session_id: The session unique identifier
@@ -191,7 +180,8 @@ class ControlBase(ABC):
         :return: The status
         :rtype: str
         """
-        return self.statestore.get_session_status(session_id)
+        session = self.session_store.get(session_id)
+        return session["status"]
 
     def set_session_config(self, session_id: str, config: dict):
         """Set the model id for a session.
@@ -351,4 +341,5 @@ class ControlBase(ABC):
         :return: The state
         :rype: str
         """
+        return self._state
         return self._state

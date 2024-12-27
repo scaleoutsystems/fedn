@@ -1,3 +1,4 @@
+import sqlite3
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
@@ -111,3 +112,49 @@ class MongoDBStore(Store[T], Generic[T]):
         return: The count (int)
         """
         return self.database[self.collection].count_documents(kwargs)
+
+
+class SQLStore(Store[T], Generic[T]):
+    def __init__(self, db_name: str, table_name: str):
+        self.connection = sqlite3.connect(db_name)
+        self.cursor = self.connection.cursor()
+        self.table_name = table_name
+        self.create_table()
+
+    @abstractmethod
+    def create_table(self):
+        """Create a table for the specific type."""
+        pass
+
+    def get(self, id: str) -> T:
+        self.cursor.execute(
+            "SELECT * FROM ? WHERE id = ?",
+            (
+                self.table_name,
+                id,
+            ),
+        )
+        row = self.cursor.fetchone()
+        if not row:
+            raise ValueError(f"Item with id '{id}' not found")
+        return row
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+        sort_order = "ASC" if sort_order == pymongo.ASCENDING else "DESC"
+        if limit and skip:
+            self.cursor.execute("SELECT * FROM ? ORDER BY ? ? LIMIT ? OFFSET ?", (self.table_name, sort_key, sort_order, limit, skip))
+        else:
+            self.cursor.execute("SELECT * FROM ? ORDER BY ? ?", (self.table_name, sort_key, sort_order))
+        rows = self.cursor.fetchall()
+
+        self.cursor.execute("SELECT COUNT(*) FROM items")
+        count = self.cursor.fetchone()[0]
+
+        return {"count": count, "result": rows}
+
+    def count(self, **kwargs) -> int:
+        self.cursor.execute("SELECT COUNT(*) FROM ?", (self.table_name,))
+        return self.cursor.fetchone()[0]
+
+    def delete(self, id: str) -> bool:
+        super().cursor.execute("DELETE FROM ? WHERE id = ?", (super().table_name, id))

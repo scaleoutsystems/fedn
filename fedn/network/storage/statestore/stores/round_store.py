@@ -1,9 +1,12 @@
 from typing import Any, Dict, List, Tuple
 
 import pymongo
+from bson import ObjectId
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.store import MongoDBStore
+
+from .shared import EntityNotFound, from_document
 
 
 class Round:
@@ -26,7 +29,19 @@ class RoundStore(MongoDBStore[Round]):
             type: str
         return: The entity
         """
-        return super().get(id)
+        kwargs = {}
+        if ObjectId.is_valid(id):
+            id_obj = ObjectId(id)
+            kwargs["_id"] = id_obj
+        else:
+            kwargs["round_id"] = id
+
+        document = self.database[self.collection].find_one(kwargs)
+
+        if document is None:
+            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+
+        return from_document(document)
 
     def update(self, id: str, item: Round) -> bool:
         raise NotImplementedError("Update not implemented for RoundStore")
@@ -53,4 +68,5 @@ class RoundStore(MongoDBStore[Round]):
             description: The order to sort by
         return: The entities
         """
+        return super().list(limit, skip, sort_key or "round_id", sort_order, **kwargs)
         return super().list(limit, skip, sort_key or "round_id", sort_order, **kwargs)

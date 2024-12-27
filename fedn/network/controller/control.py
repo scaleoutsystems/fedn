@@ -11,6 +11,10 @@ from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
+from fedn.network.storage.statestore.stores.model_store import ModelStore
+from fedn.network.storage.statestore.stores.package_store import PackageStore
+from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.session_store import SessionStore
 
 
 class UnsupportedStorageBackend(Exception):
@@ -88,9 +92,9 @@ class Control(ControlBase):
     :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
     """
 
-    def __init__(self, statestore):
+    def __init__(self, statestore, session_store: SessionStore, model_store: ModelStore, round_store: RoundStore, package_store: PackageStore):
         """Constructor method."""
-        super().__init__(statestore)
+        super().__init__(statestore, session_store, model_store, round_store, package_store)
         self.name = "DefaultControl"
 
     def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
@@ -98,13 +102,22 @@ class Control(ControlBase):
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
 
-        if not self.statestore.get_latest_model():
+        model_set: bool = False
+
+        try:
+            active_model_id = self.model_store.get_active()
+            if active_model_id not in ["", " "]:
+                model_set = True
+        except Exception:
+            logger.error("Failed to get active model")
+
+        if not model_set:
             logger.warning("No model in model chain, please provide a seed model!")
             return
 
         self._state = ReducerState.instructing
 
-        session = self.statestore.get_session(session_id)
+        session = self.session_store.get(session_id)
 
         if not session:
             logger.error("Session not found.")
@@ -121,7 +134,7 @@ class Control(ControlBase):
 
         self._state = ReducerState.monitoring
 
-        last_round = int(self.get_latest_round_id())
+        last_round = self.get_latest_round_id()
 
         aggregator = session_config["aggregator"]
 
@@ -150,70 +163,13 @@ class Control(ControlBase):
 
             logger.info("Round completed with status {}".format(round_data["status"]))
 
-            session_config["model_id"] = self.statestore.get_latest_model()
+            session_config["model_id"] = self.model_store.get_active()
 
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
 
         self.set_session_config(session_id, session_config)
-
-    def session(self, config: RoundConfig) -> None:
-        """Execute a new training session. A session consists of one
-            or several global rounds. All rounds in the same session
-            have the same round_config.
-
-        :param config: The session config.
-        :type config: dict
-
-        """
-        if self._state == ReducerState.instructing:
-            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
-            return
-
-        if not self.statestore.get_latest_model():
-            logger.warning("No model in model chain, please provide a seed model!")
-            return
-
-        self._state = ReducerState.instructing
-        config["committed_at"] = datetime.datetime.now()
-
-        self.create_session(config)
-
-        self._state = ReducerState.monitoring
-
-        last_round = int(self.get_latest_round_id())
-
-        for combiner in self.network.get_combiners():
-            combiner.set_aggregator(config["aggregator"])
-            if config["server_functions"] is not None:
-                combiner.set_server_functions(config["server_functions"])
-
-        self.set_session_status(config["session_id"], "Started")
-        # Execute the rounds in this session
-        for round in range(1, int(config["rounds"] + 1)):
-            # Increment the round number
-            if last_round:
-                current_round = last_round + round
-            else:
-                current_round = round
-
-            try:
-                if self.get_session_status(config["session_id"]) == "Terminated":
-                    logger.info("Session terminated.")
-                    break
-                _, round_data = self.round(config, str(current_round))
-            except TypeError as e:
-                logger.error("Failed to execute round: {0}".format(e))
-
-            logger.info("Round completed with status {}".format(round_data["status"]))
-
-            config["model_id"] = self.statestore.get_latest_model()
-
-        # TODO: Report completion of session
-        if self.get_session_status(config["session_id"]) == "Started":
-            self.set_session_status(config["session_id"], "Finished")
-        self._state = ReducerState.idle
 
     def prediction_session(self, config: RoundConfig) -> None:
         """Execute a new prediction session.
@@ -231,7 +187,7 @@ class Control(ControlBase):
             return
 
         if "model_id" not in config.keys():
-            config["model_id"] = self.statestore.get_latest_model()
+            config["model_id"] = self.model_store.get_active()
 
         config["committed_at"] = datetime.datetime.now()
         config["task"] = "prediction"
@@ -264,7 +220,7 @@ class Control(ControlBase):
         if len(self.network.get_combiners()) < 1:
             logger.warning("Round cannot start, no combiners connected!")
             self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         # Assemble round config for this global round
         round_config = copy.deepcopy(session_config)
@@ -286,7 +242,7 @@ class Control(ControlBase):
         else:
             logger.warning("Round start policy not met, skipping round!")
             self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         # Ask participating combiners to coordinate model updates
         _ = self.request_model_updates(participating_combiners)
@@ -305,7 +261,7 @@ class Control(ControlBase):
             retry=retry_if_exception_type(CombinersNotDoneException),
         )
         def combiners_done():
-            round = self.statestore.get_round(round_id)
+            round = self.round_store.get(round_id)
             session_status = self.get_session_status(session_id)
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
@@ -322,38 +278,38 @@ class Control(ControlBase):
 
         combiners_are_done = combiners_done()
         if not combiners_are_done:
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
         # so we need some robustness here.
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
-            round = self.statestore.get_round(round_id)
+            round = self.round_store.get(round_id)
             combiners = round["combiners"]
             return combiners
 
         _ = check_combiners_done_reporting()
 
-        round = self.statestore.get_round(round_id)
+        round = self.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round)
         if not round_valid:
             logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
             self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         logger.info("Reducing combiner level models...")
         # Reduce combiner models into a new global model
         round_data = {}
         try:
-            round = self.statestore.get_round(round_id)
+            round = self.round_store.get(round_id)
             model, data = self.reduce(round["combiners"])
             round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:
             logger.error("Failed to reduce models from combiners, reason: {}".format(e))
             self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         # Commit the new global model to the model trail
         if model is not None:
@@ -367,7 +323,7 @@ class Control(ControlBase):
         else:
             logger.error("Failed to commit model to global model trail.")
             self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
+            return None, self.round_store.get(round_id)
 
         self.set_round_status(round_id, "Success")
 
@@ -376,9 +332,18 @@ class Control(ControlBase):
         if validate:
             combiner_config = copy.deepcopy(session_config)
             combiner_config["round_id"] = round_id
-            combiner_config["model_id"] = self.statestore.get_latest_model()
+            combiner_config["model_id"] = self.model_store.get_active()
             combiner_config["task"] = "validation"
-            combiner_config["helper_type"] = self.statestore.get_helper()
+
+            helper_type: str = None
+
+            try:
+                active_package = self.package_store.get_active()
+                helper_type = active_package["helper"]
+            except Exception:
+                logger.error("Failed to get active helper")
+
+            combiner_config["helper_type"] = helper_type
 
             validating_combiners = self.get_participating_combiners(combiner_config)
 
@@ -392,7 +357,7 @@ class Control(ControlBase):
 
         self.set_round_data(round_id, round_data)
         self.set_round_status(round_id, "Finished")
-        return model_id, self.statestore.get_round(round_id)
+        return model_id, self.round_store.get(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.
@@ -483,7 +448,7 @@ class Control(ControlBase):
 
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
-        combiner_config["model_id"] = self.statestore.get_latest_model()
+        combiner_config["model_id"] = self.model_store.get_active()
         combiner_config["task"] = "prediction"
         combiner_config["helper_type"] = self.statestore.get_framework()
 

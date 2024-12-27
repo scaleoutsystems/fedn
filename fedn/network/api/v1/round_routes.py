@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, round_store
+from fedn.network.api.shared import round_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")

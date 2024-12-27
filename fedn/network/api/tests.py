@@ -41,50 +41,6 @@ class NetworkAPITests(unittest.TestCase):
         import fedn.network.api.server
         self.app = fedn.network.api.server.app.test_client()
 
-    def test_get_model_trail(self):
-        """ Test get_model_trail endpoint. """
-        # Mock api.get_model_trail
-        model_id = "test"
-        time_stamp = time.time()
-        return_value = {model_id: time_stamp}
-        fedn.network.api.server.api.get_model_trail = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_model_trail')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_model_trail was called
-        fedn.network.api.server.api.get_model_trail.assert_called_once_with()
-
-    def test_get_latest_model(self):
-        """ Test get_latest_model endpoint. """
-        # Mock api.get_latest_model
-        model_id = "test"
-        time_stamp = time.time()
-        return_value = {model_id: time_stamp}
-        fedn.network.api.server.api.get_latest_model = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_latest_model')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_latest_model was called
-        fedn.network.api.server.api.get_latest_model.assert_called_once_with()
-
-    def test_get_initial_model(self):
-        """ Test get_initial_model endpoint. """
-        # Mock api.get_initial_model
-        model_id = "test"
-        time_stamp = time.time()
-        return_value = {model_id: time_stamp}
-        fedn.network.api.server.api.get_initial_model = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_initial_model')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_initial_model was called
-        fedn.network.api.server.api.get_initial_model.assert_called_once_with()
 
     def test_set_initial_model(self):
         """ Test set_initial_model endpoint. """
@@ -160,44 +116,6 @@ class NetworkAPITests(unittest.TestCase):
         # Assert api.get_all_combiners was called
         fedn.network.api.server.api.get_all_combiners.assert_called_once_with()
 
-    def test_list_compute_packages(self):
-        """ Test list_compute_packages endpoint. """
-        # Mock api.list_compute_packages
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.list_compute_packages = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/list_combiners')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.list_compute_packages was called
-        fedn.network.api.server.api.list_compute_packages.assert_called_once_with()
-
-    def test_list_rounds(self):
-        """ Test list_rounds endpoint. """
-        # Mock api.get_all_rounds
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_all_rounds = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/list_rounds')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_all_rounds was called
-        fedn.network.api.server.api.get_all_rounds.assert_called_once_with()
-
-    def test_get_round(self):
-        """ Test get_round endpoint. """
-        # Mock api.get_round
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_round = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_round?round_id=test')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_round was called
-        fedn.network.api.server.api.get_round.assert_called_once_with("test")
 
     def test_get_combiner(self):
         """ Test get_combiner endpoint. """
@@ -239,19 +157,6 @@ class NetworkAPITests(unittest.TestCase):
             secure_grpc='True',
             fqdn='test',
         )
-
-    def test_get_events(self):
-        """ Test get_events endpoint. """
-        # Mock api.get_events
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_events = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_events')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_events was called
-        fedn.network.api.server.api.get_events.assert_called_once()
 
     def test_get_status(self):
         """ Test get_status endpoint. """
@@ -304,18 +209,6 @@ class NetworkAPITests(unittest.TestCase):
         # Assert api.list_sessions was called
         fedn.network.api.server.api.get_all_sessions.assert_called_once()
 
-    def test_list_models(self):
-        """ Test list_models endpoint. """
-        # Mock api.list_models
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_models = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/list_models')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.list_models was called
-        fedn.network.api.server.api.get_models.assert_called_once()
 
     def test_get_package(self):
         """ Test get_package endpoint. """
