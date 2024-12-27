@@ -117,19 +117,6 @@ class NetworkAPITests(unittest.TestCase):
         fedn.network.api.server.api.get_all_combiners.assert_called_once_with()
 
 
-    def test_get_combiner(self):
-        """ Test get_combiner endpoint. """
-        # Mock api.get_combiner
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_combiner = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/get_combiner?combiner=test')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_combiner was called
-        fedn.network.api.server.api.get_combiner.assert_called_once_with("test")
-
     def test_add_combiner(self):
         """ Test add_combiner endpoint. """
         # Mock api.add_combiner

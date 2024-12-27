@@ -35,7 +35,14 @@ round_store = RoundStore(mdb, "control.rounds")
 status_store = StatusStore(mdb, "control.status")
 validation_store = ValidationStore(mdb, "control.validations")
 
-control = Control(statestore=statestore, session_store=session_store, model_store=model_store, round_store=round_store, package_store=package_store)
+control = Control(
+    statestore=statestore,
+    session_store=session_store,
+    model_store=model_store,
+    round_store=round_store,
+    package_store=package_store,
+    combiner_store=combiner_store,
+)
 
 minio_repository: RepositoryBase = None
 

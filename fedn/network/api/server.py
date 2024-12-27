@@ -130,45 +130,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_active_clients", view_func=get_active_clients, methods=["GET"])
 
 
-@app.route("/list_combiners", methods=["GET"])
-@jwt_auth_required(role="admin")
-def list_combiners():
-    """Get all combiners in the network.
-    return: All combiners as a json object.
-    rtype: json
-    """
-    limit = request.args.get("limit", None)
-    skip = request.args.get("skip", None)
-
-    return api.get_all_combiners(limit, skip)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/list_combiners", view_func=list_combiners, methods=["GET"])
-
-
-@app.route("/get_combiner", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_combiner():
-    """Get a combiner from the statestore.
-    param: combiner_id: The combiner id to get.
-    type: combiner_id: str
-    return: The combiner as a json object.
-    rtype: json
-    """
-    combiner_id = request.args.get("combiner", None)
-    if combiner_id is None:
-        return (
-            jsonify({"success": False, "message": "Missing combiner id."}),
-            400,
-        )
-    return api.get_combiner(combiner_id)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_combiner", view_func=get_combiner, methods=["GET"])
-
-
 @app.route("/get_package", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_package():

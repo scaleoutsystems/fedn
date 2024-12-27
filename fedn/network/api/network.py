@@ -3,6 +3,7 @@ import os
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 
 __all__ = ("Network",)
 
@@ -13,9 +14,10 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, statestore, load_balancer=None):
+    def __init__(self, control, statestore, combiner_store: CombinerStore, load_balancer=None):
         """ """
         self.statestore = statestore
+        self.combiner_store = combiner_store
         self.control = control
         self.id = statestore.network_id
 
@@ -44,7 +46,7 @@ class Network:
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        data = self.statestore.get_combiners()
+        data = self.combiner_store.list(limit=0, skip=0, sort_key=None)
         combiners = []
         for c in data["result"]:
             name = c["name"].upper()

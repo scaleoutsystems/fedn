@@ -75,51 +75,6 @@ class API:
 
         return jsonify(result)
 
-    def get_all_combiners(self, limit=None, skip=None):
-        """Get all combiners from the statestore.
-
-        :return: All combiners as a json response.
-        :rtype: :class:`flask.Response`
-        """
-        # Will return list of ObjectId
-        projection = {"name": True, "updated_at": True}
-        response = self.statestore.get_combiners(limit, skip, projection=projection)
-        arr = []
-        for element in response["result"]:
-            obj = {
-                "name": element["name"],
-                "updated_at": element["updated_at"],
-            }
-
-            arr.append(obj)
-
-        result = {"result": arr, "count": response["count"]}
-
-        return jsonify(result)
-
-    def get_combiner(self, combiner_id):
-        """Get a combiner from the statestore.
-
-        :param combiner_id: The combiner id to get.
-        :type combiner_id: str
-        :return: The combiner info dict as a json response.
-        :rtype: :class:`flask.Response`
-        """
-        # Will return ObjectId
-        object = self.statestore.get_combiner(combiner_id)
-        payload = {}
-        id = object["name"]
-        info = {
-            "address": object["address"],
-            "fqdn": object["fqdn"],
-            "parent_reducer": object["parent"]["name"],
-            "port": object["port"],
-            "updated_at": object["updated_at"],
-        }
-        payload[id] = info
-
-        return jsonify(payload)
-
     def download_compute_package(self, name):
         """Download the compute package.
 

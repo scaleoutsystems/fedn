@@ -12,6 +12,7 @@ from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -42,7 +43,15 @@ class ControlBase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, statestore, session_store: SessionStore, model_store: ModelStore, round_store: RoundStore, package_store: PackageStore):
+    def __init__(
+        self,
+        statestore,
+        session_store: SessionStore,
+        model_store: ModelStore,
+        round_store: RoundStore,
+        package_store: PackageStore,
+        combiner_store: CombinerStore,
+    ):
         """Constructor."""
         self._state = ReducerState.setup
 
@@ -52,7 +61,7 @@ class ControlBase(ABC):
         self.package_store = package_store
         self.statestore = statestore
         if self.statestore.is_inited():
-            self.network = Network(self, statestore)
+            self.network = Network(self, statestore, combiner_store)
 
         try:
             not_ready = True
