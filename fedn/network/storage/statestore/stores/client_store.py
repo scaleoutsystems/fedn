@@ -45,12 +45,6 @@ class ClientStore(MongoDBStore[Client]):
             raise EntityNotFound(f"Entity with client_id {client_id} not found")
         return document
 
-    def _get_client_by_name(self, name: str) -> Dict:
-        document = self.database[self.collection].find_one({"name": name})
-        if document is None:
-            raise EntityNotFound(f"Entity with name {name} not found")
-        return document
-
     def update(self, by_key: str, value: str, item: Client) -> bool:
         try:
             result = self.database[self.collection].update_one({by_key: value}, {"$set": item})
@@ -64,6 +58,17 @@ class ClientStore(MongoDBStore[Client]):
 
     def add(self, item: Client) -> Tuple[bool, Any]:
         return super().add(item)
+
+    def upsert(self, item: Client) -> Tuple[bool, Any]:
+        try:
+            result = self.database[self.collection].update_one(
+                {"client_id": item["client_id"]}, {"$set": {k: v for k, v in item.items() if v is not None}}, upsert=True
+            )
+            id = result.upserted_id
+            document = self.database[self.collection].find_one({"_id": id})
+            return True, from_document(document)
+        except Exception as e:
+            return False, str(e)
 
     def delete(self, id: str) -> bool:
         kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"client_id": id}

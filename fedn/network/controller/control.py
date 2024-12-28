@@ -11,6 +11,7 @@ from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
+from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
@@ -101,9 +102,10 @@ class Control(ControlBase):
         round_store: RoundStore,
         package_store: PackageStore,
         combiner_store: CombinerStore,
+        client_store: ClientStore,
     ):
         """Constructor method."""
-        super().__init__(statestore, session_store, model_store, round_store, package_store, combiner_store)
+        super().__init__(statestore, session_store, model_store, round_store, package_store, combiner_store, client_store)
         self.name = "DefaultControl"
 
     def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:

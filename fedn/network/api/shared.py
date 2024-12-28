@@ -42,6 +42,7 @@ control = Control(
     round_store=round_store,
     package_store=package_store,
     combiner_store=combiner_store,
+    client_store=client_store,
 )
 
 minio_repository: RepositoryBase = None

@@ -186,48 +186,6 @@ class MongoStateStore:
         config["status"] = "enabled"
         self.storage.update_one({"storage_type": config["storage_type"]}, {"$set": config}, True)
 
-    def set_combiner(self, combiner_data):
-        """Set combiner in statestore.
-
-        :param combiner_data: dictionary of combiner config
-        :type combiner_data: dict
-        :return:
-        """
-        combiner_data["updated_at"] = str(datetime.now())
-        self.combiners.update_one({"name": combiner_data["name"]}, {"$set": combiner_data}, True)
-
-    def delete_combiner(self, combiner):
-        """Delete a combiner from statestore.
-
-        :param combiner: name of combiner to delete.
-        :type combiner: str
-        :return:
-        """
-        try:
-            self.combiners.delete_one({"name": combiner})
-        except Exception:
-            logger.error(
-                "Failed to delete combiner: {}".format(combiner),
-            )
-
-    def set_client(self, client_data):
-        """Set client in statestore.
-
-        :param client_data: dictionary of client config.
-        :type client_data: dict
-        :return:
-        """
-        client_data["updated_at"] = str(datetime.now())
-        try:
-            # self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": client_data}, True)
-            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": {k: v for k, v in client_data.items() if v is not None}}, upsert=True)
-        except KeyError:
-            # If client_id is not present, use name as identifier, for backwards compatibility
-            id = str(uuid.uuid4())
-            client_data["client_id"] = id
-            # self.clients.update_one({"name": client_data["name"]}, {"$set": client_data}, True)
-            self.clients.update_one({"client_id": client_data["client_id"]}, {"$set": {k: v for k, v in client_data.items() if v is not None}}, upsert=True)
-
     def get_client(self, client_id):
         """Get client by client_id.
 

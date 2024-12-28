@@ -3,6 +3,7 @@ import os
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
+from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 
 __all__ = ("Network",)
@@ -14,10 +15,11 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, statestore, combiner_store: CombinerStore, load_balancer=None):
+    def __init__(self, control, statestore, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
         """ """
         self.statestore = statestore
         self.combiner_store = combiner_store
+        self.client_store = client_store
         self.control = control
         self.id = statestore.network_id
 
@@ -65,35 +67,6 @@ class Network:
 
         return combiners
 
-    def add_combiner(self, combiner):
-        """Add a new combiner to the network.
-
-        :param combiner: The combiner instance object
-        :type combiner: :class:`fedn.network.combiner.interfaces.CombinerInterface`
-        :return: None
-        """
-        if not self.control.idle():
-            logger.warning("Reducer is not idle, cannot add additional combiner.")
-            return
-
-        if self.get_combiner(combiner.name):
-            return
-
-        logger.info("adding combiner {}".format(combiner.name))
-        self.statestore.set_combiner(combiner.to_dict())
-
-    def remove_combiner(self, combiner):
-        """Remove a combiner from the network.
-
-        :param combiner: The combiner instance object
-        :type combiner: :class:`fedn.network.combiner.interfaces.CombinerInterface`
-        :return: None
-        """
-        if not self.control.idle():
-            logger.warning("Reducer is not idle, cannot remove combiner.")
-            return
-        self.statestore.delete_combiner(combiner.name)
-
     def find_available_combiner(self):
         """Find an available combiner in the network.
 
@@ -124,7 +97,7 @@ class Network:
             return
 
         logger.info("adding client {}".format(client["client_id"]))
-        self.statestore.set_client(client)
+        self.client_store.upsert(client)
 
     def get_client(self, name):
         """Get client by name.
