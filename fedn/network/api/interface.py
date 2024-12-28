@@ -48,33 +48,6 @@ class API:
 
         return (False, None)
 
-    def get_clients(self, limit=None, skip=None, status=False):
-        """Get all clients from the statestore.
-
-        :return: All clients as a json response.
-        :rtype: :class:`flask.Response`
-        """
-        # Will return list of ObjectId
-        response = self.statestore.list_clients(limit, skip, status)
-
-        arr = []
-
-        for element in response["result"]:
-            obj = {
-                "id": element["name"],
-                "combiner": element["combiner"],
-                "combiner_preferred": element["combiner_preferred"],
-                "ip": element["ip"],
-                "status": element["status"],
-                "last_seen": element["last_seen"] if "last_seen" in element else "",
-            }
-
-            arr.append(obj)
-
-        result = {"result": arr, "count": response["count"]}
-
-        return jsonify(result)
-
     def download_compute_package(self, name):
         """Download the compute package.
 
@@ -339,28 +312,3 @@ class API:
             if success:
                 payload["checksum"] = checksum_str
         return jsonify(payload)
-
-    def list_combiners_data(self, combiners):
-        """Get combiners data.
-
-        :param combiners: The combiners to get data for.
-        :type combiners: list
-        :return: The combiners data as json response.
-        :rtype: :py:class:`flask.Response`
-        """
-        response = self.statestore.list_combiners_data(combiners)
-
-        arr = []
-
-        # order list by combiner name
-        for element in response:
-            obj = {
-                "combiner": element["_id"],
-                "count": element["count"],
-            }
-
-            arr.append(obj)
-
-        result = {"result": arr}
-
-        return jsonify(result)

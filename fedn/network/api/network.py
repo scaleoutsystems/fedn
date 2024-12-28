@@ -99,16 +99,19 @@ class Network:
         logger.info("adding client {}".format(client["client_id"]))
         self.client_store.upsert(client)
 
-    def get_client(self, name):
-        """Get client by name.
+    def get_client(self, client_id: str):
+        """Get client by client_id.
 
-        :param name: name of client
-        :type name: str
+        :param client_id: client_id of client
+        :type client_id: str
         :return: The client instance object
         :rtype: ObjectId
         """
-        ret = self.statestore.get_client(name)
-        return ret
+        try:
+            client = self.client_store.get(client_id)
+            return client
+        except Exception:
+            return None
 
     def update_client_data(self, client_data, status, role):
         """Update client status in statestore.
@@ -129,4 +132,4 @@ class Network:
         :return: list of client objects
         :rtype: list(ObjectId)
         """
-        return self.statestore.list_clients()
+        return self.client_store.list(limit=0, skip=0, sort_key=None)

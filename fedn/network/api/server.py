@@ -90,24 +90,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/delete_model_trail", view_func=delete_model_trail, methods=["GET", "POST"])
 
 
-@app.route("/list_clients", methods=["GET"])
-@jwt_auth_required(role="admin")
-def list_clients():
-    """Get all clients from the statestore.
-    return: All clients as a json object.
-    rtype: json
-    """
-    limit = request.args.get("limit", None)
-    skip = request.args.get("skip", None)
-    status = request.args.get("status", None)
-
-    return api.get_clients(limit, skip, status)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/list_clients", view_func=list_clients, methods=["GET"])
-
-
 @app.route("/get_active_clients", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_active_clients():
@@ -269,31 +251,6 @@ def add_client():
 
 if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/add_client", view_func=add_client, methods=["POST"])
-
-
-@app.route("/list_combiners_data", methods=["POST"])
-@jwt_auth_required(role="admin")
-def list_combiners_data():
-    """List data from combiners.
-    return: The response from control.
-    rtype: json
-    """
-    json_data = request.get_json()
-
-    # expects a list of combiner names (strings) in an array
-    combiners = json_data.get("combiners", None)
-
-    try:
-        response = api.list_combiners_data(combiners)
-    except TypeError:
-        return jsonify({"success": False, "message": "Invalid data provided"}), 400
-    except Exception:
-        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
-    return response
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/list_combiners_data", view_func=list_combiners_data, methods=["POST"])
 
 
 def start_server_api():

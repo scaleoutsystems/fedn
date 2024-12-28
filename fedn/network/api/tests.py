@@ -59,19 +59,6 @@ class NetworkAPITests(unittest.TestCase):
         # Assert api.set_initial_model was called
         fedn.network.api.server.api.set_initial_model.assert_called_once()
 
-    def test_list_clients(self):
-        """ Test list_clients endpoint. """
-        # Mock api.get_all_clients
-        return_value = {"test": "test"}
-        fedn.network.api.server.api.get_all_clients = MagicMock(return_value=return_value)
-        # Make request
-        response = self.app.get('/list_clients')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, return_value)
-        # Assert api.get_all_clients was called
-        fedn.network.api.server.api.get_all_clients.assert_called_once_with()
-
     def test_get_active_clients(self):
         """ Test get_active_clients endpoint. """
         # Mock api.get_active_clients
