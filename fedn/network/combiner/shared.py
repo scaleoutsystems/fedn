@@ -8,6 +8,7 @@ from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.status_store import StatusStore
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 
@@ -27,6 +28,7 @@ validation_store = ValidationStore(mdb, "control.validations")
 combiner_store = CombinerStore(mdb, "network.combiners")
 status_store = StatusStore(mdb, "control.status")
 prediction_store = PredictionStore(mdb, "control.predictions")
+round_store = RoundStore(mdb, "control.rounds")
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
 

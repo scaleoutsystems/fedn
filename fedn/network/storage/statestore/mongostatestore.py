@@ -186,14 +186,6 @@ class MongoStateStore:
         config["status"] = "enabled"
         self.storage.update_one({"storage_type": config["storage_type"]}, {"$set": config}, True)
 
-    def set_round_combiner_data(self, data):
-        """Set combiner round controller data.
-
-        :param data: The combiner data
-        :type data: dict
-        """
-        self.rounds.update_one({"round_id": str(data["round_id"])}, {"$push": {"combiners": data}}, True)
-
     def set_round_config(self, round_id, round_config):
         """Set round configuration.
 

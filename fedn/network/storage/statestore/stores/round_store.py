@@ -44,7 +44,7 @@ class RoundStore(MongoDBStore[Round]):
         return from_document(document)
 
     def update(self, id: str, item: Round) -> bool:
-        raise NotImplementedError("Update not implemented for RoundStore")
+        return super().update(id, item)
 
     def add(self, item: Round) -> Tuple[bool, Any]:
         round_id = item["round_id"]
