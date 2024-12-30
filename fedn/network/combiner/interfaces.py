@@ -245,39 +245,6 @@ class CombinerInterface:
 
         return response
 
-    def get_model(self, id, timeout=10):
-        """Download a model from the combiner server.
-
-        :param id: The model id.
-        :type id: str
-        :return: A file-like object containing the model.
-        :rtype: :class:`io.BytesIO`, None if the model is not available.
-        """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
-        modelservice = rpc.ModelServiceStub(channel)
-
-        data = BytesIO()
-        data.seek(0, 0)
-
-        time_start = time.time()
-
-        request = fedn.ModelRequest(id=id)
-        request.sender.name = self.name
-        request.sender.role = fedn.CLIENT
-
-        parts = modelservice.Download(request)
-        for part in parts:
-            if part.status == fedn.ModelStatus.IN_PROGRESS:
-                data.write(part.data)
-            if part.status == fedn.ModelStatus.OK:
-                return data
-            if part.status == fedn.ModelStatus.FAILED:
-                return None
-            if part.status == fedn.ModelStatus.UNKNOWN:
-                if time.time() - time_start > timeout:
-                    return None
-                continue
-
     def allowing_clients(self):
         """Check if the combiner is allowing additional client connections.
 

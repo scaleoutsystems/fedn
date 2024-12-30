@@ -54,26 +54,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/api/v1/graphql", view_func=graphql_endpoint, methods=["POST"])
 
 
-@app.route("/get_model", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_model():
-    """Get a model from the statestore.
-    param: model: The model id to get.
-    type: model: str
-    return: The model as a json object.
-    rtype: json
-    """
-    model = request.args.get("model", None)
-    if model is None:
-        return jsonify({"success": False, "message": "Missing model id."}), 400
-
-    return api.get_model(model)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_model", view_func=get_model, methods=["GET"])
-
-
 @app.route("/delete_model_trail", methods=["GET", "POST"])
 @jwt_auth_required(role="admin")
 def delete_model_trail():

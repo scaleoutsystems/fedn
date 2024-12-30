@@ -113,16 +113,6 @@ class MongoStateStore:
             logger.error("ERROR: {}".format(e))
             return None
 
-    def get_model(self, model_id):
-        """Get model with id.
-
-        :param model_id: id of model to get
-        :type model_id: str
-        :return: model with id
-        :rtype: ObjectId
-        """
-        return self.model.find_one({"key": "models", "model": model_id})
-
     def get_storage_backend(self):
         """Get the storage backend.
 
