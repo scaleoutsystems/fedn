@@ -56,6 +56,17 @@ class ClientStore(MongoDBStore[Client]):
         except Exception as e:
             return False, str(e)
 
+    # dict enables updating of a select number of fields
+    # def update_many(self, by_key: str, value: str, item: dict) -> bool:
+    #     try:
+    #         result = self.database[self.collection].update_many({by_key: value}, {"$set": item})
+    #         if result.modified_count > 0:
+    #             return True, "Updated"
+    #         else:
+    #             return False, "Entities not found"
+    #     except Exception as e:
+    #         return False, str(e)
+
     def add(self, item: Client) -> Tuple[bool, Any]:
         return super().add(item)
 

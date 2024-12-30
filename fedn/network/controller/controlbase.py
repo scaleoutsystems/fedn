@@ -216,7 +216,7 @@ class ControlBase(ABC):
         """Initialize a new round in backend db."""
         self.round_store.add(round_data)
 
-    def set_round_data(self, round_id, round_data):
+    def set_round_data(self, round_id: str, round_data: dict):
         """Set round data.
 
         :param round_id: The round unique identifier
@@ -224,9 +224,13 @@ class ControlBase(ABC):
         :param round_data: The status
         :type status: dict
         """
-        self.statestore.set_round_data(round_id, round_data)
+        round = self.round_store.get(round_id)
+        round["round_data"] = round_data
+        updated = self.round_store.update(round["id"], round)
+        if not updated:
+            raise Exception("Failed to update round")
 
-    def set_round_status(self, round_id, status):
+    def set_round_status(self, round_id: str, status: str):
         """Set the round round stats.
 
         :param round_id: The round unique identifier
@@ -234,9 +238,13 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        self.statestore.set_round_status(round_id, status)
+        round = self.round_store.get(round_id)
+        round["status"] = status
+        updated = self.round_store.update(round["id"], round)
+        if not updated:
+            raise Exception("Failed to update round")
 
-    def set_round_config(self, round_id, round_config: RoundConfig):
+    def set_round_config(self, round_id: str, round_config: RoundConfig):
         """Upate round in backend db.
 
         :param round_id: The round unique identifier
@@ -244,7 +252,11 @@ class ControlBase(ABC):
         :param round_config: The round configuration
         :type round_config: dict
         """
-        self.statestore.set_round_config(round_id, round_config)
+        round = self.round_store.get(round_id)
+        round["round_config"] = round_config
+        updated = self.round_store.update(round["id"], round)
+        if not updated:
+            raise Exception("Failed to update round")
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.

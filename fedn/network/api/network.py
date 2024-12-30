@@ -113,19 +113,6 @@ class Network:
         except Exception:
             return None
 
-    def update_client_data(self, client_data, status, role):
-        """Update client status in statestore.
-
-        :param client_data: The client instance object
-        :type client_data: dict
-        :param status: The client status
-        :type status: str
-        :param role: The client role
-        :type role: str
-        :return: None
-        """
-        self.statestore.update_client_status(client_data, status, role)
-
     def get_client_info(self):
         """List available client in statestore.
 
