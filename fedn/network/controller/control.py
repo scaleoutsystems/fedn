@@ -169,10 +169,9 @@ class Control(ControlBase):
                     logger.info("Session terminated.")
                     break
                 _, round_data = self.round(session_config, str(current_round))
+                logger.info("Round completed with status {}".format(round_data["status"]))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
-
-            logger.info("Round completed with status {}".format(round_data["status"]))
 
             session_config["model_id"] = self.model_store.get_active()
 
@@ -326,7 +325,7 @@ class Control(ControlBase):
         if model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
-            model_id = uuid.uuid4()
+            model_id = str(uuid.uuid4())
             session_id = session_config["session_id"] if "session_id" in session_config else None
             self.commit(model_id, model, session_id)
             round_data["time_commit"] = time.time() - tic

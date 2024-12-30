@@ -98,45 +98,6 @@ class MongoStateStore:
         """
         return StringToReducerState(self.state.find_one()["current_state"])
 
-    def set_latest_model(self, model_id, session_id=None):
-        """Set the latest model id.
-
-        :param model_id: The model id.
-        :type model_id: str
-        :return:
-        """
-        committed_at = datetime.now()
-        current_model = self.model.find_one({"key": "current_model"})
-        parent_model = None
-
-        # if session_id is set the it means the model is generated from a session
-        # and we need to set the parent model
-        # if not the model is uploaded by the user and we don't need to set the parent model
-        if session_id is not None:
-            parent_model = current_model["model"] if current_model and "model" in current_model else None
-
-        self.model.insert_one(
-            {
-                "key": "models",
-                "model": model_id,
-                "parent_model": parent_model,
-                "session_id": session_id,
-                "committed_at": committed_at,
-            }
-        )
-
-        self.model.update_one({"key": "current_model"}, {"$set": {"model": model_id}}, True)
-        self.model.update_one(
-            {"key": "model_trail"},
-            {
-                "$push": {
-                    "model": model_id,
-                    "committed_at": str(committed_at),
-                }
-            },
-            True,
-        )
-
     def get_compute_package(self):
         """Get the active compute package.
 

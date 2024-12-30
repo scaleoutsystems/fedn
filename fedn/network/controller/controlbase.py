@@ -1,5 +1,6 @@
 import os
 from abc import ABC, abstractmethod
+from datetime import datetime
 from time import sleep
 from typing import Any, Tuple
 
@@ -270,7 +271,7 @@ class ControlBase(ABC):
             cl.append((combiner, response))
         return cl
 
-    def commit(self, model_id, model=None, session_id=None):
+    def commit(self, model_id: str, model: dict = None, session_id: str = None, name: str = None):
         """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
 
         :param model_id: Unique identifier for the model to commit.
@@ -291,7 +292,35 @@ class ControlBase(ABC):
             os.unlink(outfile_name)
 
         logger.info("Committing model {} to global model trail in statestore...".format(model_id))
-        self.statestore.set_latest_model(model_id, session_id)
+
+        active_model: str = None
+
+        try:
+            active_model = self.model_store.get_active()
+        except Exception:
+            logger.info("No active model, adding...")
+
+        parent_model = None
+        if active_model:
+            parent_model = active_model
+
+        committed_at = datetime.now()
+
+        updated, _ = self.model_store.add(
+            {
+                "key": "models",
+                "model": model_id,
+                "parent_model": parent_model,
+                "session_id": session_id,
+                "committed_at": committed_at,
+                "name": name,
+            }
+        )
+
+        if not updated:
+            raise Exception("Failed to commit model to global model trail")
+
+        self.model_store.set_active(model_id)
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():

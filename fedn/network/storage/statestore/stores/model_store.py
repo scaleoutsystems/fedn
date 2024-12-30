@@ -84,7 +84,13 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         return super().update(id, item)
 
     def add(self, item: Model) -> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for ModelStore")
+        valid, message = self._validate(item)
+        if not valid:
+            return False, message
+
+        self._complement(item)
+
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for ModelStore")
@@ -235,7 +241,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         if model is None:
             raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
-        self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}})
+        self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}}, upsert=True)
 
         return True
 

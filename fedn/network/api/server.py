@@ -152,31 +152,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_package_checksum", view_func=get_package_checksum, methods=["GET"])
 
 
-@app.route("/set_initial_model", methods=["POST"])
-@jwt_auth_required(role="admin")
-def set_initial_model():
-    """Set the initial model in the statestore and upload to model repository.
-        Usage with curl:
-        curl -k -X POST
-            -F file=@seed.npz
-            http://localhost:8092/set_initial_model
-
-    param: file: The initial model file to set.
-    type: file: file
-    return: The response from the statestore.
-    rtype: json
-    """
-    try:
-        file = request.files["file"]
-    except KeyError:
-        return jsonify({"success": False, "message": "Missing file."}), 400
-    return api.set_initial_model(file)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/set_initial_model", view_func=set_initial_model, methods=["POST"])
-
-
 @app.route("/get_controller_status", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_controller_status():
