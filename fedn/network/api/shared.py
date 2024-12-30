@@ -20,7 +20,7 @@ statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
 statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
-statestore.set_storage_backend(modelstorage_config)
+# statestore.set_storage_backend(modelstorage_config)
 
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
 mc.server_info()
@@ -35,16 +35,20 @@ round_store = RoundStore(mdb, "control.rounds")
 status_store = StatusStore(mdb, "control.status")
 validation_store = ValidationStore(mdb, "control.validations")
 
+repository = Repository(modelstorage_config["storage_config"])
+
 control = Control(
-    statestore=statestore,
+    network_id=network_id,
     session_store=session_store,
     model_store=model_store,
     round_store=round_store,
     package_store=package_store,
     combiner_store=combiner_store,
     client_store=client_store,
+    model_repository=repository,
 )
 
+# TODO: use Repository
 minio_repository: RepositoryBase = None
 
 if modelstorage_config["storage_type"] == "S3":
@@ -53,9 +57,9 @@ if modelstorage_config["storage_type"] == "S3":
 
 storage_collection = mdb["network.storage"]
 
-storage_config = storage_collection.find_one({"status": "enabled"}, projection={"_id": False})
+# storage_config = storage_collection.find_one({"status": "enabled"}, projection={"_id": False})
 
-repository: RepositoryBase = None
+# repository: RepositoryBase = None
 
-if storage_config["storage_type"] == "S3":
-    repository = Repository(storage_config["storage_config"])
+# if storage_config["storage_type"] == "S3":
+#     repository = Repository(storage_config["storage_config"])

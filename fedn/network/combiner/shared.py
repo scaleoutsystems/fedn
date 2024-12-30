@@ -4,7 +4,6 @@ from pymongo.database import Database
 from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
@@ -15,8 +14,6 @@ from fedn.network.storage.statestore.stores.validation_store import ValidationSt
 statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
-
-statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
 
 if statestore_config["type"] == "MongoDB":
     mc = pymongo.MongoClient(**statestore_config["mongo_config"])

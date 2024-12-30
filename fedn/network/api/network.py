@@ -15,13 +15,12 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, statestore, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
+    def __init__(self, control, network_id: str, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
         """ """
-        self.statestore = statestore
         self.combiner_store = combiner_store
         self.client_store = client_store
         self.control = control
-        self.id = statestore.network_id
+        self.id = network_id
 
         if not load_balancer:
             self.load_balancer = LeastPacked(self)

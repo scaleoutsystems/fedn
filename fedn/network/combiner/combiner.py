@@ -16,7 +16,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, statestore, status_store, validation_store
+from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -105,8 +105,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set up model repository
         self.repository = repository
-
-        self.statestore = statestore
 
         self.round_store = round_store
 

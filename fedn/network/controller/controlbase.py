@@ -47,13 +47,14 @@ class ControlBase(ABC):
     @abstractmethod
     def __init__(
         self,
-        statestore,
+        network_id: str,
         session_store: SessionStore,
         model_store: ModelStore,
         round_store: RoundStore,
         package_store: PackageStore,
         combiner_store: CombinerStore,
         client_store: ClientStore,
+        model_repository: Repository,
     ):
         """Constructor."""
         self._state = ReducerState.setup
@@ -62,35 +63,38 @@ class ControlBase(ABC):
         self.model_store = model_store
         self.round_store = round_store
         self.package_store = package_store
-        self.statestore = statestore
-        if self.statestore.is_inited():
-            self.network = Network(self, statestore, combiner_store, client_store)
+        self.network = Network(self, network_id, combiner_store, client_store)
 
-        try:
-            not_ready = True
-            tries = 0
-            while not_ready:
-                storage_config = self.statestore.get_storage_backend()
-                if storage_config:
-                    not_ready = False
-                else:
-                    logger.warning("Storage backend not configured, waiting...")
-                    sleep(5)
-                    tries += 1
-                    if tries > MAX_TRIES_BACKEND:
-                        raise Exception
-        except Exception:
-            logger.error("Failed to retrive storage configuration, exiting.")
-            raise MisconfiguredStorageBackend()
+        # if self.statestore.is_inited():
+        #     self.network = Network(self, statestore, combiner_store, client_store)
 
-        if storage_config["storage_type"] == "S3":
-            self.model_repository = Repository(storage_config["storage_config"])
-        else:
-            logger.error("Unsupported storage backend, exiting.")
-            raise UnsupportedStorageBackend()
+        self.model_repository = model_repository
 
-        if self.statestore.is_inited():
-            self._state = ReducerState.idle
+        # try:
+        #     not_ready = True
+        #     tries = 0
+        #     while not_ready:
+        #         storage_config = self.statestore.get_storage_backend()
+        #         if storage_config:
+        #             not_ready = False
+        #         else:
+        #             logger.warning("Storage backend not configured, waiting...")
+        #             sleep(5)
+        #             tries += 1
+        #             if tries > MAX_TRIES_BACKEND:
+        #                 raise Exception
+        # except Exception:
+        #     logger.error("Failed to retrive storage configuration, exiting.")
+        #     raise MisconfiguredStorageBackend()
+
+        # if storage_config["storage_type"] == "S3":
+        #     self.model_repository = Repository(storage_config["storage_config"])
+        # else:
+        #     logger.error("Unsupported storage backend, exiting.")
+        #     raise UnsupportedStorageBackend()
+
+        # if self.statestore.is_inited():
+        #     self._state = ReducerState.idle
 
     @abstractmethod
     def round(self, config, round_number):
@@ -401,5 +405,4 @@ class ControlBase(ABC):
         :return: The state
         :rype: str
         """
-        return self._state
         return self._state
