@@ -1,7 +1,7 @@
 import os
-import uuid
 from abc import ABC, abstractmethod
 from time import sleep
+from typing import Any, Tuple
 
 import pymongo
 
@@ -173,7 +173,7 @@ class ControlBase(ABC):
         else:
             return None
 
-    def set_session_status(self, session_id, status):
+    def set_session_status(self, session_id: str, status: str) -> Tuple[bool, Any]:
         """Set the round round stats.
 
         :param round_id: The round unique identifier
@@ -181,7 +181,11 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        self.statestore.set_session_status(session_id, status)
+        session = self.session_store.get(session_id)
+        session["status"] = status
+        updated, msg = self.session_store.update(session["id"], session)
+        if not updated:
+            raise Exception(msg)
 
     def get_session_status(self, session_id: str):
         """Get the status of a session.
@@ -194,7 +198,7 @@ class ControlBase(ABC):
         session = self.session_store.get(session_id)
         return session["status"]
 
-    def set_session_config(self, session_id: str, config: dict):
+    def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
         """Set the model id for a session.
 
         :param session_id: The session unique identifier
@@ -202,11 +206,15 @@ class ControlBase(ABC):
         :param config: The session config
         :type config: dict
         """
-        self.statestore.set_session_config_v2(session_id, config)
+        session = self.session_store.get(session_id)
+        session["session_config"] = config
+        updated, msg = self.session_store.update(session["id"], session)
+        if not updated:
+            raise Exception(msg)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
-        self.statestore.create_round(round_data)
+        self.round_store.add(round_data)
 
     def set_round_data(self, round_id, round_data):
         """Set round data.

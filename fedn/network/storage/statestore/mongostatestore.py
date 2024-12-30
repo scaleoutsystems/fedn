@@ -186,36 +186,6 @@ class MongoStateStore:
         config["status"] = "enabled"
         self.storage.update_one({"storage_type": config["storage_type"]}, {"$set": config}, True)
 
-    def create_round(self, round_data):
-        """Create a new round.
-
-        :param round_data: Dictionary with round data.
-        :type round_data: dict
-        """
-        # TODO: Add check if round_id already exists
-        self.rounds.insert_one(round_data)
-
-    def set_session_config(self, id: str, config) -> None:
-        """Set the session configuration.
-
-        :param id: The session id
-        :type id: str
-        :param config: Session configuration
-        :type config: dict
-        """
-        self.sessions.update_one({"session_id": str(id)}, {"$push": {"session_config": config}}, True)
-
-    # Added to accomodate new session config structure
-    def set_session_config_v2(self, id: str, config) -> None:
-        """Set the session configuration.
-
-        :param id: The session id
-        :type id: str
-        :param config: Session configuration
-        :type config: dict
-        """
-        self.sessions.update_one({"session_id": str(id)}, {"$set": {"session_config": config}}, True)
-
     def set_session_status(self, id, status):
         """Set session status.
 

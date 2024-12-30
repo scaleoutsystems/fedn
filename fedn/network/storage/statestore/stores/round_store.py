@@ -47,7 +47,13 @@ class RoundStore(MongoDBStore[Round]):
         raise NotImplementedError("Update not implemented for RoundStore")
 
     def add(self, item: Round) -> Tuple[bool, Any]:
-        raise NotImplementedError("Add not implemented for RoundStore")
+        round_id = item["round_id"]
+        existing = self.database[self.collection].find_one({"round_id": round_id})
+
+        if existing is not None:
+            return False, "Round with round_id already exists"
+
+        return super().add(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for RoundStore")
