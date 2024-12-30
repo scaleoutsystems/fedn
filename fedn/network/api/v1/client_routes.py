@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import client_store
+from fedn.network.api.shared import client_store, control, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -400,3 +400,107 @@ def delete_client(id: str):
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/add", methods=["POST"])
+@jwt_auth_required(role="admin")
+def add_client():
+    """Add client
+    Adds a client to the network.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client
+        in: body
+        required: true
+        type: object
+        description: Object containing the parameters to create the client
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            combiner:
+              type: string
+            combiner_preferred:
+              type: string
+            ip:
+              type: string
+            status:
+              type: string
+    responses:
+        200:
+            description: The client was added
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        json_data = request.get_json()
+        remote_addr = request.remote_addr
+
+        client_id = json_data.get("client_id", None)
+        name = json_data.get("name", None)
+        preferred_combiner = json_data.get("combiner_preferred", None)
+        package = json_data.get("package", "local")
+        helper_type: str = ""
+
+        if package == "remote":
+            try:
+                package_object = package_store.get_active()
+            except EntityNotFound:
+                return jsonify(
+                    {
+                        "success": False,
+                        "status": "retry",
+                        "message": "No compute package found. Set package in controller.",
+                    }
+                ), 203
+            helper_type = package_object["helper"]
+        else:
+            helper_type = ""
+
+        if preferred_combiner:
+            combiner = control.network.get_combiner(preferred_combiner)
+            if combiner is None:
+                return jsonify(
+                    {
+                        "success": False,
+                        "message": f"Combiner {preferred_combiner} not found or unavailable.",
+                    },
+                    400,
+                )
+        else:
+            combiner = control.network.find_available_combiner()
+            if combiner is None:
+                return jsonify({"success": False, "message": "No combiner available."}), 400
+
+        client_config = {
+            "client_id": client_id,
+            "name": name,
+            "combiner_preferred": preferred_combiner,
+            "combiner": combiner.name,
+            "ip": remote_addr,
+            "status": "available",
+            "package": package,
+        }
+
+        control.network.add_client(client_config)
+
+        payload = {
+            "status": "assigned",
+            "host": combiner.address,
+            "fqdn": combiner.fqdn,
+            "package": package,
+            "ip": combiner.ip,
+            "port": combiner.port,
+            "helper_type": helper_type,
+        }
+        return jsonify(payload), 200
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500

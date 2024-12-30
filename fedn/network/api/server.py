@@ -184,30 +184,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/add_combiner", view_func=add_combiner, methods=["POST"])
 
 
-@app.route("/add_client", methods=["POST"])
-@jwt_auth_required(role="client")
-def add_client():
-    """Add a client to the network.
-    return: The response from control.
-    rtype: json
-    """
-    json_data = request.get_json()
-    remote_addr = request.remote_addr
-    try:
-        response = api.add_client(**json_data, remote_addr=remote_addr)
-    except TypeError as e:
-        print(e)
-        return jsonify({"success": False, "message": "Invalid data provided"}), 400
-    except Exception as e:
-        print(e)
-        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
-    return response
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/add_client", view_func=add_client, methods=["POST"])
-
-
 def start_server_api():
     config = get_controller_config()
     port = config["port"]
