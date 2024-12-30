@@ -33,6 +33,25 @@ class API:
         data = {"name": self.name}
         return data
 
+    def _get_compute_package_name(self):
+        """Get the compute package name from the statestore.
+
+        :return: The compute package name.
+        :rtype: str
+        """
+        package_objects = self.statestore.get_compute_package()
+        if package_objects is None:
+            message = "No compute package found."
+            return None, message
+        else:
+            try:
+                name = package_objects["storage_file_name"]
+            except KeyError as e:
+                message = "No compute package found. Key error."
+                logger.debug(e)
+                return None, message
+            return name, "success"
+
     def _create_checksum(self, name=None):
         """Create the checksum of the compute package.
 

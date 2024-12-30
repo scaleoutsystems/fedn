@@ -9,6 +9,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.utils.checksum import sha
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -570,36 +571,6 @@ def upload_package():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-# def download_compute_package(self, name):
-#         """Download the compute package.
-
-#         :return: The compute package as a json object.
-#         :rtype: :class:`flask.Response`
-#         """
-#         if name is None:
-#             name, message = self._get_compute_package_name()
-#             if name is None:
-#                 return jsonify({"success": False, "message": message}), 404
-#         try:
-#             mutex = threading.Lock()
-#             mutex.acquire()
-
-#             return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
-#         except Exception:
-#             try:
-#                 data = self.control.get_compute_package(name)
-#                 # TODO: make configurable, perhaps in config.py or package.py
-#                 file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
-#                 with open(file_path, "wb") as fh:
-#                     fh.write(data)
-#                 # TODO: make configurable, perhaps in config.py or package.py
-#                 return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
-#             except Exception:
-#                 raise
-#         finally:
-#             mutex.release()
-
-
 @bp.route("/download", methods=["GET"])
 @jwt_auth_required(role="admin")
 def download_package():
@@ -665,3 +636,25 @@ def download_package():
             raise
     finally:
         mutex.release()
+
+
+@bp.route("/checksum", methods=["GET"])
+@jwt_auth_required(role="client")
+def get_checksume():
+    name = request.args.get("name", None)
+
+    if name is None:
+        try:
+            active_package = package_store.get_active()
+            name = active_package["storage_file_name"]
+        except EntityNotFound:
+            return jsonify({"message": "No active package"}), 404
+
+    try:
+        sum = str(sha(name))
+        result = {"checksum": sum}
+        return jsonify(result), 200
+    except FileNotFoundError:
+        return jsonify({"success": False, "message": "File not found"}), 404
+    except Exception:
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500

@@ -408,7 +408,7 @@ class APIClient:
         :return: The checksum.
         :rtype: dict
         """
-        response = requests.get(self._get_url("get_package_checksum"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/checksum"), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
