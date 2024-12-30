@@ -33,69 +33,6 @@ class API:
         data = {"name": self.name}
         return data
 
-    def _allowed_file_extension(self, filename, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}):
-        """Check if file extension is allowed.
-
-        :param filename: The filename to check.
-        :type filename: str
-        :return: True and extension str if file extension is allowed, else False and None.
-        :rtype: Tuple (bool, str)
-        """
-        if "." in filename:
-            extension = filename.rsplit(".", 1)[1].lower()
-            if extension in ALLOWED_EXTENSIONS:
-                return (True, extension)
-
-        return (False, None)
-
-    def download_compute_package(self, name):
-        """Download the compute package.
-
-        :return: The compute package as a json object.
-        :rtype: :class:`flask.Response`
-        """
-        if name is None:
-            name, message = self._get_compute_package_name()
-            if name is None:
-                return jsonify({"success": False, "message": message}), 404
-        try:
-            mutex = threading.Lock()
-            mutex.acquire()
-
-            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
-        except Exception:
-            try:
-                data = self.control.get_compute_package(name)
-                # TODO: make configurable, perhaps in config.py or package.py
-                file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
-                with open(file_path, "wb") as fh:
-                    fh.write(data)
-                # TODO: make configurable, perhaps in config.py or package.py
-                return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
-            except Exception:
-                raise
-        finally:
-            mutex.release()
-
-    def _get_compute_package_name(self):
-        """Get the compute package name from the statestore.
-
-        :return: The compute package name.
-        :rtype: str
-        """
-        package_objects = self.statestore.get_compute_package()
-        if package_objects is None:
-            message = "No compute package found."
-            return None, message
-        else:
-            try:
-                name = package_objects["storage_file_name"]
-            except KeyError as e:
-                message = "No compute package found. Key error."
-                logger.debug(e)
-                return None, message
-            return name, "success"
-
     def _create_checksum(self, name=None):
         """Create the checksum of the compute package.
 

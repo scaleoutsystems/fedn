@@ -92,35 +92,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_active_clients", view_func=get_active_clients, methods=["GET"])
 
 
-@app.route("/get_package", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_package():
-    """Get the compute package from the statestore.
-    return: The compute package as a json object.
-    rtype: json
-    """
-    return api.get_compute_package()
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_package", view_func=get_package, methods=["GET"])
-
-
-@app.route("/download_package", methods=["GET"])
-@jwt_auth_required(role="client")
-def download_package():
-    """Download the compute package.
-    return: The compute package as a json object.
-    rtype: json
-    """
-    name = request.args.get("name", None)
-    return api.download_compute_package(name)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/download_package", view_func=download_package, methods=["GET"])
-
-
 @app.route("/get_package_checksum", methods=["GET"])
 @jwt_auth_required(role="client")
 def get_package_checksum():

@@ -1,11 +1,12 @@
 import os
+import threading
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_from_directory
 from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import package_store, repository
+from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -567,3 +568,100 @@ def upload_package():
         return jsonify({"message": "Package uploaded"}), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+# def download_compute_package(self, name):
+#         """Download the compute package.
+
+#         :return: The compute package as a json object.
+#         :rtype: :class:`flask.Response`
+#         """
+#         if name is None:
+#             name, message = self._get_compute_package_name()
+#             if name is None:
+#                 return jsonify({"success": False, "message": message}), 404
+#         try:
+#             mutex = threading.Lock()
+#             mutex.acquire()
+
+#             return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+#         except Exception:
+#             try:
+#                 data = self.control.get_compute_package(name)
+#                 # TODO: make configurable, perhaps in config.py or package.py
+#                 file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
+#                 with open(file_path, "wb") as fh:
+#                     fh.write(data)
+#                 # TODO: make configurable, perhaps in config.py or package.py
+#                 return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+#             except Exception:
+#                 raise
+#         finally:
+#             mutex.release()
+
+
+@bp.route("/download", methods=["GET"])
+@jwt_auth_required(role="admin")
+def download_package():
+    """Download package
+    Downloads a package based on the provided id.
+    ---
+    tags:
+        - Packages
+    parameters:
+      - name: name
+        in: query
+        required: false
+        type: string
+        description: The name of the package
+
+    responses:
+        200:
+            description: The package file
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        404:
+            description: The package was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    name = request.args.get("name", None)
+
+    if name is None:
+        try:
+            active_package = package_store.get_active()
+            name = active_package["storage_file_name"]
+        except EntityNotFound:
+            return jsonify({"message": "No active package"}), 404
+
+    try:
+        mutex = threading.Lock()
+        mutex.acquire()
+
+        return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+    except Exception:
+        try:
+            data = control.get_compute_package(name)
+            # TODO: make configurable, perhaps in config.py or package.py
+            file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
+            with open(file_path, "wb") as fh:
+                fh.write(data)
+            # TODO: make configurable, perhaps in config.py or package.py
+            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+        except Exception:
+            raise
+    finally:
+        mutex.release()
