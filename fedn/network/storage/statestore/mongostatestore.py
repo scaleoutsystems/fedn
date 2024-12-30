@@ -121,18 +121,3 @@ class MongoStateStore:
         config["updated_at"] = str(datetime.now())
         config["status"] = "enabled"
         self.storage.update_one({"storage_type": config["storage_type"]}, {"$set": config}, True)
-
-    def get_compute_package(self):
-        """Get the active compute package.
-
-        :return: The active compute package.
-        :rtype: ObjectID
-        """
-        try:
-            find = {"key": "active"}
-            projection = {"key": False, "_id": False}
-            ret = self.control.package.find_one(find, projection)
-            return ret
-        except Exception as e:
-            logger.error("ERROR: {}".format(e))
-            return None

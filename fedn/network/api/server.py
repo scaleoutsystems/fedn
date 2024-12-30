@@ -92,17 +92,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_active_clients", view_func=get_active_clients, methods=["GET"])
 
 
-@app.route("/get_package_checksum", methods=["GET"])
-@jwt_auth_required(role="client")
-def get_package_checksum():
-    name = request.args.get("name", None)
-    return api.get_checksum(name)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_package_checksum", view_func=get_package_checksum, methods=["GET"])
-
-
 @app.route("/get_controller_status", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_controller_status():

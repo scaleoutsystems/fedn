@@ -33,60 +33,6 @@ class API:
         data = {"name": self.name}
         return data
 
-    def _get_compute_package_name(self):
-        """Get the compute package name from the statestore.
-
-        :return: The compute package name.
-        :rtype: str
-        """
-        package_objects = self.statestore.get_compute_package()
-        if package_objects is None:
-            message = "No compute package found."
-            return None, message
-        else:
-            try:
-                name = package_objects["storage_file_name"]
-            except KeyError as e:
-                message = "No compute package found. Key error."
-                logger.debug(e)
-                return None, message
-            return name, "success"
-
-    def _create_checksum(self, name=None):
-        """Create the checksum of the compute package.
-
-        :param name: The name of the compute package.
-        :type name: str
-        :return: Success or failure boolean, message and the checksum.
-        :rtype: bool, str, str
-        """
-        if name is None:
-            name, message = self._get_compute_package_name()
-            if name is None:
-                return False, message, ""
-        file_path = safe_join(os.getcwd(), name)  # TODO: make configurable, perhaps in config.py or package.py
-        try:
-            sum = str(sha(file_path))
-        except FileNotFoundError:
-            sum = ""
-            message = "File not found."
-        return True, message, sum
-
-    def get_checksum(self, name):
-        """Get the checksum of the compute package.
-
-        :param name: The name of the compute package.
-        :type name: str
-        :return: The checksum as a json object.
-        :rtype: :py:class:`flask.Response`
-        """
-        success, message, sum = self._create_checksum(name)
-        if not success:
-            return jsonify({"success": False, "message": message}), 404
-        payload = {"checksum": sum}
-
-        return jsonify(payload)
-
     def get_controller_status(self):
         """Get the status of the controller.
 
