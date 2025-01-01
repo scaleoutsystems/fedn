@@ -65,36 +65,7 @@ class ControlBase(ABC):
         self.package_store = package_store
         self.network = Network(self, network_id, combiner_store, client_store)
 
-        # if self.statestore.is_inited():
-        #     self.network = Network(self, statestore, combiner_store, client_store)
-
         self.model_repository = model_repository
-
-        # try:
-        #     not_ready = True
-        #     tries = 0
-        #     while not_ready:
-        #         storage_config = self.statestore.get_storage_backend()
-        #         if storage_config:
-        #             not_ready = False
-        #         else:
-        #             logger.warning("Storage backend not configured, waiting...")
-        #             sleep(5)
-        #             tries += 1
-        #             if tries > MAX_TRIES_BACKEND:
-        #                 raise Exception
-        # except Exception:
-        #     logger.error("Failed to retrive storage configuration, exiting.")
-        #     raise MisconfiguredStorageBackend()
-
-        # if storage_config["storage_type"] == "S3":
-        #     self.model_repository = Repository(storage_config["storage_config"])
-        # else:
-        #     logger.error("Unsupported storage backend, exiting.")
-        #     raise UnsupportedStorageBackend()
-
-        # if self.statestore.is_inited():
-        #     self._state = ReducerState.idle
 
     @abstractmethod
     def round(self, config, round_number):
