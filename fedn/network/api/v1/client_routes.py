@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.common.config import get_controller_config, get_network_config
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import client_store, control, package_store
+from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -504,3 +505,55 @@ def add_client():
         return jsonify(payload), 200
     except Exception:
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/config", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_client_config():
+    """Get client config
+    Retrieves the client configuration.
+    ---
+    tags:
+        - Clients
+    responses:
+        200:
+            description: The client configuration
+            schema:
+                type: object
+                properties:
+                    network_id:
+                        type: string
+                    discover_host:
+                        type: string
+                    discover_port:
+                        type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        checksum_arg = request.args.get("checksum", "true")
+        include_checksum = checksum_arg.lower() == "true"
+
+        config = get_controller_config()
+        network_id = get_network_config()
+        port = config["port"]
+        host = config["host"]
+        payload = {
+            "network_id": network_id,
+            "discover_host": host,
+            "discover_port": port,
+        }
+
+        if include_checksum:
+            success, _, checksum_str = get_checksum()
+            if success:
+                payload["checksum"] = checksum_str
+
+        return jsonify(payload), 200
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500

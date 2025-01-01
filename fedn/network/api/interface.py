@@ -33,14 +33,6 @@ class API:
         data = {"name": self.name}
         return data
 
-    def get_controller_status(self):
-        """Get the status of the controller.
-
-        :return: The status of the controller as a json object.
-        :rtype: :py:class:`flask.Response`
-        """
-        return jsonify({"state": ReducerStateToString(self.control.state())})
-
     def add_combiner(self, combiner_id, secure_grpc, address, remote_addr, fqdn, port):
         """Add a combiner to the network.
 
@@ -89,3 +81,23 @@ class API:
             if success:
                 payload["checksum"] = checksum_str
         return jsonify(payload)
+
+    def _create_checksum(self, name=None):
+        """Create the checksum of the compute package.
+
+        :param name: The name of the compute package.
+        :type name: str
+        :return: Success or failure boolean, message and the checksum.
+        :rtype: bool, str, str
+        """
+        if name is None:
+            name, message = self._get_compute_package_name()
+            if name is None:
+                return False, message, ""
+        file_path = safe_join(os.getcwd(), name)  # TODO: make configurable, perhaps in config.py or package.py
+        try:
+            sum = str(sha(file_path))
+        except FileNotFoundError:
+            sum = ""
+            message = "File not found."
+        return True, message, sum

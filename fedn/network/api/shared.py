@@ -1,5 +1,8 @@
+import os
+
 import pymongo
 from pymongo.database import Database
+from werkzeug.security import safe_join
 
 from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.controller.control import Control
@@ -13,8 +16,10 @@ from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
+from fedn.utils.checksum import sha
 
 statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
@@ -57,9 +62,24 @@ if modelstorage_config["storage_type"] == "S3":
 
 storage_collection = mdb["network.storage"]
 
-# storage_config = storage_collection.find_one({"status": "enabled"}, projection={"_id": False})
 
-# repository: RepositoryBase = None
+def get_checksum(name: str = None):
+    message = None
+    sum = None
+    success = False
 
-# if storage_config["storage_type"] == "S3":
-#     repository = Repository(storage_config["storage_config"])
+    if name is None:
+        try:
+            active_package = package_store.get_active()
+            name = active_package["storage_file_name"]
+        except EntityNotFound:
+            message = "No compute package uploaded"
+            return success, message, sum
+    file_path = safe_join(os.getcwd(), name)
+    try:
+        sum = str(sha(file_path))
+        success = True
+        message = "Checksum created."
+    except FileNotFoundError:
+        message = "File not found."
+    return success, message, sum

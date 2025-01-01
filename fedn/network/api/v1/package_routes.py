@@ -6,7 +6,9 @@ from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, package_store, repository
+from fedn.network.api.shared import control
+from fedn.network.api.shared import get_checksum as _get_checksum
+from fedn.network.api.shared import package_store, repository
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.utils.checksum import sha
@@ -640,21 +642,10 @@ def download_package():
 
 @bp.route("/checksum", methods=["GET"])
 @jwt_auth_required(role="client")
-def get_checksume():
+def get_checksum():
     name = request.args.get("name", None)
 
-    if name is None:
-        try:
-            active_package = package_store.get_active()
-            name = active_package["storage_file_name"]
-        except EntityNotFound:
-            return jsonify({"message": "No active package"}), 404
-
-    try:
-        sum = str(sha(name))
-        result = {"checksum": sum}
-        return jsonify(result), 200
-    except FileNotFoundError:
-        return jsonify({"success": False, "message": "File not found"}), 404
-    except Exception:
-        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
+    success, message, sum = _get_checksum(name)
+    if success:
+        return jsonify({"message": message, "checksum": sum}), 200
+    return jsonify({"message": message, "checksum": sum}), 404

@@ -9,6 +9,7 @@ from fedn.network.api.interface import API
 from fedn.network.api.shared import control, statestore
 from fedn.network.api.v1 import _routes
 from fedn.network.api.v1.graphql.schema import schema
+from fedn.network.state import ReducerState, ReducerStateToString
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 api = API(statestore, control)
@@ -54,44 +55,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/api/v1/graphql", view_func=graphql_endpoint, methods=["POST"])
 
 
-@app.route("/delete_model_trail", methods=["GET", "POST"])
-@jwt_auth_required(role="admin")
-def delete_model_trail():
-    """Delete the model trail for a given session.
-    param: session: The session id to delete the model trail for.
-    type: session: str
-    return: The response from the statestore.
-    rtype: json
-    """
-    return jsonify({"message": "Not implemented"}), 501
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/delete_model_trail", view_func=delete_model_trail, methods=["GET", "POST"])
-
-
-@app.route("/get_active_clients", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_active_clients():
-    """Get all active clients from the statestore.
-    param: combiner_id: The combiner id to get active clients for.
-    type: combiner_id: str
-    return: All active clients as a json object.
-    rtype: json
-    """
-    combiner_id = request.args.get("combiner", None)
-    if combiner_id is None:
-        return (
-            jsonify({"success": False, "message": "Missing combiner id."}),
-            400,
-        )
-    return api.get_active_clients(combiner_id)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_active_clients", view_func=get_active_clients, methods=["GET"])
-
-
 @app.route("/get_controller_status", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_controller_status():
@@ -99,7 +62,7 @@ def get_controller_status():
     return: The status as a json object.
     rtype: json
     """
-    return api.get_controller_status()
+    return jsonify({"state": ReducerStateToString(control.state())}), 200
 
 
 if custom_url_prefix:
