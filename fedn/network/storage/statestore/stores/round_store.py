@@ -22,6 +22,7 @@ class Round:
 class RoundStore(MongoDBStore[Round]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
+        self.database[self.collection].create_index([("round_id", pymongo.DESCENDING)])
 
     def get(self, id: str) -> Round:
         """Get an entity by id
@@ -74,5 +75,4 @@ class RoundStore(MongoDBStore[Round]):
             description: The order to sort by
         return: The entities
         """
-        return super().list(limit, skip, sort_key or "round_id", sort_order, **kwargs)
         return super().list(limit, skip, sort_key or "round_id", sort_order, **kwargs)

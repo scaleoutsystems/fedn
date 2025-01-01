@@ -53,6 +53,7 @@ class PackageStore(Store[Package]):
 class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
+        self.database[self.collection].create_index([("id", pymongo.DESCENDING)])
 
     def get(self, id: str) -> Package:
         """Get an entity by id

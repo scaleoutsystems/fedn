@@ -22,6 +22,7 @@ class Session:
 class SessionStore(MongoDBStore[Session]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
+        self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
     def _validate_session_config(self, session_config: dict) -> Tuple[bool, str]:
         if "aggregator" not in session_config:

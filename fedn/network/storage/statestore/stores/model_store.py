@@ -42,6 +42,7 @@ class ModelStore(Store[Model]):
 class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
+        self.database[self.collection].create_index([("model", pymongo.DESCENDING)])
 
     def get(self, id: str) -> Model:
         """Get an entity by id
