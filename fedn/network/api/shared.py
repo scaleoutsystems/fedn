@@ -9,7 +9,6 @@ from fedn.network.controller.control import Control
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore
@@ -24,8 +23,6 @@ from fedn.utils.checksum import sha
 statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
-statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
-# statestore.set_storage_backend(modelstorage_config)
 
 mc = pymongo.MongoClient(**statestore_config["mongo_config"])
 mc.server_info()
