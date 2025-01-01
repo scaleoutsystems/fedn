@@ -5,14 +5,12 @@ from flask import Flask, jsonify, request
 from fedn.common.config import get_controller_config
 from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.interface import API
-from fedn.network.api.shared import control, statestore
+from fedn.network.api.shared import control
 from fedn.network.api.v1 import _routes
 from fedn.network.api.v1.graphql.schema import schema
-from fedn.network.state import ReducerState, ReducerStateToString
+from fedn.network.state import ReducerStateToString
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
-api = API(statestore, control)
 app = Flask(__name__)
 for bp in _routes:
     app.register_blueprint(bp)
@@ -69,22 +67,6 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/get_controller_status", view_func=get_controller_status, methods=["GET"])
 
 
-@app.route("/get_client_config", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_client_config():
-    """Get the client configuration.
-    return: The client configuration as a json object.
-    rtype: json
-    """
-    checksum_arg = request.args.get("checksum", "true")
-    checksum = checksum_arg.lower() != "false"
-    return api.get_client_config(checksum)
-
-
-if custom_url_prefix:
-    app.add_url_rule(f"{custom_url_prefix}/get_client_config", view_func=get_client_config, methods=["GET"])
-
-
 @app.route("/add_combiner", methods=["POST"])
 @jwt_auth_required(role="combiner")
 def add_combiner():
@@ -92,15 +74,13 @@ def add_combiner():
     return: The response from the statestore.
     rtype: json
     """
-    json_data = request.get_json()
-    remote_addr = request.remote_addr
-    try:
-        response = api.add_combiner(**json_data, remote_addr=remote_addr)
-    except TypeError:
-        return jsonify({"success": False, "message": "Invalid data provided"}), 400
-    except Exception:
-        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
-    return response
+    payload = {
+        "success": False,
+        "message": "Adding combiner via REST API is obsolete. Include statestore and object store config in combiner config.",
+        "status": "abort",
+    }
+
+    return jsonify(payload), 410
 
 
 if custom_url_prefix:
