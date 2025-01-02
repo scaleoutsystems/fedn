@@ -354,7 +354,8 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         with Session() as session:
             stmt = select(PackageModel)
 
-            # TODO: Implement filtering
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(PackageModel, key) == value)
 
             _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
             _sort_key: str = sort_key or "committed_at"
