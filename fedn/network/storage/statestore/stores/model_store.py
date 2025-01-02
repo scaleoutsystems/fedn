@@ -43,6 +43,13 @@ class ModelStore(Store[Model]):
         pass
 
 
+def validate(self, item: Model) -> Tuple[bool, str]:
+    if "model" not in item or not item["model"]:
+        return False, "Model is required"
+
+    return True, ""
+
+
 class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
@@ -69,18 +76,12 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
 
         return from_document(document)
 
-    def _validate(self, item: Model) -> Tuple[bool, str]:
-        if "model" not in item or not item["model"]:
-            return False, "Model is required"
-
-        return True, ""
-
     def _complement(self, item: Model):
         if "key" not in item or item["key"] is None:
             item["key"] = "models"
 
     def update(self, id: str, item: Model) -> Tuple[bool, Any]:
-        valid, message = self._validate(item)
+        valid, message = validate(item)
         if not valid:
             return False, message
 
@@ -89,7 +90,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         return super().update(id, item)
 
     def add(self, item: Model) -> Tuple[bool, Any]:
-        valid, message = self._validate(item)
+        valid, message = validate(item)
         if not valid:
             return False, message
 
@@ -290,17 +291,17 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         raise NotImplementedError
 
-    def count(self, **kwargs):
+    def count(self, **kwargs) -> int:
         raise NotImplementedError
 
-    def list_descendants(self, id, limit):
+    def list_descendants(self, id: str, limit: int):
         raise NotImplementedError
 
-    def list_ancestors(self, id, limit, include_self=False, reverse=False):
+    def list_ancestors(self, id: str, limit: int, include_self=False, reverse=False):
         raise NotImplementedError
 
-    def get_active(self):
+    def get_active(self) -> str:
         raise NotImplementedError
 
-    def set_active(self, id):
+    def set_active(self, id: str) -> bool:
         raise NotImplementedError
