@@ -6,9 +6,8 @@ from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
+from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
-from fedn.network.api.shared import package_store, repository
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.utils.checksum import sha
@@ -127,8 +126,7 @@ def get_packages():
         response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -570,8 +568,7 @@ def upload_package():
 
         package_store.set_active(response["id"])
         return jsonify({"message": "Package uploaded"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+    except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import String, select
+from sqlalchemy import String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
@@ -232,7 +232,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
 
         return True
 
-    def delete_active(self):
+    def delete_active(self) -> bool:
         kwargs = {"key": "active"}
 
         document_active = self.database[self.collection].find_one(kwargs)
@@ -344,11 +344,18 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 raise EntityNotFound("Entity not found")
             return from_row(item)
 
-    def update(self, id, item):
+    def update(self, id: str, item: Package) -> bool:
         raise NotImplementedError
 
-    def delete(self, id):
-        raise NotImplementedError
+    def delete(self, id: str) -> bool:
+        with Session() as session:
+            stmt = select(PackageModel).where(PackageModel.id == id)
+            item = session.scalars(stmt).first()
+            if item is None:
+                raise EntityNotFound("Entity not found")
+            session.delete(item)
+            session.commit()
+            return True
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         with Session() as session:
@@ -360,7 +367,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
             _sort_key: str = sort_key or "committed_at"
 
-            stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)
@@ -370,7 +377,10 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             result = []
             for i in item:
                 result.append(from_row(i))
-            return {"count": len(result), "result": result}
+
+            count = session.scalar(select(func.count()).select_from(PackageModel))
+
+            return {"count": count, "result": result}
 
     def count(self, **kwargs):
         raise NotImplementedError
@@ -413,5 +423,12 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 return True
             raise EntityNotFound("Entity not found")
 
-    def delete_active(self):
-        raise NotImplementedError
+    def delete_active(self) -> bool:
+        with Session() as session:
+            active_stmt = select(PackageModel).where(PackageModel.active)
+            active_item = session.scalars(active_stmt).first()
+            if active_item:
+                active_item.active = False
+                session.commit()
+                return True
+            raise EntityNotFound("Entity not found")
