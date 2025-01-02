@@ -47,7 +47,8 @@ dependencies = [
   "plotly",
   "virtualenv",
   "tenacity!=8.4.0",
-  "graphene>=3.1"
+  "graphene>=3.1",
+  "SQLAlchemy>=2.0.36"
 ]
 
 [project.urls]

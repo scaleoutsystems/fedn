@@ -1,10 +1,12 @@
-import sqlite3
+import uuid
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from .shared import EntityNotFound, from_document
 
@@ -29,7 +31,14 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+    def list(
+        self,
+        limit: int,
+        skip: int,
+        sort_key: str,
+        sort_order=pymongo.DESCENDING,
+        **kwargs,
+    ) -> Dict[int, List[T]]:
         pass
 
     @abstractmethod
@@ -81,7 +90,14 @@ class MongoDBStore(Store[T], Generic[T]):
         result = self.database[self.collection].delete_one({"_id": ObjectId(id)})
         return result.deleted_count == 1
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+    def list(
+        self,
+        limit: int,
+        skip: int,
+        sort_key: str,
+        sort_order=pymongo.DESCENDING,
+        **kwargs,
+    ) -> Dict[int, List[T]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -115,46 +131,27 @@ class MongoDBStore(Store[T], Generic[T]):
 
 
 class SQLStore(Store[T], Generic[T]):
-    def __init__(self, db_name: str, table_name: str):
-        self.connection = sqlite3.connect(db_name)
-        self.cursor = self.connection.cursor()
-        self.table_name = table_name
-        self.create_table()
+    pass
 
-    @abstractmethod
-    def create_table(self):
-        """Create a table for the specific type."""
-        pass
 
-    def get(self, id: str) -> T:
-        self.cursor.execute(
-            "SELECT * FROM ? WHERE id = ?",
-            (
-                self.table_name,
-                id,
-            ),
-        )
-        row = self.cursor.fetchone()
-        if not row:
-            raise ValueError(f"Item with id '{id}' not found")
-        return row
+constraint_naming_conventions = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
-        sort_order = "ASC" if sort_order == pymongo.ASCENDING else "DESC"
-        if limit and skip:
-            self.cursor.execute("SELECT * FROM ? ORDER BY ? ? LIMIT ? OFFSET ?", (self.table_name, sort_key, sort_order, limit, skip))
-        else:
-            self.cursor.execute("SELECT * FROM ? ORDER BY ? ?", (self.table_name, sort_key, sort_order))
-        rows = self.cursor.fetchall()
 
-        self.cursor.execute("SELECT COUNT(*) FROM items")
-        count = self.cursor.fetchone()[0]
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention=constraint_naming_conventions)
 
-        return {"count": count, "result": rows}
 
-    def count(self, **kwargs) -> int:
-        self.cursor.execute("SELECT COUNT(*) FROM ?", (self.table_name,))
-        return self.cursor.fetchone()[0]
+class MyAbstractBase(Base):
+    __abstract__ = True
 
-    def delete(self, id: str) -> bool:
-        super().cursor.execute("DELETE FROM ? WHERE id = ?", (super().table_name, id))
+    id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
+
+
+engine = create_engine("sqlite:///my_database.db", echo=True)
+Session = sessionmaker(engine)

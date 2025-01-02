@@ -75,7 +75,6 @@ class FednClient:
         self.predict_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
-        # url_endpoint = f"{url}add_client"
         url_endpoint = f"{url}api/v1/clients/add"
         logger.info(f"Connecting to API endpoint: {url_endpoint}")
 

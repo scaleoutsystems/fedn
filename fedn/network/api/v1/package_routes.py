@@ -127,7 +127,8 @@ def get_packages():
         response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -569,7 +570,8 @@ def upload_package():
 
         package_store.set_active(response["id"])
         return jsonify({"message": "Package uploaded"}), 200
-    except Exception:
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
