@@ -383,7 +383,15 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        raise NotImplementedError
+        with Session() as session:
+            stmt = select(func.count()).select_from(PackageModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(PackageModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
 
     def set_active(self, id: str):
         with Session() as session:

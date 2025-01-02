@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import String, func, select
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import text
+from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -247,46 +251,56 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         return True
 
 
+class ModelModel(MyAbstractBase):
+    __tablename__ = "models"
+
+    active: Mapped[bool] = mapped_column(default=False)
+    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
+    parent_model: Mapped[Optional[str]] = mapped_column(String(255))
+    session_id: Mapped[Optional[str]] = mapped_column(String(255))
+    model: Mapped[str] = mapped_column(String(255))
+    name: Mapped[Optional[str]] = mapped_column(String(255))
+
+
+def from_row(row: ModelModel) -> Model:
+    return {
+        "id": row.id,
+        "committed_at": row.committed_at,
+        "model": row.model,
+        "parent_model": row.parent_model,
+        "session_id": row.session_id,
+        "name": row.name,
+        "active": row.active,
+    }
+
+
 class SQLModelStore(ModelStore, SQLStore[Model]):
-    def __init__(self, database: Database, table: str):
-        super().__init__(database, table)
+    def get(self, id: str) -> Model:
+        raise NotImplementedError
 
-    def create_table(self):
-        table_name = super().table_name
-        if not table_name.isidentifier():
-            raise ValueError(f"Invalid table name: {table_name}")
+    def update(self, id: str, item: Model) -> Tuple[bool, Any]:
+        raise NotImplementedError
 
-        query = f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id VARCHAR(255) PRIMARY KEY,
-            model VARCHAR(255),
-            parent_model VARCHAR(255),
-            session_id VARCHAR(255),
-            committed_at TIMESTAMP
-        )
-        """
-        self.cursor.execute(query)
+    def add(self, item: Model) -> Tuple[bool, Any]:
+        raise NotImplementedError
 
-    def update(self, id, item):
-        super().cursor.execute(
-            "UPDATE ? SET model = ?, parent_model = ?, session_id = ?, committed_at = ? WHERE id = ?",
-            (super().table_name, item.model, item.parent_model, item.session_id, item.committed_at, id),
-        )
+    def delete(self, id: str) -> bool:
+        raise NotImplementedError
 
-    def add(self, item):
-        super().cursor.execute(
-            "INSERT INTO ? (model, parent_model, session_id, committed_at) VALUES (?, ?, ?, ?)",
-            (super().table_name, item.model, item.parent_model, item.session_id, item.committed_at),
-        )
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        raise NotImplementedError
 
-    def list_descendants(self, id: str, limit: int) -> List[Model]:
-        raise NotImplementedError("List descendants not implemented for SQLModelStore")
+    def count(self, **kwargs):
+        raise NotImplementedError
 
-    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False) -> List[Model]:
-        raise NotImplementedError("List ancestors not implemented for SQLModelStore")
+    def list_descendants(self, id, limit):
+        raise NotImplementedError
 
-    def get_active(self) -> str:
-        raise NotImplementedError("Get active not implemented for SQLModelStore")
+    def list_ancestors(self, id, limit, include_self=False, reverse=False):
+        raise NotImplementedError
 
-    def set_active(self, id: str) -> bool:
-        raise NotImplementedError("Set active not implemented for SQLModelStore")
+    def get_active(self):
+        raise NotImplementedError
+
+    def set_active(self, id):
+        raise NotImplementedError
