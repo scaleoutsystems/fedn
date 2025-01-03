@@ -329,8 +329,18 @@ class APIClient:
         :return: A dict with success or failure message.
         :rtype: dict
         """
+        if path.endswith(".npz"):
+            helper = "numpyhelper"
+        elif path.endswith(".bin"):
+            helper = "binaryhelper"
+
+        if helper:
+            response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
+
         with open(path, "rb") as file:
-            response = requests.post(self._get_url("set_initial_model"), files={"file": file}, verify=self.verify, headers=self.headers)
+            response = requests.post(
+                self._get_url("set_initial_model"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers
+            )
         return response.json()
 
     # --- Packages --- #
@@ -606,26 +616,48 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        if model_id is None:
+            response = requests.get(self._get_url_api_v1("models/active"), verify=self.verify, headers=self.headers)
+            if response.status_code == 200:
+                model_id = response.json()
+            else:
+                return response.json()
+
         response = requests.post(
-            self._get_url("start_session"),
+            self._get_url_api_v1("sessions/"),
             json={
                 "session_id": id,
-                "aggregator": aggregator,
-                "aggregator_kwargs": aggregator_kwargs,
-                "model_id": model_id,
-                "round_timeout": round_timeout,
-                "rounds": rounds,
-                "round_buffer_size": round_buffer_size,
-                "delete_models": delete_models,
-                "validate": validate,
-                "helper": helper,
-                "min_clients": min_clients,
-                "requested_clients": requested_clients,
-                "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+                "session_config": {
+                    "aggregator": aggregator,
+                    "aggregator_kwargs": aggregator_kwargs,
+                    "round_timeout": round_timeout,
+                    "buffer_size": round_buffer_size,
+                    "model_id": model_id,
+                    "delete_models_storage": delete_models,
+                    "clients_required": min_clients,
+                    "requested_clients": requested_clients,
+                    "validate": validate,
+                    "helper_type": helper,
+                    "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+                },
             },
             verify=self.verify,
             headers=self.headers,
         )
+
+        if response.status_code == 201:
+            if id is None:
+                id = response.json()["session_id"]
+            response = requests.post(
+                self._get_url_api_v1("sessions/start"),
+                json={
+                    "session_id": id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                verify=self.verify,
+                headers=self.headers,
+            )
 
         _json = response.json()
 

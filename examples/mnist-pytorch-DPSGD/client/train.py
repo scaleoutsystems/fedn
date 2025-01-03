@@ -1,19 +1,22 @@
 import os
 import sys
 
+import numpy as np
 import torch
-from model import load_parameters, save_parameters
-
+import yaml
 from data import load_data
+from model import load_parameters, save_parameters
+from opacus import PrivacyEngine
+from opacus.utils.batch_memory_manager import BatchMemoryManager
+
 from fedn.utils.helpers.helpers import save_metadata
 
-from opacus import PrivacyEngine
-from torch.utils.data import Dataset
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(dir_path))
 
-import numpy as np
-from opacus.utils.batch_memory_manager import BatchMemoryManager
+
 # Define a custom Dataset class
-class CustomDataset(Dataset):
+class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, x_data, y_data):
         self.x_data = x_data
         self.y_data = y_data
@@ -27,20 +30,16 @@ class CustomDataset(Dataset):
         return x_data, y_data
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.abspath(dir_path))
-
-MAX_GRAD_NORM = 1.2
-FINAL_EPSILON = 8.0
-GLOBAL_ROUNDS = 4
-EPOCHS = 5
-EPSILON = FINAL_EPSILON/GLOBAL_ROUNDS
-DELTA = 1e-5
-HARDLIMIT = False
-
 MAX_PHYSICAL_BATCH_SIZE = 32
+EPOCHS = 1
+EPSILON = 1000.0
+DELTA = 1e-5
+MAX_GRAD_NORM = 1.2
+GLOBAL_ROUNDS = 10
+HARDLIMIT = True
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
+
+def train(in_model_path, out_model_path, data_path=None, batch_size=32, lr=0.01):
     """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -60,68 +59,68 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     :param lr: The learning rate to use.
     :type lr: float
     """
+    with open("../../client_settings.yaml", "r") as fh:
+        try:
+            settings = yaml.safe_load(fh)
+            EPSILON = float(settings["epsilon"])
+            DELTA = float(settings["delta"])
+            MAX_GRAD_NORM = float(settings["max_grad_norm"])
+            GLOBAL_ROUNDS = int(settings["global_rounds"])
+            HARDLIMIT = bool(settings["hardlimit"])
+            global MAX_PHYSICAL_BATCH_SIZE
+            MAX_PHYSICAL_BATCH_SIZE = int(settings["max_physical_batch_size"])
+        except yaml.YAMLError as exc:
+            print(exc)
+
     # Load data
-    print("data_path: ", data_path)
     x_train, y_train = load_data(data_path)
-    trainset = CustomDataset(x_train, y_train)
-    batch_size = 32
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                               shuffle=True, num_workers=2)
 
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-
-
-    # Load epsilon
-    if os.path.isfile("epsilon.npy"):
-
-        tot_epsilon = np.load("epsilon.npy")
-        print("load consumed epsilon: ", tot_epsilon)
-
-    else:
-
-        print("initiate tot_epsilon")
-        tot_epsilon = 0.
 
     # Train
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     privacy_engine = PrivacyEngine()
 
+    if os.path.isfile("privacy_accountant.state"):
+        privacy_engine.accountant = torch.load("privacy_accountant.state")
+
+    trainset = CustomDataset(x_train, y_train)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, num_workers=2)
+
+    try:
+        epsilon_spent = privacy_engine.get_epsilon(DELTA)
+    except ValueError:
+        epsilon_spent = 0
+    print("epsilon before training: ", epsilon_spent)
+
+    round_epsilon = np.sqrt((epsilon_spent / EPSILON * np.sqrt(GLOBAL_ROUNDS)) ** 2 + 1) * EPSILON / np.sqrt(GLOBAL_ROUNDS)
+
+    print("target epsilon: ", round_epsilon)
     model, optimizer, train_loader = privacy_engine.make_private_with_epsilon(
         module=model,
         optimizer=optimizer,
         data_loader=train_loader,
         epochs=EPOCHS,
-        target_epsilon=EPSILON,
+        target_epsilon=round_epsilon,
         target_delta=DELTA,
         max_grad_norm=MAX_GRAD_NORM,
     )
 
-    print(f"Using sigma={optimizer.noise_multiplier} and C={MAX_GRAD_NORM}")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train_dp(model, train_loader, optimizer, EPOCHS, device, privacy_engine)
+    try:
+        print("epsilon after training: ", privacy_engine.get_epsilon(DELTA))
+    except ValueError:
+        print("cant calculate epsilon")
 
-
-
-    for epoch in range(EPOCHS):
-        train_dp(model, train_loader, optimizer, epoch + 1, device, privacy_engine)
-
-    d_epsilon = privacy_engine.get_epsilon(DELTA)
-    print("epsilon spent: ", d_epsilon)
-    tot_epsilon = np.sqrt(tot_epsilon**2 + d_epsilon**2)
-    print("saving tot_epsilon: ", tot_epsilon)
-    np.save("epsilon.npy", tot_epsilon)
-
-    if HARDLIMIT and tot_epsilon >= FINAL_EPSILON:
-        print("DP Budget Exceeded: The differential privacy budget has been exhausted, no model updates will be applied to preserve privacy guarantees.")
-
-    else:
+    if HARDLIMIT and privacy_engine.get_epsilon(DELTA) < EPSILON:
         # Metadata needed for aggregation server side
         metadata = {
             # num_examples are mandatory
             "num_examples": len(x_train),
             "batch_size": batch_size,
-            "epochs": epochs,
+            "epochs": EPOCHS,
             "lr": lr,
         }
 
@@ -130,27 +129,17 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
         # Save model update (mandatory)
         save_parameters(model, out_model_path)
+    else:
+        print("Epsilon too high, not saving model")
 
-def accuracy(preds, labels):
-    return (preds == labels).mean()
-
-
-
+    # Save privacy accountant
+    torch.save(privacy_engine.accountant, "privacy_accountant.state")
 
 
 def train_dp(model, train_loader, optimizer, epoch, device, privacy_engine):
     model.train()
     criterion = torch.nn.NLLLoss()  # nn.CrossEntropyLoss()
-
-    losses = []
-    top1_acc = []
-
-    with BatchMemoryManager(
-            data_loader=train_loader,
-            max_physical_batch_size=MAX_PHYSICAL_BATCH_SIZE,
-            optimizer=optimizer
-    ) as memory_safe_data_loader:
-
+    with BatchMemoryManager(data_loader=train_loader, max_physical_batch_size=MAX_PHYSICAL_BATCH_SIZE, optimizer=optimizer) as memory_safe_data_loader:
         for i, (images, target) in enumerate(memory_safe_data_loader):
             optimizer.zero_grad()
             images = images.to(device)
@@ -159,27 +148,9 @@ def train_dp(model, train_loader, optimizer, epoch, device, privacy_engine):
             # compute output
             output = model(images)
             loss = criterion(output, target)
-
-            preds = np.argmax(output.detach().cpu().numpy(), axis=1)
-            labels = target.detach().cpu().numpy()
-
-            # measure accuracy and record loss
-            acc = accuracy(preds, labels)
-
-            losses.append(loss.item())
-            top1_acc.append(acc)
-
             loss.backward()
             optimizer.step()
 
-            if (i + 1) % 200 == 0:
-                epsilon = privacy_engine.get_epsilon(DELTA)
-                print(
-                    f"\tTrain Epoch: {epoch} \t"
-                    f"Loss: {np.mean(losses):.6f} "
-                    f"Acc@1: {np.mean(top1_acc) * 100:.6f} "
-                    f"(ε = {epsilon:.2f}, δ = {DELTA})"
-                )
 
 if __name__ == "__main__":
     train(sys.argv[1], sys.argv[2])

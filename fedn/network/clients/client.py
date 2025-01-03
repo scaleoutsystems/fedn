@@ -330,7 +330,7 @@ class Client:
         time_start = time.time()
         request = fedn.ModelRequest(id=id)
         request.sender.name = self.name
-        request.sender.role = fedn.WORKER
+        request.sender.role = fedn.CLIENT
 
         try:
             for part in self.modelStub.Download(request, metadata=self.metadata):
@@ -388,7 +388,7 @@ class Client:
         """
         r = fedn.ClientAvailableMessage()
         r.sender.name = self.name
-        r.sender.role = fedn.WORKER
+        r.sender.role = fedn.CLIENT
         r.sender.client_id = self.id
         # Add client to metadata
         self._add_grpc_metadata("client", self.name)
@@ -406,7 +406,7 @@ class Client:
                         # Process training request
                         self.send_status(
                             "Received model update request.",
-                            log_level=fedn.Status.AUDIT,
+                            log_level=fedn.LogLevel.AUDIT,
                             type=fedn.StatusType.MODEL_UPDATE_REQUEST,
                             request=request,
                             sesssion_id=request.session_id,
@@ -628,7 +628,7 @@ class Client:
                         update = fedn.ModelUpdate()
                         update.sender.name = self.name
                         update.sender.client_id = self.id
-                        update.sender.role = fedn.WORKER
+                        update.sender.role = fedn.CLIENT
                         update.receiver.name = request.sender.name
                         update.receiver.role = request.sender.role
                         update.model_id = request.model_id
@@ -641,7 +641,7 @@ class Client:
                             _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
                             self.send_status(
                                 "Model update completed.",
-                                log_level=fedn.Status.AUDIT,
+                                log_level=fedn.LogLevel.AUDIT,
                                 type=fedn.StatusType.MODEL_UPDATE,
                                 request=update,
                                 sesssion_id=request.session_id,
@@ -655,7 +655,7 @@ class Client:
                             logger.debug(e)
                     else:
                         self.send_status(
-                            "Client {} failed to complete model update.", log_level=fedn.Status.WARNING, request=request, sesssion_id=request.session_id
+                            "Client {} failed to complete model update.", log_level=fedn.LogLevel.WARNING, request=request, sesssion_id=request.session_id
                         )
 
                     self.state = ClientState.idle
@@ -669,7 +669,7 @@ class Client:
                         # Send validation
                         validation = fedn.ModelValidation()
                         validation.sender.name = self.name
-                        validation.sender.role = fedn.WORKER
+                        validation.sender.role = fedn.CLIENT
                         validation.receiver.name = request.sender.name
                         validation.receiver.role = request.sender.role
                         validation.model_id = str(request.model_id)
@@ -683,7 +683,11 @@ class Client:
 
                             status_type = fedn.StatusType.MODEL_VALIDATION
                             self.send_status(
-                                "Model validation completed.", log_level=fedn.Status.AUDIT, type=status_type, request=validation, sesssion_id=request.session_id
+                                "Model validation completed.",
+                                log_level=fedn.LogLevel.AUDIT,
+                                type=status_type,
+                                request=validation,
+                                sesssion_id=request.session_id,
                             )
                         except grpc.RpcError as e:
                             status_code = e.code()
@@ -695,7 +699,7 @@ class Client:
                     else:
                         self.send_status(
                             "Client {} failed to complete model validation.".format(self.name),
-                            log_level=fedn.Status.WARNING,
+                            log_level=fedn.LogLevel.WARNING,
                             request=request,
                             sesssion_id=request.session_id,
                         )
@@ -720,7 +724,7 @@ class Client:
                     _ = self._process_prediction_request(request.model_id, request.session_id, presigned_url)
                     prediction = fedn.ModelPrediction()
                     prediction.sender.name = self.name
-                    prediction.sender.role = fedn.WORKER
+                    prediction.sender.role = fedn.CLIENT
                     prediction.receiver.name = request.sender.name
                     prediction.receiver.name = request.sender.name
                     prediction.receiver.role = request.sender.role
@@ -736,7 +740,7 @@ class Client:
                         _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
                         status_type = fedn.StatusType.MODEL_PREDICTION
                         self.send_status(
-                            "Model prediction completed.", log_level=fedn.Status.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
+                            "Model prediction completed.", log_level=fedn.LogLevel.AUDIT, type=status_type, request=prediction, sesssion_id=request.session_id
                         )
                     except grpc.RpcError as e:
                         status_code = e.code()
@@ -758,7 +762,7 @@ class Client:
         :rtype: None
         """
         while True:
-            heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.WORKER, client_id=self.id))
+            heartbeat = fedn.Heartbeat(sender=fedn.Client(name=self.name, role=fedn.CLIENT, client_id=self.id))
             try:
                 self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
                 if self._missed_heartbeat > 0:
@@ -789,13 +793,13 @@ class Client:
                 logger.info("SendStatus: Client disconnected.")
                 return
 
-    def send_status(self, msg, log_level=fedn.Status.INFO, type=None, request=None, sesssion_id: str = None):
+    def send_status(self, msg, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None):
         """Send status message.
 
         :param msg: The message to send.
         :type msg: str
         :param log_level: The log level of the message.
-        :type log_level: fedn.Status.INFO, fedn.Status.WARNING, fedn.Status.ERROR
+        :type log_level: fedn.LogLevel.INFO, fedn.LogLevel.WARNING, fedn.LogLevel.ERROR
         :param type: The type of the message.
         :type type: str
         :param request: The request message.
@@ -808,7 +812,7 @@ class Client:
         status = fedn.Status()
         status.timestamp.GetCurrentTime()
         status.sender.name = self.name
-        status.sender.role = fedn.WORKER
+        status.sender.role = fedn.CLIENT
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = sesssion_id
