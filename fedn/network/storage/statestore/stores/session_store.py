@@ -410,4 +410,12 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        raise NotImplementedError
+        with SQLSession() as session:
+            stmt = select(func.count()).select_from(SessionModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(SessionModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
