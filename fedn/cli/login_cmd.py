@@ -84,7 +84,7 @@ def get_context(response, protocol, host):
         except requests.exceptions.ConnectionError:
             click.echo(f"Error: Could not connect to {url_project_token}")
 
-        context_data = {"User tokens": user_token_data, "Active project tokens": project_tokens, "Active project name": projects_response_json[0].get("name")}
+        context_data = {"User tokens": user_token_data, "Active project tokens": project_tokens, "Active project slug": projects_response_json[0].get("slug")}
         return context_data
     else:
         click.secho("Login failed. Please check your credentials.", fg="red")
