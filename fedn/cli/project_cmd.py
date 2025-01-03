@@ -22,31 +22,55 @@ def project_cmd(ctx):
 @project_cmd.command("create")
 @click.pass_context
 def create_project(ctx, protocol: str = None, host: str = None, token: str = None):
-    """Create compute package.
-
+    """Create project.
     :param ctx:
-    :param name:
-    :param description:
     """
-    url = f"{protocol}://{host}/api/v1/project/create"
+    url = f"{protocol}://{host}/api/v1/projects/create"
     headers = {}
 
     if token:
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = {"Content-Type": "application/x-www-form-urlencoded", "Authorization": f"Bearer {token}"}
 
     name = input("Please enter a project name: ")
     description = input("Please enter a project description (optional): ")
 
     # Call the authentication API
     try:
-        response = requests.post(url, json={"name": name, "description": description}, headers=headers)
-        response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
+        requests.post(url, data={"name": name, "description": description}, headers=headers)
     except requests.exceptions.RequestException as e:
         click.secho(str(e), fg="red")
-        return
 
-    set_active_project(name, protocol, host)
-    click.secho("Project created and activated.", fg="green")
+    click.secho("Project created.", fg="green")
+
+
+@click.option("-s", "--slug", required=True, help="Slug name of project.")
+@click.option("-p", "--protocol", required=False, default="https", help="Communication protocol")
+@click.option("-H", "--host", required=False, default="fedn.scaleoutsystems.com", help="Hostname of controller (api)")
+@click.option("-t", "--token", required=False, help="User access token")
+@project_cmd.command("delete")
+@click.pass_context
+def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None, token: str = None):
+    """Create project.
+
+    :param ctx:
+    :param name:
+    :param description:
+    """
+    url = f"{protocol}://{host}/api/internal/app/projects/delete/{slug}"
+    headers = {}
+
+    if token:
+        headers = {"Authorization": f"Bearer {token}"}
+
+    # Call the authentication API
+    try:
+        requests.delete(url, headers=headers)
+    except requests.exceptions.RequestException as e:
+        click.secho(str(e), fg="red")
+
+    # if deleted project is active, activate another
+    set_active_project(None, protocol, host)
+    click.secho("Project successfully deleted.", fg="green")
 
 
 @click.option("-p", "--protocol", required=False, default="https", help="Communication protocol")
@@ -73,13 +97,13 @@ def list_projects(ctx, protocol: str = None, host: str = None, token: str = None
     except Exception as e:
         print(f"Error: Failed to read YAML file. Details: {e}")
 
-    active_project = context_data.get("Active project name")
+    active_project = context_data.get("Active project slug")
 
     try:
         response = requests.get(url, headers=headers)
         response_json = response.json()
         for i in response_json:
-            project_name = i.get("name")
+            project_name = i.get("slug")
             if project_name == active_project:
                 click.secho(project_name, fg="green")
             else:
@@ -88,18 +112,16 @@ def list_projects(ctx, protocol: str = None, host: str = None, token: str = None
         click.echo(f"Error: Could not connect to {url}")
 
 
-@click.option(
-    "-n", "--name", required=True, help="Name of project. If the name contains a space, make sure to encapsulate the full name with quotation characters."
-)
+@click.option("-s", "--slug", required=True, help="Slug name of project.")
 @click.option("-p", "--protocol", required=False, default="https", help="Communication protocol")
 @click.option("-H", "--host", required=False, default="fedn.scaleoutsystems.com", help="Hostname of controller (api)")
 @click.option("-t", "--token", required=False, help="User access token")
 @project_cmd.command("get")
 @click.pass_context
-def get_project(ctx, name: str = None, protocol: str = None, host: str = None, token: str = None):
+def get_project(ctx, slug: str = None, protocol: str = None, host: str = None, token: str = None):
     """Return:
     ------
-    - result: project with given name
+    - result: project with given slug
 
     """
     url = f"{protocol}://{host}/api/v1/projects"
@@ -111,33 +133,30 @@ def get_project(ctx, name: str = None, protocol: str = None, host: str = None, t
         response = requests.get(url, headers=headers)
         response_json = response.json()
         if len(response_json) == 1:
-            print(response_json[0].get("name"))
+            print(response_json[0].get("slug"))
         else:
             project_found = False
             for i in response_json:
-                i_name = i.get("name")
-                if i_name.lower() == name.lower():
+                i_name = i.get("slug")
+                if i_name.lower() == slug.lower():
                     project_found = True
                     print(i)
             if not project_found:
-                click.secho(f"No project with name {name} exists for this account.", fg="red")
+                click.secho(f"No project with name {slug} exists for this account.", fg="red")
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
 
 
-@click.option(
-    "-n", "--name", required=True, help="Name of project. If the name contains a space, make sure to encapsulate the full name with quotation characters."
-)
+@click.option("-s", "--slug", required=True, help="Slug name of project.")
 @click.option("-p", "--protocol", required=False, default="https", help="Communication protocol")
 @click.option("-H", "--host", required=False, default="fedn.scaleoutsystems.com", help="Hostname of controller (api)")
 @project_cmd.command("activate")
 @click.pass_context
-def set_active_project(ctx, name: str = None, protocol: str = None, host: str = None):
+def set_active_project(ctx, slug: str = None, protocol: str = None, host: str = None):
     """Set active project.
 
     :param ctx:
-    :param name:
-    :param description:
+    :param slug:
     """
     url_projects = f"{protocol}://{host}/api/v1/projects"
     url_project_token = f"{protocol}://{host}/api/v1/admin-token"
@@ -162,14 +181,14 @@ def set_active_project(ctx, name: str = None, protocol: str = None, host: str = 
         click.echo(f"Error: Could not connect to {url_projects}")
 
     for i in projects_response_json:
-        if i.get("name") == name:
+        if i.get("slug") == slug:
             headers_projects["X-Project-Slug"] = i.get("slug")
 
     try:
         response_project_tokens = requests.get(url_project_token, headers=headers_projects)
         project_tokens = response_project_tokens.json()
         context_data["Active project tokens"] = project_tokens
-        context_data["Active project name"] = name
+        context_data["Active project slug"] = slug
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url_project_token}")
 
@@ -179,4 +198,4 @@ def set_active_project(ctx, name: str = None, protocol: str = None, host: str = 
     except Exception as e:
         print(f"Error: Failed to write to YAML file. Details: {e}")
 
-    click.secho(f"Project with name {name} was succsessfully activated.", fg="green")
+    click.secho(f"Project with slug {slug} was succsessfully activated.", fg="green")
