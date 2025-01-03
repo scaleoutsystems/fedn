@@ -11,11 +11,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.sql_models import SessionConfigModel, SessionModel
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 from fedn.network.storage.statestore.stores.store import Session as SQLSession
 from fedn.network.storage.statestore.stores.store import SQLStore, Store
-
-from .shared import EntityNotFound, from_document
 
 
 class SessionConfig:
@@ -195,30 +195,6 @@ class MongoDBSessionStore(MongoDBStore[Session]):
         return: The entities
         """
         return super().list(limit, skip, sort_key or "session_id", sort_order, **kwargs)
-
-
-class SessionConfigModel(MyAbstractBase):
-    __tablename__ = "session_configs"
-
-    aggregator: Mapped[str] = mapped_column(String(255))
-    round_timeout: Mapped[int]
-    buffer_size: Mapped[int]
-    model_id: Mapped[str] = mapped_column(String(255))
-    delete_models_storage: Mapped[bool]
-    clients_required: Mapped[int]
-    validate: Mapped[bool]
-    helper_type: Mapped[str] = mapped_column(String(255))
-
-    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
-    session: Mapped["SessionModel"] = relationship(back_populates="session_config")
-
-
-class SessionModel(MyAbstractBase):
-    __tablename__ = "sessions"
-
-    name: Mapped[Optional[str]] = mapped_column(String(255))
-    status: Mapped[str] = mapped_column(String(255))
-    session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session")
 
 
 def from_row(row: dict) -> Session:

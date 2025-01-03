@@ -9,7 +9,7 @@ from pymongo.database import Database
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-from .shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 
 T = TypeVar("T")
 

@@ -11,9 +11,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
-
-from .shared import EntityNotFound
 
 
 def from_document(data: dict, active_package: dict):

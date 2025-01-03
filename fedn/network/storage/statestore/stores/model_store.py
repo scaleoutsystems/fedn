@@ -1,18 +1,18 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import String, func, select
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, String, func, select
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
-
-from .shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.sql_models import ModelModel
+from fedn.network.storage.statestore.stores.store import MongoDBStore, Session, SQLStore, Store
 
 
 class Model:
@@ -252,22 +252,11 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         return True
 
 
-class ModelModel(MyAbstractBase):
-    __tablename__ = "models"
-
-    active: Mapped[bool] = mapped_column(default=False)
-    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
-    parent_model: Mapped[Optional[str]] = mapped_column(String(255))
-    session_id: Mapped[Optional[str]] = mapped_column(String(255))
-    model: Mapped[str] = mapped_column(String(255))
-    name: Mapped[Optional[str]] = mapped_column(String(255))
-
-
 def from_row(row: ModelModel) -> Model:
     return {
         "id": row.id,
+        "model": row.id,
         "committed_at": row.committed_at,
-        "model": row.model,
         "parent_model": row.parent_model,
         "session_id": row.session_id,
         "name": row.name,
@@ -277,22 +266,79 @@ def from_row(row: ModelModel) -> Model:
 
 class SQLModelStore(ModelStore, SQLStore[Model]):
     def get(self, id: str) -> Model:
-        raise NotImplementedError
+        with Session() as session:
+            stmt = select(ModelModel).where(ModelModel.id == id)
+            item = session.scalars(stmt).first()
+            if item is None:
+                raise EntityNotFound("Entity not found")
+            return from_row(item)
 
     def update(self, id: str, item: Model) -> Tuple[bool, Any]:
         raise NotImplementedError
 
     def add(self, item: Model) -> Tuple[bool, Any]:
-        raise NotImplementedError
+        valid, message = validate(item)
+        if not valid:
+            return False, message
+
+        self._complement(item)
+        with Session() as session:
+            id: str = None
+            if "model" in item:
+                id = item["model"]
+            elif "id" in item:
+                id = item["id"]
+
+            item = ModelModel(
+                id=id,
+                parent_model=item["parent_model"],
+                name=item["name"],
+                session_id=item.get("session_id"),
+                committed_at=item["committed_at"],
+                active=item["active"],
+            )
+            session.add(item)
+            session.commit()
+            return True, from_row(item)
 
     def delete(self, id: str) -> bool:
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        raise NotImplementedError
+        with Session() as session:
+            stmt = select(ModelModel)
 
-    def count(self, **kwargs) -> int:
-        raise NotImplementedError
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(ModelModel, key) == value)
+
+            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+            _sort_key: str = sort_key or "committed_at"
+
+            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+
+            if limit != 0:
+                stmt = stmt.offset(skip or 0).limit(limit)
+
+            items = session.scalars(stmt).all()
+
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            count = session.scalar(select(func.count()).select_from(ModelModel))
+
+            return {"count": count, "result": result}
+
+    def count(self, **kwargs):
+        with Session() as session:
+            stmt = select(func.count()).select_from(ModelModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(ModelModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
 
     def list_descendants(self, id: str, limit: int):
         raise NotImplementedError
@@ -301,7 +347,12 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
         raise NotImplementedError
 
     def get_active(self) -> str:
-        raise NotImplementedError
+        with Session() as session:
+            active_stmt = select(ModelModel).where(ModelModel.active)
+            active_item = session.scalars(active_stmt).first()
+            if active_item:
+                return active_item.id
+            raise EntityNotFound("Entity not found")
 
     def set_active(self, id: str) -> bool:
         raise NotImplementedError
