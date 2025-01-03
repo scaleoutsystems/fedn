@@ -11,8 +11,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase
 from fedn.network.storage.statestore.stores.store import Session as SQLSession
+from fedn.network.storage.statestore.stores.store import SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -267,7 +268,51 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             return from_row(combined_dict)
 
     def update(self, id: str, item: Session) -> Tuple[bool, Any]:
-        raise NotImplementedError
+        valid, message = validate(item)
+        if not valid:
+            return False, message
+        with SQLSession() as session:
+            stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
+            existing_item = session.execute(stmt).first()
+            if existing_item is None:
+                raise EntityNotFound(f"Entity not found {id}")
+
+            s, c = existing_item
+
+            s.name = item["name"]
+            s.status = item["status"]
+            s.committed_at = item["committed_at"]
+
+            session_config = item["session_config"]
+
+            c.aggregator = session_config["aggregator"]
+            c.round_timeout = session_config["round_timeout"]
+            c.buffer_size = session_config["buffer_size"]
+            c.model_id = session_config["model_id"]
+            c.delete_models_storage = session_config["delete_models_storage"]
+            c.clients_required = session_config["clients_required"]
+            c.validate = session_config["validate"]
+            c.helper_type = session_config["helper_type"]
+
+            session.commit()
+
+            combined_dict = {
+                "id": s.id,
+                "name": s.name,
+                "session_id": s.id,
+                "status": s.status,
+                "committed_at": s.committed_at,
+                "aggregator": c.aggregator,
+                "round_timeout": c.round_timeout,
+                "buffer_size": c.buffer_size,
+                "model_id": c.model_id,
+                "delete_models_storage": c.delete_models_storage,
+                "clients_required": c.clients_required,
+                "validate": c.validate,
+                "helper_type": c.helper_type,
+            }
+
+            return True, from_row(combined_dict)
 
     def add(self, item: Session) -> Tuple[bool, Any]:
         valid, message = validate(item)
