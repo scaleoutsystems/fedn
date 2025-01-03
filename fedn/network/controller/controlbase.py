@@ -18,7 +18,7 @@ from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
-from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -48,7 +48,7 @@ class ControlBase(ABC):
     def __init__(
         self,
         network_id: str,
-        session_store: SessionStore,
+        session_store: MongoDBSessionStore,
         model_store: ModelStore,
         round_store: RoundStore,
         package_store: PackageStore,

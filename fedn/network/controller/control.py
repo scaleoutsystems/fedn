@@ -17,7 +17,7 @@ from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
-from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore
 
 
 class UnsupportedStorageBackend(Exception):
@@ -98,7 +98,7 @@ class Control(ControlBase):
     def __init__(
         self,
         network_id: str,
-        session_store: SessionStore,
+        session_store: MongoDBSessionStore,
         model_store: ModelStore,
         round_store: RoundStore,
         package_store: PackageStore,

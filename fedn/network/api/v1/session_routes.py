@@ -293,9 +293,11 @@ def get_session(id: str):
         response = session_store.get(id)
 
         return jsonify(response), 200
-    except EntityNotFound:
+    except EntityNotFound as e:
+        return jsonify({"message": str(e)}), 404
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        return jsonify({"message": str(e)}), 404
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -338,7 +340,8 @@ def post():
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
-    except Exception:
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 

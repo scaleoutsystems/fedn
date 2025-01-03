@@ -16,7 +16,7 @@ from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
-from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
 from fedn.network.storage.statestore.stores.store import Base, MyAbstractBase, engine
@@ -37,7 +37,8 @@ MyAbstractBase.metadata.create_all(engine)
 client_store = ClientStore(mdb, "network.clients")
 # package_store: PackageStore = MongoDBPackageStore(mdb, "control.package")
 package_store: PackageStore = SQLPackageStore()
-session_store = SessionStore(mdb, "control.sessions")
+# session_store = MongoDBSessionStore(mdb, "control.sessions")
+session_store = SQLSessionStore()
 model_store = MongoDBModelStore(mdb, "control.model")
 combiner_store = CombinerStore(mdb, "network.combiners")
 round_store = RoundStore(mdb, "control.rounds")

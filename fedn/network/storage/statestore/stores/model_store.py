@@ -43,7 +43,7 @@ class ModelStore(Store[Model]):
         pass
 
 
-def validate(self, item: Model) -> Tuple[bool, str]:
+def validate(item: Model) -> Tuple[bool, str]:
     if "model" not in item or not item["model"]:
         return False, "Model is required"
 

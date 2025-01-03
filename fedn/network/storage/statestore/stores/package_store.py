@@ -285,7 +285,6 @@ class PackageModel(MyAbstractBase):
     __tablename__ = "packages"
 
     active: Mapped[bool] = mapped_column(default=False)
-    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
     description: Mapped[Optional[str]] = mapped_column(String(255))
     file_name: Mapped[str] = mapped_column(String(255))
     helper: Mapped[str] = mapped_column(String(255))
@@ -372,10 +371,10 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)
 
-            item = session.scalars(stmt).all()
+            items = session.scalars(stmt).all()
 
             result = []
-            for i in item:
+            for i in items:
                 result.append(from_row(i))
 
             count = session.scalar(select(func.count()).select_from(PackageModel))

@@ -1,5 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
 import pymongo
@@ -151,6 +152,7 @@ class MyAbstractBase(Base):
     __abstract__ = True
 
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
+    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
 engine = create_engine("sqlite:///my_database.db", echo=True)
