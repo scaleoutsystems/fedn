@@ -274,14 +274,28 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return from_row(item)
 
     def update(self, id: str, item: Model) -> Tuple[bool, Any]:
-        raise NotImplementedError
+        valid, message = validate(item)
+        if not valid:
+            return False, message
+        with Session() as session:
+            stmt = select(ModelModel).where(ModelModel.id == id)
+            existing_item = session.execute(stmt).first()
+            if existing_item is None:
+                raise EntityNotFound(f"Entity not found {id}")
+
+            existing_item.parent_model = item["parent_model"]
+            existing_item.name = item["name"]
+            existing_item.session_id = item.get("session_id")
+            existing_item.committed_at = item["committed_at"]
+            existing_item.active = item["active"]
+
+            return True, from_row(existing_item)
 
     def add(self, item: Model) -> Tuple[bool, Any]:
         valid, message = validate(item)
         if not valid:
             return False, message
 
-        self._complement(item)
         with Session() as session:
             id: str = None
             if "model" in item:
@@ -295,7 +309,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
                 name=item["name"],
                 session_id=item.get("session_id"),
                 committed_at=item["committed_at"],
-                active=item["active"],
+                active=item["active"] if "active" in item else False,
             )
             session.add(item)
             session.commit()
@@ -355,4 +369,18 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             raise EntityNotFound("Entity not found")
 
     def set_active(self, id: str) -> bool:
-        raise NotImplementedError
+        with Session() as session:
+            active_stmt = select(ModelModel).where(ModelModel.active)
+            active_item = session.scalars(active_stmt).first()
+            if active_item:
+                active_item.active = False
+
+            stmt = select(ModelModel).where(ModelModel.id == id)
+            item = session.scalars(stmt).first()
+
+            if item is None:
+                raise EntityNotFound("Entity not found")
+
+            item.active = True
+            session.commit()
+        return True

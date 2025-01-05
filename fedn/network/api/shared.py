@@ -13,7 +13,7 @@ from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
-from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore
+from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SQLSessionStore
@@ -39,7 +39,8 @@ client_store = ClientStore(mdb, "network.clients")
 package_store: PackageStore = SQLPackageStore()
 # session_store = MongoDBSessionStore(mdb, "control.sessions")
 session_store = SQLSessionStore()
-model_store = MongoDBModelStore(mdb, "control.model")
+# model_store = MongoDBModelStore(mdb, "control.model")
+model_store = SQLModelStore()
 combiner_store = CombinerStore(mdb, "network.combiners")
 round_store = RoundStore(mdb, "control.rounds")
 status_store = StatusStore(mdb, "control.status")
