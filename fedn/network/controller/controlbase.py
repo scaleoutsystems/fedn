@@ -276,7 +276,7 @@ class ControlBase(ABC):
             logger.info("No active model, adding...")
 
         parent_model = None
-        if active_model:
+        if active_model and session_id:
             parent_model = active_model
 
         committed_at = datetime.now()

@@ -578,7 +578,8 @@ def get_ancestors(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 

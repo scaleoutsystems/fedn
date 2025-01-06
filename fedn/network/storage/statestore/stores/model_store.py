@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import ForeignKey, String, func, select
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, String, func, select, union_all
+from sqlalchemy.orm import Mapped, aliased, mapped_column, relationship
 from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
@@ -355,10 +355,48 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return count
 
     def list_descendants(self, id: str, limit: int):
-        raise NotImplementedError
+        with Session() as session:
+            # Define the recursive CTE
+            descendant = aliased(ModelModel)  # Alias for recursion
+            cte = select(ModelModel).where(ModelModel.parent_model == id).cte(name="descendant_cte", recursive=True)
+            cte = cte.union_all(select(descendant).where(descendant.parent_model == cte.c.id))
+
+            # Final query with optional limit
+            query = select(cte)
+            if limit is not None:
+                query = query.limit(limit)
+
+            # Execute the query
+            items = session.execute(query).fetchall()
+
+            # Return the list of descendants
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            return result
 
     def list_ancestors(self, id: str, limit: int, include_self=False, reverse=False):
-        raise NotImplementedError
+        with Session() as session:
+            # Define the recursive CTE
+            ancestor = aliased(ModelModel)  # Alias for recursion
+            cte = select(ModelModel).where(ModelModel.id == id).cte(name="ancestor_cte", recursive=True)
+            cte = cte.union_all(select(ancestor).where(ancestor.id == cte.c.parent_model))
+
+            # Final query with optional limit
+            query = select(cte)
+            if limit is not None:
+                query = query.limit(limit)
+
+            # Execute the query
+            items = session.execute(query).fetchall()
+
+            # Return the list of ancestors
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            return result
 
     def get_active(self) -> str:
         with Session() as session:
