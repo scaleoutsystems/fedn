@@ -33,7 +33,7 @@ dependencies = [
   "gunicorn>=20.0.4",
   "minio",
   "grpcio>=1.60,<1.69",
-  "grpcio-tools>=1.60,<1.69",
+  "grpcio-tools>=1.60,<1.70",
   "numpy>=1.21.6",
   "protobuf>=5.0.0,<5.30.0",
   "pymongo",
