@@ -503,7 +503,8 @@ def add_client():
             "helper_type": helper_type,
         }
         return jsonify(payload), 200
-    except Exception:
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
 
 

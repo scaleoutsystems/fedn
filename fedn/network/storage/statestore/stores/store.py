@@ -155,5 +155,6 @@ class MyAbstractBase(Base):
     committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
-engine = create_engine("sqlite:///my_database.db", echo=True)
+# engine = create_engine("sqlite:///my_database.db", echo=True)
+engine = create_engine("postgresql://fedn_admin:password@fedn_postgres:5432/fedn_db", echo=True)
 Session = sessionmaker(engine)

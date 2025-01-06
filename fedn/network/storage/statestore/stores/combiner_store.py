@@ -1,10 +1,14 @@
-from typing import Any, Dict, List, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import String, func, select
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import text
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -39,7 +43,11 @@ class Combiner:
         self.updated_at = updated_at
 
 
-class CombinerStore(MongoDBStore[Combiner]):
+class CombinerStore(Store[Combiner]):
+    pass
+
+
+class MongoDBCombinerStore(MongoDBStore[Combiner]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
@@ -101,3 +109,101 @@ class CombinerStore(MongoDBStore[Combiner]):
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
+
+
+class CombinerModel(MyAbstractBase):
+    __tablename__ = "combiners"
+
+    address: Mapped[str] = mapped_column(String(255))
+    fqdn: Mapped[Optional[str]] = mapped_column(String(255))
+    ip: Mapped[Optional[str]] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    parent: Mapped[Optional[str]] = mapped_column(String(255))
+    port: Mapped[int]
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+def from_row(row: CombinerModel) -> Combiner:
+    return {
+        "id": row.id,
+        "committed_at": row.committed_at,
+        "address": row.address,
+        "ip": row.ip,
+        "name": row.name,
+        "parent": row.parent,
+        "fqdn": row.fqdn,
+        "port": row.port,
+        "updated_at": row.updated_at,
+    }
+
+
+class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
+    def get(self, id: str) -> Combiner:
+        with Session() as session:
+            stmt = select(CombinerModel).where(CombinerModel.id == id or CombinerModel.name == id)
+            item = session.scalars(stmt).first()
+            if item is None:
+                raise EntityNotFound("Entity not found")
+            return from_row(item)
+
+    def update(self, id, item):
+        raise NotImplementedError
+
+    def add(self, item):
+        with Session() as session:
+            entity = CombinerModel(
+                address=item["address"],
+                fqdn=item["fqdn"],
+                ip=item["ip"],
+                name=item["name"],
+                parent=item["parent"],
+                port=item["port"],
+            )
+            session.add(entity)
+            session.commit()
+            return True, from_row(entity)
+
+    def delete(self, id: str) -> bool:
+        with Session() as session:
+            stmt = select(CombinerModel).where(CombinerModel.id == id)
+            item = session.scalars(stmt).first()
+            if item is None:
+                raise EntityNotFound("Entity not found")
+            session.delete(item)
+            return True
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with Session() as session:
+            stmt = select(CombinerModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(CombinerModel, key) == value)
+
+            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+            _sort_key: str = sort_key or "committed_at"
+
+            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+
+            if limit != 0:
+                stmt = stmt.offset(skip or 0).limit(limit)
+
+            items = session.scalars(stmt).all()
+
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            count = session.scalar(select(func.count()).select_from(CombinerModel))
+
+            return {"count": count, "result": result}
+
+    def count(self, **kwargs):
+        with Session() as session:
+            stmt = select(func.count()).select_from(CombinerModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(CombinerModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
