@@ -5,7 +5,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 
 from .shared import EntityNotFound, from_document
 
@@ -21,33 +21,23 @@ class Client:
         self.updated_at = updated_at
         self.last_seen = last_seen
 
-    def from_dict(data: dict) -> "Client":
-        return Client(
-            id=str(data["_id"]),
-            name=data["name"] if "name" in data else None,
-            combiner=data["combiner"] if "combiner" in data else None,
-            combiner_preferred=data["combiner_preferred"] if "combiner_preferred" in data else None,
-            ip=data["ip"] if "ip" in data else None,
-            status=data["status"] if "status" in data else None,
-            updated_at=data["updated_at"] if "updated_at" in data else None,
-            last_seen=data["last_seen"] if "last_seen" in data else None,
-        )
 
-
-class ClientStore(Store[Client]):
+class ClientStore(MongoDBStore[Client]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Client:
+    def get(self, id: str) -> Client:
         """Get an entity by id
         param id: The id of the entity
             type: str
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
-        response = super().get(id, use_typing=use_typing)
-        return Client.from_dict(response) if use_typing else response
+        if ObjectId.is_valid(id):
+            response = super().get(id)
+        else:
+            obj = self._get_client_by_client_id(id)
+            response = from_document(obj)
+        return response
 
     def _get_client_by_client_id(self, client_id: str) -> Dict:
         document = self.database[self.collection].find_one({"client_id": client_id})
@@ -85,7 +75,7 @@ class ClientStore(Store[Client]):
 
         return super().delete(document["_id"])
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Client]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Client]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -95,18 +85,12 @@ class ClientStore(Store[Client]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
         return: A dictionary with the count and the result
         """
-        response = super().list(limit, skip, sort_key or "last_seen", sort_order, use_typing=use_typing, **kwargs)
-
-        result = [Client.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-
-        return {"count": response["count"], "result": result}
+        return super().list(limit, skip, sort_key or "last_seen", sort_order, **kwargs)
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)

@@ -5,13 +5,10 @@ from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, get_use_typing,
-                                        package_store, repository)
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, package_store, repository
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
-
 
 
 @bp.route("/", methods=["GET"])
@@ -119,14 +116,10 @@ def get_packages():
 
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
-
-        result = [package.__dict__ for package in packages["result"]]
-
-        response = {"count": packages["count"], "result": result}
+        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -207,14 +200,10 @@ def list_packages():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
-
-        result = [package.__dict__ for package in packages["result"]]
-
-        response = {"count": packages["count"], "result": result}
+        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -379,10 +368,7 @@ def get_package(id: str):
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        package = package_store.get(id, use_typing=use_typing)
-
-        response = package.__dict__ if use_typing else package
+        response = package_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:
@@ -420,9 +406,7 @@ def get_active_package():
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        package = package_store.get_active(use_typing=use_typing)
-        response = package.__dict__ if use_typing else package
+        response = package_store.get_active()
 
         return jsonify(response), 200
     except EntityNotFound:

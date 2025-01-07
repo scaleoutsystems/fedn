@@ -5,7 +5,7 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 
 from .shared import EntityNotFound, from_document
 
@@ -19,28 +19,16 @@ class Model:
         self.session_id = session_id
         self.committed_at = committed_at
 
-    def from_dict(data: dict) -> "Model":
-        return Model(
-            id=str(data["_id"]),
-            key=data["key"] if "key" in data else None,
-            model=data["model"] if "model" in data else None,
-            parent_model=data["parent_model"] if "parent_model" in data else None,
-            session_id=data["session_id"] if "session_id" in data else None,
-            committed_at=data["committed_at"] if "committed_at" in data else None,
-        )
 
-
-class ModelStore(Store[Model]):
+class ModelStore(MongoDBStore[Model]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Model:
+    def get(self, id: str) -> Model:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the model (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
         kwargs = {"key": "models"}
@@ -55,7 +43,7 @@ class ModelStore(Store[Model]):
         if document is None:
             raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
-        return Model.from_dict(document) if use_typing else from_document(document)
+        return from_document(document)
 
     def _validate(self, item: Model) -> Tuple[bool, str]:
         if "model" not in item or not item["model"]:
@@ -82,7 +70,7 @@ class ModelStore(Store[Model]):
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for ModelStore")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Model]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Model]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -92,8 +80,6 @@ class ModelStore(Store[Model]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
@@ -101,20 +87,15 @@ class ModelStore(Store[Model]):
         """
         kwargs["key"] = "models"
 
-        response = super().list(limit, skip, sort_key or "committed_at", sort_order, use_typing=use_typing, **kwargs)
+        return super().list(limit, skip, sort_key or "committed_at", sort_order, **kwargs)
 
-        result = [Model.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-        return {"count": response["count"], "result": result}
-
-    def list_descendants(self, id: str, limit: int, use_typing: bool = False) -> List[Model]:
+    def list_descendants(self, id: str, limit: int) -> List[Model]:
         """List descendants
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the model (property)
         param limit: The maximum number of entities to return
             type: int
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         return: A list of entities
         """
         kwargs = {"key": "models"}
@@ -139,7 +120,7 @@ class ModelStore(Store[Model]):
             model: str = self.database[self.collection].find_one({"key": "models", "parent_model": current_model_id})
 
             if model is not None:
-                formatted_model = Model.from_dict(model) if use_typing else from_document(model)
+                formatted_model = Model.from_dict(model)
                 result.append(formatted_model)
                 current_model_id = model["model"]
             else:
@@ -149,15 +130,13 @@ class ModelStore(Store[Model]):
 
         return result
 
-    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False, use_typing: bool = False) -> List[Model]:
+    def list_ancestors(self, id: str, limit: int, include_self: bool = False, reverse: bool = False) -> List[Model]:
         """List ancestors
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the model (property)
         param limit: The maximum number of entities to return
             type: int
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         return: A list of entities
         """
         kwargs = {"key": "models"}
@@ -176,7 +155,7 @@ class ModelStore(Store[Model]):
         result: list = []
 
         if include_self:
-            formatted_model = Model.from_dict(model) if use_typing else from_document(model)
+            formatted_model = from_document(model)
             result.append(formatted_model)
 
         for _ in range(limit):
@@ -186,7 +165,7 @@ class ModelStore(Store[Model]):
             model = self.database[self.collection].find_one({"key": "models", "model": current_model_id})
 
             if model is not None:
-                formatted_model = Model.from_dict(model) if use_typing else from_document(model)
+                formatted_model = from_document(model)
                 result.append(formatted_model)
                 current_model_id = model["parent_model"]
             else:
