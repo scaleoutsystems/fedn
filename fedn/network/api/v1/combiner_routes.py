@@ -1,13 +1,10 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, client_store, get_post_data_to_kwargs, get_typed_list_headers, mdb
-from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.api.v1.shared import api_version, client_store, combiner_store, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
-
-combiner_store = CombinerStore(mdb, "network.combiners")
 
 
 @bp.route("/", methods=["GET"])

@@ -4,17 +4,12 @@ from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, model_store, session_store
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
-from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
-from .model_routes import model_store
-
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
-
-session_store = SessionStore(mdb, "control.sessions")
 
 
 @bp.route("/", methods=["GET"])
