@@ -16,6 +16,8 @@ CLIENT_DEFAULTS = {
 
 API_VERSION = "v1"
 
+home_dir = os.path.expanduser("~")
+
 
 def apply_config(path: str, config: dict):
     """Parse client config from file.
@@ -37,22 +39,37 @@ def apply_config(path: str, config: dict):
 
 def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     _url = os.environ.get("FEDN_CONTROLLER_URL")
-
-    if _url:
-        return f"{_url}/api/{API_VERSION}/{endpoint}/"
-
     _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
     _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
     _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
 
-    return f"{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}/"
+    if _url is None:
+        context_path = os.path.join(home_dir, ".fedn")
+        try:
+            with open(f"{context_path}/context.yaml", "r") as yaml_file:
+                context_data = yaml.safe_load(yaml_file)
+            _url = context_data.get("Active project url")
+        except Exception as e:
+            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
+            _url = f"{_protocol}://{_host}:{_port}"
+
+    return f"{_url}/api/{API_VERSION}/{endpoint}/"
 
 
-def get_token(token: str) -> str:
+def get_token(token: str, usr_token: bool) -> str:
     _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     if _token is None:
-        return None
+        context_path = os.path.join(home_dir, ".fedn")
+        try:
+            with open(f"{context_path}/context.yaml", "r") as yaml_file:
+                context_data = yaml.safe_load(yaml_file)
+            if usr_token:
+                _token = context_data.get("User tokens").get("access")
+            else:
+                _token = context_data.get("Active project tokens").get("access")
+        except Exception as e:
+            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project.", fg="red")
 
     scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 

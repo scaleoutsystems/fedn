@@ -83,7 +83,7 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
     if n_max:
         headers["X-Limit"] = n_max
 
-    _token = get_token(token)
+    _token = get_token(token, False)
 
     if _token:
         headers["Authorization"] = _token
@@ -108,16 +108,14 @@ def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id
     - result: combiner with given id
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
+    _url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
+    url = f"{_url}{id}"
     headers = {}
 
-    _token = get_token(token)
+    _token = get_token(token, False)
 
     if _token:
         headers["Authorization"] = _token
-
-    if id:
-        url = f"{url}{id}"
 
     try:
         response = requests.get(url, headers=headers)
