@@ -125,8 +125,8 @@ def get_statuses():
         response = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
-        return jsonify({"message": "An unexpected error occurred"}), 500
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @bp.route("/list", methods=["POST"])
