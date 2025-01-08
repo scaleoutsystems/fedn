@@ -169,42 +169,42 @@ def activate_project(slug: str = None, protocol: str = None, host: str = None, p
         print(f"Error: Failed to read YAML file. Details: {e}")
 
     user_access_token = context_data.get("User tokens").get("access")
-
+    _token = get_token(user_access_token, True)
     headers_projects = {}
 
-    if user_access_token:
-        headers_projects = {"Authorization": f"Bearer {user_access_token}"}
+    if _token:
+        headers_projects["Authorization"] = _token
 
     try:
         response_projects = requests.get(url_projects, headers=headers_projects)
         projects_response_json = response_projects.json()
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url_projects}")
+    if len(projects_response_json) > 0:
+        if slug is None:
+            headers_projects["X-Project-Slug"] = projects_response_json[0].get("slug")
+            slug = projects_response_json[0].get("slug")
+        else:
+            for i in projects_response_json:
+                if i.get("slug") == slug:
+                    headers_projects["X-Project-Slug"] = i.get("slug")
 
-    if slug is None:
-        headers_projects["X-Project-Slug"] = projects_response_json[0].get("slug")
-        slug = projects_response_json[0].get("slug")
-    else:
-        for i in projects_response_json:
-            if i.get("slug") == slug:
-                headers_projects["X-Project-Slug"] = i.get("slug")
+        controller_url = f"{protocol}://{host}/{slug}-fedn-reducer"
 
-    controller_url = f"{protocol}://{host}/{slug}-fedn-reducer"
+        try:
+            response_project_tokens = requests.get(url_project_token, headers=headers_projects)
+        except requests.exceptions.ConnectionError:
+            click.echo(f"Error: Could not connect to {url_project_token}")
 
-    try:
-        response_project_tokens = requests.get(url_project_token, headers=headers_projects)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url_project_token}")
+        project_tokens = response_project_tokens.json()
+        context_data["Active project tokens"] = project_tokens
+        context_data["Active project slug"] = slug
+        context_data["Active project url"] = controller_url
 
-    project_tokens = response_project_tokens.json()
-    context_data["Active project tokens"] = project_tokens
-    context_data["Active project slug"] = slug
-    context_data["Active project url"] = controller_url
+        try:
+            with open(f"{context_path}/context.yaml", "w") as yaml_file:
+                yaml.dump(context_data, yaml_file, default_flow_style=False)  # Add access and refresh tokens to context yaml file
+        except Exception as e:
+            print(f"Error: Failed to write to YAML file. Details: {e}")
 
-    try:
-        with open(f"{context_path}/context.yaml", "w") as yaml_file:
-            yaml.dump(context_data, yaml_file, default_flow_style=False)  # Add access and refresh tokens to context yaml file
-    except Exception as e:
-        print(f"Error: Failed to write to YAML file. Details: {e}")
-
-    click.secho(f"Project with slug {slug} is now active.", fg="green")
+        click.secho(f"Project with slug {slug} is now active.", fg="green")
