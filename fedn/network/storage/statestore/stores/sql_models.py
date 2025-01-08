@@ -51,8 +51,8 @@ class RoundConfigModel(MyAbstractBase):
     clients_required: Mapped[int]
     validate: Mapped[bool]
     helper_type: Mapped[str] = mapped_column(String(255))
-    model_id: Mapped[Optional[str]]
-    session_id: Mapped[Optional[str]]
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     round: Mapped["RoundModel"] = relationship(back_populates="round_config")
     task: Mapped[str] = mapped_column(String(255))
     round_id: Mapped[str]
