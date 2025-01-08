@@ -5,10 +5,8 @@ import uuid
 import click
 import yaml
 
-from fedn.cli.client_cmd import validate_client_config
 from fedn.cli.main import main
 from fedn.cli.shared import apply_config
-from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 

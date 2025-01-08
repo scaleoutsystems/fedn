@@ -1,10 +1,8 @@
 import os
 from abc import ABC, abstractmethod
 from datetime import datetime
-from time import sleep
 from typing import Any, Tuple
 
-import pymongo
 
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger

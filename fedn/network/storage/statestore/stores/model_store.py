@@ -1,14 +1,13 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import ForeignKey, String, func, select, union_all
-from sqlalchemy.orm import Mapped, aliased, mapped_column, relationship
+from sqlalchemy import func, select
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text
-from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql_models import ModelModel

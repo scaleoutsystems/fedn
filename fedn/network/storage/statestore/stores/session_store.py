@@ -1,15 +1,12 @@
 import datetime
-import json
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import ForeignKey, String, func, select
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import func, select
 from sqlalchemy.sql import text
-from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql_models import SessionConfigModel, SessionModel
