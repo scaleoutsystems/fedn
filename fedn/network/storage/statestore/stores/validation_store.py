@@ -1,9 +1,13 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from pymongo.database import Database
+from sqlalchemy import ForeignKey, Integer, String, and_, func, or_, select
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import text
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
 
 
 class Validation:
@@ -21,7 +25,11 @@ class Validation:
         self.receiver = receiver
 
 
-class ValidationStore(MongoDBStore[Validation]):
+class ValidationStore(Store[Validation]):
+    pass
+
+
+class MongoDBValidationStore(MongoDBStore[Validation]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
@@ -60,3 +68,159 @@ class ValidationStore(MongoDBStore[Validation]):
         return: A dictionary with the count and a list of entities
         """
         return super().list(limit, skip, sort_key or "timestamp", sort_order, **kwargs)
+
+
+class ValidationModel(MyAbstractBase):
+    __tablename__ = "validations"
+
+    correlation_id: Mapped[str]
+    data: Mapped[Optional[str]]
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
+    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+    timestamp: Mapped[str] = mapped_column(String(255))
+
+
+def from_row(row: ValidationModel) -> Validation:
+    return {
+        "id": row.id,
+        "model_id": row.model_id,
+        "data": row.data,
+        "correlation_id": row.correlation_id,
+        "timestamp": row.timestamp,
+        "session_id": row.session_id,
+        "sender": {"name": row.sender_name, "role": row.sender_role},
+        "receiver": {"name": row.receiver_name, "role": row.receiver_role},
+    }
+
+
+class SQLValidationStore(ValidationStore, SQLStore[Validation]):
+    def get(self, id: str) -> Validation:
+        with Session() as session:
+            stmt = select(ValidationModel).where(ValidationModel.id == id)
+            item = session.scalars(stmt).first()
+
+            if item is None:
+                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
+
+            return from_row(item)
+
+    def update(self, id: str, item: Validation) -> bool:
+        raise NotImplementedError("Update not implemented for ValidationStore")
+
+    def add(self, item: Validation) -> Tuple[bool, Any]:
+        with Session() as session:
+            sender = item["sender"] if "sender" in item else None
+            receiver = item["receiver"] if "receiver" in item else None
+
+            validation = ValidationModel(
+                correlation_id=item.get("correlationId") or item.get("correlation_id"),
+                data=item.get("data"),
+                model_id=item.get("modelId") or item.get("model_id"),
+                receiver_name=receiver.get("name"),
+                receiver_role=receiver.get("role"),
+                sender_name=sender.get("name"),
+                sender_role=sender.get("role"),
+                session_id=item.get("sessionId") or item.get("session_id"),
+                timestamp=item.get("timestamp"),
+            )
+
+            session.add(validation)
+            session.commit()
+
+            return True, validation
+
+    def delete(self, id: str) -> bool:
+        raise NotImplementedError("Delete not implemented for ValidationStore")
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with Session() as session:
+            stmt = select(ValidationModel)
+
+            for key, value in kwargs.items():
+                if key == "_id":
+                    key = "id"
+                elif key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "receiver.name":
+                    key = "receiver_name"
+                elif key == "receiver.role":
+                    key = "receiver_role"
+                elif key == "correlationId":
+                    key = "correlation_id"
+                elif key == "modelId":
+                    key = "model_id"
+                elif key == "sessionId":
+                    key = "session_id"
+
+                stmt = stmt.where(getattr(ValidationModel, key) == value)
+
+            if sort_key:
+                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+                _sort_key: str = sort_key
+
+                if _sort_key == "_id":
+                    _sort_key = "id"
+                elif _sort_key == "sender.name":
+                    _sort_key = "sender_name"
+                elif _sort_key == "sender.role":
+                    _sort_key = "sender_role"
+                elif _sort_key == "receiver.name":
+                    _sort_key = "receiver_name"
+                elif _sort_key == "receiver.role":
+                    _sort_key = "receiver_role"
+                elif _sort_key == "correlationId":
+                    _sort_key = "correlation_id"
+                elif _sort_key == "modelId":
+                    _sort_key = "model_id"
+                elif _sort_key == "sessionId":
+                    _sort_key = "session_id"
+
+                sort_obj = text(f"{_sort_key} {_sort_order}")
+
+                stmt = stmt.order_by(sort_obj)
+
+            if limit != 0:
+                stmt = stmt.offset(skip or 0).limit(limit)
+
+            items = session.execute(stmt)
+
+            result = []
+
+            for item in items:
+                (r,) = item
+
+                result.append(from_row(r))
+
+            return {"count": len(result), "result": result}
+
+    def count(self, **kwargs):
+        with Session() as session:
+            stmt = select(func.count()).select_from(ValidationModel)
+
+            for key, value in kwargs.items():
+                if key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "receiver.name":
+                    key = "receiver_name"
+                elif key == "receiver.role":
+                    key = "receiver_role"
+                elif key == "correlationId":
+                    key = "correlation_id"
+                elif key == "modelId":
+                    key = "model_id"
+                elif key == "sessionId":
+                    key = "session_id"
+
+                stmt = stmt.where(getattr(ValidationModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count

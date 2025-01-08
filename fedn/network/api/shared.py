@@ -20,7 +20,7 @@ from fedn.network.storage.statestore.stores.session_store import MongoDBSessionS
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
 from fedn.network.storage.statestore.stores.store import Base, MyAbstractBase, engine
-from fedn.network.storage.statestore.stores.validation_store import ValidationStore
+from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 from fedn.utils.checksum import sha
 
 statestore_config = get_statestore_config()
@@ -47,7 +47,8 @@ combiner_store: CombinerStore = SQLCombinerStore()
 round_store: RoundStore = SQLRoundStore()
 # status_store: StatusStore = MongoDBStatusStore(mdb, "control.status")
 status_store: StatusStore = SQLStatusStore()
-validation_store = ValidationStore(mdb, "control.validations")
+# validation_store: ValidationStore = MongoDBValidationStore(mdb, "control.validations")
+validation_store: ValidationStore = SQLValidationStore()
 
 repository = Repository(modelstorage_config["storage_config"])
 

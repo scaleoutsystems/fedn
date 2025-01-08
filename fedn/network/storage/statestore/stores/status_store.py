@@ -157,7 +157,7 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
 
             if sort_key:
                 _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-                _sort_key: str = sort_key or "committed_at"
+                _sort_key: str = sort_key
 
                 if _sort_key == "_id":
                     _sort_key = "id"
@@ -189,4 +189,23 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        raise NotImplementedError
+        with Session() as session:
+            stmt = select(func.count()).select_from(StatusModel)
+
+            for key, value in kwargs.items():
+                if key == "_id":
+                    key = "id"
+                elif key == "logLevel":
+                    key = "log_level"
+                elif key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "sessionId":
+                    key = "session_id"
+
+                stmt = stmt.where(getattr(StatusModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
