@@ -6,7 +6,7 @@ from fedn.network.combiner.modelservice import ModelService
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
-from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
 from fedn.network.storage.statestore.stores.store import Base, MyAbstractBase, engine
@@ -31,7 +31,8 @@ validation_store: ValidationStore = SQLValidationStore()
 combiner_store: CombinerStore = SQLCombinerStore()
 # status_store: StatusStore = MongoDBStatusStore(mdb, "control.status")
 status_store: StatusStore = SQLStatusStore()
-prediction_store = PredictionStore(mdb, "control.predictions")
+# prediction_store: PredictionStore = MongoDBPredictionStore(mdb, "control.predictions")
+prediction_store: PredictionStore = SQLPredictionStore()
 # round_store: RoundStore = MongoDBRoundStore(mdb, "control.rounds")
 round_store: RoundStore = SQLRoundStore()
 

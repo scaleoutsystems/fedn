@@ -50,6 +50,8 @@ round_store: RoundStore = SQLRoundStore()
 status_store: StatusStore = SQLStatusStore()
 # validation_store: ValidationStore = MongoDBValidationStore(mdb, "control.validations")
 validation_store: ValidationStore = SQLValidationStore()
+# prediction_store: PredictionStore = MongoDBPredictionStore(mdb, "control.predictions")
+prediction_store: PredictionStore = SQLPredictionStore()
 
 repository = Repository(modelstorage_config["storage_config"])
 
