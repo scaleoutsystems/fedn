@@ -13,9 +13,8 @@ from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql_models import SessionConfigModel, SessionModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 from fedn.network.storage.statestore.stores.store import Session as SQLSession
-from fedn.network.storage.statestore.stores.store import SQLStore, Store
 
 
 class SessionConfig:
@@ -349,13 +348,14 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
                 else:
                     stmt = stmt.where(getattr(SessionModel, key) == value)
 
-            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-            _sort_key: str = sort_key or "sessions.committed_at"
+            if sort_key:
+                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+                _sort_key: str = sort_key or "sessions.committed_at"
 
-            if "." not in _sort_key:
-                _sort_key = f"sessions.{_sort_key}"
+                if "." not in _sort_key:
+                    _sort_key = f"sessions.{_sort_key}"
 
-            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+                stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)

@@ -114,7 +114,7 @@ class ControlBase(ABC):
             return False
 
     def get_latest_round_id(self) -> int:
-        response = self.round_store.list(limit=1, skip=0, sort_key="_id", sort_order=pymongo.DESCENDING)
+        response = self.round_store.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
         if response and "result" in response and len(response["result"]) > 0:
             round_id: str = response["result"][0]["round_id"]
             return int(round_id)
@@ -202,7 +202,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round["round_data"] = round_data
-        updated = self.round_store.update(round["id"], round)
+        updated, _ = self.round_store.update(round["id"], round)
         if not updated:
             raise Exception("Failed to update round")
 
@@ -216,7 +216,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round["status"] = status
-        updated = self.round_store.update(round["id"], round)
+        updated, _ = self.round_store.update(round["id"], round)
         if not updated:
             raise Exception("Failed to update round")
 
@@ -230,7 +230,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round["round_config"] = round_config
-        updated = self.round_store.update(round["id"], round)
+        updated, _ = self.round_store.update(round["id"], round)
         if not updated:
             raise Exception("Failed to update round")
 

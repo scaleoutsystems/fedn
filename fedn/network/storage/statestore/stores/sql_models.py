@@ -51,30 +51,30 @@ class RoundConfigModel(MyAbstractBase):
     clients_required: Mapped[int]
     validate: Mapped[bool]
     helper_type: Mapped[str] = mapped_column(String(255))
-    model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
-    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
-    session: Mapped[Optional["SessionModel"]] = relationship(back_populates="round_configs")
+    model_id: Mapped[Optional[str]]
+    session_id: Mapped[Optional[str]]
     round: Mapped["RoundModel"] = relationship(back_populates="round_config")
     task: Mapped[str] = mapped_column(String(255))
+    round_id: Mapped[str]
+    rounds: Mapped[int]
 
 
 class RoundDataModel(MyAbstractBase):
     __tablename__ = "round_data"
 
-    time_commit: Mapped[float]
-    reduce_time_aggregate_models: Mapped[float]
-    reduce_time_fetch_models: Mapped[float]
-    reduce_time_load_model: Mapped[float]
+    time_commit: Mapped[Optional[float]]
+    reduce_time_aggregate_model: Mapped[Optional[float]]
+    reduce_time_fetch_model: Mapped[Optional[float]]
+    reduce_time_load_model: Mapped[Optional[float]]
     round: Mapped["RoundModel"] = relationship(back_populates="round_data")
 
 
 class RoundCombinerModel(MyAbstractBase):
     __tablename__ = "round_combiners"
 
-    model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
+    model_id: Mapped[str]
     name: Mapped[str] = mapped_column(String(255))
     round_id: Mapped[str]
-    parent_round_id: Mapped[str] = mapped_column(ForeignKey("rounds.id"))
     status: Mapped[str] = mapped_column(String(255))
     time_exec_training: Mapped[float]
 
@@ -92,13 +92,16 @@ class RoundCombinerModel(MyAbstractBase):
     config_task: Mapped[str] = mapped_column(String(255))
     config_validate: Mapped[bool]
 
-    data_aggregation_time_nr_aggregated_models: Mapped[int]
-    data_aggregation_time_time_model_aggregation: Mapped[float]
-    data_aggregation_time_time_model_load: Mapped[float]
-    data_nr_expected_updates: Mapped[int]
-    data_nr_required_updates: Mapped[int]
-    data_time_combination: Mapped[float]
-    data_timeout: Mapped[float]
+    data_aggregation_time_nr_aggregated_models: Mapped[Optional[int]]
+    data_aggregation_time_time_model_aggregation: Mapped[Optional[float]]
+    data_aggregation_time_time_model_load: Mapped[Optional[float]]
+    data_nr_expected_updates: Mapped[Optional[int]]
+    data_nr_required_updates: Mapped[Optional[int]]
+    data_time_combination: Mapped[Optional[float]]
+    data_timeout: Mapped[Optional[float]]
+
+    parent_round_id: Mapped[str] = mapped_column(ForeignKey("rounds.id"))
+    round: Mapped["RoundModel"] = relationship(back_populates="combiners")
 
 
 class RoundModel(MyAbstractBase):
@@ -106,6 +109,9 @@ class RoundModel(MyAbstractBase):
 
     round_id: Mapped[str] = mapped_column(unique=True)  # TODO: Add unique constraint. Does this work?
     status: Mapped[str] = mapped_column()
-    round_config: Mapped["RoundConfigModel"] = relationship(back_populates="round")
-    round_data: Mapped["RoundDataModel"] = relationship(back_populates="round")
-    combiners: Mapped[List["RoundCombinerModel"]] = relationship(back_populates="round")
+
+    round_config_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_configs.id"))
+    round_config: Mapped[Optional["RoundConfigModel"]] = relationship(back_populates="round")
+    round_data_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_data.id"))
+    round_data: Mapped[Optional["RoundDataModel"]] = relationship(back_populates="round")
+    combiners: Mapped[List["RoundCombinerModel"]] = relationship(back_populates="round", cascade="all, delete-orphan")

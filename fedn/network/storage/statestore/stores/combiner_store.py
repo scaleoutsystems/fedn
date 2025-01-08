@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import String, func, select
+from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import text
 
@@ -140,7 +140,7 @@ def from_row(row: CombinerModel) -> Combiner:
 class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
     def get(self, id: str) -> Combiner:
         with Session() as session:
-            stmt = select(CombinerModel).where(CombinerModel.id == id or CombinerModel.name == id)
+            stmt = select(CombinerModel).where(or_(CombinerModel.id == id, CombinerModel.name == id))
             item = session.scalars(stmt).first()
             if item is None:
                 raise EntityNotFound("Entity not found")
