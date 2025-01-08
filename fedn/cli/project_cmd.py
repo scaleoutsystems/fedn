@@ -26,23 +26,40 @@ def project_cmd(ctx):
 @click.pass_context
 def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None, port: str = None, token: str = None):
     """Delete project."""
-    user_input = input(f"Are you sure you want to delete project with slug {slug} (y/n)?: ")
-    if user_input == "y":
-        _url = f"{protocol}://{host}/api/v1/projects/delete/"
-        url = f"{_url}{slug}"
-        headers = {}
+    # Check if project with given slug exists
+    url = f"{protocol}://{host}/api/v1/projects/{slug}"
+    headers = {}
 
-        _token = get_token(token, True)
+    _token = get_token(token, False)
 
-        if _token:
-            headers["Authorization"] = _token
-        # Call the authentication API
-        try:
-            requests.delete(url, headers=headers)
-            click.secho(f"Project with slug {slug} has been removed.", fg="green")
-            activate_project(None, protocol, host)
-        except requests.exceptions.RequestException as e:
-            click.echo(str(e), fg="red")
+    if _token:
+        headers["Authorization"] = _token
+    try:
+        response = requests.get(url, headers=headers)
+        response_json = response.json()
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Could not connect to {url}")
+    if response_json.get("error") is None:
+        # Check if user wants to delete project with given slug
+        user_input = input(f"Are you sure you want to delete project with slug {slug} (y/n)?: ")
+        if user_input == "y":
+            _url = f"{protocol}://{host}/api/v1/projects/delete/"
+            url = f"{_url}{slug}"
+            headers = {}
+
+            _token = get_token(token, True)
+
+            if _token:
+                headers["Authorization"] = _token
+            # Call the authentication API
+            try:
+                requests.delete(url, headers=headers)
+                click.secho(f"Project with slug {slug} has been removed.", fg="green")
+                activate_project(None, protocol, host)
+            except requests.exceptions.RequestException as e:
+                click.echo(str(e), fg="red")
+    else:
+        click.secho(f"No project with slug '{slug}' exists.", fg="red")
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -138,9 +155,14 @@ def get_project(ctx, slug: str = None, protocol: str = None, host: str = None, p
         headers["Authorization"] = _token
     try:
         response = requests.get(url, headers=headers)
-        print_response(response, "project", True)
+        response_json = response.json()
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
+
+    if response_json.get("error"):
+        click.secho(f"No project with slug '{slug}' exists.", fg="red")
+    else:
+        print_response(response, "project", True)
 
 
 @click.option("-s", "--slug", required=True, help="Slug name of project.")
