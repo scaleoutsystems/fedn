@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
@@ -24,10 +25,12 @@ class Round:
 
 
 class RoundStore(Store[Round]):
-    pass
+    @abstractmethod
+    def get_latest_round_id(self) -> int:
+        pass
 
 
-class MongoDBRoundStore(MongoDBStore[Round]):
+class MongoDBRoundStore(RoundStore, MongoDBStore[Round]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
         self.database[self.collection].create_index([("round_id", pymongo.DESCENDING)])
@@ -84,6 +87,13 @@ class MongoDBRoundStore(MongoDBStore[Round]):
         return: The entities
         """
         return super().list(limit, skip, sort_key or "round_id", sort_order, **kwargs)
+
+    def get_latest_round_id(self) -> int:
+        obj = self.database[self.collection].find_one(sort=[("_id", pymongo.DESCENDING)])
+        if obj:
+            return int(obj["round_id"])
+        else:
+            return 0
 
 
 def from_row(row: RoundModel) -> Round:
@@ -427,3 +437,11 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
             count = session.scalar(stmt)
 
             return count
+
+    def get_latest_round_id(self) -> int:
+        response = self.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
+        if response and "result" in response and len(response["result"]) > 0:
+            round_id: str = response["result"][0]["round_id"]
+            return int(round_id)
+        else:
+            return 0

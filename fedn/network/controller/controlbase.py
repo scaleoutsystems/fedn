@@ -114,12 +114,7 @@ class ControlBase(ABC):
             return False
 
     def get_latest_round_id(self) -> int:
-        response = self.round_store.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
-        if response and "result" in response and len(response["result"]) > 0:
-            round_id: str = response["result"][0]["round_id"]
-            return int(round_id)
-        else:
-            return 0
+        return self.round_store.get_latest_round_id()
 
     def get_compute_package_name(self):
         """:return:"""

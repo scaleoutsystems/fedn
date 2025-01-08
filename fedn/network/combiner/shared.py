@@ -29,8 +29,8 @@ validation_store = ValidationStore(mdb, "control.validations")
 combiner_store: CombinerStore = SQLCombinerStore()
 status_store = StatusStore(mdb, "control.status")
 prediction_store = PredictionStore(mdb, "control.predictions")
-# round_store: RoundStore = MongoDBRoundStore(mdb, "control.rounds")
-round_store: RoundStore = SQLRoundStore()
+round_store: RoundStore = MongoDBRoundStore(mdb, "control.rounds")
+# round_store: RoundStore = SQLRoundStore()
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
 
