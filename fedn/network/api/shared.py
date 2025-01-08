@@ -15,6 +15,7 @@ from fedn.network.storage.statestore.stores.client_store import ClientStore, Mon
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
 from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
+from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
