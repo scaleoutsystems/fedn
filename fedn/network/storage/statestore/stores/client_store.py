@@ -1,11 +1,15 @@
+from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import String, func, or_, select
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import text
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -22,7 +26,17 @@ class Client:
         self.last_seen = last_seen
 
 
-class ClientStore(MongoDBStore[Client]):
+class ClientStore(Store[Client]):
+    @abstractmethod
+    def upsert(self, item: Client) -> Tuple[bool, Any]:
+        pass
+
+    @abstractmethod
+    def connected_client_count(self, combiners: List[str]) -> List[Client]:
+        pass
+
+
+class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
         self.database[self.collection].create_index([("client_id", pymongo.DESCENDING)])
@@ -101,7 +115,7 @@ class ClientStore(MongoDBStore[Client]):
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
 
-    def connected_client_count(self, combiners):
+    def connected_client_count(self, combiners: List[str]) -> List[Client]:
         """Count the number of connected clients for each combiner.
 
         :param combiners: list of combiners to get data for.
@@ -133,3 +147,153 @@ class ClientStore(MongoDBStore[Client]):
             result = {}
 
         return result
+
+
+class ClientModel(MyAbstractBase):
+    __tablename__ = "clients"
+
+    client_id: Mapped[str] = mapped_column(String(255), unique=True)
+    combiner: Mapped[str] = mapped_column(String(255))
+    ip: Mapped[Optional[str]] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    package: Mapped[Optional[str]] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(255))
+    last_seen: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+def from_row(row: ClientModel) -> Client:
+    return {
+        "id": row.id,
+        "client_id": row.client_id,
+        "combiner": row.combiner,
+        "ip": row.ip,
+        "name": row.name,
+        "package": row.package,
+        "status": row.status,
+        "last_seen": row.last_seen,
+    }
+
+
+class SQLClientStore(ClientStore, SQLStore[Client]):
+    def get(self, id: str) -> Client:
+        with Session() as session:
+            stmt = select(ClientModel).where(or_(ClientModel.id == id, ClientModel.client_id == id))
+            item = session.scalars(stmt).first()
+
+            if item is None:
+                raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+
+            return from_row(item)
+
+    def update(self, id: str, item: Client) -> Tuple[bool, Any]:
+        with Session() as session:
+            stmt = select(ClientModel).where(or_(ClientModel.id == id, ClientModel.client_id == id))
+            existing_item = session.scalars(stmt).first()
+
+            if existing_item is None:
+                raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+
+            existing_item.combiner = item.get("combiner")
+            existing_item.ip = item.get("ip")
+            existing_item.name = item.get("name")
+            existing_item.package = item.get("package")
+            existing_item.status = item.get("status")
+            existing_item.last_seen = item.get("last_seen")
+
+            session.commit()
+
+            return True, from_row(existing_item)
+
+    def add(self, item: Client) -> Tuple[bool, Any]:
+        with Session() as session:
+            entity = ClientModel(
+                client_id=item.get("client_id"),
+                combiner=item.get("combiner"),
+                ip=item.get("ip"),
+                name=item.get("name"),
+                package=item.get("package"),
+                status=item.get("status"),
+                last_seen=item.get("last_seen"),
+            )
+
+            session.add(entity)
+            session.commit()
+
+            return True, from_row(entity)
+
+    def delete(self, id):
+        raise NotImplementedError
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with Session() as session:
+            stmt = select(ClientModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(ClientModel, key) == value)
+
+            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+            _sort_key: str = sort_key or "committed_at"
+
+            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+
+            if limit != 0:
+                stmt = stmt.offset(skip or 0).limit(limit)
+
+            items = session.scalars(stmt).all()
+
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            count = session.scalar(select(func.count()).select_from(ClientModel))
+
+            return {"count": count, "result": result}
+
+    def count(self, **kwargs):
+        with Session() as session:
+            stmt = select(func.count()).select_from(ClientModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(ClientModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count
+
+    def upsert(self, item: Client) -> Tuple[bool, Any]:
+        with Session() as session:
+            id = item.get("id")
+            client_id = item.get("client_id")
+
+            stmt = select(ClientModel).where(or_(ClientModel.id == id, ClientModel.client_id == client_id))
+            existing_item = session.scalars(stmt).first()
+
+            if existing_item is None:
+                entity = ClientModel(
+                    client_id=item.get("client_id"),
+                    combiner=item.get("combiner"),
+                    ip=item.get("ip"),
+                    name=item.get("name"),
+                    package=item.get("package"),
+                    status=item.get("status"),
+                    last_seen=item.get("last_seen"),
+                )
+
+                session.add(entity)
+                session.commit()
+
+                return True, from_row(entity)
+
+            existing_item.combiner = item.get("combiner")
+            existing_item.ip = item.get("ip")
+            existing_item.name = item.get("name")
+            existing_item.package = item.get("package")
+            existing_item.status = item.get("status")
+            existing_item.last_seen = item.get("last_seen")
+
+            session.commit()
+
+            return True, from_row(existing_item)
+
+    def connected_client_count(self, combiners):
+        raise NotImplementedError

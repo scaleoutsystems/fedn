@@ -11,7 +11,7 @@ from fedn.network.controller.control import Control
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
 from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
@@ -31,10 +31,11 @@ mc = pymongo.MongoClient(**statestore_config["mongo_config"])
 mc.server_info()
 mdb: Database = mc[network_id]
 
-MyAbstractBase.metadata.create_all(engine)
+MyAbstractBase.metadata.create_all(engine, checkfirst=True)
 
 
-client_store = ClientStore(mdb, "network.clients")
+# client_store: ClientStore = MongoDBClientStore(mdb, "network.clients")
+client_store: ClientStore = SQLClientStore()
 # package_store: PackageStore = MongoDBPackageStore(mdb, "control.package")
 package_store: PackageStore = SQLPackageStore()
 # session_store = MongoDBSessionStore(mdb, "control.sessions")

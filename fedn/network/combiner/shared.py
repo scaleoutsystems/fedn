@@ -4,7 +4,7 @@ from pymongo.database import Database
 from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
@@ -21,9 +21,10 @@ if statestore_config["type"] == "MongoDB":
     mc.server_info()
     mdb: Database = mc[network_id]
 
-MyAbstractBase.metadata.create_all(engine)
+MyAbstractBase.metadata.create_all(engine, checkfirst=True)
 
-client_store = ClientStore(mdb, "network.clients")
+# client_store: ClientStore = MongoDBClientStore(mdb, "network.clients")
+client_store: ClientStore = SQLClientStore()
 # validation_store: ValidationStore = MongoDBValidationStore(mdb, "control.validations")
 validation_store: ValidationStore = SQLValidationStore()
 # combiner_store: CombinerStore = MongoDBCombinerStore(mdb, "network.combiners")
