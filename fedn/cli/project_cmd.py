@@ -55,9 +55,9 @@ def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None
             try:
                 requests.delete(url, headers=headers)
                 click.secho(f"Project with slug {slug} has been removed.", fg="green")
-                activate_project(None, protocol, host)
             except requests.exceptions.RequestException as e:
                 click.echo(str(e), fg="red")
+            activate_project(None, protocol, host)
     else:
         click.secho(f"No project with slug '{slug}' exists.", fg="red")
 
