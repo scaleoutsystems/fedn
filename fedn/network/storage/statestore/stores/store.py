@@ -132,7 +132,7 @@ class MongoDBStore(Store[T], Generic[T]):
         return self.database[self.collection].count_documents(kwargs)
 
 
-class SQLStore(Store[T], Generic[T]):
+class SQLStore(Store[T]):
     pass
 
 

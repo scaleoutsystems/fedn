@@ -296,4 +296,15 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return True, from_row(existing_item)
 
     def connected_client_count(self, combiners):
-        raise NotImplementedError
+        with Session() as session:
+            stmt = select(ClientModel.combiner, func.count(ClientModel.combiner)).group_by(ClientModel.combiner)
+            if combiners:
+                stmt = stmt.where(ClientModel.combiner.in_(combiners))
+
+            items = session.execute(stmt).fetchall()
+
+            result = []
+            for i in items:
+                result.append({"combiner": i[0], "count": i[1]})
+
+            return result
