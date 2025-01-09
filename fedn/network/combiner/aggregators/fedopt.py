@@ -94,9 +94,9 @@ class Aggregator(AggregatorBase):
             if key not in parameters:
                 parameters[key] = value
 
-        model = None
-        nr_aggregated_models = 0
-        total_examples = 0
+        # Aggregation initialization
+        model, pseudo_gradient = None, None
+        nr_aggregated_models, total_examples = 0, 0
 
         logger.info(
             "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
@@ -139,29 +139,33 @@ class Aggregator(AggregatorBase):
                         self.name, model_update.model_update_id))
             except Exception as e:
                 logger.error(
-                    "AGGREGATOR({}): Error encoutered while processing model update {}, skipping this update.".format(self.name, e))
-
-        try:
-            if parameters["serveropt"] == "adam":
-                model = self.serveropt_adam(
-                    helper, pseudo_gradient, model_old, parameters)
-            elif parameters["serveropt"] == "yogi":
-                model = self.serveropt_yogi(
-                    helper, pseudo_gradient, model_old, parameters)
-            elif parameters["serveropt"] == "adagrad":
-                model = self.serveropt_adagrad(
-                    helper, pseudo_gradient, model_old, parameters)
-            else:
-                logger.error("Unsupported server optimizer passed to FedOpt.")
-                return None, data
-        except Exception as e:
-            tb = traceback.format_exc()
-            logger.error(
-                "AGGREGATOR({}): Error encoutered while while aggregating: {}".format(self.name, e))
-            logger.error(tb)
-            return None, data
+                    "AGGREGATOR({}): Error encoutered while processing model update {}, skiphttps://github.com/scaleoutsystems/fedn/pull/770ping this update.".format(self.name, e))
 
         data["nr_aggregated_models"] = nr_aggregated_models
+
+        if pseudo_gradient:
+            try:
+                if parameters["serveropt"] == "adam":
+                    model = self.serveropt_adam(
+                        helper, pseudo_gradient, model_old, parameters)
+                elif parameters["serveropt"] == "yogi":
+                    model = self.serveropt_yogi(
+                        helper, pseudo_gradient, model_old, parameters)
+                elif parameters["serveropt"] == "adagrad":
+                    model = self.serveropt_adagrad(
+                        helper, pseudo_gradient, model_old, parameters)
+                else:
+                    logger.error(
+                        "Unsupported server optimizer passed to FedOpt.")
+                    return None, data
+            except Exception as e:
+                tb = traceback.format_exc()
+                logger.error(
+                    "AGGREGATOR({}): Error encoutered while while aggregating: {}".format(self.name, e))
+                logger.error(tb)
+                return None, data
+        else:
+            return None, data
 
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(
             self.name, nr_aggregated_models))
