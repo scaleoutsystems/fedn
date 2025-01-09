@@ -30,7 +30,7 @@ class RoundConfig(TypedDict):
     :type round_id: str
     :param round_timeout: The round timeout in seconds. Set by user interfaces or Controller.
     :type round_timeout: str
-    :param rounds: The number of rounds. Set by user interfaces.
+    :param rounds: The number of rounds. Set by user interfaces.w
     :param model_id: The model identifier. Set by user interfaces or Controller (get_latest_model).
     :type model_id: str
     :param model_version: The model version. Currently not used.
