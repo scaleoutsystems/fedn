@@ -24,6 +24,7 @@ from fedn.utils.checksum import sha
 
 statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
+network_id = get_network_config()
 
 client_store: ClientStore = None
 validation_store: ValidationStore = None
@@ -36,8 +37,6 @@ model_store: SQLModelStore = None
 session_store: SQLSessionStore = None
 
 if statestore_config["type"] == "MongoDB":
-    network_id = get_network_config()
-
     mc = pymongo.MongoClient(**statestore_config["mongo_config"])
     mc.server_info()
     mdb: Database = mc[network_id]
@@ -52,7 +51,7 @@ if statestore_config["type"] == "MongoDB":
     model_store = MongoDBModelStore(mdb, "control.models")
     session_store = MongoDBSessionStore(mdb, "control.sessions")
 
-else:
+elif statestore_config["type"] in ["SQLite", "PostgreSQL"]:
     MyAbstractBase.metadata.create_all(engine, checkfirst=True)
 
     client_store = SQLClientStore()
@@ -64,6 +63,8 @@ else:
     package_store = SQLPackageStore()
     model_store = SQLModelStore()
     session_store = SQLSessionStore()
+else:
+    raise ValueError("Unknown statestore type")
 
 
 repository = Repository(modelstorage_config["storage_config"])
@@ -84,9 +85,6 @@ minio_repository: RepositoryBase = None
 
 if modelstorage_config["storage_type"] == "S3":
     minio_repository = MINIORepository(modelstorage_config["storage_config"])
-
-
-storage_collection = mdb["network.storage"]
 
 
 def get_checksum(name: str = None):

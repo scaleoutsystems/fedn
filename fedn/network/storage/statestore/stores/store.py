@@ -9,6 +9,7 @@ from pymongo.database import Database
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
+from fedn.common.config import get_statestore_config
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 
 T = TypeVar("T")
@@ -155,6 +156,21 @@ class MyAbstractBase(Base):
     committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
-# engine = create_engine("sqlite:///my_database.db", echo=True)
-engine = create_engine("postgresql://fedn_admin:password@fedn_postgres:5432/fedn_db", echo=True)
-Session = sessionmaker(engine)
+statestore_config = get_statestore_config()
+
+engine = None
+Session = None
+
+if statestore_config["type"] in ["SQLite", "PostgreSQL"]:
+    if statestore_config["type"] == "SQLite":
+        engine = create_engine("sqlite:///my_database.db", echo=True)
+    elif statestore_config["type"] == "PostgreSQL":
+        postgres_config = statestore_config["postgres_config"]
+        username = postgres_config["username"]
+        password = postgres_config["password"]
+        host = postgres_config["host"]
+        port = postgres_config["port"]
+
+        engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=True)
+
+    Session = sessionmaker(engine)
