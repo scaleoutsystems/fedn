@@ -20,10 +20,12 @@ def login_cmd(ctx):
 
 
 @login_cmd.command("login")
+@click.option("-", "--name", required=False, default=None, help="username in studio")
+@click.option("-pw", "--password", required=False, default=None, help="password in studio")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.pass_context
-def login_cmd(ctx, protocol: str, host: str):
+def login_cmd(ctx, protocol: str, host: str, username: str, password: str):
     """Logging into FEDn Studio"""
     # Step 1: Display welcome message
     click.secho("Welcome to Scaleout FEDn!", fg="green")
@@ -31,8 +33,13 @@ def login_cmd(ctx, protocol: str, host: str):
     url = f"{protocol}://{host}/api/token/"
 
     # Step 3: Prompt for username and password
-    username = input("Please enter your username: ")
-    password = getpass("Please enter your password: ")
+    if username is None and password is None:
+        username = input("Please enter your username: ")
+        password = getpass("Please enter your password: ")
+    elif password is None:
+        password = getpass("Please enter your password: ")
+    else:
+        username = input("Please enter your username: ")
 
     # Call the authentication API
     try:
@@ -79,7 +86,7 @@ def get_context(response, protocol, host):
         slug = projects_response_json[0].get("slug")
         headers_projects["X-Project-Slug"] = slug
         url_project_token = get_api_url(protocol=protocol, host=host, port=None, endpoint="admin-token", usr_api=studio_api)
-
+        print(url_project_token)
         try:
             response_project_tokens = requests.get(url_project_token, headers=headers_projects)
             project_tokens = response_project_tokens.json()
