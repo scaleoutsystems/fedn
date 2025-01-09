@@ -9,6 +9,7 @@ from fedn.network.storage.statestore.stores.combiner_store import CombinerStore,
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
+from fedn.network.storage.statestore.stores.store import MyAbstractBase, engine
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 statestore_config = get_statestore_config()
@@ -34,6 +35,8 @@ if statestore_config["type"] == "MongoDB":
     prediction_store = MongoDBPredictionStore(mdb, "control.predictions")
     round_store = MongoDBRoundStore(mdb, "control.rounds")
 elif statestore_config["type"] in ["SQLite", "PostgreSQL"]:
+    MyAbstractBase.metadata.create_all(engine, checkfirst=True)
+
     client_store = SQLClientStore()
     validation_store = SQLValidationStore()
     combiner_store = SQLCombinerStore()
