@@ -5,7 +5,7 @@ import requests
 import yaml
 
 from .main import main
-from .shared import CONTROLLER_DEFAULTS, get_token, print_response
+from .shared import STUDIO_DEFAULTS, get_api_url, get_token, print_response
 
 home_dir = os.path.expanduser("~")
 
@@ -18,16 +18,16 @@ def project_cmd(ctx):
 
 
 @click.option("-s", "--slug", required=True, help="Slug name of project.")
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("-t", "--token", required=False, help="User access token")
 @project_cmd.command("delete")
 @click.pass_context
-def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None, port: str = None, token: str = None):
+def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None, token: str = None):
     """Delete project."""
     # Check if project with given slug exists
-    url = f"{protocol}://{host}/api/v1/projects/{slug}"
+    studio_api = True
+    url = get_api_url(protocol=protocol, host=host, port=None, endpoint=f"projects/{slug}", usr_api=studio_api)
     headers = {}
 
     _token = get_token(token, False)
@@ -43,8 +43,7 @@ def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None
         # Check if user wants to delete project with given slug
         user_input = input(f"Are you sure you want to delete project with slug {slug} (y/n)?: ")
         if user_input == "y":
-            _url = f"{protocol}://{host}/api/v1/projects/delete/"
-            url = f"{_url}{slug}"
+            url = get_api_url(protocol=protocol, host=host, port=None, endpoint=f"projects/delete/{slug}", usr_api=studio_api)
             headers = {}
 
             _token = get_token(token, True)
@@ -62,17 +61,18 @@ def delete_project(ctx, slug: str = None, protocol: str = None, host: str = None
         click.secho(f"No project with slug '{slug}' exists.", fg="red")
 
 
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("-t", "--token", required=False, help="User access token")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, protocol: str = None, host: str = None, port: str = None, token: str = None):
+def create_project(ctx, protocol: str = None, host: str = None, token: str = None):
     """Create project.
     :param ctx:
     """
-    url = f"{protocol}://{host}/api/v1/projects/create"
+    # Check if user can create project
+    studio_api = True
+    url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/create", usr_api=studio_api)
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     _token = get_token(token, True)
@@ -82,29 +82,30 @@ def create_project(ctx, protocol: str = None, host: str = None, port: str = None
 
     name = input("Please enter a project name: ")
     description = input("Please enter a project description (optional): ")
+    if len(name) > 46 or len(description) >= 255:
+        click.secho("Project name or description too long.", fg="red")
+    else:
+        # Call the authentication API
+        try:
+            requests.post(url, data={"name": name, "description": description}, headers=headers)
+        except requests.exceptions.RequestException as e:
+            click.secho(str(e), fg="red")
+        click.secho("Project created.", fg="green")
 
-    # Call the authentication API
-    try:
-        requests.post(url, data={"name": name, "description": description}, headers=headers)
-    except requests.exceptions.RequestException as e:
-        click.secho(str(e), fg="red")
 
-    click.secho("Project created.", fg="green")
-
-
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("-t", "--token", required=False, help="User access token")
 @project_cmd.command("list")
 @click.pass_context
-def list_projects(ctx, protocol: str = None, host: str = None, port: str = None, token: str = None):
+def list_projects(ctx, protocol: str = None, host: str = None, token: str = None):
     """Return:
     ------
     - result: list of packages
 
     """
-    url = f"{protocol}://{host}/api/v1/projects"
+    studio_api = True
+    url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects", usr_api=studio_api)
     headers = {}
 
     _token = get_token(token, True)
@@ -134,19 +135,19 @@ def list_projects(ctx, protocol: str = None, host: str = None, port: str = None,
 
 
 @click.option("-s", "--slug", required=True, help="Slug name of project.")
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("-t", "--token", required=False, help="User access token")
 @project_cmd.command("get")
 @click.pass_context
-def get_project(ctx, slug: str = None, protocol: str = None, host: str = None, port: str = None, token: str = None):
+def get_project(ctx, slug: str = None, protocol: str = None, host: str = None, token: str = None):
     """Return:
     ------
     - result: project with given slug
 
     """
-    url = f"{protocol}://{host}/api/v1/projects/{slug}"
+    studio_api = True
+    url = get_api_url(protocol=protocol, host=host, port=None, endpoint=f"projects/{slug}", usr_api=studio_api)
     headers = {}
 
     _token = get_token(token, False)
@@ -166,23 +167,24 @@ def get_project(ctx, slug: str = None, protocol: str = None, host: str = None, p
 
 
 @click.option("-s", "--slug", required=True, help="Slug name of project.")
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @project_cmd.command("activate")
 @click.pass_context
-def set_active_project(ctx, slug: str = None, protocol: str = None, host: str = None, port: str = None):
+def set_active_project(ctx, slug: str = None, protocol: str = None, host: str = None):
     """Set active project.
 
     :param ctx:
     :param slug:
     """
-    activate_project(slug, protocol, host, port)
+    activate_project(slug, protocol, host)
 
 
-def activate_project(slug: str = None, protocol: str = None, host: str = None, port: str = None):
-    url_projects = f"{protocol}://{host}/api/v1/projects"
-    url_project_token = f"{protocol}://{host}/api/v1/admin-token"
+def activate_project(slug: str = None, protocol: str = None, host: str = None):
+    studio_api = True
+    url_projects = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects", usr_api=studio_api)
+    url_project_token = get_api_url(protocol=protocol, host=host, port=None, endpoint="admin-token", usr_api=studio_api)
+
     context_path = os.path.join(home_dir, ".fedn")
     try:
         with open(f"{context_path}/context.yaml", "r") as yaml_file:

@@ -7,6 +7,8 @@ from fedn.common.log_config import logger
 
 CONTROLLER_DEFAULTS = {"protocol": "http", "host": "localhost", "port": 8092, "debug": False}
 
+STUDIO_DEFAULTS = {"protocol": "https", "host": "fedn.scaleoutsystems.com"}
+
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
 
 CLIENT_DEFAULTS = {
@@ -37,21 +39,31 @@ def apply_config(path: str, config: dict):
         config[key] = val
 
 
-def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
-    _url = os.environ.get("FEDN_CONTROLLER_URL")
-    _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
-    _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
-    _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
+def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: bool) -> str:
+    if usr_api:
+        _url = os.environ.get("FEDN_STUDIO_URL")
+        _protocol = protocol or os.environ.get("FEDN_STUDIO_PROTOCOL") or STUDIO_DEFAULTS["protocol"]
+        _host = host or os.environ.get("FEDN_STUDIO_HOST") or STUDIO_DEFAULTS["host"]
 
-    if _url is None:
-        context_path = os.path.join(home_dir, ".fedn")
-        try:
-            with open(f"{context_path}/context.yaml", "r") as yaml_file:
-                context_data = yaml.safe_load(yaml_file)
-            _url = context_data.get("Active project url")
-        except Exception as e:
-            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
-            _url = f"{_protocol}://{_host}:{_port}"
+        if _url is None:
+            return f"{_protocol}://{_host}/api/{API_VERSION}/{endpoint}"
+
+        return f"{_url}/api/{API_VERSION}/{endpoint}"
+    else:
+        _url = os.environ.get("FEDN_CONTROLLER_URL")
+        _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
+        _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
+        _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
+
+        if _url is None:
+            context_path = os.path.join(home_dir, ".fedn")
+            try:
+                with open(f"{context_path}/context.yaml", "r") as yaml_file:
+                    context_data = yaml.safe_load(yaml_file)
+                _url = context_data.get("Active project url")
+            except Exception as e:
+                click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
+                _url = f"{_protocol}://{_host}:{_port}"
 
     return f"{_url}/api/{API_VERSION}/{endpoint}/"
 

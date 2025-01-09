@@ -6,7 +6,7 @@ import requests
 import yaml
 
 from .main import main
-from .shared import CONTROLLER_DEFAULTS, get_token
+from .shared import STUDIO_DEFAULTS, get_api_url, get_token
 
 # Replace this with the platform's actual login endpoint
 home_dir = os.path.expanduser("~")
@@ -20,11 +20,10 @@ def login_cmd(ctx):
 
 
 @login_cmd.command("login")
-@click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
-@click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
-@click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.pass_context
-def login_cmd(ctx, protocol: str, host: str, port: str = None):
+def login_cmd(ctx, protocol: str, host: str):
     """Logging into FEDn Studio"""
     # Step 1: Display welcome message
     click.secho("Welcome to Scaleout FEDn!", fg="green")
@@ -46,7 +45,7 @@ def login_cmd(ctx, protocol: str, host: str, port: str = None):
 
     # Handle the response
     if response.status_code == 200:
-        context_data = get_context(response, protocol, host, port)
+        context_data = get_context(response, protocol, host)
 
         context_path = os.path.join(home_dir, ".fedn")
         if not os.path.exists(context_path):
@@ -60,10 +59,11 @@ def login_cmd(ctx, protocol: str, host: str, port: str = None):
         click.secho(f"Unexpected error: {response.text}", fg="red")
 
 
-def get_context(response, protocol, host, port):
+def get_context(response, protocol, host):
     user_token_data = response.json()
     if user_token_data.get("access"):
-        url_projects = f"{protocol}://{host}/api/v1/projects"  # get_api_url(protocol=protocol, host=host, port=port, endpoint="projects")
+        studio_api = True
+        url_projects = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects", usr_api=studio_api)
         headers_projects = {}
         user_access_token = user_token_data.get("access")
         _token = get_token(user_access_token, True)
@@ -78,7 +78,8 @@ def get_context(response, protocol, host, port):
 
         slug = projects_response_json[0].get("slug")
         headers_projects["X-Project-Slug"] = slug
-        url_project_token = f"{protocol}://{host}/api/v1/admin-token"  # get_api_url(protocol=protocol, host=host, port=port, endpoint="admin-token")
+        url_project_token = get_api_url(protocol=protocol, host=host, port=None, endpoint="admin-token", usr_api=studio_api)
+
         try:
             response_project_tokens = requests.get(url_project_token, headers=headers_projects)
             project_tokens = response_project_tokens.json()
