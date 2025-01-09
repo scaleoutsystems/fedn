@@ -60,14 +60,11 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
             raise EntityNotFound(f"Entity with client_id {client_id} not found")
         return document
 
-    def update(self, by_key: str, value: str, item: Client) -> bool:
+    def update(self, id: str, item: Client) -> Tuple[bool, Any]:
         try:
-            result = self.database[self.collection].update_one({by_key: value}, {"$set": item})
-            if result.modified_count == 1:
-                document = self.database[self.collection].find_one({by_key: value})
-                return True, from_document(document)
-            else:
-                return False, "Entity not found"
+            existing_client = self.get(id)
+
+            return super().update(existing_client["id"], item)
         except Exception as e:
             return False, str(e)
 
