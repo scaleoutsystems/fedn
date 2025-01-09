@@ -7,7 +7,7 @@ from pymongo.database import Database
 from sqlalchemy import Integer, func, or_, select
 from sqlalchemy.sql import text
 
-from fedn.network.storage.statestore.stores.sql_models import RoundCombinerModel, RoundConfigModel, RoundDataModel, RoundModel
+from fedn.network.storage.statestore.stores.sql.shared import RoundCombinerModel, RoundConfigModel, RoundDataModel, RoundModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, Session, SQLStore, Store
 
 from .shared import EntityNotFound, from_document

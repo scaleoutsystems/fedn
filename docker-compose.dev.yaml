@@ -60,8 +60,7 @@ services:
       POSTGRES_DB: fedn_db
     ports:
       - "5432:5432"
-
-
+  
   api-server:
     environment:
       - GET_HOSTS_FROM=dns

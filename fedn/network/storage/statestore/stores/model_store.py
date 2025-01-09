@@ -10,7 +10,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql import text
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
-from fedn.network.storage.statestore.stores.sql_models import ModelModel
+from fedn.network.storage.statestore.stores.sql.shared import ModelModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, Session, SQLStore, Store
 
 

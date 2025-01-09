@@ -9,9 +9,10 @@ from sqlalchemy import func, select
 from sqlalchemy.sql import text
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
-from fedn.network.storage.statestore.stores.sql_models import SessionConfigModel, SessionModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
+from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
+from fedn.network.storage.statestore.stores.store import MongoDBStore
 from fedn.network.storage.statestore.stores.store import Session as SQLSession
+from fedn.network.storage.statestore.stores.store import SQLStore, Store
 
 
 class SessionConfig:
