@@ -1,6 +1,7 @@
 import os
 
 import click
+import requests
 import yaml
 
 from fedn.common.log_config import logger
@@ -58,8 +59,7 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: boo
         if _url is None:
             context_path = os.path.join(home_dir, ".fedn")
             try:
-                with open(f"{context_path}/context.yaml", "r") as yaml_file:
-                    context_data = yaml.safe_load(yaml_file)
+                context_data = get_context(context_path)
                 _url = context_data.get("Active project url")
             except Exception as e:
                 click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
@@ -74,14 +74,13 @@ def get_token(token: str, usr_token: bool) -> str:
     if _token is None:
         context_path = os.path.join(home_dir, ".fedn")
         try:
-            with open(f"{context_path}/context.yaml", "r") as yaml_file:
-                context_data = yaml.safe_load(yaml_file)
+            context_data = get_context(context_path)
             if usr_token:
                 _token = context_data.get("User tokens").get("access")
             else:
                 _token = context_data.get("Active project tokens").get("access")
         except Exception as e:
-            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project.", fg="red")
+            click.secho(f"Encountered error {e}. Make sure you are logged in and have activated a project.", fg="red")
 
     scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 
@@ -128,3 +127,36 @@ def print_response(response, entity_name: str, so):
         click.echo(f'Error: {json_data["message"]}')
     else:
         click.echo(f"Error: {response.status_code}")
+
+
+def set_context(context_path, context_data):
+    """Saves context data as yaml file in given path"""
+    try:
+        with open(f"{context_path}/context.yaml", "w") as yaml_file:
+            yaml.dump(context_data, yaml_file, default_flow_style=False)
+    except Exception as e:
+        print(f"Error: Failed to write to YAML file. Details: {e}")
+
+
+def get_context(context_path):
+    """Retrieves context data from yaml file in given path"""
+    try:
+        with open(f"{context_path}/context.yaml", "r") as yaml_file:
+            context_data = yaml.safe_load(yaml_file)
+    except Exception as e:
+        print(f"Error: Failed to write to YAML file. Details: {e}")
+    return context_data
+
+
+def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: str):
+    """Utility function to retrieve response from get request based on provided information."""
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint=endpoint, usr_api=usr_api)
+
+    _token = get_token(token=token, usr_token=usr_token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    response = requests.get(url, headers=headers)
+
+    return response
