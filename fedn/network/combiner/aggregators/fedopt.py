@@ -159,8 +159,7 @@ class Aggregator(AggregatorBase):
         else:
             pseudo_gradient_next = helper.subtract(model_next, model_old)
             pseudo_gradient = helper.increment_average(
-                pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples
-            )
+                pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
         return pseudo_gradient, model_old
 
     def _apply_server_optimizer(
