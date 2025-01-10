@@ -6,7 +6,6 @@ from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import text
 
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
 

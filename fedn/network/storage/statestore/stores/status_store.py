@@ -4,7 +4,6 @@ import pymongo
 from pymongo.database import Database
 from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import text
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store

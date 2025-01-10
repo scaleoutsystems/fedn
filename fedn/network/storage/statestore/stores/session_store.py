@@ -6,7 +6,6 @@ import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import func, select
-from sqlalchemy.sql import text
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel

@@ -8,7 +8,6 @@ from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import text
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
