@@ -181,9 +181,12 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
                 elif _sort_key == "sessionId":
                     _sort_key = "session_id"
 
-                sort_obj = text(f"{_sort_key} {_sort_order}")
+                if _sort_key in ValidationModel.__table__.columns:
+                    sort_obj = (
+                        ValidationModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else ValidationModel.__table__.columns.get(_sort_key).desc()
+                    )
 
-                stmt = stmt.order_by(sort_obj)
+                    stmt = stmt.order_by(sort_obj)
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)

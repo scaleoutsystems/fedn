@@ -178,9 +178,12 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
                 elif _sort_key == "modelId":
                     _sort_key = "model_id"
 
-                sort_obj = text(f"{_sort_key} {_sort_order}")
+                if _sort_key in PredictionModel.__table__.columns:
+                    sort_obj = (
+                        PredictionModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else PredictionModel.__table__.columns.get(_sort_key).desc()
+                    )
 
-                stmt = stmt.order_by(sort_obj)
+                    stmt = stmt.order_by(sort_obj)
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)

@@ -407,8 +407,8 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
 
                 if _sort_key == "round_id":
                     sort_obj = RoundModel.round_id.cast(Integer) if _sort_order == "ASC" else RoundModel.round_id.cast(Integer).desc()
-                else:
-                    sort_obj = text(f"{_sort_key} {_sort_order}")
+                elif _sort_key in RoundModel.__table__.columns:
+                    sort_obj = RoundModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else RoundModel.__table__.columns.get(_sort_key).desc()
 
                 stmt = stmt.order_by(sort_obj)
 

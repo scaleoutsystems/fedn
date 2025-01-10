@@ -170,9 +170,10 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
                 elif _sort_key == "sessionId":
                     _sort_key = "session_id"
 
-                sort_obj = text(f"{_sort_key} {_sort_order}")
+                if _sort_key in StatusModel.__table__.columns:
+                    sort_obj = StatusModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else StatusModel.__table__.columns.get(_sort_key).desc()
 
-                stmt = stmt.order_by(sort_obj)
+                    stmt = stmt.order_by(sort_obj)
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)

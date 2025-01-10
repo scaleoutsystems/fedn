@@ -348,12 +348,12 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
 
             if sort_key:
                 _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-                _sort_key: str = sort_key or "sessions.committed_at"
+                _sort_key: str = sort_key or "committed_at"
 
-                if "." not in _sort_key:
-                    _sort_key = f"sessions.{_sort_key}"
+                if _sort_key in SessionModel.__table__.columns:
+                    sort_obj = SessionModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else SessionModel.__table__.columns.get(_sort_key).desc()
 
-                stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+                    stmt = stmt.order_by(sort_obj)
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)

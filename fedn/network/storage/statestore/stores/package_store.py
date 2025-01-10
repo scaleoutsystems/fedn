@@ -365,7 +365,10 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
             _sort_key: str = sort_key or "committed_at"
 
-            stmt = stmt.order_by(text(f"{_sort_key} {_sort_order}"))
+            if _sort_key in PackageModel.__table__.columns:
+                sort_obj = PackageModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else PackageModel.__table__.columns.get(_sort_key).desc()
+
+                stmt = stmt.order_by(sort_obj)
 
             if limit != 0:
                 stmt = stmt.offset(skip or 0).limit(limit)
