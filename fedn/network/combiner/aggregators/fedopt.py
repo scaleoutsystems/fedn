@@ -95,9 +95,16 @@ class Aggregator(AggregatorBase):
                 total_examples += metadata["num_examples"]
 
                 tic = time.time()
-                pseudo_gradient, model_old = self._update_pseudo_gradient(
-                    helper, pseudo_gradient, model_next, model_old, metadata, nr_aggregated_models, total_examples
-                )
+                if nr_aggregated_models == 0:
+                    model_old = self.update_handler.load_model(
+                        helper, model_update.model_id)
+                    pseudo_gradient = helper.subtract(model_next, model_old)
+                else:
+                    pseudo_gradient_next = helper.subtract(
+                        model_next, model_old)
+                    pseudo_gradient = helper.increment_average(
+                        pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
+
                 data["time_model_aggregation"] += time.time() - tic
 
                 nr_aggregated_models += 1
@@ -146,21 +153,6 @@ class Aggregator(AggregatorBase):
             logger.info(f"Aggregator {self.name} using default parameters.")
             parameters = {}
         return {**default_parameters, **parameters}
-
-    def _update_pseudo_gradient(
-        self, helper: HelperBase, pseudo_gradient: Any, model_next: Any, model_old: Any,
-        metadata: Dict[str, Any], nr_aggregated_models: int, total_examples: int
-    ) -> Tuple[Any, Any]:
-        """Update pseudo gradient based on the current model."""
-        if nr_aggregated_models == 0:
-            model_old = self.update_handler.load_model(
-                helper, metadata["model_id"])
-            pseudo_gradient = helper.subtract(model_next, model_old)
-        else:
-            pseudo_gradient_next = helper.subtract(model_next, model_old)
-            pseudo_gradient = helper.increment_average(
-                pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
-        return pseudo_gradient, model_old
 
     def _apply_server_optimizer(
         self, helper: HelperBase, pseudo_gradient: Any, model_old: Any, parameters: Dict[str, Any]
