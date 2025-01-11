@@ -7,7 +7,7 @@ test the performance of FEDn deployment in a flexible
 way by sending and aggregating numeric arrays of varying size. 
 
 ## Prerequisites
-- [Python 3.9 or 3.10](https://www.python.org/downloads)
+- [Python 3.9, 3.10, 3.11 or 3.12](https://www.python.org/downloads)
 
 ## Running the example (pseudo-distributed, single host)
 
