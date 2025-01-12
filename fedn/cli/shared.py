@@ -8,7 +8,7 @@ from fedn.common.log_config import logger
 
 CONTROLLER_DEFAULTS = {"protocol": "http", "host": "localhost", "port": 8092, "debug": False}
 
-STUDIO_DEFAULTS = {"protocol": "https", "host": "fedn.scaleoutsystems.com"}
+STUDIO_DEFAULTS = {"protocol": "https", "host": "fedn.scaleoutstudio.com"}
 
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
 
@@ -65,7 +65,7 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: boo
                 click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
                 _url = f"{_protocol}://{_host}:{_port}"
 
-    return f"{_url}/api/{API_VERSION}/{endpoint}/"
+    return f"{_url}/api/{API_VERSION}/{endpoint}"
 
 
 def get_token(token: str, usr_token: bool) -> str:
