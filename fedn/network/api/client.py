@@ -108,7 +108,7 @@ class APIClient:
         """
         _params = {"checksum": "true" if checksum else "false"}
 
-        response = requests.get(self._get_url("get_client_config"), params=_params, verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("clients/config"), params=_params, verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -338,9 +338,7 @@ class APIClient:
             response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
 
         with open(path, "rb") as file:
-            response = requests.post(
-                self._get_url("set_initial_model"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers
-            )
+            response = requests.post(self._get_url_api_v1("models"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers)
         return response.json()
 
     # --- Packages --- #
@@ -422,7 +420,7 @@ class APIClient:
         :return: Message with success or failure.
         :rtype: dict
         """
-        response = requests.get(self._get_url("download_package"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/download"), verify=self.verify, headers=self.headers)
         if response.status_code == 200:
             with open(path, "wb") as file:
                 file.write(response.content)
@@ -442,7 +440,7 @@ class APIClient:
         """
         with open(path, "rb") as file:
             response = requests.post(
-                self._get_url("set_package"),
+                self._get_url_api_v1("packages"),
                 files={"file": file},
                 data={"helper": helper, "name": name, "description": description},
                 verify=self.verify,
