@@ -160,10 +160,10 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
             "key": "active",
             "id": document["id"],
             "committed_at": committed_at,
-            "description": document["description"],
-            "file_name": document["file_name"],
-            "helper": document["helper"],
-            "name": document["name"],
+            "description": document["description"] if "description" in document else "",
+            "file_name": document["file_name"] if "file_name" in document else "",
+            "helper": document["helper"] if "helper" in document else "",
+            "name": document["name"] if "name" in document else "",
             "storage_file_name": document["storage_file_name"],
         }
 
