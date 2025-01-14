@@ -27,6 +27,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import pymongo
+
 import fedn  # noqa: F401
 
 entitites = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations']
@@ -87,23 +89,43 @@ class NetworkAPITests(unittest.TestCase):
 
             self.assertEqual(id, expected_id)
 
-        fedn.network.api.shared.client_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.client_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.client_store.list.assert_called_once()
-        fedn.network.api.shared.combiner_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.combiner_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.combiner_store.list.assert_called_once()
-        fedn.network.api.shared.model_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.model_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.model_store.list.assert_called_once()
-        fedn.network.api.shared.package_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.package_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.package_store.list.assert_called_once()
-        fedn.network.api.shared.round_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.round_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.round_store.list.assert_called_once()        
-        fedn.network.api.shared.session_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.session_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.session_store.list.assert_called_once()
-        fedn.network.api.shared.status_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.status_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.status_store.list.assert_called_once()
-        fedn.network.api.shared.validation_store.list.assert_called_with(0, 0, None, -1)
+        fedn.network.api.shared.validation_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.validation_store.list.assert_called_once()
+   
+        for entity in entitites:
+            headers = {
+                "X-Limit": 10,
+                "X-Skip": 10,
+                "X-Sort-Key": "test",
+                "X-Sort-Order": "asc"
+            }
+            response = self.app.get(f'/api/v1/{entity}/', headers=headers)
+            # Assert response
+            self.assertEqual(response.status_code, 200)
 
+        fedn.network.api.shared.client_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.combiner_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.model_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.package_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.round_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)        
+        fedn.network.api.shared.session_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.status_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.validation_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+           
 
 if __name__ == '__main__':
     unittest.main()
