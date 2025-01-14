@@ -431,7 +431,18 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 active_item.helper = helper
                 session.commit()
                 return True
-            raise EntityNotFound("Entity not found")
+            item = PackageModel(
+                committed_at=datetime.now(),
+                description="",
+                file_name="",
+                helper=helper,
+                name="",
+                storage_file_name="",
+                active=True,
+            )
+
+            session.add(item)
+            session.commit()
 
     def delete_active(self) -> bool:
         with Session() as session:
