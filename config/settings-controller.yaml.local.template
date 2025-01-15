@@ -5,7 +5,8 @@ controller:
   debug: True
 
 statestore:
-  type: MongoDB
+  # Available DB types are MongoDB, PostgreSQL, SQLite
+  type: PostgreSQL
   mongo_config:
     username: fedn_admin
     password: password

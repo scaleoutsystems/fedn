@@ -8,7 +8,8 @@ port: 12080
 max_clients: 30
 
 statestore:
-  type: MongoDB
+  # Available DB types are MongoDB, PostgreSQL, SQLite
+  type: PostgreSQL
   mongo_config:
     username: fedn_admin
     password: password
