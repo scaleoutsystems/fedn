@@ -23,11 +23,9 @@ def upload_request_generator(mdl, id):
     while True:
         b = mdl.read(CHUNK_SIZE)
         if b:
-            result = fedn.ModelRequest(
-                data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
+            result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
         else:
-            result = fedn.ModelRequest(
-                id=id, data=None, status=fedn.ModelStatus.OK)
+            result = fedn.ModelRequest(id=id, data=None, status=fedn.ModelStatus.OK)
         yield result
         if not b:
             break
@@ -89,8 +87,7 @@ def unpack_model(request_iterator, helper):
             if request.data:
                 model_buffer.write(request.data)
     except MemoryError as e:
-        logger.error(
-            f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
+        logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
         raise
     except Exception as e:
         logger.error(f"Exception occured during model loading: {e}")
@@ -212,15 +209,12 @@ class ModelService(rpc.ModelServiceServicer):
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
                 self.temp_model_storage.get_ptr(request.id).write(request.data)
-                self.temp_model_storage.set_model_metadata(
-                    request.id, fedn.ModelStatus.IN_PROGRESS)
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
             if request.status == fedn.ModelStatus.OK and not request.data:
-                result = fedn.ModelResponse(
-                    id=request.id, status=fedn.ModelStatus.OK, message="Got model successfully.")
+                result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK, message="Got model successfully.")
                 # self.temp_model_storage_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.temp_model_storage.set_model_metadata(
-                    request.id, fedn.ModelStatus.OK)
+                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.OK)
                 self.temp_model_storage.get_ptr(request.id).flush()
                 self.temp_model_storage.get_ptr(request.id).close()
                 return result
@@ -235,13 +229,11 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        logger.info(
-            f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
+        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
         try:
             status = self.temp_model_storage.get_model_metadata(request.id)
             if status != fedn.ModelStatus.OK:
-                logger.error(
-                    f"model file is not ready: {request.id}, status: {status}")
+                logger.error(f"model file is not ready: {request.id}, status: {status}")
                 yield fedn.ModelResponse(id=request.id, data=None, status=status)
         except Exception:
             logger.error("Error file does not exist: {}".format(request.id))

@@ -88,14 +88,12 @@ class FednClient:
             )
 
             if response.status_code == 200:
-                logger.info(
-                    "Connect to FEDn Api - Client assigned to controller")
+                logger.info("Connect to FEDn Api - Client assigned to controller")
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
                 json_response = response.json()
-                logger.info(
-                    "Connect to FEDn Api - Remote compute package missing.")
+                logger.info("Connect to FEDn Api - Remote compute package missing.")
                 return ConnectToApiResult.ComputePackageMissing, json_response
             elif response.status_code == 401:
                 logger.warning("Connect to FEDn Api - Unauthorized")
@@ -157,8 +155,7 @@ class FednClient:
 
     def get_or_set_environment(self) -> bool:
         try:
-            logger.info(
-                "Initiating Dispatcher with entrypoint set to: startup")
+            logger.info("Initiating Dispatcher with entrypoint set to: startup")
             activate_cmd = self.dispatcher._get_or_create_python_env()
             self.dispatcher.run_cmd("startup")
         except KeyError:
@@ -169,8 +166,7 @@ class FednClient:
             return False
 
         if activate_cmd:
-            logger.info(
-                "To activate the virtual environment, run: {}".format(activate_cmd))
+            logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 
         return True
 
@@ -185,8 +181,7 @@ class FednClient:
                 port = config["port"]
             combiner_name = config["host"]
 
-            self.grpc_handler = GrpcHandler(
-                host=host, port=port, name=client_name, token=token, combiner_name=combiner_name)
+            self.grpc_handler = GrpcHandler(host=host, port=port, name=client_name, token=token, combiner_name=combiner_name)
 
             logger.info("Successfully initialized GRPC connection")
             return True
@@ -195,12 +190,10 @@ class FednClient:
             return False
 
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
-        self.grpc_handler.send_heartbeats(
-            client_name=client_name, client_id=client_id, update_frequency=update_frequency)
+        self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str):
-        self.grpc_handler.listen_to_task_stream(
-            client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
+        self.grpc_handler.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
 
     def _task_stream_callback(self, request):
         if request.type == fedn.StatusType.MODEL_UPDATE:
@@ -215,12 +208,10 @@ class FednClient:
         model_update_id = str(uuid.uuid4())
 
         tic = time.time()
-        in_model = self.get_model_from_combiner(
-            id=model_id, client_id=self.client_id)
+        in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
-            logger.error(
-                "Could not retrieve model from combiner. Aborting training request.")
+            logger.error("Could not retrieve model from combiner. Aborting training request.")
             return
 
         fetch_model_time = time.time() - tic
@@ -252,8 +243,7 @@ class FednClient:
         meta["fetch_model"] = fetch_model_time
         meta["config"] = request.data
 
-        update = self.create_update_message(
-            model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
+        update = self.create_update_message(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
 
         self.send_model_update(update)
 
@@ -277,12 +267,10 @@ class FednClient:
             type=fedn.StatusType.MODEL_VALIDATION,
         )
 
-        in_model = self.get_model_from_combiner(
-            id=model_id, client_id=self.client_id)
+        in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
-            logger.error(
-                "Could not retrieve model from combiner. Aborting validation request.")
+            logger.error("Could not retrieve model from combiner. Aborting validation request.")
             return
 
         if not self.validate_callback:
@@ -294,8 +282,7 @@ class FednClient:
 
         if metrics is not None:
             # Send validation
-            validation = self.create_validation_message(
-                metrics=metrics, request=request)
+            validation = self.create_validation_message(metrics=metrics, request=request)
 
             result: bool = self.send_model_validation(validation)
 
@@ -310,8 +297,7 @@ class FednClient:
                 )
             else:
                 self.send_status(
-                    "Client {} failed to complete model validation.".format(
-                        self.name),
+                    "Client {} failed to complete model validation.".format(self.name),
                     log_level=fedn.LogLevel.WARNING,
                     request=request,
                     sesssion_id=request.session_id,
@@ -320,12 +306,10 @@ class FednClient:
 
     def predict_global_model(self, request):
         model_id = request.model_id
-        model = self.get_model_from_combiner(
-            id=model_id, client_id=self.client_id)
+        model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if model is None:
-            logger.error(
-                "Could not retrieve model from combiner. Aborting prediction request.")
+            logger.error("Could not retrieve model from combiner. Aborting prediction request.")
             return
 
         if not self.predict_callback:
@@ -335,8 +319,7 @@ class FednClient:
         logger.info(f"Running predict callback with model ID: {model_id}")
         prediction = self.predict_callback(model)
 
-        prediction_message = self.create_prediction_message(
-            prediction=prediction, request=request)
+        prediction_message = self.create_prediction_message(prediction=prediction, request=request)
 
         self.send_model_prediction(prediction_message)
 
@@ -381,11 +364,9 @@ class FednClient:
         self.client_id = client_id
 
     def run(self):
-        threading.Thread(target=self.send_heartbeats, kwargs={
-                         "client_name": self.name, "client_id": self.client_id}, daemon=True).start()
+        threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id}, daemon=True).start()
         try:
-            self.listen_to_task_stream(
-                client_name=self.name, client_id=self.client_id)
+            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 

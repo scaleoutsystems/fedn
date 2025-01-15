@@ -42,26 +42,21 @@ class Aggregator(AggregatorBase):
         nr_aggregated_models = 0
         total_examples = 0
 
-        logger.info(
-            "AGGREGATOR({}): Aggregating model updates... ".format(self.name))
+        logger.info("AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
         while not self.update_handler.model_updates.empty():
             try:
-                logger.info(
-                    "AGGREGATOR({}): Getting next model update from queue.".format(self.name))
+                logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
                 model_update = self.update_handler.next_model_update()
 
                 # Load model parameters and metadata
-                logger.info("AGGREGATOR({}): Loading model metadata {}.".format(
-                    self.name, model_update.model_update_id))
+                logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
 
                 tic = time.time()
-                model_next, metadata = self.update_handler.load_model_update(
-                    model_update, helper)
-                data["time_model_load"] += time.time()-tic
+                model_next, metadata = self.update_handler.load_model_update(model_update, helper)
+                data["time_model_load"] += time.time() - tic
 
-                logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(
-                    self.name, model_update.model_update_id, metadata))
+                logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
                 # Increment total number of examples
                 total_examples += metadata["num_examples"]
@@ -70,9 +65,8 @@ class Aggregator(AggregatorBase):
                 if nr_aggregated_models == 0:
                     model = model_next
                 else:
-                    model = helper.increment_average(
-                        model, model_next, metadata["num_examples"], total_examples)
-                data["time_model_aggregation"] += time.time()-tic
+                    model = helper.increment_average(model, model_next, metadata["num_examples"], total_examples)
+                data["time_model_aggregation"] += time.time() - tic
 
                 nr_aggregated_models += 1
                 # Delete model from storage
@@ -80,12 +74,10 @@ class Aggregator(AggregatorBase):
                     self.update_handler.delete_model(model_update)
             except Exception as e:
                 tb = traceback.format_exc()
-                logger.error(
-                    f"AGGREGATOR({self.name}): Error encoutered while processing model update: {e}")
+                logger.error(f"AGGREGATOR({self.name}): Error encoutered while processing model update: {e}")
                 logger.error(tb)
 
         data["nr_aggregated_models"] = nr_aggregated_models
 
-        logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(
-            self.name, nr_aggregated_models))
+        logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
         return model, data

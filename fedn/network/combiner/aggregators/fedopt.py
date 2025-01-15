@@ -38,13 +38,9 @@ class Aggregator(AggregatorBase):
         self.m = None
 
     def combine_models(
-        self,
-        helper: Optional[HelperBase] = None,
-        delete_models: bool = True,
-        parameters: Optional[Parameters] = None
+        self, helper: Optional[HelperBase] = None, delete_models: bool = True, parameters: Optional[Parameters] = None
     ) -> Tuple[Optional[Any], Dict[str, float]]:
-        """
-        Compute pseudo gradients using model updates in the queue.
+        """Compute pseudo gradients using model updates in the queue.
 
         :param helper: ML framework-specific helper, defaults to None.
         :param delete_models: Delete models from storage after aggregation, defaults to True.
@@ -64,11 +60,9 @@ class Aggregator(AggregatorBase):
 
         # Validate and merge parameters
         try:
-            parameters = self._validate_and_merge_parameters(
-                parameters, default_parameters)
+            parameters = self._validate_and_merge_parameters(parameters, default_parameters)
         except InvalidParameterError as e:
-            logger.error(
-                f"Aggregator {self.name} received invalid parameters: {e}")
+            logger.error(f"Aggregator {self.name} received invalid parameters: {e}")
             return None, data
 
         logger.info(f"Aggregator {self.name} starting model aggregation.")
@@ -79,31 +73,25 @@ class Aggregator(AggregatorBase):
 
         while not self.update_handler.model_updates.empty():
             try:
-                logger.info(
-                    f"Aggregator {self.name}: Fetching next model update.")
+                logger.info(f"Aggregator {self.name}: Fetching next model update.")
                 model_update = self.update_handler.next_model_update()
 
                 tic = time.time()
-                model_next, metadata = self.update_handler.load_model_update(
-                    model_update, helper)
+                model_next, metadata = self.update_handler.load_model_update(model_update, helper)
                 data["time_model_load"] += time.time() - tic
 
-                logger.info(
-                    f"Processing model update {model_update.model_update_id}")
+                logger.info(f"Processing model update {model_update.model_update_id}")
 
                 # Increment total examples
                 total_examples += metadata["num_examples"]
 
                 tic = time.time()
                 if nr_aggregated_models == 0:
-                    model_old = self.update_handler.load_model(
-                        helper, model_update.model_id)
+                    model_old = self.update_handler.load_model(helper, model_update.model_id)
                     pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
-                    pseudo_gradient_next = helper.subtract(
-                        model_next, model_old)
-                    pseudo_gradient = helper.increment_average(
-                        pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
+                    pseudo_gradient_next = helper.subtract(model_next, model_old)
+                    pseudo_gradient = helper.increment_average(pseudo_gradient, pseudo_gradient_next, metadata["num_examples"], total_examples)
 
                 data["time_model_aggregation"] += time.time() - tic
 
@@ -111,11 +99,9 @@ class Aggregator(AggregatorBase):
 
                 if delete_models:
                     self.update_handler.delete_model(model_update)
-                    logger.info(
-                        f"Deleted model update {model_update.model_update_id} from storage.")
+                    logger.info(f"Deleted model update {model_update.model_update_id} from storage.")
             except Exception as e:
-                logger.error(
-                    f"Error processing model update: {e}. Skipping this update.")
+                logger.error(f"Error processing model update: {e}. Skipping this update.")
                 logger.error(traceback.format_exc())
                 continue
 
@@ -123,8 +109,7 @@ class Aggregator(AggregatorBase):
 
         if pseudo_gradient:
             try:
-                model = self._apply_server_optimizer(
-                    helper, pseudo_gradient, model_old, parameters)
+                model = self._apply_server_optimizer(helper, pseudo_gradient, model_old, parameters)
             except Exception as e:
                 logger.error(f"Error during model aggregation: {e}")
                 logger.error(traceback.format_exc())
@@ -132,13 +117,10 @@ class Aggregator(AggregatorBase):
         else:
             return None, data
 
-        logger.info(
-            f"Aggregator {self.name} completed. Aggregated {nr_aggregated_models} models.")
+        logger.info(f"Aggregator {self.name} completed. Aggregated {nr_aggregated_models} models.")
         return model, data
 
-    def _validate_and_merge_parameters(
-        self, parameters: Optional[Parameters], default_parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _validate_and_merge_parameters(self, parameters: Optional[Parameters], default_parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and merge default parameters."""
         parameter_schema = {
             "serveropt": str,
@@ -154,9 +136,7 @@ class Aggregator(AggregatorBase):
             parameters = {}
         return {**default_parameters, **parameters}
 
-    def _apply_server_optimizer(
-        self, helper: HelperBase, pseudo_gradient: Any, model_old: Any, parameters: Dict[str, Any]
-    ) -> Any:
+    def _apply_server_optimizer(self, helper: HelperBase, pseudo_gradient: Any, model_old: Any, parameters: Dict[str, Any]) -> Any:
         """Apply the selected server optimizer to compute the new model."""
         optimizer_map = {
             "adam": self.serveropt_adam,
@@ -165,8 +145,7 @@ class Aggregator(AggregatorBase):
         }
         optimizer = optimizer_map.get(parameters["serveropt"])
         if not optimizer:
-            raise ValueError(
-                f"Unsupported server optimizer: {parameters['serveropt']}")
+            raise ValueError(f"Unsupported server optimizer: {parameters['serveropt']}")
         return optimizer(helper, pseudo_gradient, model_old, parameters)
 
     def serveropt_adam(self, helper, pseudo_gradient, model_old, parameters):
@@ -192,8 +171,7 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(
-                pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
             self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 
@@ -229,8 +207,7 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(
-                pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
             self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 
@@ -267,8 +244,7 @@ class Aggregator(AggregatorBase):
             self.v = helper.ones(pseudo_gradient, math.pow(tau, 2))
 
         if not self.m:
-            self.m = helper.multiply(
-                pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
+            self.m = helper.multiply(pseudo_gradient, [(1.0 - beta1)] * len(pseudo_gradient))
         else:
             self.m = helper.add(self.m, pseudo_gradient, beta1, (1.0 - beta1))
 

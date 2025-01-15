@@ -40,8 +40,7 @@ def save_parameters(model, out_path):
     :param out_path: The path to save to.
     :type out_path: str
     """
-    parameters_np = [val.cpu().numpy()
-                     for _, val in model.state_dict().items()]
+    parameters_np = [val.cpu().numpy() for _, val in model.state_dict().items()]
     helper.save(parameters_np, out_path)
 
 
@@ -57,8 +56,7 @@ def load_parameters(model_path):
     parameters_np = helper.load(model_path)
 
     params_dict = zip(model.state_dict().keys(), parameters_np)
-    state_dict = collections.OrderedDict(
-        {key: torch.tensor(x) for key, x in params_dict})
+    state_dict = collections.OrderedDict({key: torch.tensor(x) for key, x in params_dict})
     model.load_state_dict(state_dict, strict=True)
     return model
 

@@ -5,8 +5,7 @@ import grpc
 from grpc_health.v1 import health, health_pb2_grpc
 
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.common.log_config import (logger, set_log_level_from_string,
-                                    set_log_stream)
+from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.shared import modelservice
 from fedn.network.grpc.auth import JWTInterceptor
 
@@ -57,8 +56,7 @@ class Server:
         if isinstance(servicer, rpc.CombinerServicer):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
-        health_pb2_grpc.add_HealthServicer_to_server(
-            self.health_servicer, self.server)
+        health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         if config["secure"]:
             logger.info("Creating secure gRPCS server using certificate")
@@ -70,8 +68,7 @@ class Server:
                     ),
                 )
             )
-            self.server.add_secure_port(
-                "[::]:" + str(config["port"]), server_credentials)
+            self.server.add_secure_port("[::]:" + str(config["port"]), server_credentials)
         else:
             logger.info("Creating gRPC server")
             self.server.add_insecure_port("[::]:" + str(config["port"]))

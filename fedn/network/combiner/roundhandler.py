@@ -30,7 +30,7 @@ class RoundConfig(TypedDict):
     :type round_id: str
     :param round_timeout: The round timeout in seconds. Set by user interfaces or Controller.
     :type round_timeout: str
-    :param rounds: The number of rounds. Set by user interfaces.w
+    :param rounds: The number of rounds. Set by user interfaces.
     :param model_id: The model identifier. Set by user interfaces or Controller (get_latest_model).
     :type model_id: str
     :param model_version: The model version. Currently not used.
@@ -131,8 +131,7 @@ class RoundHandler:
         :return: an aggregated model and associated metadata
         :rtype: model, dict
         """
-        logger.info(
-            "ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
+        logger.info("ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
         meta["nr_expected_updates"] = len(clients)
@@ -143,14 +142,11 @@ class RoundHandler:
         model_id = config["model_id"]
 
         if provided_functions.get("client_settings", False):
-            global_model_bytes = self.modelservice.temp_model_storage.get(
-                model_id)
-            client_settings = self.hook_interface.client_settings(
-                global_model_bytes)
+            global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+            client_settings = self.hook_interface.client_settings(global_model_bytes)
             config["client_settings"] = client_settings
         # Request model updates from all active clients.
-        self.server.request_model_update(
-            session_id=session_id, model_id=model_id, config=config, clients=clients)
+        self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
         if int(config["buffer_size"]) == -1:
@@ -165,8 +161,7 @@ class RoundHandler:
         data = None
         try:
             helper = get_helper(config["helper_type"])
-            logger.info("Config delete_models_storage: {}".format(
-                config["delete_models_storage"]))
+            logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
             if config["delete_models_storage"] == "True":
                 delete_models = True
             else:
@@ -178,13 +173,10 @@ class RoundHandler:
             else:
                 parameters = None
             if provided_functions.get("aggregate", False):
-                previous_model_bytes = self.modelservice.temp_model_storage.get(
-                    model_id)
-                model, data = self.hook_interface.aggregate(
-                    previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+                model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
-                model, data = self.aggregator.combine_models(
-                    helper=helper, delete_models=delete_models, parameters=parameters)
+                model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
             raise
@@ -203,8 +195,7 @@ class RoundHandler:
         :param model_id: The ID of the model to validate
         :type model_id: str
         """
-        self.server.request_model_validation(
-            session_id, model_id, clients=clients)
+        self.server.request_model_validation(session_id, model_id, clients=clients)
 
     def _prediction_round(self, prediction_id: str, model_id: str, clients: list):
         """Send model prediction requests to clients.
@@ -216,8 +207,7 @@ class RoundHandler:
         :param model_id: The ID of the model to use for prediction
         :type model_id: str
         """
-        self.server.request_model_prediction(
-            prediction_id, model_id, clients=clients)
+        self.server.request_model_prediction(prediction_id, model_id, clients=clients)
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download a model from persistent storage and set in modelservice.
@@ -231,8 +221,7 @@ class RoundHandler:
         """
         # If the model is already in memory at the server we do not need to do anything.
         if self.modelservice.temp_model_storage.exist(model_id):
-            logger.info(
-                "Model already exists in memory, skipping model staging.")
+            logger.info("Model already exists in memory, skipping model staging.")
             return
         logger.info("Model Staging, fetching model from storage...")
         # If not, download it and stage it in memory at the combiner.
@@ -243,13 +232,11 @@ class RoundHandler:
                 if model:
                     break
             except Exception:
-                logger.warning(
-                    "Could not fetch model from storage backend, retrying.")
+                logger.warning("Could not fetch model from storage backend, retrying.")
                 time.sleep(timeout_retry)
                 tries += 1
                 if tries > retry:
-                    logger.error(
-                        "Failed to stage model {} from storage backend!".format(model_id))
+                    logger.error("Failed to stage model {} from storage backend!".format(model_id))
                     raise
 
         self.modelservice.set_model(model, model_id)
@@ -269,8 +256,7 @@ class RoundHandler:
         elif type == "trainers":
             clients = self.server.get_active_trainers()
         else:
-            logger.error(
-                "(ERROR): {} is not a supported type of client".format(type))
+            logger.error("(ERROR): {} is not a supported type of client".format(type))
 
         # If the number of requested trainers exceeds the number of available, use all available.
         n = min(n, len(clients))
@@ -292,8 +278,7 @@ class RoundHandler:
         """
         active = self.server.nr_active_trainers()
         if active >= int(config["clients_required"]):
-            logger.info("Number of clients required ({0}) to start round met {1}.".format(
-                config["clients_required"], active))
+            logger.info("Number of clients required ({0}) to start round met {1}.".format(config["clients_required"], active))
             return True
         else:
             logger.info("Too few clients to start round.")
@@ -305,11 +290,9 @@ class RoundHandler:
         :param round_config: The round config object.
         :type round_config: dict
         """
-        logger.info(
-            "COMBINER orchestrating validation of model {}".format(model_id))
+        logger.info("COMBINER orchestrating validation of model {}".format(model_id))
         self.stage_model(model_id)
-        validators = self._assign_round_clients(
-            self.server.max_clients, type="validators")
+        validators = self._assign_round_clients(self.server.max_clients, type="validators")
         self._validation_round(session_id, model_id, validators)
 
     def execute_prediction_round(self, prediction_id: str, model_id: str) -> None:
@@ -318,12 +301,10 @@ class RoundHandler:
         :param round_config: The round config object.
         :type round_config: dict
         """
-        logger.info(
-            "COMBINER orchestrating prediction using model {}".format(model_id))
+        logger.info("COMBINER orchestrating prediction using model {}".format(model_id))
         self.stage_model(model_id)
         # TODO: Implement prediction client type
-        clients = self._assign_round_clients(
-            self.server.max_clients, type="validators")
+        clients = self._assign_round_clients(self.server.max_clients, type="validators")
         self._prediction_round(prediction_id, model_id, clients)
 
     def execute_training_round(self, config):
@@ -334,8 +315,7 @@ class RoundHandler:
         :return: metadata about the training round.
         :rtype: dict
         """
-        logger.info("Processing training round,  job_id {}".format(
-            config["_job_id"]))
+        logger.info("Processing training round,  job_id {}".format(config["_job_id"]))
 
         data = {}
         data["config"] = config
@@ -344,20 +324,17 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
-        provided_functions = self.hook_interface.provided_functions(
-            self.server_functions)
+        provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
-            clients = self.hook_interface.client_selection(
-                clients=self.server.get_active_trainers())
+            clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
         else:
             clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients, provided_functions)
         data["data"] = meta
 
         if model is None:
-            logger.warning(
-                "\t Failed to update global model in round {0}!".format(config["round_id"]))
+            logger.warning("\t Failed to update global model in round {0}!".format(config["round_id"]))
 
         if model is not None:
             helper = get_helper(config["helper_type"])
@@ -366,8 +343,7 @@ class RoundHandler:
             a.close()
             data["model_id"] = model_id
 
-            logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(
-                model_id, config["_job_id"]))
+            logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config["_job_id"]))
 
         # Delete temp model
         self.modelservice.temp_model_storage.delete(config["model_id"])
@@ -393,14 +369,11 @@ class RoundHandler:
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]
                             tic = time.time()
-                            round_meta = self.execute_training_round(
-                                round_config)
-                            round_meta["time_exec_training"] = time.time() - \
-                                tic
+                            round_meta = self.execute_training_round(round_config)
+                            round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            self.server.statestore.set_round_combiner_data(
-                                round_meta)
+                            self.server.statestore.set_round_combiner_data(round_meta)
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]
@@ -408,8 +381,7 @@ class RoundHandler:
                         elif round_config["task"] == "prediction":
                             prediction_id = round_config["prediction_id"]
                             model_id = round_config["model_id"]
-                            self.execute_prediction_round(
-                                prediction_id, model_id)
+                            self.execute_prediction_round(prediction_id, model_id)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:
