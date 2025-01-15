@@ -328,7 +328,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 description=item["description"] if "description" in item else "",
                 file_name=item["file_name"],
                 helper=item["helper"],
-                name=item["name"],
+                name=item["name"] if "name" in item else "",
                 storage_file_name=item["storage_file_name"],
             )
             session.add(item)
