@@ -9,9 +9,8 @@ from sqlalchemy import func, select
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 from fedn.network.storage.statestore.stores.store import Session as SQLSession
-from fedn.network.storage.statestore.stores.store import SQLStore, Store
 
 
 class SessionConfig:
@@ -251,7 +250,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
 
             s, c = existing_item
 
-            s.name = item["name"]
+            s.name = item["name"] if "name" in item else None
             s.status = item["status"]
             s.committed_at = item["committed_at"]
 
@@ -294,7 +293,9 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
         complement(item)
 
         with SQLSession() as session:
-            parent_item = SessionModel(id=item["session_id"], status=item["status"], name=item["name"], committed_at=item["committed_at"] or None)
+            parent_item = SessionModel(
+                id=item["session_id"], status=item["status"], name=item["name"] if "name" in item else None, committed_at=item["committed_at"] or None
+            )
             session.add(parent_item)
 
             session_config = item["session_config"]

@@ -573,7 +573,7 @@ class APIClient:
 
     def start_session(
         self,
-        id: str = None,
+        name: str = None,
         aggregator: str = "fedavg",
         aggregator_kwargs: dict = None,
         model_id: str = None,
@@ -582,15 +582,15 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "",
+        helper: str = "numpyhelper",
         min_clients: int = 1,
         requested_clients: int = 8,
         server_functions: ServerFunctionsBase = None,
     ):
         """Start a new session.
 
-        :param id: The session id to start.
-        :type id: str
+        :param name: The name of the session
+        :type name: str
         :param aggregator: The aggregator plugin to use.
         :type aggregator: str
         :param model_id: The id of the initial model.
@@ -624,7 +624,7 @@ class APIClient:
         response = requests.post(
             self._get_url_api_v1("sessions/"),
             json={
-                "session_id": id,
+                "name": name,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
@@ -644,12 +644,11 @@ class APIClient:
         )
 
         if response.status_code == 201:
-            if id is None:
-                id = response.json()["session_id"]
+            session_id = response.json()["session_id"]
             response = requests.post(
                 self._get_url_api_v1("sessions/start"),
                 json={
-                    "session_id": id,
+                    "session_id": session_id,
                     "rounds": rounds,
                     "round_timeout": round_timeout,
                 },
