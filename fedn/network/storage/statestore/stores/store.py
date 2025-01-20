@@ -1,11 +1,16 @@
+import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any, Dict, Generic, List, Tuple, TypeVar
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-from .shared import EntityNotFound, from_document
+from fedn.common.config import get_statestore_config
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 
 T = TypeVar("T")
 
@@ -28,7 +33,14 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+    def list(
+        self,
+        limit: int,
+        skip: int,
+        sort_key: str,
+        sort_order=pymongo.DESCENDING,
+        **kwargs,
+    ) -> Dict[int, List[T]]:
         pass
 
     @abstractmethod
@@ -80,7 +92,14 @@ class MongoDBStore(Store[T], Generic[T]):
         result = self.database[self.collection].delete_one({"_id": ObjectId(id)})
         return result.deleted_count == 1
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[T]]:
+    def list(
+        self,
+        limit: int,
+        skip: int,
+        sort_key: str,
+        sort_order=pymongo.DESCENDING,
+        **kwargs,
+    ) -> Dict[int, List[T]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -111,3 +130,47 @@ class MongoDBStore(Store[T], Generic[T]):
         return: The count (int)
         """
         return self.database[self.collection].count_documents(kwargs)
+
+
+class SQLStore(Store[T]):
+    pass
+
+
+constraint_naming_conventions = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention=constraint_naming_conventions)
+
+
+class MyAbstractBase(Base):
+    __abstract__ = True
+
+    id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
+    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+statestore_config = get_statestore_config()
+
+engine = None
+Session = None
+
+if statestore_config["type"] in ["SQLite", "PostgreSQL"]:
+    if statestore_config["type"] == "SQLite":
+        engine = create_engine("sqlite:///my_database.db", echo=True)
+    elif statestore_config["type"] == "PostgreSQL":
+        postgres_config = statestore_config["postgres_config"]
+        username = postgres_config["username"]
+        password = postgres_config["password"]
+        host = postgres_config["host"]
+        port = postgres_config["port"]
+
+        engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=True)
+
+    Session = sessionmaker(engine)

@@ -3,16 +3,11 @@ import threading
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
-from fedn.network.storage.statestore.stores.model_store import ModelStore
-from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.api.shared import control, model_store, prediction_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
-
-prediction_store = PredictionStore(mdb, "control.predictions")
-model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/start", methods=["POST"])

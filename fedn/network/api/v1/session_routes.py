@@ -3,8 +3,8 @@ import threading
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, model_store, session_store
+from fedn.network.api.shared import control, model_store, session_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.shared import EntityNotFound

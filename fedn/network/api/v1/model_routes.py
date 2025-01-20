@@ -1,11 +1,13 @@
 import io
+from io import BytesIO
 
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import modelstorage_config
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, minio_repository, model_store
+from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
@@ -764,5 +766,71 @@ def set_active_model():
             return jsonify({"message": "Active model set"}), 200
         else:
             return jsonify({"message": "Failed to set active model"}), 500
+    except Exception:
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/", methods=["POST"])
+@jwt_auth_required(role="admin")
+def upload_model():
+    """Upload model
+    Uploads a model to the storage backend.
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: model
+        in: body
+        required: true
+        type: object
+        description: The model data to upload
+    responses:
+        200:
+            description: The uploaded model
+            schema:
+                $ref: '#/definitions/Model'
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.form.to_dict()
+        file = request.files["file"]
+        name: str = data.get("name", None)
+
+        try:
+            object = BytesIO()
+            object.seek(0, 0)
+            file.seek(0)
+            object.write(file.read())
+            helper = control.get_helper()
+            logger.info(f"Loading model from file using helper {helper.name}")
+            object.seek(0)
+            model = helper.load(object)
+            control.commit(model_id=None, model=model, name=name)
+        except Exception as e:
+            logger.error("Error occured during model loading")
+            logger.debug(e)
+            status_code = 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to add model.",
+                    }
+                ),
+                status_code,
+            )
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Model added successfully",
+            }
+        ), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500

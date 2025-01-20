@@ -108,7 +108,7 @@ class APIClient:
         """
         _params = {"checksum": "true" if checksum else "false"}
 
-        response = requests.get(self._get_url("get_client_config"), params=_params, verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("clients/config"), params=_params, verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -338,9 +338,7 @@ class APIClient:
             response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
 
         with open(path, "rb") as file:
-            response = requests.post(
-                self._get_url("set_initial_model"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers
-            )
+            response = requests.post(self._get_url_api_v1("models"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers)
         return response.json()
 
     # --- Packages --- #
@@ -408,7 +406,7 @@ class APIClient:
         :return: The checksum.
         :rtype: dict
         """
-        response = requests.get(self._get_url("get_package_checksum"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/checksum"), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -422,7 +420,7 @@ class APIClient:
         :return: Message with success or failure.
         :rtype: dict
         """
-        response = requests.get(self._get_url("download_package"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/download"), verify=self.verify, headers=self.headers)
         if response.status_code == 200:
             with open(path, "wb") as file:
                 file.write(response.content)
@@ -442,7 +440,7 @@ class APIClient:
         """
         with open(path, "rb") as file:
             response = requests.post(
-                self._get_url("set_package"),
+                self._get_url_api_v1("packages"),
                 files={"file": file},
                 data={"helper": helper, "name": name, "description": description},
                 verify=self.verify,
@@ -575,7 +573,7 @@ class APIClient:
 
     def start_session(
         self,
-        id: str = None,
+        name: str = None,
         aggregator: str = "fedavg",
         aggregator_kwargs: dict = None,
         model_id: str = None,
@@ -584,15 +582,15 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "",
+        helper: str = "numpyhelper",
         min_clients: int = 1,
         requested_clients: int = 8,
         server_functions: ServerFunctionsBase = None,
     ):
         """Start a new session.
 
-        :param id: The session id to start.
-        :type id: str
+        :param name: The name of the session
+        :type name: str
         :param aggregator: The aggregator plugin to use.
         :type aggregator: str
         :param model_id: The id of the initial model.
@@ -626,7 +624,7 @@ class APIClient:
         response = requests.post(
             self._get_url_api_v1("sessions/"),
             json={
-                "session_id": id,
+                "name": name,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
@@ -646,12 +644,11 @@ class APIClient:
         )
 
         if response.status_code == 201:
-            if id is None:
-                id = response.json()["session_id"]
+            session_id = response.json()["session_id"]
             response = requests.post(
                 self._get_url_api_v1("sessions/start"),
                 json={
-                    "session_id": id,
+                    "session_id": session_id,
                     "rounds": rounds,
                     "round_timeout": round_timeout,
                 },
