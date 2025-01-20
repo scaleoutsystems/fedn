@@ -18,8 +18,8 @@ def compile_model():
     class Net(torch.nn.Module):
         def __init__(self):
             super(Net, self).__init__()
-            self.fc1 = torch.nn.Linear(784, 64)
-            self.fc2 = torch.nn.Linear(64, 32)
+            self.fc1 = torch.nn.Linear(784, 12800)
+            self.fc2 = torch.nn.Linear(12800, 32)
             self.fc3 = torch.nn.Linear(32, 10)
 
         def forward(self, x):
