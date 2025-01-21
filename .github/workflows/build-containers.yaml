@@ -69,6 +69,7 @@ jobs:
           output: 'trivy-results.sarif'
           severity: HIGH,CRITICAL
           vuln-type: 'os,library'
+          clear-cache: true
           github-pat: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload Trivy scan results to GitHub Security tab
