@@ -67,7 +67,7 @@ jobs:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db,aquasec/trivy-java-db,ghcr.io/aquasecurity/trivy-java-db
         with:
-          image-ref: ghcr.io/${{ github.repository }}/fedn:master
+          image-ref: ghcr.io/${{ github.repository }}/fedn:fix-SK-1318
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: HIGH,CRITICAL
