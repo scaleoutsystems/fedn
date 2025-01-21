@@ -204,7 +204,7 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
             else:
                 click.secho(f"Unexpected error: {response_project_tokens.status_code}", fg="red")
         else:
-            click.echo("No projects available to activate.")
+            click.echo("Set current context.")
     else:
         click.secho(f"Unexpected error: {response_projects.status_code}", fg="red")
 

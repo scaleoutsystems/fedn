@@ -19,7 +19,7 @@ def login_cmd(ctx):
 
 
 @login_cmd.command("login")
-@click.option("-n", "--username", required=False, default=None, help="username in studio")
+@click.option("-u", "--username", required=False, default=None, help="username in studio")
 @click.option("-P", "--password", required=False, default=None, help="password in studio")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
@@ -61,7 +61,8 @@ def login_cmd(ctx, protocol: str, host: str, username: str, password: str):
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
 
-def get_context(response, protocol, host):
+# Sets the context for a given user
+def get_context(response, protocol: str, host: str):
     """Generates content for context file with the following data:
     User tokens: access and refresh token to authenticate user towards Studio
     Active project tokens: access and refresh token to authenticate user towards controller
