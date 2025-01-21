@@ -1,3 +1,4 @@
+import time
 import traceback
 
 from fedn.common.log_config import logger
@@ -50,17 +51,22 @@ class Aggregator(AggregatorBase):
 
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
+
+                tic = time.time()
                 model_next, metadata = self.update_handler.load_model_update(model_update, helper)
+                data["time_model_load"] += time.time() - tic
 
                 logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
                 # Increment total number of examples
                 total_examples += metadata["num_examples"]
 
+                tic = time.time()
                 if nr_aggregated_models == 0:
                     model = model_next
                 else:
                     model = helper.increment_average(model, model_next, metadata["num_examples"], total_examples)
+                data["time_model_aggregation"] += time.time() - tic
 
                 nr_aggregated_models += 1
                 # Delete model from storage

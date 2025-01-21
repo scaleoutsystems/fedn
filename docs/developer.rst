@@ -19,30 +19,32 @@ We provide Dockerfiles and docker-compose template for an all-in-one local sandb
 
 .. code-block::
 
-   docker compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    up
+   docker compose up
 
-This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. 
+This starts up local services for MongoDB, Minio, the API Server, and one Combiner. 
 You can verify the deployment on localhost using these urls: 
 
 - API Server: http://localhost:8092/get_controller_status
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
 
-This setup does not include any of the security and authentication features available in a Studio Project, 
-so we will not require authentication of clients (insecure mode) when using the APIClient:  
+To connect a native FEDn client to the sandbox deployment, first edit '/etc/hosts' and add the line 'localhost  	api-server combiner'. Then
+create a file `client.yaml` with the following content: 
 
 .. code-block::
 
-   from fedn import APIClient
-   client = APIClient(host="localhost", port=8092)
-   client.set_active_package("package.tgz", helper="numpyhelper")
-   client.set_active_model("seed.npz")
+   network_id: fedn-network
+   discover_host: api-server
+   discover_port: 8092
+   name: myclient
 
-To connect a native FEDn client to the sandbox deployment, you need to make sure that the combiner service can be resolved by the client using the name "combiner". 
-One way to achieve this is to edit your '/etc/hosts' and add a line '127.0.0.1  	combiner'. 
+Now you can start a client: 
+
+.. code-block::
+   fedn client start -in client.yaml --api-url=http://localhost --api-port=8090 
+   
+If you are running the server on a remote machine/VM, simply replace 'localhost' with the IP address or hostname of that machine in the instructions above. 
+Make sure to remember to open ports 8081, 8090, and 12080 on the server host.  
 
 Access message logs and validation data from MongoDB  
 ------------------------------------------------------

@@ -87,7 +87,7 @@ class FednClient:
             )
 
             if response.status_code == 200:
-                logger.info("Connect to FEDn Api - Client assinged to controller")
+                logger.info("Connect to FEDn Api - Client assigned to controller")
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
@@ -159,7 +159,7 @@ class FednClient:
             self.dispatcher.run_cmd("startup")
         except KeyError:
             logger.info("No startup command found in package. Continuing.")
-            return False
+            # return False
         except Exception as e:
             logger.error(f"Caught exception: {type(e).__name__}")
             return False
@@ -214,6 +214,7 @@ class FednClient:
             return
 
         fetch_model_time = time.time() - tic
+        print("FETCH_MODEL: ", fetch_model_time)
 
         if not self.train_callback:
             logger.error("No train callback set")
@@ -236,6 +237,7 @@ class FednClient:
         tic = time.time()
         self.send_model_to_combiner(model=out_model, id=model_update_id)
         meta["upload_model"] = time.time() - tic
+        print("UPLOAD_MODEL ", meta["upload_model"])
 
         meta["fetch_model"] = fetch_model_time
         meta["config"] = request.data
