@@ -7,6 +7,14 @@ ARG REQUIREMENTS=""
 
 WORKDIR /build
 
+# Temporarily add the testing repository to install zlib1g 1.3.1
+RUN echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 zlib1g-dev=1:1.3.dfsg+really1.3.1-1+b1 \
+  && rm -rf /etc/apt/sources.list.d/testing.list \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
 # Install build dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends python3-dev gcc wget \
   && rm -rf /var/lib/apt/lists/*
@@ -49,9 +57,12 @@ RUN set -ex \
   # Creare application specific tmp directory, set ENV TMPDIR to /app/tmp
   && mkdir -p /app/tmp \
   && chown -R appuser:appgroup /venv /app \
-  # Upgrade the package index and install security upgrades
+  # Temporarily add the testing repository to install zlib 1.3.1
+  && echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
   && apt-get update \
-  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 \
+  && rm -rf /etc/apt/sources.list.d/testing.list \
+  # Clean up
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
