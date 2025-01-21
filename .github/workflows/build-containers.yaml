@@ -54,9 +54,6 @@ jobs:
           tags: ${{ steps.meta1.outputs.tags }}
           labels: ${{ steps.meta1.outputs.labels }}
           file: Dockerfile
-      
-      - name: Update Trivy database
-        run: trivy --cache-dir /tmp/trivy-db --update
 
       # if push to master of release, run trivy scan on the image
       - name: Trivy scan
