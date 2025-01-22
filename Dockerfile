@@ -71,8 +71,6 @@ RUN set -ex \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
 
-RUN dpkg -l | grep zlib
-
 USER appuser
 
 ENTRYPOINT [ "/venv/bin/fedn" ]
