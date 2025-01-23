@@ -158,7 +158,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         committed_at = datetime.now()
         obj_to_insert = {
             "key": "active",
-            "id": document["id"],
+            "id": document["id"] if "id" in document else "",
             "committed_at": committed_at,
             "description": document["description"] if "description" in document else "",
             "file_name": document["file_name"] if "file_name" in document else "",
@@ -180,7 +180,9 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         if response is None:
             raise EntityNotFound("Entity not found")
 
-        return from_document(response, {"id": response["id"]})
+        active_package = {"id": response["id"]} if "id" in response else {}
+
+        return from_document(response, active_package=active_package)
 
     def set_active_helper(self, helper: str) -> bool:
         """Set the active helper
@@ -326,7 +328,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 description=item["description"] if "description" in item else "",
                 file_name=item["file_name"],
                 helper=item["helper"],
-                name=item["name"],
+                name=item["name"] if "name" in item else "",
                 storage_file_name=item["storage_file_name"],
             )
             session.add(item)
@@ -429,7 +431,18 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 active_item.helper = helper
                 session.commit()
                 return True
-            raise EntityNotFound("Entity not found")
+            item = PackageModel(
+                committed_at=datetime.now(),
+                description="",
+                file_name="",
+                helper=helper,
+                name="",
+                storage_file_name="",
+                active=True,
+            )
+
+            session.add(item)
+            session.commit()
 
     def delete_active(self) -> bool:
         with Session() as session:
