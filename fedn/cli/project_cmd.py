@@ -177,9 +177,13 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
                 id = projects_response_json[0].get("slug")
             else:
                 for i in projects_response_json:
+                    project_found = False
                     if i.get("slug") == id:
+                        project_found = True
                         headers_projects["X-Project-Slug"] = i.get("slug")
-
+                if not project_found:
+                    click.secho(f"No project found with id {id}", fg="red")
+                    return
             controller_url = f"{protocol}://{host}/{id}-fedn-reducer"
 
             response_project_tokens = get_response(
@@ -204,7 +208,7 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
             else:
                 click.secho(f"Unexpected error: {response_project_tokens.status_code}", fg="red")
         else:
-            click.echo("Set current context.")
+            click.echo("No projects available to set current context.")
     else:
         click.secho(f"Unexpected error: {response_projects.status_code}", fg="red")
 
