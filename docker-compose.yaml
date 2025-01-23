@@ -51,6 +51,15 @@ services:
       - ME_CONFIG_BASICAUTH_PASSWORD=password
     ports:
       - 8081:8081
+  
+  fedn_postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: fedn_admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fedn_db
+    ports:
+      - "5432:5432"
 
   api-server:
     environment:
@@ -72,6 +81,7 @@ services:
     depends_on:
       - minio
       - mongo
+      - fedn_postgres
     command:
       - controller
       - start
