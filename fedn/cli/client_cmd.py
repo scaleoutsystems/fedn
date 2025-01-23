@@ -6,7 +6,6 @@ import requests
 from fedn.cli.main import main
 from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
 from fedn.common.exceptions import InvalidClientConfig
-from fedn.network.clients.client import Client
 from fedn.network.clients.client_v2 import Client as ClientV2
 from fedn.network.clients.client_v2 import ClientOptions
 
@@ -60,12 +59,12 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     if _token:
         headers["Authorization"] = _token
 
-
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "clients", None)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
+
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
 @click.option("-H", "--host", required=False, default=CONTROLLER_DEFAULTS["host"], help="Hostname of controller (api)")
@@ -83,7 +82,6 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint="clients")
     headers = {}
 
-
     _token = get_token(token)
 
     if _token:
@@ -92,125 +90,11 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
     if id:
         url = f"{url}{id}"
 
-
     try:
         response = requests.get(url, headers=headers)
         print_response(response, "client", id)
     except requests.exceptions.ConnectionError:
         click.echo(f"Error: Could not connect to {url}")
-
-
-@client_cmd.command("start-v1")
-@click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
-@click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
-@click.option("--token", required=False, help="Set token provided by reducer if enabled")
-@click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
-@click.option("-i", "--client_id", required=False)
-@click.option("--local-package", is_flag=True, help="Enable local compute package")
-@click.option("--force-ssl", is_flag=True, help="Force SSL/TLS for REST service")
-@click.option("-u", "--dry-run", required=False, default=False)
-@click.option("-s", "--secure", required=False, default=False)
-@click.option("-pc", "--preshared-cert", required=False, default=False)
-@click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
-@click.option("--combiner", type=str, required=False, default="", help="Skip combiner assignment from discover service and attatch directly to combiner host.")
-@click.option("--combiner-port", type=str, required=False, default="12080", help="Combiner port, need to be used with --combiner")
-@click.option("--proxy-server", type=str, required=False, default="", help="gRPC proxy server, need to be used together with --combiner")
-@click.option("-va", "--validator", required=False, default=True)
-@click.option("-tr", "--trainer", required=False, default=True)
-@click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
-@click.option("-l", "--logfile", required=False, default=None, help="Set logfile for client log to file.")
-@click.option("--heartbeat-interval", required=False, default=2)
-@click.option("--reconnect-after-missed-heartbeat", required=False, default=30)
-@click.option("--verbosity", required=False, default="INFO", type=click.Choice(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False))
-@click.pass_context
-def client_start_cmd(
-    ctx,
-    discoverhost,
-    discoverport,
-    token,
-    name,
-    client_id,
-    local_package,
-    force_ssl,
-    dry_run,
-    secure,
-    preshared_cert,
-    verify,
-    preferred_combiner,
-    combiner,
-    combiner_port,
-    proxy_server,
-    validator,
-    trainer,
-    init,
-    logfile,
-    heartbeat_interval,
-    reconnect_after_missed_heartbeat,
-    verbosity,
-):
-    """:param ctx:
-    :param discoverhost:
-    :param discoverport:
-    :param token:
-    :param name:
-    :param client_id:
-    :param remote:
-    :param dry_run:
-    :param secure:
-    :param preshared_cert:
-    :param verify_cert:
-    :param preferred_combiner:
-    :param init:
-    :param logfile:
-    :param hearbeat_interval
-    :param reconnect_after_missed_heartbeat
-    :param verbosity
-    :return:
-    """
-    remote = False if local_package else True
-    config = {
-        "discover_host": discoverhost,
-        "discover_port": discoverport,
-        "token": token,
-        "name": name,
-        "client_id": client_id,
-        "remote_compute_context": remote,
-        "force_ssl": force_ssl,
-        "dry_run": dry_run,
-        "secure": secure,
-        "preshared_cert": preshared_cert,
-        "verify": verify,
-        "preferred_combiner": preferred_combiner,
-        "combiner": combiner,
-        "combiner_port": combiner_port,
-        "proxy_server": proxy_server,
-        "validator": validator,
-        "trainer": trainer,
-        "logfile": logfile,
-        "heartbeat_interval": heartbeat_interval,
-        "reconnect_after_missed_heartbeat": reconnect_after_missed_heartbeat,
-        "verbosity": verbosity,
-    }
-
-    if init:
-        apply_config(init, config)
-        click.echo(f"\nClient configuration loaded from file: {init}")
-        click.echo("Values set in file override defaults and command line arguments...\n")
-
-    # proxy_server needs combiner check
-    if config["proxy_server"]:
-        if not config["combiner"]:
-            click.echo("--proxy-server/proxy_server requires a combiner host in --combiner/combiner")
-            return
-    try:
-        validate_client_config(config)
-    except InvalidClientConfig as e:
-        click.echo(f"Error: {e}")
-        return
-
-    client = Client(config)
-    client.run()
 
 
 def _validate_client_params(config: dict):

@@ -1,17 +1,18 @@
 import os
+import threading
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_from_directory
 from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers, get_use_typing,
-                                        package_store, repository)
+from fedn.network.api.shared import control
+from fedn.network.api.shared import get_checksum as _get_checksum
+from fedn.network.api.shared import package_store, repository
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
-
 
 
 @bp.route("/", methods=["GET"])
@@ -119,14 +120,10 @@ def get_packages():
 
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
-
-        result = [package.__dict__ for package in packages["result"]]
-
-        response = {"count": packages["count"], "result": result}
+        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -207,14 +204,10 @@ def list_packages():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, use_typing=True, **kwargs)
-
-        result = [package.__dict__ for package in packages["result"]]
-
-        response = {"count": packages["count"], "result": result}
+        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
     except Exception:
@@ -379,10 +372,7 @@ def get_package(id: str):
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        package = package_store.get(id, use_typing=use_typing)
-
-        response = package.__dict__ if use_typing else package
+        response = package_store.get(id)
 
         return jsonify(response), 200
     except EntityNotFound:
@@ -420,9 +410,7 @@ def get_active_package():
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        package = package_store.get_active(use_typing=use_typing)
-        response = package.__dict__ if use_typing else package
+        response = package_store.get_active()
 
         return jsonify(response), 200
     except EntityNotFound:
@@ -582,3 +570,81 @@ def upload_package():
         return jsonify({"message": "Package uploaded"}), 200
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/download", methods=["GET"])
+@jwt_auth_required(role="admin")
+def download_package():
+    """Download package
+    Downloads a package based on the provided id.
+    ---
+    tags:
+        - Packages
+    parameters:
+      - name: name
+        in: query
+        required: false
+        type: string
+        description: The name of the package
+
+    responses:
+        200:
+            description: The package file
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        404:
+            description: The package was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    name = request.args.get("name", None)
+
+    if name is None:
+        try:
+            active_package = package_store.get_active()
+            name = active_package["storage_file_name"]
+        except EntityNotFound:
+            return jsonify({"message": "No active package"}), 404
+
+    try:
+        mutex = threading.Lock()
+        mutex.acquire()
+
+        return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+    except Exception:
+        try:
+            data = control.get_compute_package(name)
+            # TODO: make configurable, perhaps in config.py or package.py
+            file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
+            with open(file_path, "wb") as fh:
+                fh.write(data)
+            # TODO: make configurable, perhaps in config.py or package.py
+            return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
+        except Exception:
+            raise
+    finally:
+        mutex.release()
+
+
+@bp.route("/checksum", methods=["GET"])
+@jwt_auth_required(role="client")
+def get_checksum():
+    name = request.args.get("name", None)
+
+    success, message, sum = _get_checksum(name)
+    if success:
+        return jsonify({"message": message, "checksum": sum}), 200
+    return jsonify({"message": message, "checksum": sum}), 404
