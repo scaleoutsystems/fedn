@@ -61,7 +61,7 @@ To set the active compute package in the FEDn Studio Project:
 
 .. code:: python
 
-   >>> client.set_active_package("package.tgz", helper="numpyhelper")
+   >>> client.set_active_package("package.tgz", helper="numpyhelper", name="my-package")
    >>> client.set_active_model("seed.npz")
 
 **Start a training session**
