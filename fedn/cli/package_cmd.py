@@ -2,19 +2,17 @@ import os
 import tarfile
 
 import click
-import requests
 
 from fedn.common.log_config import logger
 
 from .main import main
-from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
+from .shared import CONTROLLER_DEFAULTS, get_response, print_response
 
 
 @main.group("package")
 @click.pass_context
 def package_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
 
 
@@ -55,23 +53,13 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
     - result: list of packages
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="packages")
     headers = {}
 
     if n_max:
         headers["X-Limit"] = n_max
 
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "packages", None)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="packages", token=token, headers=headers, usr_api=False, usr_token=False)
+    print_response(response, "packages", None)
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -87,21 +75,5 @@ def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id:
     - result: package with given id
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="packages")
-    headers = {}
-
-
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    if id:
-        url = f"{url}{id}"
-
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "package", id)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint=f"packages/{id}", token=token, headers={}, usr_api=False, usr_token=False)
+    print_response(response, "package", id)

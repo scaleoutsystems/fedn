@@ -1,10 +1,9 @@
 import uuid
 
 import click
-import requests
 
 from fedn.cli.main import main
-from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
+from fedn.cli.shared import CONTROLLER_DEFAULTS, apply_config, get_response, print_response
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client_v2 import Client as ClientV2
 from fedn.network.clients.client_v2 import ClientOptions
@@ -48,22 +47,13 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     - result: list of clients
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="clients")
     headers = {}
 
     if n_max:
         headers["X-Limit"] = n_max
 
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "clients", None)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="clients", token=token, headers=headers, usr_api=False, usr_token=False)
+    print_response(response, "clients", None)
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -79,22 +69,8 @@ def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: 
     - result: client with given id
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="clients")
-    headers = {}
-
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    if id:
-        url = f"{url}{id}"
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "client", id)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint=f"clients/{id}", token=token, headers={}, usr_api=False, usr_token=False)
+    print_response(response, "client", id)
 
 
 def _validate_client_params(config: dict):

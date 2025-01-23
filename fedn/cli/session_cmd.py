@@ -1,15 +1,13 @@
 import click
-import requests
 
 from .main import main
-from .shared import CONTROLLER_DEFAULTS, get_api_url, get_token, print_response
+from .shared import CONTROLLER_DEFAULTS, get_response, print_response
 
 
 @main.group("session")
 @click.pass_context
 def session_cmd(ctx):
-    """:param ctx:
-    """
+    """:param ctx:"""
     pass
 
 
@@ -27,23 +25,13 @@ def list_sessions(ctx, protocol: str, host: str, port: str, token: str = None, n
     - result: list of sessions
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="sessions")
     headers = {}
 
     if n_max:
         headers["X-Limit"] = n_max
 
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "sessions", None)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="sessions", token=token, headers=headers, usr_api=False, usr_token=False)
+    print_response(response, "sessions", None)
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -59,20 +47,5 @@ def get_session(ctx, protocol: str, host: str, port: str, token: str = None, id:
     - result: session with given session id
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="sessions")
-    headers = {}
-
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    if id:
-        url = f"{url}{id}"
-
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "session", id)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint=f"sessions/{id}", token=token, headers={}, usr_api=False, usr_token=False)
+    print_response(response, "session", id)
