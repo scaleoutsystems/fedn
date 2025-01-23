@@ -32,13 +32,10 @@ def login_cmd(ctx, protocol: str, host: str, username: str, password: str):
     url = f"{protocol}://{host}/api/token/"
 
     # Step 3: Prompt for username and password
-    if username is None and password is None:
+    if username is None:
         username = input("Please enter your username: ")
+    if password is None:
         password = getpass("Please enter your password: ")
-    elif password is None:
-        password = getpass("Please enter your password: ")
-    else:
-        username = input("Please enter your username: ")
 
     # Call the authentication API
     try:
