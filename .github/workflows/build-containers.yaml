@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - develop
+      - fix/SK-1320
   pull_request:
     branches:
       - develop
@@ -56,13 +57,15 @@ jobs:
 
       # if push to master of release, run trivy scan on the image
       - name: Trivy scan
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/fix/SK-1320' }}
         uses: aquasecurity/trivy-action@0.28.0
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db,aquasec/trivy-java-db,ghcr.io/aquasecurity/trivy-java-db
         with:
-          image-ref: ghcr.io/${{ github.repository }}/fedn:master
+          # image-ref: ghcr.io/${{ github.repository }}/fedn:master
+          image-ref: ghcr.io/${{ github.repository }}/fedn:fix/SK-1320
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: HIGH,CRITICAL
@@ -71,6 +74,7 @@ jobs:
       
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/fix/SK-1320' }}
         with:
           sarif_file: 'trivy-results.sarif'
