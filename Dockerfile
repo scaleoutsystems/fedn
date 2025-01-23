@@ -7,12 +7,25 @@ ARG REQUIREMENTS=""
 
 WORKDIR /build
 
+# Temporarily add other Debian Repositories than Bookworm to install secure versions of libraries
+#
 # Temporarily add the Debian Testing repository to install zlib1g 1:1.3.dfsg+really1.3.1-1+b1 (fixed CVE-2023-45853)
 # Both zlib1g and zlib1g-dev are installed in the builder stage.
 RUN echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
   && apt-get update \
   && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 zlib1g-dev=1:1.3.dfsg+really1.3.1-1+b1 \
   && rm -rf /etc/apt/sources.list.d/testing.list \
+  # Temporarily add the Debian Bullseye Security repository to install perl-base 5.32.1-4+deb11u4 and libkrb5-3 1.18.3-6+deb11u5 (fixed CVE-2023-31484 & CVE-2024-26462)
+  && echo "deb http://security.debian.org/debian-security bullseye-security main" > /etc/apt/sources.list.d/bullseye-security.list \
+  && apt-get update \
+  && apt-get install -y --allow-downgrades --no-install-recommends -t bullseye-security \
+  perl-base=5.32.1-4+deb11u4 \
+  libkrb5-3=1.18.3-6+deb11u5 \
+  libkrb5support0=1.18.3-6+deb11u5 \
+  libk5crypto3=1.18.3-6+deb11u5 \
+  libssl1.1=1.1.1w-0+deb11u2 \
+  && rm -rf /etc/apt/sources.list.d/bullseye-security.list \
+  # Clean up
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -63,6 +76,16 @@ RUN set -ex \
   && apt-get update \
   && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 \
   && rm -rf /etc/apt/sources.list.d/testing.list \
+  # Temporarily add the Debian Bullseye Security repository to install perl-base 5.32.1-4+deb11u4 and libkrb5-3 1.18.3-6+deb11u5 (fixed CVE-2023-31484 & CVE-2024-26462)
+  && echo "deb http://security.debian.org/debian-security bullseye-security main" > /etc/apt/sources.list.d/bullseye-security.list \
+  && apt-get update \
+  && apt-get install -y --allow-downgrades --no-install-recommends -t bullseye-security \
+  perl-base=5.32.1-4+deb11u4 \
+  libkrb5-3=1.18.3-6+deb11u5 \
+  libkrb5support0=1.18.3-6+deb11u5 \
+  libk5crypto3=1.18.3-6+deb11u5 \
+  libssl1.1=1.1.1w-0+deb11u2 \
+  && rm -rf /etc/apt/sources.list.d/bullseye-security.list \
   # Update package index and upgrade all installed packages
   && apt-get update \
   && apt-get upgrade -y \
@@ -70,6 +93,9 @@ RUN set -ex \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
+
+# Check versions of security-critical packages
+RUN dpkg -l | grep -E "libkrb5-3|perl-base"
 
 USER appuser
 
