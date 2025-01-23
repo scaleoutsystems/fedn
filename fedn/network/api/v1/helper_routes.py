@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, package_store
+from fedn.network.api.shared import package_store
+from fedn.network.api.v1.shared import api_version
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("helper", __name__, url_prefix=f"/api/{api_version}/helpers")
-
 
 
 @bp.route("/active", methods=["GET"])
@@ -25,7 +25,6 @@ def get_active_helper():
             description: An unexpected error occurred
     """
     try:
-
         active_package = package_store.get_active()
 
         response = active_package["helper"]
@@ -35,6 +34,7 @@ def get_active_helper():
         return jsonify({"message": "No active helper"}), 404
     except Exception:
         return jsonify({"message": "An unexpected error occurred"}), 500
+
 
 @bp.route("/active", methods=["PUT"])
 @jwt_auth_required(role="admin")

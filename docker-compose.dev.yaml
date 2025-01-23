@@ -51,7 +51,7 @@ services:
       - ME_CONFIG_BASICAUTH_PASSWORD=password
     ports:
       - 8081:8081
-  
+
   fedn_postgres:
     image: postgres:15
     environment:
@@ -60,7 +60,7 @@ services:
       POSTGRES_DB: fedn_db
     ports:
       - "5432:5432"
-
+  
   api-server:
     environment:
       - GET_HOSTS_FROM=dns
@@ -73,6 +73,7 @@ services:
       - TMPDIR=/app/tmp
     build:
       context: .
+      dockerfile: Dockerfile.dev
       args:
         BASE_IMG: ${BASE_IMG:-python:3.12-slim}
     working_dir: /app
@@ -99,6 +100,7 @@ services:
       - TMPDIR=/app/tmp
     build:
       context: .
+      dockerfile: Dockerfile.dev
       args:
         BASE_IMG: ${BASE_IMG:-python:3.12-slim}
         GRPC_HEALTH_PROBE_VERSION: v0.4.35
@@ -128,6 +130,7 @@ services:
       - TMPDIR=/app/tmp
     build:
       context: .
+      dockerfile: Dockerfile.dev
       args:
         BASE_IMG: ${BASE_IMG:-python:3.12-slim}
         GRPC_HEALTH_PROBE_VERSION: v0.4.35
@@ -152,6 +155,7 @@ services:
       - FEDN_PACKAGE_EXTRACT_DIR=package
     build:
       context: .
+      dockerfile: Dockerfile.dev
       args:
         BASE_IMG: ${BASE_IMG:-python:3.10-slim}
     working_dir: /app

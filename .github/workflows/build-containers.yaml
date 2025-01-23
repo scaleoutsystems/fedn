@@ -53,7 +53,7 @@ jobs:
           tags: ${{ steps.meta1.outputs.tags }}
           labels: ${{ steps.meta1.outputs.labels }}
           file: Dockerfile
-      
+
       # if push to master of release, run trivy scan on the image
       - name: Trivy scan
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
