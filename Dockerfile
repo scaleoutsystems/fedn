@@ -86,9 +86,8 @@ RUN set -ex \
   libk5crypto3=1.18.3-6+deb11u5 \
   libssl1.1=1.1.1w-0+deb11u2 \
   && rm -rf /etc/apt/sources.list.d/bullseye-security.list \
-  # Update package index and upgrade all installed packages
+  # Update package index
   && apt-get update \
-  && apt-get upgrade -y \
   # Clean up
   && apt-get autoremove -y \
   && apt-get clean -y \
