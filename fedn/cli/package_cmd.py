@@ -58,7 +58,7 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
     if n_max:
         headers["X-Limit"] = n_max
 
-    response = get_response(protocol=protocol, host=host, port=port, endpoint="packages", token=token, headers=headers, usr_api=False, usr_token=False)
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="packages/", token=token, headers=headers, usr_api=False, usr_token=False)
     print_response(response, "packages", None)
 
 
