@@ -43,7 +43,7 @@ def list_validations(ctx, protocol: str, host: str, port: str, token: str = None
             usr_token=False,
         )
     else:
-        response = get_response(protocol=protocol, host=host, port=port, endpoint="validations", token=token, headers=headers, usr_api=False, usr_token=False)
+        response = get_response(protocol=protocol, host=host, port=port, endpoint="validations/", token=token, headers=headers, usr_api=False, usr_token=False)
     print_response(response, "validations", None)
 
 
