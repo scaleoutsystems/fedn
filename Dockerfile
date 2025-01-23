@@ -23,7 +23,6 @@ RUN echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list
   libkrb5-3=1.18.3-6+deb11u5 \
   libkrb5support0=1.18.3-6+deb11u5 \
   libk5crypto3=1.18.3-6+deb11u5 \
-  libssl1.1=1.1.1w-0+deb11u2 \
   && rm -rf /etc/apt/sources.list.d/bullseye-security.list \
   # Clean up
   && apt-get clean \
@@ -84,7 +83,6 @@ RUN set -ex \
   libkrb5-3=1.18.3-6+deb11u5 \
   libkrb5support0=1.18.3-6+deb11u5 \
   libk5crypto3=1.18.3-6+deb11u5 \
-  libssl1.1=1.1.1w-0+deb11u2 \
   && rm -rf /etc/apt/sources.list.d/bullseye-security.list \
   # Update package index
   && apt-get update \
