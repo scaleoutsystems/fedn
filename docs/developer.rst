@@ -38,7 +38,7 @@ so we will not require authentication of clients (insecure mode) when using the 
 
    from fedn import APIClient
    client = APIClient(host="localhost", port=8092)
-   client.set_active_package("package.tgz", helper="numpyhelper")
+   client.set_active_package("package.tgz", helper="numpyhelper", name="my-package")
    client.set_active_model("seed.npz")
 
 To connect a native FEDn client to the sandbox deployment, you need to make sure that the combiner service can be resolved by the client using the name "combiner". 
