@@ -404,7 +404,7 @@ def delete_client(id: str):
 
 
 @bp.route("/add", methods=["POST"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def add_client():
     """Add client
     Adds a client to the network.
