@@ -6,9 +6,8 @@ from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
+from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
-from fedn.network.api.shared import package_store, repository
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -573,7 +572,7 @@ def upload_package():
 
 
 @bp.route("/download", methods=["GET"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def download_package():
     """Download package
     Downloads a package based on the provided id.
