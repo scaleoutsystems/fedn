@@ -116,6 +116,7 @@ class Client:
 
         self.fedn_client.set_train_callback(self.on_train)
         self.fedn_client.set_validate_callback(self.on_validation)
+        self.fedn_client.set_predict_callback(self._process_prediction_request)
 
         self.fedn_client.set_name(self.client_obj.name)
         self.fedn_client.set_client_id(self.client_obj.client_id)
@@ -214,6 +215,35 @@ class Client:
 
         except Exception as e:
             logger.warning("Validation failed with exception {}".format(e))
+            metrics = None
+
+        return metrics
+
+    def _process_prediction_request(self, in_model: BytesIO) -> dict:
+        """Process a prediction request.
+
+        :param in_model: The model to be validated.
+        :type in_model: BytesIO
+        :return: The prediction metrics, or None if prediction failed.
+        :rtype: dict
+        """
+        try:
+            inpath = self.helper.get_tmp_path()
+
+            with open(inpath, "wb") as fh:
+                fh.write(in_model.getbuffer())
+
+            outpath = get_tmp_path()
+            self.fedn_client.dispatcher.run_cmd(f"predict {inpath} {outpath}")
+
+            with open(outpath, "r") as fh:
+                metrics = json.loads(fh.read())
+
+            os.unlink(inpath)
+            os.unlink(outpath)
+
+        except Exception as e:
+            logger.warning("Prediction failed with exception {}".format(e))
             metrics = None
 
         return metrics
