@@ -46,8 +46,7 @@ class PackageRuntime:
         :rtype: bool
         """
         try:
-            # TODO: use new endpoint (v1)
-            path = f"{url}/download_package?name={name}" if name else f"{url}/download_package"
+            path = f"{url}/api/v1/packages/download?name={name}" if name else f"{url}/api/v1/packages/download"
 
             with requests.get(path, stream=True, verify=False, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
                 if 200 <= r.status_code < 204:
@@ -76,8 +75,7 @@ class PackageRuntime:
         :rtype: str
         """
         try:
-            # TODO: use new endpoint (v1)
-            path = f"{url}/get_package_checksum?name={name}" if name else f"{url}/get_package_checksum"
+            path = f"{url}/api/v1/packages/checksum?name={name}" if name else f"{url}/api/v1/packages/checksum"
 
             with requests.get(path, verify=False, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
                 if 200 <= r.status_code < 204:
