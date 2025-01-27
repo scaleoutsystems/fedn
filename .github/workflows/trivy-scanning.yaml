@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - fix/SK-1320
   schedule:
     - cron: '0 0 * * 1'
 
