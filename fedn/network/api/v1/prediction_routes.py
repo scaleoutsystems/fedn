@@ -26,6 +26,8 @@ def start_session():
         if not prediction_id or prediction_id == "":
             return jsonify({"message": "prediction_id is required"}), 400
 
+        session_config = {"prediction_id": prediction_id}
+
         if data.get("model_id") is None:
             count = model_store.count()
             if count == 0:
@@ -34,10 +36,9 @@ def start_session():
             try:
                 model_id = data.get("model_id")
                 _ = model_store.get(model_id)
+                session_config["model_id"] = model_id
             except EntityNotFound:
                 return jsonify({"message": f"Model {model_id} not found"}), 404
-
-        session_config = {"prediction_id": prediction_id}
 
         threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
