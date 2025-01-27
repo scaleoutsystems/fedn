@@ -420,10 +420,6 @@ class FednClient:
 
         result = self.get_or_set_environment()
 
-        if not result:
-            logger.error("Could not set environment")
-            return False
-
         return True
 
     def init_local_compute_package(self):
@@ -435,10 +431,6 @@ class FednClient:
             return False
 
         result = self.get_or_set_environment()
-
-        if not result:
-            logger.error("Could not set environment")
-            return False
 
         logger.info("Dispatcher set")
 
