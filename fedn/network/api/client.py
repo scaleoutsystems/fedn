@@ -1,5 +1,6 @@
 import inspect
 import os
+import uuid
 
 import requests
 
@@ -879,6 +880,29 @@ class APIClient:
             _headers["X-Limit"] = str(n_max)
 
         response = requests.get(self._get_url_api_v1("predictions/"), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def start_predictions(self, prediction_id: str = None, model_id: str = None):
+        """Start predictions for a model.
+
+        :param model_id: The model id to start predictions for.
+        :type model_id: str
+        :param data: The data to predict.
+        :type data: dict
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        if not prediction_id:
+            prediction_id = str(uuid.uuid4())
+        response = requests.post(
+            self._get_url_api_v1("predictions/start"),
+            json={"prediction_id": prediction_id, "model_id": model_id},
+            verify=self.verify,
+            headers=self.headers,
+        )
 
         _json = response.json()
 
