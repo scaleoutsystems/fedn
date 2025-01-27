@@ -1,15 +1,12 @@
 import json
 import os
-import socket
 import time
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Callable
 
 import grpc
-from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
-from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
