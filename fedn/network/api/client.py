@@ -1,5 +1,6 @@
 import inspect
 import os
+import uuid
 
 import requests
 
@@ -817,6 +818,91 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1("validations/count"), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
+    # --- Predictions --- #
+
+    def get_predictions(
+        self,
+        model_id: str = None,
+        correlation_id: str = None,
+        sender_name: str = None,
+        sender_role: str = None,
+        receiver_name: str = None,
+        receiver_role: str = None,
+        n_max: int = None,
+    ):
+        """Get predictions from the statestore. Filter by input parameters.
+
+        :param model_id: The model id to get predictions for.
+        :type model_id: str
+        :param correlation_id: The correlation id to get predictions for.
+        :type correlation_id: str
+        :param sender_name: The sender name to get predictions for.
+        :type sender_name: str
+        :param sender_role: The sender role to get predictions for.
+        :type sender_role: str
+        :param receiver_name: The receiver name to get predictions for.
+        :type receiver_name: str
+        :param receiver_role: The receiver role to get predictions for.
+        :type receiver_role: str
+        :param n_max: The maximum number of predictions to get (If none all will be fetched).
+        :type n_max: int
+        :return: Predictions.
+        :rtype: dict
+        """
+        _params = {}
+
+        if model_id:
+            _params["modelId"] = model_id
+
+        if correlation_id:
+            _params["correlationId"] = correlation_id
+
+        if sender_name:
+            _params["sender.name"] = sender_name
+
+        if sender_role:
+            _params["sender.role"] = sender_role
+
+        if receiver_name:
+            _params["receiver.name"] = receiver_name
+
+        if receiver_role:
+            _params["receiver.role"] = receiver_role
+
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers["X-Limit"] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1("predictions/"), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def start_predictions(self, prediction_id: str = None, model_id: str = None):
+        """Start predictions for a model.
+
+        :param model_id: The model id to start predictions for.
+        :type model_id: str
+        :param data: The data to predict.
+        :type data: dict
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        if not prediction_id:
+            prediction_id = str(uuid.uuid4())
+        response = requests.post(
+            self._get_url_api_v1("predictions/start"),
+            json={"prediction_id": prediction_id, "model_id": model_id},
+            verify=self.verify,
+            headers=self.headers,
+        )
 
         _json = response.json()
 

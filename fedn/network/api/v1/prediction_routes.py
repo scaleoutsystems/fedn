@@ -7,7 +7,7 @@ from fedn.network.api.shared import control, model_store, prediction_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
-bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
+bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predictions")
 
 
 @bp.route("/start", methods=["POST"])
@@ -26,6 +26,8 @@ def start_session():
         if not prediction_id or prediction_id == "":
             return jsonify({"message": "prediction_id is required"}), 400
 
+        session_config = {"prediction_id": prediction_id}
+
         if data.get("model_id") is None:
             count = model_store.count()
             if count == 0:
@@ -34,10 +36,9 @@ def start_session():
             try:
                 model_id = data.get("model_id")
                 _ = model_store.get(model_id)
+                session_config["model_id"] = model_id
             except EntityNotFound:
                 return jsonify({"message": f"Model {model_id} not found"}), 404
-
-        session_config = {"prediction_id": prediction_id}
 
         threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
