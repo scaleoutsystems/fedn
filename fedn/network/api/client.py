@@ -656,9 +656,11 @@ class APIClient:
                 verify=self.verify,
                 headers=self.headers,
             )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            return response_json
 
         _json = response.json()
-
         return _json
 
     # --- Statuses --- #
