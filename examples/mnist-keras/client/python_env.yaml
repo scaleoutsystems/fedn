@@ -1,4 +1,4 @@
-name: mnist-keras
+name: .mnist-keras
 build_dependencies:
   - pip
   - setuptools

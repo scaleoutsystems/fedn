@@ -1,4 +1,4 @@
-name: fedsimsiam
+name: .fedsimsiam
 build_dependencies:
   - pip
   - setuptools
