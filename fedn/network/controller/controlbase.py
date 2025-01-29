@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Tuple
 
-
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
 from fedn.network.api.network import Network
@@ -64,6 +63,8 @@ class ControlBase(ABC):
         self.network = Network(self, network_id, combiner_store, client_store)
 
         self.model_repository = model_repository
+
+        self._state = ReducerState.idle
 
     @abstractmethod
     def round(self, config, round_number):
