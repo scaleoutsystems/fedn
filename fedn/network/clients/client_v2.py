@@ -6,7 +6,7 @@ import os
 import time
 import uuid
 from io import BytesIO
-from typing import Tuple, Optional, Dict
+from typing import Dict, Optional, Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger

@@ -203,7 +203,7 @@ class GrpcHandler:
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
         sesssion_id: Optional[str] = None,
-        sender_name: Optional[str] = None
+        sender_name: Optional[str] = None,
     ) -> None:
         """Send status message.
 

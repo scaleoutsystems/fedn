@@ -53,7 +53,7 @@ class GrpcConnectionOptions:
             package=config.get("package", ""),
             ip=config.get("ip", ""),
             port=config.get("port", 0),
-            helper_type=config.get("helper_type", "")
+            helper_type=config.get("helper_type", ""),
         )
 
 
@@ -86,10 +86,7 @@ class FednClient:
     """Client for interacting with the FEDn network."""
 
     def __init__(
-        self,
-        train_callback: Optional[callable] = None,
-        validate_callback: Optional[callable] = None,
-        predict_callback: Optional[callable] = None
+        self, train_callback: Optional[callable] = None, validate_callback: Optional[callable] = None, predict_callback: Optional[callable] = None
     ) -> None:
         """Initialize the FednClient."""
         self.train_callback = train_callback
@@ -432,7 +429,7 @@ class FednClient:
         type: Optional[fedn.StatusType] = None,
         request: Optional[fedn.TaskRequest] = None,
         sesssion_id: Optional[str] = None,
-        sender_name: Optional[str] = None
+        sender_name: Optional[str] = None,
     ) -> None:
         """Send the status."""
         self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
