@@ -7,7 +7,7 @@ import threading
 import time
 import uuid
 from io import BytesIO
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 import requests
 
@@ -426,8 +426,8 @@ class FednClient:
         self,
         msg: str,
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
-        type: Optional[fedn.StatusType] = None,
-        request: Optional[fedn.TaskRequest] = None,
+        type: Optional[str] = None,
+        request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
         sesssion_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
