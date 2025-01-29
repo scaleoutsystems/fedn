@@ -1,5 +1,7 @@
-import logging
+"""Package commands for the CLI."""
+
 import os
+import sys
 import tarfile
 
 import click
@@ -9,7 +11,8 @@ from fedn.cli.shared import CONTROLLER_DEFAULTS, get_response, print_response
 from fedn.common.log_config import logger
 
 
-def create_tar_with_ignore(path, name):
+def create_tar_with_ignore(path: str, name: str) -> None:
+    """Create a tar archive from a directory with an ignore and fedn.yaml file."""
     try:
         ignore_patterns = []
         ignore_file = os.path.join(path, ".fednignore")
@@ -18,11 +21,8 @@ def create_tar_with_ignore(path, name):
             with open(ignore_file, "r") as f:
                 ignore_patterns = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-        def is_ignored(file_path):
-            for pattern in ignore_patterns:
-                if pattern in file_path:
-                    return True
-            return False
+        def is_ignored(file_path: str) -> bool:
+            return any(pattern in file_path for pattern in ignore_patterns)
 
         tar_path = os.path.join(path, name)
         with tarfile.open(tar_path, "w:gz") as tar:
@@ -48,7 +48,7 @@ def create_tar_with_ignore(path, name):
 
 @main.group("package")
 @click.pass_context
-def package_cmd(ctx):
+def package_cmd(_: click.Context) -> None:
     """:param ctx:"""
     pass
 
@@ -57,26 +57,22 @@ def package_cmd(ctx):
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.option("-n", "--name", required=False, default="package.tgz", help="Name of package tarball")
 @click.pass_context
-def create_cmd(ctx, path, name):
+def create_cmd(_: click.Context, path: str, name: str) -> None:
     """Create compute package.
 
-    Make a tar.gz archive of folder given by --path
-
-    :param ctx:
-    :param path:
-    :param name:
+    Make a tar.gz archive of folder given by --path. The archive will be named --name.
     """
     try:
         path = os.path.abspath(path)
         yaml_file = os.path.join(path, "fedn.yaml")
         if not os.path.exists(yaml_file):
             logger.error(f"Could not find fedn.yaml in {path}")
-            exit(-1)
+            sys.exit(-1)
 
         create_tar_with_ignore(path, name)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
-        exit(-1)
+        sys.exit(-1)
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -86,8 +82,9 @@ def create_cmd(ctx, path, name):
 @click.option("--n_max", required=False, help="Number of items to list")
 @package_cmd.command("list")
 @click.pass_context
-def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """Return:
+def list_packages(_: click.Context, protocol: str, host: str, port: str, token: str = None, n_max: int = None) -> None:
+    """Return a list of packages.
+
     ------
     - count: number of packages
     - result: list of packages
@@ -109,8 +106,9 @@ def list_packages(ctx, protocol: str, host: str, port: str, token: str = None, n
 @click.option("-id", "--id", required=True, help="Package ID")
 @package_cmd.command("get")
 @click.pass_context
-def get_package(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
-    """Return:
+def get_package(_: click.Context, protocol: str, host: str, port: str, token: str = None, id: str = None) -> None:
+    """Return a package with given id.
+
     ------
     - result: package with given id
 
