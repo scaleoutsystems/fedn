@@ -106,7 +106,8 @@ def get_models():
         response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -187,7 +188,8 @@ def list_models():
         response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -235,7 +237,8 @@ def get_models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -287,7 +290,8 @@ def models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -333,7 +337,8 @@ def get_model(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -398,7 +403,8 @@ def patch_model(id: str):
         return jsonify({"message": f"Failed to update model: {message}"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -455,7 +461,8 @@ def put_model(id: str):
         return jsonify({"message": f"Failed to update model: {message}"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -509,7 +516,8 @@ def get_descendants(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -578,7 +586,8 @@ def get_ancestors(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -627,7 +636,8 @@ def download(id: str):
             return jsonify({"message": "No model storage configured"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -692,7 +702,8 @@ def get_parameters(id: str):
             return jsonify({"message": "No model storage configured"}), 500
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -725,7 +736,8 @@ def get_active_model():
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": "No active model found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -766,7 +778,8 @@ def set_active_model():
             return jsonify({"message": "Active model set"}), 200
         else:
             return jsonify({"message": "Failed to set active model"}), 500
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -832,5 +845,6 @@ def upload_model():
                 "message": "Model added successfully",
             }
         ), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

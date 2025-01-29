@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
@@ -125,7 +126,8 @@ def get_packages():
         response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -209,7 +211,8 @@ def list_packages():
         response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -270,7 +273,8 @@ def get_packages_count():
         count = package_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -332,7 +336,8 @@ def packages_count():
         count = package_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -376,7 +381,8 @@ def get_package(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -414,7 +420,8 @@ def get_active_package():
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": "Entity not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -451,7 +458,8 @@ def set_active_package():
             return jsonify({"message": "Active package set"}), 200
         else:
             return jsonify({"message": "Active package not set"}), 500
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -491,7 +499,8 @@ def delete_active_package():
         return jsonify({"message": "Active package deleted"}), 200
     except EntityNotFound:
         return jsonify({"message": "Entity not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -567,7 +576,8 @@ def upload_package():
 
         package_store.set_active(response["id"])
         return jsonify({"message": "Package uploaded"}), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -632,7 +642,8 @@ def download_package():
                 fh.write(data)
             # TODO: make configurable, perhaps in config.py or package.py
             return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
-        except Exception:
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
             raise
     finally:
         mutex.release()
