@@ -43,6 +43,19 @@ class GrpcConnectionOptions:
         self.port = port
         self.helper_type = helper_type
 
+    @classmethod
+    def from_dict(cls, config: dict) -> "GrpcConnectionOptions":
+        """Create a GrpcConnectionOptions instance from a JSON string."""
+        return cls(
+            status=config.get("status", ""),
+            host=config.get("host", ""),
+            fqdn=config.get("fqdn", ""),
+            package=config.get("package", ""),
+            ip=config.get("ip", ""),
+            port=config.get("port", 0),
+            helper_type=config.get("helper_type", "")
+        )
+
 
 class ConnectToApiResult(enum.Enum):
     """Enum for representing the result of connecting to the FEDn API."""
@@ -118,7 +131,8 @@ class FednClient:
             if response.status_code == HTTP_STATUS_OK:
                 logger.info("Connect to FEDn Api - Client assigned to controller")
                 json_response = response.json()
-                return ConnectToApiResult.Assigned, json_response
+                combiner_config = GrpcConnectionOptions.from_dict(json_response)
+                return ConnectToApiResult.Assigned, combiner_config
 
             if response.status_code == HTTP_STATUS_PACKAGE_MISSING:
                 json_response = response.json()
@@ -196,7 +210,7 @@ class FednClient:
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str) -> bool:
         """Initialize the GRPC handler."""
         try:
-            if hasattr(config, 'fqdn') and len(config.fqdn) > 0:
+            if config.fqdn and len(config.fqdn) > 0:
                 host = config.fqdn
                 port = 443
             else:

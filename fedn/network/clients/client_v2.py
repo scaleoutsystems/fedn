@@ -95,10 +95,7 @@ class Client:
     def start(self) -> None:
         """Start the client."""
         if self.combiner_host and self.combiner_port:
-            combiner_config = {
-                "host": self.combiner_host,
-                "port": self.combiner_port,
-            }
+            combiner_config = GrpcConnectionOptions(host=self.combiner_host, port=self.combiner_port)
         else:
             result, combiner_config = self._connect_to_api()
             if not result:
@@ -132,7 +129,7 @@ class Client:
 
     def set_helper(self, response: Optional[GrpcConnectionOptions] = None) -> None:
         """Set the helper based on the response or default."""
-        helper_type = response.get("helper_type", None) if response else None
+        helper_type = response.helper_type if response else None
         helper_type_to_use = self.helper_type or helper_type or "numpyhelper"
         logger.info(f"Setting helper to: {helper_type_to_use}")
         self.helper = get_helper(helper_type_to_use)
