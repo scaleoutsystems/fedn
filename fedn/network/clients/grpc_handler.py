@@ -6,7 +6,7 @@ import socket
 import time
 from datetime import datetime, timezone
 from io import BytesIO
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 import grpc
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -47,7 +47,7 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
         """Initialize GrpcAuth with a key."""
         self._key = key
 
-    def __call__(self, context: grpc.AuthMetadataContext, callback: grpc.AuthMetadataCallback) -> None:
+    def __call__(self, context: grpc.AuthMetadataContext, callback: grpc.AuthMetadataPluginCallback) -> None:
         """Add authorization metadata to the GRPC call."""
         callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
 
@@ -201,7 +201,7 @@ class GrpcHandler:
         msg: str,
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
-        request: Optional[fedn.Request] = None,
+        request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
         sesssion_id: Optional[str] = None,
         sender_name: Optional[str] = None
     ) -> None:

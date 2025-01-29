@@ -196,7 +196,7 @@ class FednClient:
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str) -> bool:
         """Initialize the GRPC handler."""
         try:
-            if config.fqdn and len(config.fqdn) > 0:
+            if hasattr(config, 'fqdn') and len(config.fqdn) > 0:
                 host = config.fqdn
                 port = 443
             else:
@@ -208,8 +208,8 @@ class FednClient:
 
             logger.info("Successfully initialized GRPC connection")
             return True
-        except Exception:
-            logger.error("Error: Could not initialize GRPC connection")
+        except Exception as e:
+            logger.error(f"Could not initialize GRPC connection: {e}")
             return False
 
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
