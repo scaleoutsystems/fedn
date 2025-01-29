@@ -306,7 +306,7 @@ class TestPackageCmd(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
         self.test_dir = "test_dir"
-        self.ignore_file = os.path.join(self.test_dir, ".ignore")
+        self.ignore_file = os.path.join(self.test_dir, ".fednignore")
         self.test_dir = os.path.abspath(self.test_dir)
         os.makedirs(self.test_dir, exist_ok=True)
         
@@ -321,7 +321,7 @@ class TestPackageCmd(unittest.TestCase):
         with open(os.path.join(self.test_dir, "ignore_folder", "file_in_folder.txt"), "w") as f:
             f.write("This file should also be ignored.")
         
-        # Create .ignore file
+        # Create .fednignore file
         with open(self.ignore_file, "w") as f:
             f.write("ignore_me.txt\nignore_folder/")
         
