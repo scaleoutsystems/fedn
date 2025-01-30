@@ -1,5 +1,6 @@
 """Package commands for the CLI."""
 
+import fnmatch
 import os
 import sys
 import tarfile
@@ -22,20 +23,18 @@ def create_tar_with_ignore(path: str, name: str) -> None:
                 ignore_patterns = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
         def is_ignored(file_path: str) -> bool:
-            return any(pattern in file_path for pattern in ignore_patterns)
+            relative_path = os.path.relpath(file_path, path)
+            return any(fnmatch.fnmatch(relative_path, pattern) or fnmatch.fnmatch(os.path.basename(file_path), pattern) for pattern in ignore_patterns)
 
         tar_path = os.path.join(path, name)
         with tarfile.open(tar_path, "w:gz") as tar:
             for root, dirs, files in os.walk(path):
+                dirs[:] = [d for d in dirs if not is_ignored(os.path.join(root, d))]
                 for file in files:
                     file_path = os.path.join(root, file)
                     if not is_ignored(file_path):
                         logger.debug(f"Adding file to tar archive: {file_path}")
                         tar.add(file_path, arcname=os.path.relpath(file_path, path))
-                for dir in dirs:
-                    dir_path = os.path.join(root, dir)
-                    if is_ignored(dir_path):
-                        dirs.remove(dir)
 
         logger.info(f"Created tar archive: {tar_path}")
     except FileNotFoundError as e:
