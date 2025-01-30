@@ -2,6 +2,7 @@ import threading
 
 from flask import Blueprint, jsonify, request
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, model_store, prediction_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
@@ -43,7 +44,8 @@ def start_session():
         threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
         return jsonify({"message": "Prediction session started"}), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "Failed to start prediction session"}), 500
 
 
@@ -172,7 +174,8 @@ def get_predictions():
         response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -266,5 +269,6 @@ def list_predictions():
         response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
