@@ -826,8 +826,7 @@ def upload_model():
             model = helper.load(object)
             control.commit(model_id=None, model=model, name=name)
         except Exception as e:
-            logger.error("Error occured during model loading")
-            logger.debug(e)
+            logger.error(f"An unexpected error occurred: {e}")
             status_code = 400
             return (
                 jsonify(
