@@ -7,7 +7,7 @@ The machine learning project is based on the Speech Commands dataset from Google
 The example is intented as a minimalistic quickstart to learn how to use FEDn.
 
 
-   **Note: It is recommended complete the example in https://docs.scaleoutsystems.com/en/stable/quickstart.html before starting this example ** 
+   **Note: It is recommended to complete the example in https://docs.scaleoutsystems.com/en/stable/quickstart.html before starting this example ** 
 
 Prerequisites
 -------------
