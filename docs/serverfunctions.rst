@@ -1,7 +1,8 @@
 Modifying Server Functionality
 ==============================
 
-FEDn provides an interface where you can implement your own server-side logic directly into FEDn Studio by utilizing the ``ServerFunctions`` class. This enables advanced customization of the server's behavior while working with FEDn's distributed learning framework.
+FEDn provides an interface where you can implement your own server-side logic directly into FEDn Studio by utilizing the ``ServerFunctions`` class. This enables advanced customization of the server's behavior while working with FEDn.
+You can for example implement custom client selection logic, adjust hyperparameters, or implement a custom aggregation algorithm.
 
 Requirements for ``ServerFunctions`` Implementation
 ----------------------------------------------------
@@ -9,7 +10,7 @@ Requirements for ``ServerFunctions`` Implementation
 The ``ServerFunctions`` class has specific requirements for proper instantiation at the server:
 
 1. **Class Name**: The implemented class must be named ``ServerFunctions``.
-2. **Allowed Imports**: Only a pre-defined list of Python packages is available for use within a ``ServerFunctions`` implementation. This ensures compatibility and security. You can find the allowed packages at:
+2. **Allowed Imports**: Only a pre-defined list of Python packages is available for use within a ``ServerFunctions`` implementation for compatibility and security reasons. You can find the allowed packages at:
 
    :py:mod:`fedn.network.combiner.hooks.allowed_imports`.
 
