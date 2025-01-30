@@ -242,15 +242,3 @@ def get_dataloaders(path, keywords, dataset_split_idx, dataset_total_splits, bat
 
     return dataloader_train, dataloader_valid, dataloader_test
 
-
-if __name__ == "__main__":
-    from torch.utils.data import DataLoader
-
-    dataset = FedSCDataset("data", ["forward", "backward", "left", "right"], "training", 0, 1, data_augmentation=True)
-
-    dl = DataLoader(dataset, 32, collate_fn=dataset.get_collate_fn())
-
-    def play_audio(sample, sr=16000):
-        import simpleaudio as sa
-        sample = (sample*(2**15-1)).numpy().astype(np.int16)
-        sa.play_buffer(sample, 1, 2, sr)
