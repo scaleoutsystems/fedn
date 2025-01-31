@@ -1,4 +1,4 @@
-name: monai-2d-mdnist
+name: .monai-2d-mdnist
 build_dependencies:
   - pip
   - setuptools
