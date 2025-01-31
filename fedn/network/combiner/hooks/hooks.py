@@ -122,8 +122,6 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
         logger.info("Receieved provided functions request.")
-        if self.implemented_functions is not None:
-            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         server_functions_code = request.function_code
         self.server_functions_code = server_functions_code
         self.implemented_functions = {}
