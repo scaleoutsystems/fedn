@@ -17,7 +17,7 @@ The ``ServerFunctions`` class has specific requirements for proper instantiation
 Overridable Methods
 -------------------
 
-The ``ServerFunctions`` class provides three methods that can optionally be overridden. If you choose not to override any of these, FEDn will execute its default behavior for that functionality.
+The ``ServerFunctions`` class provides three methods that can optionally be overridden. If you choose not to override one or several of these, FEDn will execute its default behavior for that functionality.
 
 The base class defining these methods and their types is:
 
