@@ -1,3 +1,5 @@
+"""Module for representing and converting client states."""
+
 from enum import Enum
 
 
@@ -10,7 +12,7 @@ class ClientState(Enum):
     predicting = 4
 
 
-def ClientStateToString(state):
+def client_state_to_string(state: ClientState) -> str:
     """Convert a ClientState to a string representation.
 
     :param state: the state to convert

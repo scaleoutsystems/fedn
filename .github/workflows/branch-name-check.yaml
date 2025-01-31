@@ -7,7 +7,7 @@ on:
       - master
 
 env:
-  BRANCH_REGEX: '(?i)^((feature|github|dependabot|hotfix|bugfix|fix|bug|docs|refactor)\/.+)|(release\/v((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))$'
+  BRANCH_REGEX: '(?i)^((feature|github|dependabot|hotfix|bugfix|fix|bug|docs|refactor|chore)\/.+)|(release\/v((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))$'
 
 jobs:
   branch-name-check:
