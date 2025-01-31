@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 def from_document(data: dict, active_package: dict):
@@ -306,6 +306,9 @@ def from_row(row: PackageModel) -> Package:
 
 
 class SQLPackageStore(PackageStore, SQLStore[Package]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def _complement(self, item: Package):
         if "committed_at" not in item or item.committed_at is None:
             item["committed_at"] = datetime.now()
@@ -322,7 +325,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return False, message
 
         self._complement(item)
-        with Session() as session:
+        with self.Session() as session:
             item = PackageModel(
                 committed_at=item["committed_at"],
                 description=item["description"] if "description" in item else "",
@@ -336,7 +339,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return True, from_row(item)
 
     def get(self, id: str) -> Package:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -347,7 +350,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         raise NotImplementedError
 
     def delete(self, id: str) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -357,7 +360,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return True
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel)
 
             for key, value in kwargs.items():
@@ -385,7 +388,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(PackageModel)
 
             for key, value in kwargs.items():
@@ -396,7 +399,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return count
 
     def set_active(self, id: str):
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -413,7 +416,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         return True
 
     def get_active(self) -> Package:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -424,7 +427,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
             raise ValueError()
 
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -445,7 +448,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             session.commit()
 
     def delete_active(self) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:

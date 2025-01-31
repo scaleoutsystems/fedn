@@ -133,7 +133,8 @@ class MongoDBStore(Store[T], Generic[T]):
 
 
 class SQLStore(Store[T]):
-    pass
+    def __init__(self, Session):
+        self.Session = Session
 
 
 constraint_naming_conventions = {
