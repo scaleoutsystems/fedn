@@ -1,4 +1,3 @@
-from fedn.common.log_config import logger
 from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random
 
 # See allowed_imports for what packages you can use in this class.
