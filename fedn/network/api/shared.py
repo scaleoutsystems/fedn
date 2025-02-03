@@ -40,12 +40,12 @@ repository = Repository(modelstorage_config["storage_config"])
 
 control = Control(
     network_id=network_id,
-    session_store=stores.session_store,
-    model_store=stores.model_store,
-    round_store=stores.round_store,
-    package_store=stores.package_store,
-    combiner_store=stores.combiner_store,
-    client_store=stores.client_store,
+    session_store=session_store,
+    model_store=model_store,
+    round_store=round_store,
+    package_store=package_store,
+    combiner_store=combiner_store,
+    client_store=client_store,
     model_repository=repository,
 )
 
@@ -63,7 +63,7 @@ def get_checksum(name: str = None):
 
     if name is None:
         try:
-            active_package = DatabaseConnection().get_stores().package_store.get_active()
+            active_package = package_store.get_active()
             name = active_package["storage_file_name"]
         except EntityNotFound:
             message = "No compute package uploaded"
