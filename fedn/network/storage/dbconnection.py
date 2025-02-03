@@ -1,22 +1,32 @@
+"""This module provides classes for managing database connections and stores in a federated network environment.
+
+Classes:
+    StoreContainer: A container for various store instances.
+    DatabaseConnection: A singleton class for managing database connections and stores.
+"""
+
 import pymongo
+from pymongo.database import Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from fedn.common.config import get_network_config, get_statestore_config
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
-from fedn.network.storage.statestore.stores.model_store import MongoDBModelStore, SQLModelStore
+from fedn.network.storage.statestore.stores.model_store import ModelStore, MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
-from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SQLSessionStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
 from fedn.network.storage.statestore.stores.store import MyAbstractBase
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 
 class StoreContainer:
-    def __init__(
+    """A container for various store instances."""
+
+    def __init__(  # noqa: PLR0913
         self,
         client_store: ClientStore,
         validation_store: ValidationStore,
@@ -25,9 +35,10 @@ class StoreContainer:
         prediction_store: PredictionStore,
         round_store: RoundStore,
         package_store: PackageStore,
-        model_store: MongoDBModelStore,
-        session_store: MongoDBSessionStore,
-    ):
+        model_store: ModelStore,
+        session_store: SessionStore,
+    ) -> None:
+        """Initialize the StoreContainer with various store instances."""
         self.client_store = client_store
         self.validation_store = validation_store
         self.combiner_store = combiner_store
@@ -40,20 +51,35 @@ class StoreContainer:
 
 
 class DatabaseConnection:
+    """Singleton class for managing database connections and stores."""
+
     _instance = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DatabaseConnection, cls).__new__(cls)
-            cls._instance._init_connection()
+    def __new__(cls, *, force_create_new: bool = False) -> "DatabaseConnection":
+        """Create a new instance of DatabaseConnection or return the existing singleton instance.
+
+        Args:
+            force_create_new (bool): If True, a new instance will be created regardless of the singleton pattern.
+
+        Returns:
+            DatabaseConnection: A new instance if force_create_new is True, otherwise the existing singleton instance.
+
+        """
+        if cls._instance is None or force_create_new:
+            obj = super(DatabaseConnection, cls).__new__(cls)
+            obj._init_connection()
+            cls._instance = obj
+
         return cls._instance
 
-    def _init_connection(self):
-        statestore_config = get_statestore_config()
-        network_id = get_network_config()
+    def _init_connection(self, statestore_config: dict = None, network_id: dict = None) -> None:
+        if statestore_config is None:
+            statestore_config = get_statestore_config()
+        if network_id is None:
+            network_id = get_network_config()
 
         if statestore_config["type"] == "MongoDB":
-            mdb: DatabaseConnection = self._setup_mongo(statestore_config, network_id)
+            mdb: Database = self._setup_mongo(statestore_config, network_id)
 
             client_store = MongoDBClientStore(mdb, "network.clients")
             validation_store = MongoDBValidationStore(mdb, "control.validations")
@@ -66,7 +92,7 @@ class DatabaseConnection:
             session_store = MongoDBSessionStore(mdb, "control.sessions")
 
         elif statestore_config["type"] in ["SQLite", "PostgreSQL"]:
-            Session = self._setup_sql(statestore_config)
+            Session = self._setup_sql(statestore_config)  # noqa: N806
 
             client_store = SQLClientStore(Session)
             validation_store = SQLValidationStore(Session)
@@ -84,16 +110,20 @@ class DatabaseConnection:
             client_store, validation_store, combiner_store, status_store, prediction_store, round_store, package_store, model_store, session_store
         )
 
-    def _setup_mongo(self, statestore_config, network_id):
+    def close(self) -> None:
+        """Close the database connection."""
+        pass
+
+    def _setup_mongo(self, statestore_config: dict, network_id: str) -> "DatabaseConnection":
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
         mc.server_info()
-        mdb: DatabaseConnection = mc[network_id]
+        mdb: Database = mc[network_id]
 
         return mdb
 
-    def _setup_sql(self, statestore_config):
+    def _setup_sql(self, statestore_config: dict) -> "DatabaseConnection":
         if statestore_config["type"] == "SQLite":
-            engine = create_engine("sqlite:///my_database.db", echo=True)
+            engine = create_engine("sqlite:///my_database.db", echo=False)
         elif statestore_config["type"] == "PostgreSQL":
             postgres_config = statestore_config["postgres_config"]
             username = postgres_config["username"]
@@ -101,13 +131,50 @@ class DatabaseConnection:
             host = postgres_config["host"]
             port = postgres_config["port"]
 
-            engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=True)
+            engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=False)
 
-        Session = sessionmaker(engine)
+        Session = sessionmaker(engine)  # noqa: N806
 
         MyAbstractBase.metadata.create_all(engine, checkfirst=True)
 
         return Session
 
-    def get_stores(self):
+    def get_stores(self) -> StoreContainer:
+        """Get the StoreContainer instance."""
         return self.sc
+
+    @property
+    def client_store(self) -> ClientStore:
+        return self.sc.client_store
+
+    @property
+    def validation_store(self) -> ValidationStore:
+        return self.sc.validation_store
+
+    @property
+    def combiner_store(self) -> CombinerStore:
+        return self.sc.combiner_store
+
+    @property
+    def status_store(self) -> StatusStore:
+        return self.sc.status_store
+
+    @property
+    def prediction_store(self) -> PredictionStore:
+        return self.sc.prediction_store
+
+    @property
+    def round_store(self) -> RoundStore:
+        return self.sc.round_store
+
+    @property
+    def package_store(self) -> PackageStore:
+        return self.sc.package_store
+
+    @property
+    def model_store(self) -> ModelStore:
+        return self.sc.model_store
+
+    @property
+    def session_store(self) -> SessionStore:
+        return self.sc.session_store

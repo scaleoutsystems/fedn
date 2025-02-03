@@ -171,8 +171,8 @@ def from_row(row: ClientModel) -> Client:
 
 
 class SQLClientStore(ClientStore, SQLStore[Client]):
-    def __init__(self, SQLSessionFactory):
-        super(SQLStore).__init__(SQLSessionFactory)
+    def __init__(self, Session):
+        super().__init__(Session)
 
     def get(self, id: str) -> Client:
         with self.Session() as session:
