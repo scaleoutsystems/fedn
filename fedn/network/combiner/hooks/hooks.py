@@ -30,7 +30,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.server_functions: ServerFunctionsBase = None
         self.server_functions_code: str = None
         self.client_updates = {}
-        self.implemented_functions = None
+        self.implemented_functions = {}
 
     def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
         """Distribute client configs to clients from user defined code.
@@ -123,10 +123,18 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         """
         logger.info("Receieved provided functions request.")
         server_functions_code = request.function_code
+        # if no new code return previous
+        if server_functions_code == self.server_functions_code:
+            logger.info(f"Provided function: {self.implemented_functions}")
+            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
+
         self.server_functions_code = server_functions_code
         self.implemented_functions = {}
         self._instansiate_server_functions_code()
-        # if crashed or not returning None we assume function is implemented
+        # We are not sending dummy values here since the implementation might depend on model shape / implementations
+
+        # Implemented=False if return is None (indicating base implementation)
+
         # check if aggregation is available
         try:
             ret = self.server_functions.aggregate(0, 0)

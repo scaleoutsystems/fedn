@@ -98,7 +98,6 @@ class RoundHandler:
         self.server_functions = inspect.getsource(ServerFunctions)
         self.update_handler = UpdateHandler(modelservice=modelservice)
         self.hook_interface = CombinerHookInterface()
-        self.session_id = ""
 
     def set_aggregator(self, aggregator):
         self.aggregator = get_aggregator(aggregator, self.update_handler)
@@ -325,10 +324,8 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
-        # If new session, update server function code and check which functions are provided
-        if self.session_id != config["session_id"]:
-            self.session_id = config["session_id"]
-            provided_functions = self.hook_interface.provided_functions(self.server_functions)
+        # dictionary to which functions are provided
+        provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
             clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
