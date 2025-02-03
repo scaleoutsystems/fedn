@@ -43,6 +43,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
         logger.info("Received client config request.")
+        print = logger.info  # noqa: F841
         model, _ = unpack_model(request_iterator, self.helper)
         client_settings = self.server_functions.client_settings(global_model=model)
         logger.info(f"Client config response: {client_settings}")
@@ -59,6 +60,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientSelectionResponse`
         """
         logger.info("Received client selection request.")
+        print = logger.info  # noqa: F841
         client_ids = json.loads(request.client_ids)
         client_ids = self.server_functions.client_selection(client_ids)
         logger.info(f"Clients selected: {client_ids}")
@@ -75,6 +77,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientMetaResponse`
         """
         logger.info("Received metadata")
+        print = logger.info  # noqa: F841
         client_id = request.client_id
         metadata = json.loads(request.metadata)
         self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
@@ -102,6 +105,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.AggregationResponse`
         """
         logger.info(f"Receieved aggregation request: {request.aggregate}")
+        print = logger.info  # noqa: F841
         aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
         model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
         request_function = fedn.AggregationResponse
@@ -122,9 +126,11 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
         logger.info("Receieved provided functions request.")
+        print = logger.info  # noqa: F841
         server_functions_code = request.function_code
         # if no new code return previous
         if server_functions_code == self.server_functions_code:
+            logger.info("No new server fumction code provided.")
             logger.info(f"Provided function: {self.implemented_functions}")
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
 
