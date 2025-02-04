@@ -324,6 +324,7 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
+        # dictionary to which functions are provided
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
