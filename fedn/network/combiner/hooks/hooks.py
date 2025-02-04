@@ -3,10 +3,10 @@ from concurrent import futures
 
 import grpc
 
-import fedn.network.combiner.hooks.allowed_import
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
+from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 
 # imports for user code
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
