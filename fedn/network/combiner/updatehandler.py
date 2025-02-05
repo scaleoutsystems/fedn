@@ -29,7 +29,7 @@ class UpdateHandler:
 
     def delete_model(self, model_update):
         self.modelservice.temp_model_storage.delete(model_update.model_update_id)
-        # #logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
+        # logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
 
     def next_model_update(self):
         """Get the next model update from the queue.
@@ -53,7 +53,7 @@ class UpdateHandler:
         :type model_id: str
         """
         try:
-            # #logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
+            # logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
 
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)
@@ -61,11 +61,11 @@ class UpdateHandler:
                 # Push the model update to the processing queue
                 self.model_updates.put(model_update)
             else:
-                #logger.warning("UPDATE HANDLER: Invalid model update, skipping.")
+                logger.warning("UPDATE HANDLER: Invalid model update, skipping.")
         except Exception as e:
             tb = traceback.format_exc()
-            #logger.error("UPDATE HANDLER: failed to receive model update: {}".format(e))
-            #logger.error(tb)
+            logger.error("UPDATE HANDLER: failed to receive model update: {}".format(e))
+            logger.error(tb)
             pass
 
     def _validate_model_update(self, model_update):
@@ -81,8 +81,8 @@ class UpdateHandler:
             _ = data["num_examples"]
         except KeyError:
             tb = traceback.format_exc()
-            #logger.error("UPDATE HANDLER: Invalid model update, missing metadata.")
-            #logger.error(tb)
+            logger.error("UPDATE HANDLER: Invalid model update, missing metadata.")
+            logger.error(tb)
             return False
         return True
 
@@ -153,7 +153,7 @@ class UpdateHandler:
             try:
                 model = load_model_from_bytes(model_bytesIO.getbuffer(), helper)
             except IOError:
-                #logger.warning("UPDATE HANDLER: Failed to load model!")
+                logger.warning("UPDATE HANDLER: Failed to load model!")
         else:
             raise ModelUpdateError("Failed to load model.")
 
@@ -179,7 +179,7 @@ class UpdateHandler:
             while tries < retry:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
-                    #logger.warning("Model download failed. retrying")
+                    logger.warning("Model download failed. retrying")
                     time.sleep(1)
                     model_str = self.modelservice.get_model(model_id)
 

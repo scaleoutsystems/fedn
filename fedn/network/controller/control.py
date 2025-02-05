@@ -112,7 +112,7 @@ class Control(ControlBase):
 
     def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
         if self._state == ReducerState.instructing:
-            #logger.info("Controller already in INSTRUCTING state. A session is in progress.")
+            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
 
         model_set: bool = False
@@ -122,10 +122,10 @@ class Control(ControlBase):
             if active_model_id not in ["", " "]:
                 model_set = True
         except Exception:
-            #logger.error("Failed to get active model")
+            logger.error("Failed to get active model")
 
         if not model_set:
-            #logger.warning("No model in model chain, please provide a seed model!")
+            logger.warning("No model in model chain, please provide a seed model!")
             return
 
         self._state = ReducerState.instructing
@@ -133,13 +133,13 @@ class Control(ControlBase):
         session = self.session_store.get(session_id)
 
         if not session:
-            #logger.error("Session not found.")
+            logger.error("Session not found.")
             return
 
         session_config = session["session_config"]
 
         if not session_config or not isinstance(session_config, dict):
-            #logger.error("Session not properly configured.")
+            logger.error("Session not properly configured.")
             return
 
         if round_timeout is not None:
@@ -168,12 +168,12 @@ class Control(ControlBase):
 
             try:
                 if self.get_session_status(session_id) == "Terminated":
-                    #logger.info("Session terminated.")
+                    logger.info("Session terminated.")
                     break
                 _, round_data = self.round(session_config, str(current_round))
-                #logger.info("Round completed with status {}".format(round_data["status"]))
+                logger.info("Round completed with status {}".format(round_data["status"]))
             except TypeError as e:
-                #logger.error("Failed to execute round: {0}".format(e))
+                logger.error("Failed to execute round: {0}".format(e))
 
             session_config["model_id"] = self.model_store.get_active()
 
@@ -191,11 +191,11 @@ class Control(ControlBase):
         :return: None
         """
         if self._state == ReducerState.instructing:
-            #logger.info("Controller already in INSTRUCTING state. A session is in progress.")
+            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
 
         if len(self.network.get_combiners()) < 1:
-            #logger.warning("Prediction round cannot start, no combiners connected!")
+            logger.warning("Prediction round cannot start, no combiners connected!")
             return
 
         if "model_id" not in config.keys():
@@ -212,10 +212,10 @@ class Control(ControlBase):
         round_start = self.evaluate_round_start_policy(participating_combiners)
 
         if round_start:
-            #logger.info("Prediction round start policy met, {} participating combiners.".format(len(participating_combiners)))
+            logger.info("Prediction round start policy met, {} participating combiners.".format(len(participating_combiners)))
             for combiner, _ in participating_combiners:
                 combiner.submit(config)
-                #logger.info("Prediction round submitted to combiner {}".format(combiner))
+                logger.info("Prediction round submitted to combiner {}".format(combiner))
 
     def round(self, session_config: RoundConfig, round_id: str):
         """Execute one global round.
@@ -230,7 +230,7 @@ class Control(ControlBase):
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
-            #logger.warning("Round cannot start, no combiners connected!")
+            logger.warning("Round cannot start, no combiners connected!")
             self.set_round_status(round_id, "Failed")
             return None, self.round_store.get(round_id)
 
@@ -250,9 +250,9 @@ class Control(ControlBase):
         round_start = self.evaluate_round_start_policy(participating_combiners)
 
         if round_start:
-            #logger.info("round start policy met, {} participating combiners.".format(len(participating_combiners)))
+            logger.info("round start policy met, {} participating combiners.".format(len(participating_combiners)))
         else:
-            #logger.warning("Round start policy not met, skipping round!")
+            logger.warning("Round start policy not met, skipping round!")
             self.set_round_status(round_id, "Failed")
             return None, self.round_store.get(round_id)
 
@@ -263,7 +263,7 @@ class Control(ControlBase):
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
         def do_if_round_times_out(result):
-            #logger.warning("Round timed out!")
+            logger.warning("Round timed out!")
             return True
 
         @retry(
@@ -279,11 +279,11 @@ class Control(ControlBase):
                 self.set_round_status(round_id, "Terminated")
                 return False
             if "combiners" not in round:
-                #logger.info("Waiting for combiners to update model...")
+                logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
 
             if len(round["combiners"]) < len(participating_combiners):
-                #logger.info("Waiting for combiners to update model...")
+                logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("All combiners have not yet reported.")
 
             return True
@@ -306,34 +306,34 @@ class Control(ControlBase):
         round = self.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round)
         if not round_valid:
-            #logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
+            logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
             self.set_round_status(round_id, "Failed")
             return None, self.round_store.get(round_id)
 
-        #logger.info("Reducing combiner level models...")
+        logger.info("Reducing combiner level models...")
         # Reduce combiner models into a new global model
         round_data = {}
         try:
             round = self.round_store.get(round_id)
             model, data = self.reduce(round["combiners"])
             round_data["reduce"] = data
-            #logger.info("Done reducing models from combiners!")
+            logger.info("Done reducing models from combiners!")
         except Exception as e:
-            #logger.error("Failed to reduce models from combiners, reason: {}".format(e))
+            logger.error("Failed to reduce models from combiners, reason: {}".format(e))
             self.set_round_status(round_id, "Failed")
             return None, self.round_store.get(round_id)
 
         # Commit the new global model to the model trail
         if model is not None:
-            #logger.info("Committing global model to model trail...")
+            logger.info("Committing global model to model trail...")
             tic = time.time()
             model_id = str(uuid.uuid4())
             session_id = session_config["session_id"] if "session_id" in session_config else None
             self.commit(model_id, model, session_id)
             round_data["time_commit"] = time.time() - tic
-            #logger.info("Done committing global model to model trail.")
+            logger.info("Done committing global model to model trail.")
         else:
-            #logger.error("Failed to commit model to global model trail.")
+            logger.error("Failed to commit model to global model trail.")
             self.set_round_status(round_id, "Failed")
             return None, self.round_store.get(round_id)
 
@@ -353,7 +353,7 @@ class Control(ControlBase):
                 active_package = self.package_store.get_active()
                 helper_type = active_package["helper"]
             except Exception:
-                #logger.error("Failed to get active helper")
+                logger.error("Failed to get active helper")
 
             combiner_config["helper_type"] = helper_type
 
@@ -361,7 +361,7 @@ class Control(ControlBase):
 
             for combiner, combiner_config in validating_combiners:
                 try:
-                    #logger.info("Submitting validation round to combiner {}".format(combiner))
+                    logger.info("Submitting validation round to combiner {}".format(combiner))
                     combiner.submit(combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
@@ -389,14 +389,14 @@ class Control(ControlBase):
             name = combiner["name"]
             model_id = combiner["model_id"]
 
-            #logger.info("Fetching model ({}) from model repository".format(model_id))
+            logger.info("Fetching model ({}) from model repository".format(model_id))
 
             try:
                 tic = time.time()
                 data = self.model_repository.get_model(model_id)
                 meta["time_fetch_model"] += time.time() - tic
             except Exception as e:
-                #logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
+                logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
                 data = None
 
             if data is not None:
@@ -425,13 +425,13 @@ class Control(ControlBase):
         """
         # Check/set instucting state
         if self.__state == ReducerState.instructing:
-            #logger.info("Already set in INSTRUCTING state")
+            logger.info("Already set in INSTRUCTING state")
             return
         self.__state = ReducerState.instructing
 
         # Check for a model chain
         if not self.statestore.latest_model():
-            #logger.warning("No model in model chain, please set seed model.")
+            logger.warning("No model in model chain, please set seed model.")
 
         # Set reducer in monitoring state
         self.__state = ReducerState.monitoring
@@ -440,7 +440,7 @@ class Control(ControlBase):
         try:
             self.prediction_round(config)
         except TypeError:
-            #logger.error("Round failed.")
+            logger.error("Round failed.")
 
         # Set reducer in idle state
         self.__state = ReducerState.idle
@@ -455,7 +455,7 @@ class Control(ControlBase):
 
         # Check for at least one combiner in statestore
         if len(self.network.get_combiners()) < 1:
-            #logger.warning("No combiners connected!")
+            logger.warning("No combiners connected!")
             return round_data
 
         # Setup combiner configuration
@@ -470,9 +470,9 @@ class Control(ControlBase):
         # Test round start policy
         round_start = self.check_round_start_policy(validating_combiners)
         if round_start:
-            #logger.info("Round start policy met, participating combiners {}".format(validating_combiners))
+            logger.info("Round start policy met, participating combiners {}".format(validating_combiners))
         else:
-            #logger.warning("Round start policy not met, skipping round!")
+            logger.warning("Round start policy not met, skipping round!")
             return None
 
         # Synch combiners with latest model and trigger prediction

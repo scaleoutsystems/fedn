@@ -88,7 +88,7 @@ class ConnectorCombiner:
         else:
             self.connect_string = "{}{}".format(self.prefix, self.host)
 
-        #logger.info("Setting connection string to {}".format(self.connect_string))
+        logger.info("Setting connection string to {}".format(self.connect_string))
 
     def announce(self):
         """Announce combiner to FEDn network via discovery service (REST-API).

@@ -83,7 +83,7 @@ class Network:
         :return: None
         """
         # TODO: Implement strategy to handle an unavailable combiner.
-        #logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
+        logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
 
     def add_client(self, client):
         """Add a new client to the network.
@@ -95,7 +95,7 @@ class Network:
         if self.get_client(client["client_id"]):
             return
 
-        #logger.info("adding client {}".format(client["client_id"]))
+        logger.info("adding client {}".format(client["client_id"]))
         self.client_store.upsert(client)
 
     def get_client(self, client_id: str):

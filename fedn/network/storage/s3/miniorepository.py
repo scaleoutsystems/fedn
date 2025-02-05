@@ -93,7 +93,7 @@ class MINIORepository(RepositoryBase):
         try:
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:
-            #logger.error("Could not delete artifact: {0} err: {1}".format(instance_name, err))
+            logger.error("Could not delete artifact: {0} err: {1}".format(instance_name, err))
             pass
 
     def create_bucket(self, bucket_name):

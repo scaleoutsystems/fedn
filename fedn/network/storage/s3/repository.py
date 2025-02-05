@@ -30,7 +30,7 @@ class Repository:
         :param model_id: Unique identifier for model to retrive.
         :return: The model object
         """
-        #logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
+        logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
         return self.client.get_artifact(model_id, self.model_bucket)
 
     def get_model_stream(self, model_id):
@@ -39,7 +39,7 @@ class Repository:
         :param model_id:
         :return: Handle to model object
         """
-        #logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
+        logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
         return self.client.get_artifact_stream(model_id, self.model_bucket)
 
     def set_model(self, model, is_file=True):
@@ -55,7 +55,7 @@ class Repository:
         try:
             self.client.set_artifact(str(model_id), model, bucket=self.model_bucket, is_file=is_file)
         except Exception:
-            #logger.error("Failed to upload model with ID {} to repository.".format(model_id))
+            logger.error("Failed to upload model with ID {} to repository.".format(model_id))
             raise
         return str(model_id)
 
@@ -68,7 +68,7 @@ class Repository:
         try:
             self.client.delete_artifact(model_id, bucket=self.model_bucket)
         except Exception:
-            #logger.error("Failed to delete model {} repository.".format(model_id))
+            logger.error("Failed to delete model {} repository.".format(model_id))
             raise
 
     def set_compute_package(self, name, compute_package, is_file=True):
@@ -83,7 +83,7 @@ class Repository:
         try:
             self.client.set_artifact(str(name), compute_package, bucket=self.context_bucket, is_file=is_file)
         except Exception:
-            #logger.error("Failed to write compute_package to repository.")
+            logger.error("Failed to write compute_package to repository.")
             raise
 
     def get_compute_package(self, compute_package):
@@ -96,7 +96,7 @@ class Repository:
         try:
             data = self.client.get_artifact(compute_package, bucket=self.context_bucket)
         except Exception:
-            #logger.error("Failed to get compute_package from repository.")
+            logger.error("Failed to get compute_package from repository.")
             raise
         return data
 
@@ -109,7 +109,7 @@ class Repository:
         try:
             self.client.delete_artifact(compute_package, bucket=[self.context_bucket])
         except Exception:
-            #logger.error("Failed to delete compute_package from repository.")
+            logger.error("Failed to delete compute_package from repository.")
             raise
 
     def presigned_put_url(self, bucket: str, object_name: str, expires: datetime.timedelta = datetime.timedelta(hours=1)):

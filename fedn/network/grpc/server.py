@@ -57,7 +57,7 @@ class Server:
         health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         if config["secure"]:
-            #logger.info("Creating secure gRPCS server using certificate")
+            logger.info("Creating secure gRPCS server using certificate")
             server_credentials = grpc.ssl_server_credentials(
                 (
                     (
@@ -68,15 +68,15 @@ class Server:
             )
             self.server.add_secure_port("[::]:" + str(config["port"]), server_credentials)
         else:
-            #logger.info("Creating gRPC server")
+            logger.info("Creating gRPC server")
             self.server.add_insecure_port("[::]:" + str(config["port"]))
 
     def start(self):
         """Start the gRPC server."""
-        #logger.info("gRPC Server started")
+        logger.info("gRPC Server started")
         self.server.start()
 
     def stop(self):
         """Stop the gRPC server."""
-        #logger.info("gRPC Server stopped")
+        logger.info("gRPC Server stopped")
         self.server.stop(0)

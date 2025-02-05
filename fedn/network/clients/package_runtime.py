@@ -54,7 +54,7 @@ class PackageRuntime:
                     try:
                         self.pkg_name = params["filename"]
                     except KeyError:
-                        #logger.error("No package returned.")
+                        logger.error("No package returned.")
                         return None
                     r.raise_for_status()
                     with open(os.path.join(self.pkg_path, self.pkg_name), "wb") as f:
@@ -83,7 +83,7 @@ class PackageRuntime:
                     try:
                         self.checksum = data["checksum"]
                     except Exception:
-                        #logger.error("Could not extract checksum.")
+                        logger.error("Could not extract checksum.")
 
             return True
         except Exception:
@@ -100,7 +100,7 @@ class PackageRuntime:
         file_checksum = str(sha(os.path.join(self.pkg_path, self.pkg_name)))
 
         if self.checksum == expected_checksum == file_checksum:
-            #logger.info("Package validated {}".format(self.checksum))
+            logger.info("Package validated {}".format(self.checksum))
             return True
         else:
             return False
@@ -120,28 +120,28 @@ class PackageRuntime:
             if self.pkg_name.endswith("tar.bz2"):
                 f = tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:bz2")
         else:
-            #logger.error("Failed to unpack compute package, no pkg_name set." "Has the reducer been configured with a compute package?")
+            logger.error("Failed to unpack compute package, no pkg_name set." "Has the reducer been configured with a compute package?")
             return False, ""
 
         try:
             if f:
                 f.extractall(self.pkg_path)
-                #logger.info("Successfully extracted compute package content in {}".format(self.pkg_path))
+                logger.info("Successfully extracted compute package content in {}".format(self.pkg_path))
                 # delete the tarball
-                #logger.info("Deleting temporary package tarball file.")
+                logger.info("Deleting temporary package tarball file.")
                 f.close()
                 os.remove(os.path.join(self.pkg_path, self.pkg_name))
                 # search for file fedn.yaml in extracted package
                 for root, dirs, files in os.walk(self.pkg_path):
                     if "fedn.yaml" in files:
                         # Get the path to where fedn.yaml is located
-                        #logger.info("Found fedn.yaml file in {}".format(root))
+                        logger.info("Found fedn.yaml file in {}".format(root))
                         return True, root
 
-                #logger.error("No fedn.yaml file found in extracted package!")
+                logger.error("No fedn.yaml file found in extracted package!")
                 return False, ""
         except Exception:
-            #logger.error("Error extracting files.")
+            logger.error("Error extracting files.")
             # delete the tarball
             os.remove(os.path.join(self.pkg_path, self.pkg_name))
             return False, ""

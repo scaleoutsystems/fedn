@@ -91,5 +91,5 @@ class JWTInterceptor(grpc.ServerInterceptor):
         except jwt.ExpiredSignatureError:
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNAUTHENTICATED, "Token expired")
         except Exception as e:
-            #logger.error(str(e))
+            logger.error(str(e))
             return _unary_unary_rpc_terminator(grpc.StatusCode.UNKNOWN, str(e))

@@ -87,10 +87,10 @@ def unpack_model(request_iterator, helper):
             if request.data:
                 model_buffer.write(request.data)
     except MemoryError as e:
-        #logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
+        logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
         raise
     except Exception as e:
-        #logger.error(f"Exception occured during model loading: {e}")
+        logger.error(f"Exception occured during model loading: {e}")
         raise
 
     model_buffer.seek(0)
@@ -204,7 +204,7 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response object.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        #logger.debug("grpc.ModelService.Upload: Called")
+        logger.debug("grpc.ModelService.Upload: Called")
         result = None
         for request in request_iterator:
             if request.status == fedn.ModelStatus.IN_PROGRESS:
@@ -229,14 +229,14 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
-        # #logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
+        # logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
         try:
             status = self.temp_model_storage.get_model_metadata(request.id)
             if status != fedn.ModelStatus.OK:
-                #logger.error(f"model file is not ready: {request.id}, status: {status}")
+                logger.error(f"model file is not ready: {request.id}, status: {status}")
                 yield fedn.ModelResponse(id=request.id, data=None, status=status)
         except Exception:
-            #logger.error("Error file does not exist: {}".format(request.id))
+            logger.error("Error file does not exist: {}".format(request.id))
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
 
         try:
@@ -251,5 +251,5 @@ class ModelService(rpc.ModelServiceServicer):
                         return
                     yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
         except Exception as e:
-            #logger.error("Downloading went wrong: {} {}".format(request.id, e))
+            logger.error("Downloading went wrong: {} {}".format(request.id, e))
             yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)

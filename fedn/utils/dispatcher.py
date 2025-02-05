@@ -95,24 +95,24 @@ def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, cap
     activate_cmd = f"source {activate_cmd}" if _IS_UNIX else str(activate_cmd)
 
     if env_dir.exists():
-        #logger.info("Environment %s already exists", env_dir)
+        logger.info("Environment %s already exists", env_dir)
         return activate_cmd
 
     with remove_on_error(
         env_dir,
-        # onerror=lambda e: #logger.warning(
-        #     "Encountered an unexpected error: %s while creating a virtualenv environment in %s, " "removing the environment directory...",
-        #     repr(e),
-        #     env_dir,
-        # ),
+        onerror=lambda e: logger.warning(
+            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, " "removing the environment directory...",
+            repr(e),
+            env_dir,
+        ),
     ):
-        #logger.info("Creating a new environment in %s with %s", env_dir, python_bin_path)
+        logger.info("Creating a new environment in %s with %s", env_dir, python_bin_path)
         _exec_cmd(
             [sys.executable, "-m", "virtualenv", "--python", python_bin_path, env_dir],
             capture_output=capture_output,
         )
 
-        #logger.info("Installing dependencies")
+        logger.info("Installing dependencies")
         for deps in filter(None, [python_env.build_dependencies, python_env.dependencies]):
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_req_file = f"requirements.{uuid.uuid4().hex}.txt"
@@ -130,7 +130,7 @@ def _read_yaml_file(file_path):
             cfg = yaml.safe_load(config_file.read())
 
     except Exception as e:
-        #logger.error(f"Error trying to read yaml file: {file_path}")
+        logger.error(f"Error trying to read yaml file: {file_path}")
         raise e
     return cfg
 
@@ -154,7 +154,7 @@ class Dispatcher:
     def _get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
         python_env = self.config.get("python_env", "")
         if not python_env:
-            #logger.info("No python_env specified in the configuration, using the system Python.")
+            logger.info("No python_env specified in the configuration, using the system Python.")
             return python_env
         else:
             python_env_path = os.path.join(self.project_dir, python_env)
@@ -168,9 +168,9 @@ class Dispatcher:
         try:
             python_bin_path = _install_python(python_env.python, capture_output=True)
         except NotImplementedError:
-            #logger.warning("Failed to install Python: %s", python_env.python)
-            #logger.warning("Python version installation is not implemented yet.")
-            #logger.info(f"Using the system Python version: {PYTHON_VERSION}")
+            logger.warning("Failed to install Python: %s", python_env.python)
+            logger.warning("Python version installation is not implemented yet.")
+            logger.info(f"Using the system Python version: {PYTHON_VERSION}")
             python_bin_path = Path(sys.executable)
 
         try:
@@ -183,7 +183,7 @@ class Dispatcher:
             )
             # Install additional dependencies specified by `requirements_override`
             if pip_requirements_override:
-                #logger.info("Installing additional dependencies specified by " f"pip_requirements_override: {pip_requirements_override}")
+                logger.info("Installing additional dependencies specified by " f"pip_requirements_override: {pip_requirements_override}")
                 cmd = _join_commands(
                     activate_cmd,
                     f"python -m pip install --quiet -U {' '.join(pip_requirements_override)}",
@@ -192,12 +192,12 @@ class Dispatcher:
             self.activate_cmd = activate_cmd
             return activate_cmd
         except Exception:
-            #logger.critical("Encountered unexpected error while creating %s", env_dir)
+            logger.critical("Encountered unexpected error while creating %s", env_dir)
             if env_dir.exists():
-                #logger.warning("Attempting to remove %s", env_dir)
+                logger.warning("Attempting to remove %s", env_dir)
                 shutil.rmtree(env_dir, ignore_errors=True)
                 msg = "Failed to remove %s" if env_dir.exists() else "Successfully removed %s"
-                #logger.warning(msg, env_dir)
+                logger.warning(msg, env_dir)
 
             raise
 
@@ -225,7 +225,7 @@ class Dispatcher:
             else:
                 cmd = _join_commands(entry_point)
 
-            #logger.info("Running command: {}".format(cmd))
+            logger.info("Running command: {}".format(cmd))
             _exec_cmd(
                 cmd,
                 cwd=self.project_dir,
@@ -236,7 +236,7 @@ class Dispatcher:
                 stream_output=stream_output,
             )
 
-            #logger.info("Done executing {}".format(cmd_type))
+            logger.info("Done executing {}".format(cmd_type))
         except IndexError:
             message = "No such argument or configuration to run."
-            #logger.error(message)
+            logger.error(message)

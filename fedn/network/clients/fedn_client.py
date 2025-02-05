@@ -76,7 +76,7 @@ class FednClient:
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         url_endpoint = f"{url}api/v1/clients/add"
-        #logger.info(f"Connecting to API endpoint: {url_endpoint}")
+        logger.info(f"Connecting to API endpoint: {url_endpoint}")
 
         try:
             response = requests.post(
@@ -87,26 +87,26 @@ class FednClient:
             )
 
             if response.status_code == 200:
-                #logger.info("Connect to FEDn Api - Client assinged to controller")
+                logger.info("Connect to FEDn Api - Client assinged to controller")
                 json_response = response.json()
                 return ConnectToApiResult.Assigned, json_response
             elif response.status_code == 203:
                 json_response = response.json()
-                #logger.info("Connect to FEDn Api - Remote compute package missing.")
+                logger.info("Connect to FEDn Api - Remote compute package missing.")
                 return ConnectToApiResult.ComputePackageMissing, json_response
             elif response.status_code == 401:
-                #logger.warning("Connect to FEDn Api - Unauthorized")
+                logger.warning("Connect to FEDn Api - Unauthorized")
                 return ConnectToApiResult.UnAuthorized, "Unauthorized"
             elif response.status_code == 400:
                 json_response = response.json()
                 msg = json_response["message"]
-                #logger.warning(f"Connect to FEDn Api - {msg}")
+                logger.warning(f"Connect to FEDn Api - {msg}")
                 return ConnectToApiResult.UnMatchedConfig, msg
             elif response.status_code == 404:
-                #logger.warning("Connect to FEDn Api - Incorrect URL")
+                logger.warning("Connect to FEDn Api - Incorrect URL")
                 return ConnectToApiResult.IncorrectUrl, "Incorrect URL"
         except Exception as e:
-            #logger.warning(f"Connect to FEDn Api - Error occurred: {str(e)}")
+            logger.warning(f"Connect to FEDn Api - Error occurred: {str(e)}")
             return ConnectToApiResult.UnknownError, str(e)
 
     def download_compute_package(self, url: str, token: str, name: str = None) -> bool:
@@ -134,9 +134,9 @@ class FednClient:
     def unpack_compute_package(self) -> Tuple[bool, str]:
         result, path = self._package_runtime.unpack_compute_package()
         if result:
-            #logger.info(f"Compute package unpacked to: {path}")
+            logger.info(f"Compute package unpacked to: {path}")
         else:
-            #logger.error("Error: Could not unpack compute package")
+            logger.error("Error: Could not unpack compute package")
 
         return result, path
 
@@ -149,23 +149,23 @@ class FednClient:
             self.dispatcher = result
             return True
         else:
-            #logger.error("Error: Could not set dispatcher")
+            logger.error("Error: Could not set dispatcher")
             return False
 
     def get_or_set_environment(self) -> bool:
         try:
-            #logger.info("Initiating Dispatcher with entrypoint set to: startup")
+            logger.info("Initiating Dispatcher with entrypoint set to: startup")
             activate_cmd = self.dispatcher._get_or_create_python_env()
             self.dispatcher.run_cmd("startup")
         except KeyError:
-            #logger.info("No startup command found in package. Continuing.")
+            logger.info("No startup command found in package. Continuing.")
             return False
         except Exception as e:
-            #logger.error(f"Caught exception: {type(e).__name__}")
+            logger.error(f"Caught exception: {type(e).__name__}")
             return False
 
         if activate_cmd:
-            #logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
+            logger.info("To activate the virtual environment, run: {}".format(activate_cmd))
 
         return True
 
@@ -182,10 +182,10 @@ class FednClient:
 
             self.grpc_handler = GrpcHandler(host=host, port=port, name=client_name, token=token, combiner_name=combiner_name)
 
-            #logger.info("Successfully initialized GRPC connection")
+            logger.info("Successfully initialized GRPC connection")
             return True
         except Exception:
-            #logger.error("Error: Could not initialize GRPC connection")
+            logger.error("Error: Could not initialize GRPC connection")
             return False
 
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
@@ -210,13 +210,13 @@ class FednClient:
         in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
-            #logger.error("Could not retrieve model from combiner. Aborting training request.")
+            logger.error("Could not retrieve model from combiner. Aborting training request.")
             return
 
         fetch_model_time = time.time() - tic
 
         if not self.train_callback:
-            #logger.error("No train callback set")
+            logger.error("No train callback set")
             return
 
         self.send_status(
@@ -227,7 +227,7 @@ class FednClient:
             type=fedn.StatusType.MODEL_UPDATE,
         )
 
-        #logger.info(f"Running train callback with model ID: {model_id}")
+        logger.info(f"Running train callback with model ID: {model_id}")
         client_settings = json.loads(request.data).get("client_settings", {})
         tic = time.time()
         out_model, meta = self.train_callback(in_model, client_settings)
@@ -267,14 +267,14 @@ class FednClient:
         in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if in_model is None:
-            #logger.error("Could not retrieve model from combiner. Aborting validation request.")
+            logger.error("Could not retrieve model from combiner. Aborting validation request.")
             return
 
         if not self.validate_callback:
-            #logger.error("No validate callback set")
+            logger.error("No validate callback set")
             return
 
-        #logger.info(f"Running validate callback with model ID: {model_id}")
+        logger.info(f"Running validate callback with model ID: {model_id}")
         metrics = self.validate_callback(in_model)
 
         if metrics is not None:
@@ -306,14 +306,14 @@ class FednClient:
         model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
         if model is None:
-            #logger.error("Could not retrieve model from combiner. Aborting prediction request.")
+            logger.error("Could not retrieve model from combiner. Aborting prediction request.")
             return
 
         if not self.predict_callback:
-            #logger.error("No predict callback set")
+            logger.error("No predict callback set")
             return
 
-        #logger.info(f"Running predict callback with model ID: {model_id}")
+        logger.info(f"Running predict callback with model ID: {model_id}")
         prediction = self.predict_callback(model)
 
         prediction_message = self.create_prediction_message(prediction=prediction, request=request)
@@ -353,11 +353,11 @@ class FednClient:
         )
 
     def set_name(self, name: str):
-        #logger.info(f"Setting client name to: {name}")
+        logger.info(f"Setting client name to: {name}")
         self.name = name
 
     def set_client_id(self, client_id: str):
-        #logger.info(f"Setting client ID to: {client_id}")
+        logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
     def run(self):
@@ -365,7 +365,7 @@ class FednClient:
         try:
             self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
-            #logger.info("Client stopped by user.")
+            logger.info("Client stopped by user.")
 
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
         return self.grpc_handler.get_model_from_combiner(id=id, client_id=client_id, timeout=timeout)
@@ -389,34 +389,34 @@ class FednClient:
     def init_remote_compute_package(self, url: str, token: str, package_checksum: str = None) -> bool:
         result: bool = self.download_compute_package(url, token)
         if not result:
-            #logger.error("Could not download compute package")
+            logger.error("Could not download compute package")
             return False
         result: bool = self.set_compute_package_checksum(url, token)
         if not result:
-            #logger.error("Could not set checksum")
+            logger.error("Could not set checksum")
             return False
 
         if package_checksum:
             result: bool = self.validate_compute_package(package_checksum)
             if not result:
-                #logger.error("Could not validate compute package")
+                logger.error("Could not validate compute package")
                 return False
 
         result, path = self.unpack_compute_package()
 
         if not result:
-            #logger.error("Could not unpack compute package")
+            logger.error("Could not unpack compute package")
             return False
 
-        #logger.info(f"Compute package unpacked to: {path}")
+        logger.info(f"Compute package unpacked to: {path}")
 
         result = self.set_dispatcher(path)
 
         if not result:
-            #logger.error("Could not set dispatcher")
+            logger.error("Could not set dispatcher")
             return False
 
-        #logger.info("Dispatcher set")
+        logger.info("Dispatcher set")
 
         result = self.get_or_set_environment()
 
@@ -427,11 +427,11 @@ class FednClient:
         result = self.set_dispatcher(path)
 
         if not result:
-            #logger.error("Could not set dispatcher")
+            logger.error("Could not set dispatcher")
             return False
 
         result = self.get_or_set_environment()
 
-        #logger.info("Dispatcher set")
+        logger.info("Dispatcher set")
 
         return True
