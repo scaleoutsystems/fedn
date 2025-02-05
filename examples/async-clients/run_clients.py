@@ -116,31 +116,32 @@ def run_client(online_for=120, name="client", client_id=None):
     if client_id is None:
         client_id = str(uuid.uuid4())
 
-    for i in range(settings["N_CYCLES"]):
-        # Sample a delay until the client starts
-        t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
-        time.sleep(t_start)
+    # for i in range(settings["N_CYCLES"]):
+    # while True:
+    # Sample a delay until the client starts
+    t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
+    time.sleep(t_start)
 
-        fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
-        fl_client.set_name(name)
-        fl_client.set_client_id(client_id)
+    fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
+    fl_client.set_name(name)
+    fl_client.set_client_id(client_id)
 
-        controller_config = {
-            "name": fl_client.name,
-            "client_id": fl_client.client_id,
-            "package": "local",
-            "preferred_combiner": "",
-        }
+    controller_config = {
+        "name": fl_client.name,
+        "client_id": fl_client.client_id,
+        "package": "local",
+    }
 
-        url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
+    url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
 
-        result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+    result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
 
-        fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
+    fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
-        threading.Thread(target=fl_client.run, daemon=True).start()
-        time.sleep(online_for)
-        fl_client.grpc_handler._disconnect()
+    # threading.Thread(target=fl_client.run, daemon=True).start()
+    # time.sleep(online_for)
+    # fl_client.grpc_handler._disconnect()
+    fl_client.run()
 
 
 if __name__ == "__main__":
