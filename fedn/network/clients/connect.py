@@ -64,7 +64,7 @@ class ConnectorClient:
         else:
             self.connect_string = "{}{}".format(self.prefix, self.host)
 
-        logger.info("Setting connection string to {}.".format(self.connect_string))
+        #logger.info("Setting connection string to {}.".format(self.connect_string))
 
     def assign(self):
         """Connect client to FEDn network discovery service, ask for combiner assignment.
@@ -83,7 +83,7 @@ class ConnectorClient:
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {self.token}"},
             )
         except Exception as e:
-            logger.debug("***** {}".format(e))
+            #logger.debug("***** {}".format(e))
             return Status.Unassigned, {}
 
         if retval.status_code == 400:
@@ -94,11 +94,11 @@ class ConnectorClient:
         if retval.status_code == 401:
             if "message" in retval.json():
                 reason = retval.json()["message"]
-                logger.warning(reason)
+                #logger.warning(reason)
                 if reason == "Token expired":
                     status_code = self.refresh_token()
                     if status_code >= 200 and status_code < 204:
-                        logger.info("Token refreshed.")
+                        #logger.info("Token refreshed.")
                         return Status.TryAgain, reason
                     else:
                         return Status.UnAuthorized, "Could not refresh token"
@@ -125,7 +125,7 @@ class ConnectorClient:
         :rtype: tuple(:class:`fedn.network.clients.connect.Status`, str)
         """
         if not FEDN_AUTH_REFRESH_TOKEN_URI or not FEDN_AUTH_REFRESH_TOKEN:
-            logger.error("No refresh token URI/Token set, cannot refresh token.")
+            #logger.error("No refresh token URI/Token set, cannot refresh token.")
             return 401
 
         payload = requests.post(FEDN_AUTH_REFRESH_TOKEN_URI, verify=self.verify, allow_redirects=True, json={"refresh": FEDN_AUTH_REFRESH_TOKEN})

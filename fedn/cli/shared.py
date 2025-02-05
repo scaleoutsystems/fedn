@@ -33,7 +33,7 @@ def apply_config(path: str, config: dict):
         try:
             settings = dict(yaml.safe_load(file))
         except Exception:
-            logger.error("Failed to read config from settings file, exiting.")
+            #logger.error("Failed to read config from settings file, exiting.")
             return
 
     for key, val in settings.items():

@@ -39,6 +39,6 @@ class ServerFunctions(ServerFunctionsBase):
             for i in range(len(weighted_sum)):
                 weighted_sum[i] += client_parameters[i] * num_examples
 
-        logger.info("Models aggregated")
+        #logger.info("Models aggregated")
         averaged_updates = [weighted / total_weight for weighted in weighted_sum]
         return averaged_updates

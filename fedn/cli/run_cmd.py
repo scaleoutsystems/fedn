@@ -28,7 +28,7 @@ def check_helper_config_file(config):
     try:
         helper = control["helper"]
     except KeyError:
-        logger.error("--local-package was used, but no helper was found in --init settings file.")
+        #logger.error("--local-package was used, but no helper was found in --init settings file.")
         exit(-1)
     return helper
 
@@ -37,7 +37,7 @@ def check_yaml_exists(path):
     """Check if fedn.yaml exists in the given path."""
     yaml_file = os.path.join(path, "fedn.yaml")
     if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
+        #logger.error(f"Could not find fedn.yaml in {path}")
         click.echo(f"Could not find fedn.yaml in {path}")
         exit(-1)
     return yaml_file
@@ -45,10 +45,10 @@ def check_yaml_exists(path):
 
 def delete_virtual_environment(dispatcher):
     if dispatcher.python_env_path:
-        logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
+        #logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
     else:
-        logger.warning("No virtualenv found to remove.")
+        #logger.warning("No virtualenv found to remove.")
 
 
 @main.group("run")
@@ -77,7 +77,7 @@ def validate_cmd(ctx, path, input, output, keep_venv):
     config = _read_yaml_file(yaml_file)
     # Check that validate is defined in fedn.yaml under entry_points
     if "validate" not in config["entry_points"]:
-        logger.error("No validate command defined in fedn.yaml")
+        #logger.error("No validate command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)
@@ -106,7 +106,7 @@ def train_cmd(ctx, path, input, output, keep_venv):
     config = _read_yaml_file(yaml_file)
     # Check that train is defined in fedn.yaml under entry_points
     if "train" not in config["entry_points"]:
-        logger.error("No train command defined in fedn.yaml")
+        #logger.error("No train command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)
@@ -133,7 +133,7 @@ def startup_cmd(ctx, path, keep_venv):
     config = _read_yaml_file(yaml_file)
     # Check that startup is defined in fedn.yaml under entry_points
     if "startup" not in config["entry_points"]:
-        logger.error("No startup command defined in fedn.yaml")
+        #logger.error("No startup command defined in fedn.yaml")
         exit(-1)
     dispatcher = Dispatcher(config, path)
     _ = dispatcher._get_or_create_python_env()
@@ -159,7 +159,7 @@ def build_cmd(ctx, path, keep_venv):
     config = _read_yaml_file(yaml_file)
     # Check that build is defined in fedn.yaml under entry_points
     if "build" not in config["entry_points"]:
-        logger.error("No build command defined in fedn.yaml")
+        #logger.error("No build command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)

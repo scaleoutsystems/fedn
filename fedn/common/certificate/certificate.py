@@ -21,9 +21,9 @@ class Certificate:
                 cwd = os.getcwd()
                 os.makedirs(cwd)
             except OSError:
-                logger.info("Directory exists, will store all cert and keys here.")
+                #logger.info("Directory exists, will store all cert and keys here.")
             else:
-                logger.info("Successfully created the directory to store cert and keys in {}".format(cwd))
+                #logger.info("Successfully created the directory to store cert and keys in {}".format(cwd))
 
             self.key_path = os.path.join(cwd, "key.pem")
             self.cert_path = os.path.join(cwd, "cert.pem")

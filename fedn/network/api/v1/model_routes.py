@@ -808,13 +808,13 @@ def upload_model():
             file.seek(0)
             object.write(file.read())
             helper = control.get_helper()
-            logger.info(f"Loading model from file using helper {helper.name}")
+            #logger.info(f"Loading model from file using helper {helper.name}")
             object.seek(0)
             model = helper.load(object)
             control.commit(model_id=None, model=model, name=name)
         except Exception as e:
-            logger.error("Error occured during model loading")
-            logger.debug(e)
+            #logger.error("Error occured during model loading")
+            #logger.debug(e)
             status_code = 400
             return (
                 jsonify(

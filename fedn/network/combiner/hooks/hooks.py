@@ -42,10 +42,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client config response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
-        logger.info("Received client config request.")
+        #logger.info("Received client config request.")
         model, _ = unpack_model(request_iterator, self.helper)
         client_settings = self.server_functions.client_settings(global_model=model)
-        logger.info(f"Client config response: {client_settings}")
+        #logger.info(f"Client config response: {client_settings}")
         return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
 
     def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
@@ -58,10 +58,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client selection response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientSelectionResponse`
         """
-        logger.info("Received client selection request.")
+        #logger.info("Received client selection request.")
         client_ids = json.loads(request.client_ids)
         client_ids = self.server_functions.client_selection(client_ids)
-        logger.info(f"Clients selected: {client_ids}")
+        #logger.info(f"Clients selected: {client_ids}")
         return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
 
     def HandleMetadata(self, request: fedn.ClientMetaRequest, context):
@@ -74,7 +74,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client meta response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientMetaResponse`
         """
-        logger.info("Received metadata")
+        #logger.info("Received metadata")
         client_id = request.client_id
         metadata = json.loads(request.metadata)
         self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
@@ -84,10 +84,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         model, final_request = unpack_model(request_iterator, self.helper)
         client_id = final_request.id
         if client_id == "global_model":
-            logger.info("Received previous global model")
+            #logger.info("Received previous global model")
             self.previous_global = model
         else:
-            logger.info("Received client model")
+            #logger.info("Received client model")
             self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
         return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
 
@@ -101,12 +101,12 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the aggregation response (aggregated model or None)
         :rtype: :class:`fedn.network.grpc.fedn_pb2.AggregationResponse`
         """
-        logger.info(f"Receieved aggregation request: {request.aggregate}")
+        #logger.info(f"Receieved aggregation request: {request.aggregate}")
         aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
         model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
         request_function = fedn.AggregationResponse
         self.client_updates = {}
-        logger.info("Returning aggregate model.")
+        #logger.info("Returning aggregate model.")
         response_generator = bytesIO_request_generator(mdl=model_bytesIO, request_function=request_function, args={})
         for response in response_generator:
             yield response
@@ -121,7 +121,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: dict with str -> bool for which functions are available
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
-        logger.info("Receieved provided functions request.")
+        #logger.info("Receieved provided functions request.")
         if self.implemented_functions is not None:
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         server_functions_code = request.function_code
@@ -156,7 +156,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
                 self.implemented_functions["client_selection"] = True
         except Exception:
             self.implemented_functions["client_selection"] = True
-        logger.info(f"Provided function: {self.implemented_functions}")
+        #logger.info(f"Provided function: {self.implemented_functions}")
         return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
 
     def _instansiate_server_functions_code(self):
@@ -167,7 +167,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             exec("server_functions = ServerFunctions()", globals(), namespace)  # noqa: S102
             self.server_functions = namespace.get("server_functions")
         except Exception as e:
-            logger.error(f"Exec failed with error: {str(e)}")
+            #logger.error(f"Exec failed with error: {str(e)}")
 
 
 def serve():

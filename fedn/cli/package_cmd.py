@@ -31,12 +31,12 @@ def create_cmd(ctx, path, name):
     path = os.path.abspath(path)
     yaml_file = os.path.join(path, "fedn.yaml")
     if not os.path.exists(yaml_file):
-        logger.error(f"Could not find fedn.yaml in {path}")
+        #logger.error(f"Could not find fedn.yaml in {path}")
         exit(-1)
 
     with tarfile.open(name, "w:gz") as tar:
         tar.add(path, arcname=os.path.basename(path))
-        logger.info(f"Created package {name}")
+        #logger.info(f"Created package {name}")
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")

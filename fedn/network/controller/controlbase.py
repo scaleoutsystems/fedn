@@ -85,7 +85,7 @@ class ControlBase(ABC):
             active_package = self.package_store.get_active()
             helper_type = active_package["helper"]
         except Exception:
-            logger.error("Failed to get active helper")
+            #logger.error("Failed to get active helper")
 
         helper = fedn.utils.helpers.helpers.get_helper(helper_type)
         if not helper:
@@ -122,7 +122,7 @@ class ControlBase(ABC):
                 package_name = definition["storage_file_name"]
                 return package_name
             except (IndexError, KeyError):
-                logger.error("No context filename set for compute context definition")
+                #logger.error("No context filename set for compute context definition")
                 return None
         else:
             return None
@@ -252,21 +252,21 @@ class ControlBase(ABC):
         helper = self.get_helper()
         if model is not None:
             outfile_name = helper.save(model)
-            logger.info("Saving model file temporarily to {}".format(outfile_name))
-            logger.info("CONTROL: Uploading model to Minio...")
+            #logger.info("Saving model file temporarily to {}".format(outfile_name))
+            #logger.info("CONTROL: Uploading model to Minio...")
             model_id = self.model_repository.set_model(outfile_name, is_file=True)
 
-            logger.info("CONTROL: Deleting temporary model file...")
+            #logger.info("CONTROL: Deleting temporary model file...")
             os.unlink(outfile_name)
 
-        logger.info("Committing model {} to global model trail in statestore...".format(model_id))
+        #logger.info("Committing model {} to global model trail in statestore...".format(model_id))
 
         active_model: str = None
 
         try:
             active_model = self.model_store.get_active()
         except Exception:
-            logger.info("No active model, adding...")
+            #logger.info("No active model, adding...")
 
         parent_model = None
         if active_model and session_id:

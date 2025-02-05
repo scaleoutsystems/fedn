@@ -27,10 +27,10 @@ class TempModelStorage(ModelStorage):
     def get(self, model_id):
         try:
             if self.models_metadata[model_id] != fedn.ModelStatus.OK:
-                logger.warning("File not ready! Try again")
+                #logger.warning("File not ready! Try again")
                 return None
         except KeyError:
-            logger.error("No such model has been made available yet!")
+            #logger.error("No such model has been made available yet!")
             return None
 
         obj = BytesIO()
@@ -66,12 +66,12 @@ class TempModelStorage(ModelStorage):
     def delete(self, model_id):
         try:
             os.remove(os.path.join(self.default_dir, str(model_id)))
-            # logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
+            # #logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
             # Delete id from metadata and models dict
             del self.models_metadata[model_id]
             del self.models[model_id]
         except FileNotFoundError:
-            logger.error("Could not delete model from disk. File not found!")
+            #logger.error("Could not delete model from disk. File not found!")
             return False
         return True
 
@@ -81,11 +81,11 @@ class TempModelStorage(ModelStorage):
         for model_id in self.models.keys():
             try:
                 os.remove(os.path.join(self.default_dir, str(model_id)))
-                logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
+                #logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
                 # Add id to list of ids to pop/delete from metadata and models dict
                 ids_pop.append(model_id)
             except FileNotFoundError:
-                logger.error("TEMPMODELSTORAGE: Could not delete model {} from disk. File not found!".format(model_id))
+                #logger.error("TEMPMODELSTORAGE: Could not delete model {} from disk. File not found!".format(model_id))
         # Remove id from metadata and models dict
         for model_id in ids_pop:
             del self.models_metadata[model_id]

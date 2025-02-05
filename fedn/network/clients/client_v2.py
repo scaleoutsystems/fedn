@@ -74,7 +74,7 @@ class Client:
 
         while not result or result == ConnectToApiResult.ComputePackageMissing:
             if result == ConnectToApiResult.ComputePackageMissing:
-                logger.info("Retrying in 3 seconds")
+                #logger.info("Retrying in 3 seconds")
                 time.sleep(3)
             result, response = self.fedn_client.connect_to_api(self.fedn_api_url, self.token, self.client_obj.to_json())
 
@@ -112,7 +112,7 @@ class Client:
         if not result:
             return
 
-        logger.info("-----------------------------")
+        #logger.info("-----------------------------")
 
         self.fedn_client.set_train_callback(self.on_train)
         self.fedn_client.set_validate_callback(self.on_validation)
@@ -128,7 +128,7 @@ class Client:
 
         helper_type_to_use = self.helper_type or helper_type or "numpyhelper"
 
-        logger.info(f"Setting helper to: {helper_type_to_use}")
+        #logger.info(f"Setting helper to: {helper_type_to_use}")
 
         # Priority: helper_type from constructor > helper_type from response > default helper_type
         self.helper = get_helper(helper_type_to_use)
@@ -176,7 +176,7 @@ class Client:
             with open(outpath + "-metadata", "r") as fh:
                 training_metadata = json.loads(fh.read())
 
-            logger.info("SETTING Training metadata: {}".format(training_metadata))
+            #logger.info("SETTING Training metadata: {}".format(training_metadata))
             meta["training_metadata"] = training_metadata
 
             os.unlink(inpath)
@@ -184,7 +184,7 @@ class Client:
             os.unlink(outpath + "-metadata")
 
         except Exception as e:
-            logger.error("Could not process training request due to error: {}".format(e))
+            #logger.error("Could not process training request due to error: {}".format(e))
             out_model = None
             meta = {"status": "failed", "error": str(e)}
 
@@ -214,7 +214,7 @@ class Client:
             os.unlink(outpath)
 
         except Exception as e:
-            logger.warning("Validation failed with exception {}".format(e))
+            #logger.warning("Validation failed with exception {}".format(e))
             metrics = None
 
         return metrics
@@ -243,7 +243,7 @@ class Client:
             os.unlink(outpath)
 
         except Exception as e:
-            logger.warning("Prediction failed with exception {}".format(e))
+            #logger.warning("Prediction failed with exception {}".format(e))
             metrics = None
 
         return metrics

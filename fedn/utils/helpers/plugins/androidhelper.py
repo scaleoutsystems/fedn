@@ -81,7 +81,7 @@ class Helper(HelperBase):
         :param fh: file path, filehandle, filelike.
         :return: List of weights in json format.
         """
-        logger.debug("in android helper load")
+        #logger.debug("in android helper load")
         if isinstance(fh, str):
             with open(fh, "rb") as file:
                 byte_data = file.read()

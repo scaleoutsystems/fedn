@@ -46,12 +46,12 @@ class CombinerHookInterface:
             return response.available_functions
         except grpc.RpcError as rpc_error:
             if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-                logger.warning(f"Server-functions container is unavailable; using default implementations: {rpc_error}")
+                #logger.warning(f"Server-functions container is unavailable; using default implementations: {rpc_error}")
             else:
-                logger.error(f"gRPC error: {rpc_error.code().name} - {rpc_error.details()}")
+                #logger.error(f"gRPC error: {rpc_error.code().name} - {rpc_error.details()}")
             return {}
         except Exception as e:
-            logger.error(f"Unexpected error communicating with hooks container: {e}")
+            #logger.error(f"Unexpected error communicating with hooks container: {e}")
             return {}
 
     def client_settings(self, global_model) -> dict:
@@ -88,11 +88,11 @@ class CombinerHookInterface:
         request_function = fedn.StoreModelRequest
         args = {"id": "global_model"}
         response = self.stub.HandleStoreModel(bytesIO_request_generator(mdl=previous_global, request_function=request_function, args=args))
-        logger.info(f"Store model response: {response.status}")
+        #logger.info(f"Store model response: {response.status}")
         # send client models and metadata
         nr_updates = 0
         while not update_handler.model_updates.empty():
-            logger.info("Getting next model update from queue.")
+            #logger.info("Getting next model update from queue.")
             update = update_handler.next_model_update()
             metadata = json.loads(update.meta)["training_metadata"]
             model = update_handler.load_model_update_bytesIO(update.model_update_id)
@@ -104,7 +104,7 @@ class CombinerHookInterface:
             args = {"id": client_id}
             request_function = fedn.StoreModelRequest
             response = self.stub.HandleStoreModel(bytesIO_request_generator(mdl=model, request_function=request_function, args=args))
-            logger.info(f"Store model response: {response.status}")
+            #logger.info(f"Store model response: {response.status}")
             nr_updates += 1
             if delete_models:
                 # delete model from disk

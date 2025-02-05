@@ -162,7 +162,7 @@ def run_process(args, cwd):
         while True:
             output = status.stdout.readline().decode()
             if output:
-                logger.info(output)
+                #logger.info(output)
             else:
                 break
 
