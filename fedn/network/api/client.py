@@ -339,7 +339,7 @@ class APIClient:
             response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
 
         with open(path, "rb") as file:
-            response = requests.post(self._get_url_api_v1("models"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers)
+            response = requests.post(self._get_url_api_v1("models/"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers)
         return response.json()
 
     # --- Packages --- #
