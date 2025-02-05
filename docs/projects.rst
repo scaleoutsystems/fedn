@@ -30,7 +30,8 @@ the Getting Started Guide:
 | │   ├ model.py
 | │   ├ data.py
 | │   ├ train.py
-| │   └ validate.py
+| │   ├ validate.py
+| |   └ .ignore
 | ├ data
 | │   └ mnist.npz
 | ├ README.md
@@ -403,6 +404,7 @@ To run a project on FEDn we compress the entire client folder as a .tgz file. Th
 
     fedn package create --path client
 
+You can include a .ignore file in the client folder to exclude files from the package. This is useful for excluding large data files, temporary files, etc.
 To learn how to initialize FEDn with the package seed model, see :ref:`quickstart-label`. 
 
 How is FEDn using the project? 
