@@ -1,4 +1,4 @@
-name: huggingface
+name: .huggingface
 build_dependencies:
   - pip
   - setuptools

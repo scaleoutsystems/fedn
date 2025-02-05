@@ -10,7 +10,6 @@ from sqlalchemy import func, select
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
-from fedn.network.storage.statestore.stores.store import Session as SQLSession
 
 
 class SessionConfig:
@@ -213,8 +212,11 @@ def from_row(row: dict) -> Session:
 
 
 class SQLSessionStore(SessionStore, SQLStore[Session]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Session:
-        with SQLSession() as session:
+        with self.Session() as session:
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
             item = session.execute(stmt).first()
             if item is None:
@@ -242,7 +244,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
         valid, message = validate(item)
         if not valid:
             return False, message
-        with SQLSession() as session:
+        with self.Session() as session:
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
             existing_item = session.execute(stmt).first()
             if existing_item is None:
@@ -292,7 +294,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
 
         complement(item)
 
-        with SQLSession() as session:
+        with self.Session() as session:
             parent_item = SessionModel(
                 id=item["session_id"], status=item["status"], name=item["name"] if "name" in item else None, committed_at=item["committed_at"] or None
             )
@@ -337,7 +339,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with SQLSession() as session:
+        with self.Session() as session:
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config)
             for key, value in kwargs.items():
                 if "session_config" in key:
@@ -384,7 +386,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        with SQLSession() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(SessionModel)
 
             for key, value in kwargs.items():

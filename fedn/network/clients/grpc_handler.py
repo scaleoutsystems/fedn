@@ -2,16 +2,13 @@
 
 import json
 import os
-import socket
 import time
 from datetime import datetime, timezone
 from io import BytesIO
 from typing import Any, Callable, Optional, Union
 
 import grpc
-from cryptography.hazmat.primitives.serialization import Encoding
 from google.protobuf.json_format import MessageToJson
-from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
@@ -50,21 +47,6 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
     def __call__(self, context: grpc.AuthMetadataContext, callback: grpc.AuthMetadataPluginCallback) -> None:
         """Add authorization metadata to the GRPC call."""
         callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
-
-
-def _get_ssl_certificate(domain: str, port: int = GRPC_SECURE_PORT) -> str:
-    """Fetch the SSL certificate for a given domain and port."""
-    context = SSL.Context(SSL.TLSv1_2_METHOD)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((domain, port))
-    ssl_sock = SSL.Connection(context, sock)
-    ssl_sock.set_tlsext_host_name(domain.encode())
-    ssl_sock.set_connect_state()
-    ssl_sock.do_handshake()
-    cert = ssl_sock.get_peer_certificate()
-    ssl_sock.close()
-    sock.close()
-    return cert.to_cryptography().public_bytes(Encoding.PEM).decode()
 
 
 class GrpcHandler:
@@ -108,9 +90,7 @@ class GrpcHandler:
             self.channel = grpc.secure_channel(f"{host}:{port}", credentials)
             return
 
-        logger.info(f"Fetching SSL certificate for {host}")
-        cert = _get_ssl_certificate(host, port)
-        credentials = grpc.ssl_channel_credentials(cert.encode("utf-8"))
+        credentials = grpc.ssl_channel_credentials()
         auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
         self.channel = grpc.secure_channel(
             f"{host}:{port}",
