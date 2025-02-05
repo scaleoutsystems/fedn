@@ -70,7 +70,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         return from_document(document)
 
@@ -137,7 +138,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         current_model_id: str = model["model"]
         result: list = []
@@ -178,7 +180,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         current_model_id: str = model["parent_model"]
         result: list = []
@@ -222,7 +225,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         active_model = self.database[self.collection].find_one({"key": "current_model"})
 
         if active_model is None:
-            raise EntityNotFound("Active model not found")
+            return None
+            # raise EntityNotFound("Active model not found")
 
         return active_model["model"]
 
@@ -243,7 +247,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id | model) {id} not found")
 
         self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}}, upsert=True)
 

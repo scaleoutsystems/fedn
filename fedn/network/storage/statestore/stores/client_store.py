@@ -56,7 +56,8 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
     def _get_client_by_client_id(self, client_id: str) -> Dict:
         document = self.database[self.collection].find_one({"client_id": client_id})
         if document is None:
-            raise EntityNotFound(f"Entity with client_id {client_id} not found")
+            return None
+            #raise EntityNotFound(f"Entity with client_id {client_id} not found")
         return document
 
     def update(self, id: str, item: Client) -> Tuple[bool, Any]:
@@ -87,7 +88,8 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+            return None
+            #raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
 
         return super().delete(document["_id"])
 
@@ -180,7 +182,8 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+                return None
+                # raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
 
             return from_row(item)
 
@@ -190,7 +193,8 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             existing_item = session.scalars(stmt).first()
 
             if existing_item is None:
-                raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+                return None
+                # raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
 
             existing_item.combiner = item.get("combiner")
             existing_item.ip = item.get("ip")

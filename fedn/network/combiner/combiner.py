@@ -120,10 +120,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "updated_at": str(datetime.now()),
         }
         # Check if combiner already exists in statestore
-        try:
-            _ = combiner_store.get(config["name"])
-        except EntityNotFound:
+        if combiner_store.get(config["name"]) is None:
             combiner_store.add(interface_config)
+        
+        # try:
+        #     _ = combiner_store.get(config["name"])
+        # except EntityNotFound:
+        #     combiner_store.add(interface_config)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,

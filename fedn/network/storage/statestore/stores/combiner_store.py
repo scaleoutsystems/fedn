@@ -64,7 +64,8 @@ class MongoDBCombinerStore(MongoDBStore[Combiner]):
             document = self.database[self.collection].find_one({"name": id})
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | name) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id | name) {id} not found")
 
         return from_document(document)
 
@@ -83,7 +84,8 @@ class MongoDBCombinerStore(MongoDBStore[Combiner]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id) {id} not found")
+            return None
+            # raise EntityNotFound(f"Entity with (id) {id} not found")
 
         return super().delete(document["_id"])
 
@@ -145,7 +147,8 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             stmt = select(CombinerModel).where(or_(CombinerModel.id == id, CombinerModel.name == id))
             item = session.scalars(stmt).first()
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return None
+                #raise EntityNotFound("Entity not found")
             return from_row(item)
 
     def update(self, id, item):
@@ -170,7 +173,8 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             stmt = select(CombinerModel).where(CombinerModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return None
+                # raise EntityNotFound("Entity not found")
             session.delete(item)
             return True
 

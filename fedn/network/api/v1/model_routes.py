@@ -332,11 +332,13 @@ def get_model(id: str):
     try:
         model = model_store.get(id)
 
-        response = model
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
+        response = model
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -384,6 +386,9 @@ def patch_model(id: str):
     try:
         model = model_store.get(id)
 
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         data = request.get_json()
         _id = model["id"]
 
@@ -401,8 +406,8 @@ def patch_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update model: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -449,6 +454,10 @@ def put_model(id: str):
     """
     try:
         model = model_store.get(id)
+
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         data = request.get_json()
         _id = model["id"]
 
@@ -459,8 +468,8 @@ def put_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update model: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -511,11 +520,14 @@ def get_descendants(id: str):
 
         descendants = model_store.list_descendants(id, limit or 10)
 
-        response = descendants
+        if descendants is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404 
 
+        response = descendants
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -580,12 +592,13 @@ def get_ancestors(id: str):
         include_self: bool = include_self_param and include_self_param.lower() == "true"
 
         ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
-
+        if ancestors is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404 
         response = ancestors
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -627,6 +640,9 @@ def download(id: str):
     try:
         if minio_repository is not None:
             model = model_store.get(id)
+            if model is None:
+                return jsonify({"message": f"Entity with id: {id} not found"}), 404
+ 
             model_id = model["model"]
 
             file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
@@ -634,8 +650,8 @@ def download(id: str):
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -682,6 +698,8 @@ def get_parameters(id: str):
     try:
         if minio_repository is not None:
             model = model_store.get(id)
+            if model is None:
+                return jsonify({"message": f"Entity with id: {id} not found"}), 404
             model_id = model["model"]
 
             file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
@@ -700,8 +718,8 @@ def get_parameters(id: str):
             return jsonify(array=weights), 200
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -730,12 +748,14 @@ def get_active_model():
     """
     try:
         active_model = model_store.get_active()
+        if active_model is None:
+            return jsonify({"message": "No active model found"}), 404 
 
         response = active_model
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": "No active model found"}), 404
+    # except EntityNotFound:
+    #     return jsonify({"message": "No active model found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
