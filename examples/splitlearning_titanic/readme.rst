@@ -7,7 +7,7 @@ It is best if you create a virtual environment for this.
 
 .. code-block:: bash
 
-    git clone https://github.com/fedn/fedn.git
+    git clone https://github.com/scaleoutsystems/fedn.git
     cd fedn
     pip install -e .
 
@@ -62,12 +62,6 @@ To start mongo and minio
 .. code-block:: bash
 
     docker compose up -d mongo minio
-
-Now start the controller from another terminal:
-
-.. code-block:: bash
-
-    fedn controller start
 
 We need to set some environment variables in order to let the system know where to find the data and labels. 
 In another terminal (make sure to be located in the examples/splitlearning_titanic folder), set the compute package environment variable and start the controller.
