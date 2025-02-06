@@ -122,8 +122,8 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
 
             status = StatusModel(
                 log_level=item.get("log_level") or item.get("logLevel"),
-                sender_name=sender.get("name"),
-                sender_role=sender.get("role"),
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
                 status=item.get("status"),
                 timestamp=item.get("timestamp"),
                 type=item.get("type"),
@@ -177,8 +177,10 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 

@@ -126,18 +126,18 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         return from_document(document, response_active)
 
     def _complement(self, item: Package):
-        if "id" not in item or item.id is None:
+        if "id" not in item or item["id"] is None:
             item["id"] = str(uuid.uuid4())
 
-        if "key" not in item or item.key is None:
+        if "key" not in item or item["key"] is None:
             item["key"] = "package_trail"
 
-        if "committed_at" not in item or item.committed_at is None:
+        if "committed_at" not in item or item["committed_at"] is None:
             item["committed_at"] = datetime.now()
 
         extension = item["file_name"].rsplit(".", 1)[1].lower()
 
-        if "storage_file_name" not in item or item.storage_file_name is None:
+        if "storage_file_name" not in item or item["storage_file_name"] is None:
             storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
             item["storage_file_name"] = storage_file_name
 
@@ -310,12 +310,13 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         super().__init__(Session)
 
     def _complement(self, item: Package):
-        if "committed_at" not in item or item.committed_at is None:
+        # TODO: Not complemented the same way as in MongoDBStore
+        if "committed_at" not in item or item["committed_at"] is None:
             item["committed_at"] = datetime.now()
 
         extension = item["file_name"].rsplit(".", 1)[1].lower()
 
-        if "storage_file_name" not in item or item.storage_file_name is None:
+        if "storage_file_name" not in item or item["storage_file_name"] is None:
             storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
             item["storage_file_name"] = storage_file_name
 
@@ -374,8 +375,10 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 

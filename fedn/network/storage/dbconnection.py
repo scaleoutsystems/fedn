@@ -59,7 +59,7 @@ class DatabaseConnection:
         """Create a new instance of DatabaseConnection or return the existing singleton instance.
 
         Args:
-            force_create_new (bool): If True, a new instance will be created regardless of the singleton pattern.
+            force_create_new (bool): If True, a new instance will be created regardless of the singleton pattern. Only used for testing purpose.
 
         Returns:
             DatabaseConnection: A new instance if force_create_new is True, otherwise the existing singleton instance.
@@ -72,11 +72,9 @@ class DatabaseConnection:
 
         return cls._instance
 
-    def _init_connection(self, statestore_config: dict = None, network_id: dict = None) -> None:
-        if statestore_config is None:
-            statestore_config = get_statestore_config()
-        if network_id is None:
-            network_id = get_network_config()
+    def _init_connection(self) -> None:
+        statestore_config = get_statestore_config()
+        network_id = get_network_config()
 
         if statestore_config["type"] == "MongoDB":
             mdb: Database = self._setup_mongo(statestore_config, network_id)
@@ -123,7 +121,9 @@ class DatabaseConnection:
 
     def _setup_sql(self, statestore_config: dict) -> "DatabaseConnection":
         if statestore_config["type"] == "SQLite":
-            engine = create_engine("sqlite:///my_database.db", echo=False)
+            sqlite_config = statestore_config["sqlite_config"]
+            dbname = sqlite_config["dbname"]
+            engine = create_engine(f"sqlite:///{dbname}", echo=False)
         elif statestore_config["type"] == "PostgreSQL":
             postgres_config = statestore_config["postgres_config"]
             username = postgres_config["username"]
