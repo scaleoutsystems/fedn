@@ -44,7 +44,7 @@ class SAASRepository(RepositoryBase):
             f"{storage_hostname}:{storage_port}",
             access_key=access_key,
             secret_key=secret_key,
-            secure=storage_secure_mode,
+            secure=True,
             http_client=manager,
         )
         # else:
