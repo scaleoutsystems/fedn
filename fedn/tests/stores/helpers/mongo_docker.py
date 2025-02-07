@@ -44,5 +44,9 @@ def stop_mongodb_container():
     container = client.containers.get(CONTAINER_NAME)
     container.stop()
     container.remove(v=True, force=True)
+    try:
+        container.wait(condition="removed")
+    except docker.errors.NotFound:
+        pass
 
 

@@ -7,14 +7,13 @@ import uuid
 import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
-from fedn.tests.stores.helpers.database_helper import mongo_connection, sql_connection, postgres_connection
 
 
 @pytest.fixture
 def test_sessions():
     start_time = datetime.datetime(2021, 1, 4, 1, 2, 4)
     
-    model = {"id":str(uuid.uuid4()), "key":"models", "model":"test_model1", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_time, "name":"test_name1", "active":True}
+    model = {"id":str(uuid.uuid4()), "key":"models", "model":str(uuid.uuid4()), "parent_model":"test_parent_model", "session_id":None, "committed_at":start_time, "name":"test_name1", "active":True}
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
                       "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model["model"]}

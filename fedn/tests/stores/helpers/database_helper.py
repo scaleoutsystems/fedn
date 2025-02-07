@@ -9,7 +9,7 @@ from fedn.tests.stores.helpers.postgres_docker import start_postgres_container, 
 def network_id():
     return "test_network"
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def mongo_connection():
     _, port = start_mongodb_container()
 
@@ -30,7 +30,7 @@ def mongo_connection():
 
     stop_mongodb_container()
     
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def sql_connection():
 
 
@@ -46,9 +46,12 @@ def sql_connection():
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         return DatabaseConnection(force_create_new=True)
     
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="pack")
 def postgres_connection():
+    print("Starting postgres container")
     _, port = start_postgres_container()
+    
+
 
     def postgres_config():
         return {
@@ -65,5 +68,5 @@ def postgres_connection():
     with patch('fedn.network.storage.dbconnection.get_statestore_config', return_value=postgres_config()), \
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         yield DatabaseConnection(force_create_new=True)
-    
+    print("Stopping postgres container")
     stop_postgres_container()
