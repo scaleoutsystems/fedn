@@ -20,7 +20,7 @@ class SAASRepository(RepositoryBase):
         :param config: Dictionary containing configuration for credentials and bucket names.
         :type config: dict
         """
-        super().__init__(init_buckets=False)
+        super().__init__()
         self.name = "SAASRepository"
         self.project_slug = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE")
 
