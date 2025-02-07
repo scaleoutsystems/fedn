@@ -36,30 +36,34 @@ class SAASRepository(RepositoryBase):
         logger.info(f"storage secure mode: {storage_secure_mode}")
         #storage_secure_mode = storage_secure_mode.lower() == "true"
 
-        if storage_secure_mode:
-            manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
-            self.client = Minio(
-                f"{storage_hostname}:{storage_port}",
-                access_key=access_key,
-                secret_key=secret_key,
-                secure=storage_secure_mode,
-                http_client=manager,
-            )
-        else:
-            self.client = Minio(
-                f"{storage_hostname}:{storage_port}",
-                access_key=access_key,
-                secret_key=secret_key,
-                secure=storage_secure_mode,
-            )
+        # if storage_secure_mode:
+        manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
+        logger.info("connection to host: ")
+        logger.info(f"{storage_hostname}:{storage_port}")
+        self.client = Minio(
+            f"{storage_hostname}:{storage_port}",
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=storage_secure_mode,
+            http_client=manager,
+        )
+        # else:
+        #     self.client = Minio(
+        #         f"{storage_hostname}:{storage_port}",
+        #         access_key=access_key,
+        #         secret_key=secret_key,
+        #         secure=storage_secure_mode,
+        #     )
 
     def set_artifact(self, instance_name, instance, bucket, is_file=False):
         instance_name = f"{self.project_slug}/{instance_name}"
         logger.info(instance_name)
         if is_file:
             logger.info("writing file to bucket")
+            logger.info(bucket)
             try:
-                self.client.fput_object(bucket, instance_name, instance)
+                result = self.client.fput_object(bucket, instance_name, instance)
+                logger.info(result)
             except Exception as e:
                 logger.info("Failed to upload file.")
                 logger.info(e)
