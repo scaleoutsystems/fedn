@@ -54,7 +54,7 @@ class SAASRepository(RepositoryBase):
             )
 
     def set_artifact(self, instance_name, instance, bucket, is_file=False):
-        instance_name = "{self.project_slug}/{instance_name}"
+        instance_name = f"{self.project_slug}/{instance_name}"
         logger.info(instance_name)
         if is_file:
             logger.info("writing file to bucket")
@@ -72,7 +72,7 @@ class SAASRepository(RepositoryBase):
         return True
 
     def get_artifact(self, instance_name, bucket):
-        instance_name = "{self.project_slug}/{instance_name}"
+        instance_name = f"{self.project_slug}/{instance_name}"
         try:
             data = self.client.get_object(bucket, instance_name)
             return data.read()
@@ -83,7 +83,7 @@ class SAASRepository(RepositoryBase):
             data.release_conn()
 
     def get_artifact_stream(self, instance_name, bucket):
-        instance_name = "{self.project_slug}/{instance_name}"
+        instance_name = f"{self.project_slug}/{instance_name}"
         try:
             data = self.client.get_object(bucket, instance_name)
             return data
@@ -114,7 +114,7 @@ class SAASRepository(RepositoryBase):
         :type bucket: str
         """
         try:
-            instance_name = "{self.project_slug}/{instance_name}"
+            instance_name = f"{self.project_slug}/{instance_name}"
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:
             logger.error("Could not delete artifact: {0} err: {1}".format(instance_name, err))
