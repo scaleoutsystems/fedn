@@ -33,11 +33,14 @@ class SAASRepository(RepositoryBase):
         storage_hostname = os.environ.get("FEDN_STORAGE_HOSTNAME", config["storage_hostname"])
         storage_port = os.environ.get("FEDN_STORAGE_PORT", config["storage_port"])
         storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
+        storage_region = os.environ.get("FEDN_STORAGE_REGION") or config.get("storage_region", "auto")
+
+        
         logger.info(f"storage secure mode: {storage_secure_mode}")
         #storage_secure_mode = storage_secure_mode.lower() == "true"
 
         # if storage_secure_mode:
-        manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE") #, assert_hostname=False)
+        # manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE") #, assert_hostname=False)
         logger.info("connection to host: ")
         logger.info(f"{storage_hostname}:{storage_port}")
         self.client = Minio(
@@ -45,7 +48,7 @@ class SAASRepository(RepositoryBase):
             access_key=access_key,
             secret_key=secret_key,
             secure=True,
-            http_client=manager,
+            region=storage_region,
         )
         # else:
         #     self.client = Minio(
