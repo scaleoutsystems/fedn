@@ -24,21 +24,29 @@ class SAASRepository(RepositoryBase):
         self.name = "SAASRepository"
         self.project_slug = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE")
 
-        if config["storage_secure_mode"]:
+        # Check environment variables first. If they are not set, then use values from config file.
+        access_key = os.environ.get("FEDN_ACCESS_KEY", config["storage_access_key"])
+        secret_key = os.environ.get("FEDN_SECRET_KEY", config["storage_secret_key"])
+        storage_hostname = os.environ.get("FEDN_STORAGE_HOSTNAME", config["storage_hostname"])
+        storage_port = os.environ.get("FEDN_STORAGE_PORT", config["storage_port"])
+        storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
+        storage_secure_mode = storage_secure_mode.lower() == "true"
+
+        if storage_secure_mode:
             manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
             self.client = Minio(
-                "{0}:{1}".format(config["storage_hostname"], config["storage_port"]),
-                access_key=config["storage_access_key"],
-                secret_key=config["storage_secret_key"],
-                secure=config["storage_secure_mode"],
+                f"{storage_hostname}:{storage_port}",
+                access_key=access_key,
+                secret_key=secret_key,
+                secure=storage_secure_mode,
                 http_client=manager,
             )
         else:
             self.client = Minio(
-                "{0}:{1}".format(config["storage_hostname"], config["storage_port"]),
-                access_key=config["storage_access_key"],
-                secret_key=config["storage_secret_key"],
-                secure=config["storage_secure_mode"],
+                f"{storage_hostname}:{storage_port}",
+                access_key=access_key,
+                secret_key=secret_key,
+                secure=storage_secure_mode,
             )
 
     def set_artifact(self, instance_name, instance, bucket, is_file=False):

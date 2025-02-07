@@ -1,4 +1,5 @@
 import datetime
+import os
 import uuid
 
 from fedn.common.log_config import logger
@@ -10,10 +11,10 @@ class Repository:
     """Interface for storing model objects and compute packages in S3 compatible storage."""
 
     def __init__(self, config, init_buckets=True):
-        self.model_bucket = config["storage_bucket"]
-        self.context_bucket = config["context_bucket"]
+        self.model_bucket = os.environ.get("FEDN_MODEL_BUCKET", config["storage_bucket"])
+        self.context_bucket = os.environ.get("FEDN_CONTEXT_BUCKET", config["context_bucket"])
         try:
-            self.prediction_bucket = config["prediction_bucket"]
+            self.prediction_bucket = os.environ.get("FEDN_PREDICTION_BUCKET", config["prediction_bucket"])
         except KeyError:
             self.prediction_bucket = "fedn-prediction"
 
