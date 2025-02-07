@@ -35,14 +35,14 @@ class SAASRepository(RepositoryBase):
         storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
         storage_region = os.environ.get("FEDN_STORAGE_REGION") or config.get("storage_region", "auto")
 
-        
         logger.info(f"storage secure mode: {storage_secure_mode}")
-        #storage_secure_mode = storage_secure_mode.lower() == "true"
+        # storage_secure_mode = storage_secure_mode.lower() == "true"
 
         # if storage_secure_mode:
         # manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE") #, assert_hostname=False)
         logger.info("connection to host: ")
         logger.info(f"{storage_hostname}:{storage_port}")
+        logger.info("storage region: {}".format(storage_region))
         self.client = Minio(
             f"{storage_hostname}:{storage_port}",
             access_key=access_key,
@@ -64,6 +64,7 @@ class SAASRepository(RepositoryBase):
         if is_file:
             logger.info("writing file to bucket")
             logger.info(bucket)
+            logger.info(instance)
             try:
                 result = self.client.fput_object(bucket, instance_name, instance)
                 logger.info(result)
