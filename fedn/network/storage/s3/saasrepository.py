@@ -37,7 +37,7 @@ class SAASRepository(RepositoryBase):
         #storage_secure_mode = storage_secure_mode.lower() == "true"
 
         # if storage_secure_mode:
-        manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
+        manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE") #, assert_hostname=False)
         logger.info("connection to host: ")
         logger.info(f"{storage_hostname}:{storage_port}")
         self.client = Minio(
