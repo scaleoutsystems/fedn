@@ -2,7 +2,7 @@ FEDn Project: Keyword Detection (PyTorch)
 -----------------------------
 
 This is an example to showcase how to set up FEDnClient and use APIClient to setup and manage a training from python. 
-The machine learning project is based on the Speech Commands dataset from Google. 
+The machine learning project is based on the Speech Commands dataset from Google, https://huggingface.co/datasets/google/speech_commands.
 
 The example is intented as a minimalistic quickstart to learn how to use FEDn.
 
