@@ -6,9 +6,9 @@ from fedn.common.config import get_modelstorage_config, get_network_config
 from fedn.network.controller.control import Control
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.base import RepositoryBase
-from fedn.network.storage.s3.miniorepository import (MINIORepository,
-                                                     SAASRepository)
+from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
+from fedn.network.storage.s3.saasrepository import SAASRepository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore

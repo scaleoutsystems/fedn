@@ -2,8 +2,8 @@ import datetime
 import uuid
 
 from fedn.common.log_config import logger
-from fedn.network.storage.s3.miniorepository import (MINIORepository,
-                                                     SAASRepository)
+from fedn.network.storage.s3.miniorepository import MINIORepository
+from fedn.network.storage.s3.saasrepository import SAASRepository
 
 
 class Repository:
