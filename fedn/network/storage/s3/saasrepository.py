@@ -30,7 +30,8 @@ class SAASRepository(RepositoryBase):
         storage_hostname = os.environ.get("FEDN_STORAGE_HOSTNAME", config["storage_hostname"])
         storage_port = os.environ.get("FEDN_STORAGE_PORT", config["storage_port"])
         storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
-        storage_secure_mode = storage_secure_mode.lower() == "true"
+        logger.info(f"storage secure mode: {storage_secure_mode}")
+        #storage_secure_mode = storage_secure_mode.lower() == "true"
 
         if storage_secure_mode:
             manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
