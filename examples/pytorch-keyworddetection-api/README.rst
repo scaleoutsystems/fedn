@@ -15,10 +15,10 @@ Prerequisites
 -  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
 -  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
 
-Creating the compute package and seed model
+Installing pre requirements and creating seed model
 -------------------------------------------
 
-First, create a virtual environment and install the required packages: 
+There are two alternatives to install the required packages, either using conda or pip.
 
 .. code-block::
 
@@ -30,7 +30,7 @@ Or if you rather use pip to install the packages:
 
    pip install -r requirements.txt
 
-Note that you in this case need to install either sox (macos or linux) or soundfile (windows) depending on your platform.
+Note that you in the case of installing with pip need to install either sox (macos or linux) or soundfile (windows) depending on your platform as this is a requirement for the torchaudio package.
 
 
 Clone this repository, then locate into this directory:
