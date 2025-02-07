@@ -6,18 +6,21 @@ from fedn.common.config import get_modelstorage_config, get_network_config
 from fedn.network.controller.control import Control
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.base import RepositoryBase
-from fedn.network.storage.s3.miniorepository import MINIORepository
+from fedn.network.storage.s3.miniorepository import (MINIORepository,
+                                                     SAASRepository)
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
-from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.storage.statestore.stores.prediction_store import \
+    PredictionStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
-from fedn.network.storage.statestore.stores.validation_store import ValidationStore
+from fedn.network.storage.statestore.stores.validation_store import \
+    ValidationStore
 from fedn.utils.checksum import sha
 
 modelstorage_config = get_modelstorage_config()
@@ -54,7 +57,8 @@ minio_repository: RepositoryBase = None
 
 if modelstorage_config["storage_type"] == "S3":
     minio_repository = MINIORepository(modelstorage_config["storage_config"])
-
+elif modelstorage_config["storage_type"] == "SAAS":
+    minio_repository = SAASRepository(modelstorage_config["storage_config"])
 
 def get_checksum(name: str = None):
     message = None

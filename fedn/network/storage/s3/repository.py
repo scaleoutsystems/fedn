@@ -2,7 +2,8 @@ import datetime
 import uuid
 
 from fedn.common.log_config import logger
-from fedn.network.storage.s3.miniorepository import MINIORepository
+from fedn.network.storage.s3.miniorepository import (MINIORepository,
+                                                     SAASRepository)
 
 
 class Repository:
@@ -17,7 +18,8 @@ class Repository:
             self.prediction_bucket = "fedn-prediction"
 
         # TODO: Make a plug-in solution
-        self.client = MINIORepository(config)
+        self.client = SAASRepository(config)
+        # self.client = MINIORepository(config)
 
         if init_buckets:
             self.client.create_bucket(self.context_bucket)
