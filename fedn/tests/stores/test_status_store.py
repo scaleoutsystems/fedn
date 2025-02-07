@@ -19,55 +19,60 @@ def test_statuses():
             {"log_level":"test_log_level6", "status":"status6", "timestamp":start_time+datetime.timedelta(days=3), "type":"test_type2"},
             ]
 
-
-
-def test_list_round_store(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_statuses):
-
-    for s in test_statuses:
-        res, _ = mongo_connection.status_store.add(s)
-        assert res == True
-        res, _ = postgres_connection.status_store.add(s)
-        assert res == True
-        res, _ = sql_connection.status_store.add(s)
+@pytest.fixture
+def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_statuses):
+    for c in test_statuses:
+        res, _ = mongo_connection.status_store.add(c)
         assert res == True
 
+    for c in test_statuses:
+        res, _ = postgres_connection.status_store.add(c)
+        assert res == True
 
-    for name1, db_1, name2, db_2 in [("postgres", postgres_connection, "mongo", mongo_connection), ("sqlite", sql_connection, "mongo", mongo_connection)]:
-        print("Running tests between databases {} and {}".format(name1, name2))
+    for c in test_statuses:
+        res, _ = sql_connection.status_store.add(c)
+        assert res == True
 
-        # TODO: Fix commented
-        sorting_keys = (#None, 
+    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
+
+    # TODO:Clean up
+
+
+
+@pytest.fixture
+def options():
+    sorting_keys = (#None, 
                         "log_level",
                         "timestamp",
                         #"invalid_key"
                         ) 
-        limits = (None, 0, 1, 2, 99)
-        skips = (None, 0, 1, 2, 99)
-        desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    limits = (None, 0, 1, 2, 99)
+    skips = (None, 0, 1, 2, 99)
+    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    opt_kwargs = ({}, {"log_level":"test_log_level6"}, {"type":"test_type2"})
 
-        opts = list(itertools.product(limits, skips, sorting_keys, desc))
-        
-        opt_kwargs = ({}, {"log_level":"test_log_level6"}, {"type":"test_type2"})
+    return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-        for kwargs in opt_kwargs:
-            for opt in opts:
-                print(f"Running tests with options {opt} and kwargs {kwargs}")
-                res = db_1.status_store.list(*opt, **kwargs)
-                count, gathered_statuses = res["count"], res["result"]
 
-                res = db_2.status_store.list(*opt, **kwargs)
-                count2, gathered_statuses2 = res["count"], res["result"]
-                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-                #It is not clear what is the intended behavior
-                print(count, count2)
-                # assert(count == len(gathered_clients))
-                # assert count == count2
-                assert len(gathered_statuses) == len(gathered_statuses2)
+def test_list_status_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+        print("Running tests between databases {} and {}".format(name1, name2))
+        for *opt,kwargs in options:
+            res = db_1.status_store.list(*opt, **kwargs)
+            count, gathered_statuses = res["count"], res["result"]
 
-                for i in range(len(gathered_statuses)):
-                    assert gathered_statuses2[i]["log_level"] == gathered_statuses[i]["log_level"]
-                    # TODO: Status is saved differently in the two databases, why?
-                    # assert gathered_statuses2[i]["timestamp"] == gathered_statuses[i]["timestamp"]
-                    assert gathered_statuses2[i]["status"] == gathered_statuses[i]["status"]
+            res = db_2.status_store.list(*opt, **kwargs)
+            count2, gathered_statuses2 = res["count"], res["result"]
+            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+            #It is not clear what is the intended behavior
+            # assert(count == len(gathered_clients))
+            # assert count == count2
+            assert len(gathered_statuses) == len(gathered_statuses2)
+
+            for i in range(len(gathered_statuses)):
+                assert gathered_statuses2[i]["log_level"] == gathered_statuses[i]["log_level"]
+                # TODO: Status is saved differently in the two databases, why?
+                # assert gathered_statuses2[i]["timestamp"] == gathered_statuses[i]["timestamp"]
+                assert gathered_statuses2[i]["status"] == gathered_statuses[i]["status"]
 
 

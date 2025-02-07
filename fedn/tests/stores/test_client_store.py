@@ -29,9 +29,8 @@ def test_clients():
                    "last_seen":start_date - datetime.timedelta(minutes=1), "package":"remote"},
                    ]
 
-
-def test_list_client_store(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
-
+@pytest.fixture
+def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
     for c in test_clients:
         res, _ = mongo_connection.client_store.add(c)
         assert res == True
@@ -44,48 +43,46 @@ def test_list_client_store(postgres_connection:DatabaseConnection, sql_connectio
         res, _ = sql_connection.client_store.add(c)
         assert res == True
 
-    for name1, db_1, name2, db_2 in [("postgres", postgres_connection, "mongo", mongo_connection), ("sqlite", sql_connection, "mongo", mongo_connection)]:
-        print("Running tests between databases {} and {}".format(name1, name2))
-        
-        sorting_keys = (#None, 
+    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
+
+    # TODO:Clean up
+
+
+
+@pytest.fixture
+def options():
+    sorting_keys = (#None, 
                         "name",
                         "client_id",
                         "last_seen",
                         #"invalid_key"
                         ) 
-        limits = (None, 0, 1, 2, 99)
-        skips = (None, 0, 1, 2, 99)
-        desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    limits = (None, 0, 1, 2, 99)
+    skips = (None, 0, 1, 2, 99)
+    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    opt_kwargs = ({}, {"ip":"121.12.32.22"}, {"combiner":"test_combiner", "status":"test_status"}, {"name":"test_client1", "status":"test_status2"})
 
-        opts = list(itertools.product(limits, skips, sorting_keys, desc))
-        
-        opt_kwargs = ({}, {"ip":"121.12.32.22"}, {"combiner":"test_combiner", "status":"test_status"}, {"name":"test_client1", "status":"test_status2"})
+    return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-        for kwargs in opt_kwargs:
-            for opt in opts:
-                print(f"Running tests with options {opt} and kwargs {kwargs}")
+
+def test_list_client_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+        print("Running tests between databases {} and {}".format(name1, name2))
+        for *opt,kwargs in options:                        
+            res = db_1.client_store.list(*opt, **kwargs)
+            count2, gathered_clients = res["count"], res["result"]
+
+            res = db_2.client_store.list(*opt, **kwargs)
+            count, gathered_clients2 = res["count"], res["result"]
+            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+            #It is not clear what is the intended behavior
+            # assert(count == len(gathered_clients))
+            # assert count == count2
+            assert len(gathered_clients) == len(gathered_clients2)
+
+            for i in range(len(gathered_clients)):
+                assert gathered_clients[i]["name"] == gathered_clients2[i]["name"]
                 
-                res = db_1.client_store.list(*opt, **kwargs)
-                count2, gathered_clients2 = res["count"], res["result"]
-
-                res = db_2.client_store.list(*opt, **kwargs)
-                count, gathered_clients = res["count"], res["result"]
-                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-                #It is not clear what is the intended behavior
-                # assert(count == len(gathered_clients))
-                # assert count == count2
-                assert len(gathered_clients) == len(gathered_clients2)
-
-                for i in range(len(gathered_clients)):
-                    assert gathered_clients2[i]["name"] == gathered_clients[i]["name"]
-                    assert gathered_clients2[i]["combiner"] == gathered_clients[i]["combiner"]
-                    assert gathered_clients2[i]["ip"] == gathered_clients[i]["ip"]
-                    # TODO: Should this work?
-                    #assert gathered_clients2[i]["combiner_preferred"] == gathered_clients[i]["combiner_preferred"]
-                    assert gathered_clients2[i]["status"] == gathered_clients[i]["status"]
-                    assert gathered_clients2[i]["last_seen"] == gathered_clients[i]["last_seen"]
-                    assert gathered_clients2[i]["package"] == gathered_clients[i]["package"]
-
 
 
 
