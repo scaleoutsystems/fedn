@@ -67,9 +67,9 @@ jobs:
           pip install .
           pip install pytest docker
       - name: Run tests
-      env_
-        TEST_USER: testuser
-        TEST_PASSWORD: testpassword
+        env: |
+          TEST_USER: testuser
+          TEST_PASSWORD: testpassword
         run: |
           pytest fedn/tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           
