@@ -1,0 +1,43 @@
+name: "unit testing"
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+    branches:
+      - master
+      - develop
+      - "release/**"
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+    branches:
+      - "**"
+
+jobs:
+  unittest-pytests:
+    strategy:
+      matrix:
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
+        os:
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install pytest docker
+      - name: Run tests
+        run: |
+          pytest fedn/tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+          
