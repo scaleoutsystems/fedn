@@ -1,5 +1,6 @@
 import docker
 import time
+import os
 
 CONTAINER_NAME="postgres-test-db"
 """ 
@@ -19,8 +20,8 @@ def start_postgres_container():
             ports={"5432/tcp": None}, # Let Docker choose an available port
             name=CONTAINER_NAME,
             environment={
-                "POSTGRES_USER": "fedn_admin",
-                "POSTGRES_PASSWORD": "password",
+                "POSTGRES_USER": os.environ.get("TEST_USER", "_"),
+                "POSTGRES_PASSWORD": os.environ.get("TEST_PASS", "_"),
                 "POSTGRES_DB": "fedn_db"
             }
         )

@@ -1,9 +1,11 @@
 import pytest
 from unittest.mock import patch
+import os
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.tests.stores.helpers.mongo_docker import start_mongodb_container, stop_mongodb_container
 from fedn.tests.stores.helpers.postgres_docker import start_postgres_container, stop_postgres_container
+
 
 
 def network_id():
@@ -19,8 +21,8 @@ def mongo_connection():
             "mongo_config": {
                 "host": "localhost",
                 "port": port,
-                "username": "fedn_admin",
-                "password": "password"
+                "username": os.environ.get("TEST_USER", "_"),
+                "password": os.environ.get("TEST_PASS", "_"),
             }
         }
 
@@ -54,8 +56,8 @@ def postgres_connection():
         return {
             "type": "PostgreSQL",
             "postgres_config": {
-                "username": "fedn_admin",
-                "password": "password",
+                "username": os.environ.get("TEST_USER", "_"),
+                "password": os.environ.get("TEST_PASS", "_"),
                 "database": "fedn_db",
                 "host": "localhost",
                 "port": port

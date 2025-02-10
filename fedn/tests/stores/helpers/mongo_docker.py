@@ -1,5 +1,6 @@
 import docker
 import time
+import os
 
 CONTAINER_NAME="mongo-test-db"
 """ 
@@ -20,8 +21,8 @@ def start_mongodb_container():
             ports={"27017/tcp": None}, # Let Docker choose an available port
             name=CONTAINER_NAME,
             environment={
-                "MONGO_INITDB_ROOT_USERNAME": "fedn_admin",
-                "MONGO_INITDB_ROOT_PASSWORD": "password"
+                "MONGO_INITDB_ROOT_USERNAME": os.environ.get("TEST_USER", "_"),
+                "MONGO_INITDB_ROOT_PASSWORD": os.environ.get("TEST_PASS", "_"),
             },
             command="mongod"
         )
