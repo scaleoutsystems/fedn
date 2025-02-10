@@ -194,3 +194,18 @@ lint.ignore = [
   "S108", # Probable insecure usage of temporary file or directory: "/tmp/models"
   "S603", # `subprocess` call: check for execution of untrusted input
 ]
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "fedn/tests"
+]
+pythonpath = [
+  "."
+]
+norecursedirs = [
+  ".ci",
+  "build"
+]
