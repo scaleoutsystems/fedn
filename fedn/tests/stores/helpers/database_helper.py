@@ -11,7 +11,7 @@ def network_id():
 
 @pytest.fixture(scope="package")
 def mongo_connection():
-    _, port = start_mongodb_container()
+    already_running, _, port = start_mongodb_container()
 
     def mongo_config():
         return {
@@ -27,13 +27,11 @@ def mongo_connection():
     with patch('fedn.network.storage.dbconnection.get_statestore_config', return_value=mongo_config()), \
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         yield DatabaseConnection(force_create_new=True)
-
-    stop_mongodb_container()
+    if not already_running:
+        stop_mongodb_container()
     
 @pytest.fixture(scope="package")
 def sql_connection():
-
-
     def sql_config():
         return {
             "type": "SQLite",
@@ -48,8 +46,7 @@ def sql_connection():
     
 @pytest.fixture(scope="package")
 def postgres_connection():
-    print("Starting postgres container")
-    _, port = start_postgres_container()
+    already_running, _, port = start_postgres_container()
     
 
 
@@ -68,5 +65,5 @@ def postgres_connection():
     with patch('fedn.network.storage.dbconnection.get_statestore_config', return_value=postgres_config()), \
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         yield DatabaseConnection(force_create_new=True)
-    print("Stopping postgres container")
-    stop_postgres_container()
+    if not already_running:
+        stop_postgres_container()

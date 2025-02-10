@@ -54,29 +54,33 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
+class TestModelStore:
 
-def test_list_model_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options: 
-            res = db_1.model_store.list(*opt, **kwargs)
-            count, gathered_models = res["count"], res["result"]
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
 
-            res = db_2.model_store.list(*opt, **kwargs)
-            count2, gathered_models2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_models) == len(gathered_models2)
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options: 
+                res = db_1.model_store.list(*opt, **kwargs)
+                count, gathered_models = res["count"], res["result"]
 
-            for i in range(len(gathered_models)):
-                #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
-                #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
-                assert gathered_models2[i]["committed_at"] == gathered_models[i]["committed_at"]
-                assert gathered_models2[i]["model"] == gathered_models[i]["model"]
-                assert gathered_models2[i]["parent_model"] == gathered_models[i]["parent_model"]
-                assert gathered_models2[i]["session_id"] == gathered_models[i]["session_id"]
-                assert gathered_models2[i]["name"] == gathered_models[i]["name"]
-                assert gathered_models2[i]["active"] == gathered_models[i]["active"]
-                
+                res = db_2.model_store.list(*opt, **kwargs)
+                count2, gathered_models2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_models) == len(gathered_models2)
+
+                for i in range(len(gathered_models)):
+                    #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
+                    #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
+                    assert gathered_models2[i]["committed_at"] == gathered_models[i]["committed_at"]
+                    assert gathered_models2[i]["model"] == gathered_models[i]["model"]
+                    assert gathered_models2[i]["parent_model"] == gathered_models[i]["parent_model"]
+                    assert gathered_models2[i]["session_id"] == gathered_models[i]["session_id"]
+                    assert gathered_models2[i]["name"] == gathered_models[i]["name"]
+                    assert gathered_models2[i]["active"] == gathered_models[i]["active"]
+                    

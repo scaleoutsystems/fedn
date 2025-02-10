@@ -55,31 +55,35 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
+class TestPackageStore:
 
-def test_list_package_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options:
-            res = db_1.package_store.list(*opt, **kwargs)
-            count, gathered_packages = res["count"], res["result"]
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
+    
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options:
+                res = db_1.package_store.list(*opt, **kwargs)
+                count, gathered_packages = res["count"], res["result"]
 
-            res = db_2.package_store.list(*opt, **kwargs)
-            count2, gathered_packages2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_packages) == len(gathered_packages2)
+                res = db_2.package_store.list(*opt, **kwargs)
+                count2, gathered_packages2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_packages) == len(gathered_packages2)
 
-            for i in range(len(gathered_packages)):
-                #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
-                #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
-                assert gathered_packages2[i]["committed_at"] == gathered_packages[i]["committed_at"]
-                assert gathered_packages2[i]["name"] == gathered_packages[i]["name"]
-                assert gathered_packages2[i]["description"] == gathered_packages[i]["description"]
-                assert gathered_packages2[i]["file_name"] == gathered_packages[i]["file_name"]
-                assert gathered_packages2[i]["helper"] == gathered_packages[i]["helper"]
-                assert gathered_packages2[i]["storage_file_name"] == gathered_packages[i]["storage_file_name"]
-                assert gathered_packages2[i]["active"] == gathered_packages[i]["active"]
+                for i in range(len(gathered_packages)):
+                    #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
+                    #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
+                    assert gathered_packages2[i]["committed_at"] == gathered_packages[i]["committed_at"]
+                    assert gathered_packages2[i]["name"] == gathered_packages[i]["name"]
+                    assert gathered_packages2[i]["description"] == gathered_packages[i]["description"]
+                    assert gathered_packages2[i]["file_name"] == gathered_packages[i]["file_name"]
+                    assert gathered_packages2[i]["helper"] == gathered_packages[i]["helper"]
+                    assert gathered_packages2[i]["storage_file_name"] == gathered_packages[i]["storage_file_name"]
+                    assert gathered_packages2[i]["active"] == gathered_packages[i]["active"]
 
                     

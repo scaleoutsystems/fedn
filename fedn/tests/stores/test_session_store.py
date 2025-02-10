@@ -69,23 +69,29 @@ def options():
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 
-def test_list_session_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options:
-            res = db_1.session_store.list(*opt, **kwargs)
-            count, gathered_sessions = res["count"], res["result"]
+class TestSessionStore:
 
-            res = db_2.session_store.list(*opt, **kwargs)
-            count2, gathered_sessions2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_sessions) == len(gathered_sessions2)
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
 
-            for i in range(len(gathered_sessions)):
-                #assert gathered_sessions2[i]["id"] == gathered_sessions[i]["id"]
-                assert gathered_sessions2[i]["name"] == gathered_sessions[i]["name"]
+
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options:
+                res = db_1.session_store.list(*opt, **kwargs)
+                count, gathered_sessions = res["count"], res["result"]
+
+                res = db_2.session_store.list(*opt, **kwargs)
+                count2, gathered_sessions2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_sessions) == len(gathered_sessions2)
+
+                for i in range(len(gathered_sessions)):
+                    #assert gathered_sessions2[i]["id"] == gathered_sessions[i]["id"]
+                    assert gathered_sessions2[i]["name"] == gathered_sessions[i]["name"]
 
 

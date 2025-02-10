@@ -9,22 +9,23 @@ CONTAINER_NAME="mongo-test-db"
 def start_mongodb_container():
     client = docker.from_env()        
 
+    already_running = False
     try:
-        client.containers.get(CONTAINER_NAME).remove(force=True)
+        container = client.containers.get(CONTAINER_NAME)
+        already_running = True
     except docker.errors.NotFound:
-        pass
-
-    container = client.containers.run(
-        "mongo:7.0",
-        detach=True,
-        ports={"27017/tcp": None}, # Let Docker choose an available port
-        name=CONTAINER_NAME,
-        environment={
-            "MONGO_INITDB_ROOT_USERNAME": "fedn_admin",
-            "MONGO_INITDB_ROOT_PASSWORD": "password"
-        },
-        command="mongod"
-    )
+        container = client.containers.run(
+            "mongo:7.0",
+            detach=True,
+            ports={"27017/tcp": None}, # Let Docker choose an available port
+            name=CONTAINER_NAME,
+            environment={
+                "MONGO_INITDB_ROOT_USERNAME": "fedn_admin",
+                "MONGO_INITDB_ROOT_PASSWORD": "password"
+            },
+            command="mongod"
+        )
+        
     time.sleep(1)
     start = time.time()
     while time.time() - start < 10:
@@ -37,7 +38,7 @@ def start_mongodb_container():
     else:
         raise Exception("Could not start MongoDB container")
 
-    return container, port
+    return already_running, container, port
 
 def stop_mongodb_container():
     client = docker.from_env()

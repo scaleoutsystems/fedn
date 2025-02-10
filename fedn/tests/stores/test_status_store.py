@@ -53,26 +53,30 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
+class TestStatusStore:
 
-def test_list_status_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options:
-            res = db_1.status_store.list(*opt, **kwargs)
-            count, gathered_statuses = res["count"], res["result"]
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
 
-            res = db_2.status_store.list(*opt, **kwargs)
-            count2, gathered_statuses2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_statuses) == len(gathered_statuses2)
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options:
+                res = db_1.status_store.list(*opt, **kwargs)
+                count, gathered_statuses = res["count"], res["result"]
 
-            for i in range(len(gathered_statuses)):
-                assert gathered_statuses2[i]["log_level"] == gathered_statuses[i]["log_level"]
-                # TODO: Status is saved differently in the two databases, why?
-                # assert gathered_statuses2[i]["timestamp"] == gathered_statuses[i]["timestamp"]
-                assert gathered_statuses2[i]["status"] == gathered_statuses[i]["status"]
+                res = db_2.status_store.list(*opt, **kwargs)
+                count2, gathered_statuses2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_statuses) == len(gathered_statuses2)
+
+                for i in range(len(gathered_statuses)):
+                    assert gathered_statuses2[i]["log_level"] == gathered_statuses[i]["log_level"]
+                    # TODO: Status is saved differently in the two databases, why?
+                    # assert gathered_statuses2[i]["timestamp"] == gathered_statuses[i]["timestamp"]
+                    assert gathered_statuses2[i]["status"] == gathered_statuses[i]["status"]
 
 

@@ -54,27 +54,31 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
+class TestValidationStore:
 
-def test_list_validation_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options:
-            res = db_1.validation_store.list(*opt, **kwargs)
-            count, gathered_validations = res["count"], res["result"]
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
 
-            res = db_2.validation_store.list(*opt, **kwargs)
-            count2, gathered_validations2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_validations) == len(gathered_validations2)
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options:
+                res = db_1.validation_store.list(*opt, **kwargs)
+                count, gathered_validations = res["count"], res["result"]
 
-            for i in range(len(gathered_validations)):
-                assert gathered_validations2[i]["data"] == gathered_validations[i]["data"]
-                #TODO: timestamp is not equal between the two databases, different formats
-                #assert gathered_validations2[i]["timestamp"] == gathered_validations[i]["timestamp"]
-                assert gathered_validations2[i]["correlation_id"] == gathered_validations[i]["correlation_id"]
+                res = db_2.validation_store.list(*opt, **kwargs)
+                count2, gathered_validations2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_validations) == len(gathered_validations2)
+
+                for i in range(len(gathered_validations)):
+                    assert gathered_validations2[i]["data"] == gathered_validations[i]["data"]
+                    #TODO: timestamp is not equal between the two databases, different formats
+                    #assert gathered_validations2[i]["timestamp"] == gathered_validations[i]["timestamp"]
+                    assert gathered_validations2[i]["correlation_id"] == gathered_validations[i]["correlation_id"]
 
 
 

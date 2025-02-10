@@ -91,35 +91,39 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
+class TestCombinerStore:
 
-def test_list_combiner_store(db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-    for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-        print("Running tests between databases {} and {}".format(name1, name2))
-        for *opt,kwargs in options:
-            res = db_1.combiner_store.list(*opt, **kwargs)
-            count, gathered_combiners = res["count"], res["result"]
+    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+        pass
 
-            res = db_2.combiner_store.list(*opt, **kwargs)
-            count2, gathered_combiners2 = res["count"], res["result"]
-            #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-            #It is not clear what is the intended behavior
-            # assert(count == len(gathered_clients))
-            # assert count == count2
-            assert len(gathered_combiners) == len(gathered_combiners2)
+    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
+        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
+            print("Running tests between databases {} and {}".format(name1, name2))
+            for *opt,kwargs in options:
+                res = db_1.combiner_store.list(*opt, **kwargs)
+                count, gathered_combiners = res["count"], res["result"]
 
-            for i in range(len(gathered_combiners)):
-                #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
-                #assert gathered_combiners2[i]["id"] == gathered_combiners[i]["id"]
-                #TODO: committed_at is not equal between the two databases, one reades from init the other uses the current time
-                #assert gathered_combiners2[i]["committed_at"] == gathered_combiners[i]["committed_at"]
-                assert gathered_combiners2[i]["name"] == gathered_combiners[i]["name"]
-                assert gathered_combiners2[i]["parent"] == gathered_combiners[i]["parent"]
-                assert gathered_combiners2[i]["ip"] == gathered_combiners[i]["ip"]
-                assert gathered_combiners2[i]["fqdn"] == gathered_combiners[i]["fqdn"]
-                assert gathered_combiners2[i]["port"] == gathered_combiners[i]["port"]
-                #TODO: updated_at is not equal between the two databases, one reades from init the other uses the current time
-                #assert gathered_combiners2[i]["updated_at"] == gathered_combiners[i]["updated_atssert gathered_combiners2[i]["address"] == gathered_combiners[i]["address"]
-                    
+                res = db_2.combiner_store.list(*opt, **kwargs)
+                count2, gathered_combiners2 = res["count"], res["result"]
+                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
+                #It is not clear what is the intended behavior
+                # assert(count == len(gathered_clients))
+                # assert count == count2
+                assert len(gathered_combiners) == len(gathered_combiners2)
 
-                    
+                for i in range(len(gathered_combiners)):
+                    #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
+                    #assert gathered_combiners2[i]["id"] == gathered_combiners[i]["id"]
+                    #TODO: committed_at is not equal between the two databases, one reades from init the other uses the current time
+                    #assert gathered_combiners2[i]["committed_at"] == gathered_combiners[i]["committed_at"]
+                    assert gathered_combiners2[i]["name"] == gathered_combiners[i]["name"]
+                    assert gathered_combiners2[i]["parent"] == gathered_combiners[i]["parent"]
+                    assert gathered_combiners2[i]["ip"] == gathered_combiners[i]["ip"]
+                    assert gathered_combiners2[i]["fqdn"] == gathered_combiners[i]["fqdn"]
+                    assert gathered_combiners2[i]["port"] == gathered_combiners[i]["port"]
+                    #TODO: updated_at is not equal between the two databases, one reades from init the other uses the current time
+                    #assert gathered_combiners2[i]["updated_at"] == gathered_combiners[i]["updated_atssert gathered_combiners2[i]["address"] == gathered_combiners[i]["address"]
+                        
+
+                        
     
