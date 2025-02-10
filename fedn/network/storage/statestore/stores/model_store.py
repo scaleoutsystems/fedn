@@ -334,8 +334,10 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 

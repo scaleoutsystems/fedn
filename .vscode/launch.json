@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PyTest All",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "justMyCode": true
+        },
+        {
+            "args": [
+                "--nf",
+                "--lf"
+            ],
+            "name": "PyTest New and Failing",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "justMyCode": true
+        },
+    ]
+}

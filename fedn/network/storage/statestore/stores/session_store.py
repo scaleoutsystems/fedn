@@ -298,7 +298,6 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             parent_item = SessionModel(
                 id=item["session_id"], status=item["status"], name=item["name"] if "name" in item else None, committed_at=item["committed_at"] or None
             )
-            session.add(parent_item)
 
             session_config = item["session_config"]
 
@@ -311,10 +310,11 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
                 clients_required=session_config["clients_required"],
                 validate=session_config["validate"],
                 helper_type=session_config["helper_type"],
-                session_id=parent_item.id,
             )
+            child_item.session = parent_item
 
             session.add(child_item)
+            session.add(parent_item)
             session.commit()
 
             combined_dict = {
@@ -357,8 +357,10 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 

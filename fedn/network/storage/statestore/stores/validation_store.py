@@ -122,10 +122,10 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
                 correlation_id=item.get("correlationId") or item.get("correlation_id"),
                 data=item.get("data"),
                 model_id=item.get("modelId") or item.get("model_id"),
-                receiver_name=receiver.get("name"),
-                receiver_role=receiver.get("role"),
-                sender_name=sender.get("name"),
-                sender_role=sender.get("role"),
+                receiver_name=receiver.get("name") if receiver else None,
+                receiver_role=receiver.get("role") if receiver else None,
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
                 session_id=item.get("sessionId") or item.get("session_id"),
                 timestamp=item.get("timestamp"),
             )
@@ -190,8 +190,10 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
