@@ -16,33 +16,7 @@ on:
     branches:
       - "**"
 
-services:
-  postgres:
-    image: postgres:13
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword
-      POSTGRES_DB: testdb
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U testuser"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  mongo:
-    image: mongo:4.4
-    ports:
-      - 27017:27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: testuser
-      MONGO_INITDB_ROOT_PASSWORD: testpassword
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 
 jobs:
@@ -53,6 +27,33 @@ jobs:
         os:
           - ubuntu-24.04
     runs-on: ${{ matrix.os }}
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        environment:
+          POSTGRES_USER: unittest_username
+          POSTGRES_PASSWORD: unittest_password
+          POSTGRES_DB: testdb
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U testuser"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: unittest_username
+          MONGO_INITDB_ROOT_PASSWORD: unittest_password
+        healthcheck:
+          test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -67,7 +68,7 @@ jobs:
           pip install .
           pip install pytest docker
       - name: Run tests
-        env: |
+        env: 
           UNITTEST_DBUSER: unittest_username
           UNITTEST_DBPASS: unittest_password
         run: |
