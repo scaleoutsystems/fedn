@@ -13,7 +13,10 @@ def network_id():
 
 @pytest.fixture(scope="package")
 def mongo_connection():
-    already_running, _, port = start_mongodb_container()
+    if not os.environ.get("UNITTEST_GITHUB"):
+        _, port = start_mongodb_container()
+    else: 
+        port = 27017
 
     def mongo_config():
         return {
@@ -29,7 +32,8 @@ def mongo_connection():
     with patch('fedn.network.storage.dbconnection.get_statestore_config', return_value=mongo_config()), \
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         yield DatabaseConnection(force_create_new=True)
-    if not already_running:
+
+    if not os.environ.get("UNITTEST_GITHUB"):
         stop_mongodb_container()
     
 @pytest.fixture(scope="package")
@@ -48,8 +52,10 @@ def sql_connection():
     
 @pytest.fixture(scope="package")
 def postgres_connection():
-    already_running, _, port = start_postgres_container()
-    
+    if not os.environ.get("UNITTEST_GITHUB"):
+        _, port = start_postgres_container()
+    else:
+        port = 5432
 
 
     def postgres_config():
@@ -59,7 +65,7 @@ def postgres_connection():
                 "username": os.environ.get("UNITTEST_DBUSER", "_"),
                 "password": os.environ.get("UNITTEST_DBPASS", "_"),
                 "database": "fedn_db",
-                "host": os.environ.get("UNITTEST_POSTGRESHOST", "localhost"),
+                "host": "localhost",
                 "port": port
             }
         }
@@ -67,5 +73,5 @@ def postgres_connection():
     with patch('fedn.network.storage.dbconnection.get_statestore_config', return_value=postgres_config()), \
          patch('fedn.network.storage.dbconnection.get_network_config', return_value=network_id()):
         yield DatabaseConnection(force_create_new=True)
-    if not already_running:
+    if not os.environ.get("UNITTEST_GITHUB"):
         stop_postgres_container()

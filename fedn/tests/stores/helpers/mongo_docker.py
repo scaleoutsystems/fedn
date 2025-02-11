@@ -9,11 +9,8 @@ CONTAINER_NAME="mongo-test-db"
 """
 def start_mongodb_container():
     client = docker.from_env()        
-
-    already_running = False
     try:
         container = client.containers.get(CONTAINER_NAME)
-        already_running = True
     except docker.errors.NotFound:
         container = client.containers.run(
             "mongo:7.0",
@@ -39,7 +36,7 @@ def start_mongodb_container():
     else:
         raise Exception("Could not start MongoDB container")
 
-    return already_running, container, port
+    return container, port
 
 def stop_mongodb_container():
     client = docker.from_env()

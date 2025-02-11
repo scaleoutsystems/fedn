@@ -30,6 +30,7 @@ jobs:
     services:
       postgres:
         image: postgres:13
+        container_name: postgres-test-db
         ports:
           - 5432:5432
         env:
@@ -39,6 +40,7 @@ jobs:
 
       mongo:
         image: mongo:4.4
+        container_name: mongo-test-db
         ports:
           - 27017:27017
         env:
@@ -62,7 +64,7 @@ jobs:
         env: 
           UNITTEST_DBUSER: unittest_username
           UNITTEST_DBPASS: unittest_password
-          UNITTEST_POSTGRESHOST: postgres
+          UNITTEST_GITHUB: True
         run: |
           pytest fedn/tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           

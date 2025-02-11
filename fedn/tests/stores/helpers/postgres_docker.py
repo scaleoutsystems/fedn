@@ -9,10 +9,8 @@ CONTAINER_NAME="postgres-test-db"
 """
 def start_postgres_container():
     client = docker.from_env()        
-    already_running = False
     try:
         container = client.containers.get(CONTAINER_NAME)
-        already_running = True
     except docker.errors.NotFound:
         container = client.containers.run(
             "postgres:15",
@@ -20,8 +18,8 @@ def start_postgres_container():
             ports={"5432/tcp": None}, # Let Docker choose an available port
             name=CONTAINER_NAME,
             environment={
-                "POSTGRES_USER": os.environ.get("TEST_USER", "_"),
-                "POSTGRES_PASSWORD": os.environ.get("TEST_PASS", "_"),
+                "POSTGRES_USER": os.environ.get("UNITTEST_DBUSER", "_"),
+                "POSTGRES_PASSWORD": os.environ.get("UNITTEST_DBPASS", "_"),
                 "POSTGRES_DB": "fedn_db"
             }
         )
@@ -37,7 +35,7 @@ def start_postgres_container():
     else:
         raise Exception("Could not start Postgres container")
 
-    return already_running, container, port
+    return container, port
 
 def stop_postgres_container():
     client = docker.from_env()
