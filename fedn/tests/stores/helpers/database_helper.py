@@ -21,8 +21,8 @@ def mongo_connection():
             "mongo_config": {
                 "host": "localhost",
                 "port": port,
-                "username": os.environ.get("TEST_USER", "_"),
-                "password": os.environ.get("TEST_PASS", "_"),
+                "username": os.environ.get("UNITTEST_DBUSER", "_"),
+                "password": os.environ.get("UNITTEST_DBPASS", "_"),
             }
         }
 
@@ -56,8 +56,8 @@ def postgres_connection():
         return {
             "type": "PostgreSQL",
             "postgres_config": {
-                "username": os.environ.get("TEST_USER", "_"),
-                "password": os.environ.get("TEST_PASS", "_"),
+                "username": os.environ.get("UNITTEST_DBUSER", "_"),
+                "password": os.environ.get("UNITTEST_DBPASS", "_"),
                 "database": "fedn_db",
                 "host": "localhost",
                 "port": port
