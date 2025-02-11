@@ -15,8 +15,7 @@ on:
       - '.github/**'
     branches:
       - "**"
-
-
+  workflow_dispatch:
 
 
 jobs:
@@ -35,7 +34,7 @@ jobs:
         env:
           POSTGRES_USER: unittest_username
           POSTGRES_PASSWORD: unittest_password
-          POSTGRES_DB: testdb
+          POSTGRES_DB: fedn_db
 
       mongo:
         image: mongo:4.4
@@ -57,7 +56,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          pip install pytest docker pytest-cov
+          pip install -r fedn/tests/requirements.txt
       - name: Run tests
         env: 
           UNITTEST_DBUSER: unittest_username
