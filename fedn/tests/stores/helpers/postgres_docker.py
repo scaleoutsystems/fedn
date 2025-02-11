@@ -20,7 +20,7 @@ def start_postgres_container():
             environment={
                 "POSTGRES_USER": os.environ.get("UNITTEST_DBUSER", "_"),
                 "POSTGRES_PASSWORD": os.environ.get("UNITTEST_DBPASS", "_"),
-                "POSTGRES_DB": "fedn_db"
+                "POSTGRES_DB": "testdb"
             }
         )
     time.sleep(1)

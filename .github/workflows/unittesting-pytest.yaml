@@ -35,7 +35,7 @@ jobs:
         env:
           POSTGRES_USER: unittest_username
           POSTGRES_PASSWORD: unittest_password
-          POSTGRES_DB: testdb
+          POSTGRES_DB: fedn_db
 
       mongo:
         image: mongo:4.4
