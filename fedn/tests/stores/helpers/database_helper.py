@@ -59,7 +59,7 @@ def postgres_connection():
                 "username": os.environ.get("UNITTEST_DBUSER", "_"),
                 "password": os.environ.get("UNITTEST_DBPASS", "_"),
                 "database": "fedn_db",
-                "host": "localhost",
+                "host": os.environ.get("UNITTEST_POSTGRESHOST", "localhost"),
                 "port": port
             }
         }

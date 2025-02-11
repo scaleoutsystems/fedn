@@ -62,6 +62,7 @@ jobs:
         env: 
           UNITTEST_DBUSER: unittest_username
           UNITTEST_DBPASS: unittest_password
+          UNITTEST_POSTGRESHOST: postgres
         run: |
           pytest fedn/tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
           
