@@ -32,28 +32,19 @@ jobs:
         image: postgres:13
         ports:
           - 5432:5432
-        environment:
+        env:
           POSTGRES_USER: unittest_username
           POSTGRES_PASSWORD: unittest_password
           POSTGRES_DB: testdb
-        healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U testuser"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
 
       mongo:
         image: mongo:4.4
         ports:
           - 27017:27017
-        environment:
+        env:
           MONGO_INITDB_ROOT_USERNAME: unittest_username
           MONGO_INITDB_ROOT_PASSWORD: unittest_password
-        healthcheck:
-          test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
+
     steps:
       - name: checkout
         uses: actions/checkout@v4
