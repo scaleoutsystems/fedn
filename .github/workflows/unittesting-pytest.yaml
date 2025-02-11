@@ -1,4 +1,4 @@
-name: "unit testing"
+name: "Unit tests with pytest"
 
 on:
   push:
