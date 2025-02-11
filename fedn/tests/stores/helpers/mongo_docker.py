@@ -1,5 +1,6 @@
 import docker
 import time
+import os
 
 CONTAINER_NAME="mongo-test-db"
 """ 
@@ -8,11 +9,8 @@ CONTAINER_NAME="mongo-test-db"
 """
 def start_mongodb_container():
     client = docker.from_env()        
-
-    already_running = False
     try:
         container = client.containers.get(CONTAINER_NAME)
-        already_running = True
     except docker.errors.NotFound:
         container = client.containers.run(
             "mongo:7.0",
@@ -20,8 +18,8 @@ def start_mongodb_container():
             ports={"27017/tcp": None}, # Let Docker choose an available port
             name=CONTAINER_NAME,
             environment={
-                "MONGO_INITDB_ROOT_USERNAME": "fedn_admin",
-                "MONGO_INITDB_ROOT_PASSWORD": "password"
+                "MONGO_INITDB_ROOT_USERNAME": os.environ.get("UNITTEST_DBUSER", "_"),
+                "MONGO_INITDB_ROOT_PASSWORD": os.environ.get("UNITTEST_DBPASS", "_"),
             },
             command="mongod"
         )
@@ -38,7 +36,7 @@ def start_mongodb_container():
     else:
         raise Exception("Could not start MongoDB container")
 
-    return already_running, container, port
+    return container, port
 
 def stop_mongodb_container():
     client = docker.from_env()
