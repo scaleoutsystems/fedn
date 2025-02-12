@@ -56,7 +56,7 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[Analytic]):
         pass
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Analytic]]:
-        return super().list(limit, skip, sort_key or "last_seen", sort_order, **kwargs)
+        return super().list(limit, skip, sort_key or "created_at", sort_order, **kwargs)
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
