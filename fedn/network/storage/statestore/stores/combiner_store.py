@@ -7,7 +7,7 @@ from pymongo.database import Database
 from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -137,8 +137,11 @@ def from_row(row: CombinerModel) -> Combiner:
 
 
 class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Combiner:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(CombinerModel).where(or_(CombinerModel.id == id, CombinerModel.name == id))
             item = session.scalars(stmt).first()
             if item is None:
@@ -149,7 +152,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
         raise NotImplementedError
 
     def add(self, item):
-        with Session() as session:
+        with self.Session() as session:
             entity = CombinerModel(
                 address=item["address"],
                 fqdn=item["fqdn"],
@@ -163,7 +166,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             return True, from_row(entity)
 
     def delete(self, id: str) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(CombinerModel).where(CombinerModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -172,7 +175,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             return True
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(CombinerModel)
 
             for key, value in kwargs.items():
@@ -186,8 +189,10 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 
@@ -200,7 +205,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(CombinerModel)
 
             for key, value in kwargs.items():

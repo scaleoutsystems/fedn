@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
@@ -116,7 +117,8 @@ def get_clients():
         response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -197,7 +199,8 @@ def list_clients():
         response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -258,7 +261,8 @@ def get_clients_count():
         count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -311,7 +315,8 @@ def clients_count():
         count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -355,7 +360,8 @@ def get_client(id: str):
         return jsonify(response), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -399,12 +405,13 @@ def delete_client(id: str):
         return jsonify({"message": msg}), 200
     except EntityNotFound:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 @bp.route("/add", methods=["POST"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def add_client():
     """Add client
     Adds a client to the network.
@@ -503,7 +510,8 @@ def add_client():
             "helper_type": helper_type,
         }
         return jsonify(payload), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
 
 
@@ -555,5 +563,6 @@ def get_client_config():
                 payload["checksum"] = checksum_str
 
         return jsonify(payload), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

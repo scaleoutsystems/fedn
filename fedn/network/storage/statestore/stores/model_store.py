@@ -10,7 +10,7 @@ from sqlalchemy.orm import aliased
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
 from fedn.network.storage.statestore.stores.sql.shared import ModelModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 
 class Model:
@@ -263,8 +263,11 @@ def from_row(row: ModelModel) -> Model:
 
 
 class SQLModelStore(ModelStore, SQLStore[Model]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Model:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ModelModel).where(ModelModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -275,7 +278,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
         valid, message = validate(item)
         if not valid:
             return False, message
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ModelModel).where(ModelModel.id == id)
             existing_item = session.execute(stmt).first()
             if existing_item is None:
@@ -294,7 +297,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
         if not valid:
             return False, message
 
-        with Session() as session:
+        with self.Session() as session:
             id: str = None
             if "model" in item:
                 id = item["model"]
@@ -317,7 +320,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ModelModel)
 
             for key, value in kwargs.items():
@@ -331,8 +334,10 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 
@@ -345,7 +350,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(ModelModel)
 
             for key, value in kwargs.items():
@@ -356,7 +361,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return count
 
     def list_descendants(self, id: str, limit: int):
-        with Session() as session:
+        with self.Session() as session:
             # Define the recursive CTE
             descendant = aliased(ModelModel)  # Alias for recursion
             cte = select(ModelModel).where(ModelModel.parent_model == id).cte(name="descendant_cte", recursive=True)
@@ -378,7 +383,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return result
 
     def list_ancestors(self, id: str, limit: int, include_self=False, reverse=False):
-        with Session() as session:
+        with self.Session() as session:
             # Define the recursive CTE
             ancestor = aliased(ModelModel)  # Alias for recursion
             cte = select(ModelModel).where(ModelModel.id == id).cte(name="ancestor_cte", recursive=True)
@@ -400,7 +405,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             return result
 
     def get_active(self) -> str:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(ModelModel).where(ModelModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -408,7 +413,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             raise EntityNotFound("Entity not found")
 
     def set_active(self, id: str) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(ModelModel).where(ModelModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:

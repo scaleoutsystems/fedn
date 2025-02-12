@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 class Status:
@@ -100,8 +100,11 @@ def from_row(row: StatusModel) -> Status:
 
 
 class SQLStatusStore(StatusStore, SQLStore[Status]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Status:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(StatusModel).where(StatusModel.id == id)
             item = session.scalars(stmt).first()
 
@@ -114,13 +117,13 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
         raise NotImplementedError
 
     def add(self, item: Status) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             sender = item["sender"] if "sender" in item else None
 
             status = StatusModel(
                 log_level=item.get("log_level") or item.get("logLevel"),
-                sender_name=sender.get("name"),
-                sender_role=sender.get("role"),
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
                 status=item.get("status"),
                 timestamp=item.get("timestamp"),
                 type=item.get("type"),
@@ -137,7 +140,7 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(StatusModel)
 
             for key, value in kwargs.items():
@@ -174,8 +177,10 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
@@ -189,7 +194,7 @@ class SQLStatusStore(StatusStore, SQLStore[Status]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(StatusModel)
 
             for key, value in kwargs.items():

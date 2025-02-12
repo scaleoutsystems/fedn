@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 class Validation:
@@ -97,8 +97,11 @@ def from_row(row: ValidationModel) -> Validation:
 
 
 class SQLValidationStore(ValidationStore, SQLStore[Validation]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Validation:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ValidationModel).where(ValidationModel.id == id)
             item = session.scalars(stmt).first()
 
@@ -111,7 +114,7 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
         raise NotImplementedError("Update not implemented for ValidationStore")
 
     def add(self, item: Validation) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             sender = item["sender"] if "sender" in item else None
             receiver = item["receiver"] if "receiver" in item else None
 
@@ -119,10 +122,10 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
                 correlation_id=item.get("correlationId") or item.get("correlation_id"),
                 data=item.get("data"),
                 model_id=item.get("modelId") or item.get("model_id"),
-                receiver_name=receiver.get("name"),
-                receiver_role=receiver.get("role"),
-                sender_name=sender.get("name"),
-                sender_role=sender.get("role"),
+                receiver_name=receiver.get("name") if receiver else None,
+                receiver_role=receiver.get("role") if receiver else None,
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
                 session_id=item.get("sessionId") or item.get("session_id"),
                 timestamp=item.get("timestamp"),
             )
@@ -136,7 +139,7 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
         raise NotImplementedError("Delete not implemented for ValidationStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ValidationModel)
 
             for key, value in kwargs.items():
@@ -187,8 +190,10 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
@@ -202,7 +207,7 @@ class SQLValidationStore(ValidationStore, SQLStore[Validation]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(ValidationModel)
 
             for key, value in kwargs.items():

@@ -1,0 +1,41 @@
+name: Trivy scan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  trivy_scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build an image from Dockerfile
+      run: |
+        docker build -t ghcr.io/scaleoutsystems/fedn:${{ github.sha }} .
+
+    - name: Run Trivy vulnerability scanner in docker mode
+      uses: aquasecurity/trivy-action@0.28.0
+      env:
+         TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
+         TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db,aquasec/trivy-java-db,ghcr.io/aquasecurity/trivy-java-db
+      with:
+        image-ref: 'ghcr.io/scaleoutsystems/fedn:${{ github.sha }}'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: HIGH,CRITICAL
+        vuln-type: 'os,library'
+        github-pat: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'

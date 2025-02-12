@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 def from_document(data: dict, active_package: dict):
@@ -126,18 +126,18 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         return from_document(document, response_active)
 
     def _complement(self, item: Package):
-        if "id" not in item or item.id is None:
+        if "id" not in item or item["id"] is None:
             item["id"] = str(uuid.uuid4())
 
-        if "key" not in item or item.key is None:
+        if "key" not in item or item["key"] is None:
             item["key"] = "package_trail"
 
-        if "committed_at" not in item or item.committed_at is None:
+        if "committed_at" not in item or item["committed_at"] is None:
             item["committed_at"] = datetime.now()
 
         extension = item["file_name"].rsplit(".", 1)[1].lower()
 
-        if "storage_file_name" not in item or item.storage_file_name is None:
+        if "storage_file_name" not in item or item["storage_file_name"] is None:
             storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
             item["storage_file_name"] = storage_file_name
 
@@ -306,13 +306,17 @@ def from_row(row: PackageModel) -> Package:
 
 
 class SQLPackageStore(PackageStore, SQLStore[Package]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def _complement(self, item: Package):
-        if "committed_at" not in item or item.committed_at is None:
+        # TODO: Not complemented the same way as in MongoDBStore
+        if "committed_at" not in item or item["committed_at"] is None:
             item["committed_at"] = datetime.now()
 
         extension = item["file_name"].rsplit(".", 1)[1].lower()
 
-        if "storage_file_name" not in item or item.storage_file_name is None:
+        if "storage_file_name" not in item or item["storage_file_name"] is None:
             storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
             item["storage_file_name"] = storage_file_name
 
@@ -322,7 +326,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return False, message
 
         self._complement(item)
-        with Session() as session:
+        with self.Session() as session:
             item = PackageModel(
                 committed_at=item["committed_at"],
                 description=item["description"] if "description" in item else "",
@@ -336,7 +340,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return True, from_row(item)
 
     def get(self, id: str) -> Package:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -347,7 +351,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         raise NotImplementedError
 
     def delete(self, id: str) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
@@ -357,7 +361,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return True
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PackageModel)
 
             for key, value in kwargs.items():
@@ -371,8 +375,10 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 
@@ -385,7 +391,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(PackageModel)
 
             for key, value in kwargs.items():
@@ -396,7 +402,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             return count
 
     def set_active(self, id: str):
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -413,7 +419,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         return True
 
     def get_active(self) -> Package:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -424,7 +430,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
         if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
             raise ValueError()
 
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
@@ -445,7 +451,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             session.commit()
 
     def delete_active(self) -> bool:
-        with Session() as session:
+        with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:

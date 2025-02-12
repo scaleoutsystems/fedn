@@ -8,7 +8,7 @@ from pymongo.database import Database
 from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 from .shared import EntityNotFound, from_document
 
@@ -171,8 +171,11 @@ def from_row(row: ClientModel) -> Client:
 
 
 class SQLClientStore(ClientStore, SQLStore[Client]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Client:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ClientModel).where(or_(ClientModel.id == id, ClientModel.client_id == id))
             item = session.scalars(stmt).first()
 
@@ -182,7 +185,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return from_row(item)
 
     def update(self, id: str, item: Client) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ClientModel).where(or_(ClientModel.id == id, ClientModel.client_id == id))
             existing_item = session.scalars(stmt).first()
 
@@ -201,7 +204,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return True, from_row(existing_item)
 
     def add(self, item: Client) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             entity = ClientModel(
                 client_id=item.get("client_id"),
                 combiner=item.get("combiner"),
@@ -221,7 +224,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ClientModel)
 
             for key, value in kwargs.items():
@@ -235,8 +238,10 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.scalars(stmt).all()
 
@@ -249,7 +254,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return {"count": count, "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(ClientModel)
 
             for key, value in kwargs.items():
@@ -260,7 +265,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return count
 
     def upsert(self, item: Client) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             id = item.get("id")
             client_id = item.get("client_id")
 
@@ -295,7 +300,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             return True, from_row(existing_item)
 
     def connected_client_count(self, combiners):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(ClientModel.combiner, func.count(ClientModel.combiner)).group_by(ClientModel.combiner)
             if combiners:
                 stmt = stmt.where(ClientModel.combiner.in_(combiners))
