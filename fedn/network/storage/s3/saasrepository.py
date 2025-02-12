@@ -27,9 +27,6 @@ class SAASRepository(RepositoryBase):
         # Check environment variables first. If they are not set, then use values from config file.
         access_key = os.environ.get("FEDN_ACCESS_KEY", config["storage_access_key"])
         secret_key = os.environ.get("FEDN_SECRET_KEY", config["storage_secret_key"])
-        logger.info("keys:")
-        logger.info(access_key)
-        logger.info(secret_key)
         storage_hostname = os.environ.get("FEDN_STORAGE_HOSTNAME", config["storage_hostname"])
         storage_port = os.environ.get("FEDN_STORAGE_PORT", config["storage_port"])
         storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
@@ -66,8 +63,8 @@ class SAASRepository(RepositoryBase):
             logger.info(bucket)
             logger.info(instance)
             try:
-                result = self.client.fput_object(bucket, instance_name, instance)
-                logger.info(result)
+                self.client.fput_object(bucket, instance_name, instance)
+                # logger.info(result)
             except Exception as e:
                 logger.info("Failed to upload file.")
                 logger.info(e)
