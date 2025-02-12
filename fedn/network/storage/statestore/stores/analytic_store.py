@@ -8,11 +8,12 @@ from fedn.network.storage.statestore.stores.store import MongoDBStore, Store
 
 
 class Analytic:
-    def __init__(self, id: str, client_id: str, type: str, execution_duration: int, created_at: datetime):
+    def __init__(self, id: str, client_id: str, type: str, execution_duration: int, model_id: str, created_at: datetime):
         self.id = id
         self.client_id = client_id
         self.type = type
         self.execution_duration = execution_duration
+        self.model_id = model_id
         self.created_at = created_at
 
 
@@ -25,7 +26,7 @@ def _validate_analytic(analytic: dict) -> Tuple[bool, str]:
         return False, "client_id is required"
     if "type" not in analytic or analytic["type"] not in ["training", "inference"]:
         return False, "type must be either 'training' or 'inference'"
-    return analytic
+    return analytic, ""
 
 
 def _complete_analytic(analytic: dict) -> dict:
@@ -48,6 +49,7 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[Analytic]):
         valid, msg = _validate_analytic(item)
         if not valid:
             return False, msg
+
         _complete_analytic(item)
 
         return super().add(item)
