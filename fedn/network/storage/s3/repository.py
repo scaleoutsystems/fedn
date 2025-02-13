@@ -19,7 +19,7 @@ class Repository:
             self.prediction_bucket = "fedn-prediction"
 
         # TODO: Make a plug-in solution
-        
+        storage_type = os.environ.get("FEDN_STORAGE_TYPE", storage_type)
         if storage_type == "SAAS":
             self.client = SAASRepository(config)
         elif storage_type == "MINIO":

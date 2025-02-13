@@ -56,9 +56,10 @@ control = Control(
 # TODO: use Repository
 minio_repository: RepositoryBase = None
 
-if modelstorage_config["storage_type"] == "S3":
+storage_type = os.environ.get("FEDN_STORAGE_TYPE", modelstorage_config["storage_type"])
+if storage_type == "S3":
     minio_repository = MINIORepository(modelstorage_config["storage_config"])
-elif modelstorage_config["storage_type"] == "SAAS":
+elif storage_type == "SAAS":
     minio_repository = SAASRepository(modelstorage_config["storage_config"])
 
 def get_checksum(name: str = None):
