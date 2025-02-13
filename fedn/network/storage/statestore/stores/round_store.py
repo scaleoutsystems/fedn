@@ -414,8 +414,10 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            if skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
