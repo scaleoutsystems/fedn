@@ -39,7 +39,8 @@ validation_store: ValidationStore = stores.validation_store
 prediction_store: PredictionStore = stores.prediction_store
 
 
-repository = Repository(modelstorage_config["storage_config"])
+repository = Repository(modelstorage_config["storage_config"],
+                        storage_type=modelstorage_config["storage_type"])
 
 control = Control(
     network_id=network_id,

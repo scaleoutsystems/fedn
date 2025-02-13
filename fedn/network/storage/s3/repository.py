@@ -10,7 +10,7 @@ from fedn.network.storage.s3.saasrepository import SAASRepository
 class Repository:
     """Interface for storing model objects and compute packages in S3 compatible storage."""
 
-    def __init__(self, config, init_buckets=True):
+    def __init__(self, config, init_buckets=True, storage_type="MINIO"):
         self.model_bucket = os.environ.get("FEDN_MODEL_BUCKET", config["storage_bucket"])
         self.context_bucket = os.environ.get("FEDN_CONTEXT_BUCKET", config["context_bucket"])
         try:
@@ -19,8 +19,15 @@ class Repository:
             self.prediction_bucket = "fedn-prediction"
 
         # TODO: Make a plug-in solution
-        self.client = SAASRepository(config)
-        # self.client = MINIORepository(config)
+        
+        if storage_type == "SAAS":
+            self.client = SAASRepository(config)
+        elif storage_type == "MINIO":
+            self.client = MINIORepository(config)
+        else:
+            # Default to MinIO.
+            self.client = MINIORepository(config)
+
 
         if init_buckets:
             self.client.create_bucket(self.context_bucket)
