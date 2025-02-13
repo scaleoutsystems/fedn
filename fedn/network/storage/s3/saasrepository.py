@@ -22,7 +22,7 @@ class SAASRepository(RepositoryBase):
         """
         super().__init__()
         self.name = "SAASRepository"
-        self.project_slug = os.environ.get("FEDN_PROJECT_SLUG")
+        self.project_slug = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE")
 
         # Check environment variables first. If they are not set, then use values from config file.
         access_key = os.environ.get("FEDN_ACCESS_KEY", config["storage_access_key"])
