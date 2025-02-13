@@ -1,4 +1,4 @@
-name: mnist-pytorch
+name: .mnist-pytorch
 build_dependencies:
   - pip
   - setuptools
