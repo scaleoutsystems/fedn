@@ -24,7 +24,7 @@ def get_analytics():
 
 
 @bp.route("/", methods=["POST"])
-@jwt_auth_required(role="admin")
+@jwt_auth_required(role="client")
 def add_analytics():
     try:
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
