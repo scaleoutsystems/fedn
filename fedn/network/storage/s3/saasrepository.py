@@ -2,7 +2,7 @@
 
 import io
 import os
-from typing import Any, List
+from typing import IO, List
 
 from minio import Minio
 from minio.error import InvalidResponseError
@@ -44,7 +44,7 @@ class SAASRepository(RepositoryBase):
             region=storage_region,
         )
 
-    def set_artifact(self, instance_name: str, instance: Any, bucket: str, is_file: bool = False) -> bool:
+    def set_artifact(self, instance_name: str, instance: IO, bucket: str, is_file: bool = False) -> bool:
         """Set object with name instance_name.
 
         :param instance_name: The name of the object
