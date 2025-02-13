@@ -1,4 +1,7 @@
+"""Shared objects for the network API."""
+
 import os
+from typing import Tuple
 
 from werkzeug.security import safe_join
 
@@ -14,14 +17,12 @@ from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
-from fedn.network.storage.statestore.stores.prediction_store import \
-    PredictionStore
+from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
-from fedn.network.storage.statestore.stores.validation_store import \
-    ValidationStore
+from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 from fedn.utils.checksum import sha
 
 modelstorage_config = get_modelstorage_config()
@@ -41,8 +42,7 @@ prediction_store: PredictionStore = stores.prediction_store
 analytic_store: AnalyticStore = stores.analytic_store
 
 
-repository = Repository(modelstorage_config["storage_config"],
-                        storage_type=modelstorage_config["storage_type"])
+repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
 
 control = Control(
     network_id=network_id,
@@ -66,7 +66,9 @@ elif storage_type == "SAAS":
 else:
     minio_repository = MINIORepository(modelstorage_config["storage_config"])
 
-def get_checksum(name: str = None):
+
+def get_checksum(name: str = None) -> Tuple[bool, str, str]:
+    """Generate a checksum for a given file."""
     message = None
     sum = None
     success = False

@@ -1,5 +1,8 @@
+"""Implementation of the Repository interface for SaaS deployment."""
+
 import io
 import os
+from typing import Any, List
 
 from minio import Minio
 from minio.error import InvalidResponseError
@@ -13,7 +16,7 @@ class SAASRepository(RepositoryBase):
 
     client = None
 
-    def __init__(self, config):
+    def __init__(self, config: dict) -> None:
         """Initialize object.
 
         :param config: Dictionary containing configuration for credentials and bucket names.
@@ -41,74 +44,125 @@ class SAASRepository(RepositoryBase):
             region=storage_region,
         )
 
-    def set_artifact(self, instance_name, instance, bucket, is_file=False):
+    def set_artifact(self, instance_name: str, instance: Any, bucket: str, is_file: bool = False) -> bool:
+        """Set object with name instance_name.
+
+        :param instance_name: The name of the object
+        :type instance_name: str
+        :param instance: The object
+        :type instance: Any
+        :param bucket: The bucket name
+        :type bucket: str
+        :param is_file: Whether the instance is a file, defaults to False
+        :type is_file: bool, optional
+        :return: True if the artifact was set successfully
+        :rtype: bool
+        """
         instance_name = f"{self.project_slug}/{instance_name}"
-        logger.info(instance_name)
-        if is_file:
-            logger.info("writing file to bucket")
-            logger.info(bucket)
-            logger.info(instance)
-            try:
+        logger.info(f"Setting artifact: {instance_name} in bucket: {bucket}")
+
+        try:
+            if is_file:
                 self.client.fput_object(bucket, instance_name, instance)
-            except Exception as e:
-                logger.info("Failed to upload file.")
-                logger.info(e)
-        else:
-            try:
+            else:
                 self.client.put_object(bucket, instance_name, io.BytesIO(instance), len(instance))
-            except Exception as e:
-                raise Exception("Could not load data into bytes {}".format(e))
+        except Exception as e:
+            logger.error(f"Failed to upload artifact: {instance_name} to bucket: {bucket}. Error: {e}")
+            raise Exception(f"Could not load data into bytes: {e}") from e
 
         return True
 
-    def get_artifact(self, instance_name, bucket):
+    def get_artifact(self, instance_name: str, bucket: str) -> bytes:
+        """Retrieve object with name instance_name.
+
+        :param instance_name: The name of the object to retrieve
+        :type instance_name: str
+        :param bucket: The bucket name
+        :type bucket: str
+        :return: The retrieved object
+        :rtype: bytes
+        """
         instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Getting artifact: {instance_name} from bucket: {bucket}")
+
         try:
             data = self.client.get_object(bucket, instance_name)
             return data.read()
         except Exception as e:
-            raise Exception("Could not fetch data from bucket, {}".format(e))
+            logger.error(f"Failed to fetch artifact: {instance_name} from bucket: {bucket}. Error: {e}")
+            raise Exception(f"Could not fetch data from bucket: {e}") from e
         finally:
             data.close()
             data.release_conn()
 
-    def get_artifact_stream(self, instance_name, bucket):
+    def get_artifact_stream(self, instance_name: str, bucket: str) -> io.BytesIO:
+        """Return a stream handler for object with name instance_name.
+
+        :param instance_name: The name of the object
+        :type instance_name: str
+        :param bucket: The bucket name
+        :type bucket: str
+        :return: Stream handler for object instance_name
+        :rtype: io.BytesIO
+        """
         instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Getting artifact stream: {instance_name} from bucket: {bucket}")
+
         try:
             data = self.client.get_object(bucket, instance_name)
             return data
         except Exception as e:
-            raise Exception("Could not fetch data from bucket, {}".format(e))
+            logger.error(f"Failed to fetch artifact stream: {instance_name} from bucket: {bucket}. Error: {e}")
+            raise Exception(f"Could not fetch data from bucket: {e}") from e
 
-    def list_artifacts(self, bucket):
+    def list_artifacts(self, bucket: str) -> List[str]:
         """List all objects in bucket.
 
         :param bucket: Name of the bucket
         :type bucket: str
         :return: A list of object names
+        :rtype: List[str]
         """
+        logger.info(f"Listing artifacts in bucket: {bucket}")
         objects = []
+
         try:
             objs = self.client.list_objects(bucket, prefix=self.project_slug)
             for obj in objs:
                 objects.append(obj.object_name)
-        except Exception:
-            raise Exception("Could not list models in bucket {}".format(bucket))
+        except Exception as err:
+            logger.error(f"Failed to list artifacts in bucket: {bucket}. Error: {err}")
+            raise Exception(f"Could not list models in bucket: {bucket}") from err
+
         return objects
 
-    def delete_artifact(self, instance_name, bucket):
+    def delete_artifact(self, instance_name: str, bucket: str) -> None:
         """Delete object with name instance_name from buckets.
 
         :param instance_name: The object name
+        :type instance_name: str
         :param bucket: Buckets to delete from
         :type bucket: str
         """
+        instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Deleting artifact: {instance_name} from bucket: {bucket}")
+
         try:
-            instance_name = f"{self.project_slug}/{instance_name}"
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:
-            logger.error("Could not delete artifact: {0} err: {1}".format(instance_name, err))
-            pass
+            logger.error(f"Could not delete artifact: {instance_name}. Error: {err}")
 
-    def create_bucket(self, bucket_name):
-        pass
+    def create_bucket(self, bucket_name: str) -> None:
+        """Create a new bucket. If bucket exists, do nothing.
+
+        :param bucket_name: The name of the bucket
+        :type bucket_name: str
+        """
+        logger.info(f"Creating bucket: {bucket_name}")
+
+        try:
+            if not self.client.bucket_exists(bucket_name):
+                self.client.make_bucket(bucket_name)
+        except InvalidResponseError as err:
+            logger.error(f"Failed to create bucket: {bucket_name}. Error: {err}")
+            raise
