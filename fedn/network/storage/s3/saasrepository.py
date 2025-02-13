@@ -22,7 +22,7 @@ class SAASRepository(RepositoryBase):
         """
         super().__init__()
         self.name = "SAASRepository"
-        self.project_slug = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE")
+        self.project_slug = os.environ.get("FEDN_PROJECT_SLUG")
 
         # Check environment variables first. If they are not set, then use values from config file.
         access_key = os.environ.get("FEDN_ACCESS_KEY", config["storage_access_key"])
@@ -32,28 +32,15 @@ class SAASRepository(RepositoryBase):
         storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
         storage_region = os.environ.get("FEDN_STORAGE_REGION") or config.get("storage_region", "auto")
 
-        logger.info(f"storage secure mode: {storage_secure_mode}")
-        # storage_secure_mode = storage_secure_mode.lower() == "true"
+        storage_secure_mode = storage_secure_mode.lower() == "true"
 
-        # if storage_secure_mode:
-        # manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE") #, assert_hostname=False)
-        logger.info("connection to host: ")
-        logger.info(f"{storage_hostname}:{storage_port}")
-        logger.info("storage region: {}".format(storage_region))
         self.client = Minio(
             f"{storage_hostname}:{storage_port}",
             access_key=access_key,
             secret_key=secret_key,
-            secure=True,
+            secure=storage_secure_mode,
             region=storage_region,
         )
-        # else:
-        #     self.client = Minio(
-        #         f"{storage_hostname}:{storage_port}",
-        #         access_key=access_key,
-        #         secret_key=secret_key,
-        #         secure=storage_secure_mode,
-        #     )
 
     def set_artifact(self, instance_name, instance, bucket, is_file=False):
         instance_name = f"{self.project_slug}/{instance_name}"
@@ -64,7 +51,6 @@ class SAASRepository(RepositoryBase):
             logger.info(instance)
             try:
                 self.client.fput_object(bucket, instance_name, instance)
-                # logger.info(result)
             except Exception as e:
                 logger.info("Failed to upload file.")
                 logger.info(e)
