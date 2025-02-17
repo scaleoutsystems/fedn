@@ -9,7 +9,7 @@ from pymongo.database import Database
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import from_document
 
 T = TypeVar("T")
 
@@ -59,11 +59,11 @@ class MongoDBStore(Store[T], Generic[T]):
         return: The entity
         """
         if not ObjectId.is_valid(id):
-            raise EntityNotFound(f"Invalid id {id}")
+            return None
         id_obj = ObjectId(id)
         document = self.database[self.collection].find_one({"_id": id_obj})
         if document is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            return None
 
         return from_document(document)
 

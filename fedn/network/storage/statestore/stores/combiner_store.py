@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
-from .shared import EntityNotFound, from_document
+from .shared import from_document
 
 
 class Combiner:
@@ -65,7 +65,6 @@ class MongoDBCombinerStore(MongoDBStore[Combiner]):
 
         if document is None:
             return None
-            # raise EntityNotFound(f"Entity with (id | name) {id} not found")
 
         return from_document(document)
 
@@ -84,8 +83,7 @@ class MongoDBCombinerStore(MongoDBStore[Combiner]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            return None
-            # raise EntityNotFound(f"Entity with (id) {id} not found")
+            return False
 
         return super().delete(document["_id"])
 
@@ -148,7 +146,6 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             item = session.scalars(stmt).first()
             if item is None:
                 return None
-                #raise EntityNotFound("Entity not found")
             return from_row(item)
 
     def update(self, id, item):
@@ -173,8 +170,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
             stmt = select(CombinerModel).where(CombinerModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
-                return None
-                # raise EntityNotFound("Entity not found")
+                return False
             session.delete(item)
             return True
 

@@ -16,7 +16,6 @@ from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.status_store import StatusStore
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 from fedn.utils.checksum import sha
@@ -64,12 +63,11 @@ def get_checksum(name: str = None):
     success = False
 
     if name is None:
-        try:
-            active_package = package_store.get_active()
-            name = active_package["storage_file_name"]
-        except EntityNotFound:
+        active_package = package_store.get_active()
+        if active_package is None:
             message = "No compute package uploaded"
             return success, message, sum
+        name = active_package["storage_file_name"]
     file_path = safe_join(os.getcwd(), name)
     try:
         sum = str(sha(file_path))

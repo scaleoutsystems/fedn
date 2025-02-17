@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
-from .shared import EntityNotFound, from_document
+from .shared import from_document
 
 
 class Client:
@@ -57,7 +57,6 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
         document = self.database[self.collection].find_one({"client_id": client_id})
         if document is None:
             return None
-            #raise EntityNotFound(f"Entity with client_id {client_id} not found")
         return document
 
     def update(self, id: str, item: Client) -> Tuple[bool, Any]:
@@ -88,8 +87,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            return None
-            #raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+            return False
 
         return super().delete(document["_id"])
 
@@ -183,7 +181,6 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
 
             if item is None:
                 return None
-                # raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
 
             return from_row(item)
 
@@ -193,8 +190,7 @@ class SQLClientStore(ClientStore, SQLStore[Client]):
             existing_item = session.scalars(stmt).first()
 
             if existing_item is None:
-                return None
-                # raise EntityNotFound(f"Entity with (id | client_id) {id} not found")
+                return False, "Item not found"
 
             existing_item.combiner = item.get("combiner")
             existing_item.ip = item.get("ip")

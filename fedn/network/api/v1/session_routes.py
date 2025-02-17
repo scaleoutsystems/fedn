@@ -8,7 +8,6 @@ from fedn.network.api.shared import control, model_store, session_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -296,10 +295,9 @@ def get_session(id: str):
     """
     try:
         response = session_store.get(id)
-
+        if response is None:
+           return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -446,6 +444,8 @@ def patch_session(id: str):
     """
     try:
         session = session_store.get(id)
+        if session is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
         _id = session["id"]
@@ -458,14 +458,14 @@ def patch_session(id: str):
             session[key] = value
 
         success, message = session_store.update(_id, session)
+        if success is False:
+            jsonify({"message": f"Failed to update session: {message}"}), 500
 
         if success:
             response = session
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update session: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -512,6 +512,9 @@ def put_session(id: str):
     """
     try:
         session = session_store.get(id)
+        if session is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         data = request.get_json()
         _id = session["id"]
 
@@ -522,8 +525,6 @@ def put_session(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update session: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
