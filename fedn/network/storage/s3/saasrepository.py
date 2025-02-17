@@ -1,18 +1,18 @@
-"""Module implementing Repository for MinIO."""
+"""Implementation of the Repository interface for SaaS deployment."""
 
 import io
+import os
 from typing import IO, List
 
 from minio import Minio
 from minio.error import InvalidResponseError
-from urllib3.poolmanager import PoolManager
 
 from fedn.common.log_config import logger
 from fedn.network.storage.s3.base import RepositoryBase
 
 
-class MINIORepository(RepositoryBase):
-    """Class implementing Repository for MinIO."""
+class SAASRepository(RepositoryBase):
+    """Class implementing Repository for SaaS deployment."""
 
     client = None
 
@@ -23,24 +23,26 @@ class MINIORepository(RepositoryBase):
         :type config: dict
         """
         super().__init__()
-        self.name = "MINIORepository"
+        self.name = "SAASRepository"
+        self.project_slug = os.environ.get("FEDN_JWT_CUSTOM_CLAIM_VALUE")
 
-        if config["storage_secure_mode"]:
-            manager = PoolManager(num_pools=100, cert_reqs="CERT_NONE", assert_hostname=False)
-            self.client = Minio(
-                "{0}:{1}".format(config["storage_hostname"], config["storage_port"]),
-                access_key=config["storage_access_key"],
-                secret_key=config["storage_secret_key"],
-                secure=config["storage_secure_mode"],
-                http_client=manager,
-            )
-        else:
-            self.client = Minio(
-                "{0}:{1}".format(config["storage_hostname"], config["storage_port"]),
-                access_key=config["storage_access_key"],
-                secret_key=config["storage_secret_key"],
-                secure=config["storage_secure_mode"],
-            )
+        # Check environment variables first. If they are not set, then use values from config file.
+        access_key = os.environ.get("FEDN_ACCESS_KEY", config["storage_access_key"])
+        secret_key = os.environ.get("FEDN_SECRET_KEY", config["storage_secret_key"])
+        storage_hostname = os.environ.get("FEDN_STORAGE_HOSTNAME", config["storage_hostname"])
+        storage_port = os.environ.get("FEDN_STORAGE_PORT", config["storage_port"])
+        storage_secure_mode = os.environ.get("FEDN_STORAGE_SECURE_MODE", config["storage_secure_mode"])
+        storage_region = os.environ.get("FEDN_STORAGE_REGION") or config.get("storage_region", "auto")
+
+        storage_secure_mode = storage_secure_mode.lower() == "true"
+
+        self.client = Minio(
+            f"{storage_hostname}:{storage_port}",
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=storage_secure_mode,
+            region=storage_region,
+        )
 
     def set_artifact(self, instance_name: str, instance: IO, bucket: str, is_file: bool = False) -> bool:
         """Set object with name instance_name.
@@ -56,6 +58,9 @@ class MINIORepository(RepositoryBase):
         :return: True if the artifact was set successfully
         :rtype: bool
         """
+        instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Setting artifact: {instance_name} in bucket: {bucket}")
+
         try:
             if is_file:
                 self.client.fput_object(bucket, instance_name, instance)
@@ -77,6 +82,9 @@ class MINIORepository(RepositoryBase):
         :return: The retrieved object
         :rtype: bytes
         """
+        instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Getting artifact: {instance_name} from bucket: {bucket}")
+
         try:
             data = self.client.get_object(bucket, instance_name)
             return data.read()
@@ -97,8 +105,12 @@ class MINIORepository(RepositoryBase):
         :return: Stream handler for object instance_name
         :rtype: io.BytesIO
         """
+        instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Getting artifact stream: {instance_name} from bucket: {bucket}")
+
         try:
-            return self.client.get_object(bucket, instance_name)
+            data = self.client.get_object(bucket, instance_name)
+            return data
         except Exception as e:
             logger.error(f"Failed to fetch artifact stream: {instance_name} from bucket: {bucket}. Error: {e}")
             raise Exception(f"Could not fetch data from bucket: {e}") from e
@@ -111,14 +123,17 @@ class MINIORepository(RepositoryBase):
         :return: A list of object names
         :rtype: List[str]
         """
+        logger.info(f"Listing artifacts in bucket: {bucket}")
         objects = []
+
         try:
-            objs = self.client.list_objects(bucket)
+            objs = self.client.list_objects(bucket, prefix=self.project_slug)
             for obj in objs:
                 objects.append(obj.object_name)
         except Exception as err:
             logger.error(f"Failed to list artifacts in bucket: {bucket}. Error: {err}")
             raise Exception(f"Could not list models in bucket: {bucket}") from err
+
         return objects
 
     def delete_artifact(self, instance_name: str, bucket: str) -> None:
@@ -129,6 +144,9 @@ class MINIORepository(RepositoryBase):
         :param bucket: Buckets to delete from
         :type bucket: str
         """
+        instance_name = f"{self.project_slug}/{instance_name}"
+        logger.info(f"Deleting artifact: {instance_name} from bucket: {bucket}")
+
         try:
             self.client.remove_object(bucket, instance_name)
         except InvalidResponseError as err:

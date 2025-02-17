@@ -1,4 +1,7 @@
+"""Shared objects for the network API."""
+
 import os
+from typing import Tuple
 
 from werkzeug.security import safe_join
 
@@ -8,6 +11,7 @@ from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.base import RepositoryBase
 from fedn.network.storage.s3.miniorepository import MINIORepository
 from fedn.network.storage.s3.repository import Repository
+from fedn.network.storage.s3.saasrepository import SAASRepository
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
@@ -37,7 +41,7 @@ prediction_store: PredictionStore = stores.prediction_store
 analytic_store: AnalyticStore = stores.analytic_store
 
 
-repository = Repository(modelstorage_config["storage_config"])
+repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
 
 control = Control(
     network_id=network_id,
@@ -53,11 +57,17 @@ control = Control(
 # TODO: use Repository
 minio_repository: RepositoryBase = None
 
-if modelstorage_config["storage_type"] == "S3":
+storage_type = os.environ.get("FEDN_STORAGE_TYPE", modelstorage_config["storage_type"])
+if storage_type == "MINIO":
+    minio_repository = MINIORepository(modelstorage_config["storage_config"])
+elif storage_type == "SAAS":
+    minio_repository = SAASRepository(modelstorage_config["storage_config"])
+else:
     minio_repository = MINIORepository(modelstorage_config["storage_config"])
 
 
-def get_checksum(name: str = None):
+def get_checksum(name: str = None) -> Tuple[bool, str, str]:
+    """Generate a checksum for a given file."""
     message = None
     sum = None
     success = False
