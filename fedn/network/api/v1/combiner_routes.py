@@ -369,7 +369,7 @@ def delete_combiner(id: str):
     try:
         result: bool = combiner_store.delete(id)
         if not result:
-           return jsonify({"message": f"Entity with id: {id} not found"}), 404 
+           return jsonify({"message": f"Entity with id: {id} not found"}), 404
         msg = "Combiner deleted" if result else "Combiner not deleted"
         return jsonify({"message": msg}), 200
     except Exception as e:

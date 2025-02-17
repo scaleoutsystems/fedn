@@ -518,12 +518,10 @@ def get_descendants(id: str):
         descendants = model_store.list_descendants(id, limit or 10)
 
         if descendants is None:
-            return jsonify({"message": f"Entity with id: {id} not found"}), 404 
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         response = descendants
         return jsonify(response), 200
-    # except EntityNotFound:
-    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -590,12 +588,9 @@ def get_ancestors(id: str):
 
         ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
         if ancestors is None:
-            return jsonify({"message": f"Entity with id: {id} not found"}), 404 
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
         response = ancestors
-
         return jsonify(response), 200
-    # except EntityNotFound:
-    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -639,7 +634,7 @@ def download(id: str):
             model = model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
- 
+
             model_id = model["model"]
 
             file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
