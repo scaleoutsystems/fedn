@@ -7,7 +7,7 @@ from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import func, select
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
@@ -140,7 +140,7 @@ class MongoDBSessionStore(MongoDBStore[Session]):
             document = self.database[self.collection].find_one({"session_id": id})
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | session_id) {id} not found")
+            return None
 
         return from_document(document)
 
@@ -220,8 +220,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
             item = session.execute(stmt).first()
             if item is None:
-                raise EntityNotFound(f"Entity not found {id}")
-
+                return None
             s, c = item
             combined_dict = {
                 "id": s.id,
@@ -248,8 +247,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
             existing_item = session.execute(stmt).first()
             if existing_item is None:
-                raise EntityNotFound(f"Entity not found {id}")
-
+                return False, f"Entity not found {id}"
             s, c = existing_item
 
             s.name = item["name"] if "name" in item else None

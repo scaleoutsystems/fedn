@@ -10,7 +10,6 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -376,11 +375,11 @@ def get_package(id: str):
                         type: string
     """
     try:
-        response = package_store.get(id)
-
-        return jsonify(response), 200
-    except EntityNotFound:
+      response = package_store.get(id)
+      if response is None:
         return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
+      return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -416,10 +415,10 @@ def get_active_package():
     """
     try:
         response = package_store.get_active()
+        if response is None:
+          return jsonify({"message": "Entity not found"}), 404
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": "Entity not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -495,10 +494,10 @@ def delete_active_package():
                         type: string
     """
     try:
-        package_store.delete_active()
+        result = package_store.delete_active()
+        if result is False:
+          return jsonify({"message": "Entity not found"}), 404
         return jsonify({"message": "Active package deleted"}), 200
-    except EntityNotFound:
-        return jsonify({"message": "Entity not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -623,12 +622,10 @@ def download_package():
     name = request.args.get("name", None)
 
     if name is None:
-        try:
-            active_package = package_store.get_active()
-            name = active_package["storage_file_name"]
-        except EntityNotFound:
-            return jsonify({"message": "No active package"}), 404
-
+        active_package = package_store.get_active()
+        if active_package is None:
+           return jsonify({"message": "No active package"}), 404
+        name = active_package["storage_file_name"]
     try:
         mutex = threading.Lock()
         mutex.acquire()

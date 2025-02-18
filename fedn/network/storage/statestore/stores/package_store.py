@@ -10,7 +10,6 @@ from sqlalchemy import String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
@@ -119,7 +118,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         document = self.database[self.collection].find_one({"id": id})
 
         if document is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            return None
 
         response_active = self.database[self.collection].find_one({"key": "active"})
 
@@ -153,7 +152,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            return False
 
         committed_at = datetime.now()
         obj_to_insert = {
@@ -178,7 +177,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         kwargs = {"key": "active"}
         response = self.database[self.collection].find_one(kwargs)
         if response is None:
-            raise EntityNotFound("Entity not found")
+            return None
 
         active_package = {"id": response["id"]} if "id" in response else {}
 
@@ -216,7 +215,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id) {id} not found")
+            return False
 
         result = super().delete(document["_id"])
 
@@ -238,7 +237,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
         document_active = self.database[self.collection].find_one(kwargs)
 
         if document_active is None:
-            raise EntityNotFound("Entity not found")
+            return False
 
         return super().delete(document_active["_id"])
 
@@ -344,7 +343,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return None
             return from_row(item)
 
     def update(self, id: str, item: Package) -> bool:
@@ -355,7 +354,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             stmt = select(PackageModel).where(PackageModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return False
             session.delete(item)
             session.commit()
             return True
@@ -412,7 +411,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return None
 
             item.active = True
             session.commit()
@@ -424,7 +423,7 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
             active_item = session.scalars(active_stmt).first()
             if active_item:
                 return from_row(active_item)
-            raise EntityNotFound("Entity not found")
+            return None
 
     def set_active_helper(self, helper: str) -> bool:
         if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
@@ -458,4 +457,4 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 active_item.active = False
                 session.commit()
                 return True
-            raise EntityNotFound("Entity not found")
+            return False

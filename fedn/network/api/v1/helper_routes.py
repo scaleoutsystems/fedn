@@ -4,7 +4,6 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import package_store
 from fedn.network.api.v1.shared import api_version
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("helper", __name__, url_prefix=f"/api/{api_version}/helpers")
 
@@ -27,12 +26,12 @@ def get_active_helper():
     """
     try:
         active_package = package_store.get_active()
+        if active_package is None:
+            return jsonify({"message": "No active helper"}), 404
 
         response = active_package["helper"]
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": "No active helper"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

@@ -5,7 +5,6 @@ from pymongo.database import Database
 from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
@@ -107,8 +106,7 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
-
+                return None
             return from_row(item)
 
     def update(self, id: str, item: Prediction) -> bool:
