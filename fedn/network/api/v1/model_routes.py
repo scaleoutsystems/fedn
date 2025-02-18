@@ -338,8 +338,6 @@ def get_model(id: str):
 
         response = model
         return jsonify(response), 200
-    # except EntityNotFound:
-    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -642,8 +640,6 @@ def download(id: str):
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    # except EntityNotFound:
-    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -710,8 +706,6 @@ def get_parameters(id: str):
             return jsonify(array=weights), 200
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    # except EntityNotFound:
-    #     return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -746,8 +740,6 @@ def get_active_model():
         response = active_model
 
         return jsonify(response), 200
-    # except EntityNotFound:
-    #     return jsonify({"message": "No active model found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
