@@ -458,14 +458,12 @@ def patch_session(id: str):
             session[key] = value
 
         success, message = session_store.update(_id, session)
-        if success is False:
-            jsonify({"message": f"Failed to update session: {message}"}), 500
 
         if success:
             response = session
             return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {message}"}), 500
+        return jsonify({"message": f"Failed to update session: {message}"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
