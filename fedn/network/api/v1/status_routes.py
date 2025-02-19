@@ -4,7 +4,6 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import status_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
 
@@ -385,10 +384,9 @@ def get_status(id: str):
     """
     try:
         response = status_store.get(id)
-
+        if response is None:
+          return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

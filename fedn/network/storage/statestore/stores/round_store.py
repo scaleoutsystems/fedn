@@ -9,7 +9,7 @@ from sqlalchemy import Integer, func, or_, select
 from fedn.network.storage.statestore.stores.sql.shared import RoundCombinerModel, RoundConfigModel, RoundDataModel, RoundModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
-from .shared import EntityNotFound, from_document
+from .shared import from_document
 
 
 class Round:
@@ -49,7 +49,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[Round]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
 
         return from_document(document)
 
@@ -182,7 +182,7 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
+                return None
 
             return from_row(item)
 
@@ -192,7 +192,7 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
             existing_item = session.scalars(stmt).first()
 
             if existing_item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
+                return False, f"Entity with (id | round_id) {id} not found"
 
             if "round_data" in item and item["round_data"] is not None:
                 round_data = item["round_data"]

@@ -8,7 +8,7 @@ from pymongo.database import Database
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import from_document
 from fedn.network.storage.statestore.stores.sql.shared import ModelModel
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
@@ -70,7 +70,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
 
         return from_document(document)
 
@@ -137,7 +137,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
 
         current_model_id: str = model["model"]
         result: list = []
@@ -178,7 +178,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model: object = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
 
         current_model_id: str = model["parent_model"]
         result: list = []
@@ -222,7 +222,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         active_model = self.database[self.collection].find_one({"key": "current_model"})
 
         if active_model is None:
-            raise EntityNotFound("Active model not found")
+            return None
 
         return active_model["model"]
 
@@ -243,7 +243,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[Model]):
         model = self.database[self.collection].find_one(kwargs)
 
         if model is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return False
 
         self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}}, upsert=True)
 
@@ -271,7 +271,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             stmt = select(ModelModel).where(ModelModel.id == id)
             item = session.scalars(stmt).first()
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return None
             return from_row(item)
 
     def update(self, id: str, item: Model) -> Tuple[bool, Any]:
@@ -282,7 +282,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             stmt = select(ModelModel).where(ModelModel.id == id)
             existing_item = session.execute(stmt).first()
             if existing_item is None:
-                raise EntityNotFound(f"Entity not found {id}")
+                return False, "Item not found"
 
             existing_item.parent_model = item["parent_model"]
             existing_item.name = item["name"]
@@ -410,7 +410,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             active_item = session.scalars(active_stmt).first()
             if active_item:
                 return active_item.id
-            raise EntityNotFound("Entity not found")
+            return None
 
     def set_active(self, id: str) -> bool:
         with self.Session() as session:
@@ -423,7 +423,7 @@ class SQLModelStore(ModelStore, SQLStore[Model]):
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound("Entity not found")
+                return False
 
             item.active = True
             session.commit()
