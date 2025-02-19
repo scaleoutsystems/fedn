@@ -33,7 +33,7 @@ def list_models(ctx, protocol: str, host: str, port: str, token: str = None, ses
 
     if session_id:
         response = get_response(
-            protocol=protocol, host=host, port=port, endpoint=f"models/?session_id={session_id}", token=token, headers=headers, usr_api=False, usr_token=False
+            protocol=protocol, host=host, port=port, endpoint=f"models/?session_id={session_id}/", token=token, headers=headers, usr_api=False, usr_token=False
         )
     else:
         response = get_response(protocol=protocol, host=host, port=port, endpoint="models/", token=token, headers=headers, usr_api=False, usr_token=False)
