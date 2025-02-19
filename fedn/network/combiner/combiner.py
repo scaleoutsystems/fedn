@@ -19,7 +19,7 @@ from fedn.common.log_config import logger, set_log_level_from_string, set_log_st
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
-from fedn.network.storage.statestore.models.client import Client
+from fedn.network.storage.statestore.models import Client
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 

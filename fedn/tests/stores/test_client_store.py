@@ -6,28 +6,23 @@ import datetime
 import uuid
 
 from fedn.network.storage.dbconnection import DatabaseConnection
-
+from fedn.network.storage.statestore.models import Client
 
 @pytest.fixture
 def test_clients():
     #TODO: SQL versions does not support updated_at field
     # TODO: Create using Client class
     start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    return [{"client_id":str(uuid.uuid4()), "name":"test_client1", "combiner":"test_combiner", "ip":"121.12.32.2", "combiner_preferred":"", "status":"test_status", 
-                   "last_seen":start_date - datetime.timedelta(days=1), "package":"local"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client2", "combiner":"test_combiner", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(days=3), "package":"local"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client3", "combiner":"test_combiner", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(days=4), "package":"local"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client5", "combiner":"test_combiner", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(seconds=5), "package":"remote"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client4", "combiner":"test_combiner2", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(weeks=1), "package":"remote"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client6", "combiner":"test_combiner2", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(hours=1), "package":"local"},
-            {"client_id":str(uuid.uuid4()), "name":"test_client7", "combiner":"test_combiner2", "ip":"121.12.32.22", "combiner_preferred":"", "status":"test_status2", 
-                   "last_seen":start_date - datetime.timedelta(minutes=1), "package":"remote"},
-                   ]
+    return [
+        Client(client_id=str(uuid.uuid4()), name="test_client1", combiner="test_combiner", ip="121.12.32.2", combiner_preferred="", status="test_status", last_seen=start_date - datetime.timedelta(days=1), package="local"),
+        Client(client_id=str(uuid.uuid4()), name="test_client2", combiner="test_combiner", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(days=3), package="local"),
+        Client(client_id=str(uuid.uuid4()), name="test_client3", combiner="test_combiner", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(days=4), package="local"),
+        Client(client_id=str(uuid.uuid4()), name="test_client5", combiner="test_combiner", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(seconds=5), package="remote"),
+        Client(client_id=str(uuid.uuid4()), name="test_client4", combiner="test_combiner2", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(weeks=1), package="remote"),
+        Client(client_id=str(uuid.uuid4()), name="test_client6", combiner="test_combiner2", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(hours=1), package="local"),
+        Client(client_id=str(uuid.uuid4()), name="test_client7", combiner="test_combiner2", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(minutes=1), package="remote"),
+    ]
+
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
