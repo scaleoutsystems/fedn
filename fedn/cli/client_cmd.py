@@ -41,12 +41,14 @@ def client_cmd(ctx):
 
 
 @click.option("-p", "--path", required=False, help="Path to where client yaml file will be located")
-@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of controller (api)")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
+@click.option("-g", "--group", required=False, default=1, help="number of clients to generate in a bulk")
 @click.option("-n", "--name", required=True, help="Client name")
 @client_cmd.command("set-config")
 @click.pass_context
-def create_client(ctx, path: str, host: str, token: str = None, name: str = None):
+def create_client(ctx, path: str, protocol: str, host: str, token: str = None, name: str = None, group: int = None):
     """Return:
     ------
     - result: client config file with following content
@@ -61,21 +63,39 @@ def create_client(ctx, path: str, host: str, token: str = None, name: str = None
     context_data = get_context(context_path)
 
     id = context_data.get("Active project id")
+    usr_access_token = context_data.get("User tokens").get("access")
     discover_host = f"{host}/{id}-fedn-reducer"
-    project_tokens = context_data.get("Active project tokens")
-    token = project_tokens.get("access")
-    refresh_token = project_tokens.get("refresh")
-    client_id = str(uuid.uuid4())
-    client_data = {"client_id": client_id, "discover_host": discover_host, "name": name, "refresh_token": refresh_token, "token": token}
-    try:
-        if path:
-            with open(f"{path}/{name}.yaml", "w") as yaml_file:
-                yaml.dump(client_data, yaml_file, default_flow_style=False)
+    studio_api = True
+    headers = {}
+    headers["X-Project-Slug"] = id
+
+    for i in range(group):
+        client_id = str(uuid.uuid4())
+        response = get_response(
+            protocol=protocol, host=host, port=None, endpoint="client-token", token=usr_access_token, headers=headers, usr_api=studio_api, usr_token=False
+        )
+
+        if response.status_code == 200:
+            response_json = response.json()
         else:
-            with open(f"{name}.yaml", "w") as yaml_file:
-                yaml.dump(client_data, yaml_file, default_flow_style=False)
-    except Exception as e:
-        print(f"Error: Failed to write to YAML file. Details: {e}")
+            click.secho(f"Unexpected error: {response.status_code}", fg="red")
+
+        client_data = {
+            "client_id": client_id,
+            "discover_host": discover_host,
+            "name": f"{name}_{i}",
+            "refresh_token": response_json.get("refresh"),
+            "token": response_json.get("access"),
+        }
+        try:
+            if path:
+                with open(f"{path}/{name}_{i}.yaml", "w") as yaml_file:
+                    yaml.dump(client_data, yaml_file, default_flow_style=False)
+            else:
+                with open(f"{name}_{i}.yaml", "w") as yaml_file:
+                    yaml.dump(client_data, yaml_file, default_flow_style=False)
+        except Exception as e:
+            print(f"Error: Failed to write to YAML file. Details: {e}")
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -97,7 +117,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
     if n_max:
         headers["X-Limit"] = n_max
 
-    response = get_response(protocol=protocol, host=host, port=port, endpoint="clients", token=token, headers=headers, usr_api=False, usr_token=False)
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="clients/", token=token, headers=headers, usr_api=False, usr_token=False)
     print_response(response, "clients", None)
 
 
