@@ -1,4 +1,5 @@
 import io
+import os
 from io import BytesIO
 
 import numpy as np
@@ -634,8 +635,8 @@ def download(id: str):
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
             model_id = model["model"]
-
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
@@ -689,8 +690,8 @@ def get_parameters(id: str):
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
             model_id = model["model"]
-
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
