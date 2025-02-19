@@ -1,4 +1,5 @@
 import io
+import os
 from io import BytesIO
 
 import numpy as np
@@ -6,8 +7,11 @@ from flask import Blueprint, jsonify, request, send_file
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
+from fedn.network.api.shared import (control, minio_repository, model_store,
+                                     modelstorage_config)
+from fedn.network.api.v1.shared import (api_version, get_limit,
+                                        get_post_data_to_kwargs, get_reverse,
+                                        get_typed_list_headers)
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
@@ -628,8 +632,8 @@ def download(id: str):
         if minio_repository is not None:
             model = model_store.get(id)
             model_id = model["model"]
-
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
@@ -683,8 +687,8 @@ def get_parameters(id: str):
         if minio_repository is not None:
             model = model_store.get(id)
             model_id = model["model"]
-
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
