@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import ForeignKey, String
@@ -115,3 +116,16 @@ class RoundModel(MyAbstractBase):
     round_data_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_data.id"))
     round_data: Mapped[Optional["RoundDataModel"]] = relationship(back_populates="round")
     combiners: Mapped[List["RoundCombinerModel"]] = relationship(back_populates="round", cascade="all, delete-orphan")
+
+
+class ClientModel(MyAbstractBase):
+    __tablename__ = "clients"
+
+    client_id: Mapped[str] = mapped_column(String(255), unique=True)
+    combiner: Mapped[str] = mapped_column(String(255))
+    combiner_preferred: Mapped[str] = mapped_column(String(255))
+    ip: Mapped[Optional[str]] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    package: Mapped[Optional[str]] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(255))
+    last_seen: Mapped[datetime] = mapped_column(default=datetime.now())

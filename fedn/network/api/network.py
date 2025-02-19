@@ -85,6 +85,7 @@ class Network:
         # TODO: Implement strategy to handle an unavailable combiner.
         logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
 
+    # TODO: This method is not used in the current version of FEDn.
     def add_client(self, client):
         """Add a new client to the network.
 
@@ -98,6 +99,7 @@ class Network:
         logger.info("adding client {}".format(client["client_id"]))
         self.client_store.upsert(client)
 
+    # TODO: This method is not used in the current version of FEDn.
     def get_client(self, client_id: str):
         """Get client by client_id.
 
@@ -112,6 +114,7 @@ class Network:
         except Exception:
             return None
 
+    # TODO: This method is not used in the current version of FEDn.
     def get_client_info(self):
         """List available client in statestore.
 

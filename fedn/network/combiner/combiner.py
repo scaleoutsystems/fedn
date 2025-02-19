@@ -19,6 +19,7 @@ from fedn.common.log_config import logger, set_log_level_from_string, set_log_st
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
+from fedn.network.storage.statestore.models.client import Client
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -134,8 +135,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for client in result:
             try:
                 client_to_update = client_store.get(client["client_id"])
-                client_to_update["status"] = "offline"
-                client_store.update(client["client_id"], client_to_update)
+                client_to_update.status = "offline"
+                client_store.commit(client_to_update)
 
             except Exception as e:
                 logger.error("Failed to update previous client status: {}".format(str(e)))
@@ -387,13 +388,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = client_store.get(client)
-                client_to_update["status"] = "online"
-                client_store.update(client, client_to_update)
+                client_to_update.status = "online"
+                client_store.commit(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = client_store.get(client)
-                client_to_update["status"] = "offline"
-                client_store.update(client, client_to_update)
+                client_to_update.status = "offline"
+                client_store.commit(client_to_update)
 
         return clients["active_clients"]
 
@@ -685,17 +686,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["status"] = "online"
         try:
             # If the client is already in the client store, update the status
+            client_to_update = client_store.get(client.client_id)
+            if client_to_update is not None:
+                client_to_update.status = "online"
+                client_to_update.last_seen = datetime.now()
+                success, result = client_store.commit(client_to_update)
+            else:
+                new_client = Client(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
+                success, result = client_store.add(new_client)
 
-            client_to_upsert = {
-                "name": client.name,
-                "status": "online",
-                "client_id": client.client_id,
-                "last_seen": datetime.now(),
-                "combiner": self.id,
-                "updated_at": datetime.now(),
-            }
-
-            success, result = client_store.upsert(client_to_upsert)
             if not success:
                 logger.error(result)
         except Exception as e:
