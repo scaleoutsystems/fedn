@@ -19,8 +19,8 @@ from fedn.network.storage.statestore.stores.package_store import MongoDBPackageS
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
-from fedn.network.storage.statestore.stores.store import MyAbstractBase
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 

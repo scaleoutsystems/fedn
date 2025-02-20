@@ -1,10 +1,37 @@
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, MetaData, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from fedn.network.storage.statestore.stores.store import MyAbstractBase
+constraint_naming_conventions = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+def from_sqlalchemy_model(model, SQLModel: DeclarativeBase):
+    result = {}
+    for k in SQLModel.__table__.columns:
+        result[k.name] = getattr(model, k.name)
+    result.pop("id")
+    result.pop("committed_at")
+    return result
+
+
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention=constraint_naming_conventions)
+
+
+class MyAbstractBase(Base):
+    __abstract__ = True
+
+    id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
+    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
 class SessionConfigModel(MyAbstractBase):

@@ -10,11 +10,20 @@ class Field:
 
 class BaseModel:
     def __init__(self, **kwargs):
+        if "id" in kwargs:
+            del kwargs["id"]
         self.patch(kwargs)
+
+    def __getattribute__(self, name):
+        result = super().__getattribute__(name)
+        if isinstance(result, Field):
+            return result.default_value
+        return result
 
     def model_dump(self, exclude_unset: bool = False):
         result = {}
-        for k, v in self.__dict__.items():
+        for k in self.__dict__.keys():
+            v = super().__getattribute__(k)
             if isinstance(v, Field):
                 if not exclude_unset:
                     result[k] = v.default_value
@@ -22,8 +31,8 @@ class BaseModel:
                 result[k] = v
         return result
 
-    def to_dict(self):
-        return self.model_dump(exclude_unset=True)
+    def to_dict(self, exclude_unset: bool = True):
+        return self.model_dump(exclude_unset=exclude_unset)
 
     def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True):
         for key, value in value_dict.items():

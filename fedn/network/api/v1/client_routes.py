@@ -5,7 +5,7 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.models import Client
+from fedn.network.storage.statestore.stores.dto import Client
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
@@ -114,7 +114,9 @@ def get_clients():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -196,7 +198,10 @@ def list_clients():
     try:
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+
+        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -355,10 +360,10 @@ def get_client(id: str):
                         type: string
     """
     try:
-        response = client_store.get(id).to_dict()
-        if response is None:
+        client = client_store.get(id)
+        if client is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
+        response = client.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
