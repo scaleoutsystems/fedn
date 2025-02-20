@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.21.0"
+version = "0.23.2"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"
@@ -193,4 +193,19 @@ lint.ignore = [
   "S501", # Probable use of `requests` call with `verify=False` disabling SSL certificate checks
   "S108", # Probable insecure usage of temporary file or directory: "/tmp/models"
   "S603", # `subprocess` call: check for execution of untrusted input
+]
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "fedn/tests"
+]
+pythonpath = [
+  "."
+]
+norecursedirs = [
+  ".ci",
+  "build"
 ]

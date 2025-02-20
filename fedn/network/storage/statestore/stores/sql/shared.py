@@ -17,7 +17,6 @@ class SessionConfigModel(MyAbstractBase):
     validate: Mapped[bool]
     helper_type: Mapped[str] = mapped_column(String(255))
     model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
-    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
     session: Mapped["SessionModel"] = relationship(back_populates="session_config")
 
 
@@ -26,6 +25,7 @@ class SessionModel(MyAbstractBase):
 
     name: Mapped[Optional[str]] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(255))
+    session_config_id: Mapped[str] = mapped_column(ForeignKey("session_configs.id"))
     session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session")
     models: Mapped[List["ModelModel"]] = relationship(back_populates="session")
 

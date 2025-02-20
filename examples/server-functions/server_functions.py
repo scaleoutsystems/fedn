@@ -1,4 +1,3 @@
-from fedn.common.log_config import logger
 from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random
 
 # See allowed_imports for what packages you can use in this class.
@@ -39,6 +38,6 @@ class ServerFunctions(ServerFunctionsBase):
             for i in range(len(weighted_sum)):
                 weighted_sum[i] += client_parameters[i] * num_examples
 
-        logger.info("Models aggregated")
+        print("Models aggregated")
         averaged_updates = [weighted / total_weight for weighted in weighted_sum]
         return averaged_updates

@@ -19,7 +19,6 @@ from fedn.common.log_config import logger, set_log_level_from_string, set_log_st
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -120,9 +119,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "updated_at": str(datetime.now()),
         }
         # Check if combiner already exists in statestore
-        try:
-            _ = combiner_store.get(config["name"])
-        except EntityNotFound:
+        if combiner_store.get(config["name"]) is None:
             combiner_store.add(interface_config)
 
         # Fetch all clients previously connected to the combiner

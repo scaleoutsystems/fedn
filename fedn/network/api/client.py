@@ -441,7 +441,7 @@ class APIClient:
         """
         with open(path, "rb") as file:
             response = requests.post(
-                self._get_url_api_v1("packages"),
+                self._get_url_api_v1("packages/"),
                 files={"file": file},
                 data={"helper": helper, "name": name, "description": description},
                 verify=self.verify,

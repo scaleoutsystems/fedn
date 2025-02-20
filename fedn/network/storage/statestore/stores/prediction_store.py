@@ -5,8 +5,7 @@ from pymongo.database import Database
 from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 class Prediction:
@@ -98,21 +97,23 @@ def from_row(row: PredictionModel) -> Prediction:
 
 
 class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Prediction:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(Prediction).where(Prediction.id == id)
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
-
+                return None
             return from_row(item)
 
     def update(self, id: str, item: Prediction) -> bool:
         raise NotImplementedError("Update not implemented for PredictionStore")
 
     def add(self, item: Prediction) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             sender = item["sender"] if "sender" in item else None
             receiver = item["receiver"] if "receiver" in item else None
 
@@ -120,10 +121,10 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
                 correlation_id=item.get("correlationId") or item.get("correlation_id"),
                 data=item.get("data"),
                 model_id=item.get("modelId") or item.get("model_id"),
-                receiver_name=receiver.get("name"),
-                receiver_role=receiver.get("role"),
-                sender_name=sender.get("name"),
-                sender_role=sender.get("role"),
+                receiver_name=receiver.get("name") if receiver else None,
+                receiver_role=receiver.get("role") if receiver else None,
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
                 prediction_id=item.get("predictionId") or item.get("prediction_id"),
                 timestamp=item.get("timestamp"),
             )
@@ -137,7 +138,7 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
         raise NotImplementedError("Delete not implemented for PredictionStore")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(PredictionModel)
 
             for key, value in kwargs.items():
@@ -184,8 +185,10 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
 
                     stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
@@ -199,7 +202,7 @@ class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(PredictionModel)
 
             for key, value in kwargs.items():

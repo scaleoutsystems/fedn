@@ -1,4 +1,4 @@
-name: welding-defect-detection
+name: .welding-defect-detection
 build_dependencies:
   - pip
   - setuptools

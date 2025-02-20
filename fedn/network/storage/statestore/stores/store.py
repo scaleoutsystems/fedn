@@ -6,11 +6,10 @@ from typing import Any, Dict, Generic, List, Tuple, TypeVar
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import MetaData, create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from fedn.common.config import get_statestore_config
-from fedn.network.storage.statestore.stores.shared import EntityNotFound, from_document
+from fedn.network.storage.statestore.stores.shared import from_document
 
 T = TypeVar("T")
 
@@ -60,11 +59,11 @@ class MongoDBStore(Store[T], Generic[T]):
         return: The entity
         """
         if not ObjectId.is_valid(id):
-            raise EntityNotFound(f"Invalid id {id}")
+            return None
         id_obj = ObjectId(id)
         document = self.database[self.collection].find_one({"_id": id_obj})
         if document is None:
-            raise EntityNotFound(f"Entity with id {id} not found")
+            return None
 
         return from_document(document)
 
@@ -133,7 +132,8 @@ class MongoDBStore(Store[T], Generic[T]):
 
 
 class SQLStore(Store[T]):
-    pass
+    def __init__(self, Session):
+        self.Session = Session
 
 
 constraint_naming_conventions = {
@@ -154,23 +154,3 @@ class MyAbstractBase(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
     committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
-
-
-statestore_config = get_statestore_config()
-
-engine = None
-Session = None
-
-if statestore_config["type"] in ["SQLite", "PostgreSQL"]:
-    if statestore_config["type"] == "SQLite":
-        engine = create_engine("sqlite:///my_database.db", echo=True)
-    elif statestore_config["type"] == "PostgreSQL":
-        postgres_config = statestore_config["postgres_config"]
-        username = postgres_config["username"]
-        password = postgres_config["password"]
-        host = postgres_config["host"]
-        port = postgres_config["port"]
-
-        engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=True)
-
-    Session = sessionmaker(engine)

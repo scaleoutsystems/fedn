@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, combiner_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
 
@@ -107,7 +107,8 @@ def get_combiners():
         response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -186,7 +187,8 @@ def list_combiners():
         response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -233,7 +235,8 @@ def get_combiners_count():
         count = combiner_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -282,7 +285,8 @@ def combiners_count():
         count = combiner_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -322,11 +326,11 @@ def get_combiner(id: str):
     """
     try:
         response = combiner_store.get(id)
-
+        if response is None:
+          return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -364,12 +368,12 @@ def delete_combiner(id: str):
     """
     try:
         result: bool = combiner_store.delete(id)
+        if not result:
+           return jsonify({"message": f"Entity with id: {id} not found"}), 404
         msg = "Combiner deleted" if result else "Combiner not deleted"
-
         return jsonify({"message": msg}), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -414,5 +418,6 @@ def number_of_clients_connected():
         result = {"result": response}
 
         return jsonify(result), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

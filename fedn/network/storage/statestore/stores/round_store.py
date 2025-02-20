@@ -7,9 +7,9 @@ from pymongo.database import Database
 from sqlalchemy import Integer, func, or_, select
 
 from fedn.network.storage.statestore.stores.sql.shared import RoundCombinerModel, RoundConfigModel, RoundDataModel, RoundModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore, Session, SQLStore, Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
-from .shared import EntityNotFound, from_document
+from .shared import from_document
 
 
 class Round:
@@ -49,7 +49,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[Round]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | model) {id} not found")
+            return None
 
         return from_document(document)
 
@@ -173,23 +173,26 @@ def from_row(row: RoundModel) -> Round:
 
 
 class SQLRoundStore(RoundStore, SQLStore[Round]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
     def get(self, id: str) -> Round:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(RoundModel).where(or_(RoundModel.id == id, RoundModel.round_id == id))
             item = session.scalars(stmt).first()
 
             if item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
+                return None
 
             return from_row(item)
 
     def update(self, id, item: Round) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(RoundModel).where(or_(RoundModel.id == id, RoundModel.round_id == id))
             existing_item = session.scalars(stmt).first()
 
             if existing_item is None:
-                raise EntityNotFound(f"Entity with (id | round_id) {id} not found")
+                return False, f"Entity with (id | round_id) {id} not found"
 
             if "round_data" in item and item["round_data"] is not None:
                 round_data = item["round_data"]
@@ -295,7 +298,7 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
             return True, from_row(existing_item)
 
     def add(self, item: Round) -> Tuple[bool, Any]:
-        with Session() as session:
+        with self.Session() as session:
             round_id = item["round_id"]
             stmt = select(RoundModel).where(RoundModel.round_id == round_id)
             existing_item = session.scalars(stmt).first()
@@ -391,7 +394,7 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
         raise NotImplementedError
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(RoundModel)
 
             for key, value in kwargs.items():
@@ -411,8 +414,10 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
 
                 stmt = stmt.order_by(sort_obj)
 
-            if limit != 0:
+            if limit:
                 stmt = stmt.offset(skip or 0).limit(limit)
+            if skip:
+                stmt = stmt.offset(skip)
 
             items = session.execute(stmt)
 
@@ -426,7 +431,7 @@ class SQLRoundStore(RoundStore, SQLStore[Round]):
             return {"count": len(result), "result": result}
 
     def count(self, **kwargs):
-        with Session() as session:
+        with self.Session() as session:
             stmt = select(func.count()).select_from(RoundModel)
 
             for key, value in kwargs.items():
