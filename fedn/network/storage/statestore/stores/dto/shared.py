@@ -6,7 +6,7 @@ from typing import Any, Dict
 class Field:
     """Field class for DTOs."""
 
-    def __init__(self, default_value: Any) -> None:
+    def __init__(self, default_value) -> None:
         """Initialize Field with default value."""
         self.default_value = default_value
 
@@ -20,7 +20,7 @@ class BaseModel:
             del kwargs["id"]
         self.patch(kwargs)
 
-    def __getattribute__(self, name: str) -> Any:
+    def __getattribute__(self, name: str):
         """Get attribute with default value if Field."""
         result = super().__getattribute__(name)
         if isinstance(result, Field):
