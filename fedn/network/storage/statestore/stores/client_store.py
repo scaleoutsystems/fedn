@@ -11,6 +11,8 @@ from fedn.network.storage.statestore.stores.sql.shared import ClientModel
 
 
 class ClientStore(Store[Client]):
+    """Client store interface."""
+
     @abstractmethod
     def connected_client_count(self, combiners: List[str]) -> List[Client]:
         """Count the number of connected clients for each combiner.

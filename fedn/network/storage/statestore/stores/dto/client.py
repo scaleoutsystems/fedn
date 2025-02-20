@@ -5,6 +5,8 @@ from fedn.network.storage.statestore.stores.dto.shared import BaseModel, Field
 
 
 class Client(BaseModel):
+    """Client data transfer object."""
+
     client_id: Optional[str] = Field(None)
     name: str = Field(None)
     combiner: str = Field(None)

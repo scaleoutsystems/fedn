@@ -13,9 +13,12 @@ T = TypeVar("T")
 
 
 class Store(ABC, Generic[T]):
+    """Abstract class for a store."""
+
     @abstractmethod
     def get(self, id: str) -> T:
-        """Get an entity by id
+        """Get an entity by id.
+
         param id: The id of the entity
             type: str
         return: The entity
@@ -24,7 +27,8 @@ class Store(ABC, Generic[T]):
 
     @abstractmethod
     def update(self, item: T) -> Tuple[bool, Any]:
-        """Update an existing entity
+        """Update an existing entity.
+
         Will do a patch if fields in T are left unset
         param item: The entity to update
             type: T
@@ -34,7 +38,8 @@ class Store(ABC, Generic[T]):
 
     @abstractmethod
     def add(self, item: T) -> Tuple[bool, Any]:
-        """Add an entity
+        """Add an entity.
+
         param item: The entity to add
               type: T
         return: A tuple with a boolean and a message if failure or the added entity if success
@@ -43,7 +48,8 @@ class Store(ABC, Generic[T]):
 
     @abstractmethod
     def delete(self, id: str) -> bool:
-        """Delete an entity
+        """Delete an entity.
+
         param id: The id of the entity
             type: str
         return: A boolean indicating success or failure
@@ -51,8 +57,9 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
-        """List entities
+    def select(self, limi: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+        """List entities.
+
         param limit: The maximum number of entities to return
             type: int
         param skip: The number of entities to skip
@@ -70,7 +77,8 @@ class Store(ABC, Generic[T]):
 
     @abstractmethod
     def count(self, **kwargs) -> int:
-        """Count entities
+        """Count entities.
+
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
@@ -80,7 +88,10 @@ class Store(ABC, Generic[T]):
 
 
 class MongoDBStore(Store[T], Generic[T]):
-    def __init__(self, database: Database, collection: str, primary_key: str, DataModel: Type[T]):
+    """Base MongoDB store implementation."""
+
+    def __init__(self, database: Database, collection: str, primary_key: str, DataModel: Type[T]) -> None:
+        """Initialize MongoDBStore."""
         self.database = database
         self.collection = collection
         self.primary_key = primary_key
@@ -112,8 +123,7 @@ class MongoDBStore(Store[T], Generic[T]):
             if result.modified_count == 1:
                 document = self.database[self.collection].find_one({self.primary_key: id})
                 return True, self.DataModel(**from_document(document))
-            else:
-                return False, "Entity not found"
+            return False, "Entity not found"
         except Exception as e:
             return False, str(e)
 
@@ -123,24 +133,25 @@ class MongoDBStore(Store[T], Generic[T]):
 
     def select(
         self,
-        limit: int,
-        skip: int,
-        sort_key: str,
+        limit: int = 0,
+        skip: int = 0,
+        sort_key: str = None,
         sort_order=pymongo.DESCENDING,
         **kwargs,
     ) -> List[T]:
         cursor = self.database[self.collection].find(kwargs).sort(sort_key, sort_order).skip(skip or 0).limit(limit or 0)
 
-        result = [self.DataModel(**from_document(document)) for document in cursor]
-
-        return result
+        return [self.DataModel(**from_document(document)) for document in cursor]
 
     def count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
 
 class SQLStore(Store[T], Generic[T]):
-    def __init__(self, Session, primary_key: str, SQLModel: Type[MyAbstractBase], DataModel: Type[T]):
+    """Base SQL store implementation."""
+
+    def __init__(self, Session, primary_key: str, SQLModel: Type[MyAbstractBase], DataModel: Type[T]) -> None:
+        """Initialize SQLStore."""
         self.Session = Session
         self.primary_key = primary_key
         self.SQLModel = SQLModel
@@ -178,7 +189,7 @@ class SQLStore(Store[T], Generic[T]):
 
             return True, self.DataModel(**from_sqlalchemy_model(existing_item, self.SQLModel))
 
-    def delete(self, id) -> bool:
+    def delete(self, id: str) -> bool:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
             item = session.scalars(stmt).first()
@@ -219,13 +230,11 @@ class SQLStore(Store[T], Generic[T]):
 
             return result
 
-    def sql_count(self, **kwargs):
+    def count(self, **kwargs) -> int:
         with self.Session() as session:
             stmt = select(func.count()).select_from(self.SQLModel)
 
             for key, value in kwargs.items():
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-            count = session.scalar(stmt)
-
-            return count
+            return session.scalar(stmt)
