@@ -89,7 +89,7 @@ class DatabaseConnection:
             prediction_store = MongoDBPredictionStore(mdb, "control.predictions")
             round_store = MongoDBRoundStore(mdb, "control.rounds")
             package_store = MongoDBPackageStore(mdb, "control.packages")
-            model_store = MongoDBModelStore(mdb, "control.models")
+            model_store = MongoDBModelStore(mdb, "control.model")
             session_store = MongoDBSessionStore(mdb, "control.sessions")
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
 
