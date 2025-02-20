@@ -6,10 +6,14 @@ import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
 
-from fedn.network.storage.statestore.stores.shared import from_document
 from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase, from_sqlalchemy_model
 
 T = TypeVar("T")
+
+
+def from_document(document: dict) -> dict:
+    del document["_id"]
+    return document
 
 
 class Store(ABC, Generic[T]):
