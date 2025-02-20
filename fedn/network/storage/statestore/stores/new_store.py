@@ -139,7 +139,9 @@ class MongoDBStore(Store[T], Generic[T]):
         sort_order=pymongo.DESCENDING,
         **kwargs,
     ) -> List[T]:
-        cursor = self.database[self.collection].find(kwargs).sort(sort_key, sort_order).skip(skip or 0).limit(limit or 0)
+        _sort_key = sort_key or self.primary_key
+
+        cursor = self.database[self.collection].find(kwargs).sort(_sort_key, sort_order).skip(skip or 0).limit(limit or 0)
 
         return [self.DataModel(**from_document(document)) for document in cursor]
 
@@ -210,7 +212,7 @@ class SQLStore(Store[T], Generic[T]):
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
             _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-            _sort_key: str = sort_key or "committed_at"
+            _sort_key: str = sort_key or self.primary_key
 
             if _sort_key in self.SQLModel.__table__.columns:
                 sort_obj = self.SQLModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else self.SQLModel.__table__.columns.get(_sort_key).desc()
