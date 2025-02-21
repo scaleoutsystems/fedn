@@ -1,6 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Generic, List, Tuple, Type, TypeVar
+from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 
 import pymongo
 from pymongo.database import Database
@@ -91,42 +91,39 @@ class Store(ABC, Generic[T]):
         pass
 
 
-class MongoDBStore(Store[T], Generic[T]):
+class MongoDBStore:
     """Base MongoDB store implementation."""
 
-    def __init__(self, database: Database, collection: str, primary_key: str, DataModel: Type[T]) -> None:
+    def __init__(self, database: Database, collection: str, primary_key: str) -> None:
         """Initialize MongoDBStore."""
         self.database = database
         self.collection = collection
         self.primary_key = primary_key
-        self.DataModel = DataModel
         self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)], unique=True)
 
-    def get(self, id: str) -> T:
+    def get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
             return None
-        return self.DataModel(**from_document(document))
+        return document
 
-    def add(self, item: T) -> Tuple[bool, Any]:
+    def add(self, item: Dict) -> Tuple[bool, Any]:
         try:
-            item_dict = item.to_dict(exclude_unset=False)
-            if self.primary_key not in item_dict:
-                item_dict[self.primary_key] = str(uuid.uuid4())
-            self.database[self.collection].insert_one(item_dict)
-            document = self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]})
-            return True, self.DataModel(**from_document(document))
+            if self.primary_key not in item:
+                item[self.primary_key] = str(uuid.uuid4())
+            self.database[self.collection].insert_one(item)
+            document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
+            return True, document
         except Exception as e:
             return False, str(e)
 
-    def update(self, item: T) -> Tuple[bool, Any]:
+    def update(self, item: Dict) -> Tuple[bool, Any]:
         try:
-            item_dict = item.to_dict()
-            id = item_dict[self.primary_key]
-            result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
+            id = item[self.primary_key]
+            result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item})
             if result.modified_count == 1:
                 document = self.database[self.collection].find_one({self.primary_key: id})
-                return True, self.DataModel(**from_document(document))
+                return True, document
             return False, "Entity not found"
         except Exception as e:
             return False, str(e)
@@ -142,58 +139,53 @@ class MongoDBStore(Store[T], Generic[T]):
         sort_key: str = None,
         sort_order=pymongo.DESCENDING,
         **kwargs,
-    ) -> List[T]:
+    ) -> List[Dict]:
         _sort_key = sort_key or self.primary_key
 
         cursor = self.database[self.collection].find(kwargs).sort(_sort_key, sort_order).skip(skip or 0).limit(limit or 0)
 
-        return [self.DataModel(**from_document(document)) for document in cursor]
+        return [document for document in cursor]
 
     def count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
 
-class SQLStore(Store[T], Generic[T]):
+class SQLStore(Generic[T]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session, primary_key: str, SQLModel: Type[MyAbstractBase], DataModel: Type[T]) -> None:
+    def __init__(self, Session, primary_key: str, SQLModel: Type[T]) -> None:
         """Initialize SQLStore."""
         self.Session = Session
         self.primary_key = primary_key
         self.SQLModel = SQLModel
-        self.DataModel = DataModel
 
     def get(self, id: str) -> T:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
-            item = session.scalars(stmt).first()
-            if item is None:
-                return None
-            return self.DataModel(**from_sqlalchemy_model(item, self.SQLModel))
+            return session.scalars(stmt).first()
 
-    def add(self, item: T) -> Tuple[bool, Any]:
+    def add(self, entity: T) -> Tuple[bool, Any]:
         with self.Session() as session:
-            entity = self.SQLModel(**item.to_dict(exclude_unset=False))
             if not getattr(entity, self.primary_key):
                 setattr(entity, self.primary_key, str(uuid.uuid4()))
             session.add(entity)
             session.commit()
 
-            return True, self.DataModel(**from_sqlalchemy_model(entity, self.SQLModel))
+            return True, entity
 
-    def update(self, item: T) -> Tuple[bool, Any]:
+    def update(self, item: Dict) -> Tuple[bool, Any]:
         with self.Session() as session:
-            stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == getattr(item, self.primary_key))
+            stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == item[self.primary_key])
             existing_item = session.scalars(stmt).first()
 
             if existing_item is None:
                 return False, "Item not found"
-            for key, value in item.to_dict().items():
+            for key, value in item.items():
                 setattr(existing_item, key, value)
 
             session.commit()
 
-            return True, self.DataModel(**from_sqlalchemy_model(existing_item, self.SQLModel))
+            return True, existing_item
 
     def delete(self, id: str) -> bool:
         with self.Session() as session:
@@ -228,13 +220,7 @@ class SQLStore(Store[T], Generic[T]):
             elif skip:
                 stmt = stmt.offset(skip)
 
-            items = session.scalars(stmt).all()
-
-            result = []
-            for item in items:
-                result.append(self.DataModel(**from_sqlalchemy_model(item, self.SQLModel)))
-
-            return result
+            return session.scalars(stmt).all()
 
     def count(self, **kwargs) -> int:
         with self.Session() as session:

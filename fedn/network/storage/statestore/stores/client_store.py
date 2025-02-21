@@ -6,7 +6,7 @@ from pymongo.database import Database
 from sqlalchemy import func, select
 
 from fedn.network.storage.statestore.stores.dto import Client
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document, from_sqlalchemy_model
 from fedn.network.storage.statestore.stores.sql.shared import ClientModel
 
 
@@ -29,27 +29,39 @@ class ClientStore(Store[Client]):
         pass
 
 
-class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
+class MongoDBClientStore(ClientStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection, "client_id", Client)
+        super().__init__(database, collection, "client_id")
 
     def get(self, client_id: str) -> Client:
-        return super().get(client_id)
+        entity = MongoDBStore.get(self, client_id)
+        if entity is None:
+            return None
+        return Client(**from_document(entity))
 
     def add(self, item: Client) -> Tuple[bool, Any]:
-        return super().add(item)
+        item_dict = item.to_dict(exclude_unset=False)
+        success, obj = MongoDBStore.add(self, item_dict)
+        if success:
+            return success, Client(**from_document(obj))
+        return success, obj
 
     def update(self, item: Client) -> Tuple[bool, Any]:
-        return super().update(item)
+        item_dict = item.to_dict()
+        success, obj = MongoDBStore.update(self, item_dict)
+        if success:
+            return success, Client(**from_document(obj))
+        return success, obj
 
     def delete(self, client_id: str) -> bool:
-        return super().delete(client_id)
+        return MongoDBStore.delete(self, client_id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[Client]:
-        return super().select(limit, skip, sort_key, sort_order, **filter_kwargs)
+        entites = MongoDBStore.select(self, limit, skip, sort_key, sort_order, **filter_kwargs)
+        return [Client(**from_document(entity)) for entity in entites]
 
     def count(self, **kwargs) -> int:
-        return super().count(**kwargs)
+        return MongoDBStore.count(self, **kwargs)
 
     def connected_client_count(self, combiners: List[str]) -> List:
         try:
@@ -74,27 +86,39 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
         return result
 
 
-class SQLClientStore(ClientStore, SQLStore[Client]):
+class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def __init__(self, Session):
-        super().__init__(Session, "client_id", ClientModel, Client)
+        super().__init__(Session, "client_id", ClientModel)
 
     def get(self, id: str) -> Client:
-        return super().get(id)
+        with self.Session():
+            entity = SQLStore.get(self, id)
+            if entity is None:
+                return None
+            return Client(**from_sqlalchemy_model(entity, ClientModel))
 
     def add(self, item: Client) -> Tuple[bool, Any]:
-        return super().add(item)
+        with self.Session():
+            entity = ClientModel(**item.to_dict(exclude_unset=False))
+            return SQLStore.add(self, entity)
 
     def update(self, item: Client) -> Tuple[bool, Any]:
-        return super().update(item)
+        with self.Session():
+            success, obj = SQLStore.update(self, item.to_dict())
+            if success:
+                return success, Client(**from_sqlalchemy_model(obj, ClientModel))
+            return success, obj
 
     def delete(self, id) -> bool:
-        return super().delete(id)
+        return SQLStore.delete(self, id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[Client]:
-        return super().select(limit, skip, sort_key, sort_order, **kwargs)
+        with self.Session():
+            entities = SQLStore.select(self, limit, skip, sort_key, sort_order, **kwargs)
+            return [Client(**from_sqlalchemy_model(item, ClientModel)) for item in entities]
 
     def count(self, **kwargs):
-        return super().count(**kwargs)
+        return SQLStore.count(self, **kwargs)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:
