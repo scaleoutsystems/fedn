@@ -156,8 +156,7 @@ if __name__ == "__main__":
         processes.append(p)
 
         # Sample a delay until the client starts
-        t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
-        time.sleep(t_start)
+        time.sleep(settings["CLIENTS_MAX_DELAY"])
 
         p.start()
 
