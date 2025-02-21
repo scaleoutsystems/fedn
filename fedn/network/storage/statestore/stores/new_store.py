@@ -157,74 +157,68 @@ class SQLStore(Generic[T]):
         self.primary_key = primary_key
         self.SQLModel = SQLModel
 
-    def get(self, id: str) -> T:
-        with self.Session() as session:
-            stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
-            return session.scalars(stmt).first()
+    def get(self, session, id: str) -> T:
+        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
+        return session.scalars(stmt).first()
 
-    def add(self, entity: T) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            if not getattr(entity, self.primary_key):
-                setattr(entity, self.primary_key, str(uuid.uuid4()))
-            session.add(entity)
-            session.commit()
+    def add(self, session, entity: T) -> Tuple[bool, Any]:
+        if not getattr(entity, self.primary_key):
+            setattr(entity, self.primary_key, str(uuid.uuid4()))
+        session.add(entity)
+        session.commit()
 
-            return True, entity
+        return True, entity
 
-    def update(self, item: Dict) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == item[self.primary_key])
-            existing_item = session.scalars(stmt).first()
+    def update(self, session, item: Dict) -> Tuple[bool, Any]:
+        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == item[self.primary_key])
+        existing_item = session.scalars(stmt).first()
 
-            if existing_item is None:
-                return False, "Item not found"
-            for key, value in item.items():
-                setattr(existing_item, key, value)
+        if existing_item is None:
+            return False, "Item not found"
+        for key, value in item.items():
+            setattr(existing_item, key, value)
 
-            session.commit()
+        session.commit()
 
-            return True, existing_item
+        return True, existing_item
 
-    def delete(self, id: str) -> bool:
-        with self.Session() as session:
-            stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
-            item = session.scalars(stmt).first()
+    def delete(self, session, id: str) -> bool:
+        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
+        item = session.scalars(stmt).first()
 
-            if item is None:
-                return False
+        if item is None:
+            return False
 
-            session.delete(item)
-            session.commit()
+        session.delete(item)
+        session.commit()
 
-            return True
+        return True
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
-        with self.Session() as session:
-            stmt = select(self.SQLModel)
+    def select(self, session, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+        stmt = select(self.SQLModel)
 
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(self.SQLModel, key) == value)
+        for key, value in kwargs.items():
+            stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-            _sort_key: str = sort_key or self.primary_key
+        _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+        _sort_key: str = sort_key or self.primary_key
 
-            if _sort_key in self.SQLModel.__table__.columns:
-                sort_obj = self.SQLModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else self.SQLModel.__table__.columns.get(_sort_key).desc()
+        if _sort_key in self.SQLModel.__table__.columns:
+            sort_obj = self.SQLModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else self.SQLModel.__table__.columns.get(_sort_key).desc()
 
-                stmt = stmt.order_by(sort_obj)
+            stmt = stmt.order_by(sort_obj)
 
-            if limit:
-                stmt = stmt.offset(skip or 0).limit(limit)
-            elif skip:
-                stmt = stmt.offset(skip)
+        if limit:
+            stmt = stmt.offset(skip or 0).limit(limit)
+        elif skip:
+            stmt = stmt.offset(skip)
 
-            return session.scalars(stmt).all()
+        return session.scalars(stmt).all()
 
-    def count(self, **kwargs) -> int:
-        with self.Session() as session:
-            stmt = select(func.count()).select_from(self.SQLModel)
+    def count(self, session, **kwargs) -> int:
+        stmt = select(func.count()).select_from(self.SQLModel)
 
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(self.SQLModel, key) == value)
+        for key, value in kwargs.items():
+            stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-            return session.scalar(stmt)
+        return session.scalar(stmt)

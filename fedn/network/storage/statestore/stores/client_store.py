@@ -91,37 +91,39 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
         super().__init__(Session, "client_id", ClientModel)
 
     def get(self, id: str) -> Client:
-        with self.Session():
-            entity = SQLStore.get(self, id)
+        with self.Session() as session:
+            entity = SQLStore.get(self, session, id)
             if entity is None:
                 return None
             return Client(**from_sqlalchemy_model(entity, ClientModel))
 
     def add(self, item: Client) -> Tuple[bool, Any]:
-        with self.Session():
+        with self.Session() as session:
             entity = ClientModel(**item.to_dict(exclude_unset=False))
-            success, obj = SQLStore.add(self, entity)
+            success, obj = SQLStore.add(self, session, entity)
             if success:
                 return success, Client(**from_sqlalchemy_model(obj, ClientModel))
             return success, obj
 
     def update(self, item: Client) -> Tuple[bool, Any]:
-        with self.Session():
-            success, obj = SQLStore.update(self, item.to_dict())
+        with self.Session() as session:
+            success, obj = SQLStore.update(self, session, item.to_dict())
             if success:
                 return success, Client(**from_sqlalchemy_model(obj, ClientModel))
             return success, obj
 
     def delete(self, id) -> bool:
-        return SQLStore.delete(self, id)
+        with self.Session() as session:
+            return SQLStore.delete(self, session, id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[Client]:
-        with self.Session():
-            entities = SQLStore.select(self, limit, skip, sort_key, sort_order, **kwargs)
+        with self.Session() as session:
+            entities = SQLStore.select(self, session, limit, skip, sort_key, sort_order, **kwargs)
             return [Client(**from_sqlalchemy_model(item, ClientModel)) for item in entities]
 
     def count(self, **kwargs):
-        return SQLStore.count(self, **kwargs)
+        with self.Session() as session:
+            return SQLStore.count(self, session, **kwargs)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:
