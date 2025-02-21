@@ -100,7 +100,10 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def add(self, item: Client) -> Tuple[bool, Any]:
         with self.Session():
             entity = ClientModel(**item.to_dict(exclude_unset=False))
-            return SQLStore.add(self, entity)
+            success, obj = SQLStore.add(self, entity)
+            if success:
+                return success, Client(**from_sqlalchemy_model(obj, ClientModel))
+            return success, obj
 
     def update(self, item: Client) -> Tuple[bool, Any]:
         with self.Session():
