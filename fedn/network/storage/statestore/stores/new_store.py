@@ -138,9 +138,17 @@ class MongoDBStore:
         sort_order=pymongo.DESCENDING,
         **kwargs,
     ) -> List[Dict]:
-        _sort_key = sort_key or self.primary_key
-
-        cursor = self.database[self.collection].find(kwargs).sort(_sort_key, sort_order).skip(skip or 0).limit(limit or 0)
+        _sort_order = sort_order or pymongo.DESCENDING
+        if sort_key and sort_key != self.primary_key:
+            cursor = (
+                self.database[self.collection]
+                .find(kwargs)
+                .sort({sort_key: _sort_order, self.primary_key: pymongo.DESCENDING})
+                .skip(skip or 0)
+                .limit(limit or 0)
+            )
+        else:
+            cursor = self.database[self.collection].find(kwargs).sort(self.primary_key, pymongo.DESCENDING).skip(skip or 0).limit(limit or 0)
 
         return [document for document in cursor]
 
@@ -200,13 +208,15 @@ class SQLStore(Generic[T]):
         for key, value in kwargs.items():
             stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-        _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-        _sort_key: str = sort_key or self.primary_key
+        _sort_order = sort_order or pymongo.DESCENDING
+        if sort_key and sort_key != self.primary_key and sort_key in self.SQLModel.__table__.columns:
+            sort_obj = self.SQLModel.__table__.columns.get(sort_key)
+            if _sort_order == pymongo.DESCENDING:
+                sort_obj = sort_obj.desc()
 
-        if _sort_key in self.SQLModel.__table__.columns:
-            sort_obj = self.SQLModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else self.SQLModel.__table__.columns.get(_sort_key).desc()
-
-            stmt = stmt.order_by(sort_obj)
+            stmt = stmt.order_by(sort_obj, self.SQLModel.__table__.columns.get(self.primary_key).desc())
+        else:
+            stmt = stmt.order_by(self.SQLModel.__table__.columns.get(self.primary_key).desc())
 
         if limit:
             stmt = stmt.offset(skip or 0).limit(limit)
