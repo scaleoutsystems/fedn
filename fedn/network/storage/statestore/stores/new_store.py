@@ -6,8 +6,6 @@ import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
 
-from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase, from_sqlalchemy_model
-
 T = TypeVar("T")
 
 

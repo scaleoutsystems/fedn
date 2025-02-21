@@ -6,8 +6,8 @@ from pymongo.database import Database
 from sqlalchemy import func, select
 
 from fedn.network.storage.statestore.stores.dto import Client
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document, from_sqlalchemy_model
-from fedn.network.storage.statestore.stores.sql.shared import ClientModel
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
+from fedn.network.storage.statestore.stores.sql.shared import ClientModel, from_sqlalchemy_model
 
 
 class ClientStore(Store[Client]):
