@@ -118,9 +118,6 @@ def run_client(online_for=120, name="client", client_id=None):
 
     # for i in range(settings["N_CYCLES"]):
     # while True:
-    # Sample a delay until the client starts
-    t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
-    time.sleep(t_start)
 
     fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
     fl_client.set_name(name)
@@ -157,7 +154,13 @@ if __name__ == "__main__":
             ),
         )
         processes.append(p)
+
+        # Sample a delay until the client starts
+        t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
+        time.sleep(t_start)
+
         p.start()
+
 
     for p in processes:
         p.join()
