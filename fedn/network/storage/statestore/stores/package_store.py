@@ -10,7 +10,8 @@ from sqlalchemy import String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 
 def from_document(data: dict, active_package: dict):

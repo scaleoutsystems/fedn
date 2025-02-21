@@ -5,7 +5,8 @@ from pymongo.database import Database
 from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 
 class Validation:

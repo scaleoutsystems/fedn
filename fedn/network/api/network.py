@@ -5,6 +5,7 @@ from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto import Client
 
 __all__ = ("Network",)
 
@@ -85,7 +86,8 @@ class Network:
         # TODO: Implement strategy to handle an unavailable combiner.
         logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
 
-    def add_client(self, client):
+    # TODO: This method is not used in the current version of FEDn.
+    def add_client(self, client: Client):
         """Add a new client to the network.
 
         :param client: The client instance object
@@ -95,9 +97,10 @@ class Network:
         if self.get_client(client["client_id"]):
             return
 
-        logger.info("adding client {}".format(client["client_id"]))
-        self.client_store.upsert(client)
+        logger.info("adding client {}".format(client.to_dict()))
+        self.client_store.add(client)
 
+    # TODO: This method is not used in the current version of FEDn.
     def get_client(self, client_id: str):
         """Get client by client_id.
 
@@ -111,11 +114,3 @@ class Network:
             return client
         except Exception:
             return None
-
-    def get_client_info(self):
-        """List available client in statestore.
-
-        :return: list of client objects
-        :rtype: list(ObjectId)
-        """
-        return self.client_store.list(limit=0, skip=0, sort_key=None)
