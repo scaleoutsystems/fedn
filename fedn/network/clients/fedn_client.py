@@ -123,6 +123,7 @@ class FednClient:
                 allow_redirects=True,
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
                 timeout=REQUEST_TIMEOUT,
+                verify=False
             )
 
             if response.status_code == HTTP_STATUS_OK:

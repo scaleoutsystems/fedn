@@ -73,10 +73,11 @@ class GrpcHandler:
 
     def _init_channel(self, host: str, port: int, token: str) -> None:
         """Initialize the GRPC channel."""
-        if port == GRPC_SECURE_PORT:
-            self._init_secure_channel(host, port, token)
-        else:
-            self._init_insecure_channel(host, port)
+        # if port == GRPC_SECURE_PORT:
+        logger.warning("Initializing insecure channel.")
+        self._init_secure_channel(host, port, token)
+        # else:
+        #     self._init_insecure_channel(host, port)
 
     def _init_secure_channel(self, host: str, port: int, token: str) -> None:
         """Initialize a secure GRPC channel."""
