@@ -37,23 +37,6 @@ GRPC_OPTIONS = [
 GRPC_SECURE_PORT = 443
 
 
-class AuthInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.UnaryStreamClientInterceptor):
-    def __init__(self, token: str):
-        self.token = token
-
-    def _add_auth_metadata(self, continuation, client_call_details, request):
-        metadata = client_call_details.metadata or []
-        metadata.append(('authorization', f'Bearer {self.token}'))
-        new_call_details = client_call_details._replace(metadata=metadata)
-        return continuation(new_call_details, request)
-
-    def intercept_unary_unary(self, continuation, client_call_details, request):
-        return self._add_auth_metadata(continuation, client_call_details, request)
-
-    def intercept_unary_stream(self, continuation, client_call_details, request):
-        return self._add_auth_metadata(continuation, client_call_details, request)
-
-
 class GrpcAuth(grpc.AuthMetadataPlugin):
     """GRPC authentication plugin."""
 
@@ -90,14 +73,10 @@ class GrpcHandler:
 
     def _init_channel(self, host: str, port: int, token: str) -> None:
         """Initialize the GRPC channel."""
-        # if port == GRPC_SECURE_PORT:
-        logger.warning("Initializing insecure channel.")
-        self._init_secure_channel(host, port, token)
-        # else:
-        print("_____")
-        print(host)
-        print(port)
-        # self._init_insecure_channel(host, port, token)
+        if port == GRPC_SECURE_PORT:
+            self._init_secure_channel(host, port, token)
+        else:
+            self._init_insecure_channel(host, port)
 
     def _init_secure_channel(self, host: str, port: int, token: str) -> None:
         """Initialize a secure GRPC channel."""
@@ -119,18 +98,14 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-
-
-    def _init_insecure_channel(self, host: str, port: int, token: str) -> None:
+    def _init_insecure_channel(self, host: str, port: int) -> None:
         """Initialize an insecure GRPC channel."""
         url = f"{host}:{port}"
-        logger.info(f"Connecting (GRPC) to {url} with authentication")
-
-        self.channel = grpc.insecure_channel(url, options=GRPC_OPTIONS)
-
-        # Attach the authentication interceptor
-        interceptor = AuthInterceptor(token)
-        self.channel = grpc.intercept_channel(self.channel, interceptor)
+        logger.info(f"Connecting (GRPC) to {url}")
+        self.channel = grpc.insecure_channel(
+            url,
+            options=GRPC_OPTIONS,
+        )
 
     def heartbeat(self, client_name: str, client_id: str) -> fedn.Response:
         """Send a heartbeat to the combiner.
