@@ -117,13 +117,14 @@ class FednClient:
         logger.info(f"Connecting to API endpoint: {url_endpoint}")
 
         try:
+            verify = os.environ.get("FEDN_CONNECT_API_SECURE", True)
             response = requests.post(
                 url=url_endpoint,
                 json=json,
                 allow_redirects=True,
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
                 timeout=REQUEST_TIMEOUT,
-                verify=False
+                verify=verify
             )
 
             if response.status_code == HTTP_STATUS_OK:
