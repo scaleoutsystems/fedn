@@ -117,7 +117,7 @@ class FednClient:
         logger.info(f"Connecting to API endpoint: {url_endpoint}")
 
         try:
-            verify = os.environ.get("FEDN_CONNECT_API_SECURE", True)
+            verify = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lower() == "true"
             response = requests.post(
                 url=url_endpoint,
                 json=json,

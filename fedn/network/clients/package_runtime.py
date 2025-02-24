@@ -52,7 +52,7 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/download?name={name}" if name else f"{url}/api/v1/packages/download"
-            verify = os.environ.get("FEDN_CONNECT_API_SECURE", True)
+            verify = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lower() == "true"
             with requests.get(path, stream=True, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}, verify=verify) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     params = cgi.parse_header(r.headers.get("Content-Disposition", ""))[-1]
@@ -81,7 +81,7 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/checksum?name={name}" if name else f"{url}/api/v1/packages/checksum"
-            verify = os.environ.get("FEDN_CONNECT_API_SECURE", True)
+            verify = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lower() == "true"
             with requests.get(path, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}, verify=verify) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     data = r.json()
