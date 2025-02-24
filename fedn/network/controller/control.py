@@ -553,31 +553,6 @@ class Control(ControlBase):
         participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
         _ = self.request_model_updates(participating_combiners)
 
-        # time.sleep(1) # TODO: this is an easy hack for now. There needs to be some waiting time for the backward pass to complete.
-        # the above mechanism cannot be used, as the backward pass is not producing any model updates (unlike the forward pass)
-
-        # Add check for backward completion
-        def check_backward_done():
-            events = self.statestore.get_events(
-                status="finished_backward",
-                type="BACKWARD",
-                sessionId=session_config["session_id"]
-            )
-            return events["count"] >= len(round["combiners"])
-
-        # Wait for backward pass completion with timeout
-        start_time = time.time()
-        timeout = float(session_config["round_timeout"])  # or get from config
-        while time.time() - start_time < timeout:
-            if check_backward_done():
-                logger.info("CONTROLLER: Backward pass completed.")
-                break
-            time.sleep(0.1)
-        else:
-            logger.error("Backward pass timed out")
-            self.set_round_status(round_id, "Failed")
-            return None, self.statestore.get_round(round_id)
-    
         logger.info("CONTROLLER: Backward pass completed.")
 
         # Record round completion

@@ -277,22 +277,22 @@ class RoundHandler:
         meta["nr_required_updates"] = int(config["clients_required"])
         meta["timeout"] = float(config["round_timeout"])
 
+        # Clear previous backward completions queue
+        self.update_handler.clear_backward_completions()
+
         # Request backward pass from all active clients.
         logger.info("ROUNDHANDLER: Requesting backward pass, gradient_id: {}".format(config["model_id"]))
 
         self.server.request_backward_pass(session_id=config["session_id"], gradient_id=config["model_id"], config=config, clients=clients)
 
-        # time.sleep(1)
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
+        if int(config["buffer_size"]) == -1:
+            buffer_size = len(clients)
+        else:
+            buffer_size = int(config["buffer_size"])
 
-        # Wait for backward completions
-        start_time = time.time()
-        while time.time() - start_time < meta["timeout"]:
-            completion_status = self.server.statestore.check_backward_completion(config["session_id"], meta["nr_required_updates"])
-            if completion_status:
-                logger.info("All required clients completed backward pass")
-                return meta
-            time.sleep(0.1)
-        logger.warning("Timeout waiting for backward pass completion")
+        self.update_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
+
         return meta
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):

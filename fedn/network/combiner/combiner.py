@@ -851,7 +851,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Received BackwardCompletion from {}".format(request.sender.name))
 
-        ########### TODO checking if this works
+        # Add completion to the queue
+        self.round_handler.update_handler.backward_completions.put(request)
 
         # Create and send status message for backward completion
         status = fedn.Status()
