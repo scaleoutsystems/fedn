@@ -1,3 +1,5 @@
+"""Client commands for the CLI."""
+
 import os
 import uuid
 
@@ -16,21 +18,20 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
 
 
-def validate_client_config(config):
+def validate_client_config(config: dict) -> None:
     """Validate client configuration.
 
     :param config: Client config (dict).
     """
     try:
-        if config["discover_host"] is None or config["discover_host"] == "":
-            if config["combiner"] is None or config["combiner"] == "":
-                raise InvalidClientConfig("Missing required configuration: discover_host or combiner")
-        if "discover_port" not in config.keys():
+        if (config["discover_host"] is None or config["discover_host"] == "") and (config["combiner"] is None or config["combiner"] == ""):
+            raise InvalidClientConfig("Missing required configuration: discover_host or combiner")
+        if "discover_port" not in config:
             config["discover_port"] = None
         if config["remote_compute_context"] and config["discover_host"] is None:
             raise InvalidClientConfig("Remote compute context requires discover_host")
-    except Exception:
-        raise InvalidClientConfig("Could not load config from file. Check config")
+    except Exception as e:
+        raise InvalidClientConfig("Could not load config from file. Check config") from e
 
 
 @main.group("client")
@@ -151,7 +152,12 @@ def _validate_client_params(config: dict):
     return True
 
 
-def _complement_client_params(config: dict):
+def _complement_client_params(config: dict) -> None:
+    """Ensures that the 'api_url' in the provided configuration dictionary has a protocol (http or https).
+
+    If the 'api_url' does not start with 'http://' or 'https://', it will prepend 'http://' if the URL contains
+    'localhost' or '127.0.0.1'. Otherwise, it will prepend 'https://'.
+    """
     api_url = config["api_url"]
     if not api_url.startswith("http://") and not api_url.startswith("https://"):
         if "localhost" in api_url or "127.0.0.1" in api_url:
