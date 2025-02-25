@@ -7,7 +7,7 @@ from typing import Optional, Tuple
 
 import requests
 
-from fedn.common.config import FEDN_AUTH_SCHEME
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE
 from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
@@ -52,8 +52,11 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/download?name={name}" if name else f"{url}/api/v1/packages/download"
-
-            with requests.get(path, stream=True, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
+            with requests.get(path,
+                              stream=True,
+                              timeout=REQUEST_TIMEOUT,
+                              headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
+                              verify=FEDN_CONNECT_API_SECURE) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     params = cgi.parse_header(r.headers.get("Content-Disposition", ""))[-1]
                     try:
@@ -81,8 +84,10 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/checksum?name={name}" if name else f"{url}/api/v1/packages/checksum"
-
-            with requests.get(path, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
+            with requests.get(path,
+                              timeout=REQUEST_TIMEOUT,
+                              headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
+                              verify=FEDN_CONNECT_API_SECURE) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     data = r.json()
                     try:
