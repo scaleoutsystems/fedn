@@ -50,7 +50,7 @@ def client_cmd(ctx):
 @client_cmd.command("get-config")
 @click.pass_context
 def create_client(ctx, path: str, protocol: str, host: str, token: str = None, name: str = None, group: int = None):
-    """Return: \n
+    r"""Return: \n
     ------ \n
     client config file(s) with following content: \n
     client_id: uuid \n
@@ -118,7 +118,7 @@ def create_client(ctx, path: str, protocol: str, host: str, token: str = None, n
 @client_cmd.command("list")
 @click.pass_context
 def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    """Return: \n
+    r"""Return: \n
     ------ \n
     - count: number of clients \n
     - result: list of clients \n
@@ -140,7 +140,7 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @client_cmd.command("get")
 @click.pass_context
 def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
-    """Return: \n
+    r"""Return: \n
     ------ \n
     - result: client with given id \n
     """
