@@ -27,7 +27,7 @@ class BaseDTO:
 
     def model_dump(self, exclude_unset: bool = False) -> Dict[str, Any]:
         result = {}
-        for k in self.__class__.get_all_fields():
+        for k in self.__class__.get_all_fieldnames():
             v = super().__getattribute__(k)
             if isinstance(v, Field):
                 if not exclude_unset:
@@ -56,7 +56,7 @@ class BaseDTO:
 
         This method is used to apply a dictionary to the model ignoring any extra keys but requires all fields to be present.
         """
-        for k in self.__class__.get_all_fields():
+        for k in self.__class__.get_all_fieldnames():
             if k in value_dict:
                 setattr(self, k, value_dict[k])
             else:
@@ -64,7 +64,7 @@ class BaseDTO:
         return self
 
     @classmethod
-    def get_all_fields(cls) -> Dict[str, Any]:
+    def get_all_fieldnames(cls) -> Dict[str, Any]:
         """Get all fields of the class and its superclasses."""
         keys = []
         for base in cls.__mro__:
