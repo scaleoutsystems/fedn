@@ -1,9 +1,9 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseModel, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
 
 
-class ModelDTO(BaseModel):
+class ModelDTO(BaseDTO):
     """Model data transfer object."""
 
     model_id: Optional[str] = Field(None)

@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseModel, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
 
 
-class Client(BaseModel):
+class ClientDTO(BaseDTO):
     """Client data transfer object."""
 
     client_id: Optional[str] = Field(None)

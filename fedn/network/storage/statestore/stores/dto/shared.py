@@ -11,8 +11,8 @@ class Field:
         self.default_value = default_value
 
 
-class BaseModel:
-    """BaseModel for Data Transfer Objects."""
+class BaseDTO:
+    """BaseDTO for Data Transfer Objects."""
 
     def __init__(self, **kwargs) -> None:
         """Initialize BaseModel."""

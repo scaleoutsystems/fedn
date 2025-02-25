@@ -19,7 +19,7 @@ from fedn.common.log_config import logger, set_log_level_from_string, set_log_st
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
-from fedn.network.storage.statestore.stores.dto import Client
+from fedn.network.storage.statestore.stores.dto import ClientDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -687,7 +687,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 client_to_update.last_seen = datetime.now()
                 success, result = client_store.commit(client_to_update)
             else:
-                new_client = Client(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
+                new_client = ClientDTO(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
                 success, result = client_store.add(new_client)
 
             if not success:

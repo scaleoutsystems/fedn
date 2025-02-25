@@ -5,7 +5,7 @@ from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
-from fedn.network.storage.statestore.stores.dto import Client
+from fedn.network.storage.statestore.stores.dto import ClientDTO
 
 __all__ = ("Network",)
 
@@ -87,7 +87,7 @@ class Network:
         logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
 
     # TODO: This method is not used in the current version of FEDn.
-    def add_client(self, client: Client):
+    def add_client(self, client: ClientDTO):
         """Add a new client to the network.
 
         :param client: The client instance object
