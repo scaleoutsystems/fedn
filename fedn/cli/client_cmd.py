@@ -88,15 +88,26 @@ def create_client(ctx, path: str, protocol: str, host: str, token: str = None, n
             "refresh_token": response_json.get("refresh"),
             "token": response_json.get("access"),
         }
+        click.echo(f"{i}: Generating client config: {client_data}")
         try:
             if path:
-                with open(f"{path}/{name}_{i}.yaml", "w") as yaml_file:
-                    yaml.dump(client_data, yaml_file, default_flow_style=False)
+                current_path = os.path.abspath(path)
+                if not os.path.exists(current_path):
+                    click.echo(f"Path does not exist: {current_path}")
+                    click.echo(f"Creating path: {current_path}")
+                    os.makedirs(current_path)
+                current_path = os.path.join(current_path, f"{name}_{i}.yaml")
             else:
-                with open(f"{name}_{i}.yaml", "w") as yaml_file:
-                    yaml.dump(client_data, yaml_file, default_flow_style=False)
+                current_path = os.path.join(os.getcwd(), f"{name}_{i}.yaml")
+
+            with open(current_path, "w") as yaml_file:
+                yaml.dump(client_data, yaml_file, default_flow_style=False)
+                click.echo(f"{i}: Client config file saved to: {current_path}")
+            current_path = ""
+        except PermissionError as e:
+            click.echo(f"Error: Permission denied. Details: {e}", fg="red")
         except Exception as e:
-            print(f"Error: Failed to write to YAML file. Details: {e}")
+            print(f"Error: Failed to write to YAML file. Details: {e}", fg="red")
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
