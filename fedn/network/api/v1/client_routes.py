@@ -5,6 +5,7 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.storage.statestore.stores.dto import Client
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
@@ -113,7 +114,9 @@ def get_clients():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -195,7 +198,10 @@ def list_clients():
     try:
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+
+        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -354,10 +360,10 @@ def get_client(id: str):
                         type: string
     """
     try:
-        response = client_store.get(id)
-        if response is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
+        client = client_store.get(id)
+        if client is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = client.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -399,7 +405,7 @@ def delete_client(id: str):
     try:
         result: bool = client_store.delete(id)
         if result is False:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         msg = "Client deleted" if result else "Client not deleted"
 
@@ -486,17 +492,18 @@ def add_client():
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
-        client_config = {
-            "client_id": client_id,
-            "name": name,
-            "combiner_preferred": preferred_combiner,
-            "combiner": combiner.name,
-            "ip": remote_addr,
-            "status": "available",
-            "package": package,
-        }
-
-        control.network.add_client(client_config)
+        if client_store.get(client_id) is not None:
+            logger.info("adding client {}".format(client_id))
+            new_client = Client(
+                client_id=client_id,
+                name=name,
+                combiner=combiner.name,
+                combiner_preferred=preferred_combiner,
+                ip=remote_addr,
+                status="available",  # TODO: Should be "online"?
+                package=package,
+            )
+            client_store.add(new_client)
 
         payload = {
             "status": "assigned",
