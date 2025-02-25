@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import aliased
 
 from fedn.network.storage.statestore.stores.dto import ModelDTO
