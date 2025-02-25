@@ -12,6 +12,7 @@ from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -273,18 +274,13 @@ class ControlBase(ABC):
         if active_model and session_id:
             parent_model = active_model
 
-        committed_at = datetime.now()
+        new_model = ModelDTO()
+        new_model.model_id = model_id
+        new_model.parent_model = parent_model
+        new_model.session_id = session_id
+        new_model.name = name
 
-        updated, _ = self.model_store.add(
-            {
-                "key": "models",
-                "model": model_id,
-                "parent_model": parent_model,
-                "session_id": session_id,
-                "committed_at": committed_at,
-                "name": name,
-            }
-        )
+        updated, _ = self.model_store.add(new_model)
 
         if not updated:
             raise Exception("Failed to commit model to global model trail")

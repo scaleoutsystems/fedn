@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 
 from fedn.network.storage.statestore.stores.dto import Client
 from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
-from fedn.network.storage.statestore.stores.sql.shared import ClientModel, from_sqlalchemy_model
+from fedn.network.storage.statestore.stores.sql.shared import ClientModel, from_orm_model
 
 
 class ClientStore(Store[Client]):
@@ -37,20 +37,20 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
         entity = MongoDBStore.get(self, client_id)
         if entity is None:
             return None
-        return Client(**from_document(entity))
+        return self._dto_from_document(entity)
 
     def add(self, item: Client) -> Tuple[bool, Any]:
         item_dict = item.to_dict(exclude_unset=False)
         success, obj = MongoDBStore.add(self, item_dict)
         if success:
-            return success, Client(**from_document(obj))
+            return success, self._dto_from_document(obj)
         return success, obj
 
     def update(self, item: Client) -> Tuple[bool, Any]:
         item_dict = item.to_dict()
         success, obj = MongoDBStore.update(self, item_dict)
         if success:
-            return success, Client(**from_document(obj))
+            return success, self._dto_from_document(obj)
         return success, obj
 
     def delete(self, client_id: str) -> bool:
@@ -58,7 +58,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[Client]:
         entites = MongoDBStore.select(self, limit, skip, sort_key, sort_order, **filter_kwargs)
-        return [Client(**from_document(entity)) for entity in entites]
+        return [self._dto_from_document(entity) for entity in entites]
 
     def count(self, **kwargs) -> int:
         return MongoDBStore.count(self, **kwargs)
@@ -85,45 +85,53 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
 
         return result
 
+    def _dto_from_document(self, document: Dict) -> Client:
+        return Client().populate_with(from_document(document))
 
-class SQLClientStore(ClientStore, SQLStore[ClientModel]):
+
+class SQLClientStore(ClientStore):
     def __init__(self, Session):
-        super().__init__(Session, "client_id", ClientModel)
+        self.Session = Session
+        self.sql_helper = SQLStore[ClientModel](ClientModel)
 
     def get(self, id: str) -> Client:
         with self.Session() as session:
-            entity = SQLStore.get(self, session, id)
+            entity = self.sql_helper.get(session, id)
             if entity is None:
                 return None
-            return Client(**from_sqlalchemy_model(entity, ClientModel))
+            return self._dto_from_orm_model(entity)
 
     def add(self, item: Client) -> Tuple[bool, Any]:
         with self.Session() as session:
-            entity = ClientModel(**item.to_dict(exclude_unset=False))
-            success, obj = SQLStore.add(self, session, entity)
+            item_dict = item.to_dict(exclude_unset=False)
+            item_dict = self._to_orm_dict(item_dict)
+            entity = ClientModel(**item_dict)
+            success, obj = self.sql_helper.add(session, entity)
             if success:
-                return success, Client(**from_sqlalchemy_model(obj, ClientModel))
+                return success, self._dto_from_orm_model(obj)
             return success, obj
 
     def update(self, item: Client) -> Tuple[bool, Any]:
         with self.Session() as session:
-            success, obj = SQLStore.update(self, session, item.to_dict())
+            item_dict = item.to_dict(exclude_unset=True)
+            item_dict = self._to_orm_dict(item_dict)
+            success, obj = self.sql_helper.update(session, item_dict)
             if success:
-                return success, Client(**from_sqlalchemy_model(obj, ClientModel))
+                return success, self._dto_from_orm_model(obj)
             return success, obj
 
     def delete(self, id) -> bool:
         with self.Session() as session:
-            return SQLStore.delete(self, session, id)
+            return self.sql_helper.delete(session, id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[Client]:
         with self.Session() as session:
-            entities = SQLStore.select(self, session, limit, skip, sort_key, sort_order, **kwargs)
-            return [Client(**from_sqlalchemy_model(item, ClientModel)) for item in entities]
+            entities = self.sql_helper.select(session, limit, skip, sort_key, sort_order, **kwargs)
+            return [self._dto_from_orm_model(item) for item in entities]
 
     def count(self, **kwargs):
         with self.Session() as session:
-            return SQLStore.count(self, session, **kwargs)
+            return self.sql_helper.count(session, **kwargs)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:
@@ -138,3 +146,12 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
                 result.append({"combiner": item[0], "count": item[1]})
 
             return result
+
+    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+        item_dict["id"] = item_dict.pop("client_id", None)
+        return item_dict
+
+    def _dto_from_orm_model(self, item: ClientModel) -> Client:
+        orm_dict = from_orm_model(item, ClientModel)
+        orm_dict["client_id"] = orm_dict.pop("id")
+        return Client().populate_with(orm_dict)

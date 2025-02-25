@@ -6,19 +6,23 @@ import datetime
 import uuid
 
 from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.statestore.stores.dto import ModelDTO
+
 
 @pytest.fixture
 def test_models():
 
-    start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    return [{"id":str(uuid.uuid4()), "key":"models", "model":"test_model1", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_date - datetime.timedelta(days=1), "name":"test_name1", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model2", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_date - datetime.timedelta(days=32), "name":"test_name2", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model3", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_date - datetime.timedelta(days=23), "name":"test_name3", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model4", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_date - datetime.timedelta(days=54), "name":"test_name4", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model5", "parent_model":"test_parent_model", "session_id":None, "committed_at":start_date - datetime.timedelta(days=25), "name":"test_name5", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model6", "parent_model":"test_parent_model2", "session_id":None, "committed_at":start_date - datetime.timedelta(days=16), "name":"test_name6", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model7", "parent_model":"test_parent_model2", "session_id":None, "committed_at":start_date - datetime.timedelta(days=27), "name":"test_name7", "active":True},
-            {"id":str(uuid.uuid4()), "key":"models", "model":"test_model8", "parent_model":"test_parent_model2", "session_id":None, "committed_at":start_date - datetime.timedelta(days=48), "name":"test_name8", "active":True}]
+    return [ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name2"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name3"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name4"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name5"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model2", session_id=None, name="test_name6"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model2", session_id=None, name="test_name7"),
+            ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model2", session_id=None, name="test_name8")]
+
+        
+
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_models):
@@ -36,51 +40,93 @@ def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connect
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
-    # TODO:Clean up
+    for m in test_models:
+        res = mongo_connection.model_store.delete(m.model_id)
+        assert res == True
+    
+    for m in test_models:
+        res = postgres_connection.model_store.delete(m.model_id)
+        assert res == True
+    
+    for m in test_models:
+        res = sql_connection.model_store.delete(m.model_id)
+        assert res == True
+        
 
 
 
 @pytest.fixture
 def options():
     sorting_keys = (#None, 
-                        "name",
-                        "committed_at",
-                        #"invalid_key"
-                        ) 
+                    "name",
+                    #"invalid_key"
+                    ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
     desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
-    opt_kwargs = ({}, {"parent_model":"test_parent_model2"}, {"active":False})
+    opt_kwargs = ({}, {"parent_model":"test_parent_model2"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 class TestModelStore:
 
     def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
-        pass
+        m = ModelDTO(name="model_name", parent_model=None, session_id=None)
+        for db in [postgres_connection, sql_connection, mongo_connection]:
+            # Add a client and check that we get the added client back
+            success, read_model1 = db.model_store.add(m)
+            assert success == True
+            assert isinstance(read_model1.model_id, str)
+            read_client1_dict = read_model1.to_dict()
+            model_id = read_client1_dict["model_id"]
+            del read_client1_dict["model_id"]
+            assert read_client1_dict == m.to_dict()
+
+            # Assert we get the same client back
+            read_model2 = db.model_store.get(model_id)
+            assert read_model2 is not None
+            assert read_model2.to_dict() == read_model1.to_dict()
+            
+            # Update the client and check that we get the updated client back
+            read_model2.name = "new_name"         
+            success, read_model3 = db.model_store.update(read_model2)
+            assert success == True
+            assert read_model3.name == "new_name"
+
+            # Assert we get the same client back
+            read_model4 = db.model_store.get(model_id)
+            assert read_model4 is not None
+            assert read_model3.to_dict() == read_model4.to_dict()
+
+            # Partial update the client and check that we get the updated client back
+            update_model = ModelDTO(model_id=model_id, parent_model="new_parent")            
+            success, read_model5 = db.model_store.update(update_model)
+            assert success == True
+            assert read_model5.parent_model == "new_parent"
+
+            # Assert we get the same client back
+            read_model6 = db.model_store.get(model_id)
+            assert read_model6 is not None
+            assert read_model6.to_dict() == read_model5.to_dict()
+
+            # Delete the client and check that it is deleted
+            success = db.model_store.delete(model_id)
+            assert success == True
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options: 
-                res = db_1.model_store.list(*opt, **kwargs)
-                count, gathered_models = res["count"], res["result"]
+                gathered_models1 = db_1.model_store.select(*opt, **kwargs)
+                count1 = db_1.model_store.count(**kwargs)
 
-                res = db_2.model_store.list(*opt, **kwargs)
-                count2, gathered_models2 = res["count"], res["result"]
-                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-                #It is not clear what is the intended behavior
-                # assert(count == len(gathered_clients))
-                # assert count == count2
-                assert len(gathered_models) == len(gathered_models2)
+                gathered_models2 = db_2.model_store.select(*opt, **kwargs)
+                count2 = db_2.model_store.count(**kwargs)
 
-                for i in range(len(gathered_models)):
-                    #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
-                    #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
-                    assert gathered_models2[i]["committed_at"] == gathered_models[i]["committed_at"]
-                    assert gathered_models2[i]["model"] == gathered_models[i]["model"]
-                    assert gathered_models2[i]["parent_model"] == gathered_models[i]["parent_model"]
-                    assert gathered_models2[i]["session_id"] == gathered_models[i]["session_id"]
-                    assert gathered_models2[i]["name"] == gathered_models[i]["name"]
-                    assert gathered_models2[i]["active"] == gathered_models[i]["active"]
+                assert count1 == count2
+                assert len(gathered_models1) == len(gathered_models2)
+
+                for i in range(len(gathered_models1)):
+                    assert gathered_models1[i].to_dict() == gathered_models2[i].to_dict()
+                    
                     

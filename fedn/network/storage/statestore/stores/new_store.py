@@ -5,6 +5,7 @@ from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session as SessionClass
 
 T = TypeVar("T")
 
@@ -59,8 +60,8 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def select(self, limi: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
-        """List entities.
+    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+        """Select entities.
 
         param limit: The maximum number of entities to return
             type: int
@@ -88,6 +89,9 @@ class Store(ABC, Generic[T]):
         """
         pass
 
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs):
+        raise NotImplementedError("Deprecated method, use select instead")
+
 
 class MongoDBStore:
     """Base MongoDB store implementation."""
@@ -107,7 +111,7 @@ class MongoDBStore:
 
     def add(self, item: Dict) -> Tuple[bool, Any]:
         try:
-            if self.primary_key not in item:
+            if self.primary_key not in item or not item[self.primary_key]:
                 item[self.primary_key] = str(uuid.uuid4())
             self.database[self.collection].insert_one(item)
             document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
@@ -151,26 +155,24 @@ class MongoDBStore:
 class SQLStore(Generic[T]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session, primary_key: str, SQLModel: Type[T]) -> None:
+    def __init__(self, SQLModel: Type[T]) -> None:
         """Initialize SQLStore."""
-        self.Session = Session
-        self.primary_key = primary_key
         self.SQLModel = SQLModel
 
-    def get(self, session, id: str) -> T:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
+    def get(self, session: SessionClass, id: str) -> T:
+        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
         return session.scalars(stmt).first()
 
     def add(self, session, entity: T) -> Tuple[bool, Any]:
-        if not getattr(entity, self.primary_key):
-            setattr(entity, self.primary_key, str(uuid.uuid4()))
+        if not entity.id:
+            entity.id = str(uuid.uuid4())
         session.add(entity)
         session.commit()
 
         return True, entity
 
-    def update(self, session, item: Dict) -> Tuple[bool, Any]:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == item[self.primary_key])
+    def update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
+        stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
         existing_item = session.scalars(stmt).first()
 
         if existing_item is None:
@@ -182,8 +184,8 @@ class SQLStore(Generic[T]):
 
         return True, existing_item
 
-    def delete(self, session, id: str) -> bool:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
+    def delete(self, session: SessionClass, id: str) -> bool:
+        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
         item = session.scalars(stmt).first()
 
         if item is None:
@@ -194,14 +196,14 @@ class SQLStore(Generic[T]):
 
         return True
 
-    def select(self, session, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
         stmt = select(self.SQLModel)
 
         for key, value in kwargs.items():
             stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
         _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-        _sort_key: str = sort_key or self.primary_key
+        _sort_key: str = sort_key or "id"
 
         if _sort_key in self.SQLModel.__table__.columns:
             sort_obj = self.SQLModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else self.SQLModel.__table__.columns.get(_sort_key).desc()
@@ -215,7 +217,7 @@ class SQLStore(Generic[T]):
 
         return session.scalars(stmt).all()
 
-    def count(self, session, **kwargs) -> int:
+    def count(self, session: SessionClass, **kwargs) -> int:
         stmt = select(func.count()).select_from(self.SQLModel)
 
         for key, value in kwargs.items():

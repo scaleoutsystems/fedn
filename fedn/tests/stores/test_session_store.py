@@ -7,16 +7,15 @@ import uuid
 import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.statestore.stores.dto import ModelDTO
 
 
 @pytest.fixture
 def test_sessions():
-    start_time = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    
-    model = {"id":str(uuid.uuid4()), "key":"models", "model":str(uuid.uuid4()), "parent_model":"test_parent_model", "session_id":None, "committed_at":start_time, "name":"test_name1", "active":True}
+    model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
-                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model["model"]}
+                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id}
 
     return model,[{"id":str(uuid.uuid4()),"name":"sessionname1",  "session_config":session_config},
             {"id":str(uuid.uuid4()),"name":"sessionname3",  "session_config":session_config},
