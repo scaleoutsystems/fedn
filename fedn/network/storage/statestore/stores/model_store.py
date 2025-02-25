@@ -79,7 +79,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         item_dict = self._complement(item_dict)
         item_dict = self._to_document(item_dict)
 
-        success, obj = MongoDBStore.update(self, item_dict)
+        success, obj = self.mongo_update(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
@@ -88,17 +88,17 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         item_dict = item.to_dict(exclude_unset=False)
         item_dict = self._complement(item_dict)
         item_dict = self._to_document(item_dict)
-        success, obj = MongoDBStore.add(self, item_dict)
+        success, obj = self.mongo_add(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
 
     def delete(self, id: str) -> bool:
-        return MongoDBStore.delete(self, id)
+        return self.mongo_delete(id)
 
     def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs["key"] = "models"
-        entites = MongoDBStore.select(self, limit, skip, sort_key, sort_order, **kwargs)
+        entites = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         return [self._dto_from_document(entity) for entity in entites]
 
     def list_descendants(self, id: str, limit: int) -> List[ModelDTO]:
@@ -164,7 +164,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "models"
-        return MongoDBStore.count(self, **kwargs)
+        return self.mongo_count(**kwargs)
 
     def get_active(self) -> str:
         active_model = self.database[self.collection].find_one({"key": "current_model"})
@@ -207,12 +207,11 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
 
 class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
     def __init__(self, Session):
-        self.Session = Session
-        super().__init__(ModelModel)
+        super().__init__(Session, ModelModel)
 
     def get(self, id: str) -> ModelDTO:
         with self.Session() as session:
-            entity = SQLStore.get(self, session, id)
+            entity = self.sql_get(session, id)
             if entity is None:
                 return None
             return self._dto_from_orm_model(entity)
@@ -221,7 +220,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
         with self.Session() as session:
             item_dict = item.to_dict(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
-            success, obj = SQLStore.update(self, session, item_dict)
+            success, obj = self.sql_update(session, item_dict)
             if success:
                 return success, self._dto_from_orm_model(obj)
             return success, obj
@@ -231,23 +230,21 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
             item_dict = item.to_dict(exclude_unset=False)
             item_dict = self._to_orm_dict(item_dict)
             entity = ModelModel(**item_dict)
-            success, obj = SQLStore.add(self, session, entity)
+            success, obj = self.sql_add(session, entity)
             if success:
                 return success, self._dto_from_orm_model(obj)
             return success, obj
 
     def delete(self, id: str) -> bool:
-        with self.Session() as session:
-            return SQLStore.delete(self, session, id)
+        return self.sql_delete(id)
 
     def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
-            entities = SQLStore.select(self, session, limit, skip, sort_key, sort_order, **kwargs)
+            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(entity) for entity in entities]
 
     def count(self, **kwargs):
-        with self.Session() as session:
-            return SQLStore.count(self, session, **kwargs)
+        return self.sql_count(**kwargs)
 
     def list_descendants(self, id: str, limit: int):
         with self.Session() as session:

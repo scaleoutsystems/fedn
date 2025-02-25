@@ -34,34 +34,34 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
         super().__init__(database, collection, "client_id")
 
     def get(self, client_id: str) -> ClientDTO:
-        entity = MongoDBStore.get(self, client_id)
+        entity = self.mongo_get(client_id)
         if entity is None:
             return None
         return self._dto_from_document(entity)
 
     def add(self, item: ClientDTO) -> Tuple[bool, Any]:
         item_dict = item.to_dict(exclude_unset=False)
-        success, obj = MongoDBStore.add(self, item_dict)
+        success, obj = self.mongo_add(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
 
     def update(self, item: ClientDTO) -> Tuple[bool, Any]:
         item_dict = item.to_dict()
-        success, obj = MongoDBStore.update(self, item_dict)
+        success, obj = self.mongo_update(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
 
     def delete(self, client_id: str) -> bool:
-        return MongoDBStore.delete(self, client_id)
+        return self.mongo_delete(client_id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[ClientDTO]:
-        entites = MongoDBStore.select(self, limit, skip, sort_key, sort_order, **filter_kwargs)
+        entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         return [self._dto_from_document(entity) for entity in entites]
 
     def count(self, **kwargs) -> int:
-        return MongoDBStore.count(self, **kwargs)
+        return self.mongo_count(**kwargs)
 
     def connected_client_count(self, combiners: List[str]) -> List:
         try:
@@ -89,14 +89,13 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
         return ClientDTO().populate_with(from_document(document))
 
 
-class SQLClientStore(ClientStore):
+class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def __init__(self, Session):
-        self.Session = Session
-        self.sql_helper = SQLStore[ClientModel](ClientModel)
+        super().__init__(Session, ClientModel)
 
     def get(self, id: str) -> ClientDTO:
         with self.Session() as session:
-            entity = self.sql_helper.get(session, id)
+            entity = self.sql_get(session, id)
             if entity is None:
                 return None
             return self._dto_from_orm_model(entity)
@@ -106,7 +105,7 @@ class SQLClientStore(ClientStore):
             item_dict = item.to_dict(exclude_unset=False)
             item_dict = self._to_orm_dict(item_dict)
             entity = ClientModel(**item_dict)
-            success, obj = self.sql_helper.add(session, entity)
+            success, obj = self.sql_add(session, entity)
             if success:
                 return success, self._dto_from_orm_model(obj)
             return success, obj
@@ -115,23 +114,21 @@ class SQLClientStore(ClientStore):
         with self.Session() as session:
             item_dict = item.to_dict(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
-            success, obj = self.sql_helper.update(session, item_dict)
+            success, obj = self.sql_update(session, item_dict)
             if success:
                 return success, self._dto_from_orm_model(obj)
             return success, obj
 
     def delete(self, id) -> bool:
-        with self.Session() as session:
-            return self.sql_helper.delete(session, id)
+        return self.sql_delete(id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
         with self.Session() as session:
-            entities = self.sql_helper.select(session, limit, skip, sort_key, sort_order, **kwargs)
+            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in entities]
 
     def count(self, **kwargs):
-        with self.Session() as session:
-            return self.sql_helper.count(session, **kwargs)
+        return self.sql_count(**kwargs)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:

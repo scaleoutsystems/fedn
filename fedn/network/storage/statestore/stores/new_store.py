@@ -103,13 +103,13 @@ class MongoDBStore:
         self.primary_key = primary_key
         self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)], unique=True)
 
-    def get(self, id: str) -> Dict:
+    def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
             return None
         return document
 
-    def add(self, item: Dict) -> Tuple[bool, Any]:
+    def mongo_add(self, item: Dict) -> Tuple[bool, Any]:
         try:
             if self.primary_key not in item or not item[self.primary_key]:
                 item[self.primary_key] = str(uuid.uuid4())
@@ -119,7 +119,7 @@ class MongoDBStore:
         except Exception as e:
             return False, str(e)
 
-    def update(self, item: Dict) -> Tuple[bool, Any]:
+    def mongo_update(self, item: Dict) -> Tuple[bool, Any]:
         try:
             id = item[self.primary_key]
             result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item})
@@ -130,11 +130,11 @@ class MongoDBStore:
         except Exception as e:
             return False, str(e)
 
-    def delete(self, id: str) -> bool:
+    def mongo_delete(self, id: str) -> bool:
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def select(
+    def mongo_select(
         self,
         limit: int = 0,
         skip: int = 0,
@@ -156,22 +156,23 @@ class MongoDBStore:
 
         return [document for document in cursor]
 
-    def count(self, **kwargs) -> int:
+    def mongo_count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
 
 class SQLStore(Generic[T]):
     """Base SQL store implementation."""
 
-    def __init__(self, SQLModel: Type[T]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[T]) -> None:
         """Initialize SQLStore."""
         self.SQLModel = SQLModel
+        self.Session = Session
 
-    def get(self, session: SessionClass, id: str) -> T:
+    def sql_get(self, session: SessionClass, id: str) -> T:
         stmt = select(self.SQLModel).where(self.SQLModel.id == id)
         return session.scalars(stmt).first()
 
-    def add(self, session, entity: T) -> Tuple[bool, Any]:
+    def sql_add(self, session, entity: T) -> Tuple[bool, Any]:
         if not entity.id:
             entity.id = str(uuid.uuid4())
         session.add(entity)
@@ -179,7 +180,7 @@ class SQLStore(Generic[T]):
 
         return True, entity
 
-    def update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
+    def sql_update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
         stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
         existing_item = session.scalars(stmt).first()
 
@@ -192,19 +193,20 @@ class SQLStore(Generic[T]):
 
         return True, existing_item
 
-    def delete(self, session: SessionClass, id: str) -> bool:
-        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
-        item = session.scalars(stmt).first()
+    def sql_delete(self, id: str) -> bool:
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == id)
+            item = session.scalars(stmt).first()
 
-        if item is None:
-            return False
+            if item is None:
+                return False
 
-        session.delete(item)
-        session.commit()
+            session.delete(item)
+            session.commit()
 
-        return True
+            return True
 
-    def select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
         stmt = select(self.SQLModel)
 
         for key, value in kwargs.items():
@@ -229,10 +231,11 @@ class SQLStore(Generic[T]):
 
         return session.scalars(stmt).all()
 
-    def count(self, session: SessionClass, **kwargs) -> int:
-        stmt = select(func.count()).select_from(self.SQLModel)
+    def sql_count(self, **kwargs) -> int:
+        with self.Session() as session:
+            stmt = select(func.count()).select_from(self.SQLModel)
 
-        for key, value in kwargs.items():
-            stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-        return session.scalar(stmt)
+            return session.scalar(stmt)
