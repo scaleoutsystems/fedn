@@ -12,7 +12,8 @@ from typing import Any, Optional, Tuple, Union
 import requests
 
 import fedn.network.grpc.fedn_pb2 as fedn
-from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_PACKAGE_EXTRACT_DIR
+from fedn.common.config import (FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE,
+                                FEDN_PACKAGE_EXTRACT_DIR)
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler
 from fedn.network.clients.package_runtime import PackageRuntime
@@ -123,6 +124,7 @@ class FednClient:
                 allow_redirects=True,
                 headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
                 timeout=REQUEST_TIMEOUT,
+                verify=FEDN_CONNECT_API_SECURE
             )
 
             if response.status_code == HTTP_STATUS_OK:
