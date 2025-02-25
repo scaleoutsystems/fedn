@@ -25,7 +25,7 @@ def test_clients():
 @pytest.fixture
 def test_client():
     start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    c = Client(name = "name", combiner = "combiner", combiner_preferred = "combiner_preferred", ip = "ip", status = "status", last_seen = start_date, package = "package")
+    c = ClientDTO(name = "name", combiner = "combiner", combiner_preferred = "combiner_preferred", ip = "ip", status = "status", last_seen = start_date, package = "package")
     return c
 
 @pytest.fixture
@@ -71,16 +71,16 @@ def options():
 
 class TestClientStore:
 
-    def test_add_get_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_client: Client):
+    def test_add_get_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_client: ClientDTO):
         self.helper_add_get_update_delete(postgres_connection, test_client)
     
-    def test_add_get_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_client: Client):
+    def test_add_get_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_client: ClientDTO):
         self.helper_add_get_update_delete(sql_connection, test_client)
     
-    def test_add_get_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_client: Client):
+    def test_add_get_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_client: ClientDTO):
         self.helper_add_get_update_delete(mongo_connection, test_client)
 
-    def helper_add_get_update_delete(self, db:DatabaseConnection, test_client: Client): 
+    def helper_add_get_update_delete(self, db:DatabaseConnection, test_client: ClientDTO): 
         # Add a client and check that we get the added client back
         success, read_client1 = db.client_store.add(test_client)
         assert success == True
@@ -107,7 +107,7 @@ class TestClientStore:
         assert read_client3.to_dict() == read_client4.to_dict()
 
         # Partial update the client and check that we get the updated client back
-        update_client = Client(client_id=client_id, combiner="new_combiner")
+        update_client = ClientDTO(client_id=client_id, combiner="new_combiner")
         success, read_client5 = db.client_store.update(update_client)
         assert success == True
         assert read_client5.combiner == "new_combiner"

@@ -211,14 +211,16 @@ class SQLStore(Generic[T]):
             stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
         _sort_order = sort_order or pymongo.DESCENDING
-        if sort_key and sort_key != self.primary_key and sort_key in self.SQLModel.__table__.columns:
+
+        secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
+        if sort_key and sort_key in self.SQLModel.__table__.columns:
             sort_obj = self.SQLModel.__table__.columns.get(sort_key)
             if _sort_order == pymongo.DESCENDING:
                 sort_obj = sort_obj.desc()
 
-            stmt = stmt.order_by(sort_obj, self.SQLModel.__table__.columns.get(self.primary_key).desc())
+            stmt = stmt.order_by(sort_obj, secondary_sort_obj)
         else:
-            stmt = stmt.order_by(self.SQLModel.__table__.columns.get(self.primary_key).desc())
+            stmt = stmt.order_by(secondary_sort_obj)
 
         if limit:
             stmt = stmt.offset(skip or 0).limit(limit)
