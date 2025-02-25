@@ -176,8 +176,8 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
                 headers_projects["X-Project-Slug"] = projects_response_json[0].get("slug")
                 id = projects_response_json[0].get("slug")
             else:
+                project_found = False
                 for i in projects_response_json:
-                    project_found = False
                     if i.get("slug") == id:
                         project_found = True
                         headers_projects["X-Project-Slug"] = i.get("slug")
