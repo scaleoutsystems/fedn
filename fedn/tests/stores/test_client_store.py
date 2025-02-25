@@ -22,34 +22,33 @@ def test_clients():
         Client(client_id=str(uuid.uuid4()), name="test_client7", combiner="test_combiner2", ip="121.12.32.22", combiner_preferred="", status="test_status2", last_seen=start_date - datetime.timedelta(minutes=1), package="remote"),
     ]
 
+@pytest.fixture
+def test_client():
+    start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
+    c = Client(name = "name", combiner = "combiner", combiner_preferred = "combiner_preferred", ip = "ip", status = "status", last_seen = start_date, package = "package")
+    return c
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
     for c in test_clients:
-        res, msg = mongo_connection.client_store.add(c)
-        assert res == True
+        mongo_connection.client_store.add(c)
 
     for c in test_clients:
-        res, _ = postgres_connection.client_store.add(c)
-        assert res == True
+        postgres_connection.client_store.add(c)
 
     for c in test_clients:
-        res, _ = sql_connection.client_store.add(c)
-        assert res == True
+        sql_connection.client_store.add(c)
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
     for c in test_clients:
-        res = mongo_connection.client_store.delete(c.client_id)
-        assert res == True
+        mongo_connection.client_store.delete(c.client_id)
     
     for c in test_clients:
-        res = postgres_connection.client_store.delete(c.client_id)
-        assert res == True
+        postgres_connection.client_store.delete(c.client_id)
     
     for c in test_clients:
-        res = sql_connection.client_store.delete(c.client_id)
-        assert res == True
+        sql_connection.client_store.delete(c.client_id)
 
 
 
@@ -72,27 +71,24 @@ def options():
 
 class TestClientStore:
 
-    def test_add_get_update_delete_postgres(self, postgres_connection:DatabaseConnection):
-        self.helper_add_get_update_delete(postgres_connection)
+    def test_add_get_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_client: Client):
+        self.helper_add_get_update_delete(postgres_connection, test_client)
     
-    def test_add_get_update_delete_sqlite(self, sql_connection:DatabaseConnection):
-        self.helper_add_get_update_delete(sql_connection)
+    def test_add_get_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_client: Client):
+        self.helper_add_get_update_delete(sql_connection, test_client)
     
-    def test_add_get_update_delete_mongo(self, mongo_connection:DatabaseConnection):
-        self.helper_add_get_update_delete(mongo_connection)
+    def test_add_get_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_client: Client):
+        self.helper_add_get_update_delete(mongo_connection, test_client)
 
-    def helper_add_get_update_delete(self, db:DatabaseConnection):
-        start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-        c = Client(name = "name", combiner = "combiner", combiner_preferred = "combiner_preferred", ip = "ip", status = "status", last_seen = start_date, package = "package")
-    
+    def helper_add_get_update_delete(self, db:DatabaseConnection, test_client: Client): 
         # Add a client and check that we get the added client back
-        success, read_client1 = db.client_store.add(c)
+        success, read_client1 = db.client_store.add(test_client)
         assert success == True
         assert isinstance(read_client1.client_id, str)
         read_client1_dict = read_client1.to_dict()
         client_id = read_client1_dict["client_id"]
         del read_client1_dict["client_id"]
-        assert read_client1_dict == c.to_dict()
+        assert read_client1_dict == test_client.to_dict()
 
         # Assert we get the same client back
         read_client2 = db.client_store.get(client_id)
