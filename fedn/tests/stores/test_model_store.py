@@ -86,10 +86,11 @@ class TestModelStore:
         success, read_model1 = db.model_store.add(test_model)
         assert success == True
         assert isinstance(read_model1.model_id, str)
-        read_client1_dict = read_model1.to_dict()
-        model_id = read_client1_dict["model"]
-        del read_client1_dict["model"]
-        assert read_client1_dict == test_model.to_dict()
+        read_model1_dict = read_model1.to_dict()
+        model_id = read_model1.model_id
+        del read_model1_dict["model_id"]
+        del read_model1_dict["model"]
+        assert read_model1_dict == test_model.to_dict()
 
         # Assert we get the same model back
         read_model2 = db.model_store.get(model_id)
