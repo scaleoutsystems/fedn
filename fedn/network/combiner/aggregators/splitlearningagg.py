@@ -1,3 +1,4 @@
+import os
 import traceback
 
 import torch
@@ -14,15 +15,14 @@ helper = get_helper(HELPER_MODULE)
 class ServerModel(nn.Module):
     """Server side neural network model for Split Learning."""
 
-    def __init__(self):
+    def __init__(self, input_features):
         super(ServerModel, self).__init__()
-        self.fc1 = nn.Linear(12, 6)
-        self.fc2 = nn.Linear(6, 1)
+        self.fc = nn.Linear(input_features, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = self.fc2(x)
-        return torch.sigmoid(x)
+        x = self.sigmoid(self.fc(x))
+        return x
 
 
 class Aggregator(AggregatorBase):
@@ -47,9 +47,7 @@ class Aggregator(AggregatorBase):
         super().__init__(update_handler)
 
         self.name = "splitlearningagg"
-        self.model = ServerModel()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
-        self.criterion = nn.BCEWithLogitsLoss()
+        self.model = None
 
     def combine_models(self, helper=None, delete_models=True):
         """Concatenates client embeddings in the queue by aggregating them.
@@ -77,7 +75,7 @@ class Aggregator(AggregatorBase):
         while not self.update_handler.model_updates.empty():
             try:
                 logger.info("AGGREGATOR({}): Getting next embedding from queue.".format(self.name))
-                new_embedding = self.update_handler.next_model_update() # NOTE: should return in format {client_id: embedding}
+                new_embedding = self.update_handler.next_model_update() # returns in format {client_id: embedding}
 
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading embedding metadata.".format(self.name))
@@ -104,37 +102,41 @@ class Aggregator(AggregatorBase):
 
         logger.info("splitlearning aggregator: starting calculation of gradients")
 
-        # NOTE: When aggregating the embeddings in SplitLearning, they always need to be sorted consistently
+        # order embeddings and change to tensor
         client_order = sorted(embeddings.keys())
+        ordered_embeddings = []
+        for client_id in client_order:
+            embedding = torch.tensor(embeddings[client_id], requires_grad=True)
+            ordered_embeddings.append(embedding)
 
-        # to tensor
-        ordered_embeddings = [torch.from_numpy(embeddings[k]).float().requires_grad_(True) for k in client_order] # list of embeddings, without client_id
-
-        # Continue forward pass
         concatenated_embeddings = torch.cat(ordered_embeddings, dim=1) # to 1d tensor
 
-        self.optimizer.zero_grad()
+        # instantiate server model
+        if self.model is None:
+            input_features = concatenated_embeddings.shape[1]
+            self.model = ServerModel(input_features)
+
+        # gradient calculation
+        self.model.train()
+        criterion = nn.BCELoss()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer.zero_grad()
 
         output = self.model(concatenated_embeddings)
-
-        # TODO: need to match indices of data samples to target indices in order to calculate gradients.
-        # NOTE: For one epoch, depending on the batch size, multiple communications are necessary.
-        # use dummy target for now
-        # batch_size = concatenated_embeddings.shape[0] # TODO: check
-
         targets = helper.load_targets()
 
-        loss = self.criterion(output, targets)
-        loss.backward()
-
-        self.optimizer.step()
-
+        loss = criterion(output, targets)
         logger.info("AGGREGATOR({}): Loss: {}".format(self.name, loss))
 
-        # Split gradients according to original client order
+        loss.backward()
+
+        optimizer.step()
+
+        # Split gradients by client
         gradients = {}
         for client_id, embedding in zip(client_order, ordered_embeddings):
             gradients[str(client_id)] = embedding.grad.numpy()
 
         logger.info("AGGREGATOR({}): Gradients are calculated.".format(self.name))
+
         return gradients, data

@@ -35,7 +35,6 @@ class Helper(HelperBase):
         # Ensure all values are numpy arrays
         processed_dict = {str(k): np.array(v) for k, v in data_dict.items()}
 
-        # Use with statement to ensure proper file closure
         with open(path, "wb") as f:
             np.savez_compressed(f, **processed_dict)
 
@@ -52,7 +51,6 @@ class Helper(HelperBase):
         try:
             data = np.load(path)
             logger.info("SPLIT LEARNING HELPER: loaded data from {}".format(path))
-            logger.info("data type: {}".format(type(data)))
             result_dict = {k: data[k] for k in data.files}
             return result_dict
         except Exception as e:

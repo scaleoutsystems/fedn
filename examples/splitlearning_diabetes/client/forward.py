@@ -2,6 +2,7 @@ import os
 import sys
 
 import numpy as np
+import torch
 from data import load_data
 from model import compile_model, load_client_model, save_client_model
 
@@ -24,20 +25,20 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
     to out_model_path (picked up by the FEDn client).
     """
     logger.info(f"Client-side forward pass for client {client_id}")
-    # Load data
+
     x_train = load_data(data_path, is_train=True)
 
-    num_local_features = x_train.shape[1] # num_local_features = 2 in this case
+    num_local_features = x_train.shape[1]
 
-    # check if client model exists, if not create initial client model
     if not os.path.exists(f"{abs_path}/local_models/{client_id}.pth"):
         model = compile_model(num_local_features)
         save_client_model(model, client_id)
 
-    # Load local client model
     model = load_client_model(client_id, num_local_features)
 
-    embedding = model(x_train)
+    model.eval()
+    with torch.no_grad():
+        embedding = model(x_train)
 
     # Metadata needed for aggregation server side
     metadata = {
@@ -49,17 +50,9 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
     save_metadata(metadata, out_embedding_path)
 
     # save embeddings
-    embedding = embedding.detach().cpu().numpy()
-
-    embedding_dict = {str(client_id): embedding}
+    embedding_dict = {str(client_id): embedding.numpy()}
     helper.save(embedding_dict, out_embedding_path)
-
-    # save embeddings locally
-    if not os.path.exists(f"{abs_path}/embeddings"):
-        os.makedirs(f"{abs_path}/embeddings")
-    np.savez(f"{abs_path}/embeddings/embeddings_{client_id}.npz", embedding)
 
 
 if __name__ == "__main__":
-    forward_pass(sys.argv[1], sys.argv[2])
-    # test with: python forward.py 1 . data/clients/1/diabetes.pt
+    forward_pass(sys.argv[1], sys.argv[2]) # test with: python forward.py 1 . data/clients/1/diabetes.pt
