@@ -621,7 +621,7 @@ class APIClient:
                 model_id = response.json()
             else:
                 return response.json()
-        
+
         if helper is None:
             response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
             if response.status_code == 404:
