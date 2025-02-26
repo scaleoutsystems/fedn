@@ -395,6 +395,7 @@ def patch_model(id: str):
         model.model_id = id
 
         data = request.get_json()
+        data.pop("model", None)
         data.pop("model_id", None)
         model.patch(data, throw_on_extra_keys=False)
 
@@ -454,6 +455,7 @@ def put_model(id: str):
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         data = request.get_json()
+        data.pop("model", None)
         data.pop("model_id", None)
         model.patch(data, throw_on_extra_keys=False)
         success, msg_obj = model_store.update(model)
