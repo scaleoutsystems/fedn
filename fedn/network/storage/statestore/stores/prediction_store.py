@@ -1,9 +1,11 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from pymongo.database import Database
+from sqlalchemy import ForeignKey, String, func, select
+from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 class Prediction:
@@ -20,35 +22,24 @@ class Prediction:
         self.sender = sender
         self.receiver = receiver
 
-    def from_dict(data: dict) -> "Prediction":
-        return Prediction(
-            id=str(data["_id"]),
-            model_id=data["modelId"] if "modelId" in data else None,
-            data=data["data"] if "data" in data else None,
-            correlation_id=data["correlationId"] if "correlationId" in data else None,
-            timestamp=data["timestamp"] if "timestamp" in data else None,
-            prediction_id=data["predictionId"] if "predictionId" in data else None,
-            meta=data["meta"] if "meta" in data else None,
-            sender=data["sender"] if "sender" in data else None,
-            receiver=data["receiver"] if "receiver" in data else None,
-        )
-
 
 class PredictionStore(Store[Prediction]):
+    pass
+
+
+class MongoDBPredictionStore(MongoDBStore[Prediction]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Prediction:
+    def get(self, id: str) -> Prediction:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the Prediction (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
-        response = super().get(id, use_typing=use_typing)
-        return Prediction.from_dict(response) if use_typing else response
+        response = super().get(id)
+        return response
 
     def update(self, id: str, item: Prediction) -> bool:
         raise NotImplementedError("Update not implemented for PredictionStore")
@@ -59,7 +50,7 @@ class PredictionStore(Store[Prediction]):
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for PredictionStore")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Prediction]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Prediction]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -73,12 +64,163 @@ class PredictionStore(Store[Prediction]):
         param sort_order: The order to sort by
             type: pymongo.DESCENDING
             description: The order to sort by
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
-            description: Whether to return the entities as typed objects or as dicts
         return: A dictionary with the count and a list of entities
         """
-        response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
+        return super().list(limit, skip, sort_key or "timestamp", sort_order, **kwargs)
 
-        result = [Prediction.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-        return {"count": response["count"], "result": result}
+
+class PredictionModel(MyAbstractBase):
+    __tablename__ = "predictions"
+
+    correlation_id: Mapped[str]
+    data: Mapped[Optional[str]]
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
+    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    timestamp: Mapped[str] = mapped_column(String(255))
+    prediction_id: Mapped[str] = mapped_column(String(255))
+
+
+def from_row(row: PredictionModel) -> Prediction:
+    return {
+        "id": row.id,
+        "model_id": row.model_id,
+        "data": row.data,
+        "correlation_id": row.correlation_id,
+        "timestamp": row.timestamp,
+        "prediction_id": row.prediction_id,
+        "sender": {"name": row.sender_name, "role": row.sender_role},
+        "receiver": {"name": row.receiver_name, "role": row.receiver_role},
+    }
+
+
+class SQLPredictionStore(PredictionStore, SQLStore[Prediction]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
+    def get(self, id: str) -> Prediction:
+        with self.Session() as session:
+            stmt = select(Prediction).where(Prediction.id == id)
+            item = session.scalars(stmt).first()
+
+            if item is None:
+                return None
+            return from_row(item)
+
+    def update(self, id: str, item: Prediction) -> bool:
+        raise NotImplementedError("Update not implemented for PredictionStore")
+
+    def add(self, item: Prediction) -> Tuple[bool, Any]:
+        with self.Session() as session:
+            sender = item["sender"] if "sender" in item else None
+            receiver = item["receiver"] if "receiver" in item else None
+
+            validation = PredictionModel(
+                correlation_id=item.get("correlationId") or item.get("correlation_id"),
+                data=item.get("data"),
+                model_id=item.get("modelId") or item.get("model_id"),
+                receiver_name=receiver.get("name") if receiver else None,
+                receiver_role=receiver.get("role") if receiver else None,
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
+                prediction_id=item.get("predictionId") or item.get("prediction_id"),
+                timestamp=item.get("timestamp"),
+            )
+
+            session.add(validation)
+            session.commit()
+
+            return True, validation
+
+    def delete(self, id: str) -> bool:
+        raise NotImplementedError("Delete not implemented for PredictionStore")
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with self.Session() as session:
+            stmt = select(PredictionModel)
+
+            for key, value in kwargs.items():
+                if key == "_id":
+                    key = "id"
+                elif key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "receiver.name":
+                    key = "receiver_name"
+                elif key == "receiver.role":
+                    key = "receiver_role"
+                elif key == "correlationId":
+                    key = "correlation_id"
+                elif key == "modelId":
+                    key = "model_id"
+
+                stmt = stmt.where(getattr(PredictionModel, key) == value)
+
+            if sort_key:
+                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+                _sort_key: str = sort_key
+
+                if _sort_key == "_id":
+                    _sort_key = "id"
+                elif _sort_key == "sender.name":
+                    _sort_key = "sender_name"
+                elif _sort_key == "sender.role":
+                    _sort_key = "sender_role"
+                elif _sort_key == "receiver.name":
+                    _sort_key = "receiver_name"
+                elif _sort_key == "receiver.role":
+                    _sort_key = "receiver_role"
+                elif _sort_key == "correlationId":
+                    _sort_key = "correlation_id"
+                elif _sort_key == "modelId":
+                    _sort_key = "model_id"
+
+                if _sort_key in PredictionModel.__table__.columns:
+                    sort_obj = (
+                        PredictionModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else PredictionModel.__table__.columns.get(_sort_key).desc()
+                    )
+
+                    stmt = stmt.order_by(sort_obj)
+
+            if limit:
+                stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
+
+            items = session.execute(stmt)
+
+            result = []
+
+            for item in items:
+                (r,) = item
+
+                result.append(from_row(r))
+
+            return {"count": len(result), "result": result}
+
+    def count(self, **kwargs):
+        with self.Session() as session:
+            stmt = select(func.count()).select_from(PredictionModel)
+
+            for key, value in kwargs.items():
+                if key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "receiver.name":
+                    key = "receiver_name"
+                elif key == "receiver.role":
+                    key = "receiver_role"
+                elif key == "correlationId":
+                    key = "correlation_id"
+                elif key == "modelId":
+                    key = "model_id"
+
+                stmt = stmt.where(getattr(PredictionModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count

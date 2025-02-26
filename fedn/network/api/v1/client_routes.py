@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, client_store, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.api.shared import client_store, control, get_checksum, package_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
-
 
 
 @bp.route("/", methods=["GET"])
@@ -109,17 +110,14 @@ def get_clients():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = clients["result"]
-
-        response = {"count": clients["count"], "result": result}
+        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -195,16 +193,13 @@ def list_clients():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        clients = client_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = clients["result"]
-
-        response = {"count": clients["count"], "result": result}
+        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -265,7 +260,8 @@ def get_clients_count():
         count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -318,7 +314,8 @@ def clients_count():
         count = client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -357,17 +354,16 @@ def get_client(id: str):
                         type: string
     """
     try:
-        client = client_store.get(id, use_typing=False)
-
-        response = client
+        response = client_store.get(id)
+        if response is None:
+          return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
-# delete client
+
 @bp.route("/<string:id>", methods=["DELETE"])
 @jwt_auth_required(role="admin")
 def delete_client(id: str):
@@ -402,11 +398,169 @@ def delete_client(id: str):
     """
     try:
         result: bool = client_store.delete(id)
+        if result is False:
+          return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         msg = "Client deleted" if result else "Client not deleted"
 
         return jsonify({"message": msg}), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/add", methods=["POST"])
+@jwt_auth_required(role="client")
+def add_client():
+    """Add client
+    Adds a client to the network.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client
+        in: body
+        required: true
+        type: object
+        description: Object containing the parameters to create the client
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            combiner:
+              type: string
+            combiner_preferred:
+              type: string
+            ip:
+              type: string
+            status:
+              type: string
+    responses:
+        200:
+            description: The client was added
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        json_data = request.get_json()
+        remote_addr = request.remote_addr
+
+        client_id = json_data.get("client_id", None)
+        name = json_data.get("name", None)
+        preferred_combiner = json_data.get("combiner_preferred", None)
+        package = json_data.get("package", "local")
+        helper_type: str = ""
+
+        if package == "remote":
+            package_object = package_store.get_active()
+            if package_object is None:
+                return jsonify(
+                    {
+                        "success": False,
+                        "status": "retry",
+                        "message": "No compute package found. Set package in controller.",
+                    }
+                ), 203
+            helper_type = package_object["helper"]
+        else:
+            helper_type = ""
+
+        if preferred_combiner:
+            combiner = control.network.get_combiner(preferred_combiner)
+            if combiner is None:
+                return jsonify(
+                    {
+                        "success": False,
+                        "message": f"Combiner {preferred_combiner} not found or unavailable.",
+                    },
+                    400,
+                )
+        else:
+            combiner = control.network.find_available_combiner()
+            if combiner is None:
+                return jsonify({"success": False, "message": "No combiner available."}), 400
+
+        client_config = {
+            "client_id": client_id,
+            "name": name,
+            "combiner_preferred": preferred_combiner,
+            "combiner": combiner.name,
+            "ip": remote_addr,
+            "status": "available",
+            "package": package,
+        }
+
+        control.network.add_client(client_config)
+
+        payload = {
+            "status": "assigned",
+            "host": combiner.address,
+            "fqdn": combiner.fqdn,
+            "package": package,
+            "ip": combiner.ip,
+            "port": combiner.port,
+            "helper_type": helper_type,
+        }
+        return jsonify(payload), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/config", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_client_config():
+    """Get client config
+    Retrieves the client configuration.
+    ---
+    tags:
+        - Clients
+    responses:
+        200:
+            description: The client configuration
+            schema:
+                type: object
+                properties:
+                    network_id:
+                        type: string
+                    discover_host:
+                        type: string
+                    discover_port:
+                        type: integer
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        checksum_arg = request.args.get("checksum", "true")
+        include_checksum = checksum_arg.lower() == "true"
+
+        config = get_controller_config()
+        network_id = get_network_config()
+        port = config["port"]
+        host = config["host"]
+        payload = {
+            "network_id": network_id,
+            "discover_host": host,
+            "discover_port": port,
+        }
+
+        if include_checksum:
+            success, _, checksum_str = get_checksum()
+            if success:
+                payload["checksum"] = checksum_str
+
+        return jsonify(payload), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

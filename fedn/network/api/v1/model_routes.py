@@ -1,17 +1,18 @@
 import io
+import os
+from io import BytesIO
 
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import modelstorage_config
-from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers, mdb, minio_repository
-from fedn.network.storage.statestore.stores.model_store import ModelStore
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
+from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
+
+# from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
-
-model_store = ModelStore(mdb, "control.model")
 
 
 @bp.route("/", methods=["GET"])
@@ -101,17 +102,14 @@ def get_models():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = models["result"]
-
-        response = {"count": models["count"], "result": result}
+        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -186,17 +184,14 @@ def list_models():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = models["result"]
-
-        response = {"count": models["count"], "result": result}
+        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -244,7 +239,8 @@ def get_models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -296,7 +292,8 @@ def models_count():
         count = model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -335,14 +332,15 @@ def get_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
+
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         response = model
-
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -386,7 +384,10 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
+
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
         _id = model["id"]
@@ -405,9 +406,8 @@ def patch_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update model: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -451,7 +451,11 @@ def put_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id, use_typing=False)
+        model = model_store.get(id)
+
+        if model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         data = request.get_json()
         _id = model["id"]
 
@@ -462,9 +466,8 @@ def put_model(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update model: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -511,14 +514,16 @@ def get_descendants(id: str):
     try:
         limit = get_limit(request.headers)
 
-        descendants = model_store.list_descendants(id, limit or 10, use_typing=False)
+        descendants = model_store.list_descendants(id, limit or 10)
+
+        if descendants is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         response = descendants
-
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -580,14 +585,13 @@ def get_ancestors(id: str):
 
         include_self: bool = include_self_param and include_self_param.lower() == "true"
 
-        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse, use_typing=False)
-
+        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
+        if ancestors is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
         response = ancestors
-
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -626,17 +630,19 @@ def download(id: str):
     """
     try:
         if minio_repository is not None:
-            model = model_store.get(id, use_typing=False)
-            model_id = model["model"]
+            model = model_store.get(id)
+            if model is None:
+                return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_id = model["model"]
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             return send_file(file, as_attachment=True, download_name=model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -680,10 +686,12 @@ def get_parameters(id: str):
     """
     try:
         if minio_repository is not None:
-            model = model_store.get(id, use_typing=False)
+            model = model_store.get(id)
+            if model is None:
+                return jsonify({"message": f"Entity with id: {id} not found"}), 404
             model_id = model["model"]
-
-            file = minio_repository.get_artifact_stream(model_id, modelstorage_config["storage_config"]["storage_bucket"])
+            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
+            file = minio_repository.get_artifact_stream(model_id, model_bucket)
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
@@ -699,9 +707,8 @@ def get_parameters(id: str):
             return jsonify(array=weights), 200
         else:
             return jsonify({"message": "No model storage configured"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -728,13 +735,14 @@ def get_active_model():
     """
     try:
         active_model = model_store.get_active()
+        if active_model is None:
+            return jsonify({"message": "No active model found"}), 404
 
         response = active_model
 
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": "No active model found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -775,5 +783,72 @@ def set_active_model():
             return jsonify({"message": "Active model set"}), 200
         else:
             return jsonify({"message": "Failed to set active model"}), 500
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/", methods=["POST"])
+@jwt_auth_required(role="admin")
+def upload_model():
+    """Upload model
+    Uploads a model to the storage backend.
+    ---
+    tags:
+        - Models
+    parameters:
+      - name: model
+        in: body
+        required: true
+        type: object
+        description: The model data to upload
+    responses:
+        200:
+            description: The uploaded model
+            schema:
+                $ref: '#/definitions/Model'
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        data = request.form.to_dict()
+        file = request.files["file"]
+        name: str = data.get("name", None)
+
+        try:
+            object = BytesIO()
+            object.seek(0, 0)
+            file.seek(0)
+            object.write(file.read())
+            helper = control.get_helper()
+            logger.info(f"Loading model from file using helper {helper.name}")
+            object.seek(0)
+            model = helper.load(object)
+            control.commit(model_id=None, model=model, name=name)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            status_code = 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Failed to add model.",
+                    }
+                ),
+                status_code,
+            )
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Model added successfully",
+            }
+        ), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

@@ -38,7 +38,7 @@ python ../../.ci/tests/examples/wait_for.py reducer
 python ../../.ci/tests/examples/wait_for.py combiners
 
 >&2 echo "Upload compute package"
-python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper"
+python ../../.ci/tests/examples/api_test.py set_package --path client/package.tgz --helper "$helper" --name test
 
 >&2 echo "Wait for clients to connect"
 python ../../.ci/tests/examples/wait_for.py clients

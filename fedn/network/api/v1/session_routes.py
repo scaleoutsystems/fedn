@@ -2,19 +2,14 @@ import threading
 
 from flask import Blueprint, jsonify, request
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, mdb
+from fedn.network.api.shared import control, model_store, session_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
-from fedn.network.storage.statestore.stores.session_store import SessionStore
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
-
-from .model_routes import model_store
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
-
-session_store = SessionStore(mdb, "control.sessions")
 
 
 @bp.route("/", methods=["GET"])
@@ -90,17 +85,14 @@ def get_sessions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = sessions["result"]
-
-        response = {"count": sessions["count"], "result": result}
+        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -168,17 +160,14 @@ def list_sessions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, _ = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, use_typing=False, **kwargs)
-
-        result = sessions["result"]
-
-        response = {"count": sessions["count"], "result": result}
+        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -219,7 +208,8 @@ def get_sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -264,7 +254,8 @@ def sessions_count():
         count = session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -303,13 +294,12 @@ def get_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
-        response = session
-
+        response = session_store.get(id)
+        if response is None:
+           return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -352,7 +342,8 @@ def post():
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -386,7 +377,7 @@ def start_session():
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session = session_store.get(session_id, use_typing=False)
+        session = session_store.get(session_id)
 
         session_config = session["session_config"]
         model_id = session_config["model_id"]
@@ -402,12 +393,13 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        _ = model_store.get(model_id, use_typing=False)
+        _ = model_store.get(model_id)
 
         threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 
         return jsonify({"message": "Session started"}), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -451,7 +443,9 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
+        session = session_store.get(id)
+        if session is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
         _id = session["id"]
@@ -469,10 +463,9 @@ def patch_session(id: str):
             response = session
             return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+        return jsonify({"message": f"Failed to update session: {message}"}), 400
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -516,7 +509,10 @@ def put_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id, use_typing=False)
+        session = session_store.get(id)
+        if session is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         data = request.get_json()
         _id = session["id"]
 
@@ -527,7 +523,6 @@ def put_session(id: str):
             return jsonify(response), 200
 
         return jsonify({"message": f"Failed to update session: {message}"}), 500
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

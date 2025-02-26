@@ -6,9 +6,10 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
+from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 
 # imports for user code
-from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random  # noqa: F401
+from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
 from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
@@ -30,7 +31,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.server_functions: ServerFunctionsBase = None
         self.server_functions_code: str = None
         self.client_updates = {}
-        self.implemented_functions = None
+        self.implemented_functions = {}
 
     def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
         """Distribute client configs to clients from user defined code.
@@ -122,13 +123,20 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
         logger.info("Receieved provided functions request.")
-        if self.implemented_functions is not None:
-            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         server_functions_code = request.function_code
+        # if no new code return previous
+        if server_functions_code == self.server_functions_code:
+            logger.info("No new server function code provided.")
+            logger.info(f"Provided function: {self.implemented_functions}")
+            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
+
         self.server_functions_code = server_functions_code
         self.implemented_functions = {}
         self._instansiate_server_functions_code()
-        # if crashed or not returning None we assume function is implemented
+        # We are not sending dummy values here since the implementation might depend on model shape / implementations
+
+        # Implemented=False if return is None (indicating base implementation)
+
         # check if aggregation is available
         try:
             ret = self.server_functions.aggregate(0, 0)
