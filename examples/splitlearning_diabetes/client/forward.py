@@ -1,7 +1,6 @@
 import os
 import sys
 
-import numpy as np
 import torch
 from data import load_data
 from model import compile_model, load_client_model, save_client_model
