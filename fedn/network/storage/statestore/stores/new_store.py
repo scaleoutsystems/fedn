@@ -101,7 +101,7 @@ class MongoDBStore:
         self.database = database
         self.collection = collection
         self.primary_key = primary_key
-        self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)], unique=True)
+        self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)])
 
     def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
