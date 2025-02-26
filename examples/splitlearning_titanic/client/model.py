@@ -15,9 +15,9 @@ helper = get_helper(HELPER_MODULE)
 class ClientModel(nn.Module):
     """Client-side model"""
 
-    def __init__(self, input_size):
+    def __init__(self, input_features):
         super(ClientModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, 6)
+        self.fc1 = nn.Linear(input_features, 6)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))

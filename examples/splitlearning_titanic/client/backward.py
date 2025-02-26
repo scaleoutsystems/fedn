@@ -41,7 +41,6 @@ def backward_pass(gradient_path, client_id):
 
     # load gradients
     gradients = helper.load(gradient_path)
-    logger.info(f"Gradients loaded from {gradient_path}")
 
     local_gradients = gradients[client_id]
     local_gradients = torch.tensor(local_gradients, dtype=torch.float32, requires_grad=True)
