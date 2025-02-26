@@ -59,9 +59,9 @@ def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connect
 
 @pytest.fixture
 def options():
-    sorting_keys = (#None, 
+    sorting_keys = (None, 
                     "name",
-                    #"invalid_key"
+                    "invalid_key"
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
@@ -71,8 +71,6 @@ def options():
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 class TestModelStore:
-
-
 
     def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_model):
         self.helper_add_update_delete(postgres_connection, test_model)
