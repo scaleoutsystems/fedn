@@ -384,12 +384,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             for client in clients["update_active_clients"]:
                 client_to_update = client_store.get(client)
                 client_to_update.status = "online"
-                client_store.commit(client_to_update)
+                client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = client_store.get(client)
                 client_to_update.status = "offline"
-                client_store.commit(client_to_update)
+                client_store.update(client_to_update)
 
         return clients["active_clients"]
 
@@ -685,7 +685,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if client_to_update is not None:
                 client_to_update.status = "online"
                 client_to_update.last_seen = datetime.now()
-                success, result = client_store.commit(client_to_update)
+                success, result = client_store.update(client_to_update)
             else:
                 new_client = ClientDTO(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
                 success, result = client_store.add(new_client)
