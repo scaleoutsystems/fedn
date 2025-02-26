@@ -27,7 +27,7 @@ def get_active_helper():
     try:
         active_package = package_store.get_active()
         if active_package is None:
-            return jsonify({"message": "No active helper"}), 400
+            return jsonify({"message": "No active helper"}), 404
 
         response = active_package["helper"]
 
