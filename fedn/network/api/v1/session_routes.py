@@ -393,8 +393,9 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        # TODO: This line is a noop now since get returns None if the model is not found
-        _ = model_store.get(model_id)
+        model = model_store.get(model_id)
+        if model is None:
+            return jsonify({"message": "Session seed model not found"}), 400
 
         threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 
