@@ -56,12 +56,6 @@ class ModelStore(Store[ModelDTO]):
         pass
 
 
-def from_model_document(document: dict):
-    res = from_document(document)
-    res["model_id"] = res.pop("model")
-    return res
-
-
 class MongoDBModelStore(ModelStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "model")
@@ -75,7 +69,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         return self._dto_from_document(document)
 
     def update(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_dict(exclude_unset=True)
+        item_dict = item.to_db(exclude_unset=True)
         item_dict = self._complement(item_dict)
         item_dict = self._to_document(item_dict)
 
@@ -85,7 +79,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         return success, obj
 
     def add(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_dict(exclude_unset=False)
+        item_dict = item.to_db(exclude_unset=False)
         item_dict = self._complement(item_dict)
         item_dict = self._to_document(item_dict)
         success, obj = self.mongo_add(item_dict)
@@ -201,8 +195,9 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         return item_dict
 
     def _dto_from_document(self, document: Dict) -> ModelDTO:
-        document["model_id"] = document.pop("model")
-        return ModelDTO().populate_with(document)
+        item_dict = from_document(document)
+        item_dict["model_id"] = item_dict.pop("model")
+        return ModelDTO().populate_with(item_dict)
 
 
 class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
@@ -218,7 +213,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
 
     def update(self, item: ModelDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            item_dict = item.to_dict(exclude_unset=True)
+            item_dict = item.to_db(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
             success, obj = self.sql_update(session, item_dict)
             if success:
@@ -227,7 +222,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
 
     def add(self, item: ModelDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            item_dict = item.to_dict(exclude_unset=False)
+            item_dict = item.to_db(exclude_unset=False)
             item_dict = self._to_orm_dict(item_dict)
             entity = ModelModel(**item_dict)
             success, obj = self.sql_add(session, entity)

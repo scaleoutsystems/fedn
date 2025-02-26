@@ -11,10 +11,12 @@ class ModelDTO(BaseDTO):
     parent_model: Optional[str] = Field(None)
     session_id: Optional[str] = Field(None)
 
-    @property
-    def model(self):
-        return self.model_id
+    def to_dict(self, exclude_unset=True):
+        res = super().to_dict(exclude_unset)
+        res["model"] = self.model_id
+        return res
 
-    @model.setter
-    def model(self, value):
-        self.model_id = value
+    def patch(self, value_dict, throw_on_extra_keys=True):
+        if "model" in value_dict:
+            value_dict["model_id"] = value_dict.pop("model")
+        return super().patch(value_dict, throw_on_extra_keys)

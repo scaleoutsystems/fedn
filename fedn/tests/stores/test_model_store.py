@@ -87,8 +87,8 @@ class TestModelStore:
         assert success == True
         assert isinstance(read_model1.model_id, str)
         read_client1_dict = read_model1.to_dict()
-        model_id = read_client1_dict["model_id"]
-        del read_client1_dict["model_id"]
+        model_id = read_client1_dict["model"]
+        del read_client1_dict["model"]
         assert read_client1_dict == test_model.to_dict()
 
         # Assert we get the same model back

@@ -37,10 +37,15 @@ class BaseDTO:
         return result
 
     def to_dict(self, exclude_unset: bool = True) -> Dict[str, Any]:
-        """Return dict representation of BaseModel.
+        """Return dict representation of BaseModel. (Overridable)
 
+        This method is used to convert the BaseModel to a dictionary representation.
         :param exclude_unset: Exclude unset values, defaults to True
         """
+        return self.model_dump(exclude_unset=exclude_unset)
+
+    def to_db(self, exclude_unset: bool = True) -> Dict[str, Any]:
+        """Return dict representation of BaseModel for database storage."""
         return self.model_dump(exclude_unset=exclude_unset)
 
     def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True) -> None:
