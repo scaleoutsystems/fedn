@@ -83,13 +83,6 @@ def get_compute_package_dir_path() -> str:
 
 
 class FednClient:
-    def __init__(self, train_callback: callable = None, validate_callback: callable = None, predict_callback: callable = None, forward_callback: callable = None
-                 ,backward_callback: callable = None):
-        self.train_callback: callable = train_callback
-        self.validate_callback: callable = validate_callback
-        self.predict_callback: callable = predict_callback
-        self.forward_callback: callable = forward_callback
-        self.backward_callback: callable = backward_callback
     """Client for interacting with the FEDn network."""
 
     def __init__(
