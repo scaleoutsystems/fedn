@@ -583,7 +583,7 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "numpyhelper",
+        helper: str = None,
         min_clients: int = 1,
         requested_clients: int = 8,
         server_functions: ServerFunctionsBase = None,
@@ -621,6 +621,15 @@ class APIClient:
                 model_id = response.json()
             else:
                 return response.json()
+
+        if helper is None:
+            response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
+            if response.status_code == 400:
+                helper = "numpyhelper"
+            elif response.status_code == 200:
+                helper = response.json()
+            else:
+                return {"message": "An unexpected error occurred when getting the active helper"}
 
         response = requests.post(
             self._get_url_api_v1("sessions/"),
