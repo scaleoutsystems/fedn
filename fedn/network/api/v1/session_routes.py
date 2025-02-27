@@ -294,9 +294,10 @@ def get_session(id: str):
                         type: string
     """
     try:
-        response = session_store.get(id)
-        if response is None:
+        result = session_store.get(id)
+        if result is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = result.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -379,15 +380,15 @@ def start_session():
 
         session = session_store.get(session_id)
 
-        session_config = session["session_config"]
-        model_id = session_config["model_id"]
-        min_clients = session_config["clients_required"]
+        session_config = session.session_config
+        model_id = session_config.model_id
+        min_clients = session_config.clients_required
 
         if control.state() == ReducerState.monitoring:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
-            rounds = session_config["rounds"]
+            rounds = session_config.rounds
         nr_available_clients = _get_number_of_available_clients()
 
         if nr_available_clients < min_clients:
@@ -450,7 +451,7 @@ def patch_session(id: str):
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
-        _id = session["id"]
+        _id = session.session_id
 
         # Update the session with the new data
         # Only update the fields that are present in the request

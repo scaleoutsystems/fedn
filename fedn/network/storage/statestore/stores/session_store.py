@@ -7,48 +7,17 @@ from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import func, select
 
+from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
 from fedn.network.storage.statestore.stores.shared import from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
-from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
 
 
-class SessionConfig:
-    def __init__(
-        self,
-        aggregator: str,
-        round_timeout: int,
-        buffer_size: int,
-        model_id: str,
-        delete_models_storage: bool,
-        clients_required: int,
-        validate: bool,
-        helper_type: str,
-    ):
-        self.aggregator = aggregator
-        self.round_timeout = round_timeout
-        self.buffer_size = buffer_size
-        self.model_id = model_id
-        self.delete_models_storage = delete_models_storage
-        self.clients_required = clients_required
-        self.validate = validate
-        self.helper_type = helper_type
-
-
-class Session:
-    def __init__(self, id: str, session_id: str, status: str, committed_at: datetime, name: str = None, session_config: SessionConfig = None):
-        self.id = id
-        self.session_id = session_id
-        self.status = status
-        self.committed_at = committed_at
-        self.session_config = session_config
-        self.name = name
-
-
-class SessionStore(Store[Session]):
+class SessionStore(Store[SessionDTO]):
     pass
 
 
-def validate_session_config(session_config: SessionConfig) -> Tuple[bool, str]:
+def validate_session_config(session_config: SessionConfigDTO) -> Tuple[bool, str]:
     if "aggregator" not in session_config:
         return False, "session_config.aggregator is required"
 
@@ -97,7 +66,7 @@ def validate_session_config(session_config: SessionConfig) -> Tuple[bool, str]:
     return True, ""
 
 
-def validate(item: Session) -> Tuple[bool, str]:
+def validate(item: SessionDTO) -> Tuple[bool, str]:
     if "session_config" not in item or item["session_config"] is None:
         return False, "session_config is required"
 
@@ -113,85 +82,79 @@ def validate(item: Session) -> Tuple[bool, str]:
     return validate_session_config(session_config)
 
 
-def complement(item: Session):
+def complement(item: SessionDTO):
     item["status"] = "Created"
     item["committed_at"] = datetime.datetime.now()
 
-    if "session_id" not in item or item["session_id"] == "" or not isinstance(item["session_id"], str):
-        item["session_id"] = str(uuid.uuid4())
 
-
-class MongoDBSessionStore(MongoDBStore[Session]):
+class MongoDBSessionStore(SessionStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection)
+        super().__init__(database, collection, "session_id")
         self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
-    def get(self, id: str) -> Session:
+    def get(self, id: str) -> SessionDTO:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the session_id (property)
         return: The entity
         """
-        if ObjectId.is_valid(id):
-            id_obj = ObjectId(id)
-            document = self.database[self.collection].find_one({"_id": id_obj})
-        else:
-            document = self.database[self.collection].find_one({"session_id": id})
-
-        if document is None:
+        entity = self.mongo_get(id)
+        if entity is None:
             return None
+        return self._dto_from_document(entity)
 
-        return from_document(document)
-
-    def update(self, id: str, item: Session) -> Tuple[bool, Any]:
-        valid, message = validate(item)
+    def update(self, id: str, item: SessionDTO) -> Tuple[bool, Any]:
+        item_dict = item.to_db(exclude_unset=True)
+        valid, message = validate(item_dict)
         if not valid:
             return False, message
 
-        return super().update(id, item)
+        success, obj = self.mongo_update(item_dict)
+        if success:
+            return success, self._dto_from_document(obj)
 
-    def add(self, item: Session) -> Tuple[bool, Any]:
+        return success, obj
+
+    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
         """Add an entity
         param item: The entity to add
-            type: Session
+            type: SessionDTO
             description: The entity to add
         return: A tuple with a boolean indicating success and the entity
         """
-        valid, message = validate(item)
-        if not valid:
-            return False, message
+        item_dict = item.to_db(exclude_unset=False)
+        success, msg = validate(item_dict)
+        if not success:
+            return success, msg
 
-        complement(item)
+        complement(item_dict)
 
-        return super().add(item)
+        success, obj = self.mongo_add(item_dict)
 
-    def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for SessionStore")
+        if success:
+            return success, self._dto_from_document(obj)
+        return success, obj
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Session]]:
-        """List entities
-        param limit: The maximum number of entities to return
-            type: int
-            description: The maximum number of entities to return
-        param skip: The number of entities to skip
-            type: int
-            description: The number of entities to skip
-        param sort_key: The key to sort by
-            type: str
-            description: The key to sort by
-        param sort_order: The order to sort by
-            type: pymongo.DESCENDING
-            description: The order to sort by
-        param kwargs: Additional query parameters
-            type: dict
-            description: Additional query parameters
-        return: The entities
-        """
-        return super().list(limit, skip, sort_key or "session_id", sort_order, **kwargs)
+    def delete(self, session_id: str) -> bool:
+        return self.mongo_delete(session_id)
+
+    def count(self, **kwargs) -> int:
+        return self.mongo_count(**kwargs)
+
+    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
+        entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
+        return [self._dto_from_document(entity) for entity in entites]
+
+    def _dto_from_document(self, document: Dict) -> SessionDTO:
+        session = from_document(document)
+        session_config_dto = SessionConfigDTO().populate_with(session["session_config"])
+        session["session_config"] = session_config_dto
+
+        return SessionDTO().populate_with(session)
 
 
-def from_row(row: dict) -> Session:
+def from_row(row: dict) -> SessionDTO:
     return {
         "id": row["id"],
         "name": row["name"],
@@ -211,11 +174,11 @@ def from_row(row: dict) -> Session:
     }
 
 
-class SQLSessionStore(SessionStore, SQLStore[Session]):
-    def __init__(self, Session):
-        super().__init__(Session)
+class SQLSessionStore(SessionStore, SQLStore[SessionDTO]):
+    def __init__(self, SessionDTO):
+        super().__init__(SessionDTO)
 
-    def get(self, id: str) -> Session:
+    def get(self, id: str) -> SessionDTO:
         with self.Session() as session:
             stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
             item = session.execute(stmt).first()
@@ -239,7 +202,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
             }
             return from_row(combined_dict)
 
-    def update(self, id: str, item: Session) -> Tuple[bool, Any]:
+    def update(self, id: str, item: SessionDTO) -> Tuple[bool, Any]:
         valid, message = validate(item)
         if not valid:
             return False, message
@@ -285,7 +248,7 @@ class SQLSessionStore(SessionStore, SQLStore[Session]):
 
             return True, from_row(combined_dict)
 
-    def add(self, item: Session) -> Tuple[bool, Any]:
+    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
         valid, message = validate(item)
         if not valid:
             return False, message

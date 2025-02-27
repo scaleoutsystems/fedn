@@ -40,14 +40,14 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
         return self._dto_from_document(entity)
 
     def add(self, item: ClientDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_dict(exclude_unset=False)
+        item_dict = item.to_db(exclude_unset=False)
         success, obj = self.mongo_add(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
 
     def update(self, item: ClientDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_dict()
+        item_dict = item.to_db(exclude_unset=True)
         success, obj = self.mongo_update(item_dict)
         if success:
             return success, self._dto_from_document(obj)
