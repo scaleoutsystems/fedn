@@ -16,6 +16,7 @@ combiner    127.0.0.1
 (this requires root previliges)
 """
 
+import sys
 import threading
 import time
 import uuid
@@ -28,6 +29,7 @@ from sklearn.metrics import accuracy_score
 
 from config import settings
 from fedn import FednClient
+from fedn.network.clients.fedn_client import GrpcConnectionOptions
 
 HELPER_MODULE = "numpyhelper"
 
@@ -102,7 +104,7 @@ def on_validate(in_model):
     return metrics
 
 
-def run_client(online_for=120, name="client", client_id=None):
+def run_client(online_for=120, name="client", client_id=None, discovery=True):
     """Simulates a client that starts and stops
     at random intervals.
 
@@ -129,9 +131,11 @@ def run_client(online_for=120, name="client", client_id=None):
         "package": "local",
     }
 
-    url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
-
-    result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+    if discovery:
+        url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
+        result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+    else:
+        combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
 
     fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
@@ -142,6 +146,10 @@ def run_client(online_for=120, name="client", client_id=None):
 
 
 if __name__ == "__main__":
+    discovery = True
+    if len(sys.argv) > 1 and sys.argv[1] == "--no-discovery":
+        discovery = False
+    
     # We start N_CLIENTS independent client processes
     processes = []
     for i in range(settings["N_CLIENTS"]):
@@ -151,6 +159,7 @@ if __name__ == "__main__":
                 settings["CLIENTS_ONLINE_FOR_SECONDS"],
                 "client{}".format(i + 1),
                 str(uuid.uuid4()),
+                discovery,
             ),
         )
         processes.append(p)
