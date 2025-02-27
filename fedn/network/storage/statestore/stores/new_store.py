@@ -5,6 +5,7 @@ from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session as SessionClass
 
 T = TypeVar("T")
 
@@ -59,8 +60,8 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def select(self, limi: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
-        """List entities.
+    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+        """Select entities.
 
         param limit: The maximum number of entities to return
             type: int
@@ -88,6 +89,9 @@ class Store(ABC, Generic[T]):
         """
         pass
 
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs):
+        raise NotImplementedError("Deprecated method, use select instead")
+
 
 class MongoDBStore:
     """Base MongoDB store implementation."""
@@ -97,17 +101,17 @@ class MongoDBStore:
         self.database = database
         self.collection = collection
         self.primary_key = primary_key
-        self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)], unique=True)
+        self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)])
 
-    def get(self, id: str) -> Dict:
+    def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
             return None
         return document
 
-    def add(self, item: Dict) -> Tuple[bool, Any]:
+    def mongo_add(self, item: Dict) -> Tuple[bool, Any]:
         try:
-            if self.primary_key not in item:
+            if self.primary_key not in item or not item[self.primary_key]:
                 item[self.primary_key] = str(uuid.uuid4())
             self.database[self.collection].insert_one(item)
             document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
@@ -115,7 +119,7 @@ class MongoDBStore:
         except Exception as e:
             return False, str(e)
 
-    def update(self, item: Dict) -> Tuple[bool, Any]:
+    def mongo_update(self, item: Dict) -> Tuple[bool, Any]:
         try:
             id = item[self.primary_key]
             result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item})
@@ -126,11 +130,11 @@ class MongoDBStore:
         except Exception as e:
             return False, str(e)
 
-    def delete(self, id: str) -> bool:
+    def mongo_delete(self, id: str) -> bool:
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def select(
+    def mongo_select(
         self,
         limit: int = 0,
         skip: int = 0,
@@ -152,33 +156,32 @@ class MongoDBStore:
 
         return [document for document in cursor]
 
-    def count(self, **kwargs) -> int:
+    def mongo_count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
 
 class SQLStore(Generic[T]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session, primary_key: str, SQLModel: Type[T]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[T]) -> None:
         """Initialize SQLStore."""
-        self.Session = Session
-        self.primary_key = primary_key
         self.SQLModel = SQLModel
+        self.Session = Session
 
-    def get(self, session, id: str) -> T:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
+    def sql_get(self, session: SessionClass, id: str) -> T:
+        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
         return session.scalars(stmt).first()
 
-    def add(self, session, entity: T) -> Tuple[bool, Any]:
-        if not getattr(entity, self.primary_key):
-            setattr(entity, self.primary_key, str(uuid.uuid4()))
+    def sql_add(self, session, entity: T) -> Tuple[bool, Any]:
+        if not entity.id:
+            entity.id = str(uuid.uuid4())
         session.add(entity)
         session.commit()
 
         return True, entity
 
-    def update(self, session, item: Dict) -> Tuple[bool, Any]:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == item[self.primary_key])
+    def sql_update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
+        stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
         existing_item = session.scalars(stmt).first()
 
         if existing_item is None:
@@ -190,33 +193,36 @@ class SQLStore(Generic[T]):
 
         return True, existing_item
 
-    def delete(self, session, id: str) -> bool:
-        stmt = select(self.SQLModel).where(getattr(self.SQLModel, self.primary_key) == id)
-        item = session.scalars(stmt).first()
+    def sql_delete(self, id: str) -> bool:
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == id)
+            item = session.scalars(stmt).first()
 
-        if item is None:
-            return False
+            if item is None:
+                return False
 
-        session.delete(item)
-        session.commit()
+            session.delete(item)
+            session.commit()
 
-        return True
+            return True
 
-    def select(self, session, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
         stmt = select(self.SQLModel)
 
         for key, value in kwargs.items():
             stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
         _sort_order = sort_order or pymongo.DESCENDING
-        if sort_key and sort_key != self.primary_key and sort_key in self.SQLModel.__table__.columns:
+
+        secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
+        if sort_key and sort_key in self.SQLModel.__table__.columns:
             sort_obj = self.SQLModel.__table__.columns.get(sort_key)
             if _sort_order == pymongo.DESCENDING:
                 sort_obj = sort_obj.desc()
 
-            stmt = stmt.order_by(sort_obj, self.SQLModel.__table__.columns.get(self.primary_key).desc())
+            stmt = stmt.order_by(sort_obj, secondary_sort_obj)
         else:
-            stmt = stmt.order_by(self.SQLModel.__table__.columns.get(self.primary_key).desc())
+            stmt = stmt.order_by(secondary_sort_obj)
 
         if limit:
             stmt = stmt.offset(skip or 0).limit(limit)
@@ -225,10 +231,11 @@ class SQLStore(Generic[T]):
 
         return session.scalars(stmt).all()
 
-    def count(self, session, **kwargs) -> int:
-        stmt = select(func.count()).select_from(self.SQLModel)
+    def sql_count(self, **kwargs) -> int:
+        with self.Session() as session:
+            stmt = select(func.count()).select_from(self.SQLModel)
 
-        for key, value in kwargs.items():
-            stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-        return session.scalar(stmt)
+            return session.scalar(stmt)

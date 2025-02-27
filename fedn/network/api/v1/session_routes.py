@@ -296,7 +296,7 @@ def get_session(id: str):
     try:
         response = session_store.get(id)
         if response is None:
-           return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -393,7 +393,9 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        _ = model_store.get(model_id)
+        model = model_store.get(model_id)
+        if model is None:
+            return jsonify({"message": "Session seed model not found"}), 400
 
         threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
 

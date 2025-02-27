@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from sqlalchemy import ForeignKey, MetaData, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -14,12 +14,10 @@ constraint_naming_conventions = {
 }
 
 
-def from_sqlalchemy_model(model, SQLModel: DeclarativeBase):
+def from_orm_model(model, SQLModel: Type[DeclarativeBase]):
     result = {}
     for k in SQLModel.__table__.columns:
         result[k.name] = getattr(model, k.name)
-    result.pop("id")
-    result.pop("committed_at")
     return result
 
 
@@ -148,7 +146,6 @@ class RoundModel(MyAbstractBase):
 class ClientModel(MyAbstractBase):
     __tablename__ = "clients"
 
-    client_id: Mapped[str] = mapped_column(String(255), unique=True)
     combiner: Mapped[str] = mapped_column(String(255))
     combiner_preferred: Mapped[str] = mapped_column(String(255))
     ip: Mapped[Optional[str]] = mapped_column(String(255))

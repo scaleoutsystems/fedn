@@ -5,7 +5,7 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.storage.statestore.stores.dto import Client
+from fedn.network.storage.statestore.stores.dto import ClientDTO
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
@@ -494,7 +494,7 @@ def add_client():
 
         if client_store.get(client_id) is not None:
             logger.info("adding client {}".format(client_id))
-            new_client = Client(
+            new_client = ClientDTO(
                 client_id=client_id,
                 name=name,
                 combiner=combiner.name,

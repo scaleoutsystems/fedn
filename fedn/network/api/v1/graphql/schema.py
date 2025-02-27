@@ -84,8 +84,8 @@ class SessionType(graphene.ObjectType):
 
     def resolve_models(self, info):
         kwargs = {"session_id": self["session_id"]}
-        response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
-        result = response["result"]
+        all_models = model_store.select(**kwargs)
+        result = [model.to_dict() for model in all_models]
 
         return result
 
@@ -150,29 +150,27 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_sessions(root, info, name: str = None):
-        response = None
         if name:
             kwargs = {"name": name}
-            response = session_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            response = session_store.list(0, 0, None)
-
-        return response["result"]
+            kwargs = {}
+        all_models = model_store.select(**kwargs)
+        result = [model.to_dict() for model in all_models]
+        return result
 
     def resolve_model(root, info, id: str = None):
-        result = model_store.get(id)
+        result = model_store.get(id).to_dict()
 
         return result
 
     def resolve_models(root, info, session_id: str = None):
-        response = None
         if session_id:
             kwargs = {"session_id": session_id}
-            response = model_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            response = model_store.list(0, 0, None)
-
-        return response["result"]
+            kwargs = {}
+        all_models = model_store.select(**kwargs)
+        result = [model.to_dict() for model in all_models]
+        return result
 
     def resolve_validation(root, info, id: str = None):
         result = validation_store.get(id)
