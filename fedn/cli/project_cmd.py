@@ -52,13 +52,14 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None):
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
 
-@click.option("-n", "--name", required=False, default=None, help="Name of new projec.")
-@click.option("-d", "--description", required=False, default=None, help="Description of new projec.")
+@click.option("-n", "--name", required=False, default=None, help="Name of new project.")
+@click.option("-d", "--description", required=False, default=None, help="Description of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None):
+def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False):
     """Create project.
     :param ctx:
     """
@@ -71,10 +72,17 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
     if _token:
         headers["Authorization"] = _token
-    if name is None:
-        name = input("Please enter a project name: ")
-    if description is None:
-        description = input("Please enter a project description (optional): ")
+    if not no_interactive:
+        if name is None:
+            name = input("Please enter a project name: ")
+        if description is None:
+            description = input("Please enter a project description (optional): ")
+    else:
+        if name is None:
+            click.secho("Project name is required.", fg="red")
+            return
+        if description is None:
+            description = ""
     if len(name) > 46 or len(description) >= 255:
         click.secho("Project name or description too long.", fg="red")
     else:
