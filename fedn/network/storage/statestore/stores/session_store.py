@@ -1,9 +1,6 @@
-import datetime
-import uuid
 from typing import Any, Dict, List, Tuple
 
 import pymongo
-from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import func, select
 
@@ -82,11 +79,6 @@ def validate(item: SessionDTO) -> Tuple[bool, str]:
     return validate_session_config(session_config)
 
 
-def complement(item: SessionDTO):
-    item["status"] = "Created"
-    item["committed_at"] = datetime.datetime.now()
-
-
 class MongoDBSessionStore(SessionStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "session_id")
@@ -104,7 +96,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
             return None
         return self._dto_from_document(entity)
 
-    def update(self, id: str, item: SessionDTO) -> Tuple[bool, Any]:
+    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
         item_dict = item.to_db(exclude_unset=True)
         valid, message = validate(item_dict)
         if not valid:
@@ -127,8 +119,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         success, msg = validate(item_dict)
         if not success:
             return success, msg
-
-        complement(item_dict)
 
         success, obj = self.mongo_add(item_dict)
 
@@ -252,8 +242,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO]):
         valid, message = validate(item)
         if not valid:
             return False, message
-
-        complement(item)
 
         with self.Session() as session:
             parent_item = SessionModel(

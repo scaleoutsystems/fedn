@@ -8,7 +8,7 @@ from fedn.network.api.shared import control, model_store, session_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
-from fedn.network.storage.statestore.stores.dto.session import SessionDTO
+from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -89,8 +89,12 @@ def get_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
 
+        count = session_store.count(**kwargs)
+        result = [session.to_dict() for session in sessions]
+
+        response = {"count": count, "result": result}
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -164,7 +168,12 @@ def list_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
+
+        count = session_store.count(**kwargs)
+        result = [session.to_dict() for session in sessions]
+
+        response = {"count": count, "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -339,14 +348,28 @@ def post():
     """
     try:
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
-        successful, result = session_store.add(data)
-        response = result
+
+        session_config = SessionConfigDTO()
+        session_config.populate_with(data["session_config"])
+
+        data["session_config"] = session_config
+
+        session = SessionDTO()
+        session.session_config = session_config
+        session.populate_with(data)
+
+        successful, result = session_store.add(session)
+        response = result.to_dict()
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return (jsonify({"message": "Invalid object"}),), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-        return jsonify({"message": "An unexpected error occurred"}), 500
+        # return jsonify({"message": "An unexpected error occurred"}), 500
+        return jsonify({"message": str(e)}), 500
 
 
 def _get_number_of_available_clients():

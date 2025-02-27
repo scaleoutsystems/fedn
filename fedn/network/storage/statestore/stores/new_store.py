@@ -1,5 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 
 import pymongo
@@ -113,6 +114,9 @@ class MongoDBStore:
         try:
             if self.primary_key not in item or not item[self.primary_key]:
                 item[self.primary_key] = str(uuid.uuid4())
+
+            item["committed_at"] = datetime.now()
+
             self.database[self.collection].insert_one(item)
             document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
             return True, document

@@ -1,13 +1,15 @@
-import pytest
-import pymongo
-
-import time
 import datetime
-import uuid
 import itertools
+import time
+import uuid
+
+import pymongo
+import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.dto.session import (
+    SessionConfigDTO, SessionDTO)
 
 
 @pytest.fixture
@@ -17,13 +19,14 @@ def test_sessions():
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
                       "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id}
 
-    return model,[{"id":str(uuid.uuid4()),"name":"sessionname1",  "session_config":session_config},
-            {"id":str(uuid.uuid4()),"name":"sessionname3",  "session_config":session_config},
-            {"id":str(uuid.uuid4()),"name":"sessionname5",  "session_config":session_config},
-            {"id":str(uuid.uuid4()),"name":"sessionname4",  "session_config":session_config},
-            {"id":str(uuid.uuid4()),"name":"sessionname6",  "session_config":session_config},
-            {"id":str(uuid.uuid4()),"name":"sessionname2",   "session_config":session_config},
-            ]
+    session1 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname1",  session_config=SessionConfigDTO().patch(session_config))
+    session2 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname2",  session_config=SessionConfigDTO().patch(session_config))
+    session3 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname3",  session_config=SessionConfigDTO().patch(session_config))
+    session4 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname4",  session_config=SessionConfigDTO().patch(session_config))
+    session5 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname5",  session_config=SessionConfigDTO().patch(session_config))
+    session6 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname6",  session_config=SessionConfigDTO().patch(session_config))
+
+    return model,[session1, session2, session3, session4, session5, session6]
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_sessions):
@@ -78,19 +81,16 @@ class TestSessionStore:
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options:
-                res = db_1.session_store.list(*opt, **kwargs)
-                count, gathered_sessions = res["count"], res["result"]
+                gathered_sessions = db_1.session_store.select(*opt, **kwargs)
+                count = db_1.session_store.count(**kwargs)
 
-                res = db_2.session_store.list(*opt, **kwargs)
-                count2, gathered_sessions2 = res["count"], res["result"]
-                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-                #It is not clear what is the intended behavior
-                # assert(count == len(gathered_clients))
-                # assert count == count2
-                assert len(gathered_sessions) == len(gathered_sessions2)
+                gathered_sessions2 = db_2.session_store.select(*opt, **kwargs)
+                count2 = db_2.session_store.count(**kwargs)
+                
+                assert(len(gathered_sessions) == len(gathered_sessions2))
+                assert count == count2
 
                 for i in range(len(gathered_sessions)):
-                    #assert gathered_sessions2[i]["id"] == gathered_sessions[i]["id"]
-                    assert gathered_sessions2[i]["name"] == gathered_sessions[i]["name"]
+                    assert gathered_sessions2[i].name == gathered_sessions[i].name
 
 

@@ -1,5 +1,6 @@
 """Module contains minimal funcitonality mirrored from Pydantic BaseModel."""
 
+from datetime import datetime
 from typing import Any, Dict
 
 
@@ -11,8 +12,18 @@ class Field:
         self.default_value = default_value
 
 
+class OptionalField(Field):
+    """Field class for DTOs."""
+
+    def __init__(self, default_value) -> None:
+        """Initialize Field with default value."""
+        super().__init__(default_value)
+
+
 class BaseDTO:
     """BaseDTO for Data Transfer Objects."""
+
+    committed_at: datetime = Field(None)
 
     def __init__(self, **kwargs) -> None:
         """Initialize BaseModel."""
@@ -63,6 +74,8 @@ class BaseDTO:
         for k in self.__class__.get_all_fieldnames():
             if k in value_dict:
                 setattr(self, k, value_dict[k])
+            elif isinstance(super().__getattribute__(k), OptionalField) or not isinstance(super().__getattribute__(k), Field) or k == "committed_at":
+                pass
             else:
                 raise ValueError(f"Missing key: {k}")
         return self
