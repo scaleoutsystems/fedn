@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Type
 
 import pymongo
 from pymongo.database import Database
@@ -164,33 +164,32 @@ def from_row(row: dict) -> SessionDTO:
     }
 
 
-class SQLSessionStore(SessionStore, SQLStore[SessionDTO]):
-    def __init__(self, SessionDTO):
-        super().__init__(SessionDTO)
+def from_orm_model(model, SQLModel: Type[SessionModel]):
+    result = {}
+    for k in SQLModel.__table__.columns:
+        if k.name == "session_config":
+            result[k.name] = from_orm_model(getattr(model, k.name), SessionConfigModel)
+            continue
+        result[k.name] = getattr(model, k.name)
+    return result
+
+
+class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
+    def __init__(self, Session):
+        super().__init__(Session, SessionModel)
+
+    def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
+        orm_dict = from_orm_model(item, SessionModel)
+        orm_dict["client_id"] = orm_dict.pop("id")
+        return SessionDTO().populate_with(orm_dict)
 
     def get(self, id: str) -> SessionDTO:
         with self.Session() as session:
-            stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
-            item = session.execute(stmt).first()
-            if item is None:
+            entity = self.sql_get(session, id)
+            if entity is None:
                 return None
-            s, c = item
-            combined_dict = {
-                "id": s.id,
-                "name": s.name,
-                "session_id": s.id,
-                "status": s.status,
-                "committed_at": s.committed_at,
-                "aggregator": c.aggregator,
-                "round_timeout": c.round_timeout,
-                "buffer_size": c.buffer_size,
-                "model_id": c.model_id,
-                "delete_models_storage": c.delete_models_storage,
-                "clients_required": c.clients_required,
-                "validate": c.validate,
-                "helper_type": c.helper_type,
-            }
-            return from_row(combined_dict)
+
+            return self._dto_from_orm_model(entity)
 
     def update(self, id: str, item: SessionDTO) -> Tuple[bool, Any]:
         valid, message = validate(item)
