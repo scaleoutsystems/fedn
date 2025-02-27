@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
 from fedn.network.storage.statestore.stores.shared import from_document
-from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel
+from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel, from_orm_model
 
 
 class SessionStore(Store[SessionDTO]):
@@ -164,23 +164,16 @@ def from_row(row: dict) -> SessionDTO:
     }
 
 
-def from_orm_model(model, SQLModel: Type[SessionModel]):
-    result = {}
-    for k in SQLModel.__table__.columns:
-        if k.name == "session_config":
-            result[k.name] = from_orm_model(getattr(model, k.name), SessionConfigModel)
-            continue
-        result[k.name] = getattr(model, k.name)
-    return result
-
-
 class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
 
     def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
         orm_dict = from_orm_model(item, SessionModel)
-        orm_dict["client_id"] = orm_dict.pop("id")
+        session_config_dict = from_orm_model(item.session_config, SessionConfigModel)
+        session_config = SessionConfigDTO().populate_with(session_config_dict)
+        orm_dict["session_config"] = session_config
+        orm_dict["session_id"] = orm_dict.pop("id")
         return SessionDTO().populate_with(orm_dict)
 
     def get(self, id: str) -> SessionDTO:
