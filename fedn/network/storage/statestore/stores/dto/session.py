@@ -14,6 +14,7 @@ class SessionConfigDTO(BaseDTO):
     validate: bool = Field(None)
     helper_type: str = Field(None)
     model_id: str = Field(None)
+    server_functions: str = Field(None)
 
 
 class SessionDTO(BaseDTO):

@@ -12,6 +12,7 @@ from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -152,8 +153,8 @@ class ControlBase(ABC):
         :type status: str
         """
         session = self.session_store.get(session_id)
-        session["status"] = status
-        updated, msg = self.session_store.update(session["id"], session)
+        session.status = status
+        updated, msg = self.session_store.update(session)
         if not updated:
             raise Exception(msg)
 
@@ -166,7 +167,7 @@ class ControlBase(ABC):
         :rtype: str
         """
         session = self.session_store.get(session_id)
-        return session["status"]
+        return session.status
 
     def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
         """Set the model id for a session.
@@ -177,8 +178,9 @@ class ControlBase(ABC):
         :type config: dict
         """
         session = self.session_store.get(session_id)
-        session["session_config"] = config
-        updated, msg = self.session_store.update(session["id"], session)
+        session.session_config.patch(config)
+
+        updated, msg = self.session_store.update(session)
         if not updated:
             raise Exception(msg)
 

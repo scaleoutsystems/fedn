@@ -8,6 +8,7 @@ from fedn.network.api.shared import control, model_store, session_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
+from fedn.network.storage.statestore.stores.dto.session import SessionDTO
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -446,21 +447,18 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id)
-        if session is None:
+        exsisting_session = session_store.get(id)
+        if exsisting_session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
+        session = SessionDTO()
+
         data = request.get_json()
-        _id = session.session_id
+        data["session_id"] = id
 
-        # Update the session with the new data
-        # Only update the fields that are present in the request
-        for key, value in data.items():
-            if key in ["_id", "session_id"]:
-                continue
-            session[key] = value
+        session.patch(data, throw_on_extra_keys=False)
 
-        success, message = session_store.update(_id, session)
+        success, message = session_store.update(session)
 
         if success:
             response = session
@@ -517,15 +515,19 @@ def put_session(id: str):
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
-        _id = session["id"]
+        data["session_id"] = id
+        session.populate_with(data)
 
-        success, message = session_store.update(_id, data)
+        success, msg_obj = session_store.update(session)
 
         if success:
-            response = session
+            response = msg_obj.to_dict()
             return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {message}"}), 500
+        return jsonify({"message": f"Failed to update session: {msg_obj}"}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
