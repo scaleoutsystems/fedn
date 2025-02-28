@@ -391,6 +391,10 @@ def patch_model(id: str):
                         type: string
     """
     try:
+        exsisting_model = model_store.get(id)
+        if exsisting_model is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
         model = ModelDTO()
         model.model_id = id
 
@@ -456,15 +460,19 @@ def put_model(id: str):
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         data = request.get_json()
         data.pop("model", None)
-        data.pop("model_id", None)
-        model.patch(data, throw_on_extra_keys=False)
+        data["model_id"] = id
+
+        model.populate_with(data)
         success, msg_obj = model_store.update(model)
 
         if success:
             response = msg_obj.to_dict()
             return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update model: {msg_obj}"}), 500
+        return jsonify({"message": f"Failed to update model: {msg_obj}"}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

@@ -1,12 +1,13 @@
-import pytest
-import pymongo
-
-import itertools
 import datetime
+import itertools
 import uuid
+
+import pymongo
+import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ClientDTO
+
 
 @pytest.fixture
 def test_clients():
@@ -88,7 +89,13 @@ class TestClientStore:
         read_client1_dict = read_client1.to_dict()
         client_id = read_client1_dict["client_id"]
         del read_client1_dict["client_id"]
-        assert read_client1_dict == test_client.to_dict()
+        del read_client1_dict["committed_at"]
+
+        test_client_dict = test_client.to_dict()
+        del test_client_dict["client_id"]
+        del test_client_dict["committed_at"]
+
+        assert read_client1_dict == test_client_dict
 
         # Assert we get the same client back
         read_client2 = db.client_store.get(client_id)
@@ -134,7 +141,7 @@ class TestClientStore:
                 assert len(gathered_clients) == len(gathered_clients2)
 
                 for i in range(len(gathered_clients)):
-                    assert gathered_clients[i].to_dict() == gathered_clients2[i].to_dict()
+                    assert gathered_clients[i].client_id == gathered_clients2[i].client_id
                 
 
 

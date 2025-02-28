@@ -11,10 +11,10 @@ class ModelDTO(BaseDTO):
     parent_model: Optional[str] = Field(None)
     session_id: Optional[str] = Field(None)
 
-    def to_dict(self, exclude_unset=True):
-        res = super().to_dict(exclude_unset)
+    def to_dict(self):
+        res = super().to_dict()
         # TODO: Remove this when we have migrated all model to model_id
-        if not isinstance(object.__getattribute__(self, "model_id"), Field) or not exclude_unset:
+        if not isinstance(object.__getattribute__(self, "model_id"), Field):
             res["model"] = self.model_id
         return res
 

@@ -1,6 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
+from datetime import datetime
+from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 import pymongo
 from pymongo.database import Database
@@ -29,7 +30,7 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def update(self, item: T) -> Tuple[bool, Any]:
+    def update(self, item: T) -> Tuple[bool, Union[T, str]]:
         """Update an existing entity.
 
         Will do a patch if fields in T are left unset
@@ -40,7 +41,7 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def add(self, item: T) -> Tuple[bool, Any]:
+    def add(self, item: T) -> Tuple[bool, Union[T, str]]:
         """Add an entity.
 
         param item: The entity to add
@@ -113,6 +114,9 @@ class MongoDBStore:
         try:
             if self.primary_key not in item or not item[self.primary_key]:
                 item[self.primary_key] = str(uuid.uuid4())
+
+            item["committed_at"] = datetime.now()
+
             self.database[self.collection].insert_one(item)
             document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
             return True, document

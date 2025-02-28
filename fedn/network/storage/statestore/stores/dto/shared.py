@@ -1,5 +1,6 @@
 """Module contains minimal funcitonality mirrored from Pydantic BaseModel."""
 
+from datetime import datetime
 from typing import Any, Dict
 
 
@@ -11,8 +12,18 @@ class Field:
         self.default_value = default_value
 
 
+class OptionalField(Field):
+    """Field class for DTOs."""
+
+    def __init__(self, default_value) -> None:
+        """Initialize Field with default value."""
+        super().__init__(default_value)
+
+
 class BaseDTO:
     """BaseDTO for Data Transfer Objects."""
+
+    committed_at: datetime = Field(None)
 
     def __init__(self, **kwargs) -> None:
         """Initialize BaseModel."""
@@ -36,19 +47,18 @@ class BaseDTO:
                 result[k] = v
         return result
 
-    def to_dict(self, exclude_unset: bool = True) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Return dict representation of BaseModel. (Overridable)
 
         This method is used to convert the BaseModel to a dictionary representation.
-        :param exclude_unset: Exclude unset values, defaults to True
         """
-        return self.model_dump(exclude_unset=exclude_unset)
+        return self.model_dump(exclude_unset=False)
 
     def to_db(self, exclude_unset: bool = True) -> Dict[str, Any]:
         """Return dict representation of BaseModel for database storage."""
         return self.model_dump(exclude_unset=exclude_unset)
 
-    def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True) -> None:
+    def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True) -> "BaseDTO":
         """Patch BaseModel with value_dict."""
         for key, value in value_dict.items():
             if hasattr(self, key):
@@ -56,7 +66,9 @@ class BaseDTO:
             elif throw_on_extra_keys:
                 raise ValueError(f"Invalid key: {key}")
 
-    def populate_with(self, value_dict: Dict[str, Any]) -> None:
+        return self
+
+    def populate_with(self, value_dict: Dict[str, Any]) -> "BaseDTO":
         """Populate BaseModel from value_dict.
 
         This method is used to apply a dictionary to the model ignoring any extra keys but requires all fields to be present.
@@ -64,6 +76,8 @@ class BaseDTO:
         for k in self.__class__.get_all_fieldnames():
             if k in value_dict:
                 setattr(self, k, value_dict[k])
+            elif isinstance(super().__getattribute__(k), OptionalField) or not isinstance(super().__getattribute__(k), Field) or k == "committed_at":
+                pass
             else:
                 raise ValueError(f"Missing key: {k}")
         return self

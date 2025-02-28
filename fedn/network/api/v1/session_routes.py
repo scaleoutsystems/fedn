@@ -8,6 +8,7 @@ from fedn.network.api.shared import control, model_store, session_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
+from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -88,8 +89,12 @@ def get_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
 
+        count = session_store.count(**kwargs)
+        result = [session.to_dict() for session in sessions]
+
+        response = {"count": count, "result": result}
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -163,7 +168,12 @@ def list_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
+
+        count = session_store.count(**kwargs)
+        result = [session.to_dict() for session in sessions]
+
+        response = {"count": count, "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -294,9 +304,10 @@ def get_session(id: str):
                         type: string
     """
     try:
-        response = session_store.get(id)
-        if response is None:
+        result = session_store.get(id)
+        if result is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = result.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -337,11 +348,23 @@ def post():
     """
     try:
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
-        successful, result = session_store.add(data)
-        response = result
+
+        session_config = SessionConfigDTO()
+        session_config.populate_with(data.pop("session_config"))
+
+        session = SessionDTO()
+        session.session_id = None
+        session.session_config = session_config
+        session.populate_with(data)
+
+        successful, result = session_store.add(session)
+        response = result.to_dict()
         status_code: int = 201 if successful else 400
 
         return jsonify(response), status_code
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -379,15 +402,15 @@ def start_session():
 
         session = session_store.get(session_id)
 
-        session_config = session["session_config"]
-        model_id = session_config["model_id"]
-        min_clients = session_config["clients_required"]
+        session_config = session.session_config
+        model_id = session_config.model_id
+        min_clients = session_config.clients_required
 
         if control.state() == ReducerState.monitoring:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
-            rounds = session_config["rounds"]
+            rounds = session_config.rounds
         nr_available_clients = _get_number_of_available_clients()
 
         if nr_available_clients < min_clients:
@@ -445,21 +468,18 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id)
-        if session is None:
+        exsisting_session = session_store.get(id)
+        if exsisting_session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
+        session = SessionDTO()
+
         data = request.get_json()
-        _id = session["id"]
+        data["session_id"] = id
 
-        # Update the session with the new data
-        # Only update the fields that are present in the request
-        for key, value in data.items():
-            if key in ["_id", "session_id"]:
-                continue
-            session[key] = value
+        session.patch(data, throw_on_extra_keys=False)
 
-        success, message = session_store.update(_id, session)
+        success, message = session_store.update(session)
 
         if success:
             response = session
@@ -516,15 +536,19 @@ def put_session(id: str):
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
-        _id = session["id"]
+        data["session_id"] = id
+        session.populate_with(data)
 
-        success, message = session_store.update(_id, data)
+        success, msg_obj = session_store.update(session)
 
         if success:
-            response = session
+            response = msg_obj.to_dict()
             return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {message}"}), 500
+        return jsonify({"message": f"Failed to update session: {msg_obj}"}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

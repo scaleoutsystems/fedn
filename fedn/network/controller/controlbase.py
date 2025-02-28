@@ -152,8 +152,8 @@ class ControlBase(ABC):
         :type status: str
         """
         session = self.session_store.get(session_id)
-        session["status"] = status
-        updated, msg = self.session_store.update(session["id"], session)
+        session.status = status
+        updated, msg = self.session_store.update(session)
         if not updated:
             raise Exception(msg)
 
@@ -166,7 +166,7 @@ class ControlBase(ABC):
         :rtype: str
         """
         session = self.session_store.get(session_id)
-        return session["status"]
+        return session.status
 
     def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
         """Set the model id for a session.
@@ -177,8 +177,9 @@ class ControlBase(ABC):
         :type config: dict
         """
         session = self.session_store.get(session_id)
-        session["session_config"] = config
-        updated, msg = self.session_store.update(session["id"], session)
+        session.session_config.patch(config)
+
+        updated, msg = self.session_store.update(session)
         if not updated:
             raise Exception(msg)
 

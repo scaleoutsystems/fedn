@@ -147,7 +147,7 @@ class Query(graphene.ObjectType):
     def resolve_session(root, info, id: str = None):
         result = session_store.get(id)
 
-        return result
+        return result.to_dict()
 
     def resolve_sessions(root, info, name: str = None):
         if name:
