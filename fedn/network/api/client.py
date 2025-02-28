@@ -674,42 +674,86 @@ class APIClient:
 
     def start_splitlearning_session(
         self,
-        id: str = None,
-        aggregator: str = "splitlearningagg",  # Default to split learning aggregator
+        name: str = None,
+        aggregator: str = "splitlearningagg",
+        model_id: str = None,
         round_timeout: int = 180,
         rounds: int = 5,
         round_buffer_size: int = -1,
         delete_models: bool = True,
-        validate: bool = True,
-        helper: str = "splitlearninghelper",  # Default to split learning helper
+        validate: bool = False,
+        helper: str = "splitlearninghelper",
         min_clients: int = 1,
         requested_clients: int = 8,
-        server_functions: ServerFunctionsBase = None,
     ):
-        """Start a new split learning session.
-        Similar to start_session but with split learning specific defaults
-        and validation.
+        """Start a new session.
+
+        :param name: The name of the session
+        :type name: str
+        :param aggregator: The aggregator plugin to use.
+        :type aggregator: str
+        :param model_id: The id of the initial model.
+        :type model_id: str
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_buffer_size: The round buffer size to use.
+        :type round_buffer_size: int
+        :param delete_models: Whether to delete models after each round at combiner (save storage).
+        :type delete_models: bool
+        :param validate: Whether to validate the model after each round.
+        :type validate: bool
+        :param helper: The helper type to use.
+        :type helper: str
+        :param min_clients: The minimum number of clients required.
+        :type min_clients: int
+        :param requested_clients: The requested number of clients.
+        :type requested_clients: int
+        :return: A dict with success or failure message and session config.
+        :rtype: dict
         """
+        if helper != "splitlearninghelper":
+            return {"message": "Helper must be 'splitlearninghelper' for split learning sessions"}
+
         response = requests.post(
-            self._get_url("start_splitlearning_session"),
+            self._get_url_api_v1("sessions/"),
             json={
-                "session_id": id,
-                "aggregator": aggregator,
-                "round_timeout": round_timeout,
-                "rounds": rounds,
-                "round_buffer_size": round_buffer_size,
-                "delete_models": delete_models,
-                "validate": validate,
-                "helper": helper,
-                "min_clients": min_clients,
-                "requested_clients": requested_clients,
-                "server_functions": None if server_functions is None else inspect.getsource(server_functions),
+                "name": name,
+                "session_config": {
+                    "aggregator": aggregator,
+                    "model_id": model_id,
+                    "round_timeout": round_timeout,
+                    "buffer_size": round_buffer_size,
+                    "delete_models_storage": delete_models,
+                    "clients_required": min_clients,
+                    "requested_clients": requested_clients,
+                    "validate": validate,
+                    "helper_type": helper,
+                },
             },
             verify=self.verify,
             headers=self.headers,
         )
 
-        return response.json()
+        if response.status_code == 201:
+            session_id = response.json()["session_id"]
+            response = requests.post(
+                self._get_url_api_v1("sessions/start_splitlearning_session"),
+                json={
+                    "session_id": session_id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                verify=self.verify,
+                headers=self.headers,
+            )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            return response_json
+
+        _json = response.json()
+        return _json
 
     # --- Statuses --- #
 

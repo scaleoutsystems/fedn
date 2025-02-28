@@ -549,7 +549,13 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            self.server.statestore.set_round_combiner_data(round_meta)
+                            active_round = self.server.round_store.get(round_meta["round_id"])
+                            # self.server.statestore.set_round_combiner_data(round_meta)
+                            if "combiners" not in active_round:
+                                active_round["combiners"] = []
+                            active_round["combiners"].append(round_meta)
+
+                            updated = self.server.round_store.update(active_round["id"], active_round)
 
                         elif round_config["task"] == "backward":
                             tic = time.time()
@@ -557,7 +563,9 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            self.server.statestore.set_round_combiner_data(round_meta)
+                            active_round = self.server.round_store.get(round_meta["round_id"])
+                            # self.server.statestore.set_round_combiner_data(round_meta)
+                            updated = self.server.round_store.update(active_round["id"], active_round)
                         else:
                             logger.warning("config contains unkown task type.")
                     else:

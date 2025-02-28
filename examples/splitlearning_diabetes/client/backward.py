@@ -16,12 +16,6 @@ HELPER_MODULE = "splitlearninghelper"
 helper = get_helper(HELPER_MODULE)
 
 
-def get_computational_graph(client_model, data_path=None):
-    x_train = load_data(data_path, is_train=True)
-    embedding = client_model(x_train)
-    return embedding
-
-
 def backward_pass(gradient_path, client_id):
     """Load gradients from in_gradients_path, load the embeddings, and perform a backward pass to update
     the parameters of the client model. Save the updated model to out_model_path.
