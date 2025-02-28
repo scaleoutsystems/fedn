@@ -368,8 +368,7 @@ def post():
         return (jsonify({"message": "Invalid object"}),), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-        # return jsonify({"message": "An unexpected error occurred"}), 500
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"message": "An unexpected error occurred"}), 500
 
 
 def _get_number_of_available_clients():
