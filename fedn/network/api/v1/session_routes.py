@@ -350,11 +350,10 @@ def post():
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
 
         session_config = SessionConfigDTO()
-        session_config.populate_with(data["session_config"])
-
-        data["session_config"] = session_config
+        session_config.populate_with(data.pop("session_config"))
 
         session = SessionDTO()
+        session.session_id = None
         session.session_config = session_config
         session.populate_with(data)
 
@@ -365,7 +364,7 @@ def post():
         return jsonify(response), status_code
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
-        return (jsonify({"message": "Invalid object"}),), 400
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

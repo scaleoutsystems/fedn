@@ -68,7 +68,7 @@ class BaseDTO:
 
         return self
 
-    def populate_with(self, value_dict: Dict[str, Any]) -> None:
+    def populate_with(self, value_dict: Dict[str, Any]) -> "BaseDTO":
         """Populate BaseModel from value_dict.
 
         This method is used to apply a dictionary to the model ignoring any extra keys but requires all fields to be present.
