@@ -343,6 +343,7 @@ def post():
 
         return jsonify(response), status_code
     except Exception as e:
+        logger.error("error when creating a session")
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
@@ -401,6 +402,45 @@ def start_session():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/start_splitlearning_session", methods=["POST"])
+@jwt_auth_required(role="admin")
+def start_splitlearning_session():
+    """Starts a new split learning session."""
+    try:
+        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        session_id: str = data.get("session_id")
+        rounds: int = data.get("rounds", "")
+        round_timeout: int = data.get("round_timeout", None)
+
+        if not session_id or session_id == "":
+            return jsonify({"message": "Session ID is required"}), 400
+
+        session = session_store.get(session_id)
+
+        session_config = session["session_config"]
+        # model_id = session_config["model_id"]
+        min_clients = session_config["clients_required"]
+
+        if control.state() == ReducerState.monitoring:
+            return jsonify({"message": "A session is already running!"}), 400
+
+        if not rounds or not isinstance(rounds, int):
+            rounds = session_config["rounds"]
+        nr_available_clients = _get_number_of_available_clients()
+
+        if nr_available_clients < min_clients:
+            return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
+
+        # _ = model_store.get(model_id)
+
+        threading.Thread(target=control.splitlearning_session, args=(session_id, rounds, round_timeout)).start()
+
+        return jsonify({"message": "Splitlearning session started"}), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred in split learning session: {e}")
+        return jsonify({"message": "An unexpected error occurred when starting split learning session"}), 500
 
 
 @bp.route("/<string:id>", methods=["PATCH"])
