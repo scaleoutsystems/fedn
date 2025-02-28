@@ -96,7 +96,7 @@ class TestSessionStore:
     def helper_add_update_delete(self, db: DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
         model, session = test_session
         db.model_store.add(model)
-        # Add a sessiono and check that we get the added session back
+        # Add a session and check that we get the added session back
         success, read_session1 = db.session_store.add(session)
         assert success == True
         assert isinstance(read_session1.session_id, str)
@@ -114,23 +114,23 @@ class TestSessionStore:
 
         session_id = read_session1_dict["session_id"]
 
-        # Assert we get the same client back
+        # Assert we get the same session back
         read_session2 = db.session_store.get(session_id)
         assert read_session2 is not None
         assert read_session2.to_dict() == read_session1.to_dict()
         
-        # Update the client and check that we get the updated client back
+        # Update the session and check that we get the updated session back
         read_session2.name = "new_name"         
         success, read_session3 = db.session_store.update(read_session2)
         assert success == True
         assert read_session3.name == "new_name"
 
-        # Assert we get the same client back
+        # Assert we get the same session back
         read_session4 = db.session_store.get(session_id)
         assert read_session4 is not None
         assert read_session3.to_dict() == read_session4.to_dict()
 
-        # Delete the client and check that it is deleted
+        # Delete the session and check that it is deleted
         success = db.session_store.delete(session_id)
         assert success == True
 
