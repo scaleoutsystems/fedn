@@ -58,13 +58,15 @@ class BaseDTO:
         """Return dict representation of BaseModel for database storage."""
         return self.model_dump(exclude_unset=exclude_unset)
 
-    def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True) -> None:
+    def patch(self, value_dict: Dict[str, Any], throw_on_extra_keys: bool = True) -> "BaseDTO":
         """Patch BaseModel with value_dict."""
         for key, value in value_dict.items():
             if hasattr(self, key):
                 setattr(self, key, value)
             elif throw_on_extra_keys:
                 raise ValueError(f"Invalid key: {key}")
+
+        return self
 
     def populate_with(self, value_dict: Dict[str, Any]) -> None:
         """Populate BaseModel from value_dict.

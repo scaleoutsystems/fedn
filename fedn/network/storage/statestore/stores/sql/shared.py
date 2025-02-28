@@ -44,6 +44,8 @@ class SessionConfigModel(MyAbstractBase):
     helper_type: Mapped[str] = mapped_column(String(255))
     model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
     session: Mapped["SessionModel"] = relationship(back_populates="session_config")
+    rounds: Mapped[int]
+    server_functions: Mapped[Optional[str]] = mapped_column(String(255))
 
 
 class SessionModel(MyAbstractBase):

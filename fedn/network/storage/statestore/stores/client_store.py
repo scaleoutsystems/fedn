@@ -102,7 +102,7 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
 
     def add(self, item: ClientDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            item_dict = item.to_dict(exclude_unset=False)
+            item_dict = item.to_db(exclude_unset=False)
             item_dict = self._to_orm_dict(item_dict)
             entity = ClientModel(**item_dict)
             success, obj = self.sql_add(session, entity)
@@ -112,7 +112,7 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
 
     def update(self, item: ClientDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            item_dict = item.to_dict(exclude_unset=True)
+            item_dict = item.to_db(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
             success, obj = self.sql_update(session, item_dict)
             if success:

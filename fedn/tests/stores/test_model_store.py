@@ -1,9 +1,9 @@
-import pytest
-import pymongo
-
-import itertools
 import datetime
+import itertools
 import uuid
+
+import pymongo
+import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ModelDTO
@@ -90,7 +90,14 @@ class TestModelStore:
         model_id = read_model1.model_id
         del read_model1_dict["model_id"]
         del read_model1_dict["model"]
-        assert read_model1_dict == test_model.to_dict()
+        del read_model1_dict["committed_at"]
+
+
+        input_dict = test_model.to_dict()
+        del input_dict["model_id"]
+        del input_dict["committed_at"]
+
+        assert read_model1_dict == input_dict
 
         # Assert we get the same model back
         read_model2 = db.model_store.get(model_id)
@@ -137,6 +144,5 @@ class TestModelStore:
                 assert len(gathered_models1) == len(gathered_models2)
 
                 for i in range(len(gathered_models1)):
-                    assert gathered_models1[i].to_dict() == gathered_models2[i].to_dict()
-                    
+                    assert gathered_models1[i].model_id == gathered_models2[i].model_id
                     

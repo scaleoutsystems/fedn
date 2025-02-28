@@ -1,8 +1,9 @@
-from typing import Any, Dict, List, Tuple, Type
+from datetime import datetime
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
@@ -63,7 +64,7 @@ def validate_session_config(session_config: SessionConfigDTO) -> Tuple[bool, str
     return True, ""
 
 
-def validate(item: SessionDTO) -> Tuple[bool, str]:
+def validate(item: dict) -> Tuple[bool, str]:
     if "session_config" not in item or item["session_config"] is None:
         return False, "session_config is required"
 
@@ -144,26 +145,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         return SessionDTO().populate_with(session)
 
 
-def from_row(row: dict) -> SessionDTO:
-    return {
-        "id": row["id"],
-        "name": row["name"],
-        "session_id": row["id"],
-        "status": row["status"],
-        "committed_at": row["committed_at"],
-        "session_config": {
-            "aggregator": row["aggregator"],
-            "round_timeout": row["round_timeout"],
-            "buffer_size": row["buffer_size"],
-            "model_id": row["model_id"],
-            "delete_models_storage": row["delete_models_storage"],
-            "clients_required": row["clients_required"],
-            "validate": row["validate"],
-            "helper_type": row["helper_type"],
-        },
-    }
-
-
 class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
@@ -184,157 +165,80 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
             return self._dto_from_orm_model(entity)
 
-    def update(self, id: str, item: SessionDTO) -> Tuple[bool, Any]:
-        valid, message = validate(item)
-        if not valid:
-            return False, message
+    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+        item_dict["id"] = item_dict.pop("session_id", None)
+        return item_dict
+
+    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config).where(SessionModel.id == id)
-            existing_item = session.execute(stmt).first()
+            item_dict = item.to_db(exclude_unset=True)
+            item_dict = self._to_orm_dict(item_dict)
+            valid, message = validate(item_dict)
+            if not valid:
+                return False, message
+
+            session_config_dict = item_dict.pop("session_config")
+
+            stmt = select(SessionModel).where(SessionModel.id == item_dict["id"])
+            existing_item = session.scalars(stmt).first()
+
             if existing_item is None:
-                return False, f"Entity not found {id}"
-            s, c = existing_item
+                return False, "Item not found"
 
-            s.name = item["name"] if "name" in item else None
-            s.status = item["status"]
-            s.committed_at = item["committed_at"]
+            for key, value in item_dict.items():
+                setattr(existing_item, key, value)
 
-            session_config = item["session_config"]
+            exsisting_session_config = existing_item.session_config
 
-            c.aggregator = session_config["aggregator"]
-            c.round_timeout = session_config["round_timeout"]
-            c.buffer_size = session_config["buffer_size"]
-            c.model_id = session_config["model_id"]
-            c.delete_models_storage = session_config["delete_models_storage"]
-            c.clients_required = session_config["clients_required"]
-            c.validate = session_config["validate"]
-            c.helper_type = session_config["helper_type"]
+            for key, value in session_config_dict.items():
+                setattr(exsisting_session_config, key, value)
 
             session.commit()
 
-            combined_dict = {
-                "id": s.id,
-                "name": s.name,
-                "session_id": s.id,
-                "status": s.status,
-                "committed_at": s.committed_at,
-                "aggregator": c.aggregator,
-                "round_timeout": c.round_timeout,
-                "buffer_size": c.buffer_size,
-                "model_id": c.model_id,
-                "delete_models_storage": c.delete_models_storage,
-                "clients_required": c.clients_required,
-                "validate": c.validate,
-                "helper_type": c.helper_type,
-            }
-
-            return True, from_row(combined_dict)
+            return True, self._dto_from_orm_model(existing_item)
 
     def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        valid, message = validate(item)
-        if not valid:
-            return False, message
-
         with self.Session() as session:
-            parent_item = SessionModel(
-                id=item["session_id"], status=item["status"], name=item["name"] if "name" in item else None, committed_at=item["committed_at"] or None
-            )
+            item_dict = item.to_db(exclude_unset=False)
+            item_dict = self._to_orm_dict(item_dict)
 
-            session_config = item["session_config"]
+            valid, message = validate(item_dict)
+            if not valid:
+                return False, message
 
-            child_item = SessionConfigModel(
-                aggregator=session_config["aggregator"],
-                round_timeout=session_config["round_timeout"],
-                buffer_size=session_config["buffer_size"],
-                model_id=session_config["model_id"],
-                delete_models_storage=session_config["delete_models_storage"],
-                clients_required=session_config["clients_required"],
-                validate=session_config["validate"],
-                helper_type=session_config["helper_type"],
-            )
-            child_item.session = parent_item
+            session_config_dict = item_dict.pop("session_config")
 
-            session.add(child_item)
-            session.add(parent_item)
+            parent_entity = SessionModel(**item_dict)
+            child_entity = SessionConfigModel(**session_config_dict)
+            parent_entity.session_config = child_entity
+
+            session.add(child_entity)
+            session.add(parent_entity)
+
             session.commit()
 
-            combined_dict = {
-                "id": parent_item.id,
-                "name": parent_item.name,
-                "session_id": parent_item.id,
-                "status": parent_item.status,
-                "committed_at": parent_item.committed_at,
-                "aggregator": child_item.aggregator,
-                "round_timeout": child_item.round_timeout,
-                "buffer_size": child_item.buffer_size,
-                "model_id": child_item.model_id,
-                "delete_models_storage": child_item.delete_models_storage,
-                "clients_required": child_item.clients_required,
-                "validate": child_item.validate,
-                "helper_type": child_item.helper_type,
-            }
-
-            return True, from_row(combined_dict)
+            return True, self._dto_from_orm_model(parent_entity)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
-            stmt = select(SessionModel, SessionConfigModel).join(SessionModel.session_config)
-            for key, value in kwargs.items():
-                if "session_config" in key:
-                    key = key.replace("session_config.", "")
-                    stmt = stmt.where(getattr(SessionConfigModel, key) == value)
-                else:
-                    stmt = stmt.where(getattr(SessionModel, key) == value)
+            stmt = select(SessionModel).where(SessionModel.id == id)
+            item = session.scalars(stmt).first()
 
-            if sort_key:
-                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-                _sort_key: str = sort_key or "committed_at"
+            if item is None:
+                return False
 
-                if _sort_key in SessionModel.__table__.columns:
-                    sort_obj = SessionModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else SessionModel.__table__.columns.get(_sort_key).desc()
+            session_config = item.session_config
 
-                    stmt = stmt.order_by(sort_obj)
+            session.delete(item)
+            session.delete(session_config)
+            session.commit()
 
-            if limit:
-                stmt = stmt.offset(skip or 0).limit(limit)
-            elif skip:
-                stmt = stmt.offset(skip)
+            return True
 
-            items = session.execute(stmt)
-
-            result = []
-
-            for item in items:
-                s, c = item
-                combined_dict = {
-                    "id": s.id,
-                    "session_id": s.id,
-                    "name": s.name,
-                    "status": s.status,
-                    "committed_at": s.committed_at,
-                    "aggregator": c.aggregator,
-                    "round_timeout": c.round_timeout,
-                    "buffer_size": c.buffer_size,
-                    "model_id": c.model_id,
-                    "delete_models_storage": c.delete_models_storage,
-                    "clients_required": c.clients_required,
-                    "validate": c.validate,
-                    "helper_type": c.helper_type,
-                }
-                result.append(from_row(combined_dict))
-
-            return {"count": len(result), "result": result}
+    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[SessionDTO]:
+        with self.Session() as session:
+            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
+            return [self._dto_from_orm_model(item) for item in entities]
 
     def count(self, **kwargs):
-        with self.Session() as session:
-            stmt = select(func.count()).select_from(SessionModel)
-
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(SessionModel, key) == value)
-
-            count = session.scalar(stmt)
-
-            return count
+        return self.sql_count(**kwargs)

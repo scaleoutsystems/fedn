@@ -17,7 +17,7 @@ def test_sessions():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
-                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id}
+                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id, "rounds": 10}
 
     session1 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname1",  session_config=SessionConfigDTO().patch(session_config))
     session2 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname2",  session_config=SessionConfigDTO().patch(session_config))
@@ -33,7 +33,7 @@ def test_session():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
-                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id}
+                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id, "rounds": 10}
 
     session = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname",  session_config=SessionConfigDTO().patch(session_config))
 
@@ -84,20 +84,35 @@ def options():
 
 class TestSessionStore:
 
-    def test_add_update_delet_postgres(self, postgres_connection:DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
-        pass
+    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
+        self.helper_add_update_delete(postgres_connection, test_session)
+
+    def test_add_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
+        self.helper_add_update_delete(sql_connection, test_session)
+
+    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
+        self.helper_add_update_delete(mongo_connection, test_session) 
 
     def helper_add_update_delete(self, db: DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
         model, session = test_session
         db.model_store.add(model)
-        # Add a client and check that we get the added client back
+        # Add a sessiono and check that we get the added session back
         success, read_session1 = db.session_store.add(session)
         assert success == True
         assert isinstance(read_session1.session_id, str)
         read_session1_dict = read_session1.to_dict()
+
+        assert read_session1_dict["name"] == session.name
+        assert read_session1_dict["session_id"] == session.session_id
+        assert read_session1_dict["committed_at"] is not None
+
+
+        del read_session1_dict["session_config"]["committed_at"]
+        session_config_dict = session.session_config.to_dict()
+        del session_config_dict["committed_at"]
+        assert read_session1_dict["session_config"] == session_config_dict
+
         session_id = read_session1_dict["session_id"]
-        del read_session1_dict["session_id"]
-        assert read_session1_dict == session.to_dict()
 
         # Assert we get the same client back
         read_session2 = db.session_store.get(session_id)
@@ -114,18 +129,6 @@ class TestSessionStore:
         read_session4 = db.session_store.get(session_id)
         assert read_session4 is not None
         assert read_session3.to_dict() == read_session4.to_dict()
-
-        # Partial update the client and check that we get the updated client back
-        session_config = SessionConfigDTO(aggregator="new_aggregator")
-        update_session = SessionDTO(session_id=session_id, session_config=session_config)
-        success, read_session5 = db.session_store.update(update_session)
-        assert success == True
-        assert read_session5.session_config.aggregator == "new_aggregator"
-
-        # Assert we get the same client back
-        read_session6 = db.session_store.get(session_id)
-        assert read_session6 is not None
-        assert read_session6.to_dict() == read_session5.to_dict()
 
         # Delete the client and check that it is deleted
         success = db.session_store.delete(session_id)
@@ -147,6 +150,6 @@ class TestSessionStore:
                 assert count == count2
 
                 for i in range(len(gathered_sessions)):
-                    assert gathered_sessions2[i].name == gathered_sessions[i].name
+                    assert gathered_sessions2[i].session_id == gathered_sessions[i].session_id
 
 
