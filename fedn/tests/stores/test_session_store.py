@@ -29,6 +29,17 @@ def test_sessions():
     return model,[session1, session2, session3, session4, session5, session6]
 
 @pytest.fixture
+def test_session():
+    model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
+
+    session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
+                      "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id}
+
+    session = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname",  session_config=SessionConfigDTO().patch(session_config))
+
+    return model, session
+
+@pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_sessions):
     model, test_sessions = test_sessions
     res, _ = mongo_connection.model_store.add(model)
@@ -73,8 +84,53 @@ def options():
 
 class TestSessionStore:
 
-    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
+    def test_add_update_delet_postgres(self, postgres_connection:DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
         pass
+
+    def helper_add_update_delete(self, db: DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
+        model, session = test_session
+        db.model_store.add(model)
+        # Add a client and check that we get the added client back
+        success, read_session1 = db.session_store.add(session)
+        assert success == True
+        assert isinstance(read_session1.session_id, str)
+        read_session1_dict = read_session1.to_dict()
+        session_id = read_session1_dict["session_id"]
+        del read_session1_dict["session_id"]
+        assert read_session1_dict == session.to_dict()
+
+        # Assert we get the same client back
+        read_session2 = db.session_store.get(session_id)
+        assert read_session2 is not None
+        assert read_session2.to_dict() == read_session1.to_dict()
+        
+        # Update the client and check that we get the updated client back
+        read_session2.name = "new_name"         
+        success, read_session3 = db.session_store.update(read_session2)
+        assert success == True
+        assert read_session3.name == "new_name"
+
+        # Assert we get the same client back
+        read_session4 = db.session_store.get(session_id)
+        assert read_session4 is not None
+        assert read_session3.to_dict() == read_session4.to_dict()
+
+        # Partial update the client and check that we get the updated client back
+        session_config = SessionConfigDTO(aggregator="new_aggregator")
+        update_session = SessionDTO(session_id=session_id, session_config=session_config)
+        success, read_session5 = db.session_store.update(update_session)
+        assert success == True
+        assert read_session5.session_config.aggregator == "new_aggregator"
+
+        # Assert we get the same client back
+        read_session6 = db.session_store.get(session_id)
+        assert read_session6 is not None
+        assert read_session6.to_dict() == read_session5.to_dict()
+
+        # Delete the client and check that it is deleted
+        success = db.session_store.delete(session_id)
+        assert success == True
+
 
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
