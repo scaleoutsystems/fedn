@@ -104,11 +104,11 @@ def get_context(response, protocol: str, host: str):
                     context_data["Active project tokens"] = project_tokens
                     controller_url = f"{protocol}://{host}/{id}-fedn-reducer"
                     context_data["Active project url"] = controller_url
-                    click.secho("Login successful!", fg="green")
                 else:
                     click.secho(f"Unexpected error: {response_project_tokens.status_code}", fg="red")
         else:
             click.secho(f"Unexpected error: {response_projects.status_code}", fg="red")
+        click.secho("Login successful!", fg="green")
     else:
         click.secho("Login failed. Please check your credentials.", fg="red")
 

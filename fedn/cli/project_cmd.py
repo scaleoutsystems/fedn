@@ -19,9 +19,10 @@ def project_cmd(ctx):
 @click.option("-id", "--id", required=True, help="ID of project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("-y", "--yes", is_flag=True, help="Automatically confirm any prompts.")
 @project_cmd.command("delete")
 @click.pass_context
-def delete_project(ctx, id: str = None, protocol: str = None, host: str = None):
+def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, yes: bool = False):
     """Delete project with given ID."""
     # Check if project with given id exists
     studio_api = True
@@ -30,35 +31,33 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None):
     if response.status_code == 200:
         if response.json().get("error"):
             click.secho(f"No project with id '{id}' exists.", fg="red")
-        else:
-            # Check if user wants to delete project with given id
-            user_input = input(f"Are you sure you want to delete project with id {id} (y/n)?: ")
-            if user_input == "y":
-                url = get_api_url(protocol=protocol, host=host, port=None, endpoint=f"projects/delete/{id}", usr_api=studio_api)
-                headers = {}
+        elif yes or input(f"Are you sure you want to delete project with id {id} (y/n)?: ").lower() == "y":
+            url = get_api_url(protocol=protocol, host=host, port=None, endpoint=f"projects/delete/{id}", usr_api=studio_api)
+            headers = {}
 
-                _token = get_token(None, True)
+            _token = get_token(None, True)
 
-                if _token:
-                    headers["Authorization"] = _token
-                # Call the authentication API
-                try:
-                    requests.delete(url, headers=headers)
-                    click.secho(f"Project with slug {id} has been removed.", fg="green")
-                except requests.exceptions.RequestException as e:
-                    click.echo(str(e), fg="red")
-                activate_project(None, protocol, host)
+            if _token:
+                headers["Authorization"] = _token
+            # Call the authentication API
+            try:
+                requests.delete(url, headers=headers)
+                click.secho(f"Project with slug {id} has been removed.", fg="green")
+            except requests.exceptions.RequestException as e:
+                click.echo(str(e), fg="red")
+            activate_project(None, protocol, host)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
 
-@click.option("-n", "--name", required=False, default=None, help="Name of new projec.")
-@click.option("-d", "--description", required=False, default=None, help="Description of new projec.")
+@click.option("-n", "--name", required=False, default=None, help="Name of new project.")
+@click.option("-d", "--description", required=False, default=None, help="Description of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None):
+def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False):
     """Create project.
     :param ctx:
     """
@@ -71,10 +70,17 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
     if _token:
         headers["Authorization"] = _token
-    if name is None:
-        name = input("Please enter a project name: ")
-    if description is None:
-        description = input("Please enter a project description (optional): ")
+    if not no_interactive:
+        if name is None:
+            name = input("Please enter a project name: ")
+        if description is None:
+            description = input("Please enter a project description (optional): ")
+    else:
+        if name is None:
+            click.secho("Project name is required.", fg="red")
+            return
+        if description is None:
+            description = ""
     if len(name) > 46 or len(description) >= 255:
         click.secho("Project name or description too long.", fg="red")
     else:
