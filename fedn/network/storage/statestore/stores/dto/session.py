@@ -9,7 +9,7 @@ class SessionConfigDTO(BaseDTO):
     aggregator: str = Field(None)
     round_timeout: int = Field(None)
     buffer_size: int = Field(None)
-    rounds: int = Field(None)
+    rounds: Optional[int] = OptionalField(None)
     delete_models_storage: bool = Field(None)
     clients_required: int = Field(None)
     validate: bool = Field(None)
