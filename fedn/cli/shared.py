@@ -147,7 +147,7 @@ def get_context(context_path):
     return context_data
 
 
-def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: str):
+def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: bool):
     """Utility function to retrieve response from get request based on provided information."""
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint=endpoint, usr_api=usr_api)
 
