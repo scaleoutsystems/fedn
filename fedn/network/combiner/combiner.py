@@ -20,6 +20,7 @@ from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -109,19 +110,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.round_store = round_store
 
-        # Add combiner to statestore
-        interface_config = {
-            "port": config["port"],
-            "fqdn": config["fqdn"],
-            "name": config["name"],
-            "address": config["host"],
-            "parent": "localhost",
-            "ip": "",
-            "updated_at": str(datetime.now()),
-        }
         # Check if combiner already exists in statestore
-        if combiner_store.get(config["name"]) is None:
-            combiner_store.add(interface_config)
+        if combiner_store.get_by_name(config["name"]) is None:
+            new_combiner = CombinerDTO()
+            new_combiner.port = config["port"]
+            new_combiner.fqdn = config["fqdn"]
+            new_combiner.name = config["name"]
+            new_combiner.address = config["host"]
+            new_combiner.parent = "localhost"
+            new_combiner.ip = ""
+            new_combiner.updated_at = str(datetime.now())
+            combiner_store.add(new_combiner)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,

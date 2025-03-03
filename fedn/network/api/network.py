@@ -48,10 +48,10 @@ class Network:
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        data = self.combiner_store.list(limit=0, skip=0, sort_key=None)
+        result = self.combiner_store.select(limit=0, skip=0, sort_key=None)
         combiners = []
-        for c in data["result"]:
-            name = c["name"].upper()
+        for combiner in result:
+            name = combiner.name.upper()
             # General certificate handling, same for all combiners.
             if os.environ.get("FEDN_GRPC_CERT_PATH"):
                 with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
@@ -63,7 +63,9 @@ class Network:
                     cert = f.read()
             else:
                 cert = None
-            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, ip=c["ip"]))
+            combiners.append(
+                CombinerInterface(combiner.parent, combiner.name, combiner.address, combiner.fqdn, combiner.port, certificate=cert, ip=combiner.ip)
+            )
 
         return combiners
 
