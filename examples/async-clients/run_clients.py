@@ -26,6 +26,7 @@ from multiprocessing import Process
 import numpy as np
 from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
+import click
 
 from config import settings
 from fedn import FednClient
@@ -104,71 +105,94 @@ def on_validate(in_model):
     return metrics
 
 
-def run_client(online_for=120, name="client", client_id=None, discovery=True):
-    """Simulates a client that starts and stops
-    at random intervals.
+def run_client(name="client", client_id=None, no_discovery=False, intermittent=False, online_for=120):
+    """Run a FEDn client with configurable connection options.
 
-    The client will start after a random time 'mean_delay',
-    stay online for 'online_for' seconds (deterministic),
-    then disconnect.
+    The client can either connect directly to a combiner or use the discovery service.
+    It can also run in continuous or intermittent mode.
 
-    This is repeated for N_CYCLES.
+    In intermittent mode, the client will:
+    1. Wait a random delay between 0 and CLIENTS_MAX_DELAY seconds
+    2. Connect to the combiner
+    3. Stay online for online_for seconds
+    4. Disconnect
+    5. Repeat this cycle N_CYCLES times
 
+    In continuous mode, the client will:
+    1. Connect to the combiner
+    2. Stay connected until the program exits
+
+    Args:
+        name (str, optional): Name of the client. Defaults to "client".
+        client_id (str, optional): Unique ID for the client. If None, a UUID will be generated.
+        no_discovery (bool, optional): If True, connect directly to combiner. If False, use discovery service. Defaults to False.
+        intermittent (bool, optional): If True, use intermittent connection mode. Defaults to False.
+        online_for (int, optional): In intermittent mode, how long to stay connected in seconds. Defaults to 120.
     """
     if client_id is None:
         client_id = str(uuid.uuid4())
 
-    # for i in range(settings["N_CYCLES"]):
-    # while True:
+    delay = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
+    print(f"Starting {name} in {delay} seconds")
+    time.sleep(delay)
 
     fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
     fl_client.set_name(name)
     fl_client.set_client_id(client_id)
 
-    controller_config = {
-        "name": fl_client.name,
-        "client_id": fl_client.client_id,
-        "package": "local",
-    }
+    if no_discovery:
+        combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
+    else:
+        controller_config = {
+            "name": fl_client.name,
+            "client_id": fl_client.client_id,
+            "package": "local",
+        }
 
-    if discovery:
         url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
         result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
-    else:
-        combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
 
     fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
-    # threading.Thread(target=fl_client.run, daemon=True).start()
-    # time.sleep(online_for)
-    # fl_client.grpc_handler._disconnect()
-    fl_client.run()
+    if intermittent:
+        for i in range(settings["N_CYCLES"]):
+            if i != 0:
+                fl_client.grpc_handler._reconnect()
+
+            threading.Thread(target=fl_client.run, daemon=True).start()
+            time.sleep(online_for)
+            fl_client.grpc_handler._disconnect()
+
+            # Sample a delay until the client reconnects
+            delay = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
+            time.sleep(delay)
+    else:
+        fl_client.run()
 
 
 if __name__ == "__main__":
-    discovery = True
-    if len(sys.argv) > 1 and sys.argv[1] == "--no-discovery":
-        discovery = False
-    
-    # We start N_CLIENTS independent client processes
-    processes = []
-    for i in range(settings["N_CLIENTS"]):
-        p = Process(
-            target=run_client,
-            args=(
-                settings["CLIENTS_ONLINE_FOR_SECONDS"],
-                "client{}".format(i + 1),
-                str(uuid.uuid4()),
-                discovery,
-            ),
-        )
-        processes.append(p)
+    @click.command()
+    @click.option('--no-discovery', is_flag=True, help='Connect to combiner without discovery service')
+    @click.option('--intermittent', is_flag=True, help='Use intermittent connection/disconnection mode')
+    def main(no_discovery, intermittent):
+        # We start N_CLIENTS independent client processes
+        processes = []
+        for i in range(settings["N_CLIENTS"]):
+            p = Process(
+                target=run_client,
+                args=(
+                    "client{}".format(i + 1),
+                    str(uuid.uuid4()), 
+                    no_discovery,
+                    intermittent,
+                    settings["CLIENTS_ONLINE_FOR_SECONDS"],
+                ),
+            )
+            processes.append(p)
 
-        # Sample a delay until the client starts
-        time.sleep(settings["CLIENTS_MAX_DELAY"])
+            p.start()
 
-        p.start()
+        for p in processes:
+            p.join()
 
-
-    for p in processes:
-        p.join()
+    main()
