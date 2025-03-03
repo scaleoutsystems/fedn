@@ -456,3 +456,9 @@ class GrpcHandler:
         """Disconnect from the combiner."""
         self.channel.close()
         logger.info("GRPC channel closed.")
+
+    def _reconnect(self) -> None:
+        """Reconnect to the combiner."""
+        self._disconnect()
+        self._init_channel(self.host, self.port, self.token)
+        self._init_stubs()
