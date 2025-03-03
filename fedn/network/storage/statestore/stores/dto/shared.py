@@ -54,7 +54,7 @@ class BaseDTO:
         """
         return self.model_dump(exclude_unset=False)
 
-    def to_db(self, exclude_unset: bool = True) -> Dict[str, Any]:
+    def to_db(self, exclude_unset: bool = False) -> Dict[str, Any]:
         """Return dict representation of BaseModel for database storage."""
         return self.model_dump(exclude_unset=exclude_unset)
 
