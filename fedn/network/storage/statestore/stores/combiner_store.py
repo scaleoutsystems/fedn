@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
