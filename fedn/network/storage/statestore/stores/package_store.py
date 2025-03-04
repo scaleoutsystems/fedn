@@ -1,11 +1,11 @@
 import uuid
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import pymongo
 from pymongo.database import Database
-from sqlalchemy import func, select
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.dto import PackageDTO
@@ -172,7 +172,6 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
 
     def delete(self, id: str) -> bool:
         kwargs = {"id": id, "key": "package_trail"}
-        document = self.database[self.collection].find_one(kwargs)
         result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
         if not result:
             return False
