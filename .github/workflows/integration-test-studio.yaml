@@ -5,14 +5,6 @@ on:
     - cron: '0 0 * * *'  # This cron expression runs the workflow every day at midnight UTC
   workflow_dispatch:  # Allows manual triggering of the workflow
     inputs:
-      STUDIO_HOST:
-        description: 'Studio Host'
-        required: false
-        default: 'api.studio.scaleoutplatform.com'
-      STUDIO_USER:
-        description: 'Studio User'
-        required: false
-        default: 'github@scaleoutsystems.com'
       FEDN_EXAMPLE:
         description: 'FEDN Example'
         required: false
@@ -81,8 +73,8 @@ jobs:
 
     - name: Generate .env file
       run: |
-        echo "STUDIO_HOST=${{ github.event.inputs.STUDIO_HOST || 'api.studio.scaleoutplatform.com' }}" > .ci/tests/studio/.env
-        echo "STUDIO_USER=${{ github.event.inputs.STUDIO_USER || 'github@scaleoutsystems.com' }}" >> .ci/tests/studio/.env
+        echo "STUDIO_HOST=api.studio.scaleoutplatform.com" > .ci/tests/studio/.env
+        echo "STUDIO_USER=github@scaleoutsystems.com" >> .ci/tests/studio/.env
         echo "FEDN_EXAMPLE=${{ github.event.inputs.FEDN_EXAMPLE || 'mnist-pytorch' }}" >> .ci/tests/studio/.env
         echo "FEDN_NR_CLIENTS=${{ github.event.inputs.FEDN_NR_CLIENTS || '2' }}" >> .ci/tests/studio/.env
         echo "FEDN_NR_ROUNDS=${{ github.event.inputs.FEDN_NR_ROUNDS || '5' }}" >> .ci/tests/studio/.env
