@@ -85,12 +85,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
     def get(self, id: str) -> SessionDTO:
-        """Get an entity by id
-        param id: The id of the entity
-            type: str
-            description: The id of the entity, can be either the id or the session_id (property)
-        return: The entity
-        """
         entity = self.mongo_get(id)
         if entity is None:
             return None
