@@ -155,3 +155,14 @@ class ClientModel(MyAbstractBase):
     package: Mapped[Optional[str]] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(255))
     last_seen: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+class PackageModel(MyAbstractBase):
+    __tablename__ = "packages"
+
+    active: Mapped[bool] = mapped_column(default=False)
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    file_name: Mapped[str] = mapped_column(String(255))
+    helper: Mapped[str] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    storage_file_name: Mapped[str] = mapped_column(String(255))

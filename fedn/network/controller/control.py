@@ -348,7 +348,7 @@ class Control(ControlBase):
 
             try:
                 active_package = self.package_store.get_active()
-                helper_type = active_package["helper"]
+                helper_type = active_package.helper
             except Exception:
                 logger.error("Failed to get active helper")
 
