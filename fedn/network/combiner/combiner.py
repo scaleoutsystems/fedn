@@ -290,30 +290,44 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 clients = self.get_active_trainers()
 
         for client in clients:
+            # request = fedn.TaskRequest()
+            # request.timestamp = str(datetime.now())
+            # request.type = request_type
+            # request.session_id = session_id
+            # request.sender.name = self.id
+            # request.sender.role = fedn.COMBINER
+            # request.receiver.client_id = client
+            # request.receiver.role = fedn.CLIENT
+
             request = fedn.TaskRequest()
+            request.model_id = model_id
+            request.correlation_id = str(uuid.uuid4())
             request.timestamp = str(datetime.now())
             request.type = request_type
             request.session_id = session_id
+
             request.sender.name = self.id
             request.sender.role = fedn.COMBINER
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
+
+
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
-            elif request_type == fedn.StatusType.MODEL_UPDATE:  # noqa: SIM114
-                request.model_id = model_id
-                request.correlation_id = str(uuid.uuid4())
+            elif request_type == fedn.StatusType.MODEL_UPDATE:
+                # request.model_id = model_id
+                # request.correlation_id = str(uuid.uuid4())
                 request.data = json.dumps(config)
-            elif request_type == fedn.StatusType.FORWARD:  # noqa: SIM114
+            elif request_type == fedn.StatusType.FORWARD:
                 # request.model_id = model_id
                 # request.correlation_id = str(uuid.uuid4()) # NOTE: necessary or not? TODO: rename model_id
                 request.data = json.dumps(config)
             elif request_type == fedn.StatusType.BACKWARD:
-                request.model_id = model_id
-                request.correlation_id = str(uuid.uuid4())
+                # request.model_id = model_id
+                # request.correlation_id = str(uuid.uuid4())
                 request.data = json.dumps(config)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
         return clients

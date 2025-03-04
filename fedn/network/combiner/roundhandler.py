@@ -522,6 +522,8 @@ class RoundHandler:
 
                     if ready:
                         if round_config["task"] == "training":
+                            session_id = round_config["session_id"]
+                            model_id = round_config["model_id"]
                             tic = time.time()
                             round_meta = self.execute_training_round(round_config)
                             round_meta["time_exec_training"] = time.time() - tic
@@ -544,13 +546,14 @@ class RoundHandler:
                             self.execute_prediction_round(prediction_id, model_id)
 
                         elif round_config["task"] == "forward":
+                            session_id = round_config["session_id"]
+                            model_id = round_config["model_id"]
                             tic = time.time()
                             round_meta = self.execute_forward_pass(round_config)
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             active_round = self.server.round_store.get(round_meta["round_id"])
-                            # self.server.statestore.set_round_combiner_data(round_meta)
                             if "combiners" not in active_round:
                                 active_round["combiners"] = []
                             active_round["combiners"].append(round_meta)
@@ -564,7 +567,6 @@ class RoundHandler:
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             active_round = self.server.round_store.get(round_meta["round_id"])
-                            # self.server.statestore.set_round_combiner_data(round_meta)
                             updated = self.server.round_store.update(active_round["id"], active_round)
                         else:
                             logger.warning("config contains unkown task type.")
