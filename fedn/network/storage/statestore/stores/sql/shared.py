@@ -29,7 +29,7 @@ class MyAbstractBase(Base):
     __abstract__ = True
 
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
-    committed_at: Mapped[datetime] = mapped_column(default=datetime.now())
+    committed_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
 
 class SessionConfigModel(MyAbstractBase):
@@ -166,3 +166,15 @@ class PackageModel(MyAbstractBase):
     helper: Mapped[str] = mapped_column(String(255))
     name: Mapped[str] = mapped_column(String(255))
     storage_file_name: Mapped[str] = mapped_column(String(255))
+
+
+class CombinerModel(MyAbstractBase):
+    __tablename__ = "combiners"
+
+    address: Mapped[str] = mapped_column(String(255))
+    fqdn: Mapped[Optional[str]] = mapped_column(String(255))
+    ip: Mapped[Optional[str]] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    parent: Mapped[Optional[str]] = mapped_column(String(255))
+    port: Mapped[int]
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.now())
