@@ -1,0 +1,39 @@
+name: Integration Test Studio
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # This cron expression runs the workflow every day at midnight UTC
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  integration-test:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Create and activate virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+
+    - name: Install dependencies
+      run: |
+        source venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install .
+        pip install -r .ci/tests/studio/requirements.txt
+
+    - name: Run integration tests
+      env:
+        STUDIO_PASSWORD: ${{ secrets.STUDIO_PASSWORD }}
+      run: |
+        source venv/bin/activate
+        chmod +x .ci/tests/studio/studio.sh
+        .ci/tests/studio/studio.sh
