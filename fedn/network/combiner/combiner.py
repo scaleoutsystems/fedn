@@ -229,7 +229,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model prediction request for model {} to {} clients".format(model_id, len(clients)))
 
-    def request_forward_pass(self, session_id: str, config: dict, clients=[]) -> None:
+    # def request_forward_pass(self, session_id: str, config: dict, clients=[]) -> None:
+    def request_forward_pass(self, session_id, model_id, config, clients=[]) -> None:
         """Ask clients to perform forward pass.
 
         :param config: the model configuration to send to clients
@@ -238,7 +239,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, config, clients)
+        #  _send_request_type(self, request_type, session_id, model_id=None, config=None, clients=[]
+
+        # clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id=None, config=config, clients=clients)
+        clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
 
         if len(clients) < 20:
             logger.info("Sent forward request to clients {}".format(clients))
@@ -279,21 +283,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: list
         """
         if len(clients) == 0:
-            if request_type == fedn.StatusType.MODEL_UPDATE:
+            if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 clients = self.get_active_trainers()
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
             elif request_type == fedn.StatusType.MODEL_PREDICTION:
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
-            elif request_type == fedn.StatusType.FORWARD or request_type == fedn.StatusType.BACKWARD:
-                clients = self.get_active_trainers()
+            # elif request_type == fedn.StatusType.FORWARD or request_type == fedn.StatusType.BACKWARD:
+            #     clients = self.get_active_trainers()
 
         for client in clients:
             # request = fedn.TaskRequest()
             # request.timestamp = str(datetime.now())
             # request.type = request_type
             # request.session_id = session_id
+
             # request.sender.name = self.id
             # request.sender.role = fedn.COMBINER
             # request.receiver.client_id = client

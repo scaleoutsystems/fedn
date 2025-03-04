@@ -227,9 +227,10 @@ class RoundHandler:
         meta["timeout"] = float(config["round_timeout"])
 
         session_id = config["session_id"]
+        model_id = config["model_id"]
 
         # Request forward pass from all active clients.
-        self.server.request_forward_pass(session_id=session_id, config=config, clients=clients)
+        self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
         if int(config["buffer_size"]) == -1:

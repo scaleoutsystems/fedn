@@ -524,7 +524,7 @@ class Control(ControlBase):
 
         for combiner in round["combiners"]:
             try:
-                model_id = combiner["model_id"] # = id of gradient
+                model_id = combiner["model_id"]
             except KeyError:
                 logger.error("Forward pass failed - no model_id in combiner response")
                 self.set_round_status(round_id, "Failed")
