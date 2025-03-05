@@ -5,8 +5,9 @@ from pymongo.database import Database
 from sqlalchemy import ForeignKey, String, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
-from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
+from fedn.network.storage.statestore.stores.dto import PredictionDTO
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase, PredictionModel
 
 
 class Prediction:
@@ -24,11 +25,11 @@ class Prediction:
         self.receiver = receiver
 
 
-class PredictionStore(Store[Prediction]):
+class PredictionStore(Store[PredictionDTO]):
     pass
 
 
-class MongoDBPredictionStore(MongoDBStore[Prediction]):
+class MongoDBPredictionStore(PredictionStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
