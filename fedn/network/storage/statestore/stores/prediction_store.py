@@ -70,20 +70,6 @@ class MongoDBPredictionStore(MongoDBStore[Prediction]):
         return super().list(limit, skip, sort_key or "timestamp", sort_order, **kwargs)
 
 
-class PredictionModel(MyAbstractBase):
-    __tablename__ = "predictions"
-
-    correlation_id: Mapped[str]
-    data: Mapped[Optional[str]]
-    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
-    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
-    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
-    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
-    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
-    timestamp: Mapped[str] = mapped_column(String(255))
-    prediction_id: Mapped[str] = mapped_column(String(255))
-
-
 def from_row(row: PredictionModel) -> Prediction:
     return {
         "id": row.id,
