@@ -147,17 +147,17 @@ class DatabaseConnection:
         return mdb
 
     def _setup_sql(self, statestore_config: dict) -> "DatabaseConnection":
-        statestore_type = os.environ.get("FEDN_STATESTORE_TYPE", statestore_config["type"])
+        statestore_type = os.environ.get("FEDN_STATESTORE_TYPE", statestore_config.get("type", ""))
         if statestore_type == "SQLite":
             sqlite_config = statestore_config["sqlite_config"]
             dbname = sqlite_config["dbname"]
             engine = create_engine(f"sqlite:///{dbname}", echo=False)
         elif statestore_type == "PostgreSQL":
-            username = os.environ.get("FEDN_STATESTORE_USERNAME", statestore_config["postgres_config"]["username"])
-            password = os.environ.get("FEDN_STATESTORE_PASSWORD", statestore_config["postgres_config"]["password"])
-            host = os.environ.get("FEDN_STATESTORE_HOST", statestore_config["postgres_config"]["host"])
-            port = os.environ.get("FEDN_STATESTORE_PORT", statestore_config["postgres_config"]["port"])
-            dbname = os.environ.get("FEDN_STATESTORE_DBNAME", statestore_config["postgres_config"]["dbname"])
+            username = os.environ.get("FEDN_STATESTORE_USERNAME", statestore_config.get("postgres_config", {}).get("username"))
+            password = os.environ.get("FEDN_STATESTORE_PASSWORD", statestore_config.get("postgres_config", {}).get("password"))
+            host = os.environ.get("FEDN_STATESTORE_HOST", statestore_config.get("postgres_config", {}).get("host"))
+            port = os.environ.get("FEDN_STATESTORE_PORT", statestore_config.get("postgres_config", {}).get("port"))
+            dbname = os.environ.get("FEDN_STATESTORE_DBNAME", statestore_config.get("postgres_config", {}).get("dbname"))
             engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/{dbname}", echo=False)
 
         Session = sessionmaker(engine)  # noqa: N806
