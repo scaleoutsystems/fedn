@@ -647,19 +647,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__join_client(client)
         self.clients[client.client_id]["last_seen"] = datetime.now()
 
-        success, msg = analytic_store.add(
-            {
-                "id": str(uuid.uuid4()),
-                "sender_id": client.client_id,
-                "sender_role": "client",
-                "cpu_utilisation": heartbeat.cpu_utilisation,
-                "memory_utilisation": heartbeat.memory_utilisation,
-                "committed_at": datetime.now(),
-            }
-        )
+        if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
+            success, msg = analytic_store.add(
+                {
+                    "id": str(uuid.uuid4()),
+                    "sender_id": client.client_id,
+                    "sender_role": "client",
+                    "cpu_utilisation": heartbeat.cpu_utilisation,
+                    "memory_utilisation": heartbeat.memory_utilisation,
+                    "committed_at": datetime.now(),
+                }
+            )
 
-        if not success:
-            logger.error(f"GRPC: SendHeartbeat error: {msg}")
+            if not success:
+                logger.error(f"GRPC: SendHeartbeat error: {msg}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
