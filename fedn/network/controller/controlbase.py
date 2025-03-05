@@ -84,7 +84,7 @@ class ControlBase(ABC):
 
         try:
             active_package = self.package_store.get_active()
-            helper_type = active_package["helper"]
+            helper_type = active_package.helper
         except Exception:
             logger.error("Failed to get active helper")
 
@@ -120,7 +120,7 @@ class ControlBase(ABC):
         definition = self.package_store.get_active()
         if definition:
             try:
-                package_name = definition["storage_file_name"]
+                package_name = definition.storage_file_name
                 return package_name
             except (IndexError, KeyError):
                 logger.error("No context filename set for compute context definition")

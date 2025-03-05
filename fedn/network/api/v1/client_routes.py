@@ -473,7 +473,7 @@ def add_client():
                         "message": "No compute package found. Set package in controller.",
                     }
                 ), 203
-            helper_type = package_object["helper"]
+            helper_type = package_object.helper
         else:
             helper_type = ""
 
