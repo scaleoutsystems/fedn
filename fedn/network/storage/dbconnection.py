@@ -5,6 +5,8 @@ Classes:
     DatabaseConnection: A singleton class for managing database connections and stores.
 """
 
+import os
+
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import create_engine
@@ -88,8 +90,9 @@ class DatabaseConnection:
     def _init_connection(self) -> None:
         statestore_config = get_statestore_config()
         network_id = get_network_config()
+        statestore_type = os.environ.get("FEDN_STATESTORE_TYPE", statestore_config["type"])
 
-        if statestore_config["type"] == "MongoDB":
+        if statestore_type == "MongoDB":
             mdb: Database = self._setup_mongo(statestore_config, network_id)
 
             client_store = MongoDBClientStore(mdb, "network.clients")
@@ -103,7 +106,7 @@ class DatabaseConnection:
             session_store = MongoDBSessionStore(mdb, "control.sessions")
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
 
-        elif statestore_config["type"] in ["SQLite", "PostgreSQL"]:
+        elif statestore_type in ["SQLite", "PostgreSQL"]:
             Session = self._setup_sql(statestore_config)  # noqa: N806
 
             client_store = SQLClientStore(Session)
@@ -144,18 +147,19 @@ class DatabaseConnection:
         return mdb
 
     def _setup_sql(self, statestore_config: dict) -> "DatabaseConnection":
-        if statestore_config["type"] == "SQLite":
+        statestore_type = os.environ.get("FEDN_STATESTORE_TYPE", statestore_config["type"])
+        if statestore_type == "SQLite":
             sqlite_config = statestore_config["sqlite_config"]
             dbname = sqlite_config["dbname"]
             engine = create_engine(f"sqlite:///{dbname}", echo=False)
-        elif statestore_config["type"] == "PostgreSQL":
+        elif statestore_type == "PostgreSQL":
             postgres_config = statestore_config["postgres_config"]
-            username = postgres_config["username"]
-            password = postgres_config["password"]
-            host = postgres_config["host"]
-            port = postgres_config["port"]
-
-            engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/fedn_db", echo=False)
+            username = os.environ.get("FEDN_STATESTORE_USERNAME", postgres_config["username"])
+            password = os.environ.get("FEDN_STATESTORE_PASSWORD", postgres_config["password"])
+            host = os.environ.get("FEDN_STATESTORE_HOST", postgres_config["host"])
+            port = os.environ.get("FEDN_STATESTORE_PORT", postgres_config["port"])
+            dbname = os.environ.get("FEDN_STATESTORE_DBNAME", postgres_config["dbname"])
+            engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/{dbname}", echo=False)
 
         Session = sessionmaker(engine)  # noqa: N806
 
