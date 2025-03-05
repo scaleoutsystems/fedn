@@ -66,26 +66,29 @@ def load_model(model_bytes_io: BytesIO):
 
 def on_train(in_model, client_settings):
     print("Running training callback...")
-    model = load_model(in_model)
-
-    X_train, y_train, _, _ = make_data()
     epochs = settings["N_EPOCHS"]
-    for i in range(epochs):
-        model.partial_fit(X_train, y_train)
 
-    # Prepare updated model parameters
-    updated_parameters = model.coefs_ + model.intercepts_
-    out_model = BytesIO()
-    np.savez_compressed(out_model, **{str(i): w for i, w in enumerate(updated_parameters)})
-    out_model.seek(0)
+    # model = load_model(in_model)
+
+    # X_train, y_train, _, _ = make_data()
+    # for i in range(epochs):
+    #     model.partial_fit(X_train, y_train)
+
+    # # Prepare updated model parameters
+    # updated_parameters = model.coefs_ + model.intercepts_
+    # out_model = BytesIO()
+    # np.savez_compressed(out_model, **{str(i): w for i, w in enumerate(updated_parameters)})
+    # out_model.seek(0)
+
+    out_model = in_model
 
     # Metadata needed for aggregation server side
     training_metadata = {
-        "num_examples": len(X_train),
+        "num_examples": 1,
         "training_metadata": {
             "epochs": epochs,
-            "batch_size": len(X_train),
-            "learning_rate": model.learning_rate_init,
+            "batch_size": 1,
+            "learning_rate": 0.01,
         },
     }
 
