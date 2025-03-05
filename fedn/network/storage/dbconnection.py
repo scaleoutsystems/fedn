@@ -153,12 +153,11 @@ class DatabaseConnection:
             dbname = sqlite_config["dbname"]
             engine = create_engine(f"sqlite:///{dbname}", echo=False)
         elif statestore_type == "PostgreSQL":
-            postgres_config = statestore_config["postgres_config"]
-            username = os.environ.get("FEDN_STATESTORE_USERNAME", postgres_config["username"])
-            password = os.environ.get("FEDN_STATESTORE_PASSWORD", postgres_config["password"])
-            host = os.environ.get("FEDN_STATESTORE_HOST", postgres_config["host"])
-            port = os.environ.get("FEDN_STATESTORE_PORT", postgres_config["port"])
-            dbname = os.environ.get("FEDN_STATESTORE_DBNAME", postgres_config["dbname"])
+            username = os.environ.get("FEDN_STATESTORE_USERNAME", statestore_config["postgres_config"]["username"])
+            password = os.environ.get("FEDN_STATESTORE_PASSWORD", statestore_config["postgres_config"]["password"])
+            host = os.environ.get("FEDN_STATESTORE_HOST", statestore_config["postgres_config"]["host"])
+            port = os.environ.get("FEDN_STATESTORE_PORT", statestore_config["postgres_config"]["port"])
+            dbname = os.environ.get("FEDN_STATESTORE_DBNAME", statestore_config["postgres_config"]["dbname"])
             engine = create_engine(f"postgresql://{username}:{password}@{host}:{port}/{dbname}", echo=False)
 
         Session = sessionmaker(engine)  # noqa: N806
