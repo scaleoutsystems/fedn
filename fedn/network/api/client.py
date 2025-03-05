@@ -22,7 +22,9 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port=None, secure=False, verify=False, token=None, auth_scheme=None):
+    def __init__(self, host: str, port: int = None, secure: bool = False, verify: bool = False, token: str = None, auth_scheme: str = None):
+        if "://" in host:
+            host = host.split("://")[1]
         self.host = host
         self.port = port
         self.secure = secure
@@ -37,6 +39,9 @@ class APIClient:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
 
         if token:
+            # Split the token if it contains a space (scheme + token).
+            if " " in token:
+                token = token.split()[1]
             self.headers = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
@@ -583,7 +588,7 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "numpyhelper",
+        helper: str = None,
         min_clients: int = 1,
         requested_clients: int = 8,
         server_functions: ServerFunctionsBase = None,
@@ -621,6 +626,15 @@ class APIClient:
                 model_id = response.json()
             else:
                 return response.json()
+
+        if helper is None:
+            response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
+            if response.status_code == 400:
+                helper = "numpyhelper"
+            elif response.status_code == 200:
+                helper = response.json()
+            else:
+                return {"message": "An unexpected error occurred when getting the active helper"}
 
         response = requests.post(
             self._get_url_api_v1("sessions/"),
