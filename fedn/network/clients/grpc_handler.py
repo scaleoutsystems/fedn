@@ -139,7 +139,7 @@ class GrpcHandler:
                 self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
             if isinstance(response, fedn.Response):
-                logger.info("Heartbeat successful.")
+                logger.debug("Heartbeat successful.")
             else:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
