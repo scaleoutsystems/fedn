@@ -17,7 +17,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
+from fedn.network.combiner.shared import analytic_store, client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -641,11 +641,25 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.debug("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
+        logger.info("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
         self.__join_client(client)
         self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        success, msg = analytic_store.add(
+            {
+                "id": str(uuid.uuid4()),
+                "sender_id": client.client_id,
+                "sender_role": "client",
+                "cpu_utilisation": heartbeat.cpu_utilisation,
+                "memory_utilisation": heartbeat.memory_utilisation,
+                "committed_at": datetime.now(),
+            }
+        )
+
+        if not success:
+            logger.error(f"GRPC: SendHeartbeat error: {msg}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
