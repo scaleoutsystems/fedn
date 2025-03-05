@@ -134,6 +134,8 @@ message GetGlobalModelResponse {
 
 message Heartbeat {
   Client sender = 1;
+  float memory_utilisation = 2;
+  float cpu_utilisation = 3;
 }
 
 message ClientAvailableMessage {
