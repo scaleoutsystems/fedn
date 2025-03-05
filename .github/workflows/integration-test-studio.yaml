@@ -48,7 +48,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -85,11 +85,10 @@ jobs:
         echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '300' }}" >> .ci/tests/studio/.env
         echo "FEDN_SESSION_NAME=${{ github.event.inputs.FEDN_SESSION_NAME || 'test' }}" >> .ci/tests/studio/.env
         echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '60' }}" >> .ci/tests/studio/.env
-
+        
     - name: Run integration tests
-      env:
-        STUDIO_PASSWORD: ${{ secrets.STUDIO_PASSWORD }}
       run: |
+        export STUDIO_PASSWORD=${{ secrets.STUDIO_PASSWORD }}
         source venv/bin/activate
         chmod +x .ci/tests/studio/studio.sh
         .ci/tests/studio/studio.sh

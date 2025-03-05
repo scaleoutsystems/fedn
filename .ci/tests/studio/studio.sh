@@ -1,4 +1,5 @@
 set -e
+set -x  # Enable command echoing
 
 # Define a cleanup function to run on exit
 cleanup() {
