@@ -87,8 +87,9 @@ jobs:
         echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '60' }}" >> .ci/tests/studio/.env
         
     - name: Run integration tests
+      env:
+        STUDIO_PASSWORD: ${{ secrets.STUDIO_GITHUB_PASSWORD }}
       run: |
-        export STUDIO_PASSWORD=${{ secrets.STUDIO_PASSWORD }}
         source venv/bin/activate
         chmod +x .ci/tests/studio/studio.sh
         .ci/tests/studio/studio.sh
