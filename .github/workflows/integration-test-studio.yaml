@@ -36,7 +36,7 @@ on:
       FEDN_SESSION_TIMEOUT:
         description: 'Session Timeout'
         required: false
-        default: '300'
+        default: '420'
       FEDN_SESSION_NAME:
         description: 'Session Name'
         required: false
