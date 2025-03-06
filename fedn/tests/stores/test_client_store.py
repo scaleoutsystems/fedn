@@ -33,22 +33,14 @@ def test_client():
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
     for c in test_clients:
         mongo_connection.client_store.add(c)
-
-    for c in test_clients:
         postgres_connection.client_store.add(c)
-
-    for c in test_clients:
         sql_connection.client_store.add(c)
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
     for c in test_clients:
         mongo_connection.client_store.delete(c.client_id)
-    
-    for c in test_clients:
         postgres_connection.client_store.delete(c.client_id)
-    
-    for c in test_clients:
         sql_connection.client_store.delete(c.client_id)
 
 

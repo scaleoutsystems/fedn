@@ -35,6 +35,7 @@ class DTO:
             setattr(self, k, copy.deepcopy(v))
         self.patch(kwargs)
 
+    # use super().__getattribute__ to avoid recursion
     def __getattribute__(self, name: str):
         """Get attribute with default value if Field."""
         result = super().__getattribute__(name)
@@ -77,7 +78,12 @@ class DTO:
         for key, value in value_dict.items():
             if hasattr(self, key):
                 if isinstance(super().__getattribute__(key), DTO):
-                    getattr(self, key).patch(value_dict[key], throw_on_extra_keys)
+                    if isinstance(value_dict[key], dict):
+                        getattr(self, key).patch(value_dict[key], throw_on_extra_keys)
+                    elif isinstance(value_dict[key], DTO):
+                        setattr(self, key, value_dict[key])
+                    else:
+                        raise ValueError(f"Invalid value for key: {key}")
                 else:
                     setattr(self, key, value)
             elif throw_on_extra_keys:
@@ -94,7 +100,12 @@ class DTO:
         for k in self.__class__.get_all_fieldnames():
             if k in value_dict:
                 if isinstance(super().__getattribute__(k), DTO):
-                    getattr(self, k).populate_with(value_dict[k])
+                    if isinstance(value_dict[k], dict):
+                        getattr(self, k).populate_with(value_dict[k])
+                    elif isinstance(value_dict[k], DTO):
+                        setattr(self, k, value_dict[k])
+                    else:
+                        raise ValueError(f"Invalid value for key: {k}")
                 else:
                     setattr(self, k, value_dict[k])
             elif isinstance(super().__getattribute__(k), OptionalField) or k == "committed_at":

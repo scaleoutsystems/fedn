@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fedn.network.storage.statestore.stores.dto.shared import DTO, BaseDTO, Field
 
 

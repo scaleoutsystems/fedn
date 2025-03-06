@@ -1,4 +1,3 @@
-import time
 import pytest
 import pymongo
 
@@ -11,12 +10,12 @@ from fedn.network.storage.statestore.stores.dto.package import PackageDTO
 
 @pytest.fixture
 def test_packages():
-        package1 = PackageDTO(id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package1")
-        package2 = PackageDTO(id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package2")
-        package3 = PackageDTO(id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package5")
-        package4 = PackageDTO(id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package4")
-        package5 = PackageDTO(id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package7")
-        package6 = PackageDTO(id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package3")
+        package1 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package1")
+        package2 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package2")
+        package3 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package5")
+        package4 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package4")
+        package5 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package7")
+        package6 = PackageDTO(package_id=str(uuid.uuid4()), description="Test package2", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package3")
         return [package1, package2, package3, package4, package5, package6]
 
 @pytest.fixture
@@ -29,14 +28,13 @@ def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connect
         mongo_connection.package_store.add(c)
         postgres_connection.package_store.add(c)
         sql_connection.package_store.add(c)
-        time.sleep(0.1)
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
     for c in test_packages:
-        mongo_connection.package_store.delete(c.id)
-        postgres_connection.package_store.delete(c.id)
-        sql_connection.package_store.delete(c.id)
+        mongo_connection.package_store.delete(c.package_id)
+        postgres_connection.package_store.delete(c.package_id)
+        sql_connection.package_store.delete(c.package_id)
 
 
 
@@ -69,18 +67,18 @@ class TestPackageStore:
         # Add a package and check that we get the added package back
         success, read_package1 = db.package_store.add(package)
         assert success == True
-        assert isinstance(read_package1.id, str)
+        assert isinstance(read_package1.package_id, str)
         assert isinstance(read_package1.committed_at, datetime.datetime)
         assert isinstance(read_package1.storage_file_name, str)
 
         read_package1_dict = read_package1.to_dict()
-        package_id = read_package1_dict["id"]
-        del read_package1_dict["id"]
+        package_id = read_package1_dict["package_id"]
+        del read_package1_dict["package_id"]
         del read_package1_dict["committed_at"]
         del read_package1_dict["storage_file_name"]
 
         test_package_dict = package.to_dict()
-        del test_package_dict["id"]
+        del test_package_dict["package_id"]
         del test_package_dict["committed_at"]
         del test_package_dict["storage_file_name"]
 
@@ -109,6 +107,6 @@ class TestPackageStore:
                 assert len(gathered_packages) == len(gathered_packages2)
 
                 for i in range(len(gathered_packages)):
-                    assert gathered_packages2[i].id == gathered_packages[i].id
+                    assert gathered_packages2[i].package_id == gathered_packages[i].package_id
                     
                     

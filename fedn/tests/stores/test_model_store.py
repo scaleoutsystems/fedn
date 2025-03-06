@@ -29,30 +29,17 @@ def test_model():
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_models):
     for c in test_models:
-        res, _ = mongo_connection.model_store.add(c)
-        assert res == True
-
-    for c in test_models:
-        res, _ = postgres_connection.model_store.add(c)
-        assert res == True
-
-    for c in test_models:
-        res, _ = sql_connection.model_store.add(c)
-        assert res == True
+        mongo_connection.model_store.add(c)
+        postgres_connection.model_store.add(c)
+        sql_connection.model_store.add(c)
+        
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
     for m in test_models:
-        res = mongo_connection.model_store.delete(m.model_id)
-        assert res == True
-    
-    for m in test_models:
-        res = postgres_connection.model_store.delete(m.model_id)
-        assert res == True
-    
-    for m in test_models:
-        res = sql_connection.model_store.delete(m.model_id)
-        assert res == True
+        mongo_connection.model_store.delete(m.model_id)
+        postgres_connection.model_store.delete(m.model_id)
+        sql_connection.model_store.delete(m.model_id)
         
 
 

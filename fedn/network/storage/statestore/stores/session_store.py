@@ -142,14 +142,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
 
-    def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
-        orm_dict = from_orm_model(item, SessionModel)
-        session_config_dict = from_orm_model(item.session_config, SessionConfigModel)
-        session_config = SessionConfigDTO().populate_with(session_config_dict)
-        orm_dict["session_config"] = session_config
-        orm_dict["session_id"] = orm_dict.pop("id")
-        return SessionDTO().populate_with(orm_dict)
-
     def get(self, id: str) -> SessionDTO:
         with self.Session() as session:
             entity = self.sql_get(session, id)
@@ -157,10 +149,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
                 return None
 
             return self._dto_from_orm_model(entity)
-
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("session_id", None)
-        return item_dict
 
     def update(self, item: SessionDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
@@ -235,3 +223,14 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
+
+    def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
+        orm_dict = from_orm_model(item, SessionModel)
+        session_config_dict = from_orm_model(item.session_config, SessionConfigModel)
+        orm_dict["session_config"] = session_config_dict
+        orm_dict["session_id"] = orm_dict.pop("id")
+        return SessionDTO().populate_with(orm_dict)
+
+    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+        item_dict["id"] = item_dict.pop("session_id", None)
+        return item_dict

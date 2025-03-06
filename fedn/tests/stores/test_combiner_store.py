@@ -1,4 +1,3 @@
-import time
 import pytest
 import pymongo
 
@@ -53,7 +52,6 @@ def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connect
         mongo_connection.combiner_store.add(c)
         postgres_connection.combiner_store.add(c)
         sql_connection.combiner_store.add(c)
-        time.sleep(0.01)    
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 

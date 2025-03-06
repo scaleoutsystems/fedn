@@ -14,8 +14,8 @@ from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from
 
 
 def is_active_package(data: dict, active_package: dict) -> bool:
-    if active_package and "id" in active_package and "id" in data:
-        return active_package["id"] == data["id"]
+    if active_package and "package_id" in active_package and "package_id" in data:
+        return active_package["package_id"] == data["package_id"]
     return False
 
 
@@ -98,10 +98,10 @@ def validate_helper(helper: str) -> bool:
 
 class MongoDBPackageStore(PackageStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection, "id")
+        super().__init__(database, collection, "package_id")
 
     def get(self, id: str) -> PackageDTO:
-        document = self.database[self.collection].find_one({"id": id})
+        document = self.database[self.collection].find_one({self.primary_key: id})
 
         if document is None:
             return None
@@ -119,7 +119,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
         _complement_with_storage_filename(item)
 
     def set_active(self, id: str) -> bool:
-        kwargs = {"id": id}
+        kwargs = {self.primary_key: id}
         kwargs["key"] = "package_trail"
 
         document = self.database[self.collection].find_one(kwargs)
@@ -171,7 +171,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
         return True, self._dto_from_document(obj)
 
     def delete(self, id: str) -> bool:
-        kwargs = {"id": id, "key": "package_trail"}
+        kwargs = {self.primary_key: id, "key": "package_trail"}
         result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
         if not result:
             return False
@@ -221,15 +221,14 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
         if not valid:
             return False, message
 
-        _complement_with_storage_filename(item_dict)
+        item_dict = self._orm_dict_from_dto_dict(item_dict)
 
         with self.Session() as session:
-            model = PackageModel(**item_dict)
-            if not model.id:
-                model.id = str(uuid.uuid4())
-            session.add(model)
-            session.commit()
-            return True, self._dto_from_orm_model(model)
+            package = PackageModel(**item_dict)
+            success, obj = self.sql_add(session, package)
+            if not success:
+                return False, obj
+            return True, self._dto_from_orm_model(obj)
 
     def get(self, id: str) -> PackageDTO:
         with self.Session() as session:
@@ -313,6 +312,12 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
                 return True
             return False
 
+    def _orm_dict_from_dto_dict(self, item_dict: Dict) -> Dict:
+        item_dict["id"] = item_dict.pop("package_id")
+        _complement_with_storage_filename(item_dict)
+        return item_dict
+
     def _dto_from_orm_model(self, item: PackageModel) -> PackageDTO:
         orm_dict = from_orm_model(item, PackageModel)
+        orm_dict["package_id"] = orm_dict.pop("id")
         return PackageDTO().populate_with(orm_dict)
