@@ -665,9 +665,14 @@ class APIClient:
                 verify=self.verify,
                 headers=self.headers,
             )
-            response_json = response.json()
-            response_json["session_id"] = session_id
-            return response_json
+            # Check if the response has content before trying to parse it as JSON
+            if response.content:
+                response_json = response.json()
+                response_json["session_id"] = session_id
+                return response_json
+            else:
+                # Handle empty response
+                return {"success": response.status_code < 400, "session_id": session_id, "message": f"Session started with status code {response.status_code}"}
 
         _json = response.json()
         return _json
