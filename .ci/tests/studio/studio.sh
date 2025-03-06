@@ -43,3 +43,4 @@ done
 popd
 sleep 5
 pytest .ci/tests/studio/tests.py
+fedn project delete -id $FEDN_PROJECT -H $STUDIO_HOST
