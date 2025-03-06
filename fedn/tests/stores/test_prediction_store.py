@@ -6,6 +6,7 @@ import uuid
 import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 
 
 
@@ -61,35 +62,49 @@ def options():
 
 class TestPredictionStore:
 
-    def test_add_update_delete(self, postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection):
-        pass
+    def helper_add_update_delete(self, db: DatabaseConnection, prediction: PredictionDTO):
+         success, read_package1 = db.package_store.add(package)
+        assert success == True
+        assert isinstance(read_package1.id, str)
+        assert isinstance(read_package1.committed_at, datetime.datetime)
+        assert isinstance(read_package1.storage_file_name, str)
+
+        read_package1_dict = read_package1.to_dict()
+        package_id = read_package1_dict["id"]
+        del read_package1_dict["id"]
+        del read_package1_dict["committed_at"]
+        del read_package1_dict["storage_file_name"]
+
+        test_package_dict = package.to_dict()
+        del test_package_dict["id"]
+        del test_package_dict["committed_at"]
+        del test_package_dict["storage_file_name"]
+
+        assert read_package1_dict == test_package_dict
+
+        # Assert we get the same package back
+        read_package2 = db.package_store.get(package_id)
+        assert read_package2 is not None
+        assert read_package2.to_dict() == read_package1.to_dict()    
+
+        # Delete the package and check that it is deleted
+        success = db.package_store.delete(package_id)
+        assert success == True
+    
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options:
-                res = db_1.prediction_store.list(*opt, **kwargs)
-                count, gathered_models = res["count"], res["result"]
+                gathered_models = db_1.prediction_store.select(*opt, **kwargs)
+                count = db_1.prediction_store.count(**kwargs)
 
-                res = db_2.prediction_store.list(*opt, **kwargs)
-                count2, gathered_models2 = res["count"], res["result"]
-                #TODO: The count is not equal to the number of clients in the list, but the number of clients returned by the query before skip and limit
-                #It is not clear what is the intended behavior
-                # assert(count == len(gathered_clients))
-                # assert count == count2
+                gathered_models2 = db_2.prediction_store.select(*opt, **kwargs)
+                count2 = db_2.prediction_store.count(**kwargs)
+
+                assert count == count2
                 assert len(gathered_models) == len(gathered_models2)
 
                 for i in range(len(gathered_models)):
-                    #NOTE: id are not equal between the two databases, I think it is due to id being overwritten in the _id field
-                    #assert gathered_models2[i]["id"] == gathered_models[i]["id"]
-                    assert gathered_models2[i]["correlation_id"] == gathered_models[i]["correlation_id"]
-                    assert gathered_models2[i]["data"] == gathered_models[i]["data"]
-                    assert gathered_models2[i]["model_id"] == gathered_models[i]["model_id"]
-                    #TODO: Reciever and sender are handled differently in the two databases, the value is not the same
-                    #assert gathered_models2[i]["receiver_name"] == gathered_models[i]["receiver_name"]
-                    #assert gathered_models2[i]["receiver_role"] == gathered_models[i]["receiver_role"]
-                    #assert gathered_models2[i]["sender_name"] == gathered_models[i]["sender_name"]
-                    #assert gathered_models2[i]["sender_role"] == gathered_models[i]["sender_role"]
-                    assert gathered_models2[i]["timestamp"] == gathered_models[i]["timestamp"]
-                    assert gathered_models2[i]["prediction_id"] == gathered_models[i]["prediction_id"]
-
+                    assert gathered_models[i].prediction_id == gathered_models2[i].prediction_id
+                    
