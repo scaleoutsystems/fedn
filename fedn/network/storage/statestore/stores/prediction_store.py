@@ -52,6 +52,8 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore):
     def _dto_from_document(self, document: Dict) -> PredictionDTO:
         item = from_document(document)
         pred = PredictionDTO()
+        pred.sender.populate_with(item.pop("sender"))
+        pred.receiver.populate_with(item.pop("receiver"))
         pred.populate_with(item)
         return pred
 
@@ -91,10 +93,10 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
             item_dict = self._to_orm_dict(item)
             prediction = PredictionModel(**item_dict)
             self.sql_add(session, prediction)
-            return True, prediction
+            return True, self._dto_from_orm_model(prediction)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for PredictionStore")
+        return self.sql_delete(id)
 
     def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
         with self.Session() as session:

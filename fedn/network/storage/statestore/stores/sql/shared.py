@@ -190,5 +190,5 @@ class PredictionModel(MyAbstractBase):
     receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
     sender_name: Mapped[Optional[str]] = mapped_column(String(255))
     sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    meta: Mapped[Optional[str]] = mapped_column(String(255))
     timestamp: Mapped[str] = mapped_column(String(255))
-    prediction_id: Mapped[str] = mapped_column(String(255))

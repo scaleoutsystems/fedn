@@ -13,82 +13,102 @@ from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 
 @pytest.fixture
 def test_predictions():
-    return [{"id":str(uuid.uuid4()), "correlation_id":"test_correlation_id1", "data":"test_data1", "model_id":None, 
-             "receiver_name":"test_receiver_name1", "receiver_role":"test_receiver_role1", "sender_name":"test_sender_name1", 
-             "sender_role":"test_sender_role1", "timestamp":"2024-13", "prediction_id":"test_prediction_id1"},
-             {"id":str(uuid.uuid4()), "correlation_id":"test_correlation_id4", "data":"test_data1", "model_id":None, 
-             "receiver_name":"test_receiver_name2", "receiver_role":"test_receiver_role1", "sender_name":"test_sender_name1", 
-             "sender_role":"test_sender_role1", "timestamp":"2024-11", "prediction_id":"test_prediction_id1"},
-             {"id":str(uuid.uuid4()), "correlation_id":"test_correlation_id3", "data":"test_data1", "model_id":None, 
-             "receiver_name":"test_receiver_name3", "receiver_role":"test_receiver_role1", "sender_name":"test_sender_name2", 
-             "sender_role":"test_sender_role1", "timestamp":"2024-12", "prediction_id":"test_prediction_id2"},
-             {"id":str(uuid.uuid4()), "correlation_id":"test_correlation_id2", "data":"test_data1", "model_id":None, 
-             "receiver_name":"test_receiver_name4", "receiver_role":"test_receiver_role1", "sender_name":"test_sender_name2", 
-             "sender_role":"test_sender_role1", "timestamp":"2024-16", "prediction_id":"test_prediction_id2"}]
+    pred1 = PredictionDTO(prediction_id=str(uuid.uuid4()), correlation_id="test_correlation_id1", data="test_data1", model_id=None,
+                          receiver={"name":"test_receiver_name1", "role":"test_receiver_role1"}, sender={"name":"test_sender_name1",
+                          "role":"test_sender_role1"}, timestamp="2024-13")
+    pred2 = PredictionDTO(prediction_id=str(uuid.uuid4()), correlation_id="test_correlation_id2", data="test_data1", model_id=None,
+                            receiver={"name":"test_receiver_name2", "role":"test_receiver_role1"}, sender={"name":"test_sender_name1",
+                            "role":"test_sender_role1"}, timestamp="2024-11")
+    pred3 = PredictionDTO(prediction_id=str(uuid.uuid4()), correlation_id="test_correlation_id3", data="test_data1", model_id=None,
+                            receiver={"name":"test_receiver_name3", "role":"test_receiver_role1"}, sender={"name":"test_sender_name2",
+                            "role":"test_sender_role1"}, timestamp="2024-12")
+    pred4 = PredictionDTO(prediction_id=str(uuid.uuid4()), correlation_id="test_correlation_id4", data="test_data1", model_id=None,
+                            receiver={"name":"test_receiver_name4", "role":"test_receiver_role1"}, sender={"name":"test_sender_name2",
+                            "role":"test_sender_role1"}, timestamp="2024-16")
+    return [pred1, pred2, pred3, pred4]
+
+
+@pytest.fixture
+def test_prediction():
+    prediction = PredictionDTO()
+    prediction.correlation_id = "test_correlation_id1"
+    prediction.data = "test_data1"
+    prediction.model_id = None
+    prediction.receiver.name = "test_receiver_name1"
+    prediction.receiver.role = "test_receiver_role1"
+    prediction.sender.name = "test_sender_name1"
+    prediction.sender.role = "test_sender_role1"
+    prediction.timestamp = "2024-13"
+    return prediction
+
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_predictions):
     for c in test_predictions:
-        res, _ = mongo_connection.prediction_store.add(c)
-        assert res == True
-
-    for c in test_predictions:
-        res, _ = postgres_connection.prediction_store.add(c)
-        assert res == True
-
-    for c in test_predictions:
-        res, _ = sql_connection.prediction_store.add(c)
-        assert res == True
+        mongo_connection.prediction_store.add(c)
+        postgres_connection.prediction_store.add(c)
+        sql_connection.prediction_store.add(c)
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
-    # TODO:Clean up
+    for c in test_predictions:
+        mongo_connection.prediction_store.delete(c.prediction_id)
+        postgres_connection.prediction_store.delete(c.prediction_id)
+        sql_connection.prediction_store.delete(c.prediction_id)
 
 
 
 @pytest.fixture
 def options():
-    sorting_keys = (#None, 
-                        "correlation_id", 
-                        "timestamp", 
-                        #"invalid_key"
-                        ) 
+    sorting_keys = (None, 
+                    "correlation_id", 
+                    "timestamp", 
+                    "invalid_key"
+                    ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
     desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
-    opt_kwargs = ({}, {"prediction_id":"test_prediction_id2"}, {"correlation_id":""})
+    opt_kwargs = ({}, {"correlation_id":""})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 class TestPredictionStore:
 
+    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_prediction: PredictionDTO):
+        self.helper_add_update_delete(postgres_connection, test_prediction)
+
+    def test_add_update_delete_sqlite(self, sql_connection: DatabaseConnection, test_prediction: PredictionDTO):
+        self.helper_add_update_delete(sql_connection, test_prediction)
+
+    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_prediction: PredictionDTO):
+        self.helper_add_update_delete(mongo_connection, test_prediction)
+
+
+
     def helper_add_update_delete(self, db: DatabaseConnection, prediction: PredictionDTO):
-         success, read_package1 = db.package_store.add(package)
+        success, read_prediction1 = db.prediction_store.add(prediction)
         assert success == True
-        assert isinstance(read_package1.id, str)
-        assert isinstance(read_package1.committed_at, datetime.datetime)
-        assert isinstance(read_package1.storage_file_name, str)
+        assert isinstance(read_prediction1.prediction_id, str)
+        assert isinstance(read_prediction1.committed_at, datetime.datetime)
 
-        read_package1_dict = read_package1.to_dict()
-        package_id = read_package1_dict["id"]
-        del read_package1_dict["id"]
-        del read_package1_dict["committed_at"]
-        del read_package1_dict["storage_file_name"]
+        read_prediction1_dict = read_prediction1.to_dict()
+        prediction_id = read_prediction1_dict["prediction_id"]
+        del read_prediction1_dict["prediction_id"]
+        del read_prediction1_dict["committed_at"]
 
-        test_package_dict = package.to_dict()
-        del test_package_dict["id"]
-        del test_package_dict["committed_at"]
-        del test_package_dict["storage_file_name"]
+        test_prediction_dict = prediction.to_dict()
+        del test_prediction_dict["prediction_id"]
+        del test_prediction_dict["committed_at"]
 
-        assert read_package1_dict == test_package_dict
+        assert read_prediction1_dict == test_prediction_dict
 
-        # Assert we get the same package back
-        read_package2 = db.package_store.get(package_id)
-        assert read_package2 is not None
-        assert read_package2.to_dict() == read_package1.to_dict()    
+        # Assert we get the same prediction back
+        read_prediction2 = db.prediction_store.get(prediction_id)
+        assert read_prediction2 is not None
+        assert read_prediction2.to_dict() == read_prediction1.to_dict()    
 
-        # Delete the package and check that it is deleted
-        success = db.package_store.delete(package_id)
+        # Delete the prediction and check that it is deleted
+        success = db.prediction_store.delete(prediction_id)
         assert success == True
     
 

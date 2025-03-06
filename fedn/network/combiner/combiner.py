@@ -21,6 +21,7 @@ from fedn.network.combiner.shared import client_store, combiner_store, predictio
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
+from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -777,7 +778,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
         result = MessageToDict(request)
-        prediction_store.add(result)
+        prediction = PredictionDTO().populate_with(result)
+        prediction_store.add(prediction)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
