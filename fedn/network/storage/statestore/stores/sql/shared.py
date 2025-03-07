@@ -178,3 +178,17 @@ class CombinerModel(MyAbstractBase):
     parent: Mapped[Optional[str]] = mapped_column(String(255))
     port: Mapped[int]
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+class PredictionModel(MyAbstractBase):
+    __tablename__ = "predictions"
+
+    correlation_id: Mapped[str]
+    data: Mapped[Optional[str]]
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
+    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    meta: Mapped[Optional[str]] = mapped_column(String(255))
+    timestamp: Mapped[str] = mapped_column(String(255))

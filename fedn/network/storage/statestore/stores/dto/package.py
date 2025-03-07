@@ -6,7 +6,7 @@ from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, Op
 class PackageDTO(BaseDTO):
     """Package data transfer object."""
 
-    id: Optional[str] = OptionalField(None)
+    package_id: Optional[str] = OptionalField(None)
     description: str = Field(None)
     file_name: str = Field(None)
     helper: str = Field(None)

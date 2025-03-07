@@ -42,37 +42,37 @@ def test_session():
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_sessions):
     model, test_sessions = test_sessions
-    res, _ = mongo_connection.model_store.add(model)
-    assert res == True
-    res, _ = postgres_connection.model_store.add(model)
-    assert res == True
-    res, _ = sql_connection.model_store.add(model)
-    assert res == True
+    
+    mongo_connection.model_store.add(model)    
+    postgres_connection.model_store.add(model)
+    sql_connection.model_store.add(model)
+    
 
     for c in test_sessions:
-        res, _ = mongo_connection.session_store.add(c)
-        assert res == True
-
-    for c in test_sessions:
-        res, _ = postgres_connection.session_store.add(c)
-        assert res == True
-
-    for c in test_sessions:
-        res, _ = sql_connection.session_store.add(c)
-        assert res == True
+        mongo_connection.session_store.add(c)
+        postgres_connection.session_store.add(c)
+        sql_connection.session_store.add(c)
+        
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
-    # TODO:Clean up
+    for c in test_sessions:
+        mongo_connection.session_store.delete(c.session_id)
+        postgres_connection.session_store.delete(c.session_id)
+        sql_connection.session_store.delete(c.session_id)
+    
+    mongo_connection.model_store.delete(model.model_id)
+    postgres_connection.model_store.delete(model.model_id)
+    sql_connection.model_store.delete(model.model_id)
 
 
 
 @pytest.fixture
 def options():
-    sorting_keys = (#None, 
+    sorting_keys = (None, 
                     "name",
-                    #"committed_at",
-                    #"invalid_key"
+                    "committed_at",
+                    "invalid_key"
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)

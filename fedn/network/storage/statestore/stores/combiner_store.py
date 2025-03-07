@@ -17,7 +17,7 @@ class CombinerStore(Store[CombinerDTO]):
 
 class MongoDBCombinerStore(CombinerStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection, "id")
+        super().__init__(database, collection, "combiner_id")
 
     def get(self, id: str) -> CombinerDTO:
         obj = self.mongo_get(id)
@@ -101,7 +101,10 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
             return self._dto_from_orm_model(entity)
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
+        item_dict["id"] = item_dict.pop("combiner_id")
         return item_dict
 
     def _dto_from_orm_model(self, item: CombinerModel) -> CombinerDTO:
-        return CombinerDTO().populate_with(from_orm_model(item, CombinerModel))
+        orm_dict = from_orm_model(item, CombinerModel)
+        orm_dict["combiner_id"] = orm_dict.pop("id")
+        return CombinerDTO().populate_with(orm_dict)

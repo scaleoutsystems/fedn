@@ -578,10 +578,10 @@ def upload_package():
             repository.set_compute_package(storage_file_name, file_path)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            package_store.delete(response.id)
+            package_store.delete(response.package_id)
             return jsonify({"message": "An unexpected error occurred"}), 500
 
-        package_store.set_active(response.id)
+        package_store.set_active(response.package_id)
         return jsonify({"message": "Package uploaded"}), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")

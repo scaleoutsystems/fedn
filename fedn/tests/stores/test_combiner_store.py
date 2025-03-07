@@ -1,4 +1,3 @@
-import time
 import pytest
 import pymongo
 
@@ -13,28 +12,28 @@ from fedn.network.storage.statestore.stores.dto import CombinerDTO
 @pytest.fixture
 def test_combiners():
     start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    combiner1 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner1",
+    combiner1 = CombinerDTO( combiner_id=str(uuid.uuid4()), name="test_combiner1",
                   parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
                   updated_at=start_date - datetime.timedelta(days=52), address="test_address")
-    combiner2 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner2",
+    combiner2 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner2",
                   parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
                   updated_at=start_date - datetime.timedelta(days=12), address="test_address") 
-    combiner3 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner3",
+    combiner3 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner3",
                     parent="localhost", ip="123:13:12:5", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=322), address="test_address")
-    combiner4 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner4",
+    combiner4 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner4",
                     parent="localhost", ip="123:13:12:4", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=23), address="test_address")
-    combiner5 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner5",
+    combiner5 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner5",
                     parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=22), address="test_address")
-    combiner6 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner6",
+    combiner6 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner6",
                     parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=24), address="test_address")
-    combiner7 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner8",
+    combiner7 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner8",
                     parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=42), address="test_address")
-    combiner8 = CombinerDTO(id=str(uuid.uuid4()), name="test_combiner7",
+    combiner8 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner7",
                     parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
                     updated_at=start_date - datetime.timedelta(days=12), address="test_address1")
     return [combiner1, combiner2, combiner3, combiner4, combiner5, combiner6, combiner7, combiner8]
@@ -53,14 +52,13 @@ def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connect
         mongo_connection.combiner_store.add(c)
         postgres_connection.combiner_store.add(c)
         sql_connection.combiner_store.add(c)
-        time.sleep(0.01)    
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
     for c in test_combiners:
-        mongo_connection.combiner_store.delete(c.id)
-        postgres_connection.combiner_store.delete(c.id)
-        sql_connection.combiner_store.delete(c.id)
+        mongo_connection.combiner_store.delete(c.combiner_id)
+        postgres_connection.combiner_store.delete(c.combiner_id)
+        sql_connection.combiner_store.delete(c.combiner_id)
     
 
 @pytest.fixture
@@ -94,14 +92,14 @@ class TestCombinerStore:
 
         success, read_combiner1 = db.combiner_store.add(test_combiner)
         assert success == True
-        assert isinstance(read_combiner1.id, str)
+        assert isinstance(read_combiner1.combiner_id, str)
         read_combiner1_dict = read_combiner1.to_dict()
-        combiner_id = read_combiner1_dict["id"]
-        del read_combiner1_dict["id"]
+        combiner_id = read_combiner1_dict["combiner_id"]
+        del read_combiner1_dict["combiner_id"]
         del read_combiner1_dict["committed_at"]
 
         test_combiner_dict = test_combiner.to_dict()
-        del test_combiner_dict["id"]
+        del test_combiner_dict["combiner_id"]
         del test_combiner_dict["committed_at"]
 
         assert read_combiner1_dict == test_combiner_dict
@@ -134,7 +132,7 @@ class TestCombinerStore:
                 assert len(gathered_combiners) == len(gathered_combiners2)
 
                 for i in range(len(gathered_combiners)):
-                    assert gathered_combiners2[i].id == gathered_combiners[i].id
+                    assert gathered_combiners2[i].combiner_id == gathered_combiners[i].combiner_id
                         
 
                         
