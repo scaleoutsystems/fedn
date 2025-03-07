@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Tuple
 
 import pymongo
@@ -45,12 +45,20 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[Analytic]):
     def update(self, id: str, item: Analytic) -> Tuple[bool, Any]:
         pass
 
+    def _delete_old_records(self, sender_id: str) -> int:
+        time_threshold = datetime.now(timezone.utc) - timedelta(minutes=5)
+
+        result = self.database[self.collection].delete_many({"sender_id": sender_id, "committed_at": {"$lt": time_threshold}})
+        return result.deleted_count
+
     def add(self, item: Analytic) -> Tuple[bool, Any]:
         valid, msg = _validate_analytic(item)
         if not valid:
             return False, msg
 
         _complete_analytic(item)
+
+        self._delete_old_records(item["sender_id"])
 
         return super().add(item)
 
