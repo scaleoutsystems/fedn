@@ -11,5 +11,5 @@ class PackageDTO(BaseDTO):
     file_name: str = Field(None)
     helper: str = Field(None)
     name: str = Field(None)
-    storage_file_name: str = Field(None)
-    active: bool = Field(False)
+    storage_file_name: str = OptionalField(None)
+    active: bool = OptionalField(False)
