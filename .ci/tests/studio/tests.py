@@ -34,7 +34,7 @@ class TestFednStudio:
         start_time = time.time()
         while time.time() - start_time < fedn_env["FEDN_CLIENT_TIMEOUT"]:
             client_obj = fedn_client.get_clients()
-            if client_obj["count"] == fedn_env["FEDN_NR_CLIENTS"] and all(c["status"] in ["available", "online"] for c in client_obj["result"]):
+            if client_obj["count"] == fedn_env["FEDN_NR_CLIENTS"] and all(c["status"] in ["online"] for c in client_obj["result"]):
                 break
             time.sleep(5)  # Wait for 5 seconds before checking again
         else:
