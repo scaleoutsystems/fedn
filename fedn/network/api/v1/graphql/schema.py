@@ -188,19 +188,18 @@ class Query(graphene.ObjectType):
         return response["result"]
 
     def resolve_status(root, info, id: str = None):
-        result = status_store.get(id)
+        result = status_store.get(id).to_dict()
 
         return result
 
     def resolve_statuses(root, info, session_id: str = None):
-        response = None
         if session_id:
             kwargs = {"sessionId": session_id}
-            response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = status_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            response = status_store.list(0, 0, None)
+            result = status_store.select(0, 0, None)
 
-        return response["result"]
+        return [status.to_dict() for status in result]
 
 
 schema = graphene.Schema(query=Query)

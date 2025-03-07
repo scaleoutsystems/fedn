@@ -64,18 +64,9 @@ def options():
 
 class TestClientStore:
 
-    def test_add_get_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_client: ClientDTO):
-        self.helper_add_get_update_delete(postgres_connection, test_client)
-    
-    def test_add_get_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_client: ClientDTO):
-        self.helper_add_get_update_delete(sql_connection, test_client)
-    
-    def test_add_get_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_client: ClientDTO):
-        self.helper_add_get_update_delete(mongo_connection, test_client)
-
-    def helper_add_get_update_delete(self, db:DatabaseConnection, test_client: ClientDTO): 
+    def test_add_get_update_delete(self, db_connection:DatabaseConnection, test_client: ClientDTO): 
         # Add a client and check that we get the added client back
-        success, read_client1 = db.client_store.add(test_client)
+        success, read_client1 = db_connection.client_store.add(test_client)
         assert success == True
         assert isinstance(read_client1.client_id, str)
         read_client1_dict = read_client1.to_dict()
@@ -90,34 +81,34 @@ class TestClientStore:
         assert read_client1_dict == test_client_dict
 
         # Assert we get the same client back
-        read_client2 = db.client_store.get(client_id)
+        read_client2 = db_connection.client_store.get(client_id)
         assert read_client2 is not None
         assert read_client2.to_dict() == read_client1.to_dict()
         
         # Update the client and check that we get the updated client back
         read_client2.name = "new_name"         
-        success, read_client3 = db.client_store.update(read_client2)
+        success, read_client3 = db_connection.client_store.update(read_client2)
         assert success == True
         assert read_client3.name == "new_name"
 
         # Assert we get the same client back
-        read_client4 = db.client_store.get(client_id)
+        read_client4 = db_connection.client_store.get(client_id)
         assert read_client4 is not None
         assert read_client3.to_dict() == read_client4.to_dict()
 
         # Partial update the client and check that we get the updated client back
         update_client = ClientDTO(client_id=client_id, combiner="new_combiner")
-        success, read_client5 = db.client_store.update(update_client)
+        success, read_client5 = db_connection.client_store.update(update_client)
         assert success == True
         assert read_client5.combiner == "new_combiner"
 
         # Assert we get the same client back
-        read_client6 = db.client_store.get(client_id)
+        read_client6 = db_connection.client_store.get(client_id)
         assert read_client6 is not None
         assert read_client6.to_dict() == read_client5.to_dict()
 
         # Delete the client and check that it is deleted
-        success = db.client_store.delete(client_id)
+        success = db_connection.client_store.delete(client_id)
         assert success == True
 
     def test_list_count(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   

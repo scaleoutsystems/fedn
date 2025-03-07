@@ -138,3 +138,10 @@ class BaseDTO(DTO):
     """BaseDTO for Data Transfer Objects."""
 
     committed_at: datetime = Field(None)
+
+
+class AgentDTO(DTO):
+    """Agent data transfer object."""
+
+    name: str = Field(None)
+    role: str = Field(None)

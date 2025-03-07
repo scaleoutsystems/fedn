@@ -22,6 +22,7 @@ from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
+from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -423,7 +424,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
         data = MessageToDict(status)
-        _ = status_store.add(data)
+        status = StatusDTO().populate_with(data)
+        _ = status_store.add(status)
 
     def _flush_model_update_queue(self):
         """Clear the model update queue (aggregator).

@@ -77,20 +77,11 @@ def options():
 
 class TestCombinerStore:
 
-    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_combiner):
-        self.helper_add_update_delete(postgres_connection, test_combiner)
-
-    def test_add_update_delete_sql(self, sql_connection: DatabaseConnection, test_combiner):
-        self.helper_add_update_delete(sql_connection, test_combiner)
-
-    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_combiner):
-        self.helper_add_update_delete(mongo_connection, test_combiner)
-
-    def helper_add_update_delete(self, db: DatabaseConnection, test_combiner:CombinerDTO):
+    def test_add_update_delete(self, db_connection: DatabaseConnection, test_combiner:CombinerDTO):
         # Add a combiner and check that we get the added combiner back
         name = test_combiner.name
 
-        success, read_combiner1 = db.combiner_store.add(test_combiner)
+        success, read_combiner1 = db_connection.combiner_store.add(test_combiner)
         assert success == True
         assert isinstance(read_combiner1.combiner_id, str)
         read_combiner1_dict = read_combiner1.to_dict()
@@ -105,17 +96,17 @@ class TestCombinerStore:
         assert read_combiner1_dict == test_combiner_dict
 
         # Assert we get the same combiner back
-        read_combiner2 = db.combiner_store.get(combiner_id)
+        read_combiner2 = db_connection.combiner_store.get(combiner_id)
         assert read_combiner2 is not None
         assert read_combiner2.to_dict() == read_combiner1.to_dict()
 
         # Assert we get the same combiner back by name
-        read_combiner3 = db.combiner_store.get_by_name(name)
+        read_combiner3 = db_connection.combiner_store.get_by_name(name)
         assert read_combiner3 is not None
         assert read_combiner3.to_dict() == read_combiner1.to_dict()
 
         # Delete the combiner and check that it is deleted
-        success = db.combiner_store.delete(combiner_id)
+        success = db_connection.combiner_store.delete(combiner_id)
         assert success == True
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   

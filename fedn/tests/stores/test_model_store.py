@@ -59,18 +59,9 @@ def options():
 
 class TestModelStore:
 
-    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_model):
-        self.helper_add_update_delete(postgres_connection, test_model)
-
-    def test_add_update_delete_sqlite(self, sql_connection:DatabaseConnection, test_model):
-        self.helper_add_update_delete(sql_connection, test_model)
-    
-    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_model):
-        self.helper_add_update_delete(mongo_connection, test_model)
-
-    def helper_add_update_delete(self, db:DatabaseConnection, test_model:ModelDTO):
+    def test_add_update_delete(self, db_connection:DatabaseConnection, test_model:ModelDTO):
         # Add a model and check that we get the added model back
-        success, read_model1 = db.model_store.add(test_model)
+        success, read_model1 = db_connection.model_store.add(test_model)
         assert success == True
         assert isinstance(read_model1.model_id, str)
         read_model1_dict = read_model1.to_dict()
@@ -87,34 +78,34 @@ class TestModelStore:
         assert read_model1_dict == input_dict
 
         # Assert we get the same model back
-        read_model2 = db.model_store.get(model_id)
+        read_model2 = db_connection.model_store.get(model_id)
         assert read_model2 is not None
         assert read_model2.to_dict() == read_model1.to_dict()
         
         # Update the model and check that we get the updated model back
         read_model2.name = "new_name"         
-        success, read_model3 = db.model_store.update(read_model2)
+        success, read_model3 = db_connection.model_store.update(read_model2)
         assert success == True
         assert read_model3.name == "new_name"
 
         # Assert we get the same model back
-        read_model4 = db.model_store.get(model_id)
+        read_model4 = db_connection.model_store.get(model_id)
         assert read_model4 is not None
         assert read_model3.to_dict() == read_model4.to_dict()
 
         # Partial update the model and check that we get the updated model back
         update_model = ModelDTO(model_id=model_id, parent_model="new_parent")            
-        success, read_model5 = db.model_store.update(update_model)
+        success, read_model5 = db_connection.model_store.update(update_model)
         assert success == True
         assert read_model5.parent_model == "new_parent"
 
         # Assert we get the same model back
-        read_model6 = db.model_store.get(model_id)
+        read_model6 = db_connection.model_store.get(model_id)
         assert read_model6 is not None
         assert read_model6.to_dict() == read_model5.to_dict()
 
         # Delete the model and check that it is deleted
-        success = db.model_store.delete(model_id)
+        success = db_connection.model_store.delete(model_id)
         assert success == True
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   

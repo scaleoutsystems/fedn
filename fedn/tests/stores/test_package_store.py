@@ -53,19 +53,10 @@ def options():
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 class TestPackageStore:
-
-    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_package: PackageDTO):
-        self.helper_add_update_delete(postgres_connection, test_package)
-
-    def test_add_update_delete_sqlite(self, sql_connection: DatabaseConnection, test_package: PackageDTO):
-        self.helper_add_update_delete(sql_connection, test_package)
-
-    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_package: PackageDTO):
-        self.helper_add_update_delete(mongo_connection, test_package)
     
-    def helper_add_update_delete(self, db: DatabaseConnection, package: PackageDTO):
+    def test_add_update_delete(self, db_connection: DatabaseConnection, test_package: PackageDTO):
         # Add a package and check that we get the added package back
-        success, read_package1 = db.package_store.add(package)
+        success, read_package1 = db_connection.package_store.add(test_package)
         assert success == True
         assert isinstance(read_package1.package_id, str)
         assert isinstance(read_package1.committed_at, datetime.datetime)
@@ -77,7 +68,7 @@ class TestPackageStore:
         del read_package1_dict["committed_at"]
         del read_package1_dict["storage_file_name"]
 
-        test_package_dict = package.to_dict()
+        test_package_dict = test_package.to_dict()
         del test_package_dict["package_id"]
         del test_package_dict["committed_at"]
         del test_package_dict["storage_file_name"]
@@ -85,12 +76,12 @@ class TestPackageStore:
         assert read_package1_dict == test_package_dict
 
         # Assert we get the same package back
-        read_package2 = db.package_store.get(package_id)
+        read_package2 = db_connection.package_store.get(package_id)
         assert read_package2 is not None
         assert read_package2.to_dict() == read_package1.to_dict()    
 
         # Delete the package and check that it is deleted
-        success = db.package_store.delete(package_id)
+        success = db_connection.package_store.delete(package_id)
         assert success == True
     
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   

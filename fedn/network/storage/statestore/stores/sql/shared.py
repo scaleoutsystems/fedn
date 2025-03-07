@@ -192,3 +192,18 @@ class PredictionModel(MyAbstractBase):
     sender_role: Mapped[Optional[str]] = mapped_column(String(255))
     meta: Mapped[Optional[str]] = mapped_column(String(255))
     timestamp: Mapped[str] = mapped_column(String(255))
+
+
+class StatusModel(MyAbstractBase):
+    __tablename__ = "statuses"
+
+    log_level: Mapped[str] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(255))
+    timestamp: Mapped[datetime]
+    type: Mapped[str] = mapped_column(String(255))
+    data: Mapped[Optional[str]]
+    correlation_id: Mapped[Optional[str]]
+    extra: Mapped[Optional[str]]
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))

@@ -1,11 +1,4 @@
-from fedn.network.storage.statestore.stores.dto.shared import DTO, BaseDTO, Field
-
-
-class IdentityDTO(DTO):
-    """Identity data transfer object."""
-
-    name: str = Field(None)
-    role: str = Field(None)
+from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field
 
 
 class PredictionDTO(BaseDTO):
@@ -17,5 +10,5 @@ class PredictionDTO(BaseDTO):
     correlation_id: str = Field(None)
     timestamp: str = Field(None)
     meta: str = Field(None)
-    sender: IdentityDTO = IdentityDTO()
-    receiver: IdentityDTO = IdentityDTO()
+    sender: AgentDTO = AgentDTO()
+    receiver: AgentDTO = AgentDTO()
