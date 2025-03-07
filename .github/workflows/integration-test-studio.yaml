@@ -82,7 +82,7 @@ jobs:
         echo "FEDN_BUFFER_SIZE=${{ github.event.inputs.FEDN_BUFFER_SIZE || '-1' }}" >> .ci/tests/studio/.env
         echo "FEDN_FL_ALG=${{ github.event.inputs.FEDN_FL_ALG || 'fedavg' }}" >> .ci/tests/studio/.env
         echo "FEDN_NR_EXPECTED_AGG=${{ github.event.inputs.FEDN_NR_EXPECTED_AGG || '2' }}" >> .ci/tests/studio/.env
-        echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '300' }}" >> .ci/tests/studio/.env
+        echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
         echo "FEDN_SESSION_NAME=${{ github.event.inputs.FEDN_SESSION_NAME || 'test' }}" >> .ci/tests/studio/.env
         echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '60' }}" >> .ci/tests/studio/.env
         
