@@ -74,19 +74,8 @@ def options():
 
 class TestPredictionStore:
 
-    def test_add_update_delete_postgres(self, postgres_connection:DatabaseConnection, test_prediction: PredictionDTO):
-        self.helper_add_update_delete(postgres_connection, test_prediction)
-
-    def test_add_update_delete_sqlite(self, sql_connection: DatabaseConnection, test_prediction: PredictionDTO):
-        self.helper_add_update_delete(sql_connection, test_prediction)
-
-    def test_add_update_delete_mongo(self, mongo_connection:DatabaseConnection, test_prediction: PredictionDTO):
-        self.helper_add_update_delete(mongo_connection, test_prediction)
-
-
-
-    def helper_add_update_delete(self, db: DatabaseConnection, prediction: PredictionDTO):
-        success, read_prediction1 = db.prediction_store.add(prediction)
+    def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
+        success, read_prediction1 = db_connection.prediction_store.add(test_prediction)
         assert success == True
         assert isinstance(read_prediction1.prediction_id, str)
         assert isinstance(read_prediction1.committed_at, datetime.datetime)
@@ -96,19 +85,19 @@ class TestPredictionStore:
         del read_prediction1_dict["prediction_id"]
         del read_prediction1_dict["committed_at"]
 
-        test_prediction_dict = prediction.to_dict()
+        test_prediction_dict = test_prediction.to_dict()
         del test_prediction_dict["prediction_id"]
         del test_prediction_dict["committed_at"]
 
         assert read_prediction1_dict == test_prediction_dict
 
         # Assert we get the same prediction back
-        read_prediction2 = db.prediction_store.get(prediction_id)
+        read_prediction2 = db_connection.prediction_store.get(prediction_id)
         assert read_prediction2 is not None
         assert read_prediction2.to_dict() == read_prediction1.to_dict()    
 
         # Delete the prediction and check that it is deleted
-        success = db.prediction_store.delete(prediction_id)
+        success = db_connection.prediction_store.delete(prediction_id)
         assert success == True
     
 

@@ -122,7 +122,9 @@ def get_statuses():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = status_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = status_store.count(**kwargs)
+        response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -214,7 +216,9 @@ def list_statuses():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = status_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = status_store.count(**kwargs)
+        response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -385,8 +389,8 @@ def get_status(id: str):
     try:
         response = status_store.get(id)
         if response is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response), 200
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        return jsonify(response.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
