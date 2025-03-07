@@ -7,7 +7,7 @@ from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
 class CombinerDTO(BaseDTO):
     """Client data transfer object."""
 
-    id: Optional[str] = Field(None)
+    combiner_id: Optional[str] = Field(None)
     name: str = Field(None)
     address: str = Field(None)
     fqdn: str = Field(None)
