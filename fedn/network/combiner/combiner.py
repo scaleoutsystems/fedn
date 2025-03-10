@@ -23,6 +23,7 @@ from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -757,7 +758,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
         data = MessageToDict(validation)
-        success, result = validation_store.add(data)
+        validationdto = ValidationDTO(**data)
+        success, result = validation_store.add(validationdto)
         if not success:
             logger.error(result)
         else:
@@ -776,7 +778,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
         validation = MessageToDict(request)
-        validation_store.add(validation)
+        validationdto = ValidationDTO(**validation)
+        validation_store.add(validationdto)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)

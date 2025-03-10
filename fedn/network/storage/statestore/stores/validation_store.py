@@ -1,89 +1,56 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pymongo
 from pymongo.database import Database
-from sqlalchemy import ForeignKey, String, func, select
-from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
-from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store
-
-
-class Validation:
-    def __init__(
-        self, id: str, model_id: str, data: str, correlation_id: str, timestamp: str, session_id: str, meta: str, sender: dict = None, receiver: dict = None
-    ):
-        self.id = id
-        self.model_id = model_id
-        self.data = data
-        self.correlation_id = correlation_id
-        self.timestamp = timestamp
-        self.session_id = session_id
-        self.meta = meta
-        self.sender = sender
-        self.receiver = receiver
+from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
+from fedn.network.storage.statestore.stores.sql.shared import ValidationModel, from_orm_model
 
 
-class ValidationStore(Store[Validation]):
+class ValidationStore(Store[ValidationDTO]):
     pass
 
 
-class MongoDBValidationStore(MongoDBStore[Validation]):
+class MongoDBValidationStore(ValidationStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection)
+        super().__init__(database, collection, "validation_id")
 
-    def get(self, id: str) -> Validation:
-        """Get an entity by id
-        param id: The id of the entity
-            type: str
-            description: The id of the entity, can be either the id or the validation (property)
-        return: The entity
-        """
-        return super().get(id)
+    def get(self, id: str) -> ValidationDTO:
+        item = self.mongo_get(id)
+        if item is None:
+            return None
+        return self._dto_from_document(item)
 
-    def update(self, id: str, item: Validation) -> bool:
+    def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
-    def add(self, item: Validation) -> Tuple[bool, Any]:
-        return super().add(item)
+    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
+        item_dict = item.to_db(exclude_unset=False)
+        success, obj = self.mongo_add(item_dict)
+        if not success:
+            return success, obj
+        return success, self._dto_from_document(obj)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ValidationStore")
+        return self.mongo_delete(id)
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Validation]]:
-        """List entities
-        param limit: The maximum number of entities to return
-            type: int
-            description: The maximum number of entities to return
-        param skip: The number of entities to skip
-            type: int
-            description: The number of entities to skip
-        param sort_key: The key to sort by
-            type: str
-            description: The key to sort by
-        param sort_order: The order to sort by
-            type: pymongo.DESCENDING
-            description: The order to sort by
-        return: A dictionary with the count and a list of entities
-        """
-        return super().list(limit, skip, sort_key or "timestamp", sort_order, **kwargs)
+    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[ValidationDTO]:
+        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        return [self._dto_from_document(item) for item in items]
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[ValidationDTO]]:
+        raise NotImplementedError("List not implemented for ValidationStore")
+
+    def count(self, **kwargs) -> int:
+        return self.mongo_count(**kwargs)
+
+    def _dto_from_document(self, document: Dict[str, Any]) -> ValidationDTO:
+        dto_dict = from_document(document)
+        return ValidationDTO().populate_with(dto_dict)
 
 
-class ValidationModel(MyAbstractBase):
-    __tablename__ = "validations"
-
-    correlation_id: Mapped[str]
-    data: Mapped[Optional[str]]
-    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
-    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
-    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
-    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
-    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
-    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
-    timestamp: Mapped[str] = mapped_column(String(255))
-
-
-def from_row(row: ValidationModel) -> Validation:
+def from_row(row: ValidationModel) -> ValidationDTO:
     return {
         "id": row.id,
         "model_id": row.model_id,
@@ -96,138 +63,85 @@ def from_row(row: ValidationModel) -> Validation:
     }
 
 
-class SQLValidationStore(ValidationStore, SQLStore[Validation]):
-    def __init__(self, Session):
-        super().__init__(Session)
+def translate_key(key: str) -> str:
+    if key == "_id":
+        key = "id"
+    elif key == "sender.name":
+        key = "sender_name"
+    elif key == "sender.role":
+        key = "sender_role"
+    elif key == "receiver.name":
+        key = "receiver_name"
+    elif key == "receiver.role":
+        key = "receiver_role"
+    elif key == "correlationId":
+        key = "correlation_id"
+    elif key == "modelId":
+        key = "model_id"
+    elif key == "sessionId":
+        key = "session_id"
 
-    def get(self, id: str) -> Validation:
+    return key
+
+
+class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
+    def __init__(self, Session):
+        super().__init__(Session, ValidationModel)
+
+    def get(self, id: str) -> ValidationDTO:
         with self.Session() as session:
-            stmt = select(ValidationModel).where(ValidationModel.id == id)
-            item = session.scalars(stmt).first()
+            item = self.sql_get(session, id)
 
             if item is None:
                 return None
 
-            return from_row(item)
+            return self._dto_from_orm_model(item)
 
-    def update(self, id: str, item: Validation) -> bool:
+    def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
-    def add(self, item: Validation) -> Tuple[bool, Any]:
+    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
-            sender = item["sender"] if "sender" in item else None
-            receiver = item["receiver"] if "receiver" in item else None
-
-            validation = ValidationModel(
-                correlation_id=item.get("correlationId") or item.get("correlation_id"),
-                data=item.get("data"),
-                model_id=item.get("modelId") or item.get("model_id"),
-                receiver_name=receiver.get("name") if receiver else None,
-                receiver_role=receiver.get("role") if receiver else None,
-                sender_name=sender.get("name") if sender else None,
-                sender_role=sender.get("role") if sender else None,
-                session_id=item.get("sessionId") or item.get("session_id"),
-                timestamp=item.get("timestamp"),
-            )
-
-            session.add(validation)
-            session.commit()
-
-            return True, validation
+            item_dict = item.to_db(exclude_unset=False)
+            item_dict = self._to_orm_dict(item_dict)
+            model = ValidationModel(**item_dict)
+            success, obj = self.sql_add(session, model)
+            if not success:
+                return success, obj
+            return success, self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for ValidationStore")
+        return self.sql_delete(id)
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+        raise NotImplementedError("List not implemented for ValidationStore")
+
+    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        kwargs = {translate_key(k): v for k, v in kwargs.items()}
+        sort_key = translate_key(sort_key)
         with self.Session() as session:
-            stmt = select(ValidationModel)
-
-            for key, value in kwargs.items():
-                if key == "_id":
-                    key = "id"
-                elif key == "sender.name":
-                    key = "sender_name"
-                elif key == "sender.role":
-                    key = "sender_role"
-                elif key == "receiver.name":
-                    key = "receiver_name"
-                elif key == "receiver.role":
-                    key = "receiver_role"
-                elif key == "correlationId":
-                    key = "correlation_id"
-                elif key == "modelId":
-                    key = "model_id"
-                elif key == "sessionId":
-                    key = "session_id"
-
-                stmt = stmt.where(getattr(ValidationModel, key) == value)
-
-            if sort_key:
-                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-                _sort_key: str = sort_key
-
-                if _sort_key == "_id":
-                    _sort_key = "id"
-                elif _sort_key == "sender.name":
-                    _sort_key = "sender_name"
-                elif _sort_key == "sender.role":
-                    _sort_key = "sender_role"
-                elif _sort_key == "receiver.name":
-                    _sort_key = "receiver_name"
-                elif _sort_key == "receiver.role":
-                    _sort_key = "receiver_role"
-                elif _sort_key == "correlationId":
-                    _sort_key = "correlation_id"
-                elif _sort_key == "modelId":
-                    _sort_key = "model_id"
-                elif _sort_key == "sessionId":
-                    _sort_key = "session_id"
-
-                if _sort_key in ValidationModel.__table__.columns:
-                    sort_obj = (
-                        ValidationModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else ValidationModel.__table__.columns.get(_sort_key).desc()
-                    )
-
-                    stmt = stmt.order_by(sort_obj)
-
-            if limit:
-                stmt = stmt.offset(skip or 0).limit(limit)
-            elif skip:
-                stmt = stmt.offset(skip)
-
-            items = session.execute(stmt)
-
-            result = []
-
-            for item in items:
-                (r,) = item
-
-                result.append(from_row(r))
-
-            return {"count": len(result), "result": result}
+            items = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
+            return [self._dto_from_orm_model(item) for item in items]
 
     def count(self, **kwargs):
-        with self.Session() as session:
-            stmt = select(func.count()).select_from(ValidationModel)
+        kwargs = translate_key(kwargs)
+        return self.sql_count(**kwargs)
 
-            for key, value in kwargs.items():
-                if key == "sender.name":
-                    key = "sender_name"
-                elif key == "sender.role":
-                    key = "sender_role"
-                elif key == "receiver.name":
-                    key = "receiver_name"
-                elif key == "receiver.role":
-                    key = "receiver_role"
-                elif key == "correlationId":
-                    key = "correlation_id"
-                elif key == "modelId":
-                    key = "model_id"
-                elif key == "sessionId":
-                    key = "session_id"
+    def _to_orm_dict(self, item_dict: Dict[str, Any]) -> Dict[str, Any]:
+        item_dict["id"] = item_dict.pop("validation_id")
+        sender = item_dict.pop("sender", None)
+        if sender:
+            item_dict["sender_name"] = sender.get("name")
+            item_dict["sender_role"] = sender.get("role")
+        receiver = item_dict.pop("receiver", None)
+        if receiver:
+            item_dict["receiver_name"] = receiver.get("name")
+            item_dict["receiver_role"] = receiver.get("role")
+        return item_dict
 
-                stmt = stmt.where(getattr(ValidationModel, key) == value)
-
-            count = session.scalar(stmt)
-
-            return count
+    def _dto_from_orm_model(self, item: ValidationModel) -> ValidationDTO:
+        orm_dict = from_orm_model(item, ValidationModel)
+        orm_dict["validation_id"] = item.id
+        orm_dict["sender"] = {"name": item.sender_name, "role": item.sender_role}
+        orm_dict["receiver"] = {"name": item.receiver_name, "role": item.receiver_role}
+        return ValidationDTO().populate_with(orm_dict)
