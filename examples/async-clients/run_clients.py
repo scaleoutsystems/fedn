@@ -175,7 +175,7 @@ if __name__ == "__main__":
     @click.option("--intermittent", is_flag=True, help="Use intermittent connection/disconnection mode")
     def main(name, no_discovery, intermittent):
         """Launch multiple federated learning clients that run concurrently.
-        
+
         This script starts N_CLIENTS (from config) client processes that connect to a FEDn network.
         Use --name to set a base name for clients, --no-discovery to connect directly to a combiner,
         and --intermittent to simulate clients that periodically disconnect and reconnect.

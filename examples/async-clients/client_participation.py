@@ -20,14 +20,14 @@ def get_latest_session_id(client):
     if "result" in sessions and sessions["result"]:
         # Sort sessions by committed_at in descending order
         # Parse the date string to ensure proper date comparison
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         def parse_date(date_str):
             try:
                 return datetime.strptime(date_str, "%a, %d %b %Y %H:%M:%S %Z")
             except (ValueError, TypeError):
                 # Return a very old date as fallback for invalid dates
-                return datetime(1900, 1, 1)
+                return datetime(1900, 1, 1, tzinfo=timezone.utc)
 
         sorted_sessions = sorted(
             sessions["result"],
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     @click.option("--session-id", "-s", default=None, help="Session ID to analyze")
     def main(session_id):
         """Plot the number of aggregated models and validations per round for a session.
-        
+
         If no session ID is provided, the most recent session will be used.
         """
         plot_aggregation_data(session_id)
