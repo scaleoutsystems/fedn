@@ -10,7 +10,7 @@ Prerequisites
 - [Docker (if running locally)](https://docs.docker.com/get-docker)
 - [Docker Compose (if running locally)](https://docs.docker.com/compose/install)
 
-Running the example
+Set up environment
 ------------------
 
 First, make sure that FEDn is installed (we recommend using a virtual environment)
@@ -27,15 +27,14 @@ Install FEDn
 
     pip install fedn
 
-
-Prepare the example environment and seed model
----------------------------------------------
-
 Standing in the folder fedn/examples/async-clients
 
 .. code-block::
 
     pip install -r requirements.txt
+
+Upload seed model
+------------
 
 Create the seed model
 
@@ -44,18 +43,26 @@ Create the seed model
     python init_seed.py
 
 
-You will now have a file 'seed.npz' in the directory.
+You will now have a file 'seed.npz' in the directory. Add this seed model to the FEDn instance:
 
-Configuration
+.. code-block::
+
+    python init_fedn.py
+
+Project configuration
 ------------
 
 The file ``config.py`` contains all configuration settings for this example. The most important setting is ``USE_LOCAL`` which determines whether to run with a local FEDn deployment or connect to a remote instance such as a Studio instance project.
 
-For local deployment:
+**For local deployment:**
 - Set ``USE_LOCAL = True`` in ``config.py``
-- Deploy FEDn locally using Docker Compose (see below)
+- Deploy FEDn locally using Docker Compose. Standing in the FEDn root directory:
 
-For remote deployment:
+.. code-block::
+
+    docker compose up 
+
+**For remote deployment:**
 - Set ``USE_LOCAL = False`` in ``config.py``
 - Set up a project in Scaleout Studio
 - Update the ``DISCOVER_HOST`` in ``REMOTE_CONFIG`` with your API URL
@@ -71,21 +78,6 @@ For remote deployment:
     }
 
 Replace ``your-project-name``, ``your-client-token-here``, and ``your-admin-token-here`` with your actual values.
-
-Running a simulation
--------------------
-
-For local deployment, start FEDn. Standing in the FEDn root directory:
-
-.. code-block::
-
-    docker-compose up 
-
-Initialize FEDn with the seed model:
-
-.. code-block::
-
-    python init_fedn.py
 
 Monitoring client status (optional)
 ----------------------------------
@@ -109,18 +101,20 @@ Start simulating clients:
 
 You can use the ``--intermittent`` flag to simulate clients that periodically disconnect and reconnect.
 
-To analyze client participation and identify potential issues:
+Start the experiment / training sessions: 
+
+.. code-block::
+
+    python run_experiment.py
+
+You can adjust the number of sequential training sessions by modifying the ``N_SESSIONS`` parameter in ``config.py``. If you are using Scaleout Studio, you can also start a session directly through the Studio interface or use the APIClient.
+
+To analyze client participation and identify potential issues after a session has started:
 
 .. code-block::
 
     python client_participation.py
 
 This will generate plots showing the number of aggregated models and validations per round, helping you understand client participation patterns and identify where things might be going wrong.
-
-Start the experiment / training sessions: 
-
-.. code-block::
-
-    python run_experiment.py
 
 Once global models start being produced, you can start analyzing results using API Client, refer to the notebook "Experiment.ipynb" for instructions.
