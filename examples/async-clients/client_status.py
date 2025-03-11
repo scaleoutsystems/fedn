@@ -1,3 +1,13 @@
+"""This script monitors and records the status of FEDn clients across different machines.
+
+It periodically queries the FEDn API to get the status of all clients, counts how many
+clients from each machine are in each status (online, offline, available), and records this
+information in a CSV file. The CSV format makes it easy to import the data into plotting
+tools for visualization and analysis of client availability patterns over time.
+
+The script runs continuously, collecting data at regular intervals specified by the user.
+"""
+
 import time
 import csv
 import click
@@ -6,7 +16,7 @@ from config import settings
 from fedn import APIClient
 
 # List of VM names and client statuses
-VM_NAMES = ["renberget", "svaipa", "mavas"] # Replace with machines that are running clients (start of name variable in run_clients.py)
+MACHINE_NAMES = ["renberget", "svaipa", "mavas"] # Replace with machines that are running clients (start of name variable in run_clients.py)
 CLIENT_STATUSES = ["online", "offline", "available"]
 
 @click.command()
@@ -31,7 +41,7 @@ def monitor_client_status(csv_filename, interval):
     
     # Create header row dynamically based on VM names and statuses
     header = ['timestamp']
-    for vm in VM_NAMES:
+    for vm in MACHINE_NAMES:
         for status in CLIENT_STATUSES:
             header.append(f'{vm}_{status}')
     
@@ -45,11 +55,11 @@ def monitor_client_status(csv_filename, interval):
         fl_clients = api_client.get_clients()
         
         # Initialize counters for each host/status combination
-        counts = {vm: {status: 0 for status in CLIENT_STATUSES} for vm in VM_NAMES}
+        counts = {vm: {status: 0 for status in CLIENT_STATUSES} for vm in MACHINE_NAMES}
         
         # Count clients for each combination
         for fl_client in fl_clients['result']:
-            for vm in VM_NAMES:
+            for vm in MACHINE_NAMES:
                 if fl_client['name'].startswith(vm):
                     status = fl_client['status']
                     if status in CLIENT_STATUSES:
@@ -59,7 +69,7 @@ def monitor_client_status(csv_filename, interval):
         
         # Prepare row data dynamically
         row_data = [timestamp]
-        for vm in VM_NAMES:
+        for vm in MACHINE_NAMES:
             for status in CLIENT_STATUSES:
                 row_data.append(counts[vm][status])
         

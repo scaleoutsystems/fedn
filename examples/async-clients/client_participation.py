@@ -1,3 +1,14 @@
+"""This script analyzes client participation in a FEDn session.
+
+It retrieves data from the FEDn API about a specific training session (or the most recent one
+if not specified) and generates a plot showing the number of aggregated models and validations
+per round. This visualization helps in understanding client participation patterns and the
+overall health of the federated learning process across training rounds.
+
+The script can be used to monitor client engagement and identify potential issues with
+client participation or model validation in the federated learning network.
+"""
+
 import click
 from config import settings
 from fedn import APIClient
