@@ -1,3 +1,15 @@
+"""This script runs federated learning training sessions in FEDn.
+
+It initiates a configurable number of sequential training sessions, each with a specified
+number of rounds. The script connects to a FEDn network using the API client, starts each
+session with the appropriate configuration, and monitors the session until completion.
+
+This is useful for automating experiments with different federated learning configurations
+and for running multiple training sessions in sequence without manual intervention.
+The script uses settings from the config module to determine the number of sessions and
+rounds to run.
+"""
+
 import time
 import uuid
 
