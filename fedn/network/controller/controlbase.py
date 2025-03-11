@@ -168,7 +168,7 @@ class ControlBase(ABC):
         session = self.session_store.get(session_id)
         return session.status
 
-    def (self, session_id: str, config: dict) -> Tuple[bool, Any]:
+    def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
         """Set the model id for a session.
 
         :param session_id: The session unique identifier

@@ -180,7 +180,7 @@ class Control(ControlBase):
             self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
 
-        self.set_session_config(session_id, session_config)
+        self.set_session_config(session_id, session_config.to_dict())
 
     def prediction_session(self, config: RoundConfig) -> None:
         """Execute a new prediction session.
