@@ -76,8 +76,15 @@ class TestFednStudio:
 
     @pytest.mark.order(4)
     def test_rounds_completion(self, fedn_client, fedn_env):
-        rounds_obj = fedn_client.get_rounds()
-        assert rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"], f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, got {rounds_obj['count']}"
+        start_time = time.time()
+        while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
+            rounds_obj = fedn_client.get_rounds()
+            if rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"]:
+                break
+            time.sleep(5)
+        else:
+            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+
         rounds_result = rounds_obj["result"]
         for round in rounds_result:
             assert round["status"] == "Finished", f"Expected round status 'Finished', got {round['status']}"

@@ -220,7 +220,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, {}, clients)
 
         if len(clients) < 20:
             logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
