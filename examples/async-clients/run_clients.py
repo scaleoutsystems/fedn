@@ -1,10 +1,6 @@
-"""This scripts starts N_CLIENTS using the SDK.
+"""This scripts starts N_CLIENTS clients using the SDK.
 
-
-
-
-
-If you are running with a local deploy of FEDn
+If you are running with a local deployment of FEDn
 using docker compose, you need to make sure that clients
 are able to resolve the name "combiner" to 127.0.0.1
 
@@ -172,19 +168,25 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
     else:
         fl_client.run()
 
-
 if __name__ == "__main__":
     @click.command()
+    @click.option('--name', '-n', default="client", help='Base name for clients (will be appended with number)')
     @click.option('--no-discovery', is_flag=True, help='Connect to combiner without discovery service')
     @click.option('--intermittent', is_flag=True, help='Use intermittent connection/disconnection mode')
-    def main(no_discovery, intermittent):
+    def main(name, no_discovery, intermittent):
+        """Launch multiple federated learning clients that run concurrently.
+        
+        This script starts N_CLIENTS (from config) client processes that connect to a FEDn network.
+        Use --name to set a base name for clients, --no-discovery to connect directly to a combiner,
+        and --intermittent to simulate clients that periodically disconnect and reconnect.
+        """
         # We start N_CLIENTS independent client processes
         processes = []
         for i in range(settings["N_CLIENTS"]):
             p = Process(
                 target=run_client,
                 args=(
-                    "client{}".format(i + 1),
+                    f"{name}_{i + 1}",
                     str(uuid.uuid4()), 
                     no_discovery,
                     intermittent,
