@@ -18,9 +18,9 @@ def init_fedn(seed_path):
 
 if __name__ == "__main__":
     @click.command()
-    @click.argument('seed_path', type=str, default='seed.npz')
+    @click.argument("seed_path", type=str, default="seed.npz")
     def main(seed_path):
         """Initialize FEDn with a seed model from the specified path."""
         init_fedn(seed_path)
-    
+
     main()

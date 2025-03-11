@@ -48,12 +48,11 @@ if not USE_LOCAL:
         try:
             with open(tokens_file, "r") as f:
                 tokens = json.load(f)
-                
+
             # Use the discover host as the key to find the right tokens
             discover_host = settings["DISCOVER_HOST"]
             if discover_host in tokens:
                 settings.update({k: v for k, v in tokens[discover_host].items() if k in settings})
-                print(f"Updated settings: {settings}")
             else:
                 print(f"Warning: No tokens found for host '{discover_host}' in tokens.json")
         except Exception as e:

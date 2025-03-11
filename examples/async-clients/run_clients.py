@@ -12,7 +12,6 @@ combiner    127.0.0.1
 (this requires root previliges)
 """
 
-import sys
 import threading
 import time
 import uuid
@@ -127,6 +126,7 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
         no_discovery (bool, optional): If True, connect directly to combiner. If False, use discovery service. Defaults to False.
         intermittent (bool, optional): If True, use intermittent connection mode. Defaults to False.
         online_for (int, optional): In intermittent mode, how long to stay connected in seconds. Defaults to 120.
+
     """
     if client_id is None:
         client_id = str(uuid.uuid4())
@@ -170,9 +170,9 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
 
 if __name__ == "__main__":
     @click.command()
-    @click.option('--name', '-n', default="client", help='Base name for clients (will be appended with number)')
-    @click.option('--no-discovery', is_flag=True, help='Connect to combiner without discovery service')
-    @click.option('--intermittent', is_flag=True, help='Use intermittent connection/disconnection mode')
+    @click.option("--name", "-n", default="client", help="Base name for clients (will be appended with number)")
+    @click.option("--no-discovery", is_flag=True, help="Connect to combiner without discovery service")
+    @click.option("--intermittent", is_flag=True, help="Use intermittent connection/disconnection mode")
     def main(name, no_discovery, intermittent):
         """Launch multiple federated learning clients that run concurrently.
         
@@ -187,7 +187,7 @@ if __name__ == "__main__":
                 target=run_client,
                 args=(
                     f"{name}_{i + 1}",
-                    str(uuid.uuid4()), 
+                    str(uuid.uuid4()),
                     no_discovery,
                     intermittent,
                     settings["CLIENTS_ONLINE_FOR_SECONDS"],

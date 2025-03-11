@@ -1,4 +1,3 @@
-import sys
 
 import numpy as np
 from sklearn.datasets import make_classification
@@ -64,9 +63,9 @@ def init_seed(out_path="seed.npz"):
 
 if __name__ == "__main__":
     @click.command()
-    @click.argument('out_path', type=str, default='seed.npz')
+    @click.argument("out_path", type=str, default="seed.npz")
     def main(out_path):
         """Initialize a seed model and save it to the specified path."""
         init_seed(out_path)
-    
+
     main()
