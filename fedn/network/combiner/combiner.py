@@ -757,7 +757,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-        data = MessageToDict(validation)
+        data = MessageToDict(validation, preserving_proto_field_name=True)
         validationdto = ValidationDTO(**data)
         success, result = validation_store.add(validationdto)
         if not success:
@@ -777,8 +777,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
-        validation = MessageToDict(request)
-        validationdto = ValidationDTO(**validation)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+        validationdto = ValidationDTO(**data)
         validation_store.add(validationdto)
 
         response = fedn.Response()
@@ -797,8 +797,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
-        result = MessageToDict(request)
-        prediction = PredictionDTO().populate_with(result)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+        prediction = PredictionDTO(**data)
         prediction_store.add(prediction)
 
         response = fedn.Response()
