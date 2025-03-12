@@ -66,7 +66,7 @@ class TempModelStorage(ModelStorage):
     def delete(self, model_id):
         try:
             os.remove(os.path.join(self.default_dir, str(model_id)))
-            # logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
+            logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
             # Delete id from metadata and models dict
             del self.models_metadata[model_id]
             del self.models[model_id]

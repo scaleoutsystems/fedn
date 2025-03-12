@@ -45,14 +45,14 @@ class Aggregator(AggregatorBase):
 
         while not self.update_handler.model_updates.empty():
             try:
-                # logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
+                logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
                 model_update = self.update_handler.next_model_update()
 
                 # Load model parameters and metadata
-                # logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
+                logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
                 model_next, metadata = self.update_handler.load_model_update(model_update, helper)
 
-                # logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
+                logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
                 # Increment total number of examples
                 total_examples += metadata["num_examples"]

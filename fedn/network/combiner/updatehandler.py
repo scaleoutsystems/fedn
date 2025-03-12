@@ -29,7 +29,7 @@ class UpdateHandler:
 
     def delete_model(self, model_update):
         self.modelservice.temp_model_storage.delete(model_update.model_update_id)
-        # logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
+        logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
 
     def next_model_update(self):
         """Get the next model update from the queue.
@@ -53,7 +53,7 @@ class UpdateHandler:
         :type model_id: str
         """
         try:
-            # logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
+            logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
 
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)

@@ -764,7 +764,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        # logger.info("Recieved ModelValidation from {}".format(request.sender.name))
+        logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
         validation = MessageToDict(request)
         validation_store.add(validation)
