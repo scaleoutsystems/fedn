@@ -367,47 +367,33 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Temporary dict to store client status
         clients = {
             "active_clients": [],
-            "update_active_clients": [], 
+            "update_active_clients": [],
             "update_offline_clients": [],
         }
         for client in self._list_subscribed_clients(channel):
             status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["last_seen"]
-            time_since_seen = now - then
-            
-            logger.debug(f"Client {client} - Current status: {status}, Last seen: {then} ({time_since_seen.total_seconds()}s ago)")
-            
-            if time_since_seen < timedelta(seconds=10):
+            if (now - then) < timedelta(seconds=10):
                 clients["active_clients"].append(client)
                 # If client has changed status, update client queue
                 if status != "online":
-                    logger.info(f"Client {client} changing status from {status} to online (last seen {time_since_seen.total_seconds()}s ago)")
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
             elif status != "offline":
-                logger.info(f"Client {client} changing status from {status} to offline (last seen {time_since_seen.total_seconds()}s ago)")
                 self.clients[client]["status"] = "offline"
                 clients["update_offline_clients"].append(client)
-
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
-            logger.debug(f"Updating {len(clients['update_active_clients'])} clients to online status in database")
             for client in clients["update_active_clients"]:
                 client_to_update = client_store.get(client)
                 client_to_update["status"] = "online"
-                success, _ = client_store.update(client, client_to_update)
-                if not success:
-                    logger.error(f"Failed to update client {client} status to online in database")
-
+                client_store.update(client, client_to_update)
         if len(clients["update_offline_clients"]) > 0:
-            logger.debug(f"Updating {len(clients['update_offline_clients'])} clients to offline status in database")
             for client in clients["update_offline_clients"]:
                 client_to_update = client_store.get(client)
-                client_to_update["status"] = "offline" 
-                success, _ = client_store.update(client, client_to_update)
-                if not success:
-                    logger.error(f"Failed to update client {client} status to offline in database")
+                client_to_update["status"] = "offline"
+                client_store.update(client, client_to_update)
 
         return clients["active_clients"]
 
