@@ -25,27 +25,26 @@ class StudioHTTPHandler(logging.handlers.HTTPHandler):
         self.token = token
 
     def emit(self, record):
-        return
-        # log_entry = self.mapLogRecord(record)
+        log_entry = self.mapLogRecord(record)
 
-        # log_entry = {
-        #     "msg": log_entry["msg"],
-        #     "levelname": log_entry["levelname"],
-        #     "project": os.environ.get("PROJECT_ID"),
-        #     "appinstance": os.environ.get("APP_ID"),
-        # }
-        # # Setup headers
-        # headers = {
-        #     "Content-type": "application/json",
-        # }
-        # if self.token:
-        #     remote_token_protocol = os.environ.get("FEDN_REMOTE_LOG_TOKEN_PROTOCOL", "Token")
-        #     headers["Authorization"] = f"{remote_token_protocol} {self.token}"
-        # if self.method.lower() == "post":
-        #     requests.post(self.host + self.url, json=log_entry, headers=headers)
-        # else:
-        #     # No other methods implemented.
-        #     return
+        log_entry = {
+            "msg": log_entry["msg"],
+            "levelname": log_entry["levelname"],
+            "project": os.environ.get("PROJECT_ID"),
+            "appinstance": os.environ.get("APP_ID"),
+        }
+        # Setup headers
+        headers = {
+            "Content-type": "application/json",
+        }
+        if self.token:
+            remote_token_protocol = os.environ.get("FEDN_REMOTE_LOG_TOKEN_PROTOCOL", "Token")
+            headers["Authorization"] = f"{remote_token_protocol} {self.token}"
+        if self.method.lower() == "post":
+            requests.post(self.host + self.url, json=log_entry, headers=headers)
+        else:
+            # No other methods implemented.
+            return
 
 
 # Remote logging can only be configured via environment variables for now.
@@ -59,7 +58,7 @@ if REMOTE_LOG_SERVER:
 
     http_handler = StudioHTTPHandler(host=REMOTE_LOG_SERVER, url=REMOTE_LOG_PATH, method="POST", token=remote_token)
     http_handler.setLevel(rloglevel)
-    #logger.addHandler(http_handler)
+    logger.addHandler(http_handler)
 
 
 def set_log_level_from_string(level_str):
@@ -81,7 +80,7 @@ def set_log_level_from_string(level_str):
         raise ValueError(f"Invalid log level: {level_str}")
 
     # Set the log level
-    #logger.setLevel(level)
+    logger.setLevel(level)
 
 
 def set_log_stream(log_file):
@@ -91,12 +90,12 @@ def set_log_stream(log_file):
         return
 
     # Remove existing handlers
-    # for h in #logger.handlers[:]:
-        #logger.removeHandler(h)
+    for h in logger.handlers[:]:
+        logger.removeHandler(h)
 
     # Create a FileHandler
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(formatter)
 
     # Add the file handler to the logger
-    #logger.addHandler(file_handler)
+    logger.addHandler(file_handler)
