@@ -8,7 +8,6 @@ from pymongo.database import Database
 from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.common.log_config import logger
 from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 from .shared import from_document
@@ -73,24 +72,11 @@ class MongoDBClientStore(ClientStore, MongoDBStore[Client]):
 
     def upsert(self, item: Client) -> Tuple[bool, Any]:
         try:
-            # Log potential None variables that could cause subscript errors
-            logger.info(f"item: {item}")
-            logger.info(f"item['client_id']: {item['client_id'] if item else 'item is None'}")
-            logger.info(f"result.upserted_id (will log after query)")
-            logger.info(f"document (will log after query)")
-            
-            if item is None or self.database is None:
-                return False, "Item or database is None"
-                
             result = self.database[self.collection].update_one(
                 {"client_id": item["client_id"]}, {"$set": {k: v for k, v in item.items() if v is not None}}, upsert=True
             )
-            logger.info(f"result.upserted_id: {result.upserted_id}")
-            
             id = result.upserted_id
             document = self.database[self.collection].find_one({"_id": id})
-            logger.info(f"document: {document}")
-            
             return True, from_document(document)
         except Exception as e:
             return False, str(e)

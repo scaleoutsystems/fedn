@@ -695,8 +695,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 "updated_at": datetime.now(),
             }
 
-            logger.info(f"client_to_upsert: {client_to_upsert}")
-
             success, result = client_store.upsert(client_to_upsert)
             if not success:
                 logger.error(result)
