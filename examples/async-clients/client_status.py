@@ -1,23 +1,20 @@
-"""This script monitors and records the status of FEDn clients across different machines.
+"""This script monitors and records the status of FEDn clients.
 
-It periodically queries the FEDn API to get the status of all clients, counts how many
-clients from each machine are in each status (online, offline, available), and records this
-information in a CSV file. The CSV format makes it easy to import the data into plotting
-tools for visualization and analysis of client availability patterns over time.
+It periodically queries the FEDn API to get the status of all clients and records
+each client's status in a CSV file. The CSV format makes it easy to import the data
+into plotting tools for visualization and analysis of client availability patterns over time.
 
 The script runs continuously, collecting data at regular intervals specified by the user.
+Each line in the CSV contains: timestamp, client_name, status.
 """
 
 import time
 import csv
 import click
+import os
 from datetime import datetime
 from config import settings
 from fedn import APIClient
-
-# List of VM names and client statuses
-MACHINE_NAMES = ["renberget", "svaipa", "mavas"] # Replace with machines that are running clients (start of name variable in run_clients.py)
-CLIENT_STATUSES = ["online", "offline", "available"]
 
 @click.command()
 @click.option("--csv-filename", "-f", default=None,
@@ -25,10 +22,20 @@ CLIENT_STATUSES = ["online", "offline", "available"]
 @click.option("--interval", "-i", default=5,
               help="Time interval in seconds between status checks. Default is 5 seconds.")
 def monitor_client_status(csv_filename, interval):
-    """Monitor and record the status of FEDn clients across different VMs."""
+    """Monitor and record the status of FEDn clients.
+
+    Records one line per client per iteration with timestamp, client_name, and status.
+    """
+    # Ensure logs directory exists
+    logs_dir = "logs"
+    os.makedirs(logs_dir, exist_ok=True)
+
     # Set default filename with timestamp if not provided
     if not csv_filename:
-        csv_filename = f"client_status_per_vm_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        csv_filename = f"client_status_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+
+    # Prepend logs directory to filename
+    csv_path = os.path.join(logs_dir, csv_filename)
 
     api_client = APIClient(
         host=settings["DISCOVER_HOST"],
@@ -38,44 +45,27 @@ def monitor_client_status(csv_filename, interval):
         token=settings["ADMIN_TOKEN"],
     )
 
-    # Create header row dynamically based on VM names and statuses
-    header = ["timestamp"]
-    for vm in MACHINE_NAMES:
-        for status in CLIENT_STATUSES:
-            header.append(f"{vm}_{status}")
+    # Create header row
+    header = ["timestamp", "client_name", "status"]
 
     # Create/open CSV file with header if it doesn't exist
-    with open(csv_filename, "a", newline="") as f:
+    with open(csv_path, "a", newline="") as f:
         writer = csv.writer(f)
         if f.tell() == 0:  # Check if file is empty
             writer.writerow(header)
 
     while True:
         fl_clients = api_client.get_clients()
-
-        # Initialize counters for each host/status combination
-        counts = {vm: {status: 0 for status in CLIENT_STATUSES} for vm in MACHINE_NAMES}
-
-        # Count clients for each combination
-        for fl_client in fl_clients["result"]:
-            for vm in MACHINE_NAMES:
-                if fl_client["name"].startswith(vm):
-                    status = fl_client["status"]
-                    if status in CLIENT_STATUSES:
-                        counts[vm][status] += 1
-
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Prepare row data dynamically
-        row_data = [timestamp]
-        for vm in MACHINE_NAMES:
-            for status in CLIENT_STATUSES:
-                row_data.append(counts[vm][status])
-
-        # Write all counts to CSV
-        with open(csv_filename, "a", newline="") as f:
+        # Write one row per client
+        with open(csv_path, "a", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(row_data)
+
+            for client in fl_clients["result"]:
+                client_name = client["name"]
+                status = client["status"]
+                writer.writerow([timestamp, client_name, status])
 
         time.sleep(interval)
 
