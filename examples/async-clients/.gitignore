@@ -6,3 +6,4 @@ data
 .async-simulation
 client.yaml
 tokens.json
+logs/*
