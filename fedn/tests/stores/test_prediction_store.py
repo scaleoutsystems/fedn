@@ -28,6 +28,7 @@ def test_predictions():
     return [pred1, pred2, pred3, pred4]
 
 
+
 @pytest.fixture
 def test_prediction():
     prediction = PredictionDTO()
@@ -75,6 +76,8 @@ def options():
 class TestPredictionStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
+        assert test_prediction.is_populated()
+
         success, read_prediction1 = db_connection.prediction_store.add(test_prediction)
         assert success == True
         assert isinstance(read_prediction1.prediction_id, str)

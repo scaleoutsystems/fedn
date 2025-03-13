@@ -50,19 +50,6 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore):
         return ValidationDTO().populate_with(dto_dict)
 
 
-def from_row(row: ValidationModel) -> ValidationDTO:
-    return {
-        "id": row.id,
-        "model_id": row.model_id,
-        "data": row.data,
-        "correlation_id": row.correlation_id,
-        "timestamp": row.timestamp,
-        "session_id": row.session_id,
-        "sender": {"name": row.sender_name, "role": row.sender_role},
-        "receiver": {"name": row.receiver_name, "role": row.receiver_role},
-    }
-
-
 def translate_key(key: str) -> str:
     if key == "_id":
         key = "id"
@@ -141,7 +128,7 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
 
     def _dto_from_orm_model(self, item: ValidationModel) -> ValidationDTO:
         orm_dict = from_orm_model(item, ValidationModel)
-        orm_dict["validation_id"] = item.id
-        orm_dict["sender"] = {"name": item.sender_name, "role": item.sender_role}
-        orm_dict["receiver"] = {"name": item.receiver_name, "role": item.receiver_role}
+        orm_dict["validation_id"] = orm_dict.pop("id")
+        orm_dict["sender"] = {"name": orm_dict.pop("sender_name"), "role": orm_dict.pop("sender_role")}
+        orm_dict["receiver"] = {"name": orm_dict.pop("receiver_name"), "role": orm_dict.pop("receiver_role")}
         return ValidationDTO().populate_with(orm_dict)

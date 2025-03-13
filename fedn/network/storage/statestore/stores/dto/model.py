@@ -14,14 +14,13 @@ class ModelDTO(BaseDTO):
     def to_dict(self):
         res = super().to_dict()
         # TODO: Remove this when we have migrated all model to model_id
-        if not isinstance(object.__getattribute__(self, "model_id"), Field):
-            res["model"] = self.model_id
+        res["model"] = self.model_id
         return res
 
     def patch(self, value_dict, throw_on_extra_keys=True):
         # TODO: Remove this when we have migrated all model to model_id
         if "model" in value_dict:
             if "model_id" in value_dict and value_dict["model_id"] != value_dict["model"]:
-                raise ValueError("Cannot set both model and model_id")
+                raise ValueError("Cannot set both model and model_id in ModelDTO")
             value_dict["model_id"] = value_dict.pop("model")
         return super().patch(value_dict, throw_on_extra_keys)

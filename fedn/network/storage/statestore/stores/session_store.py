@@ -5,8 +5,7 @@ from pymongo.database import Database
 from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
-from fedn.network.storage.statestore.stores.shared import from_document
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel, from_orm_model
 
 
@@ -225,11 +224,15 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
         return self.sql_count(**kwargs)
 
     def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
-        orm_dict = from_orm_model(item, SessionModel)
+        session_dict = from_orm_model(item, SessionModel)
         session_config_dict = from_orm_model(item.session_config, SessionConfigModel)
-        orm_dict["session_config"] = session_config_dict
-        orm_dict["session_id"] = orm_dict.pop("id")
-        return SessionDTO().populate_with(orm_dict)
+
+        session_dict["session_config"] = session_config_dict
+        session_dict["session_id"] = session_dict.pop("id")
+
+        session_config_dict.pop("id")
+        session_dict.pop("session_config_id")
+        return SessionDTO().populate_with(session_dict)
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("session_id", None)

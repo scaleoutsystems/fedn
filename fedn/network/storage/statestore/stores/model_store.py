@@ -8,8 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import aliased
 
 from fedn.network.storage.statestore.stores.dto import ModelDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store
-from fedn.network.storage.statestore.stores.shared import from_document
+from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import ModelModel, from_orm_model
 
 
@@ -197,6 +196,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
     def _dto_from_document(self, document: Dict) -> ModelDTO:
         item_dict = from_document(document)
         item_dict["model_id"] = item_dict.pop("model")
+        del item_dict["key"]
         return ModelDTO().populate_with(item_dict)
 
 
@@ -315,4 +315,5 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
     def _dto_from_orm_model(self, item: ModelModel) -> ModelDTO:
         orm_dict = from_orm_model(item, ModelModel)
         orm_dict["model_id"] = orm_dict.pop("id")
+        del orm_dict["active"]
         return ModelDTO().populate_with(orm_dict)

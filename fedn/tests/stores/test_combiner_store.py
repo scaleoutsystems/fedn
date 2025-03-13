@@ -12,7 +12,7 @@ from fedn.network.storage.statestore.stores.dto import CombinerDTO
 @pytest.fixture
 def test_combiners():
     start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
-    combiner1 = CombinerDTO( combiner_id=str(uuid.uuid4()), name="test_combiner1",
+    combiner1 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner1",
                   parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
                   updated_at=start_date - datetime.timedelta(days=52), address="test_address")
     combiner2 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner2",
@@ -78,6 +78,8 @@ def options():
 class TestCombinerStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_combiner:CombinerDTO):
+        assert test_combiner.is_populated()
+
         # Add a combiner and check that we get the added combiner back
         name = test_combiner.name
 

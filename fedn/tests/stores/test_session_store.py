@@ -29,7 +29,7 @@ def test_sessions():
     return model,[session1, session2, session3, session4, session5, session6]
 
 @pytest.fixture
-def test_session():
+def test_session_and_model():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
@@ -84,8 +84,12 @@ def options():
 
 class TestSessionStore:
 
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_session: tuple[ModelDTO, SessionDTO]):
-        model, session = test_session
+    def test_add_update_delete(self, db_connection: DatabaseConnection, test_session_and_model: tuple[ModelDTO, SessionDTO]):
+        model, session = test_session_and_model
+        
+        assert session.is_populated()
+
+        
         db_connection.model_store.add(model)
         # Add a session and check that we get the added session back
         success, read_session1 = db_connection.session_store.add(session)

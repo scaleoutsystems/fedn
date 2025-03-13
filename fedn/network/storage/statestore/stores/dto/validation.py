@@ -1,18 +1,19 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field, OptionalField
+from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field
 
 
 class ValidationDTO(BaseDTO):
     """Validation data transfer object."""
 
-    validation_id: Optional[str] = OptionalField(None)
+    # TODO: Correct which fields are optional
+    validation_id: Optional[str] = Field(None)
     model_id: Optional[str] = Field(None)
     data: Optional[str] = Field(None)
     correlation_id: Optional[str] = Field(None)
     timestamp: Optional[datetime] = Field(None)
     session_id: Optional[str] = Field(None)
     meta: Optional[str] = Field(None)
-    sender: Optional[AgentDTO] = AgentDTO()
-    receiver: Optional[AgentDTO] = AgentDTO()
+    sender: Optional[AgentDTO] = Field(AgentDTO())
+    receiver: Optional[AgentDTO] = Field(AgentDTO())

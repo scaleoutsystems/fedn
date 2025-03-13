@@ -20,10 +20,13 @@ def test_validations():
 
     return [validation1, validation2, validation3, validation4, validation5]
 
+ 
+
 @pytest.fixture
 def test_validation():
     start_time = datetime.datetime(2021, 1, 4, 1, 2, 4)
     return ValidationDTO(data="test_data1", timestamp=start_time, correlation_id=str(uuid.uuid4()))
+
 
 
 @pytest.fixture
@@ -60,6 +63,8 @@ def options():
 class TestValidationStore:
 
     def test_add_update_delete(self, db_connection:DatabaseConnection, test_validation:ValidationDTO):
+        assert test_validation.is_populated()
+
         success, read_validation1 = db_connection.validation_store.add(test_validation)
         assert success == True
         assert isinstance(read_validation1.validation_id, str)

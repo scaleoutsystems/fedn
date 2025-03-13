@@ -60,6 +60,8 @@ def options():
 class TestModelStore:
 
     def test_add_update_delete(self, db_connection:DatabaseConnection, test_model:ModelDTO):
+        assert test_model.is_populated()
+
         # Add a model and check that we get the added model back
         success, read_model1 = db_connection.model_store.add(test_model)
         assert success == True
@@ -73,6 +75,7 @@ class TestModelStore:
 
         input_dict = test_model.to_dict()
         del input_dict["model_id"]
+        del input_dict["model"]
         del input_dict["committed_at"]
 
         assert read_model1_dict == input_dict

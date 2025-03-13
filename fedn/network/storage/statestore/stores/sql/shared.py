@@ -36,10 +36,12 @@ class SessionConfigModel(MyAbstractBase):
     __tablename__ = "session_configs"
 
     aggregator: Mapped[str] = mapped_column(String(255))
+    aggregator_kwargs: Mapped[Optional[str]]
     round_timeout: Mapped[int]
     buffer_size: Mapped[int]
     delete_models_storage: Mapped[bool]
     clients_required: Mapped[int]
+    requested_clients: Mapped[Optional[int]]
     validate: Mapped[bool]
     helper_type: Mapped[str] = mapped_column(String(255))
     model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))

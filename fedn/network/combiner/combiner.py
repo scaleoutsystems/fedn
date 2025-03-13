@@ -424,7 +424,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-        data = MessageToDict(status)
+        data = MessageToDict(status, preserving_proto_field_name=True)
         status = StatusDTO().populate_with(data)
         _ = status_store.add(status)
 
