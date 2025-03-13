@@ -56,9 +56,9 @@ if REMOTE_LOG_SERVER:
     rloglevel = log_levels.get(REMOTE_LOG_LEVEL, logging.INFO)
     remote_token = os.environ.get("FEDN_REMOTE_LOG_TOKEN", None)
 
-    http_handler = StudioHTTPHandler(host=REMOTE_LOG_SERVER, url=REMOTE_LOG_PATH, method="POST", token=remote_token)
-    http_handler.setLevel(rloglevel)
-    logger.addHandler(http_handler)
+    # http_handler = StudioHTTPHandler(host=REMOTE_LOG_SERVER, url=REMOTE_LOG_PATH, method="POST", token=remote_token)
+    # http_handler.setLevel(rloglevel)
+    # logger.addHandler(http_handler)
 
 
 def set_log_level_from_string(level_str):
