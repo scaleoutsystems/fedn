@@ -129,7 +129,9 @@ def get_validations():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = validation_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = validation_store.count(**kwargs)
+        response = {"count": count, "result": [validation.to_dict() for validation in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -224,7 +226,9 @@ def list_validations():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = validation_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        count = validation_store.count(**kwargs)
+        response = {"count": count, "result": [validation.to_dict() for validation in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -403,7 +407,7 @@ def get_validation(id: str):
         response = validation_store.get(id)
         if response is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response), 200
+        return jsonify(response.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

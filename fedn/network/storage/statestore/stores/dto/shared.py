@@ -83,11 +83,11 @@ class DTO:
                     elif isinstance(value_dict[key], DTO):
                         setattr(self, key, value_dict[key])
                     else:
-                        raise ValueError(f"Invalid value for key: {key}")
+                        raise ValueError(f"Can not set key: {key} to type {value.__class__.__name__} in {self.__class__.__name__}")
                 else:
                     setattr(self, key, value)
             elif throw_on_extra_keys:
-                raise ValueError(f"Invalid key: {key}")
+                raise ValueError(f"Invalid key: {key} for {self.__class__.__name__}")
 
         return self
 
@@ -97,23 +97,23 @@ class DTO:
         This method is used to apply a dictionary to the model ignoring any extra keys but requires all fields to be present.
         It operates recursively if value_dict contains nested dictionaries and matching fields are of type BaseModel.
         """
-        for k in self.__class__.get_all_fieldnames():
-            if k in value_dict:
-                if isinstance(super().__getattribute__(k), DTO):
-                    if isinstance(value_dict[k], dict):
-                        getattr(self, k).populate_with(value_dict[k])
-                    elif isinstance(value_dict[k], DTO):
-                        setattr(self, k, value_dict[k])
+        for key in self.__class__.get_all_fieldnames():
+            if key in value_dict:
+                if isinstance(super().__getattribute__(key), DTO):
+                    if isinstance(value_dict[key], dict):
+                        getattr(self, key).populate_with(value_dict[key])
+                    elif isinstance(value_dict[key], DTO):
+                        setattr(self, key, value_dict[key])
                     else:
-                        raise ValueError(f"Invalid value for key: {k}")
+                        raise ValueError(f"Can not set key: {key} to type {value_dict[key].__class__.__name__} in {self.__class__.__name__}")
                 else:
-                    setattr(self, k, value_dict[k])
-            elif isinstance(super().__getattribute__(k), OptionalField) or k == "committed_at":
+                    setattr(self, key, value_dict[key])
+            elif isinstance(super().__getattribute__(key), OptionalField) or key == "committed_at":
                 pass
-            elif isinstance(super().__getattribute__(k), DTO):
-                getattr(self, k).populate_with({})
-            elif isinstance(super().__getattribute__(k), Field):
-                raise ValueError(f"Missing key: {k}")
+            elif isinstance(super().__getattribute__(key), DTO):
+                getattr(self, key).populate_with({})
+            elif isinstance(super().__getattribute__(key), Field):
+                raise ValueError(f"Missing key: {key} for {self.__class__.__name__}")
             else:
                 pass  # Field already set
 

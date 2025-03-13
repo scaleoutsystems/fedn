@@ -23,6 +23,7 @@ from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -219,7 +220,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, {}, clients)
 
         if len(clients) < 20:
             logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
@@ -756,8 +757,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-        data = MessageToDict(validation)
-        success, result = validation_store.add(data)
+        data = MessageToDict(validation, preserving_proto_field_name=True)
+        validationdto = ValidationDTO(**data)
+        success, result = validation_store.add(validationdto)
         if not success:
             logger.error(result)
         else:
@@ -775,8 +777,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
-        validation = MessageToDict(request)
-        validation_store.add(validation)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+        validationdto = ValidationDTO(**data)
+        validation_store.add(validationdto)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
@@ -794,8 +797,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
-        result = MessageToDict(request)
-        prediction = PredictionDTO().populate_with(result)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+        prediction = PredictionDTO(**data)
         prediction_store.add(prediction)
 
         response = fedn.Response()

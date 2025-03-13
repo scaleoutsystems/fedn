@@ -50,9 +50,8 @@ class ModelType(graphene.ObjectType):
 
     def resolve_validations(self, info):
         kwargs = {"modelId": self["model"]}
-        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
-        result = response["result"]
-
+        result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = [validation.to_dict() for validation in result]
         return result
 
 
@@ -91,15 +90,15 @@ class SessionType(graphene.ObjectType):
 
     def resolve_validations(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
-        result = response["result"]
+        result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = [validation.to_dict() for validation in result]
 
         return result
 
     def resolve_statuses(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        response = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
-        result = response["result"]
+        result = status_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = [status.to_dict() for status in result]
 
         return result
 
@@ -173,19 +172,18 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_validation(root, info, id: str = None):
-        result = validation_store.get(id)
+        result = validation_store.get(id).to_dict()
 
         return result
 
     def resolve_validations(root, info, session_id: str = None):
-        response = None
         if session_id:
             kwargs = {"session_id": session_id}
-            response = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            response = validation_store.list(0, 0, None)
+            result = validation_store.select(0, 0, None)
 
-        return response["result"]
+        return [validation.to_dict() for validation in result]
 
     def resolve_status(root, info, id: str = None):
         result = status_store.get(id).to_dict()

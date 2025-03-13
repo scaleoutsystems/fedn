@@ -207,3 +207,18 @@ class StatusModel(MyAbstractBase):
     correlation_id: Mapped[Optional[str]]
     extra: Mapped[Optional[str]]
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+
+
+class ValidationModel(MyAbstractBase):
+    __tablename__ = "validations"
+
+    correlation_id: Mapped[str]
+    data: Mapped[Optional[str]]
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    meta: Mapped[Optional[str]] = mapped_column(String(255))
+    receiver_name: Mapped[Optional[str]] = mapped_column(String(255))
+    receiver_role: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+    timestamp: Mapped[datetime]
