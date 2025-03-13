@@ -409,7 +409,7 @@ class FednClient:
 
     def run(self) -> None:
         """Run the client."""
-        threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id, "update_frequency": 20.0}, daemon=True).start()
+        threading.Thread(target=self.send_heartbeats, kwargs={"client_name": self.name, "client_id": self.client_id}, daemon=True).start()
         try:
             self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
