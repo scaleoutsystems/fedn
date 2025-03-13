@@ -32,7 +32,7 @@ class Server:
         MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
 
         self.server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=350),
+            futures.ThreadPoolExecutor(max_workers=2000),
             interceptors=[JWTInterceptor()],
             options=[
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
