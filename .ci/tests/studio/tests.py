@@ -95,8 +95,15 @@ class TestFednStudio:
 
     @pytest.mark.order(5)
     def test_validations(self, fedn_client, fedn_env):
-        validation_obj = fedn_client.get_validations()
-        assert validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"], f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, got {validation_obj['count']}"
+        start_time = time.time()
+        while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
+            validation_obj = fedn_client.get_validations()
+            if validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
+                break
+            time.sleep(5)
+        else:
+            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+
         # We could assert or test model convergence here
 
         print("All tests passed!", flush=True)
