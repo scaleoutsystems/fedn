@@ -34,7 +34,7 @@ class Server:
         HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS = 10000  # require at least 10 seconds between client pings
 
         self.server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=2000),
+            futures.ThreadPoolExecutor(max_workers=350),
             interceptors=[JWTInterceptor()],
             options=[
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),

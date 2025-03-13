@@ -4,7 +4,7 @@ name: combiner
 host: localhost
 address: localhost
 port: 12080
-max_clients: 2000
+max_clients: 30
 
 cert_path: tmp/server.crt
 key_path: tmp/server.key

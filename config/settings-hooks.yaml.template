@@ -5,4 +5,4 @@ discover_port: 8092
 name: hooks
 host: hooks
 port: 12081
-max_clients: 2000
+max_clients: 30
