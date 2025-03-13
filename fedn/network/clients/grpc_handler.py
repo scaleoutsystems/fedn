@@ -18,22 +18,20 @@ from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
 KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-KEEPALIVE_TIMEOUT_MS = 20 * 1000  # match server's timeout
+KEEPALIVE_TIMEOUT_MS = 30 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
-MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # 5 minutes, match server's setting
+MAX_CONNECTION_IDLE_MS = 30000
 MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
-CLIENT_IDLE_TIMEOUT_MS = 5 * 60 * 1000  # 5 minutes, match server's setting
+CLIENT_IDLE_TIMEOUT_MS = 30000
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
     ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-    ("grpc.http2.max_pings_without_data", 5),  # limit pings without data to 5
+    ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
     ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
     ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
     ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
-    ("grpc.http2.min_time_between_pings_ms", 10000),  # minimum 10 seconds between pings
-    ("grpc.http2.min_ping_interval_without_data_ms", 15000),  # minimum 15 seconds between pings when idle
 ]
 
 GRPC_SECURE_PORT = 443

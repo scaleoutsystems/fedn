@@ -30,8 +30,6 @@ class Server:
         KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
         KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
         MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
-        HTTP2_MAX_PINGS_WITHOUT_DATA = 2  # limit clients to 2 pings without data
-        HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS = 10000  # require at least 10 seconds between client pings
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
@@ -40,8 +38,6 @@ class Server:
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
                 ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
                 ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
-                ("grpc.http2.max_pings_without_data", HTTP2_MAX_PINGS_WITHOUT_DATA),
-                ("grpc.http2.min_recv_ping_interval_without_data_ms", HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS),
             ],
         )
         self.certificate = None
