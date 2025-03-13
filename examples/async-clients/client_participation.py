@@ -13,6 +13,7 @@ import click
 from config import settings
 from fedn import APIClient
 import matplotlib.pyplot as plt
+from datetime import datetime, timezone
 
 def get_latest_session_id(client):
     """Get the most recent session ID from the API."""
@@ -20,7 +21,6 @@ def get_latest_session_id(client):
     if "result" in sessions and sessions["result"]:
         # Sort sessions by committed_at in descending order
         # Parse the date string to ensure proper date comparison
-        from datetime import datetime, timezone
 
         def parse_date(date_str):
             try:
