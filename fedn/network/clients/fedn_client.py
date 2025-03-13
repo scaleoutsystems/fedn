@@ -126,9 +126,6 @@ class FednClient:
                 verify=FEDN_CONNECT_API_SECURE,
             )
 
-            logger.info(f"Received response with status code: {response.status_code}")
-            logger.info(f"Response content: {response.text}")
-
             if response.status_code == HTTP_STATUS_OK:
                 logger.info("Connect to FEDn Api - Client assigned to controller")
                 json_response = response.json()
@@ -153,9 +150,6 @@ class FednClient:
             if response.status_code == HTTP_STATUS_NOT_FOUND:
                 logger.warning("Connect to FEDn Api - Incorrect URL")
                 return ConnectToApiResult.IncorrectUrl, "Incorrect URL"
-
-            logger.error(f"Unexpected status code: {response.status_code}")
-            return ConnectToApiResult.UnknownError, f"Unexpected status code: {response.status_code}"
 
         except Exception as e:
             logger.warning(f"Connect to FEDn Api - Error occurred: {str(e)}")
