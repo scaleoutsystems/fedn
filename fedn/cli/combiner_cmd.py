@@ -58,8 +58,6 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
 
     from fedn.network.combiner.combiner import Combiner
 
-    click.echo(f"Combiner starting with config: {config}")
-
     combiner = Combiner(config)
     combiner.run()
 
