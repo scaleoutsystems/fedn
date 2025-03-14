@@ -85,7 +85,7 @@ jobs:
         echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
         echo "FEDN_SESSION_NAME=${{ github.event.inputs.FEDN_SESSION_NAME || 'test' }}" >> .ci/tests/studio/.env
         echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
-        echo "FEDN_PACKAGE_DIR=client" >> .ci/tests/studio/.env
+        echo "FEDN_PACKAGE_EXTRACT_DIR=client" >> .ci/tests/studio/.env
         
     - name: Run integration tests
       env:
