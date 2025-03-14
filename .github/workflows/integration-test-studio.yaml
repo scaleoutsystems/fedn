@@ -97,7 +97,7 @@ jobs:
     - name: Print test logs
       if: failure()
       run: |
-        for log in examples/${{ github.event.inputs.FEDN_EXAMPLE }}/test_*.log; do
-          echo "Printing $log"
-          cat $log
-        done
+        for log in examples/$FEDN_EXAMPLE/test_*.log; do
+              echo "Printing $log"
+              cat $log
+            done
