@@ -16,8 +16,7 @@ _ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_data(path):
-    """
-
+    """get_data
     :param path:
     :return:
     """
