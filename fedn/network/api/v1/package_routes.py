@@ -564,12 +564,12 @@ def upload_package():
 
         new_package = PackageDTO().populate_with(data)
 
-        valid, response = package_store.add(new_package)
+        valid, package = package_store.add(new_package)
 
         if not valid:
-            return jsonify({"message": response}), 400
+            return jsonify({"message": package.to_dict()}), 400
 
-        storage_file_name = response.storage_file_name
+        storage_file_name = package.storage_file_name
         try:
             file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
             if not os.path.exists(FEDN_COMPUTE_PACKAGE_DIR):
@@ -578,11 +578,13 @@ def upload_package():
             repository.set_compute_package(storage_file_name, file_path)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            package_store.delete(response.package_id)
+            package_store.delete(package.package_id)
             return jsonify({"message": "An unexpected error occurred"}), 500
 
-        package_store.set_active(response.package_id)
+        package_store.set_active(package.package_id)
         return jsonify({"message": "Package uploaded"}), 200
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 500
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

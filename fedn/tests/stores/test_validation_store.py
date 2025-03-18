@@ -63,7 +63,7 @@ def options():
 class TestValidationStore:
 
     def test_add_update_delete(self, db_connection:DatabaseConnection, test_validation:ValidationDTO):
-        assert test_validation.is_populated()
+        test_validation.verify()
 
         success, read_validation1 = db_connection.validation_store.add(test_validation)
         assert success == True

@@ -60,7 +60,7 @@ def options():
 class TestModelStore:
 
     def test_add_update_delete(self, db_connection:DatabaseConnection, test_model:ModelDTO):
-        assert test_model.is_populated()
+        test_model.verify()
 
         # Add a model and check that we get the added model back
         success, read_model1 = db_connection.model_store.add(test_model)

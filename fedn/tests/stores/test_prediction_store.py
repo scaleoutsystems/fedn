@@ -76,7 +76,7 @@ def options():
 class TestPredictionStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
-        assert test_prediction.is_populated()
+        test_prediction.verify()
 
         success, read_prediction1 = db_connection.prediction_store.add(test_prediction)
         assert success == True

@@ -1,9 +1,9 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, DictDTO, Field
 
 
-class SessionConfigDTO(BaseDTO):
+class SessionConfigDTO(DictDTO):
     """SessionConfig data transfer object."""
 
     aggregator: str = Field(None)

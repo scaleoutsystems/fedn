@@ -90,7 +90,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         return self._dto_from_document(entity)
 
     def update(self, item: SessionDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=True)
+        item_dict = item.to_db(exclude_unset=False)
         valid, message = validate(item_dict)
         if not valid:
             return False, message
@@ -102,12 +102,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         return success, obj
 
     def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        """Add an entity
-        param item: The entity to add
-            type: SessionDTO
-            description: The entity to add
-        return: A tuple with a boolean indicating success and the entity
-        """
         item_dict = item.to_db(exclude_unset=False)
         success, msg = validate(item_dict)
         if not success:
@@ -231,6 +225,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
         session_dict["session_id"] = session_dict.pop("id")
 
         session_config_dict.pop("id")
+        session_config_dict.pop("committed_at")
         session_dict.pop("session_config_id")
         return SessionDTO().populate_with(session_dict)
 

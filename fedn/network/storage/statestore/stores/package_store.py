@@ -8,6 +8,7 @@ from pymongo.database import Database
 from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
+from fedn.common.log_config import logger
 from fedn.network.storage.statestore.stores.dto import PackageDTO
 from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model
@@ -129,7 +130,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
 
         # TODO: Use seperate table to store active package
         activePackage = PackageDTO()
-        activePackage.patch(document, throw_on_extra_keys=False)
+        activePackage.patch_with(document, throw_on_extra_keys=False)
         activePackage.active = True
         activePackage.committed_at = datetime.now()
         obj_to_insert = {"key": "active", **activePackage.to_db()}

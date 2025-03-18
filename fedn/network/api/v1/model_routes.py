@@ -401,7 +401,7 @@ def patch_model(id: str):
         data = request.get_json()
         data.pop("model", None)
         data.pop("model_id", None)
-        model.patch(data, throw_on_extra_keys=False)
+        model.patch_with(data, throw_on_extra_keys=False)
 
         success, msg_obj = model_store.update(model)
 

@@ -61,7 +61,7 @@ def options():
 class TestStatusStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_status: StatusDTO):
-        assert test_status.is_populated()
+        test_status.verify()
 
         success, read_status1 = db_connection.status_store.add(test_status)
         assert success == True

@@ -129,6 +129,13 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
     def _dto_from_orm_model(self, item: ValidationModel) -> ValidationDTO:
         orm_dict = from_orm_model(item, ValidationModel)
         orm_dict["validation_id"] = orm_dict.pop("id")
-        orm_dict["sender"] = {"name": orm_dict.pop("sender_name"), "role": orm_dict.pop("sender_role")}
-        orm_dict["receiver"] = {"name": orm_dict.pop("receiver_name"), "role": orm_dict.pop("receiver_role")}
+        sender_name = orm_dict.pop("sender_name")
+        sender_role = orm_dict.pop("sender_role")
+        if sender_name is not None and sender_role is not None:
+            orm_dict["sender"] = {"name": sender_name, "role": sender_role}
+        reciever_name = orm_dict.pop("receiver_name")
+        receiver_role = orm_dict.pop("receiver_role")
+        if reciever_name is not None and receiver_role is not None:
+            orm_dict["receiver"] = {"name": reciever_name, "role": receiver_role}
+
         return ValidationDTO().populate_with(orm_dict)
