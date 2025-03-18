@@ -190,7 +190,7 @@ class DictDTO(DTO):
     @classmethod
     def _is_field(cls, field_name: str) -> bool:
         """Check if a field is a DTO."""
-        return isinstance(getattr(cls, field_name), Field)
+        return hasattr(cls, field_name) and isinstance(getattr(cls, field_name), Field)
 
     @classmethod
     def _is_field_optional(cls, field_name: str) -> bool:
