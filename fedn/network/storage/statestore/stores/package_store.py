@@ -8,7 +8,6 @@ from pymongo.database import Database
 from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
-from fedn.common.log_config import logger
 from fedn.network.storage.statestore.stores.dto import PackageDTO
 from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model

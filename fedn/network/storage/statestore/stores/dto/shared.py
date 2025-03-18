@@ -76,6 +76,10 @@ class DictDTO(DTO):
 
     def __setattr__(self, name: str, value):
         """Set attribute and store which fields are modified."""
+        if not self._is_field(name):
+            super().__setattr__(name, value)
+            return
+
         if issubclass(self._get_field_type(name), DTO):
             current_value = getattr(self, name)
             if value is None:
