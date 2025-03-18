@@ -536,6 +536,8 @@ class APIClient:
 
         :param n_max: The maximum number of sessions to get (If none all will be fetched).
         :type n_max: int
+        :param name: The session name to get.
+        :type name: str
         :return: Sessions.
         :rtype: dict
         """
