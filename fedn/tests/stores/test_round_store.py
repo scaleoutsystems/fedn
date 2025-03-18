@@ -34,7 +34,7 @@ def test_round_model():
     round.round_data = {"time_commit":100}
     round.round_data.reduce = {"time_aggregate_model":100, "time_fetch_model":100, "time_load_model":100}
     round.combiners = [{"model_id":model.model_id, "name":"test_name1", "status":"test_status1", "time_exec_training":100,
-                              "config":round.round_config,
+                              "config":round.round_config.to_dict(),
                               "data":{"aggregation_time":{"nr_aggregated_models":10, "time_model_aggregation":100, "time_model_load":100},
                                       "nr_expected_updates":10, "nr_required_updates":10, "time_combination":100, "timeout":100}}]
     return round, model
@@ -138,6 +138,17 @@ class TestRoundStore:
         assert read_round8 is not None
         assert read_round7.to_dict() == read_round8.to_dict()
 
+        #Remove all combiners from round and check that we get the updated round back
+        read_round8.combiners = []
+        success, read_round9 = db_connection.round_store.update(read_round8)
+        assert success == True
+        assert len(read_round9.combiners) == 0
+
+        # Assert we get the same round back
+        read_round10 = db_connection.round_store.get(round_id)
+        assert read_round10 is not None
+        assert read_round9.to_dict() == read_round10.to_dict()
+        
 
         # Delete the round and check that it is deleted
         success = db_connection.round_store.delete(round_id)

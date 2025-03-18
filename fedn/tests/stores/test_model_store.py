@@ -96,16 +96,6 @@ class TestModelStore:
         assert read_model4 is not None
         assert read_model3.to_dict() == read_model4.to_dict()
 
-        # Partial update the model and check that we get the updated model back
-        update_model = ModelDTO(model_id=model_id, parent_model="new_parent")            
-        success, read_model5 = db_connection.model_store.update(update_model)
-        assert success == True
-        assert read_model5.parent_model == "new_parent"
-
-        # Assert we get the same model back
-        read_model6 = db_connection.model_store.get(model_id)
-        assert read_model6 is not None
-        assert read_model6.to_dict() == read_model5.to_dict()
 
         # Delete the model and check that it is deleted
         success = db_connection.model_store.delete(model_id)

@@ -25,7 +25,7 @@ class RoundDataDTO(DictDTO):
     """RoundData data transfer object."""
 
     time_commit: Optional[float] = Field(None)
-    reduce: Optional[RoundReduceDTO] = Field(RoundReduceDTO())
+    reduce: Optional[RoundReduceDTO] = Field(None)
 
 
 class AggregationTimeDTO(DictDTO):
@@ -39,7 +39,7 @@ class AggregationTimeDTO(DictDTO):
 class RoundCombinerDataDTO(DictDTO):
     """RoundCombinerData data transfer object."""
 
-    aggregation_time: Optional[AggregationTimeDTO] = Field(AggregationTimeDTO())
+    aggregation_time: Optional[AggregationTimeDTO] = Field(None)
     nr_expected_updates: Optional[int] = Field(None)
     nr_required_updates: Optional[int] = Field(None)
     time_combination: Optional[float] = Field(None)
@@ -61,8 +61,8 @@ class RoundCombinerDTO(DictDTO):
     name: str = Field(None)
     status: str = Field(None)
     time_exec_training: float = Field(None)
-    config: RoundCombinerConfigDTO = Field(RoundCombinerConfigDTO())
-    data: RoundCombinerDataDTO = Field(RoundCombinerDataDTO())
+    config: RoundCombinerConfigDTO = Field(None)
+    data: RoundCombinerDataDTO = Field(None)
 
 
 class RoundDTO(BaseDTO):
@@ -70,6 +70,6 @@ class RoundDTO(BaseDTO):
 
     round_id: Optional[str] = Field(None)
     status: Optional[str] = Field(None)
-    round_config: Optional[RoundConfigDTO] = Field(RoundConfigDTO())
-    round_data: Optional[RoundDataDTO] = Field(RoundDataDTO())
+    round_config: Optional[RoundConfigDTO] = Field(None)
+    round_data: Optional[RoundDataDTO] = Field(None)
     combiners: ListDTO[RoundCombinerDTO] = Field(ListDTO(RoundCombinerDTO))

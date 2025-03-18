@@ -71,7 +71,7 @@ class DictDTO(DTO):
         for k in self.get_all_fieldnames():
             v = getattr(self.__class__, k).default_value
             super().__setattr__(k, copy.deepcopy(v))
-        super().__setattr__("_modified_fields", set())
+        self._modified_fields = set()
         self.patch_with(kwargs)
 
     def __setattr__(self, name: str, value):
@@ -81,23 +81,27 @@ class DictDTO(DTO):
             return
 
         if issubclass(self._get_field_type(name), DTO):
-            current_value = getattr(self, name)
             if value is None:
-                current_value.clear()
-            elif (
-                issubclass(self._get_field_type(name), DictDTO)
-                and not isinstance(value, (dict, DictDTO))
-                or issubclass(self._get_field_type(name), ListDTO)
-                and not isinstance(value, (list, ListDTO))
-            ):
-                raise ValueError(f"Can not set key: {name} to type {value.__class__.__name__} in {self.__class__.__name__}")
+                super().__setattr__(name, None)
+            elif isinstance(value, self._get_field_type(name)):
+                super().__setattr__(name, value)
+            elif issubclass(self._get_field_type(name), DictDTO):
+                if not isinstance(value, dict):
+                    raise ValueError(f"Can not set key: {name} to type {value.__class__.__name__} in {self.__class__.__name__}")
+                new_value: DictDTO = self._get_field_type(name)()
+                new_value.patch_with(value)
+                super().__setattr__(name, new_value)
+            elif issubclass(self._get_field_type(name), ListDTO):
+                if not isinstance(value, list):
+                    raise ValueError(f"Can not set key: {name} to type {value.__class__.__name__} in {self.__class__.__name__}")
+                new_value: ListDTO = ListDTO(self._get_list_type(name))
+                new_value.patch_with(value)
+                super().__setattr__(name, new_value)
             else:
-                current_value.clear()
-                current_value.patch_with(value)
-                self._modified_fields.add(name)
+                raise ValueError(f"Can not set key: {name} to type {value.__class__.__name__} in {self.__class__.__name__}")
         else:
             super().__setattr__(name, value)
-            self._modified_fields.add(name)
+        self._modified_fields.add(name)
 
     def clear_field(self, fieldname):
         """Clear a field of modified value."""
@@ -117,10 +121,7 @@ class DictDTO(DTO):
             if exclude_unset and not self._is_field_modified(field_name):
                 continue
             if isinstance(field_value, DTO):
-                if not self._is_field_optional(field_name) or field_value.is_modified():
-                    result[field_name] = field_value.model_dump(exclude_unset)
-                else:
-                    result[field_name] = None
+                result[field_name] = field_value.model_dump(exclude_unset)
             else:
                 result[field_name] = field_value
         return result
@@ -203,7 +204,7 @@ class DictDTO(DTO):
             if hasattr(base, "__annotations__") and field_name in base.__annotations__:
                 if cls._is_field(field_name):
                     return _is_optional(base.__annotations__[field_name])
-        raise ValueError(f"Field {field_name} not found in {cls.__name__}")
+        raise AttributeError(f"Field {field_name} not found in {cls.__name__}")
 
     @classmethod
     def _get_field_type(cls, field_name):
@@ -211,7 +212,15 @@ class DictDTO(DTO):
         for base in cls.__mro__:
             if hasattr(base, "__annotations__") and field_name in base.__annotations__:
                 return _get_type(base.__annotations__[field_name])
-        raise ValueError(f"Field {field_name} not found in {cls.__name__}")
+        raise AttributeError(f"Field {field_name} not found in {cls.__name__}")
+
+    @classmethod
+    def _get_list_type(cls, field_name):
+        """Get the type of a field."""
+        for base in cls.__mro__:
+            if hasattr(base, "__annotations__") and field_name in base.__annotations__:
+                return _get_list_type(base.__annotations__[field_name])
+        raise AttributeError(f"Field {field_name} not found in {cls.__name__}")
 
     def __deepcopy__(self, memo):
         return self.__class__(**copy.deepcopy(self.model_dump(exclude_unset=True)))
@@ -324,3 +333,11 @@ def _get_type(annotation) -> type:
     elif get_origin(annotation) is not None:
         return get_origin(annotation)
     return annotation
+
+
+def _get_list_type(annotation) -> type:
+    """Get the type of a type annotation. If the annotation is Optional, return the inner type."""
+    if get_origin(annotation) is ListDTO:
+        return get_args(annotation)[0]
+    else:
+        return None
