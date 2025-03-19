@@ -584,7 +584,8 @@ def upload_package():
         package_store.set_active(package.package_id)
         return jsonify({"message": "Package uploaded"}), 200
     except ValueError as e:
-        return jsonify({"message": str(e)}), 500
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

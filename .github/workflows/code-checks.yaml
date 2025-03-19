@@ -30,6 +30,6 @@ jobs:
           --exclude='combiner_cmd.py'
           --exclude='run_cmd.py'
           --exclude='README.rst'
-          '^[ \t]+(import|from) ' -I . 
+          '^[ \t]+(import|from) (?!.*# not-floating$)' -I . 
 
       # TODO: add linting/formatting for all file types
