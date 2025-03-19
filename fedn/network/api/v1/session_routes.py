@@ -477,7 +477,7 @@ def patch_session(id: str):
         data = request.get_json()
         data["session_id"] = id
 
-        session.patch(data, throw_on_extra_keys=False)
+        session.patch_with(data, throw_on_extra_keys=False)
 
         success, message = session_store.update(session)
 

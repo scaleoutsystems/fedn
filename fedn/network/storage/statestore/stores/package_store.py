@@ -129,7 +129,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
 
         # TODO: Use seperate table to store active package
         activePackage = PackageDTO()
-        activePackage.patch(document, throw_on_extra_keys=False)
+        activePackage.patch_with(document, throw_on_extra_keys=False)
         activePackage.active = True
         activePackage.committed_at = datetime.now()
         obj_to_insert = {"key": "active", **activePackage.to_db()}

@@ -17,10 +17,10 @@ class ModelDTO(BaseDTO):
         res["model"] = self.model_id
         return res
 
-    def patch(self, value_dict, throw_on_extra_keys=True):
+    def patch_with(self, value_dict, throw_on_extra_keys=True, verify=False):
         # TODO: Remove this when we have migrated all model to model_id
         if "model" in value_dict:
             if "model_id" in value_dict and value_dict["model_id"] != value_dict["model"]:
                 raise ValueError("Cannot set both model and model_id in ModelDTO")
             value_dict["model_id"] = value_dict.pop("model")
-        return super().patch(value_dict, throw_on_extra_keys)
+        return super().patch_with(value_dict, throw_on_extra_keys)

@@ -19,12 +19,12 @@ def test_sessions():
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
                       "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id, "rounds": 10}
 
-    session1 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname1",  session_config=SessionConfigDTO().patch(session_config))
-    session2 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname2",  session_config=SessionConfigDTO().patch(session_config))
-    session3 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname3",  session_config=SessionConfigDTO().patch(session_config))
-    session4 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname4",  session_config=SessionConfigDTO().patch(session_config))
-    session5 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname5",  session_config=SessionConfigDTO().patch(session_config))
-    session6 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname6",  session_config=SessionConfigDTO().patch(session_config))
+    session1 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname1",  session_config=SessionConfigDTO().patch_with(session_config))
+    session2 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname2",  session_config=SessionConfigDTO().patch_with(session_config))
+    session3 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname3",  session_config=SessionConfigDTO().patch_with(session_config))
+    session4 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname4",  session_config=SessionConfigDTO().patch_with(session_config))
+    session5 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname5",  session_config=SessionConfigDTO().patch_with(session_config))
+    session6 = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname6",  session_config=SessionConfigDTO().patch_with(session_config))
 
     return model,[session1, session2, session3, session4, session5, session6]
 
@@ -35,7 +35,7 @@ def test_session_and_model():
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
                       "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id, "rounds": 10}
 
-    session = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname",  session_config=SessionConfigDTO().patch(session_config))
+    session = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname",  session_config=SessionConfigDTO().patch_with(session_config))
 
     return model, session
 
@@ -87,7 +87,7 @@ class TestSessionStore:
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_session_and_model: tuple[ModelDTO, SessionDTO]):
         model, session = test_session_and_model
         
-        assert session.is_populated()
+        session.verify()
 
         
         db_connection.model_store.add(model)
@@ -102,9 +102,7 @@ class TestSessionStore:
         assert read_session1_dict["committed_at"] is not None
 
 
-        del read_session1_dict["session_config"]["committed_at"]
         session_config_dict = session.session_config.to_dict()
-        del session_config_dict["committed_at"]
         assert read_session1_dict["session_config"] == session_config_dict
 
         session_id = read_session1_dict["session_id"]

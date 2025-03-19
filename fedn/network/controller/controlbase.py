@@ -12,6 +12,7 @@ from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.dto.round import RoundDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -169,7 +170,7 @@ class ControlBase(ABC):
         return session.status
 
     def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
-        """Set the model id for a session.
+        """Set the model id for a session
 
         :param session_id: The session unique identifier
         :type session_id: str
@@ -177,7 +178,7 @@ class ControlBase(ABC):
         :type config: dict
         """
         session = self.session_store.get(session_id)
-        session.session_config.patch(config)
+        session.session_config.patch_with(config)
 
         updated, msg = self.session_store.update(session)
         if not updated:
@@ -185,7 +186,8 @@ class ControlBase(ABC):
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
-        self.round_store.add(round_data)
+        round = RoundDTO(**round_data)
+        self.round_store.add(round)
 
     def set_round_data(self, round_id: str, round_data: dict):
         """Set round data.
@@ -196,8 +198,8 @@ class ControlBase(ABC):
         :type status: dict
         """
         round = self.round_store.get(round_id)
-        round["round_data"] = round_data
-        updated, _ = self.round_store.update(round["id"], round)
+        round.round_data = round_data
+        updated, _ = self.round_store.update(round)
         if not updated:
             raise Exception("Failed to update round")
 
@@ -210,8 +212,8 @@ class ControlBase(ABC):
         :type status: str
         """
         round = self.round_store.get(round_id)
-        round["status"] = status
-        updated, _ = self.round_store.update(round["id"], round)
+        round.status = status
+        updated, _ = self.round_store.update(round)
         if not updated:
             raise Exception("Failed to update round")
 
@@ -224,8 +226,8 @@ class ControlBase(ABC):
         :type round_config: dict
         """
         round = self.round_store.get(round_id)
-        round["round_config"] = round_config
-        updated, _ = self.round_store.update(round["id"], round)
+        round.round_config = round_config
+        updated, _ = self.round_store.update(round)
         if not updated:
             raise Exception("Failed to update round")
 

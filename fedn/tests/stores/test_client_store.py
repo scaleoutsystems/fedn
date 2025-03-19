@@ -65,7 +65,7 @@ def options():
 class TestClientStore:
 
     def test_add_get_update_delete(self, db_connection:DatabaseConnection, test_client: ClientDTO): 
-        assert test_client.is_populated()
+        test_client.verify()
 
         # Add a client and check that we get the added client back
         success, read_client1 = db_connection.client_store.add(test_client)

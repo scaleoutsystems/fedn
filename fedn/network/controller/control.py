@@ -170,7 +170,7 @@ class Control(ControlBase):
                     logger.info("Session terminated.")
                     break
                 _, round_data = self.round(session_config, str(current_round), session_id)
-                logger.info("Round completed with status {}".format(round_data["status"]))
+                logger.info("Round completed with status {}".format(round_data.status))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
 
@@ -276,11 +276,11 @@ class Control(ControlBase):
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
                 return False
-            if "combiners" not in round:
+            if len(round.combiners) < 1:
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
 
-            if len(round["combiners"]) < len(participating_combiners):
+            if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("All combiners have not yet reported.")
 
@@ -296,13 +296,13 @@ class Control(ControlBase):
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.round_store.get(round_id)
-            combiners = round["combiners"]
-            return combiners
+            if len(round.combiners) != len(participating_combiners):
+                raise KeyError("Combiners have not yet reported.")
 
-        _ = check_combiners_done_reporting()
+        check_combiners_done_reporting()
 
         round = self.round_store.get(round_id)
-        round_valid = self.evaluate_round_validity_policy(round)
+        round_valid = self.evaluate_round_validity_policy(round.to_dict())
         if not round_valid:
             logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
             self.set_round_status(round_id, "Failed")
@@ -313,7 +313,7 @@ class Control(ControlBase):
         round_data = {}
         try:
             round = self.round_store.get(round_id)
-            model, data = self.reduce(round["combiners"])
+            model, data = self.reduce(round.combiners.to_dict())
             round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:

@@ -4,7 +4,7 @@ import queue
 import random
 import time
 import uuid
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
@@ -15,6 +15,9 @@ from fedn.network.combiner.shared import modelservice, repository
 from fedn.network.combiner.updatehandler import UpdateHandler
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
+
+if TYPE_CHECKING:
+    from fedn.network.combiner.combiner import Combiner
 
 
 class RoundConfig(TypedDict):
@@ -89,7 +92,7 @@ class RoundHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, server):
+    def __init__(self, server: "Combiner"):
         """Initialize the RoundHandler."""
         self.round_configs = queue.Queue()
         self.storage = repository
@@ -375,10 +378,9 @@ class RoundHandler:
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             active_round = self.server.round_store.get(round_meta["round_id"])
-                            if "combiners" not in active_round:
-                                active_round["combiners"] = []
-                            active_round["combiners"].append(round_meta)
-                            updated = self.server.round_store.update(active_round["id"], active_round)
+
+                            active_round.combiners.append(round_meta)
+                            updated = self.server.round_store.update(active_round)
                             if not updated:
                                 raise Exception("Failed to update round data in round store.")
                         elif round_config["task"] == "validation":
