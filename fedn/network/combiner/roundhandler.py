@@ -18,7 +18,7 @@ from fedn.utils.parameters import Parameters
 
 # This if is needed to avoid circular imports but is crucial for type hints.
 if TYPE_CHECKING:
-    from fedn.network.combiner.combiner import Combiner  # not-floating
+    from fedn.network.combiner.combiner import Combiner
 
 
 class RoundConfig(TypedDict):
