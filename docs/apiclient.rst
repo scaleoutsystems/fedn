@@ -72,7 +72,7 @@ using the default aggregator (FedAvg):
 .. code:: python
 
    >>> ...
-   >>> client.start_session(id="test-session", rounds=3)
+   >>> client.start_session(name="test-session", rounds=3)
    # Wait for training to complete, when controller is idle:
    >>> client.get_controller_status()
    # Show model trail:
@@ -87,11 +87,11 @@ To run a session using the FedAdam aggregator using custom hyperparamters:
 
 .. code-block:: python
 
-   >>> session_id = "experiment_fedadam"
+   >>> session_name = "experiment_fedadam"
 
    >>> session_config = {
                      "helper": "numpyhelper",
-                     "id": session_id,
+                     "name": session_name,
                      "aggregator": "fedopt",
                      "aggregator_kwargs": {
                            "serveropt": "adam",
