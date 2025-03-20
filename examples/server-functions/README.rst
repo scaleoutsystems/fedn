@@ -1,9 +1,13 @@
 FEDn Project: Server functions toy example
 -----------------------------
 
-Beta useage will be available by request from FEDn 0.20.0 and onward.
 
-See server_functions.py for details on server-functionality can be supplied.
+For details on the functionality of server-functions see either the file server_functions.py, 
+the docs https://docs.scaleoutsystems.com/en/stable/serverfunctions.html or the youtube video 
+https://www.youtube.com/watch?v=Rnfhfqy_Tts.
+
+See server_functions.py for details on server-functionality can be supplied, alternatively watch the 
+youtube video explaining its functionality: 
 
 To apply server-functionality in studio first connect to your project through the APIClient.
 
