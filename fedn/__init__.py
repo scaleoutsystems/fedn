@@ -5,7 +5,7 @@ from os.path import basename, dirname, isfile
 from fedn.network.api.client import APIClient
 from fedn.network.clients.fedn_client import FednClient
 
-# flake8: noqa
+# ruff: noqa: F401
 
 
 modules = glob.glob(dirname(__file__) + "/fedn" + "/*.py")
@@ -16,8 +16,7 @@ _ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_data(path):
-    """
-
+    """get_data
     :param path:
     :return:
     """

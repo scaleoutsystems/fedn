@@ -16,7 +16,7 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/client/data/clients/1/cifar10.pt
+      FEDN_DATA_PATH: /app/package/data/clients/1/cifar10.pt
     deploy:
       replicas: 1
     volumes:
@@ -28,7 +28,7 @@ services:
       service: client
     environment:
       <<: *defaults
-      FEDN_DATA_PATH: /app/package/client/data/clients/2/cifar10.pt
+      FEDN_DATA_PATH: /app/package/data/clients/2/cifar10.pt
     deploy:
       replicas: 1
     volumes:

@@ -1,13 +1,11 @@
 from flask import Blueprint, jsonify, request
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers, get_use_typing, mdb
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
-from fedn.network.storage.statestore.stores.status_store import StatusStore
+from fedn.network.api.shared import status_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
-
-status_store = StatusStore(mdb, "control.status")
 
 
 @bp.route("/", methods=["GET"])
@@ -121,21 +119,14 @@ def get_statuses():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        # print all the typed headers
-        print(f"limit: {limit}, skip: {skip}, sort_key: {sort_key}, sort_order: {sort_order}, use_typing: {use_typing}")
-        print(f"kwargs: {kwargs}")
-        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        print(f"statuses: {statuses}")
-        result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
-
-        response = {"count": statuses["count"], "result": result}
+        response = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -220,17 +211,14 @@ def list_statuses():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        statuses = status_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [status.__dict__ for status in statuses["result"]] if use_typing else statuses["result"]
-
-        response = {"count": statuses["count"], "result": result}
+        response = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -292,7 +280,8 @@ def get_statuses_count():
         count = status_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -354,7 +343,8 @@ def statuses_count():
         count = status_store.count(**kwargs)
         response = count
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -393,13 +383,10 @@ def get_status(id: str):
                         type: string
     """
     try:
-        use_typing: bool = get_use_typing(request.headers)
-        status = status_store.get(id, use_typing=use_typing)
-
-        response = status.__dict__ if use_typing else status
-
+        response = status_store.get(id)
+        if response is None:
+          return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
-    except EntityNotFound:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

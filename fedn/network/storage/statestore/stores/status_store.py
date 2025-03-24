@@ -1,9 +1,11 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from pymongo.database import Database
+from sqlalchemy import ForeignKey, String, func, select
+from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
 
 class Status:
@@ -21,36 +23,23 @@ class Status:
         self.session_id = session_id
         self.sender = sender
 
-    def from_dict(data: dict) -> "Status":
-        return Status(
-            id=str(data["_id"]),
-            status=data["status"] if "status" in data else None,
-            timestamp=data["timestamp"] if "timestamp" in data else None,
-            log_level=data["logLevel"] if "logLevel" in data else None,
-            data=data["data"] if "data" in data else None,
-            correlation_id=data["correlationId"] if "correlationId" in data else None,
-            type=data["type"] if "type" in data else None,
-            extra=data["extra"] if "extra" in data else None,
-            session_id=data["sessionId"] if "sessionId" in data else None,
-            sender=data["sender"] if "sender" in data else None,
-        )
-
 
 class StatusStore(Store[Status]):
+    pass
+
+
+class MongoDBStatusStore(StatusStore, MongoDBStore[Status]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Status:
+    def get(self, id: str) -> Status:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the status (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
-        response = super().get(id, use_typing=use_typing)
-        return Status.from_dict(response) if use_typing else response
+        return super().get(id)
 
     def update(self, id: str, item: Status) -> bool:
         raise NotImplementedError("Update not implemented for StatusStore")
@@ -61,7 +50,7 @@ class StatusStore(Store[Status]):
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for StatusStore")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Status]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Status]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -75,12 +64,152 @@ class StatusStore(Store[Status]):
         param sort_order: The order to sort by
             type: pymongo.DESCENDING
             description: The order to sort by
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
-            description: Whether to return the entities as typed objects or as dicts.
         """
-        response = super().list(limit, skip, sort_key or "timestamp", sort_order, use_typing=use_typing, **kwargs)
+        return super().list(limit, skip, sort_key or "timestamp", sort_order, **kwargs)
 
-        result = [Status.from_dict(item) for item in response["result"]] if use_typing else response["result"]
 
-        return {"count": response["count"], "result": result}
+class StatusModel(MyAbstractBase):
+    __tablename__ = "statuses"
+
+    log_level: Mapped[str] = mapped_column(String(255))
+    sender_name: Mapped[Optional[str]] = mapped_column(String(255))
+    sender_role: Mapped[Optional[str]] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(255))
+    timestamp: Mapped[str] = mapped_column(String(255))
+    type: Mapped[str] = mapped_column(String(255))
+    data: Mapped[Optional[str]]
+    correlation_id: Mapped[Optional[str]]
+    extra: Mapped[Optional[str]]
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+
+
+def from_row(row: StatusModel) -> Status:
+    return {
+        "id": row.id,
+        "log_level": row.log_level,
+        "sender": {"name": row.sender_name, "role": row.sender_role},
+        "status": row.status,
+        "timestamp": row.timestamp,
+        "type": row.type,
+        "data": row.data,
+        "correlation_id": row.correlation_id,
+        "extra": row.extra,
+        "session_id": row.session_id,
+    }
+
+
+class SQLStatusStore(StatusStore, SQLStore[Status]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
+    def get(self, id: str) -> Status:
+        with self.Session() as session:
+            stmt = select(StatusModel).where(StatusModel.id == id)
+            item = session.scalars(stmt).first()
+
+            if item is None:
+                return None
+
+            return from_row(item)
+
+    def update(self, id, item):
+        raise NotImplementedError
+
+    def add(self, item: Status) -> Tuple[bool, Any]:
+        with self.Session() as session:
+            sender = item["sender"] if "sender" in item else None
+
+            status = StatusModel(
+                log_level=item.get("log_level") or item.get("logLevel"),
+                sender_name=sender.get("name") if sender else None,
+                sender_role=sender.get("role") if sender else None,
+                status=item.get("status"),
+                timestamp=item.get("timestamp"),
+                type=item.get("type"),
+                data=item.get("data"),
+                correlation_id=item.get("correlation_id"),
+                extra=item.get("extra"),
+                session_id=item.get("session_id") or item.get("sessionId"),
+            )
+            session.add(status)
+            session.commit()
+            return True, status
+
+    def delete(self, id: str) -> bool:
+        raise NotImplementedError
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with self.Session() as session:
+            stmt = select(StatusModel)
+
+            for key, value in kwargs.items():
+                if key == "_id":
+                    key = "id"
+                elif key == "logLevel":
+                    key = "log_level"
+                elif key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "sessionId":
+                    key = "session_id"
+
+                stmt = stmt.where(getattr(StatusModel, key) == value)
+
+            if sort_key:
+                _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+                _sort_key: str = sort_key
+
+                if _sort_key == "_id":
+                    _sort_key = "id"
+                elif _sort_key == "logLevel":
+                    _sort_key = "log_level"
+                elif _sort_key == "sender.name":
+                    _sort_key = "sender_name"
+                elif _sort_key == "sender.role":
+                    _sort_key = "sender_role"
+                elif _sort_key == "sessionId":
+                    _sort_key = "session_id"
+
+                if _sort_key in StatusModel.__table__.columns:
+                    sort_obj = StatusModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else StatusModel.__table__.columns.get(_sort_key).desc()
+
+                    stmt = stmt.order_by(sort_obj)
+
+            if limit:
+                stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
+
+            items = session.execute(stmt)
+
+            result = []
+
+            for item in items:
+                (r,) = item
+
+                result.append(from_row(r))
+
+            return {"count": len(result), "result": result}
+
+    def count(self, **kwargs):
+        with self.Session() as session:
+            stmt = select(func.count()).select_from(StatusModel)
+
+            for key, value in kwargs.items():
+                if key == "_id":
+                    key = "id"
+                elif key == "logLevel":
+                    key = "log_level"
+                elif key == "sender.name":
+                    key = "sender_name"
+                elif key == "sender.role":
+                    key = "sender_role"
+                elif key == "sessionId":
+                    key = "session_id"
+
+                stmt = stmt.where(getattr(StatusModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count

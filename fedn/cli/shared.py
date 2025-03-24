@@ -1,11 +1,14 @@
 import os
 
 import click
+import requests
 import yaml
 
 from fedn.common.log_config import logger
 
 CONTROLLER_DEFAULTS = {"protocol": "http", "host": "localhost", "port": 8092, "debug": False}
+
+STUDIO_DEFAULTS = {"protocol": "https", "host": "api.fedn.scaleoutsystems.com"}
 
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
 
@@ -15,6 +18,8 @@ CLIENT_DEFAULTS = {
 }
 
 API_VERSION = "v1"
+
+home_dir = os.path.expanduser("~")
 
 
 def apply_config(path: str, config: dict):
@@ -35,24 +40,49 @@ def apply_config(path: str, config: dict):
         config[key] = val
 
 
-def get_api_url(protocol: str, host: str, port: str, endpoint: str) -> str:
+def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: bool) -> str:
+    if usr_api:
+        _url = os.environ.get("FEDN_STUDIO_URL")
+        _protocol = protocol or os.environ.get("FEDN_STUDIO_PROTOCOL") or STUDIO_DEFAULTS["protocol"]
+        _host = host or os.environ.get("FEDN_STUDIO_HOST") or STUDIO_DEFAULTS["host"]
+
+        if _url is None:
+            _url = f"{_protocol}://{_host}/api/{API_VERSION}/{endpoint}"
+    else:
+        _url = get_project_url(protocol, host, port, endpoint)
+        _url = f"{_url}/api/{API_VERSION}/{endpoint}"
+    return _url
+
+
+def get_project_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     _url = os.environ.get("FEDN_CONTROLLER_URL")
+    if _url is None:
+        context_path = os.path.join(home_dir, ".fedn")
+        try:
+            context_data = get_context(context_path)
+            _url = context_data.get("Active project url")
+        except Exception as e:
+            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
+            _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
+            _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
+            _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
+            _url = f"{_protocol}://{_host}:{_port}"
+    return _url
 
-    if _url:
-        return f"{_url}/api/{API_VERSION}/{endpoint}/"
 
-    _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
-    _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
-    _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
-
-    return f"{_protocol}://{_host}:{_port}/api/{API_VERSION}/{endpoint}/"
-
-
-def get_token(token: str) -> str:
+def get_token(token: str, usr_token: bool) -> str:
     _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     if _token is None:
-        return None
+        context_path = os.path.join(home_dir, ".fedn")
+        try:
+            context_data = get_context(context_path)
+            if usr_token:
+                _token = context_data.get("User tokens").get("access")
+            else:
+                _token = context_data.get("Active project tokens").get("access")
+        except Exception as e:
+            click.secho(f"Encountered error {e}. Make sure you are logged in and have activated a project.", fg="red")
 
     scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 
@@ -96,6 +126,39 @@ def print_response(response, entity_name: str, so):
                 click.echo("}")
     elif response.status_code == 500:
         json_data = response.json()
-        click.echo(f'Error: {json_data["message"]}')
+        click.echo(f"Error: {json_data['message']}")
     else:
         click.echo(f"Error: {response.status_code}")
+
+
+def set_context(context_path, context_data):
+    """Saves context data as yaml file in given path"""
+    try:
+        with open(f"{context_path}/context.yaml", "w") as yaml_file:
+            yaml.dump(context_data, yaml_file, default_flow_style=False)
+    except Exception as e:
+        print(f"Error: Failed to write to YAML file. Details: {e}")
+
+
+def get_context(context_path):
+    """Retrieves context data from yaml file in given path"""
+    try:
+        with open(f"{context_path}/context.yaml", "r") as yaml_file:
+            context_data = yaml.safe_load(yaml_file)
+    except Exception as e:
+        print(f"Error: Failed to write to YAML file. Details: {e}")
+    return context_data
+
+
+def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: bool):
+    """Utility function to retrieve response from get request based on provided information."""
+    url = get_api_url(protocol=protocol, host=host, port=port, endpoint=endpoint, usr_api=usr_api)
+
+    _token = get_token(token=token, usr_token=usr_token)
+
+    if _token:
+        headers["Authorization"] = _token
+
+    response = requests.get(url, headers=headers)
+
+    return response

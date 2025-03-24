@@ -1,5 +1,6 @@
 import inspect
 import os
+import uuid
 
 import requests
 
@@ -21,7 +22,9 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port=None, secure=False, verify=False, token=None, auth_scheme=None):
+    def __init__(self, host: str, port: int = None, secure: bool = False, verify: bool = False, token: str = None, auth_scheme: str = None):
+        if "://" in host:
+            host = host.split("://")[1]
         self.host = host
         self.port = port
         self.secure = secure
@@ -36,6 +39,9 @@ class APIClient:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
 
         if token:
+            # Split the token if it contains a space (scheme + token).
+            if " " in token:
+                token = token.split()[1]
             self.headers = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
@@ -108,7 +114,7 @@ class APIClient:
         """
         _params = {"checksum": "true" if checksum else "false"}
 
-        response = requests.get(self._get_url("get_client_config"), params=_params, verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("clients/config"), params=_params, verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -338,9 +344,7 @@ class APIClient:
             response = requests.put(self._get_url_api_v1("helpers/active"), json={"helper": helper}, verify=self.verify, headers=self.headers)
 
         with open(path, "rb") as file:
-            response = requests.post(
-                self._get_url("set_initial_model"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers
-            )
+            response = requests.post(self._get_url_api_v1("models/"), files={"file": file}, data={"helper": helper}, verify=self.verify, headers=self.headers)
         return response.json()
 
     # --- Packages --- #
@@ -408,7 +412,7 @@ class APIClient:
         :return: The checksum.
         :rtype: dict
         """
-        response = requests.get(self._get_url("get_package_checksum"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/checksum"), verify=self.verify, headers=self.headers)
 
         _json = response.json()
 
@@ -422,7 +426,7 @@ class APIClient:
         :return: Message with success or failure.
         :rtype: dict
         """
-        response = requests.get(self._get_url("download_package"), verify=self.verify, headers=self.headers)
+        response = requests.get(self._get_url_api_v1("packages/download"), verify=self.verify, headers=self.headers)
         if response.status_code == 200:
             with open(path, "wb") as file:
                 file.write(response.content)
@@ -430,7 +434,7 @@ class APIClient:
         else:
             return {"success": False, "message": "Failed to download package."}
 
-    def set_active_package(self, path: str, helper: str, name: str = None, description: str = None):
+    def set_active_package(self, path: str, helper: str, name: str, description: str = ""):
         """Set the compute package in the statestore.
 
         :param path: The file path of the compute package to set.
@@ -442,7 +446,7 @@ class APIClient:
         """
         with open(path, "rb") as file:
             response = requests.post(
-                self._get_url("set_package"),
+                self._get_url_api_v1("packages/"),
                 files={"file": file},
                 data={"helper": helper, "name": name, "description": description},
                 verify=self.verify,
@@ -502,25 +506,38 @@ class APIClient:
 
     # --- Sessions --- #
 
-    def get_session(self, id: str):
+    def get_session(self, id: str = None, name: str = None):
         """Get a session from the statestore.
 
         :param id: The session id to get.
         :type id: str
+        :param name: The session name to get.
+        :type name: str
         :return: Session.
         :rtype: dict
         """
-        response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
-
-        _json = response.json()
+        if name:
+            response = requests.get(self._get_url_api_v1(f"sessions?name={name}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+            if "result" in _json and len(_json["result"]) > 0:
+                _json = _json["result"][0]
+            else:
+                _json = {"message": "Session not found."}
+        elif id:
+            response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+        else:
+            _json = {"message": "No id or name provided."}
 
         return _json
 
-    def get_sessions(self, n_max: int = None):
+    def get_sessions(self, n_max: int = None, name: str = None):
         """Get sessions from the statestore.
 
         :param n_max: The maximum number of sessions to get (If none all will be fetched).
         :type n_max: int
+        :param name: The session name to get.
+        :type name: str
         :return: Sessions.
         :rtype: dict
         """
@@ -529,7 +546,11 @@ class APIClient:
         if n_max:
             _headers["X-Limit"] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1("sessions/"), verify=self.verify, headers=_headers)
+        url = self._get_url_api_v1("sessions/")
+        if name:
+            url += f"?name={name}"
+
+        response = requests.get(url, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -575,7 +596,7 @@ class APIClient:
 
     def start_session(
         self,
-        id: str = None,
+        name: str = None,
         aggregator: str = "fedavg",
         aggregator_kwargs: dict = None,
         model_id: str = None,
@@ -584,15 +605,15 @@ class APIClient:
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = True,
-        helper: str = "",
+        helper: str = None,
         min_clients: int = 1,
         requested_clients: int = 8,
         server_functions: ServerFunctionsBase = None,
     ):
         """Start a new session.
 
-        :param id: The session id to start.
-        :type id: str
+        :param name: The name of the session
+        :type name: str
         :param aggregator: The aggregator plugin to use.
         :type aggregator: str
         :param model_id: The id of the initial model.
@@ -623,10 +644,19 @@ class APIClient:
             else:
                 return response.json()
 
+        if helper is None:
+            response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
+            if response.status_code == 400:
+                helper = "numpyhelper"
+            elif response.status_code == 200:
+                helper = response.json()
+            else:
+                return {"message": "An unexpected error occurred when getting the active helper"}
+
         response = requests.post(
             self._get_url_api_v1("sessions/"),
             json={
-                "session_id": id,
+                "name": name,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
@@ -646,21 +676,22 @@ class APIClient:
         )
 
         if response.status_code == 201:
-            if id is None:
-                id = response.json()["session_id"]
+            session_id = response.json()["session_id"]
             response = requests.post(
                 self._get_url_api_v1("sessions/start"),
                 json={
-                    "session_id": id,
+                    "session_id": session_id,
                     "rounds": rounds,
                     "round_timeout": round_timeout,
                 },
                 verify=self.verify,
                 headers=self.headers,
             )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            return response_json
 
         _json = response.json()
-
         return _json
 
     # --- Statuses --- #
@@ -820,6 +851,91 @@ class APIClient:
         :rtype: dict
         """
         response = requests.get(self._get_url_api_v1("validations/count"), verify=self.verify, headers=self.headers)
+
+        _json = response.json()
+
+        return _json
+
+    # --- Predictions --- #
+
+    def get_predictions(
+        self,
+        model_id: str = None,
+        correlation_id: str = None,
+        sender_name: str = None,
+        sender_role: str = None,
+        receiver_name: str = None,
+        receiver_role: str = None,
+        n_max: int = None,
+    ):
+        """Get predictions from the statestore. Filter by input parameters.
+
+        :param model_id: The model id to get predictions for.
+        :type model_id: str
+        :param correlation_id: The correlation id to get predictions for.
+        :type correlation_id: str
+        :param sender_name: The sender name to get predictions for.
+        :type sender_name: str
+        :param sender_role: The sender role to get predictions for.
+        :type sender_role: str
+        :param receiver_name: The receiver name to get predictions for.
+        :type receiver_name: str
+        :param receiver_role: The receiver role to get predictions for.
+        :type receiver_role: str
+        :param n_max: The maximum number of predictions to get (If none all will be fetched).
+        :type n_max: int
+        :return: Predictions.
+        :rtype: dict
+        """
+        _params = {}
+
+        if model_id:
+            _params["modelId"] = model_id
+
+        if correlation_id:
+            _params["correlationId"] = correlation_id
+
+        if sender_name:
+            _params["sender.name"] = sender_name
+
+        if sender_role:
+            _params["sender.role"] = sender_role
+
+        if receiver_name:
+            _params["receiver.name"] = receiver_name
+
+        if receiver_role:
+            _params["receiver.role"] = receiver_role
+
+        _headers = self.headers.copy()
+
+        if n_max:
+            _headers["X-Limit"] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1("predictions/"), params=_params, verify=self.verify, headers=_headers)
+
+        _json = response.json()
+
+        return _json
+
+    def start_predictions(self, prediction_id: str = None, model_id: str = None):
+        """Start predictions for a model.
+
+        :param model_id: The model id to start predictions for.
+        :type model_id: str
+        :param data: The data to predict.
+        :type data: dict
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        if not prediction_id:
+            prediction_id = str(uuid.uuid4())
+        response = requests.post(
+            self._get_url_api_v1("predictions/start"),
+            json={"prediction_id": prediction_id, "model_id": model_id},
+            verify=self.verify,
+            headers=self.headers,
+        )
 
         _json = response.json()
 

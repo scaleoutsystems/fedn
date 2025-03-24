@@ -2,17 +2,12 @@ import threading
 
 from flask import Blueprint, jsonify, request
 
+from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
-from fedn.network.api.v1.shared import api_version, mdb, get_typed_list_headers, get_post_data_to_kwargs
-from fedn.network.storage.statestore.stores.model_store import ModelStore
-from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.api.shared import control, model_store, prediction_store
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 
-bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predict")
-
-prediction_store = PredictionStore(mdb, "control.predictions")
-model_store = ModelStore(mdb, "control.model")
+bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predictions")
 
 
 @bp.route("/start", methods=["POST"])
@@ -31,23 +26,24 @@ def start_session():
         if not prediction_id or prediction_id == "":
             return jsonify({"message": "prediction_id is required"}), 400
 
+        session_config = {"prediction_id": prediction_id}
+
         if data.get("model_id") is None:
             count = model_store.count()
             if count == 0:
                 return jsonify({"message": "No models available"}), 400
         else:
-            try:
-                model_id = data.get("model_id")
-                _ = model_store.get(model_id)
-            except EntityNotFound:
+              model_id = data.get("model_id")
+              model = model_store.get(model_id)
+              if model is None:
                 return jsonify({"message": f"Model {model_id} not found"}), 404
-
-        session_config = {"prediction_id": prediction_id}
+              session_config["model_id"] = model_id
 
         threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
         return jsonify({"message": "Prediction session started"}), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "Failed to start prediction session"}), 500
 
 
@@ -170,17 +166,14 @@ def get_predictions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
-
-        response = {"count": predictions["count"], "result": result}
+        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
@@ -268,15 +261,12 @@ def list_predictions():
                     type: string
     """
     try:
-        limit, skip, sort_key, sort_order, use_typing = get_typed_list_headers(request.headers)
+        limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        predictions = prediction_store.list(limit, skip, sort_key, sort_order, use_typing=use_typing, **kwargs)
-
-        result = [prediction.__dict__ for prediction in predictions["result"]] if use_typing else predictions["result"]
-
-        response = {"count": predictions["count"], "result": result}
+        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         return jsonify(response), 200
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

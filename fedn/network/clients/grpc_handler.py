@@ -1,15 +1,15 @@
+"""GrpcHandler class for handling GRPC connections and operations."""
+
 import json
 import os
-import socket
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from io import BytesIO
-from typing import Any, Callable
+from typing import Any, Callable, Optional, Union
 
 import grpc
-from cryptography.hazmat.primitives.serialization import Encoding
+import psutil
 from google.protobuf.json_format import MessageToJson
-from OpenSSL import SSL
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
@@ -37,32 +37,26 @@ GRPC_OPTIONS = [
     ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
 ]
 
+GRPC_SECURE_PORT = 443
+
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
-    def __init__(self, key):
+    """GRPC authentication plugin."""
+
+    def __init__(self, key: str) -> None:
+        """Initialize GrpcAuth with a key."""
         self._key = key
 
-    def __call__(self, context, callback):
+    def __call__(self, context: grpc.AuthMetadataContext, callback: grpc.AuthMetadataPluginCallback) -> None:
+        """Add authorization metadata to the GRPC call."""
         callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
 
 
-def _get_ssl_certificate(domain, port=443):
-    context = SSL.Context(SSL.TLSv1_2_METHOD)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((domain, port))
-    ssl_sock = SSL.Connection(context, sock)
-    ssl_sock.set_tlsext_host_name(domain.encode())
-    ssl_sock.set_connect_state()
-    ssl_sock.do_handshake()
-    cert = ssl_sock.get_peer_certificate()
-    ssl_sock.close()
-    sock.close()
-    cert = cert.to_cryptography().public_bytes(Encoding.PEM).decode()
-    return cert
-
-
 class GrpcHandler:
-    def __init__(self, host: str, port: int, name: str, token: str, combiner_name: str):
+    """Handler for GRPC connections and operations."""
+
+    def __init__(self, host: str, port: int, name: str, token: str, combiner_name: str) -> None:
+        """Initialize the GrpcHandler."""
         self.metadata = [
             ("client", name),
             ("grpc-server", combiner_name),
@@ -72,21 +66,23 @@ class GrpcHandler:
         self.token = token
 
         self._init_channel(host, port, token)
-
         self._init_stubs()
 
-    def _init_stubs(self):
+    def _init_stubs(self) -> None:
+        """Initialize GRPC stubs."""
         self.connectorStub = rpc.ConnectorStub(self.channel)
         self.combinerStub = rpc.CombinerStub(self.channel)
         self.modelStub = rpc.ModelServiceStub(self.channel)
 
-    def _init_channel(self, host: str, port: int, token: str):
-        if port == 443:
+    def _init_channel(self, host: str, port: int, token: str) -> None:
+        """Initialize the GRPC channel."""
+        if port == GRPC_SECURE_PORT:
             self._init_secure_channel(host, port, token)
         else:
             self._init_insecure_channel(host, port)
 
-    def _init_secure_channel(self, host: str, port: int, token: str):
+    def _init_secure_channel(self, host: str, port: int, token: str) -> None:
+        """Initialize a secure GRPC channel."""
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
 
@@ -94,20 +90,19 @@ class GrpcHandler:
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
-            self.channel = grpc.secure_channel("{}:{}".format(host, str(port)), credentials)
+            self.channel = grpc.secure_channel(f"{host}:{port}", credentials)
             return
 
-        logger.info(f"Fetching SSL certificate for {host}")
-        cert = _get_ssl_certificate(host, port)
-        credentials = grpc.ssl_channel_credentials(cert.encode("utf-8"))
+        credentials = grpc.ssl_channel_credentials()
         auth_creds = grpc.metadata_call_credentials(GrpcAuth(token))
         self.channel = grpc.secure_channel(
-            "{}:{}".format(host, str(port)),
+            f"{host}:{port}",
             grpc.composite_channel_credentials(credentials, auth_creds),
             options=GRPC_OPTIONS,
         )
 
-    def _init_insecure_channel(self, host: str, port: int):
+    def _init_insecure_channel(self, host: str, port: int) -> None:
+        """Initialize an insecure GRPC channel."""
         url = f"{host}:{port}"
         logger.info(f"Connecting (GRPC) to {url}")
         self.channel = grpc.insecure_channel(
@@ -115,13 +110,17 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-    def heartbeat(self, client_name: str, client_id: str):
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float, cpu_utilisation: float) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
+        heartbeat = fedn.Heartbeat(
+            sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id),
+            memory_utilisation=memory_utilisation,
+            cpu_utilisation=cpu_utilisation,
+        )
 
         try:
             # logger.info("Sending heartbeat to combiner")
@@ -134,29 +133,29 @@ class GrpcHandler:
             raise e
         return response
 
-    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0):
-        send_hearbeat = True
-        while send_hearbeat:
+    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
+        """Send heartbeats to the combiner at regular intervals."""
+        send_heartbeat = True
+        while send_heartbeat:
             try:
-                response = self.heartbeat(client_name, client_id)
+                memory_usage = psutil.virtual_memory().percent
+                cpu_usage = psutil.cpu_percent(interval=update_frequency)
+                response = self.heartbeat(client_name, client_id, memory_usage, cpu_usage)
             except grpc.RpcError as e:
-                return self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+                self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+                return
             except Exception as e:
-                return self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+                self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
+                return
             if isinstance(response, fedn.Response):
                 pass
                 # logger.info("Heartbeat successful.")
             else:
                 logger.error("Heartbeat failed.")
-                send_hearbeat = False
-            time.sleep(update_frequency)
+                send_heartbeat = False
 
-    def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]):
-        """Subscribe to the model update request stream.
-
-        :return: None
-        :rtype: None
-        """
+    def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
+        """Subscribe to the model update request stream."""
         r = fedn.ClientAvailableMessage()
         r.sender.name = client_name
         r.sender.role = fedn.CLIENT
@@ -181,12 +180,20 @@ class GrpcHandler:
 
         except grpc.RpcError as e:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
-            return self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
+            self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
         except Exception as e:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
 
-    def send_status(self, msg: str, log_level=fedn.LogLevel.INFO, type=None, request=None, sesssion_id: str = None, sender_name: str = None):
+    def send_status(
+        self,
+        msg: str,
+        log_level: fedn.LogLevel = fedn.LogLevel.INFO,
+        type: Optional[str] = None,
+        request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
+        sesssion_id: Optional[str] = None,
+        sender_name: Optional[str] = None,
+    ) -> None:
         """Send status message.
 
         :param msg: The message to send.
@@ -216,19 +223,24 @@ class GrpcHandler:
             logger.info("Sending status message to combiner.")
             _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
         except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
+            self._handle_grpc_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
         except Exception as e:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
             self._handle_unknown_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
 
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
+
         Downloads the model update object via a gRPC streaming channel.
 
         :param id: The id of the model update object.
         :type id: str
+        :param client_id: The id of the client.
+        :type client_id: str
+        :param timeout: The timeout for the request.
+        :type timeout: int
         :return: The model update object.
-        :rtype: BytesIO
+        :rtype: Optional[BytesIO]
         """
         data = BytesIO()
         time_start = time.time()
@@ -259,8 +271,9 @@ class GrpcHandler:
             self._handle_unknown_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
         return data
 
-    def send_model_to_combiner(self, model: BytesIO, id: str):
+    def send_model_to_combiner(self, model: BytesIO, id: str) -> Optional[BytesIO]:
         """Send a model update to the assigned combiner.
+
         Uploads the model updated object via a gRPC streaming channel, Upload.
 
         :param model: The model update object.
@@ -268,7 +281,7 @@ class GrpcHandler:
         :param id: The id of the model update object.
         :type id: str
         :return: The model update object.
-        :rtype: BytesIO
+        :rtype: Optional[BytesIO]
         """
         if not isinstance(model, BytesIO):
             bt = BytesIO()
@@ -298,7 +311,8 @@ class GrpcHandler:
         receiver_name: str,
         receiver_role: fedn.Role,
         meta: dict,
-    ):
+    ) -> fedn.ModelUpdate:
+        """Create an update message."""
         update = fedn.ModelUpdate()
         update.sender.name = sender_name
         update.sender.role = fedn.CLIENT
@@ -307,7 +321,7 @@ class GrpcHandler:
         update.receiver.role = receiver_role
         update.model_id = model_id
         update.model_update_id = model_update_id
-        update.timestamp = str(datetime.now())
+        update.timestamp = str(datetime.now(timezone.utc))
         update.meta = json.dumps(meta)
 
         return update
@@ -321,7 +335,8 @@ class GrpcHandler:
         metrics: str,
         correlation_id: str,
         session_id: str,
-    ):
+    ) -> fedn.ModelValidation:
+        """Create a validation message."""
         validation = fedn.ModelValidation()
         validation.sender.name = sender_name
         validation.sender.role = fedn.CLIENT
@@ -344,7 +359,8 @@ class GrpcHandler:
         prediction_output: str,
         correlation_id: str,
         session_id: str,
-    ):
+    ) -> fedn.ModelPrediction:
+        """Create a prediction message."""
         prediction = fedn.ModelPrediction()
         prediction.sender.name = sender_name
         prediction.sender.role = fedn.CLIENT
@@ -358,7 +374,8 @@ class GrpcHandler:
 
         return prediction
 
-    def send_model_update(self, update: fedn.ModelUpdate):
+    def send_model_update(self, update: fedn.ModelUpdate) -> bool:
+        """Send a model update to the combiner."""
         try:
             logger.info("Sending model update to combiner.")
             _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
@@ -370,6 +387,7 @@ class GrpcHandler:
         return True
 
     def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
+        """Send a model validation to the combiner."""
         try:
             logger.info("Sending model validation to combiner.")
             _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
@@ -385,6 +403,7 @@ class GrpcHandler:
         return True
 
     def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
+        """Send a model prediction to the combiner."""
         try:
             logger.info("Sending model prediction to combiner.")
             _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
@@ -399,22 +418,23 @@ class GrpcHandler:
             self._handle_unknown_error(e, "SendModelPrediction", lambda: self.send_model_prediction(prediction))
         return True
 
-    def _handle_grpc_error(self, e, method_name: str, sender_function: Callable):
+    def _handle_grpc_error(self, e: grpc.RpcError, method_name: str, sender_function: Callable) -> Optional[Callable]:
+        """Handle GRPC errors."""
         status_code = e.code()
         if status_code == grpc.StatusCode.UNAVAILABLE:
             logger.warning(f"GRPC ({method_name}): server unavailable. Retrying in 5 seconds.")
             time.sleep(5)
             return sender_function()
-        elif status_code == grpc.StatusCode.CANCELLED:
+        if status_code == grpc.StatusCode.CANCELLED:
             logger.warning(f"GRPC ({method_name}): connection cancelled. Retrying in 5 seconds.")
             time.sleep(5)
             return sender_function()
-        elif status_code == grpc.StatusCode.UNAUTHENTICATED:
+        if status_code == grpc.StatusCode.UNAUTHENTICATED:
             details = e.details()
             if details == "Token expired":
                 logger.warning(f"GRPC ({method_name}): Token expired.")
                 raise e
-        elif status_code == grpc.StatusCode.UNKNOWN:
+        if status_code == grpc.StatusCode.UNKNOWN:
             logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
             details = e.details()
             if details == "Stream removed":
@@ -428,8 +448,8 @@ class GrpcHandler:
         logger.error(f"GRPC ({method_name}): An error occurred: {e}")
         raise e
 
-    def _handle_unknown_error(self, e, method_name: str, sender_function: Callable):
-        # Try to reconnect
+    def _handle_unknown_error(self, e: Exception, method_name: str, sender_function: Callable) -> Optional[Callable]:
+        """Handle unknown errors."""
         logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
         if isinstance(e, ValueError):
             # ValueError is raised when the channel is closed
@@ -439,10 +459,9 @@ class GrpcHandler:
             self._init_channel(self.host, self.port, self.token)
             self._init_stubs()
             return sender_function()
-        else:
-            raise e
+        raise e
 
-    def _disconnect(self):
+    def _disconnect(self) -> None:
         """Disconnect from the combiner."""
         self.channel.close()
         logger.info("GRPC channel closed.")

@@ -1,32 +1,33 @@
-import pymongo
-from pymongo.database import Database
-
-from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_modelstorage_config
 from fedn.network.combiner.modelservice import ModelService
+from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.mongostatestore import MongoStateStore
+from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.model_store import ModelStore
+from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
+from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.status_store import StatusStore
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 
-statestore_config = get_statestore_config()
 modelstorage_config = get_modelstorage_config()
-network_id = get_network_config()
 
-statestore = MongoStateStore(network_id, statestore_config["mongo_config"])
+# TODO: Refactor all access to the stores to use the DatabaseConnection
+stores = DatabaseConnection().get_stores()
+session_store: SessionStore = stores.session_store
+model_store: ModelStore = stores.model_store
+round_store: RoundStore = stores.round_store
+package_store: PackageStore = stores.package_store
+combiner_store: CombinerStore = stores.combiner_store
+client_store: ClientStore = stores.client_store
+status_store: StatusStore = stores.status_store
+validation_store: ValidationStore = stores.validation_store
+prediction_store: PredictionStore = stores.prediction_store
+analytic_store: AnalyticStore = stores.analytic_store
 
-if statestore_config["type"] == "MongoDB":
-    mc = pymongo.MongoClient(**statestore_config["mongo_config"])
-    mc.server_info()
-    mdb: Database = mc[network_id]
-
-client_store = ClientStore(mdb, "network.clients")
-validation_store = ValidationStore(mdb, "control.validations")
-combiner_store = CombinerStore(mdb, "network.combiners")
-status_store = StatusStore(mdb, "control.status")
-prediction_store = PredictionStore(mdb, "control.predictions")
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
 

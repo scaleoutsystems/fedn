@@ -1,12 +1,15 @@
-from typing import Any, Dict, List, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 import pymongo
 from bson import ObjectId
 from pymongo.database import Database
+from sqlalchemy import String, func, or_, select
+from sqlalchemy.orm import Mapped, mapped_column
 
-from fedn.network.storage.statestore.stores.store import Store
+from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
 
-from .shared import EntityNotFound, from_document
+from .shared import from_document
 
 
 class Combiner:
@@ -38,34 +41,20 @@ class Combiner:
         self.status = status
         self.updated_at = updated_at
 
-    def from_dict(data: dict) -> "Combiner":
-        return Combiner(
-            id=str(data["_id"]),
-            name=data["name"] if "name" in data else None,
-            address=data["address"] if "address" in data else None,
-            certificate=data["certificate"] if "certificate" in data else None,
-            config=data["config"] if "config" in data else None,
-            fqdn=data["fqdn"] if "fqdn" in data else None,
-            ip=data["ip"] if "ip" in data else None,
-            key=data["key"] if "key" in data else None,
-            parent=data["parent"] if "parent" in data else None,
-            port=data["port"] if "port" in data else None,
-            status=data["status"] if "status" in data else None,
-            updated_at=data["updated_at"] if "updated_at" in data else None,
-        )
-
 
 class CombinerStore(Store[Combiner]):
+    pass
+
+
+class MongoDBCombinerStore(MongoDBStore[Combiner]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection)
 
-    def get(self, id: str, use_typing: bool = False) -> Combiner:
+    def get(self, id: str) -> Combiner:
         """Get an entity by id
         param id: The id of the entity
             type: str
             description: The id of the entity, can be either the id or the name (property)
-        param use_typing: Whether to return the entity as a typed object or as a dict
-            type: bool
         return: The entity
         """
         if ObjectId.is_valid(id):
@@ -75,9 +64,9 @@ class CombinerStore(Store[Combiner]):
             document = self.database[self.collection].find_one({"name": id})
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id | name) {id} not found")
+            return None
 
-        return Combiner.from_dict(document) if use_typing else from_document(document)
+        return from_document(document)
 
     def update(self, id: str, item: Combiner) -> bool:
         raise NotImplementedError("Update not implemented for CombinerStore")
@@ -94,11 +83,11 @@ class CombinerStore(Store[Combiner]):
         document = self.database[self.collection].find_one(kwargs)
 
         if document is None:
-            raise EntityNotFound(f"Entity with (id) {id} not found")
+            return False
 
         return super().delete(document["_id"])
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, use_typing: bool = False, **kwargs) -> Dict[int, List[Combiner]]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[Combiner]]:
         """List entities
         param limit: The maximum number of entities to return
             type: int
@@ -108,18 +97,120 @@ class CombinerStore(Store[Combiner]):
             type: str
         param sort_order: The order to sort by
             type: pymongo.DESCENDING | pymongo.ASCENDING
-        param use_typing: Whether to return the entities as typed objects or as dicts
-            type: bool
         param kwargs: Additional query parameters
             type: dict
             example: {"key": "models"}
         return: A dictionary with the count and the result
         """
-        response = super().list(limit, skip, sort_key or "updated_at", sort_order, use_typing=use_typing, **kwargs)
+        response = super().list(limit, skip, sort_key or "updated_at", sort_order, **kwargs)
 
-        result = [Combiner.from_dict(item) for item in response["result"]] if use_typing else response["result"]
-
-        return {"count": response["count"], "result": result}
+        return response
 
     def count(self, **kwargs) -> int:
         return super().count(**kwargs)
+
+
+class CombinerModel(MyAbstractBase):
+    __tablename__ = "combiners"
+
+    address: Mapped[str] = mapped_column(String(255))
+    fqdn: Mapped[Optional[str]] = mapped_column(String(255))
+    ip: Mapped[Optional[str]] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    parent: Mapped[Optional[str]] = mapped_column(String(255))
+    port: Mapped[int]
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
+def from_row(row: CombinerModel) -> Combiner:
+    return {
+        "id": row.id,
+        "committed_at": row.committed_at,
+        "address": row.address,
+        "ip": row.ip,
+        "name": row.name,
+        "parent": row.parent,
+        "fqdn": row.fqdn,
+        "port": row.port,
+        "updated_at": row.updated_at,
+    }
+
+
+class SQLCombinerStore(CombinerStore, SQLStore[Combiner]):
+    def __init__(self, Session):
+        super().__init__(Session)
+
+    def get(self, id: str) -> Combiner:
+        with self.Session() as session:
+            stmt = select(CombinerModel).where(or_(CombinerModel.id == id, CombinerModel.name == id))
+            item = session.scalars(stmt).first()
+            if item is None:
+                return None
+            return from_row(item)
+
+    def update(self, id, item):
+        raise NotImplementedError
+
+    def add(self, item):
+        with self.Session() as session:
+            entity = CombinerModel(
+                address=item["address"],
+                fqdn=item["fqdn"],
+                ip=item["ip"],
+                name=item["name"],
+                parent=item["parent"],
+                port=item["port"],
+            )
+            session.add(entity)
+            session.commit()
+            return True, from_row(entity)
+
+    def delete(self, id: str) -> bool:
+        with self.Session() as session:
+            stmt = select(CombinerModel).where(CombinerModel.id == id)
+            item = session.scalars(stmt).first()
+            if item is None:
+                return False
+            session.delete(item)
+            return True
+
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+        with self.Session() as session:
+            stmt = select(CombinerModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(CombinerModel, key) == value)
+
+            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
+            _sort_key: str = sort_key or "committed_at"
+
+            if _sort_key in CombinerModel.__table__.columns:
+                sort_obj = CombinerModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else CombinerModel.__table__.columns.get(_sort_key).desc()
+
+                stmt = stmt.order_by(sort_obj)
+
+            if limit:
+                stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
+
+            items = session.scalars(stmt).all()
+
+            result = []
+            for i in items:
+                result.append(from_row(i))
+
+            count = session.scalar(select(func.count()).select_from(CombinerModel))
+
+            return {"count": count, "result": result}
+
+    def count(self, **kwargs):
+        with self.Session() as session:
+            stmt = select(func.count()).select_from(CombinerModel)
+
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(CombinerModel, key) == value)
+
+            count = session.scalar(stmt)
+
+            return count

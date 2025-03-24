@@ -22,14 +22,14 @@ Clone FEDn
 
     git clone https://github.com/scaleoutsystems/fedn.git
 
-Install FEDn and dependencies
+Install FEDn
 
 .. code-block::
 
     pip install fedn
 
 
-Prepare the example environment, the compute package and seed model
+Prepare the example environment and seed model
 -------------------------------------------------------------------
 
 Standing in the folder fedn/examples/async-clients
@@ -38,15 +38,11 @@ Standing in the folder fedn/examples/async-clients
 
     pip install -r requirements.txt
 
-Create the compute package and seed model:
+Create the seed model
 
 .. code-block::
 
-    fedn package create --path client
-
-.. code-block::
-
-    fedn run build --path client
+    python init_seed.py seed.npz
 
 
 You will now have a file 'seed.npz' in the directory.
@@ -54,14 +50,14 @@ You will now have a file 'seed.npz' in the directory.
 Running a simulation
 --------------------
 
-Deploy FEDn on localhost. Standing in the the FEDn root directory: 
+Deploy FEDn on localhost. Standing in the the FEDn root directory
 
 .. code-block::
 
     docker-compose up 
 
 
-Initialize FEDn with the compute package and seed model
+Initialize FEDn with the seed model
 
 .. code-block::
 

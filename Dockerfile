@@ -1,11 +1,20 @@
 # Stage 1: Builder
 ARG BASE_IMG=python:3.12-slim
-FROM $BASE_IMG as builder
+FROM $BASE_IMG AS builder
 
 ARG GRPC_HEALTH_PROBE_VERSION=""
 ARG REQUIREMENTS=""
 
 WORKDIR /build
+
+# Temporarily add the Debian Testing repository to install zlib1g 1:1.3.dfsg+really1.3.1-1+b1 (fixed CVE-2023-45853)
+# Both zlib1g and zlib1g-dev are installed in the builder stage.
+RUN echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 zlib1g-dev=1:1.3.dfsg+really1.3.1-1+b1 \
+  && rm -rf /etc/apt/sources.list.d/testing.list \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install build dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends python3-dev gcc wget \
@@ -49,12 +58,19 @@ RUN set -ex \
   # Creare application specific tmp directory, set ENV TMPDIR to /app/tmp
   && mkdir -p /app/tmp \
   && chown -R appuser:appgroup /venv /app \
-  # Upgrade the package index and install security upgrades
+  # Temporarily add the Debian Testing repository to install zlib1g 1:1.3.dfsg+really1.3.1-1+b1 (fixed CVE-2023-45853)
+  && echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends -t testing zlib1g=1:1.3.dfsg+really1.3.1-1+b1 \
+  && rm -rf /etc/apt/sources.list.d/testing.list \
+  # Update package index and upgrade all installed packages
   && apt-get update \
   && apt-get upgrade -y \
+  # Clean up
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
+
 USER appuser
 
 ENTRYPOINT [ "/venv/bin/fedn" ]

@@ -6,6 +6,7 @@
    quickstart
    projects
    apiclient
+   serverfunctions
 
 .. toctree::
    :maxdepth: 1

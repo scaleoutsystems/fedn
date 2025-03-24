@@ -31,7 +31,7 @@ class RoundConfig(TypedDict):
     :param round_timeout: The round timeout in seconds. Set by user interfaces or Controller.
     :type round_timeout: str
     :param rounds: The number of rounds. Set by user interfaces.
-    :param model_id: The model identifier. Set by user interfaces or Controller (get_latest_model).
+    :param model_id: The model identifier. Set by user interfaces or Controller.
     :type model_id: str
     :param model_version: The model version. Currently not used.
     :type model_version: str
@@ -324,6 +324,7 @@ class RoundHandler:
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
 
+        # dictionary to which functions are provided
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
@@ -373,7 +374,13 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            self.server.statestore.set_round_combiner_data(round_meta)
+                            active_round = self.server.round_store.get(round_meta["round_id"])
+                            if "combiners" not in active_round:
+                                active_round["combiners"] = []
+                            active_round["combiners"].append(round_meta)
+                            updated = self.server.round_store.update(active_round["id"], active_round)
+                            if not updated:
+                                raise Exception("Failed to update round data in round store.")
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]

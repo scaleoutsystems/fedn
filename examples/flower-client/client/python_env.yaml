@@ -1,4 +1,4 @@
-name: flower-client
+name: .flower-client
 build_dependencies:
   - pip
   - setuptools

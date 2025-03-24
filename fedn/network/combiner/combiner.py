@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import TypedDict
 
+import pymongo
 from google.protobuf.json_format import MessageToDict
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -16,9 +17,8 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import client_store, combiner_store, prediction_store, repository, statestore, status_store, validation_store
+from fedn.network.combiner.shared import analytic_store, client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -72,6 +72,7 @@ class CombinerConfig(TypedDict):
     verbosity: str
 
 
+# TODO: dependency injection
 class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer, rpc.ControlServicer):
     """Combiner gRPC server.
 
@@ -105,7 +106,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Set up model repository
         self.repository = repository
 
-        self.statestore = statestore
+        self.round_store = round_store
 
         # Add combiner to statestore
         interface_config = {
@@ -118,27 +119,23 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "updated_at": str(datetime.now()),
         }
         # Check if combiner already exists in statestore
-        try:
-            _ = combiner_store.get(config["name"])
-        except EntityNotFound:
+        if combiner_store.get(config["name"]) is None:
             combiner_store.add(interface_config)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, kwargs={"combiner": self.id})
+        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **{"combiner": self.id})
         count = previous_clients["count"]
         result = previous_clients["result"]
         logger.info(f"Found {count} previous clients")
         logger.info("Updating previous clients status to offline")
         for client in result:
             try:
-                if "client_id" in client.keys():
-                    client_store.update("client_id", client["client_id"], {"name": client["name"], "status": "offline"})
-                else:
-                    # Old clients might not have a client_id
-                    client_store.update("name", client["name"], {"name": client["name"], "status": "offline"})
+                client_to_update = client_store.get(client["client_id"])
+                client_to_update["status"] = "offline"
+                client_store.update(client["client_id"], client_to_update)
 
             except Exception as e:
                 logger.error("Failed to update previous client status: {}".format(str(e)))
@@ -225,7 +222,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, clients)
+        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, {}, clients)
 
         if len(clients) < 20:
             logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
@@ -389,10 +386,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
-                client_store.update("client_id", client, {"status": "online"})
+                client_to_update = client_store.get(client)
+                client_to_update["status"] = "online"
+                client_store.update(client, client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
-                client_store.update("client_id", client, {"status": "offline"})
+                client_to_update = client_store.get(client)
+                client_to_update["status"] = "offline"
+                client_store.update(client, client_to_update)
 
         return clients["active_clients"]
 
@@ -640,11 +641,26 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.debug("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
+        logger.info("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
         self.__join_client(client)
         self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
+            success, msg = analytic_store.add(
+                {
+                    "id": str(uuid.uuid4()),
+                    "sender_id": client.client_id,
+                    "sender_role": "client",
+                    "cpu_utilisation": heartbeat.cpu_utilisation,
+                    "memory_utilisation": heartbeat.memory_utilisation,
+                    "committed_at": datetime.now(),
+                }
+            )
+
+            if not success:
+                logger.error(f"GRPC: SendHeartbeat error: {msg}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -684,25 +700,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["status"] = "online"
         try:
             # If the client is already in the client store, update the status
-            success, result = client_store.update(
-                "client_id",
-                client.client_id,
-                {"name": client.name, "status": "online", "client_id": client.client_id, "last_seen": datetime.now(), "combiner": self.id},
-            )
-            if not success and result == "Entity not found":
-                # If the client is not in the client store, add the client
-                success, result = client_store.add(
-                    {
-                        "name": client.name,
-                        "status": "online",
-                        "client_id": client.client_id,
-                        "last_seen": datetime.now(),
-                        "combiner": self.id,
-                        "combiner_preferred": self.id,
-                        "updated_at": datetime.now(),
-                    }
-                )
-            elif not success:
+
+            client_to_upsert = {
+                "name": client.name,
+                "status": "online",
+                "client_id": client.client_id,
+                "last_seen": datetime.now(),
+                "combiner": self.id,
+                "updated_at": datetime.now(),
+            }
+
+            success, result = client_store.upsert(client_to_upsert)
+            if not success:
                 logger.error(result)
         except Exception as e:
             logger.error(f"Failed to update client status: {str(e)}")
@@ -806,4 +815,5 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 signal.pause()
         except (KeyboardInterrupt, SystemExit):
             pass
+        self.server.stop()
         self.server.stop()

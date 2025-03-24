@@ -1,10 +1,9 @@
 import uuid
 
 import click
-import requests
 
 from .main import main
-from .shared import CONTROLLER_DEFAULTS, apply_config, get_api_url, get_token, print_response
+from .shared import CONTROLLER_DEFAULTS, apply_config, get_response, print_response
 
 
 @main.group("combiner")
@@ -77,22 +76,13 @@ def list_combiners(ctx, protocol: str, host: str, port: str, token: str = None, 
     - result: list of combiners
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
     headers = {}
 
     if n_max:
         headers["X-Limit"] = n_max
 
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "combiners", None)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint="combiners/", token=token, headers=headers, usr_api=False, usr_token=False)
+    print_response(response, "combiners", None)
 
 
 @click.option("-p", "--protocol", required=False, default=CONTROLLER_DEFAULTS["protocol"], help="Communication protocol of controller (api)")
@@ -108,19 +98,5 @@ def get_combiner(ctx, protocol: str, host: str, port: str, token: str = None, id
     - result: combiner with given id
 
     """
-    url = get_api_url(protocol=protocol, host=host, port=port, endpoint="combiners")
-    headers = {}
-
-    _token = get_token(token)
-
-    if _token:
-        headers["Authorization"] = _token
-
-    if id:
-        url = f"{url}{id}"
-
-    try:
-        response = requests.get(url, headers=headers)
-        print_response(response, "combiner", id)
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Could not connect to {url}")
+    response = get_response(protocol=protocol, host=host, port=port, endpoint=f"combiners/{id}", token=token, headers={}, usr_api=False, usr_token=False)
+    print_response(response, "combiner", id)

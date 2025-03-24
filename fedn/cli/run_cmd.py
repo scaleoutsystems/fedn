@@ -5,12 +5,9 @@ import uuid
 import click
 import yaml
 
-from fedn.cli.client_cmd import validate_client_config
 from fedn.cli.main import main
 from fedn.cli.shared import apply_config
-from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import logger
-from fedn.network.clients.client import Client
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 
@@ -170,108 +167,6 @@ def build_cmd(ctx, path, keep_venv):
     dispatcher.run_cmd("build")
     if not keep_venv:
         delete_virtual_environment(dispatcher)
-
-
-@run_cmd.command("client")
-@click.option("-d", "--discoverhost", required=False, help="Hostname for discovery services(reducer).")
-@click.option("-p", "--discoverport", required=False, help="Port for discovery services (reducer).")
-@click.option("--token", required=False, help="Set token provided by reducer if enabled")
-@click.option("-n", "--name", required=False, default="client" + str(uuid.uuid4())[:8])
-@click.option("-i", "--client_id", required=False)
-@click.option("--local-package", is_flag=True, help="Enable local compute package")
-@click.option("--force-ssl", is_flag=True, help="Force SSL/TLS for REST service")
-@click.option("-u", "--dry-run", required=False, default=False)
-@click.option("-s", "--secure", required=False, default=False)
-@click.option("-pc", "--preshared-cert", required=False, default=False)
-@click.option("-v", "--verify", is_flag=True, help="Verify SSL/TLS for REST service")
-@click.option("-c", "--preferred-combiner", required=False, type=str, default="", help="url to the combiner or name of the preferred combiner")
-@click.option("-va", "--validator", required=False, default=True)
-@click.option("-tr", "--trainer", required=False, default=True)
-@click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
-@click.option("-l", "--logfile", required=False, default=None, help="Set logfile for client log to file.")
-@click.option("--heartbeat-interval", required=False, default=2)
-@click.option("--reconnect-after-missed-heartbeat", required=False, default=30)
-@click.option("--verbosity", required=False, default="INFO", type=click.Choice(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False))
-@click.pass_context
-def client_cmd(
-    ctx,
-    discoverhost,
-    discoverport,
-    token,
-    name,
-    client_id,
-    local_package,
-    force_ssl,
-    dry_run,
-    secure,
-    preshared_cert,
-    verify,
-    preferred_combiner,
-    validator,
-    trainer,
-    init,
-    logfile,
-    heartbeat_interval,
-    reconnect_after_missed_heartbeat,
-    verbosity,
-):
-    """:param ctx:
-    :param discoverhost:
-    :param discoverport:
-    :param token:
-    :param name:
-    :param client_id:
-    :param remote:
-    :param dry_run:
-    :param secure:
-    :param preshared_cert:
-    :param verify_cert:
-    :param preferred_combiner:
-    :param init:
-    :param logfile:
-    :param hearbeat_interval
-    :param reconnect_after_missed_heartbeat
-    :param verbosity
-    :return:
-    """
-    remote = False if local_package else True
-    config = {
-        "discover_host": discoverhost,
-        "discover_port": discoverport,
-        "token": token,
-        "name": name,
-        "client_id": client_id,
-        "remote_compute_context": remote,
-        "force_ssl": force_ssl,
-        "dry_run": dry_run,
-        "secure": secure,
-        "preshared_cert": preshared_cert,
-        "verify": verify,
-        "preferred_combiner": preferred_combiner,
-        "validator": validator,
-        "trainer": trainer,
-        "logfile": logfile,
-        "heartbeat_interval": heartbeat_interval,
-        "reconnect_after_missed_heartbeat": reconnect_after_missed_heartbeat,
-        "verbosity": verbosity,
-    }
-
-    click.echo(
-        click.style("\n*** fedn run client is deprecated and will be removed. Please use fedn client start instead. ***\n", blink=True, bold=True, fg="red")
-    )
-
-    if init:
-        apply_config(init, config)
-        click.echo(f"\nClient configuration loaded from file: {init}")
-        click.echo("Values set in file override defaults and command line arguments...\n")
-    try:
-        validate_client_config(config)
-    except InvalidClientConfig as e:
-        click.echo(f"Error: {e}")
-        return
-
-    client = Client(config)
-    client.run()
 
 
 @run_cmd.command("combiner")

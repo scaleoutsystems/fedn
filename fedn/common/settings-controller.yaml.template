@@ -11,6 +11,11 @@ statestore:
     password: password
     host: localhost
     port: 6534
+  postgres_config:
+    username: fedn_admin
+    password: password
+    host: fedn_postgres
+    port: 5432
 
 storage:
   storage_type: S3

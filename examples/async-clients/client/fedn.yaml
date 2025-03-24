@@ -1,7 +1,0 @@
-entry_points:
-  build:
-    command: python entrypoint.py init_seed ../seed.npz
-  train:
-    command: python entrypoint.py train
-  validate: 
-    command: python entrypoint.py validate

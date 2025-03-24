@@ -3,6 +3,8 @@ import os
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
+from fedn.network.storage.statestore.stores.client_store import ClientStore
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 
 __all__ = ("Network",)
 
@@ -13,11 +15,12 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, statestore, load_balancer=None):
+    def __init__(self, control, network_id: str, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
         """ """
-        self.statestore = statestore
+        self.combiner_store = combiner_store
+        self.client_store = client_store
         self.control = control
-        self.id = statestore.network_id
+        self.id = network_id
 
         if not load_balancer:
             self.load_balancer = LeastPacked(self)
@@ -44,7 +47,7 @@ class Network:
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        data = self.statestore.get_combiners()
+        data = self.combiner_store.list(limit=0, skip=0, sort_key=None)
         combiners = []
         for c in data["result"]:
             name = c["name"].upper()
@@ -62,35 +65,6 @@ class Network:
             combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, ip=c["ip"]))
 
         return combiners
-
-    def add_combiner(self, combiner):
-        """Add a new combiner to the network.
-
-        :param combiner: The combiner instance object
-        :type combiner: :class:`fedn.network.combiner.interfaces.CombinerInterface`
-        :return: None
-        """
-        if not self.control.idle():
-            logger.warning("Reducer is not idle, cannot add additional combiner.")
-            return
-
-        if self.get_combiner(combiner.name):
-            return
-
-        logger.info("adding combiner {}".format(combiner.name))
-        self.statestore.set_combiner(combiner.to_dict())
-
-    def remove_combiner(self, combiner):
-        """Remove a combiner from the network.
-
-        :param combiner: The combiner instance object
-        :type combiner: :class:`fedn.network.combiner.interfaces.CombinerInterface`
-        :return: None
-        """
-        if not self.control.idle():
-            logger.warning("Reducer is not idle, cannot remove combiner.")
-            return
-        self.statestore.delete_combiner(combiner.name)
 
     def find_available_combiner(self):
         """Find an available combiner in the network.
@@ -122,31 +96,21 @@ class Network:
             return
 
         logger.info("adding client {}".format(client["client_id"]))
-        self.statestore.set_client(client)
+        self.client_store.upsert(client)
 
-    def get_client(self, name):
-        """Get client by name.
+    def get_client(self, client_id: str):
+        """Get client by client_id.
 
-        :param name: name of client
-        :type name: str
+        :param client_id: client_id of client
+        :type client_id: str
         :return: The client instance object
         :rtype: ObjectId
         """
-        ret = self.statestore.get_client(name)
-        return ret
-
-    def update_client_data(self, client_data, status, role):
-        """Update client status in statestore.
-
-        :param client_data: The client instance object
-        :type client_data: dict
-        :param status: The client status
-        :type status: str
-        :param role: The client role
-        :type role: str
-        :return: None
-        """
-        self.statestore.update_client_status(client_data, status, role)
+        try:
+            client = self.client_store.get(client_id)
+            return client
+        except Exception:
+            return None
 
     def get_client_info(self):
         """List available client in statestore.
@@ -154,4 +118,4 @@ class Network:
         :return: list of client objects
         :rtype: list(ObjectId)
         """
-        return self.statestore.list_clients()
+        return self.client_store.list(limit=0, skip=0, sort_key=None)
