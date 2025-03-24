@@ -22,15 +22,9 @@ def _translate_key_mongo(key: str) -> str:
     return key
 
 
-class MongoDBStatusStore(StatusStore, MongoDBStore):
+class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
-
-    def get(self, id: str) -> StatusDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
 
     def update(self, item: StatusDTO):
         raise NotImplementedError("Update not implemented for StatusStore")

@@ -91,7 +91,7 @@ class Store(ABC, Generic[T]):
         pass
 
 
-class MongoDBStore(Store):
+class MongoDBStore(Store[T], Generic[T]):
     """Base MongoDB store implementation."""
 
     def __init__(self, database: Database, collection: str, primary_key: str) -> None:
@@ -100,6 +100,12 @@ class MongoDBStore(Store):
         self.collection = collection
         self.primary_key = primary_key
         self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)])
+
+    def get(self, id):
+        document = self.database[self.collection].find_one({self.primary_key: id})
+        if document is None:
+            return None
+        return self._dto_from_document(document)
 
     def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
@@ -159,6 +165,10 @@ class MongoDBStore(Store):
 
     def mongo_count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
+
+    @abstractmethod
+    def _dto_from_document(self, document: Dict) -> T:
+        pass
 
 
 class SQLStore(Generic[T]):

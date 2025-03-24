@@ -78,16 +78,10 @@ def validate(item: dict) -> Tuple[bool, str]:
     return validate_session_config(session_config)
 
 
-class MongoDBSessionStore(SessionStore, MongoDBStore):
+class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "session_id")
         self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
-
-    def get(self, id: str) -> SessionDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
 
     def update(self, item: SessionDTO) -> Tuple[bool, Any]:
         item_dict = item.to_db(exclude_unset=False)

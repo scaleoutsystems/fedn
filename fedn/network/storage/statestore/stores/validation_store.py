@@ -23,15 +23,9 @@ def translate_key_mongo(key: str):
     return key
 
 
-class MongoDBValidationStore(ValidationStore, MongoDBStore):
+class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "validation_id")
-
-    def get(self, id: str) -> ValidationDTO:
-        item = self.mongo_get(id)
-        if item is None:
-            return None
-        return self._dto_from_document(item)
 
     def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")

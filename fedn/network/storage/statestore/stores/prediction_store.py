@@ -20,15 +20,9 @@ def _translate_key_mongo(key: str):
     return key
 
 
-class MongoDBPredictionStore(PredictionStore, MongoDBStore):
+class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "prediction_id")
-
-    def get(self, id: str) -> PredictionDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
 
     def update(self, id: str, item: PredictionDTO) -> bool:
         raise NotImplementedError("Update not implemented for PredictionStore")

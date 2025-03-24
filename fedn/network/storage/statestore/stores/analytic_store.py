@@ -20,16 +20,10 @@ def _validate_analytic(analytic: dict) -> Tuple[bool, str]:
     return analytic, ""
 
 
-class MongoDBAnalyticStore(AnalyticStore, MongoDBStore):
+class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "id")
         self.database[self.collection].create_index([("sender_id", pymongo.DESCENDING)])
-
-    def get(self, id: str) -> AnalyticDTO:
-        doc = self.mongo_get(id)
-        if doc is None:
-            return None
-        return self._dto_from_document(doc)
 
     def update(self, item):
         raise NotImplementedError("Update not implemented for AnalyticStore")

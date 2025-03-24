@@ -29,15 +29,9 @@ class ClientStore(Store[ClientDTO]):
         pass
 
 
-class MongoDBClientStore(ClientStore, MongoDBStore):
+class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "client_id")
-
-    def get(self, client_id: str) -> ClientDTO:
-        entity = self.mongo_get(client_id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
 
     def add(self, item: ClientDTO) -> Tuple[bool, Any]:
         item_dict = item.to_db(exclude_unset=False)

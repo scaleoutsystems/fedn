@@ -24,15 +24,9 @@ class RoundStore(Store[RoundDTO]):
         pass
 
 
-class MongoDBRoundStore(RoundStore, MongoDBStore):
+class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "round_id")
-
-    def get(self, id: str) -> RoundDTO:
-        document = self.mongo_get(id)
-        if document is None:
-            return None
-        return self._dto_from_document(document)
 
     def update(self, item: RoundDTO) -> Tuple[bool, Any]:
         document = item.to_db(exclude_unset=True)

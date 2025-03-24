@@ -55,7 +55,7 @@ class ModelStore(Store[ModelDTO]):
         pass
 
 
-class MongoDBModelStore(ModelStore, MongoDBStore):
+class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "model")
 
@@ -64,7 +64,6 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         document = self.database[self.collection].find_one(kwargs)
         if document is None:
             return None
-
         return self._dto_from_document(document)
 
     def update(self, item: ModelDTO) -> Tuple[bool, Any]:

@@ -13,9 +13,9 @@ from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
-def is_active_package(data: dict, active_package: dict) -> bool:
-    if active_package and "package_id" in active_package and "package_id" in data:
-        return active_package["package_id"] == data["package_id"]
+def is_active_package(package_id, active_package: dict) -> bool:
+    if active_package and "package_id" in active_package and package_id:
+        return active_package["package_id"] == package_id
     return False
 
 
@@ -96,21 +96,20 @@ def validate_helper(helper: str) -> bool:
     return True
 
 
-class MongoDBPackageStore(PackageStore, MongoDBStore):
+class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "package_id")
 
     def get(self, id: str) -> PackageDTO:
-        document = self.database[self.collection].find_one({self.primary_key: id})
-
-        if document is None:
+        package = super().get(id)
+        if package is None:
             return None
 
         response_active = self.database[self.collection].find_one({"key": "active"})
-        active = is_active_package(document, response_active)
-        document["active"] = active
+        active = is_active_package(package.package_id, response_active)
+        package.active = active
 
-        return self._dto_from_document(document)
+        return package
 
     def _complement(self, item: Dict):
         if "key" not in item or item["key"] is None:

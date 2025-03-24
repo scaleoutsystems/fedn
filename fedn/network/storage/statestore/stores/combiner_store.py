@@ -15,15 +15,9 @@ class CombinerStore(Store[CombinerDTO]):
         pass
 
 
-class MongoDBCombinerStore(CombinerStore, MongoDBStore):
+class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "combiner_id")
-
-    def get(self, id: str) -> CombinerDTO:
-        obj = self.mongo_get(id)
-        if obj is None:
-            return None
-        return self._dto_from_document(obj)
 
     def update(self, item: CombinerDTO):
         raise NotImplementedError("Update not implemented for CombinerStore")
