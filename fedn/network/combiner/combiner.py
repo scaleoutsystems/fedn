@@ -20,6 +20,7 @@ from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import analytic_store, client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
@@ -647,16 +648,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["last_seen"] = datetime.now()
 
         if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
-            success, msg = analytic_store.add(
+            analytic = AnalyticDTO().patch_with(
                 {
-                    "id": str(uuid.uuid4()),
                     "sender_id": client.client_id,
                     "sender_role": "client",
                     "cpu_utilisation": heartbeat.cpu_utilisation,
                     "memory_utilisation": heartbeat.memory_utilisation,
-                    "committed_at": datetime.now(),
                 }
             )
+            success, msg = analytic_store.add(analytic)
 
             if not success:
                 logger.error(f"GRPC: SendHeartbeat error: {msg}")
