@@ -1,6 +1,6 @@
 settings = {
     "N_CLIENTS": 5,
-    "DISCOVER_HOST": "localhost",
+    "DISCOVER_HOST": "api-server",
     "DISCOVER_PORT": 8092,
     "SECURE": False,
     "VERIFY": False,
