@@ -89,7 +89,7 @@ def get_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         count = session_store.count(**kwargs)
         result = [session.to_dict() for session in sessions]
@@ -168,7 +168,7 @@ def list_sessions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
         count = session_store.count(**kwargs)
         result = [session.to_dict() for session in sessions]

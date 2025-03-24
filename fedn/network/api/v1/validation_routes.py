@@ -129,7 +129,7 @@ def get_validations():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        result = validation_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = validation_store.count(**kwargs)
         response = {"count": count, "result": [validation.to_dict() for validation in result]}
 
@@ -226,7 +226,7 @@ def list_validations():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        result = validation_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = validation_store.count(**kwargs)
         response = {"count": count, "result": [validation.to_dict() for validation in result]}
 

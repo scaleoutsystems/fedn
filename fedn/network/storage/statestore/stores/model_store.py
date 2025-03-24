@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import aliased
 
 from fedn.network.storage.statestore.stores.dto import ModelDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import ModelModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class ModelStore(Store[ModelDTO]):
@@ -89,7 +89,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs["key"] = "models"
         entites = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         return [self._dto_from_document(entity) for entity in entites]
@@ -233,7 +233,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(entity) for entity in entities]

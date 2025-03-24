@@ -6,8 +6,8 @@ from pymongo.database import Database
 from sqlalchemy import func, select
 
 from fedn.network.storage.statestore.stores.dto import ClientDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import ClientModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class ClientStore(Store[ClientDTO]):
@@ -56,7 +56,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
     def delete(self, client_id: str) -> bool:
         return self.mongo_delete(client_id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[ClientDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[ClientDTO]:
         entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         return [self._dto_from_document(entity) for entity in entites]
 
@@ -122,7 +122,7 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def delete(self, id) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
         with self.Session() as session:
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in entities]

@@ -134,10 +134,10 @@ class TestSessionStore:
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options:
-                gathered_sessions = db_1.session_store.select(*opt, **kwargs)
+                gathered_sessions = db_1.session_store.list(*opt, **kwargs)
                 count = db_1.session_store.count(**kwargs)
 
-                gathered_sessions2 = db_2.session_store.select(*opt, **kwargs)
+                gathered_sessions2 = db_2.session_store.list(*opt, **kwargs)
                 count2 = db_2.session_store.count(**kwargs)
                 
                 assert(len(gathered_sessions) == len(gathered_sessions2))

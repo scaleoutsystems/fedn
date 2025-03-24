@@ -4,8 +4,8 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import StatusModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class StatusStore(Store[StatusDTO]):
@@ -45,16 +45,13 @@ class MongoDBStatusStore(StatusStore, MongoDBStore):
     def delete(self, id: str):
         return self.mongo_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
             items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
         return [self._dto_from_document(item) for item in items]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        not NotImplementedError("List not implemented for StatusStore")
 
     def count(self, **kwargs):
         return self.mongo_count(**kwargs)
@@ -116,7 +113,7 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
             kwargs = {_translate_key(k): v for k, v in kwargs.items()}
             sort_key: str = _translate_key(sort_key)
@@ -126,9 +123,6 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
         return self.sql_count(**kwargs)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        return NotImplementedError("List not implemented for StatusStore")
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("status_id", None)

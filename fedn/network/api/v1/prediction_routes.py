@@ -169,7 +169,7 @@ def get_predictions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        result = prediction_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = prediction_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 
@@ -266,7 +266,7 @@ def list_predictions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        result = prediction_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = prediction_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 

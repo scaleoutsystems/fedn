@@ -117,8 +117,8 @@ class TestClientStore:
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options:                        
-                gathered_clients = db_1.client_store.select(*opt, **kwargs)
-                gathered_clients2 = db_2.client_store.select(*opt, **kwargs)
+                gathered_clients = db_1.client_store.list(*opt, **kwargs)
+                gathered_clients2 = db_2.client_store.list(*opt, **kwargs)
                 count = db_1.client_store.count(**kwargs)
                 count2 = db_2.client_store.count(**kwargs)
 

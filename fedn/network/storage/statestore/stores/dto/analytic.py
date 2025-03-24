@@ -1,7 +1,4 @@
-from datetime import datetime
-from typing import Optional
-
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
 
 
 class AnalyticDTO(BaseDTO):

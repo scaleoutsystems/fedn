@@ -104,7 +104,7 @@ def get_combiners():
 
         kwargs = request.args.to_dict()
 
-        combiners = combiner_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = combiner_store.count(**kwargs)
         response = {"count": count, "result": [combiner.to_dict() for combiner in combiners]}
 
@@ -186,7 +186,7 @@ def list_combiners():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        combiners = combiner_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = combiner_store.count(**kwargs)
         response = {"count": count, "result": [combiner.to_dict() for combiner in combiners]}
 

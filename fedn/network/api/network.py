@@ -48,7 +48,7 @@ class Network:
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        result = self.combiner_store.select(limit=0, skip=0, sort_key=None)
+        result = self.combiner_store.list(limit=0, skip=0, sort_key=None)
         combiners = []
         for combiner in result:
             name = combiner.name.upper()

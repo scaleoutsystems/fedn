@@ -105,10 +105,10 @@ class TestModelStore:
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options: 
-                gathered_models1 = db_1.model_store.select(*opt, **kwargs)
+                gathered_models1 = db_1.model_store.list(*opt, **kwargs)
                 count1 = db_1.model_store.count(**kwargs)
 
-                gathered_models2 = db_2.model_store.select(*opt, **kwargs)
+                gathered_models2 = db_2.model_store.list(*opt, **kwargs)
                 count2 = db_2.model_store.count(**kwargs)
 
                 assert count1 == count2

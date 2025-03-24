@@ -94,10 +94,10 @@ class TestValidationStore:
         for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
             print("Running tests between databases {} and {}".format(name1, name2))
             for *opt,kwargs in options:
-                gathered_validations = db_1.validation_store.select(*opt, **kwargs)
+                gathered_validations = db_1.validation_store.list(*opt, **kwargs)
                 count = db_1.validation_store.count(**kwargs)
                 
-                gathered_validations2 = db_2.validation_store.select(*opt, **kwargs)
+                gathered_validations2 = db_2.validation_store.list(*opt, **kwargs)
                 count2 = db_2.validation_store.count(**kwargs)
                 
                 assert count == count2

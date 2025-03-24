@@ -130,7 +130,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = client_store.select(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, combiner=self.id)
+        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, combiner=self.id)
         logger.info(f"Found {len(previous_clients)} previous clients")
         logger.info("Updating previous clients status to offline")
         for client in previous_clients:

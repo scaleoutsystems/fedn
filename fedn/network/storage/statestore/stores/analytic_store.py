@@ -5,7 +5,7 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, Store, from_document
+from fedn.network.storage.statestore.stores.store import MongoDBStore, Store, from_document
 
 
 class AnalyticStore(Store[AnalyticDTO]):
@@ -57,15 +57,12 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for AnalyticStore")
 
-    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[AnalyticDTO]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[AnalyticDTO]:
         items = self.mongo_select(limit, skip, sort_key or "committed_at", sort_order, **kwargs)
         return [self._dto_from_document(item) for item in items]
 
     def count(self, **kwargs) -> int:
         return self.mongo_count(**kwargs)
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[AnalyticDTO]]:
-        raise NotImplementedError("List not implemented for AnalyticStore")
 
     def _dto_from_document(self, document: Dict) -> AnalyticDTO:
         item = from_document(document)

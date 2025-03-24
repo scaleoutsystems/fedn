@@ -5,8 +5,8 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto import CombinerDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import CombinerModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class CombinerStore(Store[CombinerDTO]):
@@ -38,7 +38,7 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[CombinerDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[CombinerDTO]:
         entities = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         result = []
         for entity in entities:
@@ -85,7 +85,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in entities]

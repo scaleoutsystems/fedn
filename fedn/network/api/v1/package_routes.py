@@ -123,7 +123,7 @@ def get_packages():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        result = package_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = package_store.count(**kwargs)
         response = {"count": count, "result": [result.to_dict() for result in result]}
 
@@ -210,7 +210,7 @@ def list_packages():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = package_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = package_store.count(**kwargs)
         response = {"count": count, "result": [result.to_dict() for result in response]}
 

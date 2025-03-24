@@ -16,7 +16,7 @@ def get_analytics():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        analytics = analytic_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        analytics = analytic_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = analytic_store.count(**kwargs)
 
         response = {"count": count, "result": [analytic.to_dict() for analytic in analytics]}

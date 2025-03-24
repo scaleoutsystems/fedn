@@ -114,7 +114,7 @@ def get_clients():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        clients = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = client_store.count(**kwargs)
         response = {"count": count, "result": [client.to_dict() for client in clients]}
 
@@ -199,7 +199,7 @@ def list_clients():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        clients = client_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        clients = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = client_store.count(**kwargs)
         response = {"count": count, "result": [client.to_dict() for client in clients]}
 

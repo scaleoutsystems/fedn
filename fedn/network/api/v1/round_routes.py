@@ -92,7 +92,7 @@ def get_rounds():
 
         kwargs = request.args.to_dict()
 
-        rounds = round_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = round_store.count(**kwargs)
         response = {"count": count, "result": [rounds.to_dict() for rounds in rounds]}
 
@@ -170,7 +170,7 @@ def list_rounds():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        rounds = round_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = round_store.count(**kwargs)
         response = {"count": count, "result": [rounds.to_dict() for rounds in rounds]}
 

@@ -9,8 +9,8 @@ from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.dto import PackageDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 def is_active_package(data: dict, active_package: dict) -> bool:
@@ -187,20 +187,10 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
         kwargs = {"key": "active"}
         return self.database[self.collection].delete_one(kwargs).deleted_count == 1
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
         kwargs["key"] = "package_trail"
         result = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         return [self._dto_from_document(item) for item in result]
-
-    def list(
-        self,
-        limit: int,
-        skip: int,
-        sort_key: str,
-        sort_order=pymongo.DESCENDING,
-        **kwargs,
-    ):
-        raise NotImplementedError
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"
@@ -244,13 +234,10 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
             result = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in result]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        raise NotImplementedError
 
     def count(self, **kwargs):
         return self.sql_count(**kwargs)

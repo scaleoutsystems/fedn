@@ -4,8 +4,8 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto import PredictionDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import PredictionModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class PredictionStore(Store[PredictionDTO]):
@@ -43,16 +43,13 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
         items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
             items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
         return [self._dto_from_document(item) for item in items]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[PredictionDTO]]:
-        raise NotImplementedError("List not implemented for PredictionStore")
 
     def count(self, **kwargs) -> int:
         return self.mongo_count(**kwargs)
@@ -116,15 +113,12 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
         with self.Session() as session:
             kwargs = {_translate_key(k): v for k, v in kwargs.items()}
             sort_key = _translate_key(sort_key)
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in entities]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        raise NotImplementedError("List not implemented for PredictionStore")
 
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}

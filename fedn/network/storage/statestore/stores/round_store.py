@@ -7,7 +7,6 @@ from pymongo.database import Database
 from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import (
     RoundCombinerDataModel,
     RoundCombinerModel,
@@ -16,6 +15,7 @@ from fedn.network.storage.statestore.stores.sql.shared import (
     RoundModel,
     from_orm_model,
 )
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class RoundStore(Store[RoundDTO]):
@@ -53,12 +53,9 @@ class MongoDBRoundStore(RoundStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[RoundDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[RoundDTO]:
         entities = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         return [self._dto_from_document(entity) for entity in entities]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[RoundDTO]]:
-        raise NotImplementedError("Deprecated method, use select instead")
 
     def get_latest_round_id(self) -> int:
         obj = self.database[self.collection].find_one(sort=[("committed_at", pymongo.DESCENDING)])
@@ -208,19 +205,16 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         with self.Session() as session:
             enties = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(entity) for entity in enties]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        raise NotImplementedError("Deprecated method, use select instead")
 
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 
     def get_latest_round_id(self) -> int:
-        rounds = self.select(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
+        rounds = self.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
         if any(rounds):
             return int(rounds[0].round_id)
         else:

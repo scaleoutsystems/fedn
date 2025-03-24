@@ -50,7 +50,7 @@ class ModelType(graphene.ObjectType):
 
     def resolve_validations(self, info):
         kwargs = {"modelId": self["model"]}
-        result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
         return result
 
@@ -83,21 +83,21 @@ class SessionType(graphene.ObjectType):
 
     def resolve_models(self, info):
         kwargs = {"session_id": self["session_id"]}
-        all_models = model_store.select(**kwargs)
+        all_models = model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
 
         return result
 
     def resolve_validations(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
 
         return result
 
     def resolve_statuses(self, info):
         kwargs = {"sessionId": self["session_id"]}
-        result = status_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [status.to_dict() for status in result]
 
         return result
@@ -153,7 +153,7 @@ class Query(graphene.ObjectType):
             kwargs = {"name": name}
         else:
             kwargs = {}
-        all_models = model_store.select(**kwargs)
+        all_models = model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
         return result
 
@@ -167,7 +167,7 @@ class Query(graphene.ObjectType):
             kwargs = {"session_id": session_id}
         else:
             kwargs = {}
-        all_models = model_store.select(**kwargs)
+        all_models = model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
         return result
 
@@ -179,9 +179,9 @@ class Query(graphene.ObjectType):
     def resolve_validations(root, info, session_id: str = None):
         if session_id:
             kwargs = {"session_id": session_id}
-            result = validation_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            result = validation_store.select(0, 0, None)
+            result = validation_store.list(0, 0, None)
 
         return [validation.to_dict() for validation in result]
 
@@ -193,9 +193,9 @@ class Query(graphene.ObjectType):
     def resolve_statuses(root, info, session_id: str = None):
         if session_id:
             kwargs = {"sessionId": session_id}
-            result = status_store.select(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            result = status_store.select(0, 0, None)
+            result = status_store.list(0, 0, None)
 
         return [status.to_dict() for status in result]
 

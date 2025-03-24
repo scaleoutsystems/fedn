@@ -106,7 +106,7 @@ def get_models():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
         result = [model.to_dict() for model in models]
         count = model_store.count(**kwargs)
         response = {"count": count, "result": result}
@@ -191,7 +191,7 @@ def list_models():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
         result = [model.to_dict() for model in models]
         count = model_store.count(**kwargs)
         response = {"count": count, "result": result}

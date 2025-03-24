@@ -4,8 +4,8 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import ValidationModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class ValidationStore(Store[ValidationDTO]):
@@ -46,16 +46,13 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[ValidationDTO]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[ValidationDTO]:
         items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
             items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
         return [self._dto_from_document(item) for item in items]
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[ValidationDTO]]:
-        raise NotImplementedError("List not implemented for ValidationStore")
 
     def count(self, **kwargs) -> int:
         kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
@@ -124,10 +121,7 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        raise NotImplementedError("List not implemented for ValidationStore")
-
-    def select(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs = {translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key = translate_key_sql(sort_key)
         with self.Session() as session:

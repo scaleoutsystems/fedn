@@ -5,8 +5,8 @@ from pymongo.database import Database
 from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
-from fedn.network.storage.statestore.stores.new_store import MongoDBStore, SQLStore, Store, from_document
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class SessionStore(Store[SessionDTO]):
@@ -119,7 +119,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
     def count(self, **kwargs) -> int:
         return self.mongo_count(**kwargs)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
         entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         return [self._dto_from_document(entity) for entity in entites]
 
@@ -209,7 +209,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
             return True
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[SessionDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[SessionDTO]:
         with self.Session() as session:
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
             return [self._dto_from_orm_model(item) for item in entities]

@@ -122,7 +122,7 @@ def get_statuses():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        result = status_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = status_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 
@@ -216,7 +216,7 @@ def list_statuses():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        result = status_store.select(limit, skip, sort_key, sort_order, **kwargs)
+        result = status_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = status_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 
