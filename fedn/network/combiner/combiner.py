@@ -798,6 +798,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
         data = MessageToDict(request, preserving_proto_field_name=True)
+
         prediction = PredictionDTO(**data)
         prediction_store.add(prediction)
 

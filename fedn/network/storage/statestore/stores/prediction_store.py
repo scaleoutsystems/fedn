@@ -12,6 +12,14 @@ class PredictionStore(Store[PredictionDTO]):
     pass
 
 
+def _translate_key_mongo(key: str):
+    if key == "correlationId":
+        key = "correlation_id"
+    elif key == "modelId":
+        key = "model_id"
+    return key
+
+
 class MongoDBPredictionStore(PredictionStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "prediction_id")
@@ -35,8 +43,12 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore):
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
-    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[PredictionDTO]:
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
+    def select(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
+        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        _sort_key = _translate_key_mongo(sort_key)
+        if _kwargs != kwargs or _sort_key != sort_key:
+            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
         return [self._dto_from_document(item) for item in items]
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> Dict[int, List[PredictionDTO]]:
@@ -51,10 +63,16 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore):
 
     def _dto_from_document(self, document: Dict) -> PredictionDTO:
         item = from_document(document)
+
+        if "correlationId" in item:
+            item["correlation_id"] = item.pop("correlationId")
+        if "modelId" in item:
+            item["model_id"] = item.pop("modelId")
+
         pred = PredictionDTO()
-        pred.sender.populate_with(item.pop("sender"))
-        pred.receiver.populate_with(item.pop("receiver"))
-        pred.populate_with(item)
+        pred.sender.patch_with(item.pop("sender"), throw_on_extra_keys=False)
+        pred.receiver.patch_with(item.pop("receiver"), throw_on_extra_keys=False)
+        pred.patch_with(item, throw_on_extra_keys=False)
         return pred
 
 
@@ -67,9 +85,9 @@ def _translate_key(key: str):
         key = "receiver_name"
     elif key == "receiver.role":
         key = "receiver_role"
-    elif key == "correlationId":  # TODO: Why?
+    elif key == "correlationId":
         key = "correlation_id"
-    elif key == "modelId":  # TODO: Why?
+    elif key == "modelId":
         key = "model_id"
     return key
 

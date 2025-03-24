@@ -55,7 +55,7 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore):
         return self._dto_from_document(document)
 
     def _dto_from_document(self, document: Dict) -> CombinerDTO:
-        return CombinerDTO().populate_with(from_document(document))
+        return CombinerDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
 
 class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):

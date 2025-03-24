@@ -12,6 +12,16 @@ class StatusStore(Store[StatusDTO]):
     pass
 
 
+def _translate_key_mongo(key: str) -> str:
+    if key == "logLevel":
+        key = "log_level"
+    elif key == "sender.role":
+        key = "sender_role"
+    elif key == "sessionId":
+        key = "session_id"
+    return key
+
+
 class MongoDBStatusStore(StatusStore, MongoDBStore):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
@@ -37,6 +47,10 @@ class MongoDBStatusStore(StatusStore, MongoDBStore):
 
     def select(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        _sort_key = _translate_key_mongo(sort_key)
+        if _kwargs != kwargs or _sort_key != sort_key:
+            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
         return [self._dto_from_document(item) for item in items]
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
@@ -47,7 +61,18 @@ class MongoDBStatusStore(StatusStore, MongoDBStore):
 
     def _dto_from_document(self, document: Dict[str, Any]) -> StatusDTO:
         entity = from_document(document)
-        return StatusDTO().populate_with(entity)
+
+        if "logLevel" in entity:
+            entity["log_level"] = entity["logLevel"]
+        if "correlationId" in entity:
+            entity["correlation_id"] = entity["correlationId"]
+        if "sessionId" in entity:
+            entity["session_id"] = entity["sessionId"]
+
+        if "status_id" not in entity and "id" in entity:
+            entity["status_id"] = entity["id"]
+
+        return StatusDTO().patch_with(entity, throw_on_extra_keys=False)
 
 
 def _translate_key(key: str) -> str:

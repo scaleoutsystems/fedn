@@ -125,10 +125,10 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
 
     def _dto_from_document(self, document: Dict) -> SessionDTO:
         session = from_document(document)
-        session_config_dto = SessionConfigDTO().populate_with(session["session_config"])
+        session_config_dto = SessionConfigDTO().patch_with(session["session_config"], throw_on_extra_keys=False)
         session["session_config"] = session_config_dto
 
-        return SessionDTO().populate_with(session)
+        return SessionDTO().patch_with(session, throw_on_extra_keys=False)
 
 
 class SQLSessionStore(SessionStore, SQLStore[SessionModel]):

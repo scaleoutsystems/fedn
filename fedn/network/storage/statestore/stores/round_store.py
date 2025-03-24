@@ -71,7 +71,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore):
         return self.mongo_count(**kwargs)
 
     def _dto_from_document(self, document: Dict) -> RoundDTO:
-        return RoundDTO().populate_with(from_document(document))
+        return RoundDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
 
 class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):

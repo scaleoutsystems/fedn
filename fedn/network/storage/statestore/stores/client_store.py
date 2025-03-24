@@ -86,7 +86,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore):
         return result
 
     def _dto_from_document(self, document: Dict) -> ClientDTO:
-        return ClientDTO().populate_with(from_document(document))
+        return ClientDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
 
 class SQLClientStore(ClientStore, SQLStore[ClientModel]):

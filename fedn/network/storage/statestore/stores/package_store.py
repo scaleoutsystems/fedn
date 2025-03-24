@@ -209,7 +209,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore):
     def _dto_from_document(self, document: Dict) -> PackageDTO:
         item_dict = from_document(document)
         del item_dict["key"]
-        return PackageDTO().populate_with(item_dict)
+        return PackageDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
 class SQLPackageStore(PackageStore, SQLStore[PackageModel]):

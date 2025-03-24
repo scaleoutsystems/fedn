@@ -197,7 +197,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         item_dict = from_document(document)
         item_dict["model_id"] = item_dict.pop("model")
         del item_dict["key"]
-        return ModelDTO().populate_with(item_dict)
+        return ModelDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
 class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
