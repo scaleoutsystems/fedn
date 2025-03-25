@@ -36,16 +36,6 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def update(self, item: ClientDTO) -> ClientDTO:
         return self.mongo_update(item)
 
-    def delete(self, client_id: str) -> bool:
-        return self.mongo_delete(client_id)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[ClientDTO]:
-        entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        return [self._dto_from_document(entity) for entity in entites]
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
-
     def connected_client_count(self, combiners: List[str]) -> List:
         try:
             pipeline = (
@@ -79,13 +69,6 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def __init__(self, Session):
         super().__init__(Session, ClientModel)
 
-    def get(self, id: str) -> ClientDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
     def add(self, item: ClientDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
             item_dict = item.to_db(exclude_unset=False)
@@ -101,9 +84,6 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
             success, obj = self.sql_update(session, item_dict)
             return self._dto_from_orm_model(obj)
 
-    def delete(self, id) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
         with self.Session() as session:
             entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
@@ -111,6 +91,9 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
 
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
+
+    def delete(self, id: str) -> bool:
+        return self.sql_delete(id)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:
@@ -125,6 +108,9 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
                 result.append({"combiner": item[0], "count": item[1]})
 
             return result
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("client_id", None)

@@ -31,22 +31,12 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
     def update(self, item: RoundDTO) -> RoundDTO:
         return self.mongo_update(item)
 
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[RoundDTO]:
-        entities = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        return [self._dto_from_document(entity) for entity in entities]
-
     def get_latest_round_id(self) -> int:
         obj = self.database[self.collection].find_one(sort=[("committed_at", pymongo.DESCENDING)])
         if obj:
             return int(obj["round_id"])
         else:
             return 0
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
 
     def _document_from_dto(self, item: RoundDTO) -> Dict:
         return item.to_db(exclude_unset=False)
@@ -58,14 +48,6 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
 class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):
     def __init__(self, Session):
         super().__init__(Session, RoundModel)
-
-    def get(self, id: str) -> RoundDTO:
-        with self.Session() as session:
-            stmt = select(RoundModel).where(RoundModel.id == id)
-            item = session.scalars(stmt).first()
-            if item is None:
-                return None
-            return self._dto_from_orm_model(item)
 
     def add(self, item: RoundDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
@@ -203,6 +185,9 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):
             return int(rounds[0].round_id)
         else:
             return 0
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _orm_dict_from_dto_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("round_id")

@@ -27,20 +27,17 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "validation_id")
 
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[ValidationDTO]:
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        items = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            items = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + items
+        return items
 
     def count(self, **kwargs) -> int:
         kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
-        return self.mongo_count(**kwargs)
+        return super().count(**kwargs)
 
     def _document_from_dto(self, item: ValidationDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
@@ -84,15 +81,6 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
-    def get(self, id: str) -> ValidationDTO:
-        with self.Session() as session:
-            item = self.sql_get(session, id)
-
-            if item is None:
-                return None
-
-            return self._dto_from_orm_model(item)
-
     def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
@@ -117,6 +105,9 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
     def count(self, **kwargs):
         kwargs = translate_key_sql(kwargs)
         return self.sql_count(**kwargs)
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, item_dict: Dict[str, Any]) -> Dict[str, Any]:
         item_dict["id"] = item_dict.pop("validation_id")

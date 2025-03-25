@@ -69,13 +69,13 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
     def update(self, item: ModelDTO) -> ModelDTO:
         return self.mongo_update(item)
 
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs["key"] = "models"
-        entites = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
-        return [self._dto_from_document(entity) for entity in entites]
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
+
+    def count(self, **kwargs) -> int:
+        kwargs["key"] = "models"
+        return super().count(**kwargs)
 
     def list_descendants(self, id: str, limit: int) -> List[ModelDTO]:
         kwargs = {"key": "models", "model": id}
@@ -138,10 +138,6 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 
         return result
 
-    def count(self, **kwargs) -> int:
-        kwargs["key"] = "models"
-        return self.mongo_count(**kwargs)
-
     def get_active(self) -> str:
         active_model = self.database[self.collection].find_one({"key": "current_model"})
 
@@ -183,13 +179,6 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
     def __init__(self, Session):
         super().__init__(Session, ModelModel)
-
-    def get(self, id: str) -> ModelDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
 
     def update(self, item: ModelDTO) -> ModelDTO:
         with self.Session() as session:
@@ -283,6 +272,9 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
             item.active = True
             session.commit()
         return True
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("model_id")

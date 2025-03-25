@@ -24,19 +24,17 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "prediction_id")
 
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
+        return entites
 
     def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
+        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
     def _document_from_dto(self, item: PredictionDTO) -> Dict:
         doc = item.to_db()
@@ -77,13 +75,6 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
 
-    def get(self, id: str) -> PredictionDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
     def add(self, item: PredictionDTO) -> Tuple[bool, Union[str, PredictionDTO]]:
         with self.Session() as session:
             item_dict = self._to_orm_dict(item)
@@ -107,6 +98,9 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
         return self.sql_count(**kwargs)
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, prediction: PredictionDTO) -> Dict:
         item_dict = prediction.to_db()

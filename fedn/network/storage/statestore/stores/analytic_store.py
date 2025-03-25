@@ -28,15 +28,8 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
         result = self.database[self.collection].delete_many({"sender_id": sender_id, "committed_at": {"$lt": time_threshold}})
         return result.deleted_count
 
-    def delete(self, id: str) -> bool:
-        raise NotImplementedError("Delete not implemented for AnalyticStore")
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[AnalyticDTO]:
-        items = self.mongo_select(limit, skip, sort_key or "committed_at", sort_order, **kwargs)
-        return [self._dto_from_document(item) for item in items]
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
+        return super().list(limit, skip, sort_key or "committed_at", sort_order, **kwargs)
 
     def _document_from_dto(self, item: AnalyticDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)

@@ -86,16 +86,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.mongo_update(item)
 
-    def delete(self, session_id: str) -> bool:
-        return self.mongo_delete(session_id)
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
-        entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        return [self._dto_from_document(entity) for entity in entites]
-
     def _document_from_dto(self, item: SessionDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
         return item_dict
@@ -111,14 +101,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
 class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
-
-    def get(self, id: str) -> SessionDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-
-            return self._dto_from_orm_model(entity)
 
     def update(self, item: SessionDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
@@ -192,6 +174,9 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
         session_dict = from_orm_model(item, SessionModel)

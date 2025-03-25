@@ -19,19 +19,6 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "combiner_id")
 
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[CombinerDTO]:
-        entities = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        result = []
-        for entity in entities:
-            result.append(self._dto_from_document(entity))
-        return result
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
-
     def get_by_name(self, name: str) -> CombinerDTO:
         document = self.database[self.collection].find_one({"name": name})
         if document is None:
@@ -49,13 +36,6 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
 class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
-
-    def get(self, id: str) -> CombinerDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
 
     def update(self, item):
         raise NotImplementedError
@@ -85,6 +65,9 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
             if entity is None:
                 return None
             return self._dto_from_orm_model(entity)
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("combiner_id")

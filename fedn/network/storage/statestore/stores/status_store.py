@@ -26,19 +26,17 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
 
-    def delete(self, id: str):
-        return self.mongo_delete(id)
-
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
+        return entites
 
-    def count(self, **kwargs):
-        return self.mongo_count(**kwargs)
+    def count(self, **kwargs) -> int:
+        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
     def _document_from_dto(self, item: StatusDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
@@ -81,13 +79,6 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
     def update(self, item: StatusDTO) -> Tuple[bool, Any]:
         raise NotImplementedError
 
-    def get(self, id: str) -> StatusDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
     def add(self, item: StatusDTO) -> Tuple[bool, Any]:
         with self.Session() as session:
             item_dict = item.to_db(exclude_unset=False)
@@ -109,6 +100,9 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
         return self.sql_count(**kwargs)
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("status_id", None)

@@ -71,9 +71,12 @@ class Store(ABC, Generic[T]):
     def delete(self, id: str) -> bool:
         """Delete an entity.
 
-        param id: The id of the entity
-            type: str
-        return: A boolean indicating success or failure
+        Args:
+          id (str): The id of the entity
+
+        Returns:
+            Bool: success or failure
+
         """
         pass
 
@@ -81,18 +84,16 @@ class Store(ABC, Generic[T]):
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
         """Select entities.
 
-        param limit: The maximum number of entities to return
-            type: int
-        param skip: The number of entities to skip
-            type: int
-        param sort_key: The key to sort by
-            type: str
-        param sort_order: The order to sort by
-            type: pymongo.DESCENDING | pymongo.ASCENDING
-        param kwargs: Additional query parameters
-            type: dict
-            example: {"key": "models"}
-        return: A list of entities
+        Args:
+            limit (int): The maximum number of entities to return
+            skip (int): The number of entities to skip
+            sort_key (str): The key to sort by
+            sort_order (pymongo.DESCENDING | pymongo.ASCENDING): The order to sort by
+            kwargs (dict): Additional query parameters
+
+        Returns:
+            List[T]: The list of entities
+
         """
         pass
 
@@ -100,10 +101,13 @@ class Store(ABC, Generic[T]):
     def count(self, **kwargs) -> int:
         """Count entities.
 
-        param kwargs: Additional query parameters
-            type: dict
-            example: {"key": "models"}
-        return: The count of entities
+
+        Args:
+            kwargs (dict): Additional query parameters, example: {"key": "models"}
+
+        Returns:
+            int: The number of entities
+
         """
         pass
 
@@ -148,37 +152,11 @@ class MongoDBStore(Store[T], Generic[T]):
             return self._dto_from_document(document)
         raise EntityNotFound(f"Entity with id {id} not found")
 
-    def mongo_get(self, id: str) -> Dict:
-        document = self.database[self.collection].find_one({self.primary_key: id})
-        if document is None:
-            return None
-        return document
-
-    def mongo_add(self, item: Dict) -> Tuple[bool, Any]:
-        try:
-            if self.primary_key not in item or not item[self.primary_key]:
-                item[self.primary_key] = str(uuid.uuid4())
-
-            item["committed_at"] = datetime.now()
-
-            self.database[self.collection].insert_one(item)
-            document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
-            return True, document
-        except Exception as e:
-            return False, str(e)
-
-    def mongo_delete(self, id: str) -> bool:
+    def delete(self, id: str) -> bool:
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def mongo_select(
-        self,
-        limit: int = 0,
-        skip: int = 0,
-        sort_key: str = None,
-        sort_order=pymongo.DESCENDING,
-        **kwargs,
-    ) -> List[Dict]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
         _sort_order = sort_order or pymongo.DESCENDING
         if sort_key and sort_key != self.primary_key:
             cursor = (
@@ -191,9 +169,9 @@ class MongoDBStore(Store[T], Generic[T]):
         else:
             cursor = self.database[self.collection].find(kwargs).sort(self.primary_key, pymongo.DESCENDING).skip(skip or 0).limit(limit or 0)
 
-        return [document for document in cursor]
+        return [self._dto_from_document(document) for document in cursor]
 
-    def mongo_count(self, **kwargs) -> int:
+    def count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
     @abstractmethod
@@ -205,7 +183,7 @@ class MongoDBStore(Store[T], Generic[T]):
         pass
 
 
-class SQLStore(Generic[T]):
+class SQLStore(Store[T], Generic[T]):
     """Base SQL store implementation."""
 
     def __init__(self, Session: Type[SessionClass], SQLModel: Type[T]) -> None:
@@ -213,9 +191,13 @@ class SQLStore(Generic[T]):
         self.SQLModel = SQLModel
         self.Session = Session
 
-    def sql_get(self, session: SessionClass, id: str) -> T:
-        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
-        return session.scalars(stmt).first()
+    def get(self, id: str) -> T:
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == id)
+            entity = session.scalars(stmt).first()
+            if entity is None:
+                return None
+            return self._dto_from_orm_model(entity)
 
     def sql_add(self, session, entity: T) -> Tuple[bool, Any]:
         if not entity.id:
@@ -284,3 +266,11 @@ class SQLStore(Generic[T]):
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
             return session.scalar(stmt)
+
+    @abstractmethod
+    def _dto_from_orm_model(self, item: T) -> T:
+        pass
+
+    @abstractmethod
+    def _update_orm_model_from_dto(self, model, item: T):
+        pass

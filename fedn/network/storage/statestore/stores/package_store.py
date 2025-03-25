@@ -98,11 +98,30 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
         return package
 
-    def _complement(self, item: Dict):
-        if "key" not in item or item["key"] is None:
-            item["key"] = "package_trail"
+    def delete(self, id: str) -> bool:
+        kwargs = {self.primary_key: id, "key": "package_trail"}
+        result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
+        if not result:
+            return False
 
-        _complement_with_storage_filename(item)
+        # Remove Active Package if it is the one being deleted
+        kwargs["key"] = "active"
+        document_active = self.database[self.collection].find_one(kwargs)
+        if document_active is not None:
+            return self.database[self.collection].delete_one(kwargs).deleted_count == 1
+        return True
+
+    def delete_active(self) -> bool:
+        kwargs = {"key": "active"}
+        return self.database[self.collection].delete_one(kwargs).deleted_count == 1
+
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
+        kwargs["key"] = "package_trail"
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
+
+    def count(self, **kwargs) -> int:
+        kwargs["key"] = "package_trail"
+        return super().count(**kwargs)
 
     def set_active(self, id: str) -> bool:
         kwargs = {self.primary_key: id}
@@ -134,37 +153,11 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
     def set_active_helper(self, helper: str) -> bool:
         if not validate_helper(helper):
-            raise ValueError()
+            raise ValueError
         try:
             self.database[self.collection].update_one({"key": "active"}, {"$set": {"helper": helper}}, upsert=True)
         except Exception:
             return False
-
-    def delete(self, id: str) -> bool:
-        kwargs = {self.primary_key: id, "key": "package_trail"}
-        result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
-        if not result:
-            return False
-
-        # Remove Active Package if it is the one being deleted
-        kwargs["key"] = "active"
-        document_active = self.database[self.collection].find_one(kwargs)
-        if document_active is not None:
-            return self.database[self.collection].delete_one(kwargs).deleted_count == 1
-        return True
-
-    def delete_active(self) -> bool:
-        kwargs = {"key": "active"}
-        return self.database[self.collection].delete_one(kwargs).deleted_count == 1
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
-        kwargs["key"] = "package_trail"
-        result = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
-        return [self._dto_from_document(item) for item in result]
-
-    def count(self, **kwargs) -> int:
-        kwargs["key"] = "package_trail"
-        return self.mongo_count(**kwargs)
 
     def _document_from_dto(self, item: PackageDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
@@ -191,13 +184,6 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
             package = PackageModel(**item_dict)
             success, obj = self.sql_add(session, package)
             return self._dto_from_orm_model(obj)
-
-    def get(self, id: str) -> PackageDTO:
-        with self.Session() as session:
-            item = self.sql_get(session, id)
-            if item is None:
-                return None
-            return self._dto_from_orm_model(item)
 
     def update(self, item: PackageDTO):
         raise NotImplementedError
@@ -270,6 +256,9 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
                 session.commit()
                 return True
             return False
+
+    def _update_orm_model_from_dto(self, model, item):
+        pass
 
     def _orm_dict_from_dto_dict(self, item_dict: Dict) -> Dict:
         item_dict["id"] = item_dict.pop("package_id")
