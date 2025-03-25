@@ -66,13 +66,8 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
             return None
         return self._dto_from_document(document)
 
-    def update(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = self._document_from_dto(item)
-
-        success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
+    def update(self, item: ModelDTO) -> ModelDTO:
+        return self.mongo_update(item)
 
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
@@ -196,14 +191,12 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
                 return None
             return self._dto_from_orm_model(entity)
 
-    def update(self, item: ModelDTO) -> Tuple[bool, Any]:
+    def update(self, item: ModelDTO) -> ModelDTO:
         with self.Session() as session:
             item_dict = item.to_db(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
             success, obj = self.sql_update(session, item_dict)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
+            return self._dto_from_orm_model(obj)
 
     def add(self, item: ModelDTO) -> Tuple[bool, Any]:
         with self.Session() as session:

@@ -33,12 +33,8 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "client_id")
 
-    def update(self, item: ClientDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=True)
-        success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
+    def update(self, item: ClientDTO) -> ClientDTO:
+        return self.mongo_update(item)
 
     def delete(self, client_id: str) -> bool:
         return self.mongo_delete(client_id)
@@ -98,14 +94,12 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
             success, obj = self.sql_add(session, entity)
             return self._dto_from_orm_model(obj)
 
-    def update(self, item: ClientDTO) -> Tuple[bool, Any]:
+    def update(self, item: ClientDTO) -> ClientDTO:
         with self.Session() as session:
             item_dict = item.to_db(exclude_unset=True)
             item_dict = self._to_orm_dict(item_dict)
             success, obj = self.sql_update(session, item_dict)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id) -> bool:
         return self.sql_delete(id)

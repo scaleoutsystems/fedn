@@ -381,8 +381,10 @@ class RoundHandler:
                             active_round = self.server.round_store.get(round_meta["round_id"])
 
                             active_round.combiners.append(round_meta)
-                            updated = self.server.round_store.update(active_round)
-                            if not updated:
+                            try:
+                                self.server.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]

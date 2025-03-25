@@ -83,17 +83,8 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
         super().__init__(database, collection, "session_id")
         self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
-    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        valid, message = validate(item_dict)
-        if not valid:
-            return False, message
-
-        success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-
-        return success, obj
+    def update(self, item: SessionDTO) -> SessionDTO:
+        return self.mongo_update(item)
 
     def delete(self, session_id: str) -> bool:
         return self.mongo_delete(session_id)
@@ -155,7 +146,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
             session.commit()
 
-            return True, self._dto_from_orm_model(existing_item)
+            return self._dto_from_orm_model(existing_item)
 
     def add(self, item: SessionDTO) -> Tuple[bool, Any]:
         with self.Session() as session:

@@ -8,6 +8,8 @@ from pymongo.database import Database
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as SessionClass
 
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
+
 T = TypeVar("T")
 
 
@@ -23,20 +25,29 @@ class Store(ABC, Generic[T]):
     def get(self, id: str) -> T:
         """Get an entity by id.
 
-        param id: The id of the entity
-            type: str
-        return: The entity
+        Args:
+            id (str): Entity id
+
+        Returns:
+            T: The entity or null if not found
+
         """
         pass
 
     @abstractmethod
-    def update(self, item: T) -> Tuple[bool, Union[T, str]]:
+    def update(self, item: T) -> T:
         """Update an existing entity.
 
-        Will do a patch if fields in T are left unset
-        param item: The entity to update
-            type: T
-        return: A tuple with a boolean and a message if failure or the updated entity if success
+        Args:
+            item (T): The entity to update.
+
+        Returns:
+            T: The updated entity.
+
+        Raises:
+            EntityNotFound: If the entity is not found.
+            ValidationError: If validation fails.
+
         """
         pass
 
@@ -44,9 +55,15 @@ class Store(ABC, Generic[T]):
     def add(self, item: T) -> T:
         """Add an entity.
 
-        param item: The entity to add
-              type: T
-        return: A tuple with a boolean and a message if failure or the added entity if success
+        Args:
+            item (T): The entity to update.
+
+        Returns:
+            T: The updated entity.
+
+        Raises:
+            ValidationError: If validation fails.
+
         """
         pass
 
@@ -119,6 +136,18 @@ class MongoDBStore(Store[T], Generic[T]):
 
         return self._dto_from_document(document)
 
+    def update(self, item: T) -> T:
+        raise NotImplementedError("update not implemented for MongoDBStore by default. Use mongo_update in derived classes.")
+
+    def mongo_update(self, item: T) -> T:
+        item_dict = self._document_from_dto(item)
+        id = item_dict[self.primary_key]
+        result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
+        if result.modified_count == 1:
+            document = self.database[self.collection].find_one({self.primary_key: id})
+            return self._dto_from_document(document)
+        raise EntityNotFound(f"Entity with id {id} not found")
+
     def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
@@ -135,17 +164,6 @@ class MongoDBStore(Store[T], Generic[T]):
             self.database[self.collection].insert_one(item)
             document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
             return True, document
-        except Exception as e:
-            return False, str(e)
-
-    def mongo_update(self, item: Dict) -> Tuple[bool, Any]:
-        try:
-            id = item[self.primary_key]
-            result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item})
-            if result.modified_count == 1:
-                document = self.database[self.collection].find_one({self.primary_key: id})
-                return True, document
-            return False, "Entity not found"
         except Exception as e:
             return False, str(e)
 

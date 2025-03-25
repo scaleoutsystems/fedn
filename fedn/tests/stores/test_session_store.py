@@ -113,8 +113,7 @@ class TestSessionStore:
         
         # Update the session and check that we get the updated session back
         read_session2.name = "new_name"         
-        success, read_session3 = db_connection.session_store.update(read_session2)
-        assert success == True
+        read_session3 = db_connection.session_store.update(read_session2)
         assert read_session3.name == "new_name"
 
         # Assert we get the same session back

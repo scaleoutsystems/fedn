@@ -19,9 +19,6 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "combiner_id")
 
-    def update(self, item: CombinerDTO):
-        raise NotImplementedError("Update not implemented for CombinerStore")
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 

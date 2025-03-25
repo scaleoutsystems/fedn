@@ -136,9 +136,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Updating previous clients status to offline")
         for client in previous_clients:
             client.status = "offline"
-            success, msg = client_store.update(client)
-            if not success:
-                logger.error(f"Failed to update previous client status: {msg}")
+            try:
+                client_store.update(client)
+            except Exception as e:
+                logger.error(f"Failed to update previous client status: {e}")
 
         # Set up gRPC server configuration
         if config["secure"]:

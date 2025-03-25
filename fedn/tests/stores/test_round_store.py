@@ -102,8 +102,7 @@ class TestRoundStore:
         
         # Update the round and check that we get the updated round back
         read_round2.round_config.aggregator = "new_aggregator"         
-        success, read_round3 = db_connection.round_store.update(read_round2)
-        assert success == True
+        read_round3 = db_connection.round_store.update(read_round2)
         assert read_round3.round_config.aggregator == "new_aggregator"
 
         # Assert we get the same round back
@@ -115,8 +114,7 @@ class TestRoundStore:
         combiner = read_round4.combiners[0]
         combiner.status = "new_status"
         read_round4.combiners.append(combiner)
-        success, read_round5 = db_connection.round_store.update(read_round4)
-        assert success == True
+        read_round5 = db_connection.round_store.update(read_round4)
         assert len(read_round5.combiners) == 2
         assert read_round5.combiners[1].status == "new_status"
 
@@ -128,8 +126,7 @@ class TestRoundStore:
 
         # Remove config from round and check that we get the updated round back
         read_round6.round_config = None
-        success, read_round7 = db_connection.round_store.update(read_round6)
-        assert success == True
+        read_round7 = db_connection.round_store.update(read_round6)
         assert read_round7.to_dict()["round_config"] == None
 
         # Assert we get the same round back
@@ -139,8 +136,7 @@ class TestRoundStore:
 
         #Remove all combiners from round and check that we get the updated round back
         read_round8.combiners = []
-        success, read_round9 = db_connection.round_store.update(read_round8)
-        assert success == True
+        read_round9 = db_connection.round_store.update(read_round8)
         assert len(read_round9.combiners) == 0
 
         # Assert we get the same round back

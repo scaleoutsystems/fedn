@@ -27,9 +27,6 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "validation_id")
 
-    def update(self, item: ValidationDTO) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationStore")
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 

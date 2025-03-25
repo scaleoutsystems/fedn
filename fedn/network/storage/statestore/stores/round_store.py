@@ -28,14 +28,8 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "round_id")
 
-    def update(self, item: RoundDTO) -> Tuple[bool, Any]:
-        document = item.to_db(exclude_unset=True)
-
-        success, obj = self.mongo_update(document)
-
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
+    def update(self, item: RoundDTO) -> RoundDTO:
+        return self.mongo_update(item)
 
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
@@ -190,7 +184,7 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):
             existing_item.status = item_dict["status"]
             session.commit()
 
-            return True, self._dto_from_orm_model(existing_item)
+            return self._dto_from_orm_model(existing_item)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

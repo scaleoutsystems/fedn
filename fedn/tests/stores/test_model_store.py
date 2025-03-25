@@ -86,8 +86,7 @@ class TestModelStore:
         
         # Update the model and check that we get the updated model back
         read_model2.name = "new_name"         
-        success, read_model3 = db_connection.model_store.update(read_model2)
-        assert success == True
+        read_model3 = db_connection.model_store.update(read_model2)
         assert read_model3.name == "new_name"
 
         # Assert we get the same model back

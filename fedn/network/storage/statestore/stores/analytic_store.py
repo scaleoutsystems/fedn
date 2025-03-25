@@ -22,9 +22,6 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
         self._delete_old_records(analytic.sender_id)
         return analytic
 
-    def update(self, item):
-        raise NotImplementedError("Update not implemented for AnalyticStore")
-
     def _delete_old_records(self, sender_id: str) -> int:
         time_threshold = datetime.now(timezone.utc) - timedelta(minutes=5)
 

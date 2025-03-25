@@ -26,9 +26,6 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
 
-    def update(self, item: StatusDTO):
-        raise NotImplementedError("Update not implemented for StatusStore")
-
     def delete(self, id: str):
         return self.mongo_delete(id)
 
@@ -81,15 +78,15 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
+    def update(self, item: StatusDTO) -> Tuple[bool, Any]:
+        raise NotImplementedError
+
     def get(self, id: str) -> StatusDTO:
         with self.Session() as session:
             entity = self.sql_get(session, id)
             if entity is None:
                 return None
             return self._dto_from_orm_model(entity)
-
-    def update(self, item: StatusDTO):
-        raise NotImplementedError
 
     def add(self, item: StatusDTO) -> Tuple[bool, Any]:
         with self.Session() as session:

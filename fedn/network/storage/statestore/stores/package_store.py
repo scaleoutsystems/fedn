@@ -140,9 +140,6 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
         except Exception:
             return False
 
-    def update(self, item: PackageDTO):
-        raise NotImplementedError("Update not implemented for PackageStore")
-
     def delete(self, id: str) -> bool:
         kwargs = {self.primary_key: id, "key": "package_trail"}
         result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
