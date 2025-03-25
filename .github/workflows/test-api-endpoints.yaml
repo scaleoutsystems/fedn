@@ -30,7 +30,7 @@ jobs:
 
     - name: Start mongo and minio
       run: |
-        docker-compose up -d mongo minio
+        docker compose up -d mongo minio
       
     - name: Start FEDn controller
       run: |
