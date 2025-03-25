@@ -76,15 +76,10 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-            sort_key: str = _translate_key(sort_key)
-            items = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in items]
+        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
+        sort_key: str = _translate_key(sort_key)
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}

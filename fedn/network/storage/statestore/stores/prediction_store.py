@@ -75,15 +75,10 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionMode
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        with self.Session() as session:
-            kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-            sort_key = _translate_key(sort_key)
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
+        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
+        sort_key = _translate_key(sort_key)
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}

@@ -183,14 +183,6 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
     def update(self, item: ModelDTO) -> ModelDTO:
         return self.sql_update(item)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(entity) for entity in entities]
-
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 

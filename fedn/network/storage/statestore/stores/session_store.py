@@ -105,27 +105,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.sql_update(item)
 
-    def delete(self, id: str) -> bool:
-        with self.Session() as session:
-            stmt = select(SessionModel).where(SessionModel.id == id)
-            item = session.scalars(stmt).first()
-
-            if item is None:
-                return False
-
-            session_config = item.session_config
-
-            session.delete(item)
-            session.delete(session_config)
-            session.commit()
-
-            return True
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[SessionDTO]:
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
-
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 

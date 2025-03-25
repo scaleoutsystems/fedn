@@ -37,14 +37,6 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
-
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 

@@ -175,14 +175,6 @@ class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
         super().__init__(Session, PackageModel)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            result = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in result]
-
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 

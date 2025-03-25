@@ -72,16 +72,8 @@ class SQLClientStore(ClientStore, SQLStore[ClientDTO, ClientModel]):
     def update(self, item: ClientDTO) -> ClientDTO:
         return self.sql_update(item)
 
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
-
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
 
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:

@@ -81,15 +81,10 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs = {translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key = translate_key_sql(sort_key)
-        with self.Session() as session:
-            items = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in items]
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
         kwargs = translate_key_sql(kwargs)

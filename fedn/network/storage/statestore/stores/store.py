@@ -234,7 +234,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return self._dto_from_orm_model(existing_item)
 
-    def sql_delete(self, id: str) -> bool:
+    def delete(self, id: str) -> bool:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(self.SQLModel.id == id)
             item = session.scalars(stmt).first()
@@ -247,30 +247,32 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return True
 
-    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
-        stmt = select(self.SQLModel)
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+        with self.Session() as session:
+            stmt = select(self.SQLModel)
 
-        for key, value in kwargs.items():
-            stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-        _sort_order = sort_order or pymongo.DESCENDING
+            _sort_order = sort_order or pymongo.DESCENDING
 
-        secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
-        if sort_key and sort_key in self.SQLModel.__table__.columns:
-            sort_obj = self.SQLModel.__table__.columns.get(sort_key)
-            if _sort_order == pymongo.DESCENDING:
-                sort_obj = sort_obj.desc()
+            secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
+            if sort_key and sort_key in self.SQLModel.__table__.columns:
+                sort_obj = self.SQLModel.__table__.columns.get(sort_key)
+                if _sort_order == pymongo.DESCENDING:
+                    sort_obj = sort_obj.desc()
 
-            stmt = stmt.order_by(sort_obj, secondary_sort_obj)
-        else:
-            stmt = stmt.order_by(secondary_sort_obj)
+                stmt = stmt.order_by(sort_obj, secondary_sort_obj)
+            else:
+                stmt = stmt.order_by(secondary_sort_obj)
 
-        if limit:
-            stmt = stmt.offset(skip or 0).limit(limit)
-        elif skip:
-            stmt = stmt.offset(skip)
+            if limit:
+                stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
-        return session.scalars(stmt).all()
+            entities = session.scalars(stmt).all()
+            return [self._dto_from_orm_model(entity) for entity in entities]
 
     def sql_count(self, **kwargs) -> int:
         with self.Session() as session:
