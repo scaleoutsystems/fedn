@@ -27,13 +27,6 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
     def update(self, id: str, item: PredictionDTO) -> bool:
         raise NotImplementedError("Update not implemented for PredictionStore")
 
-    def add(self, item: PredictionDTO) -> Tuple[bool, Any]:
-        item_dict = self._document_from_dto(item)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
@@ -101,8 +94,8 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
         with self.Session() as session:
             item_dict = self._to_orm_dict(item)
             prediction = PredictionModel(**item_dict)
-            self.sql_add(session, prediction)
-            return True, self._dto_from_orm_model(prediction)
+            _, obj = self.sql_add(session, prediction)
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

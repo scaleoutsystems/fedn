@@ -29,13 +29,6 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def update(self, item: StatusDTO):
         raise NotImplementedError("Update not implemented for StatusStore")
 
-    def add(self, item: StatusDTO):
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return success, obj
-        return success, self._dto_from_document(obj)
-
     def delete(self, id: str):
         return self.mongo_delete(id)
 
@@ -49,6 +42,10 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
 
     def count(self, **kwargs):
         return self.mongo_count(**kwargs)
+
+    def _document_from_dto(self, item: StatusDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
 
     def _dto_from_document(self, document: Dict[str, Any]) -> StatusDTO:
         entity = from_document(document)
@@ -100,9 +97,7 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
             item_dict = self._to_orm_dict(item_dict)
             status = StatusModel(**item_dict)
             success, obj = self.sql_add(session, status)
-            if not success:
-                return success, obj
-            return True, self._dto_from_orm_model(obj)
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

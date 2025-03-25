@@ -78,8 +78,7 @@ class TestPredictionStore:
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
         test_prediction.verify()
 
-        success, read_prediction1 = db_connection.prediction_store.add(test_prediction)
-        assert success == True
+        read_prediction1 = db_connection.prediction_store.add(test_prediction)
         assert isinstance(read_prediction1.prediction_id, str)
         assert isinstance(read_prediction1.committed_at, datetime.datetime)
 

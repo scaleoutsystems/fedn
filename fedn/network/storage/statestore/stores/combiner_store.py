@@ -22,13 +22,6 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
     def update(self, item: CombinerDTO):
         raise NotImplementedError("Update not implemented for CombinerStore")
 
-    def add(self, item: CombinerDTO):
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
@@ -47,6 +40,10 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
         if document is None:
             return None
         return self._dto_from_document(document)
+
+    def _document_from_dto(self, item: CombinerDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
 
     def _dto_from_document(self, document: Dict) -> CombinerDTO:
         return CombinerDTO().patch_with(from_document(document), throw_on_extra_keys=False)
@@ -72,9 +69,7 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
             item_dict = self._to_orm_dict(item_dict)
             entity = CombinerModel(**item_dict)
             success, obj = self.sql_add(session, entity)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

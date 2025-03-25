@@ -67,20 +67,9 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
         return self._dto_from_document(document)
 
     def update(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=True)
-        item_dict = self._complement(item_dict)
-        item_dict = self._to_document(item_dict)
+        item_dict = self._document_from_dto(item)
 
         success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def add(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        item_dict = self._complement(item_dict)
-        item_dict = self._to_document(item_dict)
-        success, obj = self.mongo_add(item_dict)
         if success:
             return success, self._dto_from_document(obj)
         return success, obj
@@ -183,13 +172,10 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 
         return True
 
-    def _complement(self, item: Dict) -> Dict:
-        if "key" not in item or item["key"] is None:
-            item["key"] = "models"
-        return item
-
-    def _to_document(self, item_dict: Dict) -> Dict:
+    def _document_from_dto(self, item: ModelDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["model"] = item_dict.pop("model_id")
+        item_dict["key"] = "models"
         return item_dict
 
     def _dto_from_document(self, document: Dict) -> ModelDTO:
@@ -225,9 +211,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
             item_dict = self._to_orm_dict(item_dict)
             entity = ModelModel(**item_dict)
             success, obj = self.sql_add(session, entity)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

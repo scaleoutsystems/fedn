@@ -37,13 +37,6 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
             return success, self._dto_from_document(obj)
         return success, obj
 
-    def add(self, item: RoundDTO) -> Tuple[bool, Any]:
-        document = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(document)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
@@ -60,6 +53,9 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
 
     def count(self, **kwargs) -> int:
         return self.mongo_count(**kwargs)
+
+    def _document_from_dto(self, item: RoundDTO) -> Dict:
+        return item.to_db(exclude_unset=False)
 
     def _dto_from_document(self, document: Dict) -> RoundDTO:
         return RoundDTO().patch_with(from_document(document), throw_on_extra_keys=False)
@@ -126,7 +122,7 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO]):
                     round_entity.combiners.append(round_combiner)
             session.add(round_entity)
             session.commit()
-            return True, self._dto_from_orm_model(round_entity)
+            return self._dto_from_orm_model(round_entity)
 
     def update(self, item: RoundDTO) -> Tuple[bool, Any]:
         with self.Session() as session:

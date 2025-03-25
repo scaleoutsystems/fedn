@@ -12,18 +12,15 @@ class AnalyticStore(Store[AnalyticDTO]):
     pass
 
 
-def _validate_analytic(analytic: dict) -> Tuple[bool, str]:
-    if "sender_id" not in analytic:
-        return False, "sender_id is required"
-    if "sender_role" not in analytic or analytic["sender_role"] not in ["combiner", "client"]:
-        return False, "sender_role must be either 'combiner' or 'client'"
-    return analytic, ""
-
-
 class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "id")
         self.database[self.collection].create_index([("sender_id", pymongo.DESCENDING)])
+
+    def add(self, item: AnalyticDTO) -> Tuple[bool, Any]:
+        analytic = super().add(item)
+        self._delete_old_records(analytic.sender_id)
+        return analytic
 
     def update(self, item):
         raise NotImplementedError("Update not implemented for AnalyticStore")
@@ -34,20 +31,6 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
         result = self.database[self.collection].delete_many({"sender_id": sender_id, "committed_at": {"$lt": time_threshold}})
         return result.deleted_count
 
-    def add(self, item: AnalyticDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        valid, msg = _validate_analytic(item_dict)
-        if not valid:
-            return False, msg
-
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return success, obj
-
-        self._delete_old_records(item_dict["sender_id"])
-
-        return success, self._dto_from_document(obj)
-
     def delete(self, id: str) -> bool:
         raise NotImplementedError("Delete not implemented for AnalyticStore")
 
@@ -57,6 +40,10 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
 
     def count(self, **kwargs) -> int:
         return self.mongo_count(**kwargs)
+
+    def _document_from_dto(self, item: AnalyticDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
 
     def _dto_from_document(self, document: Dict) -> AnalyticDTO:
         item = from_document(document)

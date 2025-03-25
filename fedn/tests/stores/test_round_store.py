@@ -82,8 +82,7 @@ class TestRoundStore:
         test_round.verify()
 
         # Add a round and check that we get the added round back
-        success, read_round1 = db_connection.round_store.add(test_round)
-        assert success == True
+        read_round1 = db_connection.round_store.add(test_round)
         assert isinstance(read_round1.round_id, str)
         read_round1_dict = read_round1.to_dict()
         round_id = read_round1_dict["round_id"]

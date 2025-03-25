@@ -63,8 +63,7 @@ class TestModelStore:
         test_model.verify()
 
         # Add a model and check that we get the added model back
-        success, read_model1 = db_connection.model_store.add(test_model)
-        assert success == True
+        read_model1 = db_connection.model_store.add(test_model)
         assert isinstance(read_model1.model_id, str)
         read_model1_dict = read_model1.to_dict()
         model_id = read_model1.model_id

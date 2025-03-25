@@ -95,18 +95,6 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
 
         return success, obj
 
-    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        success, msg = validate(item_dict)
-        if not success:
-            return success, msg
-
-        success, obj = self.mongo_add(item_dict)
-
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
     def delete(self, session_id: str) -> bool:
         return self.mongo_delete(session_id)
 
@@ -116,6 +104,10 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
         entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
         return [self._dto_from_document(entity) for entity in entites]
+
+    def _document_from_dto(self, item: SessionDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
 
     def _dto_from_document(self, document: Dict) -> SessionDTO:
         session = from_document(document)
@@ -176,16 +168,15 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
             session_config_dict = item_dict.pop("session_config")
 
-            parent_entity = SessionModel(**item_dict)
-            child_entity = SessionConfigModel(**session_config_dict)
-            parent_entity.session_config = child_entity
+            entity = SessionModel(**item_dict)
+            session_config = SessionConfigModel(**session_config_dict)
+            entity.session_config = session_config
 
-            session.add(child_entity)
-            session.add(parent_entity)
+            session.add(entity)
 
             session.commit()
 
-            return True, self._dto_from_orm_model(parent_entity)
+            return self._dto_from_orm_model(entity)
 
     def delete(self, id: str) -> bool:
         with self.Session() as session:

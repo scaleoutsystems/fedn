@@ -58,8 +58,7 @@ class TestPackageStore:
         test_package.verify()
 
         # Add a package and check that we get the added package back
-        success, read_package1 = db_connection.package_store.add(test_package)
-        assert success == True
+        read_package1 = db_connection.package_store.add(test_package)
         assert isinstance(read_package1.package_id, str)
         assert isinstance(read_package1.committed_at, datetime.datetime)
         assert isinstance(read_package1.storage_file_name, str)

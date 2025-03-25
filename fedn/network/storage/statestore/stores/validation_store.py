@@ -30,13 +30,6 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
 
-    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return success, obj
-        return success, self._dto_from_document(obj)
-
     def delete(self, id: str) -> bool:
         return self.mongo_delete(id)
 
@@ -51,6 +44,10 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def count(self, **kwargs) -> int:
         kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
         return self.mongo_count(**kwargs)
+
+    def _document_from_dto(self, item: ValidationDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
 
     def _dto_from_document(self, document: Dict[str, Any]) -> ValidationDTO:
         dto_dict = from_document(document)
@@ -108,9 +105,7 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
             item_dict = self._to_orm_dict(item_dict)
             model = ValidationModel(**item_dict)
             success, obj = self.sql_add(session, model)
-            if not success:
-                return success, obj
-            return success, self._dto_from_orm_model(obj)
+            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

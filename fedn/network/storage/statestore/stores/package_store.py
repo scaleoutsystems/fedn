@@ -77,19 +77,6 @@ def allowed_file_extension(filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar"
     return False
 
 
-def validate(item: Dict) -> Tuple[bool, str]:
-    if "file_name" not in item or not item["file_name"]:
-        return False, "File name is required"
-
-    if not allowed_file_extension(item["file_name"]):
-        return False, "File extension not allowed"
-
-    if "helper" not in item or not validate_helper(item["helper"]):
-        return False, "Helper is required"
-
-    return True, ""
-
-
 def validate_helper(helper: str) -> bool:
     if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
         return False
@@ -156,19 +143,6 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
     def update(self, item: PackageDTO):
         raise NotImplementedError("Update not implemented for PackageStore")
 
-    def add(self, item: PackageDTO) -> Tuple[bool, Union[str, PackageDTO]]:
-        item_dict = item.to_db(exclude_unset=False)
-        valid, message = validate(item_dict)
-        if not valid:
-            return False, message
-
-        self._complement(item_dict)
-
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return False, obj
-        return True, self._dto_from_document(obj)
-
     def delete(self, id: str) -> bool:
         kwargs = {self.primary_key: id, "key": "package_trail"}
         result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
@@ -195,6 +169,12 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
         kwargs["key"] = "package_trail"
         return self.mongo_count(**kwargs)
 
+    def _document_from_dto(self, item: PackageDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["key"] = "package_trail"
+        _complement_with_storage_filename(item_dict)
+        return item_dict
+
     def _dto_from_document(self, document: Dict) -> PackageDTO:
         item_dict = from_document(document)
         del item_dict["key"]
@@ -207,18 +187,13 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
 
     def add(self, item: PackageDTO) -> Tuple[bool, Union[str, PackageDTO]]:
         item_dict = item.to_db(exclude_unset=False)
-        valid, message = validate(item_dict)
-        if not valid:
-            return False, message
 
         item_dict = self._orm_dict_from_dto_dict(item_dict)
 
         with self.Session() as session:
             package = PackageModel(**item_dict)
             success, obj = self.sql_add(session, package)
-            if not success:
-                return False, obj
-            return True, self._dto_from_orm_model(obj)
+            return self._dto_from_orm_model(obj)
 
     def get(self, id: str) -> PackageDTO:
         with self.Session() as session:

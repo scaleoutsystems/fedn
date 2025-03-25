@@ -68,8 +68,7 @@ class TestClientStore:
         test_client.verify()
 
         # Add a client and check that we get the added client back
-        success, read_client1 = db_connection.client_store.add(test_client)
-        assert success == True
+        read_client1 = db_connection.client_store.add(test_client)
         assert isinstance(read_client1.client_id, str)
         read_client1_dict = read_client1.to_dict()
         client_id = read_client1_dict["client_id"]

@@ -41,7 +41,7 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def add(self, item: T) -> Tuple[bool, Union[T, str]]:
+    def add(self, item: T) -> T:
         """Add an entity.
 
         param item: The entity to add
@@ -107,6 +107,18 @@ class MongoDBStore(Store[T], Generic[T]):
             return None
         return self._dto_from_document(document)
 
+    def add(self, item: T) -> T:
+        item_dict = self._document_from_dto(item)
+
+        if self.primary_key not in item_dict or not item_dict[self.primary_key]:
+            item_dict[self.primary_key] = str(uuid.uuid4())
+        item_dict["committed_at"] = datetime.now()
+
+        self.database[self.collection].insert_one(item_dict)
+        document = self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]})
+
+        return self._dto_from_document(document)
+
     def mongo_get(self, id: str) -> Dict:
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
@@ -168,6 +180,10 @@ class MongoDBStore(Store[T], Generic[T]):
 
     @abstractmethod
     def _dto_from_document(self, document: Dict) -> T:
+        pass
+
+    @abstractmethod
+    def _document_from_dto(self, item: T) -> Dict:
         pass
 
 

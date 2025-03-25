@@ -9,6 +9,7 @@ from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
+from fedn.network.storage.statestore.stores.shared import ValidationError
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -357,14 +358,18 @@ def post():
         session.session_config = session_config
         session.populate_with(data)
 
-        successful, result = session_store.add(session)
+        result = session_store.add(session)
+
         response = result.to_dict()
-        status_code: int = 201 if successful else 400
+        status_code: int = 201
 
         return jsonify(response), status_code
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400
+    except ValidationError as e:
+        logger.error(f"ValidationError occured: {e}")
+        return jsonify({"message": f"Invalid object {e}"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

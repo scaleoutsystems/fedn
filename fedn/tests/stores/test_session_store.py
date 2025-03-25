@@ -92,8 +92,7 @@ class TestSessionStore:
         
         db_connection.model_store.add(model)
         # Add a session and check that we get the added session back
-        success, read_session1 = db_connection.session_store.add(session)
-        assert success == True
+        read_session1 = db_connection.session_store.add(session)
         assert isinstance(read_session1.session_id, str)
         read_session1_dict = read_session1.to_dict()
 

@@ -33,9 +33,9 @@ def add_analytics():
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
 
         analytic = AnalyticDTO().patch_with(data)
-        successful, result = analytic_store.add(analytic)
-        response = result
-        status_code: int = 201 if successful else 400
+        result = analytic_store.add(analytic)
+        response = result.to_dict()
+        status_code: int = 201
 
         return jsonify(response), status_code
     except Exception as e:

@@ -33,13 +33,6 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "client_id")
 
-    def add(self, item: ClientDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
     def update(self, item: ClientDTO) -> Tuple[bool, Any]:
         item_dict = item.to_db(exclude_unset=True)
         success, obj = self.mongo_update(item_dict)
@@ -82,6 +75,9 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def _dto_from_document(self, document: Dict) -> ClientDTO:
         return ClientDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
+    def _document_from_dto(self, item):
+        return item.to_db(exclude_unset=False)
+
 
 class SQLClientStore(ClientStore, SQLStore[ClientModel]):
     def __init__(self, Session):
@@ -100,9 +96,7 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
             item_dict = self._to_orm_dict(item_dict)
             entity = ClientModel(**item_dict)
             success, obj = self.sql_add(session, entity)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
+            return self._dto_from_orm_model(obj)
 
     def update(self, item: ClientDTO) -> Tuple[bool, Any]:
         with self.Session() as session:

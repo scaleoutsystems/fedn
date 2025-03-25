@@ -83,8 +83,7 @@ class TestCombinerStore:
         # Add a combiner and check that we get the added combiner back
         name = test_combiner.name
 
-        success, read_combiner1 = db_connection.combiner_store.add(test_combiner)
-        assert success == True
+        read_combiner1 = db_connection.combiner_store.add(test_combiner)
         assert isinstance(read_combiner1.combiner_id, str)
         read_combiner1_dict = read_combiner1.to_dict()
         combiner_id = read_combiner1_dict["combiner_id"]

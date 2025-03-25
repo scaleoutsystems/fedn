@@ -282,9 +282,10 @@ class ControlBase(ABC):
         new_model.session_id = session_id
         new_model.name = name
 
-        updated, _ = self.model_store.add(new_model)
-
-        if not updated:
+        try:
+            self.model_store.add(new_model)
+        except Exception as e:
+            logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")
 
         self.model_store.set_active(model_id)
