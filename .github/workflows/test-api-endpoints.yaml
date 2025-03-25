@@ -34,8 +34,7 @@ jobs:
       
     - name: Start FEDn controller
       run: |
-        fedn controller start
-
+        fedn controller start &
     - name: Run tests
       run: |
         python3 -m unittest fedn.network.api.tests
